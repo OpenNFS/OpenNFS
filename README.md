@@ -7,4 +7,9 @@ To run (for now):
 
 Place car.fce in build directory and compile. Output is in same directory called Model.obj.
 
+Massive thanks to Denis Auroux, Vitaly 'Necromancer', EdasX, Ian Brown and Jesper Juul-Mortensen for their work on reverse engineering the FCE format. Check out their work here:
+
+https://sites.google.com/site/2torcs/labs/need-for-speed-3---hot-pursuit/nfs3-the-unofficial-file-format-descriptions
+
+Released under the MIT License.
 
