@@ -4,26 +4,32 @@ project(FCE_to_OBJ)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES
-        src/Functions.c
-        src/Functions.h
-        src/main.c)
+        src/fce_reader.cpp
+        src/fce_reader.h
+        src/main.cpp
+        external/glew-2.1.0/src/glew.c
+        src/obj_loader.cpp
+        src/controls.cpp
+        src/shader.cpp
+        src/NFS3_Mesh.cpp src/NFS3_Mesh.h)
 
 add_executable(FCE_to_OBJ ${SOURCE_FILES})
 
 #[[GLEW Configuration]]
-find_package(GLEW REQUIRED)
-if (GLEW_FOUND)
-    include_directories(${GLEW_INCLUDE_DIRS})
-    link_libraries(${GLEW_LIBRARIES})
-endif()
+add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
+include_directories("C:/Users/Amrik/Development/FCE-to-OBJ/external/glew-2.1.0/include")
+
+find_package(OpenGL REQUIRED)
+include_directories( ${OPENGL_INCLUDE_DIRS})
+target_link_libraries(FCE_to_OBJ ${OPENGL_LIBRARIES})
 
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(../glfw-3.2.1/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
+add_subdirectory(external/glfw-3.2.1/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(FCE_to_OBJ glfw)
 
-#[[Nuklear UI Library]]
-include_directories(./include/nuklear-master)
-
+#[[GLM Configuration]]
+add_subdirectory(external/glm-0.9.9-a2/ "${CMAKE_CURRENT_BINARY_DIR}/glm")
+target_link_libraries(FCE_to_OBJ glm)
