@@ -32,7 +32,7 @@ int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
     //Convert FCE to OBJ as temporary bodge
     //TODO: Replace with direct vertex transfer to GL Vert buffer
-   // convertFCE("car.fce", "Model.obj");
+    convertFCE("car.fce", "Model.obj");
 
     // Read our .obj file
     std::vector<glm::vec3> vertices;

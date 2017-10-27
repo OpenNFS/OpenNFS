@@ -17,7 +17,7 @@ add_executable(FCE_to_OBJ ${SOURCE_FILES})
 
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
-include_directories("C:/Users/Amrik/Development/FCE-to-OBJ/external/glew-2.1.0/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glew-2.1.0/include")
 
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS})
