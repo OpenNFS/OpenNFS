@@ -14,19 +14,18 @@ bool loadOBJFile(const char * path, std::vector<glm::vec3> & out_vertices
 		return false;
 	}
 
-    int res = 0;
-
-    while( res != EOF ){
+    while(1){
 		char lineHeader[128];
 		// Read first word from line
-		res = fscanf(obj_file, "%s", lineHeader);
+        int res = fscanf(obj_file, "%s", lineHeader);
+        if (res == EOF) break;
 
         //Begin parsing
 		if ( strcmp( lineHeader, "v" ) == 0 ){
 			glm::vec3 vertex{};
 			fscanf(obj_file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
 			temp_vertices.push_back(vertex);
-		} else if ( strcmp( lineHeader, "f " ) == 0 ){
+		} else if ( strcmp( lineHeader, "f" ) == 0 ){
 			std::string vertex1, vertex2, vertex3;
 			unsigned int vertexIndex[3];
 			int matches = fscanf(obj_file, "%d %d %d \n", &vertexIndex[0], &vertexIndex[1], &vertexIndex[2]);

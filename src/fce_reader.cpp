@@ -5,7 +5,6 @@
 //  Created by Amrik Sadhra on 27/10/2017.
 //
 
-#include <iostream>
 #include "fce_reader.h"
 
 void convertFCE(const char *fce_path, const char* out_path){
@@ -233,7 +232,6 @@ void FCE_Reader::writeObj(std::string path){
     std::cout << "Writing Meshes to " << path << std::endl;
     std::ofstream obj_dump;
     obj_dump.open("Model.obj");
-    NFS3_Mesh mesh = meshes[0];
     for(NFS3_Mesh mesh : meshes){
         /* Print Part name*/
         obj_dump << "o " << mesh.getName() << std::endl;

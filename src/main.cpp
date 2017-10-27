@@ -37,7 +37,10 @@ int main(int argc, const char *argv[]) {
     // Read our .obj file
     std::vector<glm::vec3> vertices;
     bool res = loadOBJFile("Model.obj", vertices);
-
+    if(!res){
+        cout << "OBJ loading failed. Exiting." << std::endl;
+        exit(2);
+    }
 
     // Initialise GLFW
     if (!glfwInit()) {
