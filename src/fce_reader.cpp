@@ -232,7 +232,8 @@ void FCE_Reader::writeObj(std::string path){
     std::cout << "Writing Meshes to " << path << std::endl;
     std::ofstream obj_dump;
     obj_dump.open("Model.obj");
-    for(NFS3_Mesh mesh : meshes){
+    NFS3_Mesh mesh = meshes[0];
+    //for(NFS3_Mesh mesh : meshes){
         /* Print Part name*/
         obj_dump << "o " << mesh.getName() << std::endl;
         //Dump Vertices
@@ -240,14 +241,14 @@ void FCE_Reader::writeObj(std::string path){
             obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
         }
         //Dump UVs
-        //for(auto uv : mesh.getUVs()){
-        //    obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
-        //}
+        for(auto uv : mesh.getUVs()){
+            obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
+        }
         //Dump Indices
         for(auto vert_index : mesh.getIndices()){
             obj_dump << "f " << vert_index[0] << " " << vert_index[1] << " " << vert_index[2] << std::endl;
         }
-    }
+    //}
     obj_dump.close();
 }
 

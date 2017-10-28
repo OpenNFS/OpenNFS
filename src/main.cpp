@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include "TGALoader.h"
 #include <fstream>
 #include <iostream>
 
@@ -26,7 +27,34 @@ GLFWwindow *window;
 #include "shader.h"
 #include "controls.h"
 #include "fce_reader.h"
+#include "TGALoader.h"
 
+
+GLint load_tga_texture(const char* path){
+    NS_TGALOADER::IMAGE texture_loader;
+
+    bool tex_load_status = texture_loader.LoadTGA(path);
+
+    if(!tex_load_status){
+        printf("Texture loading failed!\n");
+        exit(2);
+    }
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    return textureID;
+}
 
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
@@ -36,7 +64,9 @@ int main(int argc, const char *argv[]) {
 
     // Read our .obj file
     std::vector<glm::vec3> vertices;
-    bool res = loadOBJFile("Model.obj", vertices);
+    std::vector<glm::vec2> uvs;
+    bool res = loadOBJFile("Model.obj", vertices, uvs);
+
     if(!res){
         cout << "OBJ loading failed. Exiting." << std::endl;
         exit(2);
@@ -106,12 +136,23 @@ int main(int argc, const char *argv[]) {
     // Get a handle for our "MVP" uniform
     GLint MatrixID = glGetUniformLocation(programID, "MVP");
 
-    // Load vertices into a VBO
+    // Load the texture
+    GLuint Texture = load_tga_texture("CAR00.TGA");
 
+    // Get a handle for our "myTextureSampler" uniform
+    GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
+
+
+    // Load vertices into a VBO
     GLuint vertexbuffer;
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+    GLuint uvbuffer;
+    glGenBuffers(1, &uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
     do {
         // Clear the screen
@@ -144,6 +185,19 @@ int main(int argc, const char *argv[]) {
                 (void *) 0            // array buffer offset
         );
 
+        // 2nd attribute buffer : UVs
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+        glVertexAttribPointer(
+                1,                                // attribute
+                2,                                // size
+                GL_FLOAT,                         // type
+                GL_FALSE,                         // normalized?
+                0,                                // stride
+                (void*)0                          // array buffer offset
+        );
+
+
         // Draw the triangle !
         glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
@@ -160,8 +214,11 @@ int main(int argc, const char *argv[]) {
 
     // Cleanup VBO and shader
     glDeleteBuffers(1, &vertexbuffer);
+    glDeleteBuffers(1, &uvbuffer);
     glDeleteProgram(programID);
+    //glDeleteTextures(1, &Texture);
     glDeleteVertexArrays(1, &VertexArrayID);
+
 
     // Close OpenGL window and terminate GLFW
     glfwTerminate();

@@ -5,13 +5,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES
         src/fce_reader.cpp
-        src/fce_reader.h
         src/main.cpp
         external/glew-2.1.0/src/glew.c
         src/obj_loader.cpp
         src/controls.cpp
         src/shader.cpp
-        src/NFS3_Mesh.cpp src/NFS3_Mesh.h)
+        src/NFS3_Mesh.cpp
+        src/TGALoader.cpp)
 
 add_executable(FCE_to_OBJ ${SOURCE_FILES})
 
