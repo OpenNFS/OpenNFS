@@ -79,7 +79,7 @@ std::vector<glm::vec3> FCE_Reader::getVertices(int offset, unsigned int length){
     return vertices;
 }
 
-std::vector<glm::vec2> FCE_Reader::getTextCoords(int offset, unsigned int length){
+std::vector<glm::vec2> FCE_Reader::getTexCoords(int offset, unsigned int length){
     float texBuffer[6];
     std::vector<glm::vec2> uvs;
     uvs.reserve(length);
@@ -121,23 +121,20 @@ std::vector<glm::vec3> FCE_Reader::getNormals(int offset, unsigned int length){
     return normals;
 }
 
-std::vector<glm::vec3> FCE_Reader::getIndices(int offset, unsigned int length, int prevNumFaces){
+std::vector<unsigned int> FCE_Reader::getIndices(int offset, unsigned int length, int prevNumFaces){
     int indexBuffer[3];
-    std::vector<glm::vec3> indices;
+    std::vector<unsigned int> indices;
     indices.reserve(length);
 
     fseek(fce_file, offset, SEEK_SET);
     /*Read Triangles in*/
     for(int triIdx = 0; triIdx <= length; triIdx++){
-        indexBuffer[0] = readInt32LE(fce_file)+1;
-        indexBuffer[1] = readInt32LE(fce_file)+1;
-        indexBuffer[2] = readInt32LE(fce_file)+1;
-
-        glm::vec3 temp_indices = glm::vec3(indexBuffer[0],indexBuffer[1],indexBuffer[2]);
-
-        temp_indices += prevNumFaces;
-
-        if (triIdx != 0) indices.push_back(temp_indices);
+        for(int indexIdx = 0; indexIdx < 3; indexIdx++){
+            unsigned int index = readInt32LE(fce_file) + prevNumFaces;
+            if(triIdx != 0){
+                indices.push_back(index);
+            }
+        }
         fseek(fce_file, offset + 56*triIdx, SEEK_SET);
     }
 
@@ -219,7 +216,7 @@ void FCE_Reader::read(const char *fce_path){
         for(auto myPart : meshes){
             if (i != 0) { cumulativeVerts += partVertNumbers[i - 1] + 1;}
             meshes[i].setVertices(getVertices(vertOffset + partVertOffsets[i], partVertNumbers[i]));
-            meshes[i].setUVs(getTextCoords(triOffset + partTriOffsets[i] + 28, partTriNumbers[i]));
+            meshes[i].setUVs(getTexCoords(triOffset + partTriOffsets[i] + 28, partTriNumbers[i]));
             meshes[i].setNormals(getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]));
             meshes[i].setIndices(getIndices(triOffset + partTriOffsets[i], partTriNumbers[i], cumulativeVerts));
             i++;
@@ -232,8 +229,8 @@ void FCE_Reader::writeObj(std::string path){
     std::cout << "Writing Meshes to " << path << std::endl;
     std::ofstream obj_dump;
     obj_dump.open("Model.obj");
-    NFS3_Mesh mesh = meshes[0];
-    //for(NFS3_Mesh mesh : meshes){
+
+    for(NFS3_Mesh mesh : meshes){
         /* Print Part name*/
         obj_dump << "o " << mesh.getName() << std::endl;
         //Dump Vertices
@@ -245,10 +242,10 @@ void FCE_Reader::writeObj(std::string path){
             obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
         }
         //Dump Indices
-        for(auto vert_index : mesh.getIndices()){
-            obj_dump << "f " << vert_index[0] << " " << vert_index[1] << " " << vert_index[2] << std::endl;
-        }
-    //}
+       for(auto vert_index : mesh.getIndices()){
+       //    obj_dump << "f " << vert_index[0] << " " << vert_index[1] << " " << vert_index[2] << std::endl;
+       }
+    }
     obj_dump.close();
 }
 

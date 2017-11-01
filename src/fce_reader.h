@@ -31,9 +31,9 @@ private:
     unsigned int endian_swap(unsigned int x);
     unsigned int readInt32LE( FILE *file );
     std::vector<glm::vec3> getVertices(int offset, unsigned int length);
-    std::vector<glm::vec2> getTextCoords(int offset, unsigned int length);
+    std::vector<glm::vec2> getTexCoords(int offset, unsigned int length);
     std::vector<glm::vec3> getNormals(int offset, unsigned int length);
-    std::vector<glm::vec3> getIndices(int offset, unsigned int length, int prevNumFaces);
+    std::vector<unsigned int> getIndices(int offset, unsigned int length, int prevNumFaces);
     /* Globals*/
     FILE *fce_file;
     std::vector<NFS3_Mesh> meshes;

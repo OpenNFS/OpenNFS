@@ -26,22 +26,21 @@ public:
     std::string getName(void);
     std::vector<glm::vec2> getUVs(void);
     std::vector<glm::vec3> getVertices(void);
+    std::vector<unsigned int> getIndices(void);
     void setUVs(std::vector<glm::vec2> uvs);
     void setVertices(std::vector<glm::vec3> verts);
     void setNormals(std::vector<glm::vec3> norms);
-    void setIndices(std::vector<glm::vec3> indices);
+    void setIndices(std::vector<unsigned int> indices);
     /* Iterators to allow for ranged for loops with class*/
     iterator begin() const { return iterator(val); }
     iterator end() const { return iterator(val + len); }
-
-    std::vector<glm::vec3> getIndices();
 
 private:
     std::string m_name;
     std::vector<glm::vec3> m_vertices;
     std::vector<glm::vec3> m_normals;
     std::vector<glm::vec2> m_uvs;
-    std::vector<glm::vec3> m_vertex_indices;
+    std::vector<unsigned int> m_vertex_indices;
     /* Iterator vars */
     unsigned len;
     NFS3_Mesh *val;

@@ -18,7 +18,7 @@ std::vector<glm::vec3> NFS3_Mesh::getVertices(void){
     return m_vertices;
 }
 
-std::vector<glm::vec3> NFS3_Mesh::getIndices() {
+std::vector<unsigned int> NFS3_Mesh::getIndices() {
     return m_vertex_indices;
 }
 
@@ -40,7 +40,7 @@ void NFS3_Mesh::setNormals(std::vector<glm::vec3> norms){
 }
 
 
-void NFS3_Mesh::setIndices(std::vector<glm::vec3> indices){
+void NFS3_Mesh::setIndices(std::vector<unsigned int> indices){
     m_vertex_indices = std::move(indices);
 }
 

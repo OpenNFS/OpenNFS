@@ -45,10 +45,10 @@ GLint load_tga_texture(const char* path){
 
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -60,17 +60,21 @@ int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
     //Convert FCE to OBJ as temporary bodge
     //TODO: Replace with direct vertex transfer to GL Vert buffer
-    convertFCE("car.fce", "Model.obj");
+    //convertFCE("car.fce", "Model.obj");
+    FCE_Reader fce_reader("car.fce");
+    std::vector<NFS3_Mesh> meshes = fce_reader.getMeshes();
+
+
+    std::vector<glm::vec3> vertices = meshes[0].getVertices();
+    std::vector<glm::vec2> uvs =  meshes[0].getUVs();
+    std::vector<unsigned int> indices = meshes[0].getIndices();
 
     // Read our .obj file
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    bool res = loadOBJFile("Model.obj", vertices, uvs);
-
-    if(!res){
-        cout << "OBJ loading failed. Exiting." << std::endl;
-        exit(2);
-    }
+    //bool res = loadOBJFile("Model.obj", vertices, uvs);
+    //if(!res){
+    //    cout << "OBJ loading failed. Exiting." << std::endl;
+    //    exit(2);
+    //}
 
     // Initialise GLFW
     if (!glfwInit()) {
@@ -149,6 +153,13 @@ int main(int argc, const char *argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
+
+    // Generate a buffer for the indices
+    GLuint elementbuffer;
+    glGenBuffers(1, &elementbuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
     GLuint uvbuffer;
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
@@ -199,7 +210,17 @@ int main(int argc, const char *argv[]) {
 
 
         // Draw the triangle !
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        //glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        // Index buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+        // Draw the triangles !
+        glDrawElements(
+                GL_TRIANGLES,      // mode
+                indices.size(),    // count
+                GL_UNSIGNED_INT,   // type
+                (void*)0           // element array buffer offset
+        );
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
