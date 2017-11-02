@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
 project(FCE_to_OBJ)
 
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES
-        src/fce_reader.cpp
+        src/nfs_loader.cpp
+        src/nfs_loader.h
         src/main.cpp
         external/glew-2.1.0/src/glew.c
         src/obj_loader.cpp

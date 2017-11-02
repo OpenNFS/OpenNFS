@@ -26,7 +26,7 @@ GLFWwindow *window;
 #include "obj_loader.h"
 #include "shader.h"
 #include "controls.h"
-#include "fce_reader.h"
+#include "nfs_loader.h"
 #include "TGALoader.h"
 
 
@@ -58,13 +58,10 @@ GLint load_tga_texture(const char* path){
 
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
-    //Convert FCE to OBJ as temporary bodge
-    //TODO: Replace with direct vertex transfer to GL Vert buffer
-    //convertFCE("car.fce", "Model.obj");
-    FCE_Reader fce_reader("car.fce");
-    std::vector<NFS3_Mesh> meshes = fce_reader.getMeshes();
+    NFS_Loader nfs_loader("car.viv");
 
-
+    //Load OpenGL data from unpacked NFS files
+    std::vector<NFS3_Mesh> meshes = nfs_loader.getMeshes();
     std::vector<glm::vec3> vertices = meshes[0].getVertices();
     std::vector<glm::vec2> uvs =  meshes[0].getUVs();
     std::vector<unsigned int> indices = meshes[0].getIndices();
