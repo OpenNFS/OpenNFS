@@ -26,6 +26,8 @@ public:
     std::string getName(void);
     std::vector<glm::vec2> getUVs(void);
     std::vector<glm::vec3> getVertices(void);
+    std::vector<glm::vec3> getNormals(void);
+    unsigned int getVAO();
     std::vector<unsigned int> getIndices(void);
     void setUVs(std::vector<glm::vec2> uvs);
     void setVertices(std::vector<glm::vec3> verts);
@@ -45,4 +47,3 @@ private:
     unsigned len;
     NFS3_Mesh *val;
 };
-

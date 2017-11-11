@@ -30,12 +30,33 @@ GLFWwindow *window;
 #include "TGALoader.h"
 
 
+std::vector<glm::vec2> loadUVS(const char *path) {
+    std::vector<glm::vec2> temp_uvs;
+
+    FILE *obj_file = fopen(path, "r");
+
+    while (1) {
+        char lineHeader[128];
+        // Read first word from line
+        int res = fscanf(obj_file, "%s", lineHeader);
+        if (res == EOF) break;
+
+        glm::vec2 uv{};
+        fscanf(obj_file, "%f %f\n", &uv.x, &uv.y);
+       //uv.x = 1-uv.x;
+       //uv.y = 1-uv.y;
+        temp_uvs.push_back(uv);
+    }
+
+    fclose(obj_file);
+
+    return temp_uvs;
+}
+
 GLint load_tga_texture(const char* path){
     NS_TGALOADER::IMAGE texture_loader;
 
-    bool tex_load_status = texture_loader.LoadTGA(path);
-
-    if(!tex_load_status){
+    if(!texture_loader.LoadTGA(path)){
         printf("Texture loading failed!\n");
         exit(2);
     }
@@ -60,11 +81,15 @@ int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
     NFS_Loader nfs_loader("car.viv");
 
+    nfs_loader.writeObj("Model.obj");
     //Load OpenGL data from unpacked NFS files
     std::vector<NFS3_Mesh> meshes = nfs_loader.getMeshes();
-    std::vector<glm::vec3> vertices = meshes[0].getVertices();
-    std::vector<glm::vec2> uvs =  meshes[0].getUVs();
-    std::vector<unsigned int> indices = meshes[0].getIndices();
+
+    int meshNum = 0;
+    std::vector<glm::vec3> vertices = meshes[meshNum].getVertices();
+    std::vector<glm::vec3> normals = meshes[meshNum].getNormals();
+    std::vector<glm::vec2> uvs =  meshes[meshNum].getUVs();
+    std::vector<unsigned int> indices = meshes[meshNum].getIndices();
 
     // Read our .obj file
     //bool res = loadOBJFile("Model.obj", vertices, uvs);
@@ -124,7 +149,10 @@ int main(int argc, const char *argv[]) {
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    glEnable(GL_CULL_FACE);
+    glEnable(GL_FRONT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -138,11 +166,10 @@ int main(int argc, const char *argv[]) {
     GLint MatrixID = glGetUniformLocation(programID, "MVP");
 
     // Load the texture
-    GLuint Texture = load_tga_texture("CAR00.TGA");
+    GLuint Texture = load_tga_texture("car00.tga");
 
     // Get a handle for our "myTextureSampler" uniform
     GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
-
 
     // Load vertices into a VBO
     GLuint vertexbuffer;
@@ -150,17 +177,23 @@ int main(int argc, const char *argv[]) {
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
+    // UVs
+    GLuint uvbuffer;
+    glGenBuffers(1, &uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 
-    // Generate a buffer for the indices
+    // Indices
     GLuint elementbuffer;
     glGenBuffers(1, &elementbuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-    GLuint uvbuffer;
-    glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+    // Normals
+    GLuint normalbuffer;
+    glGenBuffers(1, &normalbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0],  GL_STATIC_DRAW);
 
     do {
         // Clear the screen
@@ -205,9 +238,19 @@ int main(int argc, const char *argv[]) {
                 (void*)0                          // array buffer offset
         );
 
+        // 3rd attribute buffer : Normals
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+        glVertexAttribPointer(
+                2,                  // attribute
+                3,                  // size
+                GL_FLOAT,           // type
+                GL_TRUE,           // normalized?
+                0,                  // stride
+                (void *) 0            // array buffer offset
+        );
 
-        // Draw the triangle !
-        //glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
         // Index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
@@ -221,6 +264,7 @@ int main(int argc, const char *argv[]) {
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
 
         // Swap buffers
         glfwSwapBuffers(window);
@@ -233,10 +277,10 @@ int main(int argc, const char *argv[]) {
     // Cleanup VBO and shader
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &uvbuffer);
+    glDeleteBuffers(1, &normalbuffer);
     glDeleteProgram(programID);
-    //glDeleteTextures(1, &Texture);
+    glDeleteTextures(1, &Texture);
     glDeleteVertexArrays(1, &VertexArrayID);
-
 
     // Close OpenGL window and terminate GLFW
     glfwTerminate();

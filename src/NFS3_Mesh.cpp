@@ -5,6 +5,7 @@
 #include "NFS3_Mesh.h"
 
 #include <utility>
+#include <GL/glew.h>
 
 NFS3_Mesh::NFS3_Mesh() = default;
 
@@ -17,6 +18,11 @@ std::vector<glm::vec2> NFS3_Mesh::getUVs(void){
 std::vector<glm::vec3> NFS3_Mesh::getVertices(void){
     return m_vertices;
 }
+
+std::vector<glm::vec3> NFS3_Mesh::getNormals(void){
+    return m_normals;
+}
+
 
 std::vector<unsigned int> NFS3_Mesh::getIndices() {
     return m_vertex_indices;
@@ -44,4 +50,7 @@ void NFS3_Mesh::setIndices(std::vector<unsigned int> indices){
     m_vertex_indices = std::move(indices);
 }
 
+unsigned int NFS3_Mesh::getVAO(){
+
+}
 

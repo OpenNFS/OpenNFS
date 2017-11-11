@@ -125,7 +125,7 @@ NFS_Loader::NFS_Loader(const char *viv_path) {
     readFCE("car.fce");
 }
 
-std::vector<glm::vec3> NFS_Loader::getVertices(int offset, unsigned int length) {
+std::vector<glm::vec3> NFS_Loader::getVertices(int partNumber, int offset, unsigned int length) {
     int vertIdx = 0;
 
     std::vector<glm::vec3> vertices;
@@ -137,14 +137,9 @@ std::vector<glm::vec3> NFS_Loader::getVertices(int offset, unsigned int length) 
     /*Buffer to store global coordinates. All X,Y,Z coords currently local. To Global, + global coordinates to local*/
     float globalBuffer[3];
 
-    /*HACK: Needed so that can Identify new part. If new part, get new Global coordinates*/
-    static int globalIndex;
-    static int previousOffset;
-
-    if (previousOffset != offset) { globalIndex += tVectorSize; }
-    fseek(fce_file, 252 + globalIndex, SEEK_SET);//retrieve global coords
+    /* If new part, get new Global coordinates*/
+    fseek(fce_file, 252 + (partNumber * tVectorSize), SEEK_SET);
     fread(globalBuffer, 4, 3, fce_file);
-    previousOffset = offset;
 
     fseek(fce_file, offset, SEEK_SET);
 
@@ -172,14 +167,13 @@ std::vector<glm::vec2> NFS_Loader::getTexCoords(int offset, unsigned int numTria
 
     /*Read Triangles in*/
     for (unsigned int triIdx = 0; triIdx < numTriangles; triIdx++) {
-        fread(texBuffer, 4, 6, fce_file);
+        fread(texBuffer, 0x04, 6, fce_file);
         /* Read V1 UV, V2 UV, V3 UV */
         for (int uvIdx = 0; uvIdx < 3; uvIdx++) {
             glm::vec2 temp_uv = glm::vec2(texBuffer[uvIdx], texBuffer[uvIdx + 3]);
             uvs.push_back(temp_uv);
         }
-        fseek(fce_file, 0x20, SEEK_CUR);
-        //fseek(fce_file, static_cast<long>(offset + 0x20 + tTriangleSize * triIdx), SEEK_SET);
+        fseek(fce_file, tTriangleSize - (6 * 0x04), SEEK_CUR);
     }
 
     return uvs;
@@ -206,7 +200,7 @@ std::vector<glm::vec3> NFS_Loader::getNormals(int offset, unsigned int length) {
     return normals;
 }
 
-std::vector<unsigned int> NFS_Loader::getIndices(int offset, unsigned int length, int prevNumFaces) {
+std::vector<unsigned int> NFS_Loader::getIndices(int offset, unsigned int length) {
     int indexBuffer[3];
     std::vector<unsigned int> indices;
     indices.reserve(length);
@@ -215,12 +209,12 @@ std::vector<unsigned int> NFS_Loader::getIndices(int offset, unsigned int length
     /*Read Triangles in*/
     for (int triIdx = 0; triIdx <= length; triIdx++) {
         for (int indexIdx = 0; indexIdx < 3; indexIdx++) {
-            unsigned int index = readInt32(fce_file, true) + prevNumFaces;
+            unsigned int index = readInt32(fce_file, true);
             if (triIdx != 0) {
                 indices.push_back(index);
             }
         }
-        fseek(fce_file, offset + tTriangleSize * triIdx, SEEK_SET);
+        fseek(fce_file, tTriangleSize - (3 * 0x04), SEEK_CUR);
     }
 
     return indices;
@@ -292,16 +286,13 @@ void NFS_Loader::readFCE(const char *fce_path) {
         partTriOffsets[i] = readInt32(fce_file, true) * tTriangleSize;
     }
 
-    /*Write all part data to output obj file*/
-    unsigned int cumulativeVerts = 0;
     int i = 0;
 
     for (NFS3_Mesh myPart : meshes) {
-        if (i != 0) { cumulativeVerts += partVertNumbers[i - 1] + 1; }
-        meshes[i].setVertices(getVertices(vertOffset + partVertOffsets[i], partVertNumbers[i]));
+        meshes[i].setVertices(getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]));
         meshes[i].setUVs(getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]));
         meshes[i].setNormals(getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]));
-        meshes[i].setIndices(getIndices(triOffset + partTriOffsets[i], partTriNumbers[i], cumulativeVerts));
+        meshes[i].setIndices(getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]));
         i++;
     }
 
@@ -326,7 +317,7 @@ void NFS_Loader::writeObj(std::string path) {
         }
         //Dump Indices
         for (auto vert_index : mesh.getIndices()) {
-            //    obj_dump << "f " << vert_index[0] << " " << vert_index[1] << " " << vert_index[2] << std::endl;
+                obj_dump << "f " << vert_index << std::endl;
         }
     }
     obj_dump.close();
@@ -335,6 +326,7 @@ void NFS_Loader::writeObj(std::string path) {
 std::vector<NFS3_Mesh> NFS_Loader::getMeshes() {
     return meshes;
 }
+
 
 
 

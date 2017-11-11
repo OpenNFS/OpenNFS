@@ -44,11 +44,14 @@ public:
     std::vector<NFS3_Mesh> getMeshes();
 private:
     void readFCE(const char *fce_path); //Add exception handling, true false return?
-    std::vector<glm::vec3> getVertices(int offset, unsigned int length);
+
+    std::vector<glm::vec3> getVertices(int partNumber, int offset, unsigned int length);
     std::vector<glm::vec2> getTexCoords(int offset, unsigned int numTriangles);
     std::vector<glm::vec3> getNormals(int offset, unsigned int length);
-    std::vector<unsigned int> getIndices(int offset, unsigned int length, int prevNumFaces);
+    std::vector<unsigned int> getIndices(int offset, unsigned int length);
     /* Globals*/
     FILE *fce_file;
     std::vector<NFS3_Mesh> meshes;
+
+
 };
