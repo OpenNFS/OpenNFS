@@ -135,17 +135,6 @@ int main(int argc, const char *argv[]) {
     nfs_loader.writeObj("Model.obj");
     //Load OpenGL data from unpacked NFS files
     std::vector<NFS3_Mesh> meshes = nfs_loader.getMeshes();
-    int meshNum = 0;
-    std::vector<glm::vec3> car_verts = meshes[meshNum].getVertices();
-    std::vector<glm::vec3> car_norms = meshes[meshNum].getNormals();
-    std::vector<glm::vec2> car_uvs = meshes[meshNum].getUVs();
-    std::vector<unsigned int> car_indices = meshes[meshNum].getIndices();
-    //Load Track Data
-    std::vector<glm::vec3> track_verts = std::vector<glm::vec3>();
-    std::vector<glm::vec3> track_norms = std::vector<glm::vec3>();
-    std::vector<glm::vec2> track_uvs = std::vector<glm::vec2>();
-    std::vector<unsigned int> track_indices = std::vector<unsigned int>();
-
     // Read our Track .obj file
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -157,6 +146,10 @@ int main(int argc, const char *argv[]) {
     }
     // Loop over shapes
     for(size_t s = 0; s < shapes.size(); ++s){
+        std::vector<glm::vec3> verts = std::vector<glm::vec3>();
+        std::vector<glm::vec3> norms = std::vector<glm::vec3>();
+        std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
+        std::vector<unsigned int> indices = std::vector<unsigned int>();
         // Loop over faces(polygon)
         size_t index_offset = 0;
         for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
@@ -165,23 +158,16 @@ int main(int argc, const char *argv[]) {
             for (size_t v = 0; v < fv; v++) {
                 // access to vertex
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                track_indices.push_back(idx.vertex_index);
-                tinyobj::real_t vx = attrib.vertices[3 * idx.vertex_index + 0];
-                tinyobj::real_t vy = attrib.vertices[3 * idx.vertex_index + 1];
-                tinyobj::real_t vz = attrib.vertices[3 * idx.vertex_index + 2];
-                track_verts.push_back(glm::vec3(vx * 0.01, vy * 0.01, vz * 0.01));
-                tinyobj::real_t nx = attrib.normals[3 * idx.normal_index + 0];
-                tinyobj::real_t ny = attrib.normals[3 * idx.normal_index + 1];
-                tinyobj::real_t nz = attrib.normals[3 * idx.normal_index + 2];
-                track_norms.push_back(glm::vec3(nx, ny, nz));
-                tinyobj::real_t tx = attrib.texcoords[2 * idx.texcoord_index + 0];
-                tinyobj::real_t ty = attrib.texcoords[2 * idx.texcoord_index + 1];
-                track_uvs.push_back(glm::vec2(tx, ty));
+                indices.push_back(idx.vertex_index);
+                verts.push_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.01, attrib.vertices[3 * idx.vertex_index + 1] * 0.01, attrib.vertices[3 * idx.vertex_index + 2] * 0.01));
+                norms.push_back(glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1], attrib.normals[3 * idx.normal_index + 2]));
+                uvs.push_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0], attrib.texcoords[2 * idx.texcoord_index + 1]));
             }
             index_offset += fv;
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
+        meshes.push_back(NFS3_Mesh(shapes[s].name, verts, uvs, norms, indices));
     }
 
     if (!init_opengl()) {
@@ -190,64 +176,25 @@ int main(int argc, const char *argv[]) {
     }
 
     // Create and compile our GLSL program from the shaders
-    GLuint programID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
-                                   "../shaders/TextureFragmentShader.fragmentshader");
-
+    GLuint programID = LoadShaders("../shaders/TransformVertexShader.vertexshader", "../shaders/TextureFragmentShader.fragmentshader");
     // Get a handle for our "MVP" uniform
     GLint MatrixID = glGetUniformLocation(programID, "MVP");
-
     // Load the texture
     GLuint Texture = load_tga_texture("car00.tga");
     // Get a handle for our "myTextureSampler" uniform
     GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
 
-    /*------- CAR --------*/
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
-    // Load car_verts into a VBO
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, car_verts.size() * sizeof(glm::vec3), &car_verts[0], GL_STATIC_DRAW);
-    // UVs
-    GLuint uvbuffer;
-    glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, car_uvs.size() * sizeof(glm::vec2), &car_uvs[0], GL_STATIC_DRAW);
-    // Indices
-    GLuint elementbuffer;
-    glGenBuffers(1, &elementbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, car_indices.size() * sizeof(unsigned int), &car_indices[0], GL_STATIC_DRAW);
-    // Normals
-    GLuint normalbuffer;
-    glGenBuffers(1, &normalbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, car_norms.size() * sizeof(glm::vec3), &car_norms[0], GL_STATIC_DRAW);
 
-    /*------- TRACK --------*/
-    // Load track into a VBO
-    GLuint track_vertexbuffer;
-    glGenBuffers(1, &track_vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, track_vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, track_verts.size() * sizeof(glm::vec3), &track_verts[0], GL_STATIC_DRAW);
-    // UVs
-    GLuint track_uvbuffer;
-    glGenBuffers(1, &track_uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, track_uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, track_uvs.size() * sizeof(glm::vec2), &track_uvs[0], GL_STATIC_DRAW);
-    // Indices
-    GLuint track_elementbuffer;
-    glGenBuffers(1, &track_elementbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, track_elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, track_indices.size() * sizeof(unsigned int), &track_indices[0],
-                 GL_STATIC_DRAW);
-    // Normals
-    GLuint track_normalbuffer;
-    glGenBuffers(1, &track_normalbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, track_normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, track_norms.size() * sizeof(glm::vec3), &track_norms[0], GL_STATIC_DRAW);
+    /*------- MODELS --------*/
+    // Gen VBOs
+    for(int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx){
+        if(!meshes[mesh_Idx].genBuffers()){
+            return -1;
+        }
+    }
 
     do {
         // Clear the screen
@@ -260,92 +207,13 @@ int main(int argc, const char *argv[]) {
         glm::mat4 ViewMatrix = getViewMatrix();
         glm::mat4 ModelMatrix = glm::mat4(1.0);
         glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-        // Send our transformation to the currently bound shader,
-        // in the "MVP" uniform
+        // Send our transformation to the currently bound shader, in the "MVP" uniform
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
-        // 1st attribute buffer : car_verts
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glVertexAttribPointer(
-                0,                  // attribute
-                3,                  // size
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                0,                  // stride
-                (void *) 0            // array buffer offset
-        );
-        // 2nd attribute buffer : UVs
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-        glVertexAttribPointer(
-                1,                                // attribute
-                2,                                // size
-                GL_FLOAT,                         // type
-                GL_FALSE,                         // normalized?
-                0,                                // stride
-                (void *) 0                          // array buffer offset
-        );
-        // 3rd attribute buffer : Normals
-        glEnableVertexAttribArray(2);
-        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-        glVertexAttribPointer(
-                2,                  // attribute
-                3,                  // size
-                GL_FLOAT,           // type
-                GL_TRUE,           // normalized?
-                0,                  // stride
-                (void *) 0            // array buffer offset
-        );
-        // Index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-        // Draw the triangles !
-        /*glDrawElements(
-                GL_TRIANGLES,      // mode
-                car_indices.size(),    // count
-                GL_UNSIGNED_INT,   // type
-                (void *) 0           // element array buffer offset
-        );*/
+        for(int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx){
+            meshes[mesh_Idx].render();
+        }
 
-        // 1st attribute buffer : track_verts
-        glBindBuffer(GL_ARRAY_BUFFER, track_vertexbuffer);
-        glVertexAttribPointer(
-                0,                  // attribute
-                3,                  // size
-                GL_FLOAT,           // type
-                GL_FALSE,           // normalized?
-                0,                  // stride
-                (void *) 0            // array buffer offset
-        );
-        // 2nd attribute buffer : UVs
-        glBindBuffer(GL_ARRAY_BUFFER, track_uvbuffer);
-        glVertexAttribPointer(
-                1,                                // attribute
-                2,                                // size
-                GL_FLOAT,                         // type
-                GL_FALSE,                         // normalized?
-                0,                                // stride
-                (void *) 0                          // array buffer offset
-        );
-        // 3rd attribute buffer : Normals
-        glBindBuffer(GL_ARRAY_BUFFER, track_normalbuffer);
-        glVertexAttribPointer(
-                2,                  // attribute
-                3,                  // size
-                GL_FLOAT,           // type
-                GL_TRUE,           // normalized?
-                0,                  // stride
-                (void *) 0            // array buffer offset
-        );
-        // Index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, track_elementbuffer);
-        // Draw the triangles !
-        glDrawElements(
-                GL_TRIANGLES,      // mode
-                track_indices.size()-1,    // count
-                GL_UNSIGNED_INT,   // type
-                (void *) 1           // element array buffer offset
-        );
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
@@ -355,16 +223,12 @@ int main(int argc, const char *argv[]) {
         glfwPollEvents();
 
     }
-    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-           glfwWindowShouldClose(window) == 0);
+    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
     // Cleanup VBO and shader
-    glDeleteBuffers(1, &vertexbuffer);
-    glDeleteBuffers(1, &uvbuffer);
-    glDeleteBuffers(1, &normalbuffer);
-    glDeleteBuffers(1, &track_vertexbuffer);
-    glDeleteBuffers(1, &track_uvbuffer);
-    glDeleteBuffers(1, &track_normalbuffer);
+    for(int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx){
+        meshes[mesh_Idx].destroy();
+    }
     glDeleteProgram(programID);
     glDeleteTextures(1, &Texture);
     glDeleteVertexArrays(1, &VertexArrayID);

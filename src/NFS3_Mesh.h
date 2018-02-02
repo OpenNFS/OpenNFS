@@ -7,9 +7,21 @@
 #include <cstdlib>
 #include <string>
 #include <glm/glm.hpp>
+#include <GL/glew.h>
+
+class Buffers {
+public:
+    GLuint vertexbuffer;
+    GLuint uvbuffer;
+    GLuint elementbuffer;
+    GLuint normalbuffer;
+};
 
 class NFS3_Mesh {
 public:
+    NFS3_Mesh(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
+                  std::vector<unsigned int> indices);
+
     class iterator {
     public:
         explicit iterator(NFS3_Mesh *ptr): ptr(ptr){}
@@ -19,14 +31,13 @@ public:
     private:
         NFS3_Mesh* ptr;
     };
-
     NFS3_Mesh();
     explicit NFS3_Mesh(std::string name);
     std::string getName(void);
     std::vector<glm::vec2> getUVs(void);
     std::vector<glm::vec3> getVertices(void);
     std::vector<glm::vec3> getNormals(void);
-    unsigned int getVAO();
+    bool genBuffers();
     std::vector<unsigned int> getIndices(void);
     void setUVs(std::vector<glm::vec2> uvs);
     void setVertices(std::vector<glm::vec3> verts);
@@ -35,7 +46,10 @@ public:
     /* Iterators to allow for ranged for loops with class*/
     iterator begin() const { return iterator(val); }
     iterator end() const { return iterator(val + len); }
+    void render();
+    void destroy();
 
+    NFS3_Mesh *val;
 private:
     std::string m_name;
     std::vector<glm::vec3> m_vertices;
@@ -44,5 +58,5 @@ private:
     std::vector<unsigned int> m_vertex_indices;
     /* Iterator vars */
     unsigned len;
-    NFS3_Mesh *val;
+    Buffers gl_buffers;
 };
