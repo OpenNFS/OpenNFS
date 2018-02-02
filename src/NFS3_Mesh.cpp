@@ -51,6 +51,6 @@ void NFS3_Mesh::setIndices(std::vector<unsigned int> indices){
 }
 
 unsigned int NFS3_Mesh::getVAO(){
-
+    return 0;
 }
 

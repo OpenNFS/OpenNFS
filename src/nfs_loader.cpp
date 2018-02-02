@@ -106,8 +106,6 @@ void extractViv(const char *viv_path) {
 
         for (b = 0; b < filesize; b++) {
             c = fgetc(vivfile);
-            //Bug here, extra characters advancing the file pointer by too much
-            //In cases where there is a 0A 0A, fputc will write 0D 0A
             fputc(c, outfile);
         }
 

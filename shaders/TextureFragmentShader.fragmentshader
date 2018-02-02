@@ -12,13 +12,13 @@ uniform sampler2D myTextureSampler;
 void main(){
 vec4 tempColor = texture( myTextureSampler, UV ).rgba;
 	// Output color = color of the texture at the specified UV
-	color.r = tempColor.r;
-	color.g = tempColor.g;
-	color.b = tempColor.b;
-	color.a = tempColor.a;
+	//color.r = tempColor.r;
+	//color.g = tempColor.g;
+	//color.b = tempColor.b;
+	//color.a = tempColor.a;
 
-	//color.r = 0.0;
-    //color.g = 0.0;
-    //color.b = 0.0;
-    //color.a = tempColor.a;
+	color.r = 0.0;
+    color.g = 0.0;
+    color.b = 0.0;
+    color.a = tempColor.a;
 }

@@ -1,6 +1,6 @@
 #include "obj_loader.h"
 
-bool loadOBJFile(const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs
+bool loadOBJFile(const char * path, std::vector<glm::vec3> & out_vertices, std::vector<glm::vec2> & out_uvs, std::vector<unsigned int> &out_indices
 ){
 	printf("Attempting to load OBJ File from %s\n", path);
 
@@ -60,6 +60,7 @@ bool loadOBJFile(const char * path, std::vector<glm::vec3> & out_vertices, std::
 		glm::vec2 uv = temp_uvs[ vertexIndex-1 ];
         out_vertices.push_back(vertex);
 		out_uvs.push_back(uv);
+		out_indices.push_back(vertexIndex);
     }
         fclose(obj_file);
 	return true;

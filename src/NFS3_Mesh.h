@@ -4,10 +4,9 @@
 #pragma once
 
 #include <vector>
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
 #include <cstdlib>
 #include <string>
+#include <glm/glm.hpp>
 
 class NFS3_Mesh {
 public:
