@@ -16,7 +16,7 @@
 #include <cmath>
 #include <glm/vec3.hpp>
 #include "NFS3_Mesh.h"
-#include <tiny_obj_loader.h>
+#include <tinyobjloader/tiny_obj_loader.h>
 
 #define DATA_START 7940
 #define VertTblOffset 0x0010

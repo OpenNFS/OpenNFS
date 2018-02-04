@@ -10,7 +10,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(SOURCE_FILES
         src/nfs_loader.cpp
         src/nfs_loader.h
-        include/tiny_obj_loader.h
         src/main.cpp
         external/glew-2.1.0/src/glew.c
         src/obj_loader.cpp
