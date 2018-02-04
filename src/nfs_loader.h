@@ -16,6 +16,7 @@
 #include <cmath>
 #include <glm/vec3.hpp>
 #include "NFS3_Mesh.h"
+#include <tiny_obj_loader.h>
 
 #define DATA_START 7940
 #define VertTblOffset 0x0010
@@ -35,12 +36,12 @@
 void convertFCE(const char *fce_path, const char* out_path);
 void extractViv(const char *viv_path);
 unsigned int endian_swap(unsigned int x);
-unsigned int readInt32LE( FILE *file );
 
 class NFS_Loader {
 public:
     explicit NFS_Loader(const char *viv_path);
     void writeObj(std::string path);
+    bool loadObj(std::string obj_path);
     std::vector<NFS3_Mesh> getMeshes();
 private:
     void readFCE(const char *fce_path); //Add exception handling, true false return?
@@ -52,6 +53,4 @@ private:
     /* Globals*/
     FILE *fce_file;
     std::vector<NFS3_Mesh> meshes;
-
-
 };

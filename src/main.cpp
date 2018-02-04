@@ -11,9 +11,10 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw_gl3.h>
 #include "TGALoader.h"
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
 
 // Source
 #include "shader.h"
@@ -21,6 +22,8 @@
 #include "nfs_loader.h"
 
 GLFWwindow *window;
+
+using namespace ImGui;
 
 std::vector<glm::vec2> loadUVS(const char *path) {
     std::vector<glm::vec2> temp_uvs;
@@ -132,51 +135,27 @@ bool init_opengl() {
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
     NFS_Loader nfs_loader("car.viv");
+    if(!nfs_loader.loadObj("lap3.obj")){
+        std::cout << "Track load failed" << std::endl;
+    };
     nfs_loader.writeObj("Model.obj");
     //Load OpenGL data from unpacked NFS files
     std::vector<NFS3_Mesh> meshes = nfs_loader.getMeshes();
-    // Read our Track .obj file
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string err;
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "lap3.obj")) {
-        std::cout << err << std::endl;
-        return -1;
-    }
-    // Loop over shapes
-    for(size_t s = 0; s < shapes.size(); ++s){
-        std::vector<glm::vec3> verts = std::vector<glm::vec3>();
-        std::vector<glm::vec3> norms = std::vector<glm::vec3>();
-        std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
-        std::vector<unsigned int> indices = std::vector<unsigned int>();
-        // Loop over faces(polygon)
-        size_t index_offset = 0;
-        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-            int fv = shapes[s].mesh.num_face_vertices[f];
-            // Loop over vertices in the face.
-            for (size_t v = 0; v < fv; v++) {
-                // access to vertex
-                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                indices.push_back(idx.vertex_index);
-                verts.push_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.01, attrib.vertices[3 * idx.vertex_index + 1] * 0.01, attrib.vertices[3 * idx.vertex_index + 2] * 0.01));
-                norms.push_back(glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1], attrib.normals[3 * idx.normal_index + 2]));
-                uvs.push_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0], attrib.texcoords[2 * idx.texcoord_index + 1]));
-            }
-            index_offset += fv;
-            // per-face material
-            shapes[s].mesh.material_ids[f];
-        }
-        meshes.push_back(NFS3_Mesh(shapes[s].name, verts, uvs, norms, indices));
-    }
+    meshes[0].enable();
 
     if (!init_opengl()) {
         std::cout << "OpenGL init failed." << std::endl;
         return -1;
     }
 
+    // Setup ImGui binding
+    ImGui_ImplGlfwGL3_Init(window, true);
+    // Setup style
+    ImGui::StyleColorsDark();
+
     // Create and compile our GLSL program from the shaders
-    GLuint programID = LoadShaders("../shaders/TransformVertexShader.vertexshader", "../shaders/TextureFragmentShader.fragmentshader");
+    GLuint programID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
+                                   "../shaders/TextureFragmentShader.fragmentshader");
     // Get a handle for our "MVP" uniform
     GLint MatrixID = glGetUniformLocation(programID, "MVP");
     // Load the texture
@@ -190,19 +169,28 @@ int main(int argc, const char *argv[]) {
 
     /*------- MODELS --------*/
     // Gen VBOs
-    for(int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx){
-        if(!meshes[mesh_Idx].genBuffers()){
+    for (int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx) {
+        if (!meshes[mesh_Idx].genBuffers()) {
             return -1;
         }
     }
 
-    do {
+    bool show_demo_window = true;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    bool window_active = true;
+
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // Use our shader
         glUseProgram(programID);
+        // Detect a click on the 3D Window by detecting a click that isn't on ImGui
+        window_active = window_active ? window_active : ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)&&(!ImGui::GetIO().WantCaptureMouse));
+        ImGui_ImplGlfwGL3_NewFrame();
         // Compute the MVP matrix from keyboard and mouse input
-        computeMatricesFromInputs();
+        computeMatricesFromInputs(window_active, ImGui::GetIO());
         glm::mat4 ProjectionMatrix = getProjectionMatrix();
         glm::mat4 ViewMatrix = getViewMatrix();
         glm::mat4 ModelMatrix = glm::mat4(1.0);
@@ -210,29 +198,48 @@ int main(int argc, const char *argv[]) {
         // Send our transformation to the currently bound shader, in the "MVP" uniform
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
-        for(int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx){
+        // Draw Meshes
+        for (int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx) {
             meshes[mesh_Idx].render();
         }
 
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-        glDisableVertexAttribArray(2);
+        // Draw UI (Tactically)
+        static float f = 0.0f;
+        static int counter = 0;
+        ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
+        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+        ImGui::ColorEdit3("clear color", (float *) &clear_color); // Edit 3 floats representing a color
+        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
 
-        // Swap buffers
+        if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
+            counter++;
+        ImGui::SameLine();
+        ImGui::Text("counter = %d", counter);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
+
+        if (show_demo_window) {
+            // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::ShowDemoWindow(&show_demo_window);
+        }
+
+        // Rendering
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        ImGui::Render();
         glfwSwapBuffers(window);
-        glfwPollEvents();
-
     }
-    while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 
-    // Cleanup VBO and shader
-    for(int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx){
+    // Cleanup VBOs and shaders
+    for (int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx) {
         meshes[mesh_Idx].destroy();
     }
     glDeleteProgram(programID);
     glDeleteTextures(1, &Texture);
     glDeleteVertexArrays(1, &VertexArrayID);
-
+    ImGui_ImplGlfwGL3_Shutdown();
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
 

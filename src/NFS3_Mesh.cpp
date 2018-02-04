@@ -2,10 +2,8 @@
 // Created by Amrik on 25/10/2017.
 //
 
-#include "NFS3_Mesh.h"
 
-#include <utility>
-#include <GL/glew.h>
+#include "NFS3_Mesh.h"
 
 NFS3_Mesh::NFS3_Mesh() = default;
 
@@ -58,6 +56,10 @@ void NFS3_Mesh::setIndices(std::vector<unsigned int> indices){
     m_vertex_indices = std::move(indices);
 }
 
+void NFS3_Mesh::enable(){
+    enabled = true;
+}
+
 void NFS3_Mesh::destroy(){
     glDeleteBuffers(1, &gl_buffers.vertexbuffer);
     glDeleteBuffers(1, &gl_buffers.uvbuffer);
@@ -65,6 +67,9 @@ void NFS3_Mesh::destroy(){
 }
 
 void NFS3_Mesh::render(){
+    if (!enabled)
+        return;
+
     // 1st attribute buffer : car_verts
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.vertexbuffer);
@@ -107,6 +112,9 @@ void NFS3_Mesh::render(){
             GL_UNSIGNED_INT,   // type
             (void *) 0           // element array buffer offset
     );
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
 }
 
 bool NFS3_Mesh::genBuffers(){

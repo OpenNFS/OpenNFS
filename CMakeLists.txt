@@ -6,6 +6,7 @@ project(FCE_to_OBJ)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+
 set(SOURCE_FILES
         src/nfs_loader.cpp
         src/nfs_loader.h
@@ -17,8 +18,21 @@ set(SOURCE_FILES
         src/shader.cpp
         src/NFS3_Mesh.cpp
         src/TGALoader.cpp
+        #[[IMGUI]]
+        include/imgui/imgui.cpp
+        include/imgui/imgui.h
+        include/imgui/imgui_demo.cpp
+        include/imgui/imgui_draw.cpp
+        include/imgui/imgui_internal.h
+        include/imgui/imconfig.h
+        include/imgui/stb_rect_pack.h
+        include/imgui/stb_textedit.h
+        include/imgui/stb_truetype.h
+        include/imgui/imgui_impl_glfw_gl3.cpp
         )
+
 add_executable(FCE_to_OBJ ${SOURCE_FILES})
+
 #[[GLEW Configuration]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glew-2.1.0/include")
 #[[GLM Configuration]]

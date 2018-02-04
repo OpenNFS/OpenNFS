@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 
+// TODO: Rename this to something reasonable
 class Buffers {
 public:
     GLuint vertexbuffer;
@@ -43,6 +44,7 @@ public:
     void setVertices(std::vector<glm::vec3> verts);
     void setNormals(std::vector<glm::vec3> norms);
     void setIndices(std::vector<unsigned int> indices);
+    void enable();
     /* Iterators to allow for ranged for loops with class*/
     iterator begin() const { return iterator(val); }
     iterator end() const { return iterator(val + len); }
@@ -59,4 +61,5 @@ private:
     /* Iterator vars */
     unsigned len;
     Buffers gl_buffers;
+    bool enabled = false;
 };
