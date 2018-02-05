@@ -40,6 +40,7 @@ void computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
         return;
     // Bail on the window active status if we hit the escape key
     window_active = (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
+    io.MouseDrawCursor = true;
 
     // glfwGetTime is called only once, the first time this function is called
     static double lastTime = glfwGetTime();
@@ -76,19 +77,19 @@ void computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     glm::vec3 up = glm::cross(right, direction);
 
     // Move forward
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += direction * deltaTime * speed;
     }
     // Move backward
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         position -= direction * deltaTime * speed;
     }
     // Strafe right
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         position += right * deltaTime * speed;
     }
     // Strafe left
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         position -= right * deltaTime * speed;
     }
 

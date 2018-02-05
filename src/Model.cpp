@@ -3,11 +3,11 @@
 //
 
 
-#include "NFS3_Mesh.h"
+#include "Model.h"
 
-NFS3_Mesh::NFS3_Mesh() = default;
+Model::Model() = default;
 
-NFS3_Mesh::NFS3_Mesh(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,std::vector<glm::vec3> norms,std::vector<unsigned int> indices){
+Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,std::vector<glm::vec3> norms,std::vector<unsigned int> indices){
     m_name = std::move(name);
     m_vertices = std::move(verts);
     m_uvs = std::move(uvs);
@@ -15,58 +15,66 @@ NFS3_Mesh::NFS3_Mesh(std::string name, std::vector<glm::vec3> verts, std::vector
     m_vertex_indices = std::move(indices);
 }
 
-NFS3_Mesh::NFS3_Mesh(std::string name):m_name(std::move(name)) {
+Model::Model(std::string name):m_name(std::move(name)) {
 };
 
-std::vector<glm::vec2> NFS3_Mesh::getUVs(void){
+std::vector<glm::vec2> Model::getUVs(void){
     return m_uvs;
 }
-std::vector<glm::vec3> NFS3_Mesh::getVertices(void){
+std::vector<glm::vec3> Model::getVertices(void){
     return m_vertices;
 }
 
-std::vector<glm::vec3> NFS3_Mesh::getNormals(void){
+std::vector<glm::vec3> Model::getNormals(void){
     return m_normals;
 }
 
 
-std::vector<unsigned int> NFS3_Mesh::getIndices() {
+std::vector<unsigned int> Model::getIndices() {
     return m_vertex_indices;
 }
 
 
-std::string NFS3_Mesh::getName(void){
+std::string Model::getName(void){
     return m_name;
 }
 
-void NFS3_Mesh::setUVs(std::vector<glm::vec2> uvs){
+void Model::setUVs(std::vector<glm::vec2> uvs){
     m_uvs = std::move(uvs);
 }
 
-void NFS3_Mesh::setVertices(std::vector<glm::vec3> verts){
+void Model::setVertices(std::vector<glm::vec3> verts){
     m_vertices = std::move(verts);
 }
 
-void NFS3_Mesh::setNormals(std::vector<glm::vec3> norms){
+void Model::setNormals(std::vector<glm::vec3> norms){
     m_normals = std::move(norms);
 }
 
 
-void NFS3_Mesh::setIndices(std::vector<unsigned int> indices){
+void Model::setIndices(std::vector<unsigned int> indices){
     m_vertex_indices = std::move(indices);
 }
 
-void NFS3_Mesh::enable(){
+void Model::update(){
+    if (m_name.find("_") != std::string::npos){
+        ModelMatrix = glm::rotate(ModelMatrix, 0.001f, glm::vec3(1, 0, 0));
+    } else{
+        ModelMatrix = glm::rotate(ModelMatrix, 0.001f, glm::vec3(0, 1, 0));
+    }
+}
+
+void Model::enable(){
     enabled = true;
 }
 
-void NFS3_Mesh::destroy(){
+void Model::destroy(){
     glDeleteBuffers(1, &gl_buffers.vertexbuffer);
     glDeleteBuffers(1, &gl_buffers.uvbuffer);
     glDeleteBuffers(1, &gl_buffers.normalbuffer);
 }
 
-void NFS3_Mesh::render(){
+void Model::render(){
     if (!enabled)
         return;
 
@@ -117,7 +125,7 @@ void NFS3_Mesh::render(){
     glDisableVertexAttribArray(2);
 }
 
-bool NFS3_Mesh::genBuffers(){
+bool Model::genBuffers(){
     // Load car_verts into a VBO
     glGenBuffers(1, &gl_buffers.vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.vertexbuffer);

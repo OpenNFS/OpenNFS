@@ -147,9 +147,9 @@ bool NFS_Loader::loadObj(std::string obj_path){
                 // access to vertex
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
                 indices.push_back((const unsigned int &) idx.vertex_index);
-                verts.push_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.01,
-                                          attrib.vertices[3 * idx.vertex_index + 1] * 0.01,
-                                          attrib.vertices[3 * idx.vertex_index + 2] * 0.01));
+                verts.push_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0]*0.01,
+                                          attrib.vertices[3 * idx.vertex_index + 1]*0.01,
+                                          attrib.vertices[3 * idx.vertex_index + 2]*0.01));
                 norms.push_back(
                         glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1],
                                   attrib.normals[3 * idx.normal_index + 2]));
@@ -160,7 +160,7 @@ bool NFS_Loader::loadObj(std::string obj_path){
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        NFS3_Mesh obj_mesh = NFS3_Mesh(shapes[s].name, verts, uvs, norms, indices);
+        Model obj_mesh = Model(shapes[s].name + "_obj", verts, uvs, norms, indices);
         obj_mesh.enable();
         meshes.push_back(obj_mesh);
     }
@@ -302,7 +302,7 @@ void NFS_Loader::readFCE(const char *fce_path) {
             if (c != '\0') partName += c;
         }
         std::cout << "Parsing Part: " << partName << std::endl;
-        meshes.emplace_back(NFS3_Mesh(partName));
+        meshes.emplace_back(Model(partName));
     }
 
     /*Retrieve part by part data, Vert/Tri*/
@@ -327,14 +327,12 @@ void NFS_Loader::readFCE(const char *fce_path) {
         partTriOffsets[i] = readInt32(fce_file, true) * tTriangleSize;
     }
 
-    int i = 0;
 
-    for (NFS3_Mesh myPart : meshes) {
+    for (int i = 0; i < meshes.size(); ++i) {
         meshes[i].setVertices(getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]));
         meshes[i].setUVs(getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]));
         meshes[i].setNormals(getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]));
         meshes[i].setIndices(getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]));
-        i++;
     }
 
     fclose(fce_file);
@@ -345,7 +343,7 @@ void NFS_Loader::writeObj(std::string path) {
     std::ofstream obj_dump;
     obj_dump.open("Model.obj");
 
-    for (NFS3_Mesh mesh : meshes) {
+    for (Model mesh : meshes) {
         /* Print Part name*/
         obj_dump << "o " << mesh.getName() << std::endl;
         //Dump Vertices
@@ -364,7 +362,7 @@ void NFS_Loader::writeObj(std::string path) {
     obj_dump.close();
 }
 
-std::vector<NFS3_Mesh> NFS_Loader::getMeshes() {
+std::vector<Model> NFS_Loader::getMeshes() {
     return meshes;
 }
 

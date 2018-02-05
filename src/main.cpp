@@ -14,6 +14,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw_gl3.h>
 #include "TGALoader.h"
+
 #define TINYOBJLOADER_IMPLEMENTATION
 
 // Source
@@ -24,27 +25,6 @@
 GLFWwindow *window;
 
 using namespace ImGui;
-
-std::vector<glm::vec2> loadUVS(const char *path) {
-    std::vector<glm::vec2> temp_uvs;
-
-    FILE *obj_file = fopen(path, "r");
-
-    while (1) {
-        char lineHeader[128];
-        // Read first word from line
-        int res = fscanf(obj_file, "%s", lineHeader);
-        if (res == EOF) break;
-
-        glm::vec2 uv{};
-        fscanf(obj_file, "%f %f\n", &uv.x, &uv.y);
-        temp_uvs.push_back(uv);
-    }
-
-    fclose(obj_file);
-
-    return temp_uvs;
-}
 
 GLint load_tga_texture(const char *path) {
     NS_TGALOADER::IMAGE texture_loader;
@@ -135,12 +115,12 @@ bool init_opengl() {
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
     NFS_Loader nfs_loader("car.viv");
+    nfs_loader.writeObj("Model.obj");
     if(!nfs_loader.loadObj("lap3.obj")){
         std::cout << "Track load failed" << std::endl;
     };
-    nfs_loader.writeObj("Model.obj");
     //Load OpenGL data from unpacked NFS files
-    std::vector<NFS3_Mesh> meshes = nfs_loader.getMeshes();
+    std::vector<Model> meshes = nfs_loader.getMeshes();
     meshes[0].enable();
 
     if (!init_opengl()) {
@@ -162,6 +142,7 @@ int main(int argc, const char *argv[]) {
     GLuint Texture = load_tga_texture("car00.tga");
     // Get a handle for our "myTextureSampler" uniform
     GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
+    GLuint ColorID = glGetUniformLocation(programID, "color");
 
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
@@ -169,15 +150,14 @@ int main(int argc, const char *argv[]) {
 
     /*------- MODELS --------*/
     // Gen VBOs
-    for (int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx) {
-        if (!meshes[mesh_Idx].genBuffers()) {
+    for (auto &mesh : meshes) {
+        if (!mesh.genBuffers()) {
             return -1;
         }
     }
 
     bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
     bool window_active = true;
 
     while (!glfwWindowShouldClose(window)) {
@@ -187,20 +167,26 @@ int main(int argc, const char *argv[]) {
         // Use our shader
         glUseProgram(programID);
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        window_active = window_active ? window_active : ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)&&(!ImGui::GetIO().WantCaptureMouse));
+        window_active = window_active ? window_active : (
+                (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
+                (!ImGui::GetIO().WantCaptureMouse));
+        if(!window_active){
+            ImGui::GetIO().MouseDrawCursor = false;
+        }
         ImGui_ImplGlfwGL3_NewFrame();
         // Compute the MVP matrix from keyboard and mouse input
         computeMatricesFromInputs(window_active, ImGui::GetIO());
         glm::mat4 ProjectionMatrix = getProjectionMatrix();
         glm::mat4 ViewMatrix = getViewMatrix();
-        glm::mat4 ModelMatrix = glm::mat4(1.0);
-        glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-        // Send our transformation to the currently bound shader, in the "MVP" uniform
-        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
         // Draw Meshes
-        for (int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx) {
-            meshes[mesh_Idx].render();
+        for (auto &mesh : meshes) {
+            mesh.update();
+            glm::mat4 MVP = ProjectionMatrix * ViewMatrix * mesh.ModelMatrix;
+            // Send our transformation to the currently bound shader, in the "MVP" uniform
+            glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+            glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
+            mesh.render();
         }
 
         // Draw UI (Tactically)
@@ -209,18 +195,16 @@ int main(int argc, const char *argv[]) {
         ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
         ImGui::ColorEdit3("clear color", (float *) &clear_color); // Edit 3 floats representing a color
-        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our windows open/close state
-
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
+        for (auto &mesh : meshes) {
+            ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing our windows open/close state
+        }
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
 
         if (show_demo_window) {
             // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::SetNextWindowPos(ImVec2(650, 20),
+                                    ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&show_demo_window);
         }
 
@@ -233,8 +217,8 @@ int main(int argc, const char *argv[]) {
     }
 
     // Cleanup VBOs and shaders
-    for (int mesh_Idx = 0; mesh_Idx < meshes.size(); ++mesh_Idx) {
-        meshes[mesh_Idx].destroy();
+    for (auto &mesh : meshes) {
+        mesh.destroy();
     }
     glDeleteProgram(programID);
     glDeleteTextures(1, &Texture);
@@ -244,5 +228,9 @@ int main(int argc, const char *argv[]) {
     glfwTerminate();
 
     return 0;
+}
+
+void UI(){
+    //Add Obj Loading Menu in here
 }
 
