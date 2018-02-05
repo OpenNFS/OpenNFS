@@ -2,17 +2,29 @@
 // Created by Amrik on 25/10/2017.
 //
 
-
 #include "Model.h"
 
 Model::Model() = default;
 
 Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,std::vector<glm::vec3> norms,std::vector<unsigned int> indices){
     m_name = std::move(name);
-    m_vertices = std::move(verts);
+    setVertices(verts);
     m_uvs = std::move(uvs);
     m_normals = std::move(norms);
     m_vertex_indices = std::move(indices);
+
+    /*motionstate = new btDefaultMotionState(btTransform(
+            btQuaternion(orientations[i].x, orientations[i].y, orientations[i].z, orientations[i].w),
+            btVector3(positions[i].x, positions[i].y, positions[i].z)
+    ));*/
+    /*btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(
+            0,                  // mass, in kg. 0 -> Static object, will never move.
+            motionstate,
+            boxCollisionShape,  // collision shape of body
+            btVector3(0,0,0)    // local inertia
+    );
+    rigidBody = new btRigidBody(rigidBodyCI);*/
+
 }
 
 Model::Model(std::string name):m_name(std::move(name)) {
@@ -43,8 +55,10 @@ void Model::setUVs(std::vector<glm::vec2> uvs){
     m_uvs = std::move(uvs);
 }
 
+
 void Model::setVertices(std::vector<glm::vec3> verts){
     m_vertices = std::move(verts);
+    boxCollisionShape = genCollisionBox(m_vertices);
 }
 
 void Model::setNormals(std::vector<glm::vec3> norms){

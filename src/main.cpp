@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui/imgui.h>
+#include <btBulletDynamicsCommon.h>
 #include <imgui/imgui_impl_glfw_gl3.h>
 #include "TGALoader.h"
 
@@ -88,7 +89,7 @@ bool init_opengl() {
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     // Hide the mouse and enable unlimited movement
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Set the mouse at the center of the screen
     glfwPollEvents();
@@ -128,7 +129,18 @@ int main(int argc, const char *argv[]) {
         return -1;
     }
 
-    // Setup ImGui binding
+    /*------- BULLET --------*/
+    btBroadphaseInterface* broadphase = new btDbvtBroadphase();
+    // Set up the collision configuration and dispatcher
+    btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+    // The actual physics solver
+    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+    // The world.
+    btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfiguration);
+    dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
+
+    /*------- ImGui -------*/
     ImGui_ImplGlfwGL3_Init(window, true);
     // Setup style
     ImGui::StyleColorsDark();
@@ -143,22 +155,23 @@ int main(int argc, const char *argv[]) {
     // Get a handle for our "myTextureSampler" uniform
     GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
     GLuint ColorID = glGetUniformLocation(programID, "color");
-
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
-
     /*------- MODELS --------*/
-    // Gen VBOs
+    // Gen VBOs, add to Bullet Physics
     for (auto &mesh : meshes) {
         if (!mesh.genBuffers()) {
             return -1;
         }
+        //dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
-
+    /*------- UI -------*/
     bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool window_active = true;
+
+
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -196,15 +209,16 @@ int main(int argc, const char *argv[]) {
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
         ImGui::ColorEdit3("clear color", (float *) &clear_color); // Edit 3 floats representing a color
         for (auto &mesh : meshes) {
+            ImGui::SameLine();
             ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing our windows open/close state
+            ImGui::NewLine();
         }
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
 
         if (show_demo_window) {
             // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
-            ImGui::SetNextWindowPos(ImVec2(650, 20),
-                                    ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&show_demo_window);
         }
 
@@ -230,7 +244,4 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-void UI(){
-    //Add Obj Loading Menu in here
-}
 
