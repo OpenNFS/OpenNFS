@@ -6,6 +6,7 @@ project(FCE_to_OBJ)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/bullet3/src")
 
 set(SOURCE_FILES
         src/nfs_loader.cpp
@@ -33,10 +34,18 @@ set(SOURCE_FILES
 add_executable(FCE_to_OBJ ${SOURCE_FILES})
 
 #[[Bullet Configuration]]
-find_package(Bullet REQUIRED)
-include_directories( ${BULLET_INCLUDE_DIRS})
-target_link_libraries(FCE_to_OBJ ${BULLET_LIBRARIES})
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_CLSOCKET OFF CACHE BOOL "" FORCE)
+set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_ENET OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3")
+TARGET_LINK_LIBRARIES(FCE_to_OBJ BulletDynamics BulletCollision LinearMath Bullet3Common)
 #[[GLEW Configuration]]
+add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glew-2.1.0/include")
 #[[GLM Configuration]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glm-0.9.9-a2")
