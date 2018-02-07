@@ -27,6 +27,33 @@ GLFWwindow *window;
 
 using namespace ImGui;
 
+class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw{
+public:
+	void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix){
+		glUseProgram(0); // Use Fixed-function pipeline (no shaders)
+		glMatrixMode(GL_MODELVIEW);
+		glLoadMatrixf(&pViewMatrix[0][0]);
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixf(&pProjectionMatrix[0][0]);
+	}
+	virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color){
+		glColor3f(color.x(), color.y(), color.z());
+		glBegin(GL_LINES);
+			glVertex3f(from.x(), from.y(), from.z());
+			glVertex3f(to.x(), to.y(), to.z());
+		glEnd();
+	}
+	virtual void drawContactPoint(const btVector3 &,const btVector3 &,btScalar,int,const btVector3 &){}
+	virtual void reportErrorWarning(const char *){}
+	virtual void draw3dText(const btVector3 &,const char *){}
+	virtual void setDebugMode(int p){
+		m = p;
+	}
+	int getDebugMode(void) const {return 3;}
+	int m;
+};
+
+
 GLint load_tga_texture(const char *path) {
     NS_TGALOADER::IMAGE texture_loader;
 
@@ -63,8 +90,8 @@ bool init_opengl() {
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
     window = glfwCreateWindow(1024, 768, "Need for Speed 3 FCE Loader", nullptr, nullptr);
 
@@ -140,6 +167,8 @@ int main(int argc, const char *argv[]) {
     btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfiguration);
     dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
 
+    BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
+    dynamicsWorld->setDebugDrawer(&mydebugdrawer);
     /*------- ImGui -------*/
     ImGui_ImplGlfwGL3_Init(window, true);
     // Setup style
@@ -164,14 +193,12 @@ int main(int argc, const char *argv[]) {
         if (!mesh.genBuffers()) {
             return -1;
         }
-        //dynamicsWorld->addRigidBody(mesh.rigidBody);
+        dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     /*------- UI -------*/
     bool show_demo_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool window_active = true;
-
-
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -221,6 +248,9 @@ int main(int argc, const char *argv[]) {
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&show_demo_window);
         }
+
+        mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
+        dynamicsWorld->debugDrawWorld();
 
         // Rendering
         int display_w, display_h;

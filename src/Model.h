@@ -27,8 +27,6 @@ public:
     Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
           std::vector<unsigned int> indices);
 
-    Model();
-
     explicit Model(std::string name);
 
     std::string getName(void);
@@ -65,10 +63,9 @@ public:
     //Rendering
     glm::mat4 ModelMatrix = glm::mat4(1.0);
     // Physics
-    btCollisionShape *boxCollisionShape;
     btRigidBody *rigidBody;
     btDefaultMotionState* motionstate;
-
+    btRigidBody::btRigidBodyConstructionInfo rigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(0, nullptr, nullptr);
 
     /* Iterators to allow for ranged for loops with class*/
     class iterator {
