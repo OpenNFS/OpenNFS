@@ -5,8 +5,8 @@
 #include "physics.h"
 
 btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices) {
-    glm::vec3 bottom_left = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 top_right = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
+    glm::vec3 top_right = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
 
 
     for (auto &vertex : model_vertices) {
@@ -31,5 +31,5 @@ btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices) {
     }
 
     return new btBoxShape(
-            btVector3(top_right.x - bottom_left.x, top_right.y - bottom_left.y, top_right.z - bottom_left.z));
+            btVector3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2, (top_right.z - bottom_left.z) / 2));
 }

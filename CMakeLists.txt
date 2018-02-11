@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(FCE_to_OBJ)
 
-#[[set(BUILD_SHARED_LIBS OFF)]]
-#[[set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")]]
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -29,7 +29,7 @@ set(SOURCE_FILES
         include/imgui/stb_textedit.h
         include/imgui/stb_truetype.h
         include/imgui/imgui_impl_glfw_gl3.cpp
-        src/physics.cpp src/physics.h)
+        src/physics.cpp src/physics.h include/tinyobjloader/tiny_obj_loader.h)
 
 add_executable(FCE_to_OBJ ${SOURCE_FILES})
 

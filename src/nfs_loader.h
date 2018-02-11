@@ -18,7 +18,7 @@
 #include "Model.h"
 #include <tinyobjloader/tiny_obj_loader.h>
 
-#define DATA_START 7940
+#define DATA_START 0x1F04
 #define VertTblOffset 0x0010
 #define NormTblOffset 0x0014
 #define TriaTblOffset 0x0018

@@ -1,14 +1,7 @@
-// Include GLFW
-#include <GLFW/glfw3.h>
-
-// Include GLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <imgui/imgui.h>
+#include "controls.h"
 
 using namespace glm;
 
-#include "controls.h"
 
 glm::mat4 ViewMatrix;
 glm::mat4 ProjectionMatrix;
@@ -33,6 +26,27 @@ float initialFoV = 45.0f;
 float speed = 3.0f; // 3 units / second
 float mouseSpeed = 0.005f;
 
+void resetView(){
+    position = glm::vec3(0, 0, 5);
+    horizontalAngle = 3.14f;
+    verticalAngle = 0.0f;
+    glm::vec3 direction(
+            cos(verticalAngle) * sin(horizontalAngle),
+            sin(verticalAngle),
+            cos(verticalAngle) * cos(horizontalAngle)
+    );
+    glm::vec3 right = glm::vec3(
+            sin(horizontalAngle - 3.14f / 2.0f),
+            0,
+            cos(horizontalAngle - 3.14f / 2.0f)
+    );
+    // Camera matrix
+    ViewMatrix = glm::lookAt(
+            position,
+            position + direction,
+            glm::cross(right, direction)
+    );
+}
 
 void computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     if (!window_active)

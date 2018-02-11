@@ -2,7 +2,7 @@
 // Created by Amrik on 25/10/2017.
 //
 #pragma once
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <vector>
 #include <cstdlib>
 #include <string>
@@ -11,6 +11,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "physics.h"
 #include <BulletDynamics/Dynamics/btRigidBody.h>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <LinearMath/btDefaultMotionState.h>
 
 // TODO: Rename this to something reasonable
@@ -43,7 +45,7 @@ public:
 
     void setUVs(std::vector<glm::vec2> uvs);
 
-    void setVertices(std::vector<glm::vec3> verts);
+    void setVertices(std::vector<glm::vec3> verts, bool removeIndexing);
 
     void setNormals(std::vector<glm::vec3> norms);
 
@@ -62,6 +64,10 @@ public:
     bool enabled = false;
     //Rendering
     glm::mat4 ModelMatrix = glm::mat4(1.0);
+    glm::mat4 RotationMatrix;
+    glm::mat4 TranslationMatrix;
+    glm::vec3 position;
+    glm::quat orientation;
     // Physics
     btRigidBody *rigidBody;
     btDefaultMotionState* motionstate;

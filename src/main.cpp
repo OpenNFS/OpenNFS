@@ -72,6 +72,9 @@ GLint load_tga_texture(const char *path) {
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    // Vintage look (1 - 1 map, no interp)
+    /*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);*/
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -91,7 +94,7 @@ bool init_opengl() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(1024, 768, "Need for Speed 3 FCE Loader", nullptr, nullptr);
 
@@ -142,11 +145,11 @@ bool init_opengl() {
 
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
-    NFS_Loader nfs_loader("car.viv");
-    nfs_loader.writeObj("Model.obj");
-    if(!nfs_loader.loadObj("lap3.obj")){
+    NFS_Loader nfs_loader("../resources/car.viv");
+    if(!nfs_loader.loadObj("../resources/lap3.obj")){
         std::cout << "Track load failed" << std::endl;
     };
+    nfs_loader.writeObj("Correct.obj");
     //Load OpenGL data from unpacked NFS files
     std::vector<Model> meshes = nfs_loader.getMeshes();
     meshes[0].enable();
@@ -160,11 +163,11 @@ int main(int argc, const char *argv[]) {
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     // Set up the collision configuration and dispatcher
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+    auto * dispatcher = new btCollisionDispatcher(collisionConfiguration);
     // The actual physics solver
-    btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+    auto * solver = new btSequentialImpulseConstraintSolver;
     // The world.
-    btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfiguration);
+    auto * dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfiguration);
     dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
@@ -196,7 +199,7 @@ int main(int argc, const char *argv[]) {
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     /*------- UI -------*/
-    bool show_demo_window = true;
+    bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool window_active = true;
 
@@ -232,16 +235,21 @@ int main(int argc, const char *argv[]) {
         // Draw UI (Tactically)
         static float f = 0.0f;
         static int counter = 0;
-        ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float *) &clear_color); // Edit 3 floats representing a color
-        for (auto &mesh : meshes) {
-            ImGui::SameLine();
-            ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing our windows open/close state
-            ImGui::NewLine();
-        }
+        ImGui::Text("NFS3 Engine");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
+        if (ImGui::Button("Reset View")){
+            resetView();
+        };
+        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Frag Shader Input", (float *) &clear_color); // Edit 3 floats representing a color
+        for (auto &mesh : meshes) {
+            ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing model draw state
+        }
+
+
+        ImGui::Text("car00.tga");
+        ImGui::Image((ImTextureID) TextureID, ImVec2(256, 256));
 
         if (show_demo_window) {
             // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
