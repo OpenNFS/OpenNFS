@@ -307,7 +307,6 @@ void NFS_Loader::readFCE(const char *fce_path) {
             c = fgetc(fce_file);
             if (c != '\0') partName += c;
         }
-        std::cout << "Parsing Part: " << partName << std::endl;
         meshes.emplace_back(Model(partName));
     }
 
@@ -337,10 +336,11 @@ void NFS_Loader::readFCE(const char *fce_path) {
 
     for (int i = 0; i < meshes.size(); ++i) {
         meshes[i].setIndices(getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]));
-        meshes[i].setVertices(getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]), true);
+        std::vector<glm::vec3> file_verts = getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]);
+        meshes[i].setVertices(file_verts, true);
         meshes[i].setUVs(getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]));
         meshes[i].setNormals(getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]));
-        totalVertices += meshes[i].getVertices().size();
+        totalVertices += file_verts.size();
         std::cout << "Mesh: " << meshes[i].getName() << " UVs: " << meshes[i].getUVs().size() << " Verts: " << meshes[i].getVertices().size() << " Indices: " << meshes[i].getIndices().size() << std::endl;
     }
 

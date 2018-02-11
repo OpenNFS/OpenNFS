@@ -1,13 +1,14 @@
-# FCE-to-OBJ
+# OpenNFS3
 
-Convert Need for Speed 3 FCE format files to OBJ for use within 3D modelling programs/game engines. Now with (some) viewer functionality!
+An attempt to recreate the original Need for Speed 3, unpacking it's original data files into a modern scratch build engine. Extremely early in development, current features include:
+ 
+- Full Car Viv file loading.
 
-U/V coords read in but not currently used for texture mapping; I am working on this.  Sometimes its buggy with  some community created fce files, but I have not extensively tested any aspect of this (hahaha).
+(Yeah that's it)
 
-To run (for now):
+## To run (for now):
 
-Place car.fce in build directory and compile. Output is in same directory called Model.obj.
-
+Place car.viv in 'resources' directory, one level above your build output and run.
 
 ## Dependencies
 
@@ -16,6 +17,14 @@ The CMake files are currently configured to detect external libraries from withi
 * GLEW 2.1.0
 * GLFW 3.2.1
 * GLM 0.9.9-a2
+* Bullet3
+
+## TODO
+
+-Add object picking w/ Bullet physics
+-Integrate T3ED track loading code from Denis Auroux, bind into OpenGL
+-Collision Detection, carp.txt performance model load into Physics
+-MUS File reading (http://www.vgmpf.com/Wiki/index.php/MUS_(Electronic_Arts))
 
 ## Thanks
 

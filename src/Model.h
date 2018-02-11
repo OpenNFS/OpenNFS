@@ -67,6 +67,7 @@ public:
     glm::mat4 RotationMatrix;
     glm::mat4 TranslationMatrix;
     glm::vec3 position;
+    glm::vec3 orientation_vec;
     glm::quat orientation;
     // Physics
     btRigidBody *rigidBody;
