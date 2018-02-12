@@ -2,18 +2,24 @@
 // Created by Amrik on 16/01/2018.
 //
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
 
 #include <iostream>
 #include <fstream>
 #include <cstring>
 #include "trk_loader.h"
-#include "NFS3_Mesh.h"
+#include "Model.h"
 
 using namespace std;
 
 bool trk_loader::LoadFRD(std::string frd_path)
 {
     ifstream ar (frd_path, ios::in | ios::binary);
+    std::cout << "Writing Meshes to " << "Track.obj" << std::endl;
+    std::ofstream obj_dump;
+    obj_dump.open("Track.obj");
 
     int i,j,k,l;
     struct TRKBLOCK *b;
@@ -93,18 +99,13 @@ bool trk_loader::LoadFRD(std::string frd_path)
             if (b->lightsrc==nullptr) return false;
             if ((long)ar.read((char *) b->lightsrc,16*b->nLightsrc).gcount() !=16*b->nLightsrc) return false;
         }
+
+        //Dump Vertices
+        for(int dump_idx = 0; dump_idx < b->nVertices; dump_idx++){
+            obj_dump << b->vert[dump_idx].x/1000 << " " << b->vert[dump_idx].y/1000 << " " << b->vert[dump_idx].z/1000 << std::endl;
+        }
     }
 
-    std::cout << "Writing Meshes to " << "Track.obj" << std::endl;
-    std::ofstream obj_dump;
-    obj_dump.open("Track.obj");
-
-    /* Print Part name*/
-    obj_dump << "o " << "Track" << std::endl;
-    //Dump Vertices
-    for(int dump_idx = 0; dump_idx < 279; dump_idx++){
-        obj_dump << "v " <<  b->vert[dump_idx].x << " " << b->vert[dump_idx].y << " " << b->vert[dump_idx].z << std::endl;
-    }
     obj_dump.close();
 
 
@@ -207,7 +208,22 @@ trk_loader::~trk_loader() {
 
 }
 
+std::vector<std::vector<glm::vec3>> trk_loader::get_tracks(){
+    return tracks;
+}
+
 trk_loader::trk_loader(std::string frd_path){
     bool result = LoadFRD(frd_path);
-    cout << result << std::endl;
+
+    for(int i = 0; i < nBlocks; i++) {
+        TRKBLOCK current = trk[i];
+        std::vector<glm::vec3> verts;
+        for (int j = 0; j < current.nVertices; j++) {
+            glm::vec3 temp_vert = glm::vec3(current.vert[i].x, current.vert[i].y, current.vert[i].z);
+            verts.push_back(temp_vert);
+        }
+        tracks.push_back(verts);
+    }
 }
+
+#pragma GCC pop_options

@@ -22,37 +22,78 @@
 #include "shader.h"
 #include "controls.h"
 #include "nfs_loader.h"
+#include "trk_loader.h"
 
 GLFWwindow *window;
 
 using namespace ImGui;
 
-class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw{
+class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw {
 public:
-	void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix){
-		glUseProgram(0); // Use Fixed-function pipeline (no shaders)
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(&pViewMatrix[0][0]);
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(&pProjectionMatrix[0][0]);
-	}
-	virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color){
-		glColor3f(color.x(), color.y(), color.z());
-		glBegin(GL_LINES);
-			glVertex3f(from.x(), from.y(), from.z());
-			glVertex3f(to.x(), to.y(), to.z());
-		glEnd();
-	}
-	virtual void drawContactPoint(const btVector3 &,const btVector3 &,btScalar,int,const btVector3 &){}
-	virtual void reportErrorWarning(const char *){}
-	virtual void draw3dText(const btVector3 &,const char *){}
-	virtual void setDebugMode(int p){
-		m = p;
-	}
-	int getDebugMode(void) const {return 3;}
-	int m;
+    void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix) {
+        glUseProgram(0); // Use Fixed-function pipeline (no shaders)
+        glMatrixMode(GL_MODELVIEW);
+        glLoadMatrixf(&pViewMatrix[0][0]);
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixf(&pProjectionMatrix[0][0]);
+    }
+
+    virtual void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) {
+        glColor3f(color.x(), color.y(), color.z());
+        glBegin(GL_LINES);
+        glVertex3f(from.x(), from.y(), from.z());
+        glVertex3f(to.x(), to.y(), to.z());
+        glEnd();
+    }
+
+    virtual void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &) {}
+
+    virtual void reportErrorWarning(const char *) {}
+
+    virtual void draw3dText(const btVector3 &, const char *) {}
+
+    virtual void setDebugMode(int p) {
+        m = p;
+    }
+
+    int getDebugMode(void) const { return 3; }
+
+    int m;
 };
 
+std::vector<glm::vec2> loadUVS(const char *path) {
+    std::vector<glm::vec2> temp_uvs;
+
+    FILE *obj_file = fopen(path, "r");
+
+    while (1) {
+        glm::vec2 uv{};
+        int res = fscanf(obj_file, "%f %f\n", &uv.x, &uv.y);
+        if (res == EOF) break;
+        temp_uvs.push_back(uv);
+    }
+
+    fclose(obj_file);
+
+    return temp_uvs;
+}
+
+std::vector<glm::vec3> loadVerts(const char *path) {
+    std::vector<glm::vec3> temp_verts;
+
+    FILE *obj_file = fopen(path, "r");
+
+    while (1) {
+        glm::vec3 vert{};
+        int res = fscanf(obj_file, "%f %f %f\n", &vert.x, &vert.y, &vert.z);
+        if (res == EOF) break;
+        temp_verts.push_back(vert);
+    }
+
+    fclose(obj_file);
+
+    return temp_verts;
+}
 
 GLint load_tga_texture(const char *path) {
     NS_TGALOADER::IMAGE texture_loader;
@@ -94,7 +135,7 @@ bool init_opengl() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(1024, 768, "Need for Speed 3 FCE Loader", nullptr, nullptr);
 
@@ -145,14 +186,35 @@ bool init_opengl() {
 
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
-    NFS_Loader nfs_loader("../resources/car.viv");
-    if(!nfs_loader.loadObj("../resources/lap3.obj")){
-        std::cout << "Track load failed" << std::endl;
-    };
+    NFS_Loader nfs_loader("../resources/car_f1.viv");
+    //if(!nfs_loader.loadObj("../resources/lap3.obj")){
+    //    std::cout << "Track load failed" << std::endl;
+    //};
     nfs_loader.writeObj("Correct.obj");
     //Load OpenGL data from unpacked NFS files
     std::vector<Model> meshes = nfs_loader.getMeshes();
-    meshes[0].enable();
+    //meshes[0].enable();
+
+    // Real Dodgy Shit
+    trk_loader trkLoader("../resources/TR00.frd");
+    std::vector<std::vector<glm::vec3>> tracks = trkLoader.get_tracks();
+    std::vector<glm::vec2> fake_uv = loadUVS("Track.obj");
+    std::vector<glm::vec3> track_verts = loadVerts("Track.obj");
+    std::vector<glm::vec3> fake_normals = track_verts;
+    Model temp_model("tr00");
+    std::vector<unsigned int> fake_indices;
+    unsigned int index = 0;
+    for (auto vert : track_verts) {
+        fake_indices.push_back(index++);
+    }
+    temp_model.setIndices(fake_indices);
+    temp_model.setVertices(track_verts, false);
+    temp_model.setUVs(fake_uv);
+    temp_model.setNormals(fake_normals);
+    temp_model.enable();
+    meshes.push_back(temp_model);
+
+
 
     if (!init_opengl()) {
         std::cout << "OpenGL init failed." << std::endl;
@@ -160,15 +222,15 @@ int main(int argc, const char *argv[]) {
     }
 
     /*------- BULLET --------*/
-    btBroadphaseInterface* broadphase = new btDbvtBroadphase();
+    btBroadphaseInterface *broadphase = new btDbvtBroadphase();
     // Set up the collision configuration and dispatcher
-    btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-    auto * dispatcher = new btCollisionDispatcher(collisionConfiguration);
+    btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
+    auto *dispatcher = new btCollisionDispatcher(collisionConfiguration);
     // The actual physics solver
-    auto * solver = new btSequentialImpulseConstraintSolver;
+    auto *solver = new btSequentialImpulseConstraintSolver;
     // The world.
-    auto * dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,broadphase,solver,collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0,-9.81f,0));
+    auto *dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+    dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
     dynamicsWorld->setDebugDrawer(&mydebugdrawer);
@@ -213,7 +275,7 @@ int main(int argc, const char *argv[]) {
         window_active = window_active ? window_active : (
                 (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
                 (!ImGui::GetIO().WantCaptureMouse));
-        if(!window_active){
+        if (!window_active) {
             ImGui::GetIO().MouseDrawCursor = false;
         }
         ImGui_ImplGlfwGL3_NewFrame();
@@ -238,7 +300,7 @@ int main(int argc, const char *argv[]) {
         ImGui::Text("NFS3 Engine");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
-        if (ImGui::Button("Reset View")){
+        if (ImGui::Button("Reset View")) {
             resetView();
         };
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
@@ -253,7 +315,8 @@ int main(int argc, const char *argv[]) {
 
         if (show_demo_window) {
             // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
-            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::SetNextWindowPos(ImVec2(650, 20),
+                                    ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&show_demo_window);
         }
 

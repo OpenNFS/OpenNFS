@@ -53,9 +53,12 @@ void Model::setVertices(std::vector<glm::vec3> verts, bool removeIndexing) {
     } else {
         m_vertices = std::move(verts);
     }
-
+    if (m_name.find("tr00") == std::string::npos){
+        position = glm::vec3(2, 0, 0);
+    } else {
+        position = glm::vec3(0, 0, 0);
+    }
     //Generate Physics collision data
-    position = glm::vec3(0, 0, 0);
     orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
     motionstate = new btDefaultMotionState(btTransform(
@@ -82,9 +85,6 @@ void Model::setIndices(std::vector<unsigned int> indices) {
 }
 
 void Model::update() {
-    if (m_name.find("wheel") != std::string::npos){
-        orientation_vec.x += 0.01;
-    }
     orientation = glm::normalize(glm::quat(orientation_vec));
     position = glm::vec3(position.x, position.y, position.z);
     RotationMatrix = glm::toMat4(orientation);

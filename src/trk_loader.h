@@ -5,6 +5,9 @@
 #ifndef FCE_TO_OBJ_TRK_LOADER_H
 #define FCE_TO_OBJ_TRK_LOADER_H
 
+#include <glm/vec3.hpp>
+#include <vector>
+
 typedef struct FLOATPT
 {
     float x,z,y;
@@ -85,10 +88,6 @@ typedef struct TRKBLOCK
     struct POLYVROADDATA *polyData;  // polygon vroad references & flags
     struct VROADDATA *vroadData;   // vroad vectors
     struct REFXOBJ *xobj;
-/* USELESS & BUGGY : let's just forget it
-	struct REFPOLYOBJ **polyobj; // table of pointers on the blocks themselves
-							     // malloc is linear and 20*nPolyobj, though.
-*/
     struct SOUNDSRC *soundsrc;
     struct LIGHTSRC *lightsrc;
     struct FLOATPT hs_ptMin,hs_ptMax;
@@ -283,58 +282,20 @@ class trk_loader {
 
 // Operations
     public:
-        void PrepareNewUndo(struct FLOATPT *refpt,int block,int ofsx,int ofsy);
-        void PrepareModifyTrk(int blk);
-        void PrepareModifyPoly(int blk);
-        void PrepareModifyXobj(int blk);
-        void FreeTrkContents(struct TRKBLOCK *trk);
-        void FreePolyContents(struct POLYGONBLOCK *poly);
-        void FreeXobjContents(struct XOBJBLOCK *xobj);
-        void DeleteUndo(int i);
-        void PerformUndo();
-
-        bool CanContainPoint(struct TRKBLOCK *t,struct FLOATPT *pt,float margin);
-        void RecalcBoundingBox(int i);
-        void RecalcPolyVroad(int blk,int no,struct FLOATPT *optdir=NULL);
-        void MovePointBy(struct FLOATPT *refpt,float dx,float dy,float dz);
-        void ExtMovePointBy(struct FLOATPT *refpt,float dx,float dy,float dz,float sDist,float sWidth);
-        int MoveObjectBy(int blk,int isxobj,int chunk,int no,float dx,float dy,float dz);
-        void ChangeObjBlock(int blk1,int isxobj,int chunk,int no,int blk2);
         float Distance(struct FLOATPT &a,struct INTPT &b);
-        int GlobalLocalCoord(struct FLOATPT &org,struct FLOATPT &res,struct COLVROAD *c,int start,int minblk,int maxblk);
-        void LocalGlobalCoord(struct FLOATPT &org,struct FLOATPT &res,struct COLVROAD *c,int i);
-        void MoveBlocks(int blk,float dx,float dy,float dz,int sDist,int sWidth,bool extraSmooth);
-        void UpdateColVroadVecs(int i);
-        void DelObject(int blk,int isxobj,int chunk,int no);
-        void DuplObject(int blk,int isxobj,int chunk,int no);
-        void NewObject(int blk,int isxobj,int chunk,int texture,short flags);
-        void DelPolygon(int blk,int isxobj,int chunk,int obj,int no);
-        void SetCollisionHandling(struct FLOATPT *pt);
-        bool DoesPointExist(struct FLOATPT *pt);
-        int DuplPolygon(int blk,int isxobj,int chunk,int obj,int no);
-        void MergePoint(struct FLOATPT *pt1,struct FLOATPT *pt2);
-        void SplitPoint(struct FLOATPT *refpt);
-        void AdjustRoadWidth();
-        void HS_RecalcMinMaxXY();
-        void SetAllTextures(int texture,bool drivable,short flags);
-        void DelAllObjects(int blk,int isxobj);
-        void DelLanePolygons(int blk);
-        void ClearSceneryZ();
-        void DelTrackPolygon(int blk,int no);
-        int DuplTrackPolygon(int blk,int no);
+
 
     // Implementation
     public:
         trk_loader(std::string frd_path);
         virtual ~trk_loader();
         bool LoadFRD(std::string frd_path);
-        
+        std::vector<std::vector<glm::vec3>> tracks;
+        std::vector<std::vector<glm::vec3>> get_tracks();
+
     protected:
       //bool LoadCOL(CFile& coll);
       //void SaveCOL(CFile& coll);
-    void writeObj(std::string path);
-
-    void writeObj(std::string path, TRKBLOCK *b);
 };
 
 
