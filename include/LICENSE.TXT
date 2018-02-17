@@ -1,0 +1,101 @@
+=========================================================================
+                T3ED SOURCE CODE LICENSE AGREEMENT
+=========================================================================
+
+T3ED is copyright (c) Denis Auroux, 1998-99 (auroux@math.polytechnique.fr)
+
+This document describes the conditions under which the source code of
+T3ED is made available to other developpers. If you don't agree with
+the terms of this license then you are not allowed to use T3ED's source
+code for any purpose.
+
+=========================================================================
+
+1. T3ED's source code is provided as is ; no support will be provided,
+   neither concerning this source code nor about how to re-use it for
+   other projects.
+
+2. All products based on all or part of T3ED's source code must be made
+   available for free ; if distributed to anyone they must be made freely
+   available to everyone on the Internet (modifications made for private
+   use only and not released to any third party are exempt from these
+   requirements). It is strictly forbidden to sell any product
+   derived from this code.
+
+3. The source code of all products based on all or part of T3ED's source
+   code must be publicly available ; the executable files should come
+   either with a zip archive of the source code or with an Internet link
+   pointing to the source code. The source code itself must be provided
+   with this license agreement document attached to it.
+
+4. User support for modified versions of T3ED will be under the entire
+   responsibility of the author of the modifications. Moreover, reference
+   must be made to the official T3ED download site in the About dialog box
+   and in the help file. On the contrary, ALL OCCURRENCES OF MY E-MAIL
+   ADDRESS SHOULD BE REMOVED FROM THE MODIFIED SOFTWARE AND FROM THE
+   ACCOMPANYING HELP FILE.
+
+5. Version numbering and copyright statements for all T3ED-based
+   developments must follow strictly the following rules, so as to
+   avoid any complications in user support :
+
+ a) modified versions of T3ED (i.e. software whose main function is
+    to create or modify NFS tracks and whose general interface and
+    operating principle are similar to those of T3ED) :
+
+  * The version number should start with the original T3ED version number
+    followed by the initials of the person who made the modifications and
+    the version number of these modifications. For example, if your initials
+    are R.M., the third modified version of T3ED based on version 0.06
+    should be labelled version 0.06-RM-3.
+
+  * The copyright statement displayed in the About box must contain
+    the version number, the original copyright line, the name of the
+    author of the modifications, the e-mail address and WWW address of
+    the author of the modifications, and finally the original T3ED download
+    site. In other words this notice should be of the following form :
+
+               T3ED Version 0.xx-XX-x
+               Copyright (C) Denis Auroux, 1998-99
+               Modified by Xxxxx Xxxx
+               e-mail: xxx@xxx.xxx
+               http://xxx.xxx/xxx
+               http://www.math.polytechnique.fr/cmat/auroux/nfs/
+
+   * The main help file should also mention the information listed above :
+     the name and e-mail address of the author of the modifications must be
+     mentioned, as well as the version number and the original copyright
+     statement. All references to my e-mail address must be removed, while
+     the original download web page must be mentioned at least once.
+
+ b) other T3ED-based developments :
+
+   * The About dialog box must mention that portions of the code are
+     copyright (c) Denis Auroux 1998-99.
+
+   * The help file must include a similar notice and must provide a link
+     to the main T3ED download web page
+     (http://www.math.polytechnique.fr/cmat/auroux/nfs/).
+
+===========================================================================
+
+Notes about the source code :
+
+- the T3ED source code is meant to be compiled with Microsoft Visual C++ 5.0.
+  Changes will have to be made if another version of Visual C++ or another
+  C++ compiler are to be used instead. In any case, the last two lines of
+  the file HLP\T3ED.HPJ have to be modified according to your installation
+  settings.
+
+- remember that the above requirements apply to all occurrences of the
+  copyright notices ; this includes one occurrence in the README.TXT file,
+  one occurrence in the About dialog box, and three occurrences in the
+  help file. Another reference to my e-mail address (in the FAQ part of
+  the help file) also needs to be deleted.
+
+- please send me an e-mail when you release a T3ED-based product ! I will
+  try to set up a page with links to the download pages of all existing
+  modified versions, so that the various people working on T3ED can be
+  more easily kept informed of the latest developements.
+
+        Denis.

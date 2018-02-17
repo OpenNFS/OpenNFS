@@ -7,6 +7,7 @@
 
 #include <glm/vec3.hpp>
 #include <vector>
+#include "Model.h"
 
 typedef struct FLOATPT
 {
@@ -260,13 +261,10 @@ typedef struct COLFILE {
 } COLFILE;
 
 class trk_loader {
-#define UNDO_LEVELS 16
-#define MAX_BLOCKS 500
-
 // !!! for arrays : structures are aligned to their largest member
 // !!! structure members are aligned on their own size (up to the /Zp parameter)
 // Attributes
-    public:
+
         bool bEmpty;
         bool bHSMode;
         char header[28]; /* file header */
@@ -280,22 +278,15 @@ class trk_loader {
         struct TEXTUREBLOCK *texture;
         struct COLFILE col;
 
-// Operations
-    public:
-        float Distance(struct FLOATPT &a,struct INTPT &b);
-
-
     // Implementation
     public:
-        trk_loader(std::string frd_path);
+        explicit trk_loader(const std::string &frd_path);
         virtual ~trk_loader();
         bool LoadFRD(std::string frd_path);
-        std::vector<std::vector<glm::vec3>> tracks;
-        std::vector<std::vector<glm::vec3>> get_tracks();
+        std::vector<Model> trk_blocks;
 
     protected:
-      //bool LoadCOL(CFile& coll);
-      //void SaveCOL(CFile& coll);
+        bool LoadCOL(std::string col_path);
 };
 
 

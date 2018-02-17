@@ -53,13 +53,15 @@ void Model::setVertices(std::vector<glm::vec3> verts, bool removeIndexing) {
     } else {
         m_vertices = std::move(verts);
     }
-    if (m_name.find("tr00") == std::string::npos){
+    if (m_name.find("TrkBlock") == std::string::npos){
         position = glm::vec3(2, 0, 0);
+        //Generate Physics collision data
+        orientation_vec = glm::vec3(0,0,0);
     } else {
         position = glm::vec3(0, 0, 0);
+        orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
     }
-    //Generate Physics collision data
-    orientation_vec = glm::vec3(0,0,0);
+
     orientation = glm::normalize(glm::quat(orientation_vec));
     motionstate = new btDefaultMotionState(btTransform(
             btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w),
@@ -140,11 +142,23 @@ void Model::render() {
             0,                  // stride
             (void *) 0            // array buffer offset
     );
-    // Draw the triangles !
-    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
+    if(indexed){
+        // Index buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_buffers.elementbuffer);
+        // Draw the triangles !
+        glDrawElements(
+                GL_TRIANGLES,      // mode
+                m_vertex_indices.size(),    // count
+                GL_UNSIGNED_INT,   // type
+                (void *) 0           // element array buffer offset
+        );
+    } else {
+        // Draw the triangles !
+        glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
+    }
 }
 
 bool Model::genBuffers() {
@@ -160,6 +174,12 @@ bool Model::genBuffers() {
     glGenBuffers(1, &gl_buffers.normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
+    if (indexed){
+        // Indices
+        glGenBuffers(1, &gl_buffers.elementbuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_buffers.elementbuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_vertex_indices.size() * sizeof(unsigned int), &m_vertex_indices[0], GL_STATIC_DRAW);
+    }
     return true;
 }
 

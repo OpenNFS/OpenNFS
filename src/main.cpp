@@ -187,34 +187,17 @@ bool init_opengl() {
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
     NFS_Loader nfs_loader("../resources/car_f1.viv");
-    //if(!nfs_loader.loadObj("../resources/lap3.obj")){
-    //    std::cout << "Track load failed" << std::endl;
-    //};
-    nfs_loader.writeObj("Correct.obj");
+    if(!nfs_loader.loadObj("../resources/lap3.obj")){
+        std::cout << "Track load failed" << std::endl;
+    };
     //Load OpenGL data from unpacked NFS files
     std::vector<Model> meshes = nfs_loader.getMeshes();
-    //meshes[0].enable();
+    meshes[0].enable();
 
-    // Real Dodgy Shit
     trk_loader trkLoader("../resources/TR00.frd");
-    std::vector<std::vector<glm::vec3>> tracks = trkLoader.get_tracks();
-    std::vector<glm::vec2> fake_uv = loadUVS("Track.obj");
-    std::vector<glm::vec3> track_verts = loadVerts("Track.obj");
-    std::vector<glm::vec3> fake_normals = track_verts;
-    Model temp_model("tr00");
-    std::vector<unsigned int> fake_indices;
-    unsigned int index = 0;
-    for (auto vert : track_verts) {
-        fake_indices.push_back(index++);
+    for(auto &mesh : trkLoader.trk_blocks){
+        meshes.push_back(mesh);
     }
-    temp_model.setIndices(fake_indices);
-    temp_model.setVertices(track_verts, false);
-    temp_model.setUVs(fake_uv);
-    temp_model.setNormals(fake_normals);
-    temp_model.enable();
-    meshes.push_back(temp_model);
-
-
 
     if (!init_opengl()) {
         std::cout << "OpenGL init failed." << std::endl;

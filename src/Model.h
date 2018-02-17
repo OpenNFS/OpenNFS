@@ -62,6 +62,7 @@ public:
     /*--------- Model State --------*/
     //UI
     bool enabled = false;
+    bool indexed = false;
     //Rendering
     glm::mat4 ModelMatrix = glm::mat4(1.0);
     glm::mat4 RotationMatrix;
