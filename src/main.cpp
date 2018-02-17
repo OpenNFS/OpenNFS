@@ -186,7 +186,7 @@ bool init_opengl() {
 
 int main(int argc, const char *argv[]) {
     std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
-    NFS_Loader nfs_loader("../resources/car_f1.viv");
+    NFS_Loader nfs_loader("../resources/car.viv");
     if(!nfs_loader.loadObj("../resources/lap3.obj")){
         std::cout << "Track load failed" << std::endl;
     };
