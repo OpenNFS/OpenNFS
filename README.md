@@ -4,7 +4,7 @@ An attempt to recreate the original Need for Speed 3, unpacking it's original da
  
 * Full Car Viv file loading. (Yeah that's it)
 
-![Screenshot](BuildProgress.png)
+![Screenshot](../master/BuildProgress.png)
 
 ## To run (for now):
 
