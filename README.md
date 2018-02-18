@@ -2,7 +2,10 @@
 
 An attempt to recreate the original Need for Speed 3, unpacking it's original data files into a modern scratch build engine. Extremely early in development, current features include:
  
-* Full Car Viv file loading. (Yeah that's it)
+* Full Car Viv file loading. 
+* Rudimentary Track .frd/.col loading
+
+(Yeah that's it)
 
 ![Screenshot](../master/BuildProgress.png)
 

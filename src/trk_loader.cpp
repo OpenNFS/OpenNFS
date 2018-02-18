@@ -317,10 +317,10 @@ trk_loader::~trk_loader() = default;
 
 trk_loader::trk_loader(const std::string &frd_path){
     if(LoadFRD(frd_path)){
-        //if(LoadCOL("../resources/TR00.COL"))
-        //    std::cout << "Successful track load!" << std::endl;
-        //else
-        //    return;
+        if(LoadCOL("../resources/TR00.COL"))
+            std::cout << "Successful track load!" << std::endl;
+        else
+            return;
     } else
         return;
 
@@ -329,7 +329,6 @@ trk_loader::trk_loader(const std::string &frd_path){
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
         Model current_trk_block_model = Model("TrkBlock");
-
         // Fillers
         std::vector<glm::vec2> uvs;
         std::vector<glm::vec3> normals;
@@ -340,16 +339,19 @@ trk_loader::trk_loader(const std::string &frd_path){
         for(int chnk = 0; chnk < 6; chnk++){
             for(int k = 0; k < polygon_block.sz[chnk]; k++)
             {
+                TEXTUREBLOCK texture_for_block = texture[poly_chunk->texture];
                 indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[1]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
-                //indices.push_back((unsigned int) poly_chunk[k].vertex[3]);
-                uvs.push_back(glm::vec2(0,0));
-                uvs.push_back(glm::vec2(0,0));
-                uvs.push_back(glm::vec2(0,0));
-                uvs.push_back(glm::vec2(0,0));
-                //normals.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
-                //std::cout << poly_chunk[k].vertex[0] << " " << poly_chunk[k].vertex[1] << " " << poly_chunk[k].vertex[2] << " " << poly_chunk[k].vertex[3] << std::endl;
+                indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
+                indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
+                indices.push_back((unsigned int) poly_chunk[k].vertex[3]);
+                uvs.push_back(glm::vec2(texture_for_block.corners[0], texture_for_block.corners[1]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[2], texture_for_block.corners[3]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[4], texture_for_block.corners[5]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[0], texture_for_block.corners[1]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[4], texture_for_block.corners[5]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[6], texture_for_block.corners[7]));
             }
         }
         current_trk_block_model.setIndices(indices);
@@ -357,10 +359,10 @@ trk_loader::trk_loader(const std::string &frd_path){
         current_trk_block_model.setNormals(normals);
         // Get all vertices
         std::vector<glm::vec3> verts;
-        for (int j = 0; j < trk_block.nVertices; j++) {
-            verts.push_back(glm::vec3( trk_block.vert[j].x/1000,
-                                       trk_block.vert[j].y/1000,
-                                       trk_block.vert[j].z/1000));
+        for (int j = 0; j < trk_block.nHiResVert; j++) {
+            verts.push_back(glm::vec3( trk_block.vert[j].x/100,
+                                       trk_block.vert[j].y/100,
+                                       trk_block.vert[j].z/100));
         }
         current_trk_block_model.setVertices(verts, true);
         current_trk_block_model.enable();

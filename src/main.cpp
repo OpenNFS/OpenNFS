@@ -137,7 +137,7 @@ bool init_opengl() {
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(1024, 768, "Need for Speed 3 FCE Loader", nullptr, nullptr);
+    window = glfwCreateWindow(1024, 768, "OpenNFS3", nullptr, nullptr);
 
     if (window == nullptr) {
         fprintf(stderr, "Failed to create a GLFW window.\n");
