@@ -1,20 +1,21 @@
 #version 330 core
 
-// Interpolated values from the vertex shaders
-in vec2 UV;
-in vec3 inColor;
+ // Interpolated values from the vertex shaders
+ in vec2 UV;
+ in vec3 inColor;
 
-// Ouput data
-out vec4 color;
+ // Ouput data
+ out vec4 color;
 
-// Values that stay constant for the whole mesh.
-uniform sampler2D myTextureSampler;
+ // Values that stay constant for the whole mesh.
+ uniform sampler2D myTextureSampler;
 
-void main(){
-    vec4 tempColor = texture( myTextureSampler, UV ).rgba;
-	// Output color = color of the texture at the specified UV
-	color.r = tempColor.r;//inColor.r;
-	color.g = tempColor.g;
-	color.b = tempColor.b;
+ void main(){
+     vec4 tempColor = texture( myTextureSampler, UV ).rgba;
+
+ 	// Output color = color of the texture at the specified UV
+ 	color.r = tempColor.r;
+ 	color.g = tempColor.g;
+ 	color.b = tempColor.b;
     color.a = 1.0; //tempColor.a;
-}
+ }

@@ -328,7 +328,7 @@ trk_loader::trk_loader(const std::string &frd_path){
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
-        Model current_trk_block_model = Model("TrkBlock");
+        Model current_trk_block_model = Model("TrkBlock" + std::to_string(i));
         // Fillers
         std::vector<glm::vec2> uvs;
         std::vector<glm::vec3> normals;
@@ -339,7 +339,7 @@ trk_loader::trk_loader(const std::string &frd_path){
         for(int chnk = 0; chnk < 6; chnk++){
             for(int k = 0; k < polygon_block.sz[chnk]; k++)
             {
-                TEXTUREBLOCK texture_for_block = texture[poly_chunk->texture];
+                TEXTUREBLOCK texture_for_block = texture[poly_chunk[k].texture];
                 indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[1]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
@@ -352,6 +352,15 @@ trk_loader::trk_loader(const std::string &frd_path){
                 uvs.push_back(glm::vec2(texture_for_block.corners[0], texture_for_block.corners[1]));
                 uvs.push_back(glm::vec2(texture_for_block.corners[4], texture_for_block.corners[5]));
                 uvs.push_back(glm::vec2(texture_for_block.corners[6], texture_for_block.corners[7]));
+                // Generate RGB value based on texture ID
+                //wawstd::cout << texture_for_block.texture << std::endl;
+                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+
             }
         }
         current_trk_block_model.setIndices(indices);
@@ -360,15 +369,19 @@ trk_loader::trk_loader(const std::string &frd_path){
         // Get all vertices
         std::vector<glm::vec3> verts;
         for (int j = 0; j < trk_block.nHiResVert; j++) {
-            verts.push_back(glm::vec3( trk_block.vert[j].x/100,
-                                       trk_block.vert[j].y/100,
-                                       trk_block.vert[j].z/100));
+            verts.push_back(glm::vec3( trk_block.vert[j].x/10,
+                                       trk_block.vert[j].y/10,
+                                       trk_block.vert[j].z/10));
         }
         current_trk_block_model.setVertices(verts, true);
         current_trk_block_model.enable();
         //current_trk_block_model.indexed = true;
         trk_blocks.push_back(current_trk_block_model);
     }
+}
+
+vector<Model> trk_loader::getTrackBlocks() {
+    return trk_blocks;
 }
 
 #pragma GCC pop_options

@@ -14,8 +14,8 @@ uniform mat4 MVP;
 uniform vec3 color;
 
 void main(){
-    // Pass through Colour
-    inColor = color;
+    // Pass through slider Colour
+    inColor = normal;//color;
 
 	// Output position of the vertex, in clip space : MVP * position
 	gl_Position =  MVP * vec4(vertexPosition_modelspace,1);

@@ -285,7 +285,9 @@ class trk_loader {
         bool LoadFRD(std::string frd_path);
         std::vector<Model> trk_blocks;
 
-    protected:
+    std::vector<Model> getTrackBlocks();
+
+protected:
         bool LoadCOL(std::string col_path);
 };
 

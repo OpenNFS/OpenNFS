@@ -195,7 +195,7 @@ int main(int argc, const char *argv[]) {
     meshes[0].enable();
 
     trk_loader trkLoader("../resources/TR00.frd");
-    for(auto &mesh : trkLoader.trk_blocks){
+    for(auto &mesh : trkLoader.getTrackBlocks()){
         meshes.push_back(mesh);
     }
 
@@ -225,6 +225,9 @@ int main(int argc, const char *argv[]) {
     // Create and compile our GLSL program from the shaders
     GLuint programID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
                                    "../shaders/TextureFragmentShader.fragmentshader");
+    GLuint debugProgramID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
+                                   "../shaders/TrackDebugShader.fragmentshader");
+
     // Get a handle for our "MVP" uniform
     GLint MatrixID = glGetUniformLocation(programID, "MVP");
     // Load the texture
@@ -241,6 +244,11 @@ int main(int argc, const char *argv[]) {
         if (!mesh.genBuffers()) {
             return -1;
         }
+        if (mesh.getName().find("TrkBlock") == std::string::npos) {
+            mesh.shader_id = programID;
+        } else {
+            mesh.shader_id = debugProgramID;
+        }
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     /*------- UI -------*/
@@ -252,8 +260,6 @@ int main(int argc, const char *argv[]) {
         glfwPollEvents();
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // Use our shader
-        glUseProgram(programID);
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
         window_active = window_active ? window_active : (
                 (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
@@ -269,6 +275,8 @@ int main(int argc, const char *argv[]) {
 
         // Draw Meshes
         for (auto &mesh : meshes) {
+            // Use our shader
+            glUseProgram(mesh.shader_id);
             mesh.update();
             glm::mat4 MVP = ProjectionMatrix * ViewMatrix * mesh.ModelMatrix;
             // Send our transformation to the currently bound shader, in the "MVP" uniform

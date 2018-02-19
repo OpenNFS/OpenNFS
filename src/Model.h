@@ -41,6 +41,8 @@ public:
 
     bool genBuffers();
 
+    void setShaderID(GLuint shaderID);
+
     std::vector<unsigned int> getIndices(void);
 
     void setUVs(std::vector<glm::vec2> uvs);
@@ -63,6 +65,7 @@ public:
     //UI
     bool enabled = false;
     bool indexed = false;
+    GLuint shader_id = 0;
     //Rendering
     glm::mat4 ModelMatrix = glm::mat4(1.0);
     glm::mat4 RotationMatrix;

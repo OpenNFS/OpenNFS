@@ -54,7 +54,7 @@ void Model::setVertices(std::vector<glm::vec3> verts, bool removeIndexing) {
         m_vertices = std::move(verts);
     }
     if (m_name.find("TrkBlock") == std::string::npos){
-        position = glm::vec3(2, 0, 0);
+        position = glm::vec3(-66, 0, 3);
         //Generate Physics collision data
         orientation_vec = glm::vec3(0,0,0);
     } else {
@@ -98,6 +98,9 @@ void Model::enable() {
     enabled = true;
 }
 
+void Model::setShaderID(GLuint shaderID){
+    shader_id = shaderID;
+}
 
 void Model::destroy() {
     glDeleteBuffers(1, &gl_buffers.vertexbuffer);
