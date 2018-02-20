@@ -13,3 +13,6 @@
 [submodule "external/bullet3"]
 	path = external/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
+[submodule "external/glew-cmake"]
+	path = external/glew-cmake
+	url = https://github.com/Perlmint/glew-cmake.git
