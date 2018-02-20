@@ -1,20 +1,17 @@
-[submodule "external/boost-cmake"]
-	path = external/boost-cmake
+[submodule "lib/boost-cmake"]
+	path = lib/boost-cmake
 	url = https://github.com/Orphis/boost-cmake.git
-[submodule "external/glew"]
-	path = external/glew
-	url = https://github.com/nigels-com/glew.git
-[submodule "external/glm"]
-	path = external/glm
+[submodule "lib/glm"]
+	path = lib/glm
 	url = https://github.com/g-truc/glm.git
-[submodule "external/glfw"]
-	path = external/glfw
+[submodule "lib/glfw"]
+	path = lib/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "external/bullet3"]
-	path = external/bullet3
+[submodule "lib/bullet3"]
+	path = lib/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
-[submodule "external/glew-cmake"]
-	path = external/glew-cmake
+[submodule "lib/glew-cmake"]
+	path = lib/glew-cmake
 	url = https://github.com/Perlmint/glew-cmake.git
 [submodule "include/imgui"]
 	path = include/imgui
