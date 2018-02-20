@@ -54,15 +54,14 @@ void Model::setVertices(std::vector<glm::vec3> verts, bool removeIndexing) {
         m_vertices = std::move(verts);
     }
     if (m_name.find("TrkBlock") == std::string::npos){
-        position = glm::vec3(-66, 0, 3);
-        //Generate Physics collision data
+        //position = glm::vec3(-66, 0, 3);
         orientation_vec = glm::vec3(0,0,0);
     } else {
-        position = glm::vec3(0, 0, 0);
         orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
     }
-
+    position = glm::vec3(0, 0, 0);
     orientation = glm::normalize(glm::quat(orientation_vec));
+    //Generate Physics collision data
     motionstate = new btDefaultMotionState(btTransform(
             btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w),
             btVector3(position.x, position.y, position.z)

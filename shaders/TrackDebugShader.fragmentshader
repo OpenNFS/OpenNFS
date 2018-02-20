@@ -8,6 +8,8 @@ in vec3 inColor;
 out vec4 color;
 
 void main(){
+    //vec4 tempColor = texture( myTextureSampler, UV ).rgba;
+
     color.r = inColor.r;
     color.g = inColor.g;
     color.b = inColor.b;

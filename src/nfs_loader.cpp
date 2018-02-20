@@ -195,7 +195,7 @@ std::vector<glm::vec3> NFS_Loader::getVertices(int partNumber, int offset, unsig
 
         /* Read X, Y, Z into vertices array*/
         for (int vertAxesIdx = 0; vertAxesIdx < 3; vertAxesIdx++) {
-            temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx] + globalBuffer[vertAxesIdx])/10;
+            temp_vertex[vertAxesIdx] = buffer[vertAxesIdx] + globalBuffer[vertAxesIdx];
         }
         vertices.push_back(temp_vertex);
     }
@@ -341,7 +341,7 @@ void NFS_Loader::readFCE(const char *fce_path) {
         meshes[i].setUVs(getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]));
         meshes[i].setNormals(getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]));
         totalVertices += file_verts.size();
-        std::cout << "Mesh: " << meshes[i].getName() << " UVs: " << meshes[i].getUVs().size() << " Verts: " << meshes[i].getVertices().size() << " Indices: " << meshes[i].getIndices().size() << std::endl;
+        std::cout << "Mesh: " << meshes[i].getName() << " UVs: " << meshes[i].getUVs().size() << " Verts: " << file_verts.size() << " Indices: " << meshes[i].getIndices().size() << " Normals: " << meshes[i].getNormals().size() << std::endl;
     }
 
     //Sanity Check

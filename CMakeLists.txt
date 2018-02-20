@@ -3,11 +3,10 @@ project(OpenNFS3)
 
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations -m32 -fpack-struct=8")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-deprecated-declarations -m32 -fpack-struct=8")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/bullet3/src")
-
 
 set(SOURCE_FILES
         src/nfs_loader.cpp
@@ -35,6 +34,9 @@ set(SOURCE_FILES
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 
+#[[BOOST]]
+add_subdirectory(external/boost-cmake/)
+target_link_libraries(OpenNFS3 Boost::filesystem Boost::boost)
 #[[Bullet Configuration]]
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_CLSOCKET OFF CACHE BOOL "" FORCE)
@@ -50,7 +52,7 @@ TARGET_LINK_LIBRARIES(OpenNFS3 BulletDynamics BulletCollision LinearMath Bullet3
 add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glew-2.1.0/include")
 #[[GLM Configuration]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glm-0.9.9-a2")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glm")
 #[[OpenGL Configuration]]
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS})
@@ -59,5 +61,5 @@ target_link_libraries(OpenNFS3 ${OPENGL_LIBRARIES})
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(external/glfw-3.2.1/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
+add_subdirectory(external/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS3 glfw)

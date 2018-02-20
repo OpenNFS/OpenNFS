@@ -317,7 +317,7 @@ trk_loader::~trk_loader() = default;
 
 trk_loader::trk_loader(const std::string &frd_path){
     if(LoadFRD(frd_path)){
-        if(LoadCOL("../resources/TR00.COL"))
+        if(LoadCOL("../resources/TRK000/TR00.COL"))
             std::cout << "Successful track load!" << std::endl;
         else
             return;
@@ -360,7 +360,6 @@ trk_loader::trk_loader(const std::string &frd_path){
                 normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
                 normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
                 normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-
             }
         }
         current_trk_block_model.setIndices(indices);
@@ -369,9 +368,9 @@ trk_loader::trk_loader(const std::string &frd_path){
         // Get all vertices
         std::vector<glm::vec3> verts;
         for (int j = 0; j < trk_block.nHiResVert; j++) {
-            verts.push_back(glm::vec3( trk_block.vert[j].x/10,
-                                       trk_block.vert[j].y/10,
-                                       trk_block.vert[j].z/10));
+            verts.push_back(glm::vec3( trk_block.vert[j].x/100,
+                                       trk_block.vert[j].y/100,
+                                       trk_block.vert[j].z/100));
         }
         current_trk_block_model.setVertices(verts, true);
         current_trk_block_model.enable();

@@ -61,38 +61,54 @@ public:
     int m;
 };
 
-std::vector<glm::vec2> loadUVS(const char *path) {
-    std::vector<glm::vec2> temp_uvs;
+void TrackTextures(){
 
-    FILE *obj_file = fopen(path, "r");
-
-    while (1) {
-        glm::vec2 uv{};
-        int res = fscanf(obj_file, "%f %f\n", &uv.x, &uv.y);
-        if (res == EOF) break;
-        temp_uvs.push_back(uv);
-    }
-
-    fclose(obj_file);
-
-    return temp_uvs;
 }
 
-std::vector<glm::vec3> loadVerts(const char *path) {
-    std::vector<glm::vec3> temp_verts;
+GLuint LoadTexture( const char * filename )
+{
+    GLuint texture;
 
-    FILE *obj_file = fopen(path, "r");
+    int width, height;
 
-    while (1) {
-        glm::vec3 vert{};
-        int res = fscanf(obj_file, "%f %f %f\n", &vert.x, &vert.y, &vert.z);
-        if (res == EOF) break;
-        temp_verts.push_back(vert);
+    unsigned char * data;
+
+    FILE * file;
+
+    file = fopen( filename, "rb" );
+
+    if ( file == NULL ) return 0;
+    width = 1024;
+    height = 512;
+    data = (unsigned char *)malloc( width * height * 3 );
+    //int size = fseek(file,);
+    fread( data, width * height * 3, 1, file );
+    fclose( file );
+
+    for(int i = 0; i < width * height ; ++i)
+    {
+        int index = i*3;
+        unsigned char B,R;
+        B = data[index];
+        R = data[index+2];
+
+        data[index] = R;
+        data[index+2] = B;
+
     }
 
-    fclose(obj_file);
+    glGenTextures( 1, &texture );
+    glBindTexture( GL_TEXTURE_2D, texture );
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST );
 
-    return temp_verts;
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
+    gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,GL_RGB, GL_UNSIGNED_BYTE, data );
+    free( data );
+
+    return texture;
 }
 
 GLint load_tga_texture(const char *path) {
@@ -194,7 +210,7 @@ int main(int argc, const char *argv[]) {
     std::vector<Model> meshes = nfs_loader.getMeshes();
     meshes[0].enable();
 
-    trk_loader trkLoader("../resources/TR00.frd");
+    trk_loader trkLoader("../resources/TRK000/TR00.frd");
     for(auto &mesh : trkLoader.getTrackBlocks()){
         meshes.push_back(mesh);
     }
@@ -232,6 +248,7 @@ int main(int argc, const char *argv[]) {
     GLint MatrixID = glGetUniformLocation(programID, "MVP");
     // Load the texture
     GLuint Texture = load_tga_texture("car00.tga");
+    // GLuint TrackTexture = LoadTexture("../resources/TRK000/textures/0000.bmp");
     // Get a handle for our "myTextureSampler" uniform
     GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
     GLuint ColorID = glGetUniformLocation(programID, "color");
