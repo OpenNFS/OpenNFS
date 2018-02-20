@@ -5,7 +5,8 @@
 //  Created by Amrik Sadhra on 27/10/2017.
 //
 
-#include <tinyobjloader/tiny_obj_loader.h>
+
+#include <tiny_obj_loader.h>
 #include "nfs_loader.h"
 
 

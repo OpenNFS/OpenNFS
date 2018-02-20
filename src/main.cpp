@@ -11,13 +11,12 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <imgui/imgui.h>
+#include <imgui.h>
 #include <btBulletDynamicsCommon.h>
-#include <imgui/imgui_impl_glfw_gl3.h>
+#include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
 #include "TGALoader.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
-
 // Source
 #include "shader.h"
 #include "controls.h"
@@ -60,10 +59,6 @@ public:
 
     int m;
 };
-
-void TrackTextures(){
-
-}
 
 GLuint LoadTexture( const char * filename )
 {
@@ -201,7 +196,7 @@ bool init_opengl() {
 }
 
 int main(int argc, const char *argv[]) {
-    std::cout << "----------- NFS3 Model Viewer v0.5 -----------" << std::endl;
+    std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     NFS_Loader nfs_loader("../resources/car.viv");
     if(!nfs_loader.loadObj("../resources/lap3.obj")){
         std::cout << "Track load failed" << std::endl;
@@ -209,7 +204,6 @@ int main(int argc, const char *argv[]) {
     //Load OpenGL data from unpacked NFS files
     std::vector<Model> meshes = nfs_loader.getMeshes();
     meshes[0].enable();
-
     trk_loader trkLoader("../resources/TRK000/TR00.frd");
     for(auto &mesh : trkLoader.getTrackBlocks()){
         meshes.push_back(mesh);
@@ -230,10 +224,11 @@ int main(int argc, const char *argv[]) {
     // The world.
     auto *dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
     dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
-
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
     dynamicsWorld->setDebugDrawer(&mydebugdrawer);
+
     /*------- ImGui -------*/
+    ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
     // Setup style
     ImGui::StyleColorsDark();
@@ -336,6 +331,7 @@ int main(int argc, const char *argv[]) {
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         ImGui::Render();
+        ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
     }
 

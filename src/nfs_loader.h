@@ -16,7 +16,7 @@
 #include <cmath>
 #include <glm/vec3.hpp>
 #include "Model.h"
-#include <tinyobjloader/tiny_obj_loader.h>
+#include <tiny_obj_loader.h>
 
 #define DATA_START 0x1F04
 #define VertTblOffset 0x0010

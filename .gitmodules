@@ -16,3 +16,9 @@
 [submodule "external/glew-cmake"]
 	path = external/glew-cmake
 	url = https://github.com/Perlmint/glew-cmake.git
+[submodule "include/imgui"]
+	path = include/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "include/tinyobjloader"]
+	path = include/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git

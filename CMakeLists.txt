@@ -3,22 +3,20 @@ project(OpenNFS3)
 
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-deprecated-declarations -m32 -fpack-struct=8")
-
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/bullet3/src")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations")
+set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(SOURCE_FILES
         src/nfs_loader.cpp
-        src/nfs_loader.h
-        include/tinyobjloader/tiny_obj_loader.h
         src/main.cpp
-        external/glew-2.1.0/src/glew.c
         src/controls.cpp
         src/shader.cpp
         src/Model.cpp
         src/TGALoader.cpp
         src/trk_loader.cpp
+        src/physics.cpp
+        lib/glew-cmake/src/glew.c
         #[[IMGUI]]
         include/imgui/imgui.cpp
         include/imgui/imgui.h
@@ -29,13 +27,17 @@ set(SOURCE_FILES
         include/imgui/stb_rect_pack.h
         include/imgui/stb_textedit.h
         include/imgui/stb_truetype.h
-        include/imgui/imgui_impl_glfw_gl3.cpp
-        src/physics.cpp src/physics.h include/tinyobjloader/tiny_obj_loader.h)
+        include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
+        )
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 
+#[[IMGUI]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
+#[[TINYOBJLOADER]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BOOST]]
-add_subdirectory(external/boost-cmake/)
+add_subdirectory(lib/boost-cmake/)
 target_link_libraries(OpenNFS3 Boost::filesystem Boost::boost)
 #[[Bullet Configuration]]
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
@@ -46,13 +48,14 @@ set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
 set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)
-add_subdirectory(external/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3")
+add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3")
 TARGET_LINK_LIBRARIES(OpenNFS3 BulletDynamics BulletCollision LinearMath Bullet3Common)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glew-2.1.0/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")
 #[[GLM Configuration]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/external/glm")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glm")
 #[[OpenGL Configuration]]
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS})
@@ -61,5 +64,5 @@ target_link_libraries(OpenNFS3 ${OPENGL_LIBRARIES})
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(external/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
+add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS3 glfw)

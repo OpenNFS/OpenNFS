@@ -7,7 +7,7 @@ An attempt to recreate the original Need for Speed 3, unpacking it's original da
 
 (Yeah that's it)
 
-![Screenshot](../master/BuildProgress.png)
+![Screenshot](../master/doc/BuildProgress.png)
 
 ## To run (for now):
 
@@ -15,12 +15,13 @@ Place car.viv in 'resources' directory, one level above your build output and ru
 
 ## Dependencies
 
-The CMake files are currently configured to detect external libraries from within an 'external' folder at the same level as 'src'.
+The CMake files are currently configured to detect external libraries from within the 'lib' folder at the same level as 'src'.
 
 * GLEW 2.1.0
 * GLFW 3.2.1
 * GLM 0.9.9-a2
 * Bullet3
+* Boost
 
 ## TODO
 
