@@ -14,6 +14,7 @@
 #include <imgui.h>
 #include <btBulletDynamicsCommon.h>
 #include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
+#include <set>
 #include "TGALoader.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -60,52 +61,6 @@ public:
     int m;
 };
 
-GLuint LoadTexture( const char * filename )
-{
-    GLuint texture;
-
-    int width, height;
-
-    unsigned char * data;
-
-    FILE * file;
-
-    file = fopen( filename, "rb" );
-
-    if ( file == NULL ) return 0;
-    width = 1024;
-    height = 512;
-    data = (unsigned char *)malloc( width * height * 3 );
-    //int size = fseek(file,);
-    fread( data, width * height * 3, 1, file );
-    fclose( file );
-
-    for(int i = 0; i < width * height ; ++i)
-    {
-        int index = i*3;
-        unsigned char B,R;
-        B = data[index];
-        R = data[index+2];
-
-        data[index] = R;
-        data[index+2] = B;
-
-    }
-
-    glGenTextures( 1, &texture );
-    glBindTexture( GL_TEXTURE_2D, texture );
-    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST );
-
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
-    gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,GL_RGB, GL_UNSIGNED_BYTE, data );
-    free( data );
-
-    return texture;
-}
-
 GLint load_tga_texture(const char *path) {
     NS_TGALOADER::IMAGE texture_loader;
 
@@ -132,6 +87,42 @@ GLint load_tga_texture(const char *path) {
     glGenerateMipmap(GL_TEXTURE_2D);
 
     return textureID;
+}
+
+void BindTrackTextures(Model track_block, const std::vector<Texture> &textures, GLuint TrackTexturesID){
+    // Absolutely disgusting, filthy, < 1fps code, rewrite on weekend
+    // Quick and dirty way to get unique texture IDs present in TrackBLock, but could gen this at track read time and not per frame
+    // Still, will maintain NFS3/OpenGL data separation
+    std::set<unsigned int> minimal_texture_ids_set;
+    std::vector<unsigned int> minimal_texture_ids;
+    std::vector<glm::vec3> normals = track_block.getNormals();
+    for (auto &normal : normals) {
+        minimal_texture_ids_set.insert((unsigned int) normal.x);
+    }
+    minimal_texture_ids.assign( minimal_texture_ids_set.begin(), minimal_texture_ids_set.end() );
+    std::vector<Texture> live_textures;
+    for(int i = 0; i < minimal_texture_ids.size(); ++i){
+        for(auto &texture : textures){
+            if (minimal_texture_ids[i] == texture.texture_id)
+                live_textures.push_back(texture);
+        }
+    }
+
+    GLenum texNum = GL_TEXTURE0;
+    for(Texture &texture : live_textures){
+        GLuint textureID;
+        glActiveTexture(texNum);
+        glGenTextures( 1, &textureID );
+        glBindTexture( GL_TEXTURE_2D, textureID );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        gluBuild2DMipmaps( GL_TEXTURE_2D, 3, texture.width, texture.height ,GL_RGB, GL_UNSIGNED_BYTE, texture.texture_data);
+        ++texNum;
+    }
+    const GLint samplers[texNum-GL_TEXTURE0] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
+    glUniform1iv( TrackTexturesID, texNum-GL_TEXTURE0, samplers );
 }
 
 bool init_opengl() {
@@ -204,7 +195,10 @@ int main(int argc, const char *argv[]) {
     //Load OpenGL data from unpacked NFS files
     std::vector<Model> meshes = nfs_loader.getMeshes();
     meshes[0].enable();
-    trk_loader trkLoader("../resources/TRK000/TR00.frd");
+    //Load Track Data
+    trk_loader trkLoader("../resources/TR07.frd");
+    std::vector<Model> track_models = trkLoader.getTrackBlocks();
+    std::vector<Texture> track_textures = trkLoader.getTextures();
     for(auto &mesh : trkLoader.getTrackBlocks()){
         meshes.push_back(mesh);
     }
@@ -247,6 +241,7 @@ int main(int argc, const char *argv[]) {
     // Get a handle for our "myTextureSampler" uniform
     GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
     GLuint ColorID = glGetUniformLocation(programID, "color");
+    GLuint TrackTexturesID = glGetUniformLocation(debugProgramID, "texture_array");
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -294,6 +289,11 @@ int main(int argc, const char *argv[]) {
             // Send our transformation to the currently bound shader, in the "MVP" uniform
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
+            if (mesh.getName().find("TrkBlock") != std::string::npos) {
+                BindTrackTextures(mesh, track_textures, TrackTexturesID);
+            } else {
+                glBindTexture(GL_TEXTURE_2D, TextureID);
+            }
             mesh.render();
         }
 

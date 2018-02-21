@@ -7,11 +7,13 @@ in vec3 inColor;
 // Ouput data
 out vec4 color;
 
-void main(){
-    //vec4 tempColor = texture( myTextureSampler, UV ).rgba;
+uniform sampler2D texture_array[20];
 
-    color.r = inColor.r;
-    color.g = inColor.g;
-    color.b = inColor.b;
+void main(){
+    vec4 tempColor = texture( texture_array[int(mod(inColor.x, 20))], UV).rgba;
+
+    color.r = tempColor.r;
+    color.g = tempColor.g;
+    color.b = tempColor.b;
     color.a = 1.0;
 }

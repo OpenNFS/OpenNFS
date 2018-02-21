@@ -5,11 +5,10 @@
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
 
-#include <iostream>
-#include <fstream>
-#include <cstring>
+#include <sstream>
+#include <set>
+#include <iomanip>
 #include "trk_loader.h"
-#include "Model.h"
 
 using namespace std;
 
@@ -313,17 +312,56 @@ bool trk_loader::LoadCOL(std::string col_path)
     return coll.read((char *)&i, 4).gcount() == 0; // we ought to be at EOF now
 }
 
+
+
+Texture LoadTexture(TEXTUREBLOCK track_texture)
+{
+    int width, height;
+    unsigned char * data;
+    FILE * file;
+    std::stringstream filename;
+
+
+    filename << "../resources/tr00/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+    std::cout << filename.str() << std::endl;
+    file = fopen(filename.str().c_str(), "rb" );
+
+    if ( file == nullptr ){
+        std::cout << "Couldn't open " << filename.str() << std::endl;
+        assert(file == nullptr);
+    }
+
+    width = track_texture.width;
+    height = track_texture.height;
+    data = (unsigned char *)malloc( width * height * 3 );
+    fread( data, width * height * 3, 1, file );
+    fclose( file );
+
+    for(int i = 0; i < width * height ; ++i)
+    {
+        int index = i*3;
+        unsigned char B,R;
+        B = data[index];
+        R = data[index+2];
+        data[index] = R;
+        data[index+2] = B;
+    }
+
+    return Texture((unsigned int) track_texture.texture, data, track_texture.width, track_texture.height);
+}
+
 trk_loader::~trk_loader() = default;
 
 trk_loader::trk_loader(const std::string &frd_path){
     if(LoadFRD(frd_path)){
-        if(LoadCOL("../resources/TRK000/TR00.COL"))
+        if(LoadCOL("../resources/TR07.COL"))
             std::cout << "Successful track load!" << std::endl;
         else
             return;
     } else
         return;
 
+    std::set<short> unique_textures;
     for(int i = 0; i < nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = trk[i];
@@ -340,6 +378,10 @@ trk_loader::trk_loader(const std::string &frd_path){
             for(int k = 0; k < polygon_block.sz[chnk]; k++)
             {
                 TEXTUREBLOCK texture_for_block = texture[poly_chunk[k].texture];
+                if(!unique_textures.count(texture_for_block.texture)){
+                    unique_textures.insert(texture_for_block.texture);
+                    textures.push_back(LoadTexture(texture_for_block));
+                }
                 indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[1]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
@@ -353,13 +395,18 @@ trk_loader::trk_loader(const std::string &frd_path){
                 uvs.push_back(glm::vec2(texture_for_block.corners[4], texture_for_block.corners[5]));
                 uvs.push_back(glm::vec2(texture_for_block.corners[6], texture_for_block.corners[7]));
                 // Generate RGB value based on texture ID
-                //wawstd::cout << texture_for_block.texture << std::endl;
-                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
+                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
+                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
+                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
+                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
+                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
+                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
             }
         }
         current_trk_block_model.setIndices(indices);
@@ -381,6 +428,10 @@ trk_loader::trk_loader(const std::string &frd_path){
 
 vector<Model> trk_loader::getTrackBlocks() {
     return trk_blocks;
+}
+
+std::vector<Texture> trk_loader::getTextures() {
+    return textures;
 }
 
 #pragma GCC pop_options

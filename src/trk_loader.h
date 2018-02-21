@@ -7,6 +7,10 @@
 
 #include <glm/vec3.hpp>
 #include <vector>
+#include "boost/filesystem.hpp"
+#include <iostream>
+#include <fstream>
+#include <cstring>
 #include "Model.h"
 
 typedef struct FLOATPT
@@ -260,6 +264,20 @@ typedef struct COLFILE {
     long *hs_extra; // for the extra HS data in COLVROAD
 } COLFILE;
 
+class Texture {
+public:
+    unsigned int texture_id, width, height;
+    unsigned char* texture_data;
+
+    Texture() = default;
+    explicit Texture(unsigned int id, unsigned char *data, unsigned int w, unsigned int h){
+        texture_id = id;
+        texture_data = data;
+        width = w;
+        height = h;
+    }
+};
+
 class trk_loader {
 // !!! for arrays : structures are aligned to their largest member
 // !!! structure members are aligned on their own size (up to the /Zp parameter)
@@ -284,8 +302,10 @@ class trk_loader {
         virtual ~trk_loader();
         bool LoadFRD(std::string frd_path);
         std::vector<Model> trk_blocks;
+        std::vector<Texture> textures;
 
     std::vector<Model> getTrackBlocks();
+    std::vector<Texture> getTextures();
 
 protected:
         bool LoadCOL(std::string col_path);
