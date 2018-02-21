@@ -107,14 +107,16 @@ std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures){
 
 void BindTrackTextures(Model track_block, const std::map<short, Texture> &textures, GLuint TrackTexturesID, std::map<short, GLuint> gl_id_map){
     GLenum texNum = GL_TEXTURE0;
+    int numTextures = 0;
     for (short texture_id : track_block.texture_ids) {
         GLuint textureID = gl_id_map.find(texture_id)->second;
         glActiveTexture(texNum);
         glBindTexture( GL_TEXTURE_2D, textureID );
         ++texNum;
+        numTextures++;
     }
-    const GLint samplers[texNum-GL_TEXTURE0] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-    glUniform1iv( TrackTexturesID, texNum-GL_TEXTURE0, samplers );
+    const GLint samplers[32] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+    glUniform1iv( TrackTexturesID, 32, samplers );
 }
 
 bool init_opengl() {
@@ -129,7 +131,7 @@ bool init_opengl() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
     window = glfwCreateWindow(1024, 768, "OpenNFS3", nullptr, nullptr);
 
@@ -170,7 +172,7 @@ bool init_opengl() {
 
     // Cull triangles which normal is not towards the camera
     glEnable(GL_FRONT);
-
+    glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -182,7 +184,7 @@ int main(int argc, const char *argv[]) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     NFS_Loader nfs_loader("../resources/car.viv");
     if(!nfs_loader.loadObj("../resources/lap3.obj")){
-        std::cout << "Track load failed" << std::endl;
+        std::cout << "Obj load failed" << std::endl;
     };
     //Load OpenGL data from unpacked NFS files
     std::vector<Model> meshes = nfs_loader.getMeshes();
@@ -285,7 +287,8 @@ int main(int argc, const char *argv[]) {
             if (mesh.getName().find("TrkBlock") != std::string::npos) {
                 BindTrackTextures(mesh, track_textures, TrackTexturesID, gl_id_map);
             } else {
-                //glBindTexture(GL_TEXTURE_2D, TextureID);
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, Texture);
             }
             mesh.render();
         }

@@ -17,12 +17,12 @@ Texture LoadTexture(TEXTUREBLOCK track_texture)
 {
     int width, height;
     unsigned char * data;
-    FILE * file;
-    std::stringstream filename;
-
-
+    FILE * file, *alpha_file;
+    std::stringstream filename, alpha_filename;
     filename << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+    alpha_filename << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
     file = fopen(filename.str().c_str(), "rb" );
+    alpha_file = fopen(alpha_filename.str().c_str(), "rb" );
 
     if ( file == nullptr ){
         std::cout << "Couldn't open " << filename.str() << std::endl;
@@ -32,6 +32,7 @@ Texture LoadTexture(TEXTUREBLOCK track_texture)
     width = track_texture.width;
     height = track_texture.height;
     data = (unsigned char *)malloc( width * height * 3 );
+    fread(data, 54, 1, file);
     fread( data, width * height * 3, 1, file );
     fclose( file );
 
@@ -44,6 +45,9 @@ Texture LoadTexture(TEXTUREBLOCK track_texture)
         data[index] = R;
         data[index+2] = B;
     }
+
+
+
 
     return Texture((unsigned int) track_texture.texture, data, track_texture.width, track_texture.height);
 }
@@ -387,12 +391,15 @@ trk_loader::trk_loader(const std::string &frd_path){
                 indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[3]);
-                uvs.push_back(glm::vec2(texture_for_block.corners[0], texture_for_block.corners[1]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[2], texture_for_block.corners[3]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[4], texture_for_block.corners[5]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[0], texture_for_block.corners[1]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[4], texture_for_block.corners[5]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[6], texture_for_block.corners[7]));
+
+                uvs.push_back(glm::vec2(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]));
+                uvs.push_back(glm::vec2(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]));
+
+
                 // Generate RGB value based on texture ID
                 normals.push_back(glm::vec3(texture_for_block.texture,0,0));
                 normals.push_back(glm::vec3(texture_for_block.texture,0,0));
@@ -418,13 +425,12 @@ trk_loader::trk_loader(const std::string &frd_path){
         // Get all vertices
         std::vector<glm::vec3> verts;
         for (int j = 0; j < trk_block.nHiResVert; j++) {
-            verts.push_back(glm::vec3( trk_block.vert[j].x/100,
-                                       trk_block.vert[j].y/100,
-                                       trk_block.vert[j].z/100));
+            verts.push_back(glm::vec3( trk_block.vert[j].x/10,
+                                       trk_block.vert[j].y/10,
+                                       trk_block.vert[j].z/10));
         }
         current_trk_block_model.setVertices(verts, true);
         current_trk_block_model.enable();
-        //current_trk_block_model.indexed = true;
         trk_blocks.push_back(current_trk_block_model);
     }
 }

@@ -7,7 +7,7 @@ in vec3 inColor;
 // Ouput data
 out vec4 color;
 
-uniform sampler2D texture_array[16];
+uniform sampler2D texture_array[32];
 
 void main(){
     vec4 tempColor = texture(texture_array[int(inColor.x)], UV).rgba;
