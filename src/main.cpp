@@ -84,26 +84,35 @@ GLint load_tga_texture(const char *path) {
     return textureID;
 }
 
-void BindTrackTextures(Model track_block, std::map<short, Texture> textures, GLuint TrackTexturesID){
-    std::vector<Texture> live_textures;
-    for (short texture_id : track_block.texture_ids) {
-        live_textures.push_back(textures.find(texture_id)->second);
-    }
 
-    GLenum texNum = GL_TEXTURE0;
-    for(Texture &texture : live_textures){
+std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures){
+    std::map<short, GLuint> gl_id_map;
+
+    for (std::map<short,Texture>::iterator it=textures.begin(); it!=textures.end(); ++it){
+        Texture texture = it->second;
         GLuint textureID;
-        glActiveTexture(texNum);
         glGenTextures( 1, &textureID );
+        auto p = std::make_pair(it->first, textureID);
+        gl_id_map.insert(p);
         glBindTexture( GL_TEXTURE_2D, textureID );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         gluBuild2DMipmaps( GL_TEXTURE_2D, 3, texture.width, texture.height ,GL_RGB, GL_UNSIGNED_BYTE, texture.texture_data);
-        ++texNum;
     }
 
+    return gl_id_map;
+}
+
+void BindTrackTextures(Model track_block, const std::map<short, Texture> &textures, GLuint TrackTexturesID, std::map<short, GLuint> gl_id_map){
+    GLenum texNum = GL_TEXTURE0;
+    for (short texture_id : track_block.texture_ids) {
+        GLuint textureID = gl_id_map.find(texture_id)->second;
+        glActiveTexture(texNum);
+        glBindTexture( GL_TEXTURE_2D, textureID );
+        ++texNum;
+    }
     const GLint samplers[texNum-GL_TEXTURE0] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
     glUniform1iv( TrackTexturesID, texNum-GL_TEXTURE0, samplers );
 }
@@ -190,6 +199,7 @@ int main(int argc, const char *argv[]) {
         std::cout << "OpenGL init failed." << std::endl;
         return -1;
     }
+    std::map<short, GLuint> gl_id_map = GenTrackTextures(track_textures);
 
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase = new btDbvtBroadphase();
@@ -273,9 +283,9 @@ int main(int argc, const char *argv[]) {
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
             if (mesh.getName().find("TrkBlock") != std::string::npos) {
-                BindTrackTextures(mesh, track_textures, TrackTexturesID);
+                BindTrackTextures(mesh, track_textures, TrackTexturesID, gl_id_map);
             } else {
-                glBindTexture(GL_TEXTURE_2D, TextureID);
+                //glBindTexture(GL_TEXTURE_2D, TextureID);
             }
             mesh.render();
         }
