@@ -66,6 +66,7 @@ public:
     bool enabled = false;
     bool indexed = false;
     GLuint shader_id = 0;
+    std::vector<short> texture_ids;
     //Rendering
     glm::mat4 ModelMatrix = glm::mat4(1.0);
     glm::mat4 RotationMatrix;

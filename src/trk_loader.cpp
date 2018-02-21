@@ -8,9 +8,45 @@
 #include <sstream>
 #include <set>
 #include <iomanip>
+#include <map>
 #include "trk_loader.h"
 
 using namespace std;
+
+Texture LoadTexture(TEXTUREBLOCK track_texture)
+{
+    int width, height;
+    unsigned char * data;
+    FILE * file;
+    std::stringstream filename;
+
+
+    filename << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+    file = fopen(filename.str().c_str(), "rb" );
+
+    if ( file == nullptr ){
+        std::cout << "Couldn't open " << filename.str() << std::endl;
+        assert(file == nullptr);
+    }
+
+    width = track_texture.width;
+    height = track_texture.height;
+    data = (unsigned char *)malloc( width * height * 3 );
+    fread( data, width * height * 3, 1, file );
+    fclose( file );
+
+    for(int i = 0; i < width * height ; ++i)
+    {
+        int index = i*3;
+        unsigned char B,R;
+        B = data[index];
+        R = data[index+2];
+        data[index] = R;
+        data[index+2] = B;
+    }
+
+    return Texture((unsigned int) track_texture.texture, data, track_texture.width, track_texture.height);
+}
 
 bool trk_loader::LoadFRD(std::string frd_path)
 {
@@ -195,8 +231,11 @@ bool trk_loader::LoadFRD(std::string frd_path)
     // TEXTUREBLOCKs
     if (ar.read((char *)&nTextures,4).gcount() !=4) return false;
     texture=(struct TEXTUREBLOCK *)malloc(nTextures*sizeof(struct TEXTUREBLOCK));
-    for (i=0;i<nTextures;i++)
+    for (i=0;i<nTextures;i++){
         if (ar.read((char *)&(texture[i]),47).gcount() !=47) return false;
+        auto p = std::make_pair(texture[i].texture, LoadTexture(texture[i]));
+        textures.insert(p);
+    }
 
     return ar.read((char *)&i, 4).gcount() == 0; // we ought to be at EOF now
 }
@@ -313,60 +352,23 @@ bool trk_loader::LoadCOL(std::string col_path)
 }
 
 
-
-Texture LoadTexture(TEXTUREBLOCK track_texture)
-{
-    int width, height;
-    unsigned char * data;
-    FILE * file;
-    std::stringstream filename;
-
-
-    filename << "../resources/tr00/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-    std::cout << filename.str() << std::endl;
-    file = fopen(filename.str().c_str(), "rb" );
-
-    if ( file == nullptr ){
-        std::cout << "Couldn't open " << filename.str() << std::endl;
-        assert(file == nullptr);
-    }
-
-    width = track_texture.width;
-    height = track_texture.height;
-    data = (unsigned char *)malloc( width * height * 3 );
-    fread( data, width * height * 3, 1, file );
-    fclose( file );
-
-    for(int i = 0; i < width * height ; ++i)
-    {
-        int index = i*3;
-        unsigned char B,R;
-        B = data[index];
-        R = data[index+2];
-        data[index] = R;
-        data[index+2] = B;
-    }
-
-    return Texture((unsigned int) track_texture.texture, data, track_texture.width, track_texture.height);
-}
-
 trk_loader::~trk_loader() = default;
 
 trk_loader::trk_loader(const std::string &frd_path){
     if(LoadFRD(frd_path)){
-        if(LoadCOL("../resources/TR07.COL"))
+        if(LoadCOL("../resources/TRK000/TR00.COL"))
             std::cout << "Successful track load!" << std::endl;
         else
             return;
     } else
         return;
 
-    std::set<short> unique_textures;
     for(int i = 0; i < nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
         Model current_trk_block_model = Model("TrkBlock" + std::to_string(i));
+        std::set<short> minimal_texture_ids_set;
         // Fillers
         std::vector<glm::vec2> uvs;
         std::vector<glm::vec3> normals;
@@ -378,10 +380,7 @@ trk_loader::trk_loader(const std::string &frd_path){
             for(int k = 0; k < polygon_block.sz[chnk]; k++)
             {
                 TEXTUREBLOCK texture_for_block = texture[poly_chunk[k].texture];
-                if(!unique_textures.count(texture_for_block.texture)){
-                    unique_textures.insert(texture_for_block.texture);
-                    textures.push_back(LoadTexture(texture_for_block));
-                }
+                minimal_texture_ids_set.insert(texture_for_block.texture);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[1]);
                 indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
@@ -395,22 +394,26 @@ trk_loader::trk_loader(const std::string &frd_path){
                 uvs.push_back(glm::vec2(texture_for_block.corners[4], texture_for_block.corners[5]));
                 uvs.push_back(glm::vec2(texture_for_block.corners[6], texture_for_block.corners[7]));
                 // Generate RGB value based on texture ID
-                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                // normals.push_back(glm::vec3(1.0f-(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175),(texture_for_block.texture) * (1.0) / (175)));
-                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
-                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
-                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
-                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
-                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
-                normals.push_back(glm::vec3(texture_for_block.texture, texture_for_block.texture, texture_for_block.texture));
+                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
             }
         }
         current_trk_block_model.setIndices(indices);
         current_trk_block_model.setUVs(uvs);
+        current_trk_block_model.texture_ids.assign( minimal_texture_ids_set.begin(), minimal_texture_ids_set.end() );
+        // Process Normals to correspond to ordered texture ID's
+        std::map<int, int> ordered_mapping;
+        for(int i = 0; i < current_trk_block_model.texture_ids.size(); ++i){
+            auto p = std::make_pair((int) current_trk_block_model.texture_ids[i], i);
+            ordered_mapping.insert(p);
+        }
+        for(auto &normal : normals){
+            normal.x = ordered_mapping.find((int) normal.x)->second;
+        }
         current_trk_block_model.setNormals(normals);
         // Get all vertices
         std::vector<glm::vec3> verts;
@@ -430,7 +433,7 @@ vector<Model> trk_loader::getTrackBlocks() {
     return trk_blocks;
 }
 
-std::vector<Texture> trk_loader::getTextures() {
+std::map<short, Texture> trk_loader::getTextures() {
     return textures;
 }
 

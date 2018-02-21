@@ -71,17 +71,12 @@ GLint load_tga_texture(const char *path) {
 
     GLuint textureID;
     glGenTextures(1, &textureID);
-
     glBindTexture(GL_TEXTURE_2D, textureID);
-
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA,
                  GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    // Vintage look (1 - 1 map, no interp)
-    /*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);*/
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -89,23 +84,10 @@ GLint load_tga_texture(const char *path) {
     return textureID;
 }
 
-void BindTrackTextures(Model track_block, const std::vector<Texture> &textures, GLuint TrackTexturesID){
-    // Absolutely disgusting, filthy, < 1fps code, rewrite on weekend
-    // Quick and dirty way to get unique texture IDs present in TrackBLock, but could gen this at track read time and not per frame
-    // Still, will maintain NFS3/OpenGL data separation
-    std::set<unsigned int> minimal_texture_ids_set;
-    std::vector<unsigned int> minimal_texture_ids;
-    std::vector<glm::vec3> normals = track_block.getNormals();
-    for (auto &normal : normals) {
-        minimal_texture_ids_set.insert((unsigned int) normal.x);
-    }
-    minimal_texture_ids.assign( minimal_texture_ids_set.begin(), minimal_texture_ids_set.end() );
+void BindTrackTextures(Model track_block, std::map<short, Texture> textures, GLuint TrackTexturesID){
     std::vector<Texture> live_textures;
-    for(int i = 0; i < minimal_texture_ids.size(); ++i){
-        for(auto &texture : textures){
-            if (minimal_texture_ids[i] == texture.texture_id)
-                live_textures.push_back(texture);
-        }
+    for (short texture_id : track_block.texture_ids) {
+        live_textures.push_back(textures.find(texture_id)->second);
     }
 
     GLenum texNum = GL_TEXTURE0;
@@ -121,7 +103,8 @@ void BindTrackTextures(Model track_block, const std::vector<Texture> &textures, 
         gluBuild2DMipmaps( GL_TEXTURE_2D, 3, texture.width, texture.height ,GL_RGB, GL_UNSIGNED_BYTE, texture.texture_data);
         ++texNum;
     }
-    const GLint samplers[texNum-GL_TEXTURE0] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
+
+    const GLint samplers[texNum-GL_TEXTURE0] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
     glUniform1iv( TrackTexturesID, texNum-GL_TEXTURE0, samplers );
 }
 
@@ -196,9 +179,9 @@ int main(int argc, const char *argv[]) {
     std::vector<Model> meshes = nfs_loader.getMeshes();
     meshes[0].enable();
     //Load Track Data
-    trk_loader trkLoader("../resources/TR07.frd");
+    trk_loader trkLoader("../resources/TRK000/TR00.frd");
     std::vector<Model> track_models = trkLoader.getTrackBlocks();
-    std::vector<Texture> track_textures = trkLoader.getTextures();
+    std::map<short, Texture> track_textures = trkLoader.getTextures();
     for(auto &mesh : trkLoader.getTrackBlocks()){
         meshes.push_back(mesh);
     }
@@ -311,7 +294,6 @@ int main(int argc, const char *argv[]) {
         for (auto &mesh : meshes) {
             ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }
-
 
         ImGui::Text("car00.tga");
         ImGui::Image((ImTextureID) TextureID, ImVec2(256, 256));

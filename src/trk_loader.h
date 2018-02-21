@@ -302,10 +302,10 @@ class trk_loader {
         virtual ~trk_loader();
         bool LoadFRD(std::string frd_path);
         std::vector<Model> trk_blocks;
-        std::vector<Texture> textures;
+        std::map<short, Texture> textures;
 
     std::vector<Model> getTrackBlocks();
-    std::vector<Texture> getTextures();
+    std::map<short, Texture> getTextures();
 
 protected:
         bool LoadCOL(std::string col_path);
