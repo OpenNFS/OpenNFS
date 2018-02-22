@@ -27,9 +27,7 @@ public:
 class Model {
 public:
     Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-          std::vector<unsigned int> indices);
-
-    explicit Model(std::string name);
+                 std::vector<unsigned int> indices, bool removeIndexing);
 
     std::string getName(void);
 
@@ -39,19 +37,11 @@ public:
 
     std::vector<glm::vec3> getNormals(void);
 
+    std::vector<unsigned int> getIndices(void);
+
     bool genBuffers();
 
     void setShaderID(GLuint shaderID);
-
-    std::vector<unsigned int> getIndices(void);
-
-    void setUVs(std::vector<glm::vec2> uvs);
-
-    void setVertices(std::vector<glm::vec3> verts, bool removeIndexing);
-
-    void setNormals(std::vector<glm::vec3> norms);
-
-    void setIndices(std::vector<unsigned int> indices);
 
     void enable();
 
@@ -65,6 +55,7 @@ public:
     //UI
     bool enabled = false;
     bool indexed = false;
+    bool track = false; // Sign I need to superclass Model and provide Track and Car mesh implementations...
     GLuint shader_id = 0;
     std::vector<short> texture_ids;
     //Rendering

@@ -281,8 +281,7 @@ public:
 class trk_loader {
 // !!! for arrays : structures are aligned to their largest member
 // !!! structure members are aligned on their own size (up to the /Zp parameter)
-// Attributes
-
+    // Attributes
         bool bEmpty;
         bool bHSMode;
         char header[28]; /* file header */
@@ -302,13 +301,15 @@ class trk_loader {
         virtual ~trk_loader();
         bool LoadFRD(std::string frd_path);
         std::vector<Model> trk_blocks;
-        std::map<short, Texture> textures;
-
-    std::vector<Model> getTrackBlocks();
-    std::map<short, Texture> getTextures();
+        std::vector<Model> getTrackBlocks();
+        std::map<short, GLuint> getTextureGLMap();
+        std::map<short, Texture> getTextures();
 
 protected:
+        std::map<short, GLuint> texture_gl_mappings;
+        std::map<short, Texture> textures;
         bool LoadCOL(std::string col_path);
+        std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
 };
 
 

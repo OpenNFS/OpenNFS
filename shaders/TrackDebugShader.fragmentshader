@@ -7,10 +7,37 @@ in vec3 inColor;
 // Ouput data
 out vec4 color;
 
-uniform sampler2D texture_array[32];
+uniform sampler2D texture_array[24];
 
 void main(){
-    vec4 tempColor = texture(texture_array[int(inColor.x)], UV).rgba;
+    vec4 tempColor;
+     // Hack: Texture atlas implementation ASAP
+     switch(int(inColor.x)){
+        case 0: tempColor = texture(texture_array[0], UV).rgba; break;
+        case 1: tempColor = texture(texture_array[1], UV).rgba; break;
+        case 2: tempColor = texture(texture_array[2], UV).rgba; break;
+        case 3: tempColor = texture(texture_array[3], UV).rgba; break;
+        case 4: tempColor = texture(texture_array[4], UV).rgba; break;
+        case 5: tempColor = texture(texture_array[5], UV).rgba; break;
+        case 6: tempColor = texture(texture_array[6], UV).rgba; break;
+        case 7: tempColor = texture(texture_array[7], UV).rgba; break;
+        case 8: tempColor = texture(texture_array[8], UV).rgba; break;
+        case 9: tempColor = texture(texture_array[9], UV).rgba; break;
+        case 10: tempColor = texture(texture_array[10], UV).rgba; break;
+        case 11: tempColor = texture(texture_array[11], UV).rgba; break;
+        case 12: tempColor = texture(texture_array[12], UV).rgba; break;
+        case 13: tempColor = texture(texture_array[13], UV).rgba; break;
+        case 14: tempColor = texture(texture_array[14], UV).rgba; break;
+        case 15: tempColor = texture(texture_array[15], UV).rgba; break;
+        case 16: tempColor = texture(texture_array[16], UV).rgba; break;
+        case 17: tempColor = texture(texture_array[17], UV).rgba; break;
+        case 18: tempColor = texture(texture_array[18], UV).rgba; break;
+        case 19: tempColor = texture(texture_array[19], UV).rgba; break;
+        case 20: tempColor = texture(texture_array[20], UV).rgba; break;
+        case 21: tempColor = texture(texture_array[21], UV).rgba; break;
+        case 22: tempColor = texture(texture_array[22], UV).rgba; break;
+        case 23: tempColor = texture(texture_array[23], UV).rgba; break;
+     }
 
     color.r = tempColor.r;
     color.g = tempColor.g;

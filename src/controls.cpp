@@ -89,6 +89,12 @@ void computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     // Up vector
     glm::vec3 up = glm::cross(right, direction);
 
+    // Speed boost
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        speed = 8.0f;
+    } else {
+        speed = 3.0f;
+    }
     // Move forward
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += direction * deltaTime * speed;
@@ -109,7 +115,7 @@ void computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     float FoV = initialFoV;
 
     // Projection matrix : 45deg Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    ProjectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, 0.1f, 100.0f);
+    ProjectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, 0.1f, 1000.0f);
     // Camera matrix
     ViewMatrix = glm::lookAt(
             position,           // Camera is here

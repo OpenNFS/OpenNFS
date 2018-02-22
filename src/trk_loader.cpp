@@ -2,9 +2,6 @@
 // Created by Amrik on 16/01/2018.
 //
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
-
 #include <sstream>
 #include <set>
 #include <iomanip>
@@ -17,13 +14,10 @@ Texture LoadTexture(TEXTUREBLOCK track_texture)
 {
     int width, height;
     unsigned char * data;
-    FILE * file, *alpha_file;
-    std::stringstream filename, alpha_filename;
+    FILE * file;
+    std::stringstream filename;
     filename << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-    alpha_filename << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
     file = fopen(filename.str().c_str(), "rb" );
-    alpha_file = fopen(alpha_filename.str().c_str(), "rb" );
-
     if ( file == nullptr ){
         std::cout << "Couldn't open " << filename.str() << std::endl;
         assert(file == nullptr);
@@ -31,8 +25,9 @@ Texture LoadTexture(TEXTUREBLOCK track_texture)
 
     width = track_texture.width;
     height = track_texture.height;
+
     data = (unsigned char *)malloc( width * height * 3 );
-    fread(data, 54, 1, file);
+    fseek(file, 54, SEEK_SET);
     fread( data, width * height * 3, 1, file );
     fclose( file );
 
@@ -45,9 +40,6 @@ Texture LoadTexture(TEXTUREBLOCK track_texture)
         data[index] = R;
         data[index+2] = B;
     }
-
-
-
 
     return Texture((unsigned int) track_texture.texture, data, track_texture.width, track_texture.height);
 }
@@ -355,23 +347,56 @@ bool trk_loader::LoadCOL(std::string col_path)
     return coll.read((char *)&i, 4).gcount() == 0; // we ought to be at EOF now
 }
 
+std::map<short, GLuint> trk_loader::GenTrackTextures(std::map<short, Texture> textures){
+    std::map<short, GLuint> gl_id_map;
+
+    for (auto it=textures.begin(); it != textures.end(); ++it){
+        Texture texture = it->second;
+        GLuint textureID;
+        glGenTextures( 1, &textureID );
+        auto p = std::make_pair(it->first, textureID);
+        gl_id_map.insert(p);
+        glBindTexture( GL_TEXTURE_2D, textureID );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        gluBuild2DMipmaps( GL_TEXTURE_2D, 3, texture.width, texture.height ,GL_RGB, GL_UNSIGNED_BYTE, texture.texture_data);
+    }
+
+    return gl_id_map;
+}
 
 trk_loader::~trk_loader() = default;
 
 trk_loader::trk_loader(const std::string &frd_path){
     if(LoadFRD(frd_path)){
-        if(LoadCOL("../resources/TRK000/TR00.COL"))
+        if(LoadCOL("../resources/TRK000/TR00.COL")) {
             std::cout << "Successful track load!" << std::endl;
+            texture_gl_mappings = GenTrackTextures(textures);
+        }
         else
             return;
     } else
         return;
 
+    /*for (int i = 0; i <= 4*nBlocks; i++) {
+        for (int j = 0; j < xobj[i].nobj; j++) {
+            XOBJDATA x = xobj[i].obj[j];
+            POLYGONDATA polygon_block = x.polyData[]
+            std::vector<glm::vec3> verts;
+            for(int v = 0; v < x.nVertices; v++){
+                verts.push_back(glm::vec3( x.vert[j].x/10,
+                                           x.vert[j].y/10,
+                                           x.vert[j].z/10));
+            }
+        }
+    }*/
+
     for(int i = 0; i < nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
-        Model current_trk_block_model = Model("TrkBlock" + std::to_string(i));
         std::set<short> minimal_texture_ids_set;
         // Fillers
         std::vector<glm::vec2> uvs;
@@ -385,52 +410,50 @@ trk_loader::trk_loader(const std::string &frd_path){
             {
                 TEXTUREBLOCK texture_for_block = texture[poly_chunk[k].texture];
                 minimal_texture_ids_set.insert(texture_for_block.texture);
-                indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
-                indices.push_back((unsigned int) poly_chunk[k].vertex[1]);
-                indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
-                indices.push_back((unsigned int) poly_chunk[k].vertex[0]);
-                indices.push_back((unsigned int) poly_chunk[k].vertex[2]);
-                indices.push_back((unsigned int) poly_chunk[k].vertex[3]);
-
-                uvs.push_back(glm::vec2(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]));
-                uvs.push_back(glm::vec2(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]));
-
-
-                // Generate RGB value based on texture ID
-                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
-                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
-                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
-                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
-                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
-                normals.push_back(glm::vec3(texture_for_block.texture,0,0));
+                indices.emplace_back((unsigned int) poly_chunk[k].vertex[0]);
+                indices.emplace_back((unsigned int) poly_chunk[k].vertex[1]);
+                indices.emplace_back((unsigned int) poly_chunk[k].vertex[2]);
+                indices.emplace_back((unsigned int) poly_chunk[k].vertex[0]);
+                indices.emplace_back((unsigned int) poly_chunk[k].vertex[2]);
+                indices.emplace_back((unsigned int) poly_chunk[k].vertex[3]);
+                uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
+                uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                uvs.emplace_back(glm::vec2(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]));
+                uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+                // Use TextureID in place of normal
+                normals.emplace_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.emplace_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.emplace_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.emplace_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.emplace_back(glm::vec3(texture_for_block.texture,0,0));
+                normals.emplace_back(glm::vec3(texture_for_block.texture,0,0));
             }
         }
-        current_trk_block_model.setIndices(indices);
-        current_trk_block_model.setUVs(uvs);
-        current_trk_block_model.texture_ids.assign( minimal_texture_ids_set.begin(), minimal_texture_ids_set.end() );
-        // Process Normals to correspond to ordered texture ID's
+        // Get ordered list of unique texture id's present in block
+        std::vector<short> texture_ids;
+        texture_ids.assign( minimal_texture_ids_set.begin(), minimal_texture_ids_set.end());
+        // Remap Normals to correspond to ordered texture ID's
         std::map<int, int> ordered_mapping;
-        for(int i = 0; i < current_trk_block_model.texture_ids.size(); ++i){
-            auto p = std::make_pair((int) current_trk_block_model.texture_ids[i], i);
+        for(int k = 0; k < texture_ids.size(); ++k){
+            auto p = std::make_pair((int) texture_ids[k], k);
             ordered_mapping.insert(p);
         }
         for(auto &normal : normals){
             normal.x = ordered_mapping.find((int) normal.x)->second;
         }
-        current_trk_block_model.setNormals(normals);
         // Get all vertices
         std::vector<glm::vec3> verts;
         for (int j = 0; j < trk_block.nHiResVert; j++) {
-            verts.push_back(glm::vec3( trk_block.vert[j].x/10,
+            verts.emplace_back(glm::vec3( trk_block.vert[j].x/10,
                                        trk_block.vert[j].y/10,
                                        trk_block.vert[j].z/10));
         }
-        current_trk_block_model.setVertices(verts, true);
+        Model current_trk_block_model = Model("TrkBlock" + std::to_string(i), verts, uvs, normals, indices, true);
+        current_trk_block_model.texture_ids = texture_ids;
         current_trk_block_model.enable();
+        current_trk_block_model.track = true;
         trk_blocks.push_back(current_trk_block_model);
     }
 }
@@ -439,8 +462,10 @@ vector<Model> trk_loader::getTrackBlocks() {
     return trk_blocks;
 }
 
+std::map<short, GLuint> trk_loader::getTextureGLMap() {
+    return texture_gl_mappings;
+}
+
 std::map<short, Texture> trk_loader::getTextures() {
     return textures;
 }
-
-#pragma GCC pop_options

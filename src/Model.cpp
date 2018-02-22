@@ -5,55 +5,22 @@
 #include "Model.h"
 
 Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-             std::vector<unsigned int> indices) {
+             std::vector<unsigned int> indices, bool removeIndexing) {
     m_name = std::move(name);
     m_uvs = std::move(uvs);
     m_normals = std::move(norms);
     m_vertex_indices = std::move(indices);
-    setVertices(verts, false);
-}
 
-Model::Model(std::string name) : m_name(std::move(name)) {
-
-};
-
-std::vector<glm::vec2> Model::getUVs(void) {
-    return m_uvs;
-}
-
-std::vector<glm::vec3> Model::getVertices(void) {
-    return m_vertices;
-}
-
-std::vector<glm::vec3> Model::getNormals(void) {
-    return m_normals;
-}
-
-
-std::vector<unsigned int> Model::getIndices() {
-    return m_vertex_indices;
-}
-
-
-std::string Model::getName(void) {
-    return m_name;
-}
-
-void Model::setUVs(std::vector<glm::vec2> uvs) {
-    m_uvs = std::move(uvs);
-}
-
-
-void Model::setVertices(std::vector<glm::vec3> verts, bool removeIndexing) {
     if (removeIndexing) {
         // Remove indexing
-        for (unsigned int i = 0; i < m_vertex_indices.size(); i++) {
-            m_vertices.push_back(verts[m_vertex_indices[i]]);
+        for (unsigned int m_vertex_index : m_vertex_indices) {
+            m_vertices.push_back(verts[m_vertex_index]);
         }
     } else {
         m_vertices = std::move(verts);
     }
-    if (m_name.find("TrkBlock") == std::string::npos){
+
+    if (track){
         position = glm::vec3(-66, 0, 3);
         orientation_vec = glm::vec3(0,0,0);
     } else {
@@ -76,13 +43,30 @@ void Model::setVertices(std::vector<glm::vec3> verts, bool removeIndexing) {
     rigidBody->setUserPointer(this);
 }
 
-void Model::setNormals(std::vector<glm::vec3> norms) {
-    m_normals = std::move(norms);
+void Model::setShaderID(GLuint shaderID){
+    shader_id = shaderID;
+}
+
+std::vector<glm::vec2> Model::getUVs() {
+    return m_uvs;
+}
+
+std::vector<glm::vec3> Model::getVertices() {
+    return m_vertices;
+}
+
+std::vector<glm::vec3> Model::getNormals() {
+    return m_normals;
 }
 
 
-void Model::setIndices(std::vector<unsigned int> indices) {
-    m_vertex_indices = std::move(indices);
+std::vector<unsigned int> Model::getIndices() {
+    return m_vertex_indices;
+}
+
+
+std::string Model::getName() {
+    return m_name;
 }
 
 void Model::update() {
@@ -97,9 +81,6 @@ void Model::enable() {
     enabled = true;
 }
 
-void Model::setShaderID(GLuint shaderID){
-    shader_id = shaderID;
-}
 
 void Model::destroy() {
     glDeleteBuffers(1, &gl_buffers.vertexbuffer);

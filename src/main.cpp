@@ -84,39 +84,16 @@ GLint load_tga_texture(const char *path) {
     return textureID;
 }
 
-
-std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures){
-    std::map<short, GLuint> gl_id_map;
-
-    for (std::map<short,Texture>::iterator it=textures.begin(); it!=textures.end(); ++it){
-        Texture texture = it->second;
-        GLuint textureID;
-        glGenTextures( 1, &textureID );
-        auto p = std::make_pair(it->first, textureID);
-        gl_id_map.insert(p);
-        glBindTexture( GL_TEXTURE_2D, textureID );
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        gluBuild2DMipmaps( GL_TEXTURE_2D, 3, texture.width, texture.height ,GL_RGB, GL_UNSIGNED_BYTE, texture.texture_data);
-    }
-
-    return gl_id_map;
-}
-
-void BindTrackTextures(Model track_block, const std::map<short, Texture> &textures, GLuint TrackTexturesID, std::map<short, GLuint> gl_id_map){
+// Refactor this into model class render() function
+void BindTrackTextures(Model track_block, GLuint TrackTexturesID, std::map<short, GLuint> gl_id_map){
+    // TODO: Somehow breaking the CORE profile here?
     GLenum texNum = GL_TEXTURE0;
-    int numTextures = 0;
     for (short texture_id : track_block.texture_ids) {
-        GLuint textureID = gl_id_map.find(texture_id)->second;
-        glActiveTexture(texNum);
-        glBindTexture( GL_TEXTURE_2D, textureID );
-        ++texNum;
-        numTextures++;
+        glActiveTexture(texNum++);
+        glBindTexture( GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
     }
-    const GLint samplers[32] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
-    glUniform1iv( TrackTexturesID, 32, samplers );
+    const GLint samplers[24] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
+    glUniform1iv( TrackTexturesID, 24, samplers );
 }
 
 bool init_opengl() {
@@ -155,9 +132,6 @@ bool init_opengl() {
 
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-    // Hide the mouse and enable unlimited movement
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
     // Set the mouse at the center of the screen
     glfwPollEvents();
     glfwSetCursorPos(window, 1024 / 2, 768 / 2);
@@ -172,36 +146,31 @@ bool init_opengl() {
 
     // Cull triangles which normal is not towards the camera
     glEnable(GL_FRONT);
-    glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_PROGRAM_POINT_SIZE);
-    glPointSize(10);
     return true;
 }
 
 int main(int argc, const char *argv[]) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
-    NFS_Loader nfs_loader("../resources/car.viv");
-    if(!nfs_loader.loadObj("../resources/lap3.obj")){
-        std::cout << "Obj load failed" << std::endl;
-    };
-    //Load OpenGL data from unpacked NFS files
-    std::vector<Model> meshes = nfs_loader.getMeshes();
-    meshes[0].enable();
-    //Load Track Data
-    trk_loader trkLoader("../resources/TRK000/TR00.frd");
-    std::vector<Model> track_models = trkLoader.getTrackBlocks();
-    std::map<short, Texture> track_textures = trkLoader.getTextures();
-    for(auto &mesh : trkLoader.getTrackBlocks()){
-        meshes.push_back(mesh);
-    }
-
     if (!init_opengl()) {
         std::cout << "OpenGL init failed." << std::endl;
         return -1;
     }
-    std::map<short, GLuint> gl_id_map = GenTrackTextures(track_textures);
+
+    NFS_Loader nfs_loader("../resources/car.viv");
+    if(!nfs_loader.loadObj("../resources/lap3.obj")){
+        std::cout << "Obj load failed" << std::endl;
+    };
+    //Load Car data from unpacked NFS files
+    std::vector<Model> meshes = nfs_loader.getMeshes();
+    meshes[0].enable();
+
+    //Load Track Data
+    trk_loader trkLoader("../resources/TRK000/TR00.frd");
+    std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
+    std::vector<Model> track_models = trkLoader.getTrackBlocks();
+    meshes.insert(meshes.end(), track_models.begin(), track_models.end());
 
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase = new btDbvtBroadphase();
@@ -228,15 +197,14 @@ int main(int argc, const char *argv[]) {
     GLuint debugProgramID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
                                    "../shaders/TrackDebugShader.fragmentshader");
 
-    // Get a handle for our "MVP" uniform
-    GLint MatrixID = glGetUniformLocation(programID, "MVP");
     // Load the texture
     GLuint Texture = load_tga_texture("car00.tga");
-    // GLuint TrackTexture = LoadTexture("../resources/TRK000/textures/0000.bmp");
-    // Get a handle for our "myTextureSampler" uniform
+    // Get handles for uniforms
+    GLint MatrixID = glGetUniformLocation(programID, "MVP");
     GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
     GLuint ColorID = glGetUniformLocation(programID, "color");
     GLuint TrackTexturesID = glGetUniformLocation(debugProgramID, "texture_array");
+
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -246,11 +214,8 @@ int main(int argc, const char *argv[]) {
         if (!mesh.genBuffers()) {
             return -1;
         }
-        if (mesh.getName().find("TrkBlock") == std::string::npos) {
-            mesh.shader_id = programID;
-        } else {
-            mesh.shader_id = debugProgramID;
-        }
+        // TODO: Assign shaders to Models in a better way.
+        mesh.shader_id = mesh.track ? debugProgramID : programID;
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     /*------- UI -------*/
@@ -284,8 +249,8 @@ int main(int argc, const char *argv[]) {
             // Send our transformation to the currently bound shader, in the "MVP" uniform
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
-            if (mesh.getName().find("TrkBlock") != std::string::npos) {
-                BindTrackTextures(mesh, track_textures, TrackTexturesID, gl_id_map);
+            if (mesh.track) {
+                BindTrackTextures(mesh, TrackTexturesID, gl_id_map);
             } else {
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, Texture);
