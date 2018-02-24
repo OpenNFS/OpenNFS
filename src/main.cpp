@@ -167,7 +167,7 @@ int main(int argc, const char *argv[]) {
     meshes[0].enable();
 
     //Load Track Data
-    trk_loader trkLoader("../resources/TRK000/TR00.frd");
+    trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<Model> track_models = trkLoader.getTrackBlocks();
     meshes.insert(meshes.end(), track_models.begin(), track_models.end());
@@ -215,11 +215,10 @@ int main(int argc, const char *argv[]) {
             return -1;
         }
         // TODO: Assign shaders to Models in a better way.
-        mesh.shader_id = mesh.track ? debugProgramID : programID;
+        mesh.setShaderID(mesh.track ? debugProgramID : programID);
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     /*------- UI -------*/
-    bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool window_active = true;
 
@@ -272,16 +271,8 @@ int main(int argc, const char *argv[]) {
         for (auto &mesh : meshes) {
             ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }
-
         ImGui::Text("car00.tga");
         ImGui::Image((ImTextureID) TextureID, ImVec2(256, 256));
-
-        if (show_demo_window) {
-            // 3. Show the ImGui demo window. Most of the sample code is in ImGui::ShowDemoWindow(). Read its code to learn more about Dear ImGui!
-            ImGui::SetNextWindowPos(ImVec2(650, 20),
-                                    ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowDemoWindow(&show_demo_window);
-        }
 
         mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
         dynamicsWorld->debugDrawWorld();

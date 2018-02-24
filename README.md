@@ -26,7 +26,7 @@ The CMake files are currently configured to detect external libraries from withi
 ## TODO
 
 * Add object picking w/ Bullet physics
-* Integrate T3ED track loading code from Denis Auroux, bind into OpenGL - (30%)
+* Integrate T3ED track loading code from Denis Auroux, bind into OpenGL - (60%)
 * Collision Detection, carp.txt performance model load into Physics
 * MUS File reading (http://www.vgmpf.com/Wiki/index.php/MUS_(Electronic_Arts))
 * 3D API Independence for eventual Vulkan/3Dfx Glide support ;)

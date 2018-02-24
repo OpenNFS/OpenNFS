@@ -16,7 +16,7 @@ Texture LoadTexture(TEXTUREBLOCK track_texture)
     unsigned char * data;
     FILE * file;
     std::stringstream filename;
-    filename << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+    filename << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
     file = fopen(filename.str().c_str(), "rb" );
     if ( file == nullptr ){
         std::cout << "Couldn't open " << filename.str() << std::endl;
@@ -371,7 +371,7 @@ trk_loader::~trk_loader() = default;
 
 trk_loader::trk_loader(const std::string &frd_path){
     if(LoadFRD(frd_path)){
-        if(LoadCOL("../resources/TRK000/TR00.COL")) {
+        if(LoadCOL("../resources/TRK006/TR06.COL")) {
             std::cout << "Successful track load!" << std::endl;
             texture_gl_mappings = GenTrackTextures(textures);
         }
@@ -380,29 +380,115 @@ trk_loader::trk_loader(const std::string &frd_path){
     } else
         return;
 
-    /*for (int i = 0; i <= 4*nBlocks; i++) {
-        for (int j = 0; j < xobj[i].nobj; j++) {
-            XOBJDATA x = xobj[i].obj[j];
-            POLYGONDATA polygon_block = x.polyData[]
-            std::vector<glm::vec3> verts;
-            for(int v = 0; v < x.nVertices; v++){
-                verts.push_back(glm::vec3( x.vert[j].x/10,
-                                           x.vert[j].y/10,
-                                           x.vert[j].z/10));
-            }
+    /* COL DATA - TODO: Come back for VROAD AI/Collision data */
+    COLSTRUCT3D * s= col.struct3D;
+    for (int i=0;i<col.struct3DHead.nrec;i++,s++) {
+        std::vector<unsigned int> indices;
+        std::vector<glm::vec2> uvs;
+        std::vector<glm::vec3> normals;
+        for (int k = 0; k < s->nPoly; k++){
+            indices.emplace_back(s->polygon->v[0]);
+            indices.emplace_back(s->polygon->v[1]);
+            indices.emplace_back(s->polygon->v[2]);
+            indices.emplace_back(s->polygon->v[0]);
+            indices.emplace_back(s->polygon->v[2]);
+            indices.emplace_back(s->polygon->v[3]);
+            // TODO: Texture the Col blocks after doing some COL BLOCK 0 (XBID2) trickery
+            //s->polygon->texture
+            s->polygon++;
+            uvs.emplace_back(glm::vec2(0.0,0.0));
+            uvs.emplace_back(glm::vec2(0.0,0.0));
+            uvs.emplace_back(glm::vec2(0.0,0.0));
+            uvs.emplace_back(glm::vec2(0.0,0.0));
+            normals.emplace_back(glm::vec3(0.0,0.0,0.0));
+            normals.emplace_back(glm::vec3(0.0,0.0,0.0));
+            normals.emplace_back(glm::vec3(0.0,0.0,0.0));
+            normals.emplace_back(glm::vec3(0.0,0.0,0.0));
         }
-    }*/
+        // Get all vertices
+        std::vector<glm::vec3> verts;
+        for (int j = 0; j < s->nVert; j++) {
+            verts.emplace_back(glm::vec3( s->vertex->pt.x/10,
+                                          s->vertex->pt.y/10,
+                                          s->vertex->pt.z/10));
+            s->vertex++;
+        }
+        Model col_model = Model("ColBlock" + std::to_string(i), verts, uvs, normals, indices, true);
+        col_model.enable();
+        col_model.track = true;
+        trk_blocks.push_back(col_model);
+    }
 
+    /* XOBJS */
+    for (int i=0; i <= 4*nBlocks; i++) {
+        if (xobj[i].nobj>0) {
+            // Dunno
+        }
+        for (int j = 0; j < xobj[i].nobj; j++) {
+            XOBJDATA *x =&(xobj[i].obj[j]);
+            if (x->crosstype==4) { // basic objects
+            }
+            else if (x->crosstype==3) { // animated objects
+            }
+            // common part : vertices & polygons
+            std::vector<glm::vec3> verts;
+            for (int k = 0; k < x->nVertices; k++){
+                verts.emplace_back(glm::vec3(  x->ptRef.x/10 + x->vert->x/10,
+                                               x->ptRef.y/10 + x->vert->y/10,
+                                               x->ptRef.z/10 + x->vert->z/10));
+                x->vert++;
+            }
+            // TODO: There are also these extras: x->unknVertices, sz: 4*x->nVertices
+            std::vector<unsigned int> indices;
+            std::vector<glm::vec2> uvs;
+            std::vector<glm::vec3> normals;
+            for (int k = 0; k < x->nPolygons; k++){
+                indices.emplace_back(x->polyData->vertex[0]);
+                indices.emplace_back(x->polyData->vertex[1]);
+                indices.emplace_back(x->polyData->vertex[2]);
+                indices.emplace_back(x->polyData->vertex[0]);
+                indices.emplace_back(x->polyData->vertex[2]);
+                indices.emplace_back(x->polyData->vertex[3]);
+                x->polyData++;
+                //x->polyData->texture
+                uvs.emplace_back(glm::vec2(0.0,0.0));
+                uvs.emplace_back(glm::vec2(0.0,0.0));
+                uvs.emplace_back(glm::vec2(0.0,0.0));
+                uvs.emplace_back(glm::vec2(0.0,0.0));
+                normals.emplace_back(glm::vec3(0.0,0.0,0.0));
+                normals.emplace_back(glm::vec3(0.0,0.0,0.0));
+                normals.emplace_back(glm::vec3(0.0,0.0,0.0));
+                normals.emplace_back(glm::vec3(0.0,0.0,0.0));
+            }
+            Model xobj_model = Model("XOBJ" + std::to_string(i), verts, uvs, normals, indices, true);
+            xobj_model.enable();
+            xobj_model.track = true;
+            trk_blocks.push_back(xobj_model);
+        }
+    }
+
+    /* BASE TRACK GEOMETRY */
     for(int i = 0; i < nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
+
+        for(int i = 0; i < 4; i++){
+            OBJPOLYBLOCK obj_polygon_block = polygon_block.obj[i];
+                for(int k = 0; k < obj_polygon_block.nobj; k++){
+                    LPPOLYGONDATA  poly_chunk = obj_polygon_block.poly[k];
+                    //obj_polygon_block.numpoly
+                    //obj_polygon_block.n1
+                    //poly_chunk->vertex
+                }
+        }
+
+        // Keep track of unique textures in trackblock for later OpenGL bind
         std::set<short> minimal_texture_ids_set;
-        // Fillers
+        // Mesh Data
+        std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
         std::vector<glm::vec3> normals;
-        // Real shit
-        std::vector<unsigned int> indices;
         // Get indices from Chunk 4 for High Res polys
         LPPOLYGONDATA poly_chunk = polygon_block.poly[4];
         for(int chnk = 0; chnk < 6; chnk++){
@@ -420,7 +506,7 @@ trk_loader::trk_loader(const std::string &frd_path){
                 uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
                 uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
                 uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                uvs.emplace_back(glm::vec2(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]));
+                uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
                 uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
                 // Use TextureID in place of normal
                 normals.emplace_back(glm::vec3(texture_for_block.texture,0,0));

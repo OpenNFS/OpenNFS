@@ -20,13 +20,8 @@ Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::ve
         m_vertices = std::move(verts);
     }
 
-    if (track){
-        position = glm::vec3(-66, 0, 3);
-        orientation_vec = glm::vec3(0,0,0);
-    } else {
-        position = glm::vec3(0, 0, 0);
-        orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
-    }
+    position = glm::vec3(0, 0, 0);
+    orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
     //Generate Physics collision data
     motionstate = new btDefaultMotionState(btTransform(
@@ -70,6 +65,13 @@ std::string Model::getName() {
 }
 
 void Model::update() {
+    if (track){
+        position = glm::vec3(0, 0, 0);
+        orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
+    } else {
+        position = glm::vec3(-66, 0, 3);
+        orientation_vec = glm::vec3(0,0,0);
+    }
     orientation = glm::normalize(glm::quat(orientation_vec));
     position = glm::vec3(position.x, position.y, position.z);
     RotationMatrix = glm::toMat4(orientation);
@@ -145,7 +147,7 @@ void Model::render() {
 }
 
 bool Model::genBuffers() {
-    // Load car_verts into a VBO
+    // Verts
     glGenBuffers(1, &gl_buffers.vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);

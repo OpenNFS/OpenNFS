@@ -2,6 +2,8 @@
 // Created by Amrik on 16/01/2018.
 //
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #ifndef FCE_TO_OBJ_TRK_LOADER_H
 #define FCE_TO_OBJ_TRK_LOADER_H
 
@@ -315,3 +317,5 @@ protected:
 
 
 #endif //FCE_TO_OBJ_TRK_LOADER_H
+
+#pragma clang diagnostic pop
