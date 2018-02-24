@@ -27,7 +27,7 @@ public:
 class Model {
 public:
     Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-                 std::vector<unsigned int> indices, bool removeIndexing);
+                 std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids);
 
     std::string getName(void);
 

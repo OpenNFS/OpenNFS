@@ -11,6 +11,7 @@
 extern GLFWwindow* window;
 
 void resetView();
+glm::vec3 getPosition();
 void computeMatricesFromInputs(bool &window_active, ImGuiIO& io);
 glm::mat4 getViewMatrix();
 glm::mat4 getProjectionMatrix();

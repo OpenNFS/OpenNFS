@@ -7,7 +7,7 @@ in vec3 inColor;
 // Ouput data
 out vec4 color;
 
-uniform sampler2D texture_array[24];
+uniform sampler2D texture_array[32];
 
 void main(){
     vec4 tempColor;
@@ -37,6 +37,14 @@ void main(){
         case 21: tempColor = texture(texture_array[21], UV).rgba; break;
         case 22: tempColor = texture(texture_array[22], UV).rgba; break;
         case 23: tempColor = texture(texture_array[23], UV).rgba; break;
+        case 24: tempColor = texture(texture_array[24], UV).rgba; break;
+        case 25: tempColor = texture(texture_array[25], UV).rgba; break;
+        case 26: tempColor = texture(texture_array[26], UV).rgba; break;
+        case 27: tempColor = texture(texture_array[27], UV).rgba; break;
+        case 28: tempColor = texture(texture_array[28], UV).rgba; break;
+        case 29: tempColor = texture(texture_array[29], UV).rgba; break;
+        case 30: tempColor = texture(texture_array[30], UV).rgba; break;
+        case 31: tempColor = texture(texture_array[31], UV).rgba; break;
      }
 
     color.r = tempColor.r;

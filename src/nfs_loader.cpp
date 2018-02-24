@@ -126,7 +126,7 @@ NFS_Loader::NFS_Loader(const char *viv_path) {
 }
 
 
-bool NFS_Loader::loadObj(std::string obj_path){
+bool NFS_Loader::loadObj(std::string obj_path) {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -151,20 +151,20 @@ bool NFS_Loader::loadObj(std::string obj_path){
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
                 indices.emplace_back((const unsigned int &) idx.vertex_index);
 
-                verts.emplace_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0]*0.1,
-                                          attrib.vertices[3 * idx.vertex_index + 1]*0.1,
-                                          attrib.vertices[3 * idx.vertex_index + 2]*0.1));
+                verts.emplace_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.1,
+                                             attrib.vertices[3 * idx.vertex_index + 1] * 0.1,
+                                             attrib.vertices[3 * idx.vertex_index + 2] * 0.1));
                 norms.emplace_back(
                         glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1],
                                   attrib.normals[3 * idx.normal_index + 2]));
                 uvs.emplace_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0],
-                                       1.0f- attrib.texcoords[2 * idx.texcoord_index + 1]));
+                                           1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]));
             }
             index_offset += fv;
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        Model obj_mesh = Model(shapes[s].name + "_obj", verts, uvs, norms, indices, false);
+        Model obj_mesh = Model(shapes[s].name + "_obj", verts, uvs, norms, indices, false, std::vector<short>());
         meshes.emplace_back(obj_mesh);
     }
     return true;
@@ -254,7 +254,7 @@ std::vector<unsigned int> NFS_Loader::getIndices(int offset, unsigned int length
     for (int triIdx = 0; triIdx < length; triIdx++) {
         for (int indexIdx = 0; indexIdx < 3; indexIdx++) {
             unsigned int index = readInt32(fce_file, true);
-                indices.emplace_back(index);
+            indices.emplace_back(index);
         }
         fseek(fce_file, tTriangleSize - (3 * 0x04), SEEK_CUR);
     }
@@ -270,7 +270,7 @@ void NFS_Loader::readFCE(const char *fce_path) {
         exit(2);
     }
 
-    fseek(fce_file, 0x0008 , SEEK_SET);
+    fseek(fce_file, 0x0008, SEEK_SET);
     int expectedVerticesCount = readInt32(fce_file, true);
 
     //Retrieve Vertices, normal, triangle offsets from DATA_START
@@ -281,7 +281,7 @@ void NFS_Loader::readFCE(const char *fce_path) {
     int normOffset = DATA_START + readInt32(fce_file, true);
 
     fseek(fce_file, TriaTblOffset, SEEK_SET);
-    int triOffset = DATA_START + readInt32(fce_file, true)+0x4;
+    int triOffset = DATA_START + readInt32(fce_file, true) + 0x4;
 
     //Retrieve number of colours
     fseek(fce_file, NumPriColoursOffset, SEEK_SET);
@@ -333,8 +333,13 @@ void NFS_Loader::readFCE(const char *fce_path) {
     }
 
     for (int i = 0; i < model_names.size(); ++i) {
-        meshes.emplace_back(Model(model_names[i], getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]), getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]), getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]), getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), true));
-        std::cout << "Mesh: " << meshes[i].getName() << " UVs: " << meshes[i].getUVs().size() << " Verts: " << meshes[i].getVertices().size() << " Indices: " << meshes[i].getIndices().size() << " Normals: " << meshes[i].getNormals().size() << std::endl;
+        meshes.emplace_back(Model(model_names[i], getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]),
+                                  getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
+                                  getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
+                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), true, std::vector<short>()));
+        std::cout << "Mesh: " << meshes[i].getName() << " UVs: " << meshes[i].getUVs().size() << " Verts: "
+                  << meshes[i].getVertices().size() << " Indices: " << meshes[i].getIndices().size() << " Normals: "
+                  << meshes[i].getNormals().size() << std::endl;
     }
 
     fclose(fce_file);
@@ -347,20 +352,20 @@ void NFS_Loader::writeObj(std::string path) {
     obj_dump.open(path);
 
     for (Model &mesh : meshes) {
-            /* Print Part name*/
-            obj_dump << "o " << mesh.getName() << std::endl;
-            //Dump Vertices
-            for (auto vertex : mesh.getVertices()) {
-                obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
-            }
-            //Dump UVs
-            for (auto uv : mesh.getUVs()) {
-                obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
-            }
-            //Dump Indices
-            for (auto vert_index : mesh.getIndices()) {
-                    obj_dump << "f " << vert_index << std::endl;
-            }
+        /* Print Part name*/
+        obj_dump << "o " << mesh.getName() << std::endl;
+        //Dump Vertices
+        for (auto vertex : mesh.getVertices()) {
+            obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
+        }
+        //Dump UVs
+        for (auto uv : mesh.getUVs()) {
+            obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
+        }
+        //Dump Indices
+        for (auto vert_index : mesh.getIndices()) {
+            obj_dump << "f " << vert_index << std::endl;
+        }
     }
     obj_dump.close();
 }

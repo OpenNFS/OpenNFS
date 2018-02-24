@@ -92,8 +92,8 @@ void BindTrackTextures(Model track_block, GLuint TrackTexturesID, std::map<short
         glActiveTexture(texNum++);
         glBindTexture( GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
     }
-    const GLint samplers[24] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
-    glUniform1iv( TrackTexturesID, 24, samplers );
+    const GLint samplers[32] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+    glUniform1iv( TrackTexturesID, 32, samplers );
 }
 
 bool init_opengl() {
@@ -238,6 +238,7 @@ int main(int argc, const char *argv[]) {
         computeMatricesFromInputs(window_active, ImGui::GetIO());
         glm::mat4 ProjectionMatrix = getProjectionMatrix();
         glm::mat4 ViewMatrix = getViewMatrix();
+        glm::vec3 worldPosition = getPosition();
 
         // Draw Meshes
         for (auto &mesh : meshes) {
@@ -263,6 +264,9 @@ int main(int argc, const char *argv[]) {
         ImGui::Text("NFS3 Engine");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
+        std::stringstream world_position_string;
+        world_position_string << "X " << std::to_string(worldPosition.x)  << " Y " << std::to_string(worldPosition.x) << " Z " << std::to_string(worldPosition.z);
+        ImGui::Text(world_position_string.str().c_str());
         if (ImGui::Button("Reset View")) {
             resetView();
         };
@@ -271,11 +275,9 @@ int main(int argc, const char *argv[]) {
         for (auto &mesh : meshes) {
             ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }
-        ImGui::Text("car00.tga");
-        ImGui::Image((ImTextureID) TextureID, ImVec2(256, 256));
 
         mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
-        dynamicsWorld->debugDrawWorld();
+        //dynamicsWorld->debugDrawWorld();
 
         // Rendering
         int display_w, display_h;

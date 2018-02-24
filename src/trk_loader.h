@@ -7,27 +7,29 @@
 #ifndef FCE_TO_OBJ_TRK_LOADER_H
 #define FCE_TO_OBJ_TRK_LOADER_H
 
-#include <glm/vec3.hpp>
 #include <vector>
+#include <sstream>
+#include <set>
+#include <iomanip>
+#include <glm/vec3.hpp>
 #include "boost/filesystem.hpp"
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <map>
 #include "Model.h"
 
-typedef struct FLOATPT
-{
-    float x,z,y;
+typedef struct FLOATPT {
+    float x, z, y;
 } FLOATPT;
 
-typedef struct INTPT
-{
-    long x,z,y;
+typedef struct INTPT {
+    long x, z, y;
 } INTPT;
 
 typedef struct NEIGHBORDATA  // info on neighbouring block numbers
 {
-    short blk,unknown;
+    short blk, unknown;
 } NEIGHBORDATA;
 
 typedef struct POSITIONDATA  // enumerate polygons which lie at center
@@ -35,7 +37,7 @@ typedef struct POSITIONDATA  // enumerate polygons which lie at center
     short polygon;
     unsigned char nPolygons;
     char unknown;
-    short extraNeighbor1,extraNeighbor2;
+    short extraNeighbor1, extraNeighbor2;
 } POSITIONDATA;
 
 typedef struct POLYVROADDATA  // vroad data associated with a polygon
@@ -50,8 +52,8 @@ typedef struct POLYVROADDATA  // vroad data associated with a polygon
 
 typedef struct VROADDATA  // vroad vectors
 {
-    short xNorm,zNorm,yNorm;
-    short xForw,zForw,yForw;
+    short xNorm, zNorm, yNorm;
+    short xForw, zForw, yForw;
 } VROADDATA;
 
 // WARNING: in the following 2 structures, don't rely on crossindex :
@@ -79,30 +81,28 @@ typedef struct LIGHTSRC {
     long type;
 } LIGHTSRC;
 
-typedef struct TRKBLOCK
-{
+typedef struct TRKBLOCK {
     struct FLOATPT ptCentre;
     struct FLOATPT ptBounding[4];
     long nVertices; // total stored
-    long nHiResVert,nLoResVert,nMedResVert; // #poly[...]+#polyobj
-    long nVerticesDup,nObjectVert;
+    long nHiResVert, nLoResVert, nMedResVert; // #poly[...]+#polyobj
+    long nVerticesDup, nObjectVert;
     struct FLOATPT *vert;  // the vertices
     long *unknVertices;
     struct NEIGHBORDATA nbdData[0x12C];  // neighboring blocks
-    long nStartPos,nPositions;
-    long nPolygons,nVRoad,nXobj,nPolyobj,nSoundsrc,nLightsrc;
+    long nStartPos, nPositions;
+    long nPolygons, nVRoad, nXobj, nPolyobj, nSoundsrc, nLightsrc;
     struct POSITIONDATA *posData;  // positions along track
     struct POLYVROADDATA *polyData;  // polygon vroad references & flags
     struct VROADDATA *vroadData;   // vroad vectors
     struct REFXOBJ *xobj;
     struct SOUNDSRC *soundsrc;
     struct LIGHTSRC *lightsrc;
-    struct FLOATPT hs_ptMin,hs_ptMax;
+    struct FLOATPT hs_ptMin, hs_ptMax;
     long hs_neighbors[8];
 } TRKBLOCK;
 
-typedef struct POLYGONDATA
-{
+typedef struct POLYGONDATA {
     short vertex[4];
     short texture;
     short unknown1; // only used in road lane polygonblock ?
@@ -119,12 +119,11 @@ typedef struct OBJPOLYBLOCK  // a POLYOBJ chunk
     long nobj;      // not stored in .FRD : number of type 1 objects
     long *types;    // when 1, there is an associated object; else XOBJ
     long *numpoly;  // size of each object (only for type 1 objects)
-    LPPOLYGONDATA *poly;	// the polygons themselves
+    LPPOLYGONDATA *poly;    // the polygons themselves
 } OBJPOLYBLOCK;
 
-typedef struct POLYGONBLOCK
-{
-    long sz[7],szdup[7];
+typedef struct POLYGONBLOCK {
+    long sz[7], szdup[7];
     // 7 blocks == low res / 0 / med. res / 0 / high res / 0 / ??central
     LPPOLYGONDATA poly[7];
     struct OBJPOLYBLOCK obj[4]; // the POLYOBJ chunks
@@ -132,14 +131,12 @@ typedef struct POLYGONBLOCK
     // the 1st chunk is described anyway in the TRKBLOCK
 } POLYGONBLOCK;
 
-typedef struct ANIMDATA
-{
+typedef struct ANIMDATA {
     struct INTPT pt;
-    float costheta,sintheta;
+    float costheta, sintheta;
 } ANIMDATA;
 
-typedef struct XOBJDATA
-{
+typedef struct XOBJDATA {
     long crosstype; // type 4, or more rarely 3 (animated)
     long crossno;   // obj number from REFXOBJ table in TRKBLOCK
     long unknown;
@@ -149,8 +146,8 @@ typedef struct XOBJDATA
 // this section only for type 3 animated objects
     short unknown3[9]; // 6 first are all alike; [6]==[8]=?; [7]=0
     // in HS, only 6 are used ; 6 = expected 4
-    char type3,objno;  // type3==3; objno==index among all block's objects?
-    short nAnimLength,unknown4;
+    char type3, objno;  // type3==3; objno==index among all block's objects?
+    short nAnimLength, unknown4;
     struct ANIMDATA *animData;
 // common section
     long nVertices;
@@ -160,8 +157,7 @@ typedef struct XOBJDATA
     struct POLYGONDATA *polyData;  // polygon data
 } XOBJDATA;
 
-typedef struct XOBJBLOCK
-{
+typedef struct XOBJBLOCK {
     long nobj;
     struct XOBJDATA *obj;
 } XOBJBLOCK;
@@ -169,7 +165,7 @@ typedef struct XOBJBLOCK
 #pragma pack(1)
 typedef struct TEXTUREBLOCK // WARNING: packed but not byte-aligned !!!
 {
-    short width,height;
+    short width, height;
     long unknown1;
     float corners[8]; // 4x planar coordinates == tiling?
     long unknown2;
@@ -211,7 +207,7 @@ typedef struct COLPOLYGON {
 
 typedef struct COLSTRUCT3D {
     long size;
-    short nVert,nPoly;
+    short nVert, nPoly;
     struct COLVERTEX *vertex;
     struct COLPOLYGON *polygon;
 } COLSTRUCT3D;
@@ -229,20 +225,20 @@ typedef struct COLOBJECT {
 } COLOBJECT;
 
 typedef struct COLVECTOR {
-    signed char x,z,y,unknown;
+    signed char x, z, y, unknown;
 } COLVECTOR;
 
 typedef struct COLVROAD {
     struct INTPT refPt;
     long unknown;  // flags ?
-    struct COLVECTOR normal,forward,right;
-    long leftWall,rightWall;
+    struct COLVECTOR normal, forward, right;
+    long leftWall, rightWall;
 } COLVROAD;
 
 typedef struct HS_VROADBLOCK { // HS's equivalent to a COLVROAD
     struct FLOATPT refPt;
-    struct FLOATPT normal,forward,right;
-    float leftWall,rightWall;
+    struct FLOATPT normal, forward, right;
+    float leftWall, rightWall;
     float unknown1[2];
     long unknown2[5];
 } HS_VROADBLOCK;
@@ -269,10 +265,11 @@ typedef struct COLFILE {
 class Texture {
 public:
     unsigned int texture_id, width, height;
-    unsigned char* texture_data;
+    unsigned char *texture_data;
 
     Texture() = default;
-    explicit Texture(unsigned int id, unsigned char *data, unsigned int w, unsigned int h){
+
+    explicit Texture(unsigned int id, unsigned char *data, unsigned int w, unsigned int h) {
         texture_id = id;
         texture_data = data;
         width = w;
@@ -284,36 +281,51 @@ class trk_loader {
 // !!! for arrays : structures are aligned to their largest member
 // !!! structure members are aligned on their own size (up to the /Zp parameter)
     // Attributes
-        bool bEmpty;
-        bool bHSMode;
-        char header[28]; /* file header */
-        long nBlocks;
-        struct TRKBLOCK *trk;
-        struct POLYGONBLOCK *poly;
-        struct XOBJBLOCK *xobj; // xobj[4*blk+chunk]; global=xobj[4*nblocks]
-        long hs_morexobjlen;
-        char *hs_morexobj;  // 4N & 4N+1 in HS format (xobj[4N] left empty)
-        long nTextures;
-        struct TEXTUREBLOCK *texture;
-        struct COLFILE col;
+    bool bEmpty;
+    bool bHSMode;
+    char header[28]; /* file header */
+    long nBlocks;
+    struct TRKBLOCK *trk;
+    struct POLYGONBLOCK *poly;
+    struct XOBJBLOCK *xobj; // xobj[4*blk+chunk]; global=xobj[4*nblocks]
+    long hs_morexobjlen;
+    char *hs_morexobj;  // 4N & 4N+1 in HS format (xobj[4N] left empty)
+    long nTextures;
+    struct TEXTUREBLOCK *texture;
+    struct COLFILE col;
 
     // Implementation
-    public:
-        explicit trk_loader(const std::string &frd_path);
-        virtual ~trk_loader();
-        bool LoadFRD(std::string frd_path);
-        std::vector<Model> trk_blocks;
-        std::vector<Model> getTrackBlocks();
-        std::map<short, GLuint> getTextureGLMap();
-        std::map<short, Texture> getTextures();
+public:
+    explicit trk_loader(const std::string &frd_path);
+
+    virtual ~trk_loader();
+
+    bool LoadFRD(std::string frd_path);
+
+    std::vector<Model> track_models;
+
+    std::vector<Model> getTrackBlocks();
+
+    std::map<short, GLuint> getTextureGLMap();
+
+    std::map<short, Texture> getTextures();
 
 protected:
-        std::map<short, GLuint> texture_gl_mappings;
-        std::map<short, Texture> textures;
-        bool LoadCOL(std::string col_path);
-        std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
-};
+    std::map<short, GLuint> texture_gl_mappings;
+    std::map<short, Texture> textures;
 
+    bool LoadCOL(std::string col_path);
+
+    std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
+
+    std::vector<Model> GetCOLModels();
+
+    std::vector<Model> GetXOBJModels();
+
+    std::vector<Model> GetTRKModels();
+
+    std::vector<short> RemapNormals(const std::set<short> &minimal_texture_ids_set, std::vector<glm::vec3> &normals);
+};
 
 
 #endif //FCE_TO_OBJ_TRK_LOADER_H

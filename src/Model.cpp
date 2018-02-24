@@ -4,12 +4,15 @@
 
 #include "Model.h"
 
+#include <utility>
+
 Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-             std::vector<unsigned int> indices, bool removeIndexing) {
+             std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids) {
     m_name = std::move(name);
     m_uvs = std::move(uvs);
     m_normals = std::move(norms);
     m_vertex_indices = std::move(indices);
+    texture_ids = std::move(tex_ids);
 
     if (removeIndexing) {
         // Remove indexing
@@ -69,7 +72,7 @@ void Model::update() {
         position = glm::vec3(0, 0, 0);
         orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
     } else {
-        position = glm::vec3(-66, 0, 3);
+        position = glm::vec3(-31,0.07,-5);
         orientation_vec = glm::vec3(0,0,0);
     }
     orientation = glm::normalize(glm::quat(orientation_vec));
