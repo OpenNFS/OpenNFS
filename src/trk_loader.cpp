@@ -2,7 +2,6 @@
 // Created by Amrik on 16/01/2018.
 //
 
-#include <boost/concept_check.hpp>
 #include "trk_loader.h"
 
 using namespace std;
@@ -433,67 +432,13 @@ std::vector<Model> trk_loader::ParseCOLModels() {
     return col_models;
 }
 
-std::vector<Model> trk_loader::ParseXOBJModels() {
-    std::vector<Model> xobj_models;
-
-    /* XOBJS - EXTRA OBJECTS */
-    for (int i = 0; i <= 4 * nBlocks; i++) {
-        for (int j = 0; j < xobj[i].nobj; j++) {
-            XOBJDATA *x = &(xobj[i].obj[j]);
-            if (x->crosstype == 4) { // basic objects
-            } else if (x->crosstype == 3) { // animated objects
-            }
-            // common part : vertices & polygons
-            std::vector<glm::vec3> verts;
-            for (int k = 0; k < x->nVertices; k++, x->vert++) {
-                verts.emplace_back(glm::vec3(x->ptRef.x / 10 + x->vert->x / 10,
-                                             x->ptRef.y / 10 + x->vert->y / 10,
-                                             x->ptRef.z / 10 + x->vert->z / 10));
-            }
-            // TODO: There are also these extras: x->unknVertices, sz: 4*x->nVertices
-            std::set<short> minimal_texture_ids_set;
-            std::vector<unsigned int> indices;
-            std::vector<glm::vec2> uvs;
-            std::vector<glm::vec3> normals;
-            for (int k = 0; k < x->nPolygons; k++, x->polyData++) {
-                TEXTUREBLOCK texture_for_block = texture[x->polyData->texture];
-                minimal_texture_ids_set.insert(texture_for_block.texture);
-                indices.emplace_back(x->polyData->vertex[0]);
-                indices.emplace_back(x->polyData->vertex[1]);
-                indices.emplace_back(x->polyData->vertex[2]);
-                indices.emplace_back(x->polyData->vertex[0]);
-                indices.emplace_back(x->polyData->vertex[2]);
-                indices.emplace_back(x->polyData->vertex[3]);
-                uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                uvs.emplace_back(1.0f - texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
-                uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                uvs.emplace_back(1.0f - texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
-                normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
-                normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
-                normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
-                normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
-                normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
-                normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
-            }
-            // Get ordered list of unique texture id's present in block
-            std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-            Model xobj_model = Model("XOBJ", i, verts, uvs, normals, indices, true, texture_ids);
-            xobj_model.enable();
-            xobj_model.track = true;
-            xobj_models.emplace_back(xobj_model);
-        }
-    }
-    return xobj_models;
-}
-
-void trk_loader::ParseTRKModels(std::vector<Model> &trk_models, std::vector<Model> &obj_models) {
+void trk_loader::ParseTRKModels() {
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (int i = 0; i < nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
+        TrackBlock current_track_block(i, trk_block);
 
         if (trk_block.nXobj == 0) {
             // Get Object vertices
@@ -546,10 +491,60 @@ void trk_loader::ParseTRKModels(std::vector<Model> &trk_models, std::vector<Mode
                             Model current_obj_model = Model("ObjBlock", i, obj_verts, uvs, normals, indices, true, texture_ids);
                             current_obj_model.enable();
                             current_obj_model.track = true;
-                            obj_models.emplace_back(current_obj_model);
+                            current_track_block.models.emplace_back(current_obj_model);
                         }
                     }
                 }
+            }
+        }
+
+        /* XOBJS - EXTRA OBJECTS */
+        for(int l = (i *4); l < (i * 4) + 4; l++){
+            for (int j = 0; j < xobj[l].nobj; j++) {
+                XOBJDATA *x = &(xobj[l].obj[j]);
+                if (x->crosstype == 4) { // basic objects
+                } else if (x->crosstype == 3) { // animated objects
+                }
+                // common part : vertices & polygons
+                std::vector<glm::vec3> verts;
+                for (int k = 0; k < x->nVertices; k++, x->vert++) {
+                    verts.emplace_back(glm::vec3(x->ptRef.x / 10 + x->vert->x / 10,
+                                                 x->ptRef.y / 10 + x->vert->y / 10,
+                                                 x->ptRef.z / 10 + x->vert->z / 10));
+                }
+                // TODO: There are also these extras: x->unknVertices, sz: 4*x->nVertices
+                std::set<short> minimal_texture_ids_set;
+                std::vector<unsigned int> indices;
+                std::vector<glm::vec2> uvs;
+                std::vector<glm::vec3> normals;
+                for (int k = 0; k < x->nPolygons; k++, x->polyData++) {
+                    TEXTUREBLOCK texture_for_block = texture[x->polyData->texture];
+                    minimal_texture_ids_set.insert(texture_for_block.texture);
+                    indices.emplace_back(x->polyData->vertex[0]);
+                    indices.emplace_back(x->polyData->vertex[1]);
+                    indices.emplace_back(x->polyData->vertex[2]);
+                    indices.emplace_back(x->polyData->vertex[0]);
+                    indices.emplace_back(x->polyData->vertex[2]);
+                    indices.emplace_back(x->polyData->vertex[3]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+                    normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
+                    normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
+                    normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
+                    normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
+                    normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
+                    normals.emplace_back(glm::vec3(texture_for_block.texture, 0, 0));
+                }
+                // Get ordered list of unique texture id's present in block
+                std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
+                Model xobj_model = Model("XOBJ", l, verts, uvs, normals, indices, true, texture_ids);
+                xobj_model.enable();
+                xobj_model.track = true;
+                current_track_block.models.emplace_back(xobj_model);
             }
         }
 
@@ -595,7 +590,9 @@ void trk_loader::ParseTRKModels(std::vector<Model> &trk_models, std::vector<Mode
         Model current_trk_block_model = Model("TrkBlock", i, verts, uvs, normals, indices, true, texture_ids);
         current_trk_block_model.enable();
         current_trk_block_model.track = true;
-        trk_models.emplace_back(current_trk_block_model);
+        current_track_block.models.emplace_back(current_trk_block_model);
+
+        track_blocks.emplace_back(current_track_block);
     }
 }
 
@@ -610,24 +607,15 @@ trk_loader::trk_loader(const std::string &frd_path) {
         return;
 
     col_models = ParseCOLModels();
-    xobj_models = ParseXOBJModels();
-    ParseTRKModels(trk_models, obj_models);
+    ParseTRKModels();
 }
 
 vector<Model> trk_loader::getCOLModels() {
     return col_models;
 }
 
-vector<Model> trk_loader::getXOBJModels() {
-    return xobj_models;
-}
-
-vector<Model> trk_loader::getTrackModels() {
-    return trk_models;
-}
-
-vector<Model> trk_loader::getOBJModels() {
-    return obj_models;
+std::vector<TrackBlock> trk_loader::getTrackBlocks() {
+    return track_blocks;
 }
 
 std::map<short, GLuint> trk_loader::getTextureGLMap() {
@@ -637,3 +625,5 @@ std::map<short, GLuint> trk_loader::getTextureGLMap() {
 std::map<short, Texture> trk_loader::getTextures() {
     return textures;
 }
+
+

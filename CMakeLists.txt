@@ -28,7 +28,7 @@ set(SOURCE_FILES
         include/imgui/stb_textedit.h
         include/imgui/stb_truetype.h
         include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
-        )
+        src/TrackBlock.cpp src/TrackBlock.h src/nfs_data.h)
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 

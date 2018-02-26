@@ -9,7 +9,7 @@
 Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
              std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids) {
     m_name = std::move(name);
-    id = std::move(model_id);
+    id =  model_id;
     m_uvs = std::move(uvs);
     m_normals = std::move(norms);
     m_vertex_indices = std::move(indices);

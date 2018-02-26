@@ -179,12 +179,7 @@ int main(int argc, const char *argv[]) {
     //Load Track Data
     trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
-    // Refactor this so that track blocks store every mesh required for that block excluding track collidables
-    std::vector<Model> track_models = trkLoader.getTrackModels();
-    std::vector<Model> obj_models = trkLoader.getOBJModels();
-    meshes.insert(meshes.end(), obj_models.begin(), obj_models.end());
-    std::vector<Model> xobj_models = trkLoader.getXOBJModels();
-    meshes.insert(meshes.end(), xobj_models.begin(), xobj_models.end());
+    std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
     std::vector<Model> col_models = trkLoader.getCOLModels();
     meshes.insert(meshes.end(), col_models.begin(), col_models.end());
 
@@ -224,7 +219,7 @@ int main(int argc, const char *argv[]) {
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
-    std::vector<Model> activeTrackModels;
+    std::vector<TrackBlock> activeTrackBlocks;
     glm::vec3 oldWorldPosition(0,0,0);
     int closestBlockID = 0;
 
@@ -238,12 +233,14 @@ int main(int argc, const char *argv[]) {
         mesh.setShaderID(mesh.track ? debugProgramID : programID);
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
-    for (auto &mesh : track_models) {
-        if (!mesh.genBuffers()) {
-            return -1;
+    for (auto &track_block : track_blocks) {
+        for(auto &track_block_model : track_block.models){
+            if (!track_block_model.genBuffers()) {
+                return -1;
+            }
+            track_block_model.setShaderID(debugProgramID);
+            dynamicsWorld->addRigidBody(track_block_model.rigidBody);
         }
-        mesh.setShaderID(debugProgramID);
-        dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -251,7 +248,6 @@ int main(int argc, const char *argv[]) {
 
     while (!glfwWindowShouldClose(window)) {
         newFrame(window_active);
-
         // Compute the MVP matrix from keyboard and mouse input
         computeMatricesFromInputs(window_active, ImGui::GetIO());
         glm::mat4 ProjectionMatrix = getProjectionMatrix();
@@ -263,21 +259,25 @@ int main(int argc, const char *argv[]) {
         if((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)){
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
-            for(const Model &track_model : track_models){
-                TRKBLOCK current_block = trkLoader.trk[track_model.id];
-                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(current_block.ptCentre.x/10, current_block.ptCentre.y/10, current_block.ptCentre.z/10)));
+            for(auto &track_block : track_blocks){
+                float x = track_block.trk.ptCentre.x/10;
+                float y = track_block.trk.ptCentre.y/10;
+                float z = track_block.trk.ptCentre.z/10;
+                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(x ,y, z)));
                 if(distanceSqr < lowestDistanceSqr){
-                    closestBlockID = track_model.id;
+                    closestBlockID = track_block.block_id;
                     lowestDistanceSqr = distanceSqr;
                 }
             }
-            int frontBlock = closestBlockID < track_models.size() - 10 ? closestBlockID + 10 : track_models.size() - 10;
-            vector<Model>::const_iterator first = track_models.begin();
-            vector<Model>::const_iterator last = track_models.begin() + frontBlock;
-            activeTrackModels = std::vector<Model>(first, last);
+            int blockDrawDistance = 15;
+            int frontBlock = closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance : track_blocks.size();
+            int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID -blockDrawDistance : 0;
+            vector<TrackBlock>::const_iterator first = track_blocks.begin() + backBlock;
+            vector<TrackBlock>::const_iterator last = track_blocks.begin() + frontBlock;
+            activeTrackBlocks = std::vector<TrackBlock>(first, last);
             oldWorldPosition = worldPosition;
         }
-
+        
         // Draw Meshes
         for (auto &mesh : meshes) {
             // Use our shader
@@ -295,17 +295,20 @@ int main(int argc, const char *argv[]) {
             }
             mesh.render();
         }
-        // Draw Meshes
-        for (auto &mesh : activeTrackModels) {
-            // Use our shader
-            glUseProgram(mesh.shader_id);
-            mesh.update();
-            glm::mat4 MVP = ProjectionMatrix * ViewMatrix * mesh.ModelMatrix;
-            // Send our transformation to the currently bound shader, in the "MVP" uniform
-            glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-            glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
-            BindTrackTextures(mesh, TrackTexturesID, gl_id_map);
-            mesh.render();
+
+        // Draw TrackBlocks
+        for (auto &active_track_Block : activeTrackBlocks) {
+            for(auto &track_block_model : active_track_Block.models){
+                // Use our shader
+                glUseProgram(track_block_model.shader_id);
+                track_block_model.update();
+                glm::mat4 MVP = ProjectionMatrix * ViewMatrix * track_block_model.ModelMatrix;
+                // Send our transformation to the currently bound shader, in the "MVP" uniform
+                glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+                glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
+                BindTrackTextures(track_block_model, TrackTexturesID, gl_id_map);
+                track_block_model.render();
+            }
         }
 
         // Draw UI (Tactically)
@@ -322,6 +325,7 @@ int main(int argc, const char *argv[]) {
         };
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
         ImGui::ColorEdit3("Frag Shader Input", (float *) &clear_color); // Edit 3 floats representing a color
+
         for (auto &mesh : meshes) {
             ImGui::Checkbox((mesh.getName() + std::to_string(mesh.id)).c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }
