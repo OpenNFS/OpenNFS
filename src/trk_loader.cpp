@@ -443,10 +443,13 @@ void trk_loader::ParseTRKModels() {
         if (trk_block.nXobj == 0) {
             // Get Object vertices
             std::vector<glm::vec3> obj_verts;
+            std::vector<glm::vec4> shading_verts;
             for (int v = 0; v < trk_block.nObjectVert; v++) {
                 obj_verts.emplace_back(glm::vec3(trk_block.vert[v].x / 10,
                                                  trk_block.vert[v].y / 10,
                                                  trk_block.vert[v].z / 10));
+                long shading_data = trk_block.unknVertices[v];
+                shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF)/255, ((shading_data >> 8) & 0xFF)/255, (shading_data & 0xFF)/255, ((shading_data >> 24) & 0xFF)/255));
             }
             // 4 OBJ Poly blocks
             for (int j = 0; j < 4; j++) {
@@ -488,7 +491,7 @@ void trk_loader::ParseTRKModels() {
                             }
                             // Get ordered list of unique texture id's present in block
                             std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-                            Model current_obj_model = Model("ObjBlock", i, obj_verts, uvs, normals, indices, true, texture_ids);
+                            Model current_obj_model = Model("ObjBlock", (j+1)*(k+1), obj_verts, uvs, normals, indices, true, texture_ids, shading_verts);
                             current_obj_model.enable();
                             current_obj_model.track = true;
                             current_track_block.models.emplace_back(current_obj_model);
@@ -507,10 +510,14 @@ void trk_loader::ParseTRKModels() {
                 }
                 // common part : vertices & polygons
                 std::vector<glm::vec3> verts;
+                std::vector<glm::vec4> shading_verts;
                 for (int k = 0; k < x->nVertices; k++, x->vert++) {
                     verts.emplace_back(glm::vec3(x->ptRef.x / 10 + x->vert->x / 10,
                                                  x->ptRef.y / 10 + x->vert->y / 10,
                                                  x->ptRef.z / 10 + x->vert->z / 10));
+                    long shading_data = x->unknVertices[k];
+                    //RGBA
+                    shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF)/255, ((shading_data >> 8) & 0xFF)/255, (shading_data & 0xFF)/255, ((shading_data >> 24) & 0xFF)/255));
                 }
                 // TODO: There are also these extras: x->unknVertices, sz: 4*x->nVertices
                 std::set<short> minimal_texture_ids_set;
@@ -541,7 +548,7 @@ void trk_loader::ParseTRKModels() {
                 }
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-                Model xobj_model = Model("XOBJ", l, verts, uvs, normals, indices, true, texture_ids);
+                Model xobj_model = Model("XOBJ", l, verts, uvs, normals, indices, true, texture_ids, shading_verts);
                 xobj_model.enable();
                 xobj_model.track = true;
                 current_track_block.models.emplace_back(xobj_model);
@@ -555,8 +562,13 @@ void trk_loader::ParseTRKModels() {
         std::vector<glm::vec2> uvs;
         std::vector<glm::vec3> normals;
         std::vector<glm::vec3> verts;
+        std::vector<glm::vec4> shading_verts;
+
         for (int j = 0; j < trk_block.nHiResVert; j++) {
             verts.emplace_back(glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
+            // Break long of RGB into 4 normalised floats and store into vec4 (TODO: probably worth doing this inside the shader and binding the longs?)
+            long shading_data = trk_block.unknVertices[j];
+            shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF)/255, ((shading_data >> 8) & 0xFF)/255, (shading_data & 0xFF)/255, ((shading_data >> 24) & 0xFF)/255));
         }
         // Get indices from Chunk 4 for High Res polys
         LPPOLYGONDATA poly_chunk = polygon_block.poly[4];
@@ -587,7 +599,7 @@ void trk_loader::ParseTRKModels() {
         }
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-        Model current_trk_block_model = Model("TrkBlock", i, verts, uvs, normals, indices, true, texture_ids);
+        Model current_trk_block_model = Model("TrkBlock", i, verts, uvs, normals, indices, true, texture_ids, shading_verts);
         current_trk_block_model.enable();
         current_trk_block_model.track = true;
         current_track_block.models.emplace_back(current_trk_block_model);

@@ -85,15 +85,16 @@ GLint load_tga_texture(const char *path) {
 }
 
 // Refactor this into model class render() function
-void BindTrackTextures(Model track_block, GLuint TrackTexturesID, std::map<short, GLuint> gl_id_map){
+void BindTrackTextures(Model track_block, GLuint TrackTexturesID, std::map<short, GLuint> gl_id_map) {
     // TODO: Somehow breaking the CORE profile here?
     GLenum texNum = GL_TEXTURE0;
     for (short texture_id : track_block.texture_ids) {
         glActiveTexture(texNum++);
-        glBindTexture( GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
+        glBindTexture(GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
     }
-    const GLint samplers[32] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
-    glUniform1iv( TrackTexturesID, 32, samplers );
+    const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+                                24, 25, 26, 27, 28, 29, 30, 31};
+    glUniform1iv(TrackTexturesID, 32, samplers);
 }
 
 bool init_opengl() {
@@ -151,7 +152,7 @@ bool init_opengl() {
     return true;
 }
 
-void newFrame(bool &window_active){
+void newFrame(bool &window_active) {
     glfwPollEvents();
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -180,8 +181,9 @@ int main(int argc, const char *argv[]) {
     trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
-    std::vector<Model> col_models = trkLoader.getCOLModels();
-    meshes.insert(meshes.end(), col_models.begin(), col_models.end());
+    // TODO: Reference COLs to track blocks
+    //std::vector<Model> col_models = trkLoader.getCOLModels();
+    //meshes.insert(meshes.end(), col_models.begin(), col_models.end());
 
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase = new btDbvtBroadphase();
@@ -206,7 +208,7 @@ int main(int argc, const char *argv[]) {
     GLuint programID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
                                    "../shaders/TextureFragmentShader.fragmentshader");
     GLuint debugProgramID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
-                                   "../shaders/TrackDebugShader.fragmentshader");
+                                        "../shaders/TrackDebugShader.fragmentshader");
 
     // Load the texture
     GLuint Texture = load_tga_texture("car00.tga");
@@ -219,8 +221,9 @@ int main(int argc, const char *argv[]) {
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
+    // Data used for culling
     std::vector<TrackBlock> activeTrackBlocks;
-    glm::vec3 oldWorldPosition(0,0,0);
+    glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
 
     /*------- MODELS --------*/
@@ -230,11 +233,11 @@ int main(int argc, const char *argv[]) {
             return -1;
         }
         // TODO: Assign shaders to Models in a better way.
-        mesh.setShaderID(mesh.track ? debugProgramID : programID);
+        mesh.setShaderID(programID);
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     for (auto &track_block : track_blocks) {
-        for(auto &track_block_model : track_block.models){
+        for (auto &track_block_model : track_block.models) {
             if (!track_block_model.genBuffers()) {
                 return -1;
             }
@@ -245,6 +248,7 @@ int main(int argc, const char *argv[]) {
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool window_active = true;
+    bool show_demo_window = true;
 
     while (!glfwWindowShouldClose(window)) {
         newFrame(window_active);
@@ -256,29 +260,28 @@ int main(int argc, const char *argv[]) {
         mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
 
         // If camera moved
-        if((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)){
+        if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
-            for(auto &track_block : track_blocks){
-                float x = track_block.trk.ptCentre.x/10;
-                float y = track_block.trk.ptCentre.y/10;
-                float z = track_block.trk.ptCentre.z/10;
-                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(x ,y, z)));
-                if(distanceSqr < lowestDistanceSqr){
+            for (auto &track_block : track_blocks) {
+                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(track_block.trk.ptCentre.x / 10, track_block.trk.ptCentre.y / 10, track_block.trk.ptCentre.z / 10)));
+                if (distanceSqr < lowestDistanceSqr) {
                     closestBlockID = track_block.block_id;
                     lowestDistanceSqr = distanceSqr;
                 }
             }
             int blockDrawDistance = 15;
-            int frontBlock = closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance : track_blocks.size();
-            int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID -blockDrawDistance : 0;
+            int frontBlock =
+                    closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance
+                                                                             : track_blocks.size();
+            int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID - blockDrawDistance : 0;
             vector<TrackBlock>::const_iterator first = track_blocks.begin() + backBlock;
             vector<TrackBlock>::const_iterator last = track_blocks.begin() + frontBlock;
             activeTrackBlocks = std::vector<TrackBlock>(first, last);
             oldWorldPosition = worldPosition;
         }
 
-        // Draw Meshes
+        // Draw Car
         for (auto &mesh : meshes) {
             // Use our shader
             glUseProgram(mesh.shader_id);
@@ -287,18 +290,14 @@ int main(int argc, const char *argv[]) {
             // Send our transformation to the currently bound shader, in the "MVP" uniform
             glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
             glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
-            if (mesh.track) {
-                BindTrackTextures(mesh, TrackTexturesID, gl_id_map);
-            } else {
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, Texture);
-            }
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, Texture);
             mesh.render();
         }
 
         // Draw TrackBlocks
         for (auto &active_track_Block : activeTrackBlocks) {
-            for(auto &track_block_model : active_track_Block.models){
+            for (auto &track_block_model : active_track_Block.models) {
                 // Use our shader
                 glUseProgram(track_block_model.shader_id);
                 track_block_model.update();
@@ -313,11 +312,12 @@ int main(int argc, const char *argv[]) {
 
         // Draw UI (Tactically)
         static float f = 0.0f;
-        static int counter = 0;
         ImGui::Text("NFS3 Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
         std::stringstream world_position_string;
-        world_position_string << "X " << std::to_string(worldPosition.x)  << " Y " << std::to_string(worldPosition.x) << " Z " << std::to_string(worldPosition.z);
+        world_position_string << "X " << std::to_string(worldPosition.x) << " Y " << std::to_string(worldPosition.x)
+                              << " Z " << std::to_string(worldPosition.z);
         ImGui::Text(world_position_string.str().c_str());
         ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
         if (ImGui::Button("Reset View")) {
@@ -325,12 +325,23 @@ int main(int argc, const char *argv[]) {
         };
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
         ImGui::ColorEdit3("Frag Shader Input", (float *) &clear_color); // Edit 3 floats representing a color
-
         for (auto &mesh : meshes) {
             ImGui::Checkbox((mesh.getName() + std::to_string(mesh.id)).c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }
-
-        //dynamicsWorld->debugDrawWorld();
+        if (ImGui::TreeNode("Track Blocks")) {
+            for (auto &track_block : track_blocks) {
+                if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
+                    for (auto &block_model : track_block.models) {
+                        if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.getName().c_str(), block_model.id)) {
+                            ImGui::Checkbox("Enabled", &block_model.enabled);
+                            ImGui::TreePop();
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+            }
+            ImGui::TreePop();
+        }
 
         // Rendering
         int display_w, display_h;

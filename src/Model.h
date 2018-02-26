@@ -3,6 +3,8 @@
 //
 #pragma once
 #define GLM_ENABLE_EXPERIMENTAL
+
+#include <utility>
 #include <vector>
 #include <cstdlib>
 #include <string>
@@ -22,12 +24,25 @@ public:
     GLuint uvbuffer;
     GLuint elementbuffer;
     GLuint normalbuffer;
+    GLuint shadingBuffer;
 };
 
 class Model {
 public:
     Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-                 std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids);
+          std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids);
+
+    Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
+                 std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids, std::vector<glm::vec4> shading_data): Model(
+            std::move(name), model_id, verts, uvs, norms, indices, removeIndexing, tex_ids) {
+        if (removeIndexing) {
+            for (unsigned int m_vertex_index : m_vertex_indices) {
+                m_shading_data.push_back(shading_data[m_vertex_index]);
+            }
+        } else {
+            m_shading_data = std::move(shading_data);
+        }
+    }
 
     std::string getName();
 
@@ -99,6 +114,7 @@ private:
     std::vector<glm::vec3> m_vertices;
     std::vector<glm::vec3> m_normals;
     std::vector<glm::vec2> m_uvs;
+    std::vector<glm::vec4> m_shading_data;
     std::vector<unsigned int> m_vertex_indices;
     /* Iterator vars */
     unsigned len;

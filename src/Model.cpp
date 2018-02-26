@@ -42,6 +42,7 @@ Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     rigidBody->setUserPointer(this);
 }
 
+
 void Model::setShaderID(GLuint shaderID){
     shader_id = shaderID;
 }
@@ -95,13 +96,14 @@ void Model::destroy() {
     glDeleteBuffers(1, &gl_buffers.vertexbuffer);
     glDeleteBuffers(1, &gl_buffers.uvbuffer);
     glDeleteBuffers(1, &gl_buffers.normalbuffer);
+    glDeleteBuffers(1, &gl_buffers.shadingBuffer);
 }
 
 void Model::render() {
     if (!enabled)
         return;
 
-    // 1st attribute buffer : car_verts
+    // 1st attribute buffer : Vertices
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.vertexbuffer);
     glVertexAttribPointer(
@@ -134,6 +136,17 @@ void Model::render() {
             0,                  // stride
             (void *) 0            // array buffer offset
     );
+    // 4th attribute buffer : NFS3 Shading Data
+    glEnableVertexAttribArray(3);
+    glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.normalbuffer);
+    glVertexAttribPointer(
+            3,                  // attribute
+            4,                  // size
+            GL_FLOAT,           // type
+            GL_TRUE,           // normalized?
+            0,                  // stride
+            (void *) 0            // array buffer offset
+    );
     if(indexed){
         // Index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_buffers.elementbuffer);
@@ -150,6 +163,7 @@ void Model::render() {
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
         glDisableVertexAttribArray(2);
+        glDisableVertexAttribArray(3);
     }
 }
 
@@ -166,6 +180,10 @@ bool Model::genBuffers() {
     glGenBuffers(1, &gl_buffers.normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.normalbuffer);
     glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
+    // NFS3 Shading Data
+    glGenBuffers(1, &gl_buffers.shadingBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.shadingBuffer);
+    glBufferData(GL_ARRAY_BUFFER, m_shading_data.size() * sizeof(glm::vec4), &m_shading_data[0], GL_STATIC_DRAW);
     if (indexed){
         // Indices
         glGenBuffers(1, &gl_buffers.elementbuffer);
