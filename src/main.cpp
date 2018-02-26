@@ -277,7 +277,7 @@ int main(int argc, const char *argv[]) {
             activeTrackBlocks = std::vector<TrackBlock>(first, last);
             oldWorldPosition = worldPosition;
         }
-        
+
         // Draw Meshes
         for (auto &mesh : meshes) {
             // Use our shader
