@@ -151,6 +151,20 @@ bool init_opengl() {
     return true;
 }
 
+void newFrame(bool &window_active){
+    glfwPollEvents();
+    // Clear the screen
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Detect a click on the 3D Window by detecting a click that isn't on ImGui
+    window_active = window_active ? window_active : (
+            (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
+            (!ImGui::GetIO().WantCaptureMouse));
+    if (!window_active) {
+        ImGui::GetIO().MouseDrawCursor = false;
+    }
+    ImGui_ImplGlfwGL3_NewFrame();
+}
+
 int main(int argc, const char *argv[]) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     if (!init_opengl()) {
@@ -159,18 +173,20 @@ int main(int argc, const char *argv[]) {
     }
 
     NFS_Loader nfs_loader("../resources/car.viv");
-    if(!nfs_loader.loadObj("../resources/lap3.obj")){
-        std::cout << "Obj load failed" << std::endl;
-    };
     //Load Car data from unpacked NFS files
     std::vector<Model> meshes = nfs_loader.getMeshes();
     meshes[0].enable();
-
     //Load Track Data
     trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
-    std::vector<Model> track_models = trkLoader.getTrackBlocks();
-    meshes.insert(meshes.end(), track_models.begin(), track_models.end());
+    // Refactor this so that track blocks store every mesh required for that block excluding track collidables
+    std::vector<Model> track_models = trkLoader.getTrackModels();
+    std::vector<Model> obj_models = trkLoader.getOBJModels();
+    meshes.insert(meshes.end(), obj_models.begin(), obj_models.end());
+    std::vector<Model> xobj_models = trkLoader.getXOBJModels();
+    meshes.insert(meshes.end(), xobj_models.begin(), xobj_models.end());
+    std::vector<Model> col_models = trkLoader.getCOLModels();
+    meshes.insert(meshes.end(), col_models.begin(), col_models.end());
 
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase = new btDbvtBroadphase();
@@ -208,6 +224,10 @@ int main(int argc, const char *argv[]) {
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
+    std::vector<Model> activeTrackModels;
+    glm::vec3 oldWorldPosition(0,0,0);
+    int closestBlockID = 0;
+
     /*------- MODELS --------*/
     // Gen VBOs, add to Bullet Physics
     for (auto &mesh : meshes) {
@@ -218,27 +238,45 @@ int main(int argc, const char *argv[]) {
         mesh.setShaderID(mesh.track ? debugProgramID : programID);
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
+    for (auto &mesh : track_models) {
+        if (!mesh.genBuffers()) {
+            return -1;
+        }
+        mesh.setShaderID(debugProgramID);
+        dynamicsWorld->addRigidBody(mesh.rigidBody);
+    }
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool window_active = true;
 
     while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        // Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        window_active = window_active ? window_active : (
-                (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
-                (!ImGui::GetIO().WantCaptureMouse));
-        if (!window_active) {
-            ImGui::GetIO().MouseDrawCursor = false;
-        }
-        ImGui_ImplGlfwGL3_NewFrame();
+        newFrame(window_active);
+
         // Compute the MVP matrix from keyboard and mouse input
         computeMatricesFromInputs(window_active, ImGui::GetIO());
         glm::mat4 ProjectionMatrix = getProjectionMatrix();
         glm::mat4 ViewMatrix = getViewMatrix();
         glm::vec3 worldPosition = getPosition();
+        mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
+
+        // If camera moved
+        if((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)){
+            float lowestDistanceSqr = FLT_MAX;
+            //Primitive Draw distance
+            for(const Model &track_model : track_models){
+                TRKBLOCK current_block = trkLoader.trk[track_model.id];
+                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(current_block.ptCentre.x/10, current_block.ptCentre.y/10, current_block.ptCentre.z/10)));
+                if(distanceSqr < lowestDistanceSqr){
+                    closestBlockID = track_model.id;
+                    lowestDistanceSqr = distanceSqr;
+                }
+            }
+            int frontBlock = closestBlockID < track_models.size() - 10 ? closestBlockID + 10 : track_models.size() - 10;
+            vector<Model>::const_iterator first = track_models.begin();
+            vector<Model>::const_iterator last = track_models.begin() + frontBlock;
+            activeTrackModels = std::vector<Model>(first, last);
+            oldWorldPosition = worldPosition;
+        }
 
         // Draw Meshes
         for (auto &mesh : meshes) {
@@ -257,26 +295,37 @@ int main(int argc, const char *argv[]) {
             }
             mesh.render();
         }
+        // Draw Meshes
+        for (auto &mesh : activeTrackModels) {
+            // Use our shader
+            glUseProgram(mesh.shader_id);
+            mesh.update();
+            glm::mat4 MVP = ProjectionMatrix * ViewMatrix * mesh.ModelMatrix;
+            // Send our transformation to the currently bound shader, in the "MVP" uniform
+            glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+            glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
+            BindTrackTextures(mesh, TrackTexturesID, gl_id_map);
+            mesh.render();
+        }
 
         // Draw UI (Tactically)
         static float f = 0.0f;
         static int counter = 0;
         ImGui::Text("NFS3 Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                    ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         std::stringstream world_position_string;
         world_position_string << "X " << std::to_string(worldPosition.x)  << " Y " << std::to_string(worldPosition.x) << " Z " << std::to_string(worldPosition.z);
         ImGui::Text(world_position_string.str().c_str());
+        ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
         if (ImGui::Button("Reset View")) {
             resetView();
         };
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
         ImGui::ColorEdit3("Frag Shader Input", (float *) &clear_color); // Edit 3 floats representing a color
         for (auto &mesh : meshes) {
-            ImGui::Checkbox(mesh.getName().c_str(), &mesh.enabled);      // Edit bools storing model draw state
+            ImGui::Checkbox((mesh.getName() + std::to_string(mesh.id)).c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }
 
-        mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
         //dynamicsWorld->debugDrawWorld();
 
         // Rendering

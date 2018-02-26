@@ -383,7 +383,7 @@ std::vector<short> trk_loader::RemapNormals(const std::set<short> &minimal_textu
     return texture_ids;
 }
 
-std::vector<Model> trk_loader::GetCOLModels() {
+std::vector<Model> trk_loader::ParseCOLModels() {
     std::vector<Model> col_models;
     /* COL DATA - TODO: Come back for VROAD AI/Collision data */
     COLSTRUCT3D *s = col.struct3D;
@@ -425,7 +425,7 @@ std::vector<Model> trk_loader::GetCOLModels() {
         }
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-        Model col_model = Model("ColBlock" + std::to_string(i), verts, uvs, normals, indices, true, texture_ids);
+        Model col_model = Model("ColBlock", i, verts, uvs, normals, indices, true, texture_ids);
         col_model.enable();
         col_model.track = true;
         col_models.emplace_back(col_model);
@@ -433,7 +433,7 @@ std::vector<Model> trk_loader::GetCOLModels() {
     return col_models;
 }
 
-std::vector<Model> trk_loader::GetXOBJModels() {
+std::vector<Model> trk_loader::ParseXOBJModels() {
     std::vector<Model> xobj_models;
 
     /* XOBJS - EXTRA OBJECTS */
@@ -479,7 +479,7 @@ std::vector<Model> trk_loader::GetXOBJModels() {
             }
             // Get ordered list of unique texture id's present in block
             std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-            Model xobj_model = Model("XOBJ" + std::to_string(i), verts, uvs, normals, indices, true, texture_ids);
+            Model xobj_model = Model("XOBJ", i, verts, uvs, normals, indices, true, texture_ids);
             xobj_model.enable();
             xobj_model.track = true;
             xobj_models.emplace_back(xobj_model);
@@ -488,9 +488,7 @@ std::vector<Model> trk_loader::GetXOBJModels() {
     return xobj_models;
 }
 
-std::vector<Model> trk_loader::GetTRKModels() {
-    std::vector<Model> trk_blocks;
-
+void trk_loader::ParseTRKModels(std::vector<Model> &trk_models, std::vector<Model> &obj_models) {
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (int i = 0; i < nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
@@ -545,10 +543,10 @@ std::vector<Model> trk_loader::GetTRKModels() {
                             }
                             // Get ordered list of unique texture id's present in block
                             std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-                            Model current_trk_block_model = Model("ObjBlock" + std::to_string((i*(j+k))*3), obj_verts, uvs, normals, indices, true, texture_ids);
-                            current_trk_block_model.enable();
-                            current_trk_block_model.track = true;
-                            trk_blocks.emplace_back(current_trk_block_model);
+                            Model current_obj_model = Model("ObjBlock", i, obj_verts, uvs, normals, indices, true, texture_ids);
+                            current_obj_model.enable();
+                            current_obj_model.track = true;
+                            obj_models.emplace_back(current_obj_model);
                         }
                     }
                 }
@@ -594,13 +592,11 @@ std::vector<Model> trk_loader::GetTRKModels() {
         }
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-        Model current_trk_block_model = Model("TrkBlock" + std::to_string(i), verts, uvs, normals, indices, true, texture_ids);
+        Model current_trk_block_model = Model("TrkBlock", i, verts, uvs, normals, indices, true, texture_ids);
         current_trk_block_model.enable();
         current_trk_block_model.track = true;
-        trk_blocks.emplace_back(current_trk_block_model);
+        trk_models.emplace_back(current_trk_block_model);
     }
-
-    return trk_blocks;
 }
 
 trk_loader::trk_loader(const std::string &frd_path) {
@@ -613,16 +609,25 @@ trk_loader::trk_loader(const std::string &frd_path) {
     } else
         return;
 
-    std::vector<Model> col_models = GetCOLModels();
-    //track_models.insert(track_models.begin(), col_models.begin(), col_models.end());
-    std::vector<Model> xobj_models = GetXOBJModels();
-    track_models.insert(track_models.begin(), xobj_models.begin(), xobj_models.end());
-    std::vector<Model> trk_models = GetTRKModels();
-    track_models.insert(track_models.begin(), trk_models.begin(), trk_models.end());
+    col_models = ParseCOLModels();
+    xobj_models = ParseXOBJModels();
+    ParseTRKModels(trk_models, obj_models);
 }
 
-vector<Model> trk_loader::getTrackBlocks() {
-    return track_models;
+vector<Model> trk_loader::getCOLModels() {
+    return col_models;
+}
+
+vector<Model> trk_loader::getXOBJModels() {
+    return xobj_models;
+}
+
+vector<Model> trk_loader::getTrackModels() {
+    return trk_models;
+}
+
+vector<Model> trk_loader::getOBJModels() {
+    return obj_models;
 }
 
 std::map<short, GLuint> trk_loader::getTextureGLMap() {

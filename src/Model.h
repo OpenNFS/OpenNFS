@@ -26,18 +26,18 @@ public:
 
 class Model {
 public:
-    Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
+    Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
                  std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids);
 
-    std::string getName(void);
+    std::string getName();
 
-    std::vector<glm::vec2> getUVs(void);
+    std::vector<glm::vec3> getVertices();
 
-    std::vector<glm::vec3> getVertices(void);
+    std::vector<glm::vec2> getUVs();
 
-    std::vector<glm::vec3> getNormals(void);
+    std::vector<glm::vec3> getNormals();
 
-    std::vector<unsigned int> getIndices(void);
+    std::vector<unsigned int> getIndices();
 
     bool genBuffers();
 
@@ -51,6 +51,7 @@ public:
 
     void render();
 
+    int id;
     /*--------- Model State --------*/
     //UI
     bool enabled = false;

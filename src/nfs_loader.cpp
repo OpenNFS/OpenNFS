@@ -164,7 +164,7 @@ bool NFS_Loader::loadObj(std::string obj_path) {
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        Model obj_mesh = Model(shapes[s].name + "_obj", verts, uvs, norms, indices, false, std::vector<short>());
+        Model obj_mesh = Model(shapes[s].name + "_obj", s, verts, uvs, norms, indices, false, std::vector<short>());
         meshes.emplace_back(obj_mesh);
     }
     return true;
@@ -333,7 +333,7 @@ void NFS_Loader::readFCE(const char *fce_path) {
     }
 
     for (int i = 0; i < model_names.size(); ++i) {
-        meshes.emplace_back(Model(model_names[i], getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]),
+        meshes.emplace_back(Model(model_names[i], i, getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]),
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
                                   getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
                                   getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), true, std::vector<short>()));

@@ -47,6 +47,8 @@ void main(){
         case 31: tempColor = texture(texture_array[31], UV).rgba; break;
      }
 
+
+
     color.r = tempColor.r;
     color.g = tempColor.g;
     color.b = tempColor.b;

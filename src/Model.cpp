@@ -6,9 +6,10 @@
 
 #include <utility>
 
-Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
+Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
              std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids) {
     m_name = std::move(name);
+    id = std::move(model_id);
     m_uvs = std::move(uvs);
     m_normals = std::move(norms);
     m_vertex_indices = std::move(indices);
@@ -45,13 +46,20 @@ void Model::setShaderID(GLuint shaderID){
     shader_id = shaderID;
 }
 
-std::vector<glm::vec2> Model::getUVs() {
-    return m_uvs;
+std::string Model::getName() {
+    return m_name;
 }
+
 
 std::vector<glm::vec3> Model::getVertices() {
     return m_vertices;
 }
+
+
+std::vector<glm::vec2> Model::getUVs() {
+    return m_uvs;
+}
+
 
 std::vector<glm::vec3> Model::getNormals() {
     return m_normals;
@@ -63,14 +71,10 @@ std::vector<unsigned int> Model::getIndices() {
 }
 
 
-std::string Model::getName() {
-    return m_name;
-}
-
 void Model::update() {
     if (track){
         position = glm::vec3(0, 0, 0);
-        orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
+        //orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
     } else {
         position = glm::vec3(-31,0.07,-5);
         orientation_vec = glm::vec3(0,0,0);

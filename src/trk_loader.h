@@ -278,8 +278,9 @@ public:
 };
 
 class trk_loader {
-// !!! for arrays : structures are aligned to their largest member
-// !!! structure members are aligned on their own size (up to the /Zp parameter)
+public:
+    // !!! for arrays : structures are aligned to their largest member
+    // !!! structure members are aligned on their own size (up to the /Zp parameter)
     // Attributes
     bool bEmpty;
     bool bHSMode;
@@ -295,16 +296,19 @@ class trk_loader {
     struct COLFILE col;
 
     // Implementation
-public:
     explicit trk_loader(const std::string &frd_path);
 
     virtual ~trk_loader();
 
     bool LoadFRD(std::string frd_path);
 
-    std::vector<Model> track_models;
+    std::vector<Model> getTrackModels();
 
-    std::vector<Model> getTrackBlocks();
+    std::vector<Model> getOBJModels();
+
+    std::vector<Model> getXOBJModels();
+
+    std::vector<Model> getCOLModels();
 
     std::map<short, GLuint> getTextureGLMap();
 
@@ -313,16 +317,20 @@ public:
 protected:
     std::map<short, GLuint> texture_gl_mappings;
     std::map<short, Texture> textures;
+    std::vector<Model> col_models;
+    std::vector<Model> xobj_models;
+    std::vector<Model> trk_models;
+    std::vector<Model> obj_models;
 
     bool LoadCOL(std::string col_path);
 
     std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
 
-    std::vector<Model> GetCOLModels();
+    std::vector<Model> ParseCOLModels();
 
-    std::vector<Model> GetXOBJModels();
+    std::vector<Model> ParseXOBJModels();
 
-    std::vector<Model> GetTRKModels();
+    void ParseTRKModels(std::vector<Model> &trk_models, std::vector<Model> &obj_models);
 
     std::vector<short> RemapNormals(const std::set<short> &minimal_texture_ids_set, std::vector<glm::vec3> &normals);
 };
