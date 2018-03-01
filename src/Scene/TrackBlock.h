@@ -6,7 +6,7 @@
 #define OPENNFS3_TRACKBLOCK_H
 
 #include "Model.h"
-#include "nfs_data.h"
+#include "../nfs_data.h"
 
 class TrackBlock {
 public:

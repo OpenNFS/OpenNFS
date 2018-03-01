@@ -1,36 +1,15 @@
-#include "controls.h"
+#include "Camera.h"
 
 using namespace glm;
 
-
-glm::mat4 ViewMatrix;
-glm::mat4 ProjectionMatrix;
-
-glm::mat4 getViewMatrix() {
-    return ViewMatrix;
+Camera::Camera(glm::vec3 initial_position, float FoV){
+    // Initial position : on +Z
+    position = initial_position;
+    // Initial Field of View
+    initialFoV = FoV;
 }
 
-glm::mat4 getProjectionMatrix() {
-    return ProjectionMatrix;
-}
-
-// Initial position : on +Z
-glm::vec3 position = glm::vec3(0, 0, 5);
-// Initial horizontal angle : toward -Z
-float horizontalAngle = 3.14f;
-// Initial vertical angle : none
-float verticalAngle = 0.0f;
-// Initial Field of View
-float initialFoV = 45.0f;
-
-float speed = 3.0f; // 3 units / second
-float mouseSpeed = 0.005f;
-
-glm::vec3 getPosition(){
-    return position;
-}
-
-void resetView(){
+void Camera::resetView(){
     position = glm::vec3(0, 0, 5);
     horizontalAngle = 3.14f;
     verticalAngle = 0.0f;
@@ -52,7 +31,7 @@ void resetView(){
     );
 }
 
-void computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
+void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key

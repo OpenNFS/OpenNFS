@@ -15,7 +15,7 @@
 #include <vector>
 #include <cmath>
 #include <glm/vec3.hpp>
-#include "Model.h"
+#include "Scene/Model.h"
 #include <tiny_obj_loader.h>
 
 #define DATA_START 0x1F04

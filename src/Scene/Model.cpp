@@ -14,6 +14,7 @@ Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     m_normals = std::move(norms);
     m_vertex_indices = std::move(indices);
     texture_ids = std::move(tex_ids);
+    indexed = !removeIndexing;
 
     if (removeIndexing) {
         // Remove indexing
@@ -40,11 +41,6 @@ Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     );
     rigidBody = new btRigidBody(rigidBodyCI);
     rigidBody->setUserPointer(this);
-}
-
-
-void Model::setShaderID(GLuint shaderID){
-    shader_id = shaderID;
 }
 
 std::string Model::getName() {
@@ -75,8 +71,11 @@ std::vector<unsigned int> Model::getIndices() {
 void Model::update() {
     if (track){
         position = glm::vec3(0, 0, 0);
-        //orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
+        orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
     } else {
+        if (m_name.find("wheel") != std::string::npos){
+            
+        }
         position = glm::vec3(-31,0.07,-5);
         orientation_vec = glm::vec3(0,0,0);
     }
@@ -138,12 +137,12 @@ void Model::render() {
     );
     // 4th attribute buffer : NFS3 Shading Data
     glEnableVertexAttribArray(3);
-    glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.normalbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, gl_buffers.shadingBuffer);
     glVertexAttribPointer(
             3,                  // attribute
             4,                  // size
             GL_FLOAT,           // type
-            GL_TRUE,           // normalized?
+            GL_FALSE,           // normalized?
             0,                  // stride
             (void *) 0            // array buffer offset
     );

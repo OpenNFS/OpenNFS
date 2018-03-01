@@ -2,7 +2,7 @@
 // Created by Amrik Sadhra on 05/02/2018.
 //
 
-#include "physics.h"
+#include "Physics.h"
 
 btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices) {
     glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);

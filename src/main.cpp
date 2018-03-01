@@ -15,14 +15,15 @@
 #include <btBulletDynamicsCommon.h>
 #include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
 #include <set>
-#include "TGALoader.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // Source
-#include "shader.h"
-#include "controls.h"
+#include "Scene/Camera.h"
 #include "nfs_loader.h"
 #include "trk_loader.h"
+#include "Shaders/TrackShader.h"
+#include "Shaders/CarShader.h"
+#include "Util/Assert.h"
 
 GLFWwindow *window;
 
@@ -60,42 +61,6 @@ public:
 
     int m;
 };
-
-GLint load_tga_texture(const char *path) {
-    NS_TGALOADER::IMAGE texture_loader;
-
-    if (!texture_loader.LoadTGA(path)) {
-        printf("Texture loading failed!\n");
-        exit(2);
-    }
-
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA,
-                 GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    return textureID;
-}
-
-// Refactor this into model class render() function
-void BindTrackTextures(Model track_block, GLuint TrackTexturesID, std::map<short, GLuint> gl_id_map) {
-    // TODO: Somehow breaking the CORE profile here?
-    GLenum texNum = GL_TEXTURE0;
-    for (short texture_id : track_block.texture_ids) {
-        glActiveTexture(texNum++);
-        glBindTexture(GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
-    }
-    const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-                                24, 25, 26, 27, 28, 29, 30, 31};
-    glUniform1iv(TrackTexturesID, 32, samplers);
-}
 
 bool init_opengl() {
     // Initialise GLFW
@@ -168,10 +133,7 @@ void newFrame(bool &window_active) {
 
 int main(int argc, const char *argv[]) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
-    if (!init_opengl()) {
-        std::cout << "OpenGL init failed." << std::endl;
-        return -1;
-    }
+    ASSERT(init_opengl(), "OpenGL init failed.");
 
     NFS_Loader nfs_loader("../resources/car.viv");
     //Load Car data from unpacked NFS files
@@ -204,24 +166,12 @@ int main(int argc, const char *argv[]) {
     // Setup style
     ImGui::StyleColorsDark();
 
-    // Create and compile our GLSL program from the shaders
-    GLuint programID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
-                                   "../shaders/TextureFragmentShader.fragmentshader");
-    GLuint debugProgramID = LoadShaders("../shaders/TransformVertexShader.vertexshader",
-                                        "../shaders/TrackDebugShader.fragmentshader");
+    // Create and compile our GLSL programs from the shaders
+    TrackShader trackShader;
+    CarShader carShader;
 
-    // Load the texture
-    GLuint Texture = load_tga_texture("car00.tga");
-    // Get handles for uniforms
-    GLint MatrixID = glGetUniformLocation(programID, "MVP");
-    GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
-    GLuint ColorID = glGetUniformLocation(programID, "color");
-    GLuint TrackTexturesID = glGetUniformLocation(debugProgramID, "texture_array");
-
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
     // Data used for culling
+    Camera mainCamera(glm::vec3(0, 0, 5), 45.0f);
     std::vector<TrackBlock> activeTrackBlocks;
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
@@ -232,8 +182,6 @@ int main(int argc, const char *argv[]) {
         if (!mesh.genBuffers()) {
             return -1;
         }
-        // TODO: Assign shaders to Models in a better way.
-        mesh.setShaderID(programID);
         dynamicsWorld->addRigidBody(mesh.rigidBody);
     }
     for (auto &track_block : track_blocks) {
@@ -241,22 +189,22 @@ int main(int argc, const char *argv[]) {
             if (!track_block_model.genBuffers()) {
                 return -1;
             }
-            track_block_model.setShaderID(debugProgramID);
             dynamicsWorld->addRigidBody(track_block_model.rigidBody);
         }
     }
+
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool window_active = true;
-    bool show_demo_window = true;
 
     while (!glfwWindowShouldClose(window)) {
+        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         newFrame(window_active);
         // Compute the MVP matrix from keyboard and mouse input
-        computeMatricesFromInputs(window_active, ImGui::GetIO());
-        glm::mat4 ProjectionMatrix = getProjectionMatrix();
-        glm::mat4 ViewMatrix = getViewMatrix();
-        glm::vec3 worldPosition = getPosition();
+        mainCamera.computeMatricesFromInputs(window_active, ImGui::GetIO());
+        glm::mat4 ProjectionMatrix = mainCamera.ProjectionMatrix;
+        glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
+        glm::vec3 worldPosition = mainCamera.position;
         mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
 
         // If camera moved
@@ -264,7 +212,9 @@ int main(int argc, const char *argv[]) {
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
             for (auto &track_block : track_blocks) {
-                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(track_block.trk.ptCentre.x / 10, track_block.trk.ptCentre.y / 10, track_block.trk.ptCentre.z / 10)));
+                glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0)));
+                glm::vec3 position = orientation*glm::vec3(track_block.trk.ptCentre.x / 10,track_block.trk.ptCentre.y / 10,track_block.trk.ptCentre.z / 10);
+                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(position.x,position.y, position.z)));
                 if (distanceSqr < lowestDistanceSqr) {
                     closestBlockID = track_block.block_id;
                     lowestDistanceSqr = distanceSqr;
@@ -275,40 +225,39 @@ int main(int argc, const char *argv[]) {
                     closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance
                                                                              : track_blocks.size();
             int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID - blockDrawDistance : 0;
-            vector<TrackBlock>::const_iterator first = track_blocks.begin() + backBlock;
-            vector<TrackBlock>::const_iterator last = track_blocks.begin() + frontBlock;
+            std::vector<TrackBlock>::const_iterator first = track_blocks.begin() + backBlock;
+            std::vector<TrackBlock>::const_iterator last = track_blocks.begin() + frontBlock;
             activeTrackBlocks = std::vector<TrackBlock>(first, last);
             oldWorldPosition = worldPosition;
         }
 
         // Draw Car
+        carShader.use();
         for (auto &mesh : meshes) {
-            // Use our shader
-            glUseProgram(mesh.shader_id);
             mesh.update();
             glm::mat4 MVP = ProjectionMatrix * ViewMatrix * mesh.ModelMatrix;
             // Send our transformation to the currently bound shader, in the "MVP" uniform
-            glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-            glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, Texture);
+            carShader.loadMVPMatrix(MVP);
+            carShader.loadCarColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+            carShader.loadCarTexture();
             mesh.render();
         }
+        carShader.unbind();
 
         // Draw TrackBlocks
+        trackShader.use();
         for (auto &active_track_Block : activeTrackBlocks) {
             for (auto &track_block_model : active_track_Block.models) {
-                // Use our shader
-                glUseProgram(track_block_model.shader_id);
                 track_block_model.update();
                 glm::mat4 MVP = ProjectionMatrix * ViewMatrix * track_block_model.ModelMatrix;
                 // Send our transformation to the currently bound shader, in the "MVP" uniform
-                glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-                glUniform3f(ColorID, clear_color.x, clear_color.y, clear_color.z);
-                BindTrackTextures(track_block_model, TrackTexturesID, gl_id_map);
+                trackShader.loadMVPMatrix(MVP);
+                trackShader.loadSkyColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+                trackShader.bindTrackTextures(track_block_model, gl_id_map);
                 track_block_model.render();
             }
         }
+        trackShader.unbind();
 
         // Draw UI (Tactically)
         static float f = 0.0f;
@@ -321,7 +270,7 @@ int main(int argc, const char *argv[]) {
         ImGui::Text(world_position_string.str().c_str());
         ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
         if (ImGui::Button("Reset View")) {
-            resetView();
+            mainCamera.resetView();
         };
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
         ImGui::ColorEdit3("Frag Shader Input", (float *) &clear_color); // Edit 3 floats representing a color
@@ -356,14 +305,12 @@ int main(int argc, const char *argv[]) {
     for (auto &mesh : meshes) {
         mesh.destroy();
     }
-    glDeleteProgram(programID);
-    glDeleteTextures(1, &Texture);
-    glDeleteVertexArrays(1, &VertexArrayID);
+
+    carShader.cleanup();
+    trackShader.cleanup();
     ImGui_ImplGlfwGL3_Shutdown();
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
 
     return 0;
 }
-
-

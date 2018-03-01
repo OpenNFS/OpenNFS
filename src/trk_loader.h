@@ -16,11 +16,11 @@
 #include <fstream>
 #include <cstring>
 #include <map>
-#include "Model.h"
-#include "TrackBlock.h"
+#include "Scene/Model.h"
+#include "Scene/TrackBlock.h"
 #include "nfs_data.h"
 #include <boost/concept_check.hpp>
-#include "TrackBlock.h"
+#include "Scene/TrackBlock.h"
 
 class Texture {
 public:

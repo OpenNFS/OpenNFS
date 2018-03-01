@@ -10,13 +10,26 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})]]
 set(SOURCE_FILES
         src/nfs_loader.cpp
         src/main.cpp
-        src/controls.cpp
-        src/shader.cpp
-        src/Model.cpp
-        src/TGALoader.cpp
+        src/Scene/Camera.cpp
+        src/Scene/Model.cpp
+        include/TGALoader/TGALoader.cpp
         src/trk_loader.cpp
-        src/physics.cpp
+        src/Physics/Physics.cpp
         lib/glew-cmake/src/glew.c
+        src/Scene/TrackBlock.cpp
+        src/Scene/TrackBlock.h
+        src/nfs_data.h
+        src/Scene/Light.cpp
+        src/Scene/Light.h
+        src/Scene/Camera.cpp
+        src/Scene/Camera.h
+        src/Shaders/TrackShader.cpp
+        src/Shaders/TrackShader.h
+        src/Shaders/CarShader.cpp
+        src/Shaders/CarShader.h
+        src/Shaders/BaseShader.cpp
+        src/Shaders/BaseShader.h
+        src/Util/Assert.h
         #[[IMGUI]]
         include/imgui/imgui.cpp
         include/imgui/imgui.h
@@ -28,7 +41,7 @@ set(SOURCE_FILES
         include/imgui/stb_textedit.h
         include/imgui/stb_truetype.h
         include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
-        src/TrackBlock.cpp src/TrackBlock.h src/nfs_data.h)
+        )
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 

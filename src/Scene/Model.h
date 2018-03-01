@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include "physics.h"
+#include "../Physics/Physics.h"
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -55,8 +55,6 @@ public:
     std::vector<unsigned int> getIndices();
 
     bool genBuffers();
-
-    void setShaderID(GLuint shaderID);
 
     void enable();
 
@@ -107,14 +105,14 @@ public:
     iterator begin() const { return iterator(val); }
 
     iterator end() const { return iterator(val + len); }
-
+    std::vector<glm::vec4> m_shading_data;
     Model *val;
 private:
     std::string m_name;
     std::vector<glm::vec3> m_vertices;
     std::vector<glm::vec3> m_normals;
     std::vector<glm::vec2> m_uvs;
-    std::vector<glm::vec4> m_shading_data;
+
     std::vector<unsigned int> m_vertex_indices;
     /* Iterator vars */
     unsigned len;
