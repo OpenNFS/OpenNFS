@@ -28,16 +28,20 @@ protected:
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
     GLint viewMatrixLocation;
-    GLint textureLocation;
+    GLint envMapTextureLocation;
+    GLint carTextureLocation;
     GLint colourLocation;
     GLint lightPositionLocation;
     GLint lightColourLocation;
     GLint shineDamperLocation;
     GLint reflectivityLocation;
-    GLuint TextureID;
+    GLuint textureID;
+    GLuint envMapTextureID;
 
     typedef BaseShader super;
 
+    void loadEnvironmentMapTexture();
+    void LoadEnvMapTexture();
 };
 
 

@@ -48,9 +48,5 @@ void main(){
         case 31: tempColor = texture(texture_array[31], UV).rgba; break;
      }
 
-
-    color.r = tempColor.r;// + (nfsDataOut.r);
-    color.g = tempColor.g;// + (nfsDataOut.g);
-    color.b = tempColor.b;// + (nfsDataOut.b);
-    color.a = nfsDataOut.w;
+    color = tempColor + 0.4 * nfsDataOut;
 }

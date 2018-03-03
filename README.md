@@ -13,6 +13,11 @@ An attempt to recreate the original Need for Speed 3, unpacking it's original da
 
 Place car.viv in 'resources' directory, one level above your build output and run.
 
+## Trello Development Board
+
+Check out what I'm working on by looking at the task board here:
+https://trello.com/b/01KK3JMr/opennfs3
+
 ## Dependencies
 
 The CMake files are currently configured to detect external libraries from within the 'lib' folder at the same level as 'src', just do a 'git submodule update --recursive --remote' to get them.

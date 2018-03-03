@@ -164,16 +164,14 @@ bool NFS_Loader::loadObj(std::string obj_path) {
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        Car obj_mesh = Car(shapes[s].name + "_obj", s, verts, uvs, norms, indices);
-        //meshes.emplace_back(obj_mesh);
+        Car obj_mesh = Car(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0));
+        meshes.emplace_back(obj_mesh);
     }
     return true;
 }
 
-std::vector<glm::vec3> NFS_Loader::getVertices(int partNumber, int offset, unsigned int length) {
+glm::vec3 NFS_Loader::getVertices(int partNumber, int offset, unsigned int length, std::vector<glm::vec3> &vertices) {
     int vertIdx = 0;
-
-    std::vector<glm::vec3> vertices;
     vertices.reserve(length);
 
     /*X,Y,Z raw coords stored into float buffer by fread*/
@@ -185,22 +183,24 @@ std::vector<glm::vec3> NFS_Loader::getVertices(int partNumber, int offset, unsig
     /* If new part, get new Global coordinates*/
     fseek(fce_file, 252 + (partNumber * tVectorSize), SEEK_SET);
     fread(globalBuffer, 4, 3, fce_file);
+    glm::vec3 center = glm::vec3(globalBuffer[0], globalBuffer[1], globalBuffer[2]);
 
     fseek(fce_file, offset, SEEK_SET);
 
     /*Read Verts in*/
     for (vertIdx = 0; vertIdx < length; vertIdx++) {
         fread(buffer, 4, 3, fce_file);
-        glm::vec3 temp_vertex = glm::vec3(0.0f, 0.0f, 0.0f);
-
+        glm::vec3 temp_vertex;
+        glm::vec3 temp_offset_vertex;
         /* Read X, Y, Z into vertices array*/
         for (int vertAxesIdx = 0; vertAxesIdx < 3; vertAxesIdx++) {
             temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx]+ globalBuffer[vertAxesIdx])/10;
+            temp_offset_vertex[vertAxesIdx] = globalBuffer[vertAxesIdx]/10;
         }
         vertices.emplace_back(temp_vertex);
     }
 
-    return vertices;
+    return center;
 }
 
 std::vector<glm::vec2> NFS_Loader::getTexCoords(int offset, unsigned int numTriangles) {
@@ -333,11 +333,13 @@ void NFS_Loader::readFCE(const char *fce_path) {
     }
 
     for (int i = 0; i < model_names.size(); ++i) {
+        std::vector<glm::vec3> vertices;
+        glm::vec3 center = getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i], vertices);
         meshes.emplace_back(Car(model_names[i], i,
-                                  getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]),
+                                  vertices,
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
                                   getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
-                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i])));
+                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), center));
         std::cout << "Mesh: " << meshes[i].m_name << " UVs: " << meshes[i].m_uvs.size() << " Verts: "
                   << meshes[i].m_vertices.size() << " Indices: " << meshes[i].m_vertex_indices.size() << " Normals: "
                   << meshes[i].m_normals.size() << std::endl;

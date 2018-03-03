@@ -198,6 +198,7 @@ int main(int argc, const char *argv[]) {
     ImVec4 test_light_color = ImVec4(1.0f,1.0f,1.0f, 1.00f);
     float specReflectivity = 1;
     float specDamper = 10;
+    int blockDrawDistance = 15;
     bool window_active = true;
 
     while (!glfwWindowShouldClose(window)) {
@@ -223,7 +224,6 @@ int main(int argc, const char *argv[]) {
                     lowestDistanceSqr = distanceSqr;
                 }
             }
-            int blockDrawDistance = 15;
             int frontBlock =
                     closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance
                                                                              : track_blocks.size();
@@ -267,7 +267,6 @@ int main(int argc, const char *argv[]) {
             mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z), btVector3(position_max.x, position_max.y, position_max.z),colour);
         }
 
-
         // Draw UI (Tactically)
         static float f = 0.0f;
         ImGui::Text("NFS3 Engine");
@@ -281,7 +280,7 @@ int main(int argc, const char *argv[]) {
         if (ImGui::Button("Reset View")) {
             mainCamera.resetView();
         };
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+        ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, 200);
         ImGui::ColorEdit3("Clear Colour", (float *) &clear_color); // Edit 3 floats representing a color
         ImGui::ColorEdit3("Testing Light Colour", (float *) &test_light_color);
         ImGui::ColorEdit3("Car Colour", (float *) &car_color);

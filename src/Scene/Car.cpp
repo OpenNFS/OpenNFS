@@ -2,10 +2,11 @@
 // Created by Amrik on 03/03/2018.
 //
 
+
 #include "Car.h"
 
 Car::Car(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
-         std::vector<glm::vec3> norms, std::vector<unsigned int> indices) : super(name, model_id, verts, uvs, norms, indices, true) {
+         std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center) : super(name, model_id, verts, uvs, norms, indices, true) {
         m_normals.clear();
         for (unsigned int m_vertex_index : m_vertex_indices) {
             m_normals.push_back(norms[m_vertex_index]);
@@ -14,7 +15,6 @@ Car::Car(std::string name, int model_id, std::vector<glm::vec3> verts, std::vect
 
 void Car::update() {
     position = glm::vec3(-31,0.07,-5);
-    //position = glm::vec3(0, 0, 0);
     orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
     position = glm::vec3(position.x, position.y, position.z);

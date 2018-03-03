@@ -4,6 +4,7 @@
 
 #include "CarShader.h"
 #include "../Scene/Light.h"
+#include "../trk_loader.h"
 
 const std::string vertexSrc = "../shaders/CarVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/CarFragmentShader.fragmentshader";
@@ -12,6 +13,46 @@ CarShader::CarShader() : super(vertexSrc, fragSrc){
     bindAttributes();
     getAllUniformLocations();
     load_tga_texture("car00.tga");
+    LoadEnvMapTexture();
+}
+
+void CarShader::LoadEnvMapTexture() {
+    int width, height;
+    unsigned char *data;
+    FILE *file;
+    std::stringstream filename;
+    filename << "../resources/TRK006/sky_textures/" << "0004.BMP";
+    file = fopen(filename.str().c_str(), "rb");
+    if (file == nullptr) {
+        std::cout << "Couldn't open " << filename.str() << std::endl;
+        assert(file == nullptr);
+    }
+
+    width = 128;
+    height = 128;
+
+    data = (unsigned char *) malloc(width * height * 3);
+    fseek(file, 54, SEEK_SET);
+    fread(data, width * height * 3, 1, file);
+    fclose(file);
+
+    for (int i = 0; i < width * height; ++i) {
+        int index = i * 3;
+        unsigned char B, R;
+        B = data[index];
+        R = data[index + 2];
+        data[index] = R;
+        data[index + 2] = B;
+    }
+
+    glGenTextures(1, &envMapTextureID);
+    glBindTexture(GL_TEXTURE_2D, envMapTextureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, 128, 128, GL_RGB, GL_UNSIGNED_BYTE,
+                      data);
 }
 
 void CarShader::bindAttributes() {
@@ -25,7 +66,8 @@ void CarShader::getAllUniformLocations() {
     transformationMatrixLocation = getUniformLocation("transformationMatrix");
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
-    textureLocation = getUniformLocation("myTextureSampler");
+    envMapTextureLocation = getUniformLocation("envMapTextureSampler");
+    carTextureLocation = getUniformLocation("carTextureSampler");
     colourLocation = getUniformLocation("colour");
     lightPositionLocation = getUniformLocation("lightPosition");
     lightColourLocation = getUniformLocation("lightColour");
@@ -34,7 +76,7 @@ void CarShader::getAllUniformLocations() {
 }
 
 void CarShader::customCleanup(){
-    glDeleteTextures(1, &TextureID);
+    glDeleteTextures(1, &textureID);
 }
 
 void CarShader::load_tga_texture(const char *path) {
@@ -45,8 +87,8 @@ void CarShader::load_tga_texture(const char *path) {
         exit(2);
     }
 
-    glGenTextures(1, &TextureID);
-    glBindTexture(GL_TEXTURE_2D, TextureID);
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA,
                  GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
 
@@ -58,9 +100,16 @@ void CarShader::load_tga_texture(const char *path) {
 }
 
 void CarShader::loadCarTexture(){
+    loadSampler2D(carTextureLocation, 0);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureID);
-    loadSampler2D(textureLocation, TextureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    loadEnvironmentMapTexture();
+}
+
+void CarShader::loadEnvironmentMapTexture(){
+    loadSampler2D(envMapTextureLocation, 1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, envMapTextureID);
 }
 
 void CarShader::loadSpecular(float damper, float reflectivity){

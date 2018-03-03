@@ -82,8 +82,8 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     }
 }
 
-void BaseShader::loadSampler2D(GLint location, GLint textureID){
-    glUniform1i(location, textureID);
+void BaseShader::loadSampler2D(GLint location, GLint textureUnit){
+    glUniform1i(location, textureUnit);
 }
 
 void BaseShader::loadFloat(GLint location, float value){

@@ -7,6 +7,7 @@ layout(location = 2) in vec3 normal;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
+out vec2 envUV;
 out vec3 carColour;
 out vec3 surfaceNormal;
 out vec3 toLightVector;
@@ -29,6 +30,14 @@ void main(){
     surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
     toLightVector = lightPosition - worldPosition.xyz;
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+
+    vec3 envReflectVector = reflect( toCameraVector, surfaceNormal);
+    float m = 2. * sqrt(
+        pow( envReflectVector.x, 2. ) +
+        pow( envReflectVector.y, 2. ) +
+        pow( envReflectVector.z + 1., 2. )
+      );
+    envUV = envReflectVector.xy / m + .5;
 
     // Pass through slider Colour
     carColour = colour;
