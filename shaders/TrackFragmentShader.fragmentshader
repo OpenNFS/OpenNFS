@@ -2,7 +2,7 @@
 
 // Interpolated values from the vertex shaders
 in vec2 UV;
-in vec3 inColor;
+flat in uint texIndex;
 in vec4 nfsDataOut;
 
 // Ouput data
@@ -13,7 +13,7 @@ uniform sampler2D texture_array[32];
 void main(){
     vec4 tempColor;
      // Hack: Texture atlas implementation ASAP
-     switch(int(inColor.x)){
+     switch(texIndex){
         case 0: tempColor = texture(texture_array[0], UV).rgba; break;
         case 1: tempColor = texture(texture_array[1], UV).rgba; break;
         case 2: tempColor = texture(texture_array[2], UV).rgba; break;

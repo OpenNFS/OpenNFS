@@ -17,7 +17,6 @@ public:
     TrackShader();
     void bindTrackTextures(Model track_block, map<short, GLuint> gl_id_map);
     void loadMVPMatrix(glm::mat4 matrix);
-    void loadSkyColor(glm::vec3 color);
 
     typedef BaseShader super;
 protected:

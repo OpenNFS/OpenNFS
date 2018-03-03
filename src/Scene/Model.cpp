@@ -7,22 +7,29 @@
 #include <utility>
 
 Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-             std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids) {
+             std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids, bool isTrack) {
     m_name = std::move(name);
     id =  model_id;
     m_uvs = std::move(uvs);
-    m_normals = std::move(norms);
     m_vertex_indices = std::move(indices);
     texture_ids = std::move(tex_ids);
     indexed = !removeIndexing;
+    track = isTrack;
 
     if (removeIndexing) {
         // Remove indexing
         for (unsigned int m_vertex_index : m_vertex_indices) {
             m_vertices.push_back(verts[m_vertex_index]);
+            if(!isTrack){
+                m_normals.push_back(norms[m_vertex_index]);
+            }
         }
     } else {
         m_vertices = std::move(verts);
+        m_normals = std::move(norms);
+    }
+    if(isTrack){
+        m_normals = std::move(norms);
     }
 
     position = glm::vec3(0, 0, 0);
@@ -67,7 +74,6 @@ std::vector<unsigned int> Model::getIndices() {
     return m_vertex_indices;
 }
 
-
 void Model::update() {
     if (track){
         position = glm::vec3(0, 0, 0);
@@ -76,7 +82,8 @@ void Model::update() {
         if (m_name.find("wheel") != std::string::npos){
             
         }
-        position = glm::vec3(-31,0.07,-5);
+        //position = glm::vec3(-31,0.07,-5);
+        position = glm::vec3(0, 0, 0);
         orientation_vec = glm::vec3(0,0,0);
     }
     orientation = glm::normalize(glm::quat(orientation_vec));

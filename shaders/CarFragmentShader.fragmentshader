@@ -1,21 +1,29 @@
-#version 330 core
+#version 400 core
 
- // Interpolated values from the vertex shaders
- in vec2 UV;
- in vec3 inColor;
+// Interpolated values from the vertex shaders
+in vec2 UV;
+in vec3 carColour;
+in vec3 surfaceNormal;
+in vec3 dirToLight;
 
- // Ouput data
- out vec4 color;
+// Ouput data
+out vec4 color;
 
- // Values that stay constant for the whole mesh.
- uniform sampler2D myTextureSampler;
+// Values that stay constant for the whole mesh.
+uniform sampler2D myTextureSampler;
+uniform vec3 lightColour;
 
- void main(){
-     vec4 texColor = texture( myTextureSampler, UV ).rgba;
+void main(){
+    vec4 texColor = texture( myTextureSampler, UV ).rgba;
 
- 	// Output color = color of the texture at the specified UV
- 	color.r = texColor.r;
- 	color.g = texColor.g;
- 	color.b = texColor.b;
-    color.a = 1.0; //tempColor.a;
- }
+    vec3 unitNormal = normalize(surfaceNormal);
+    vec3 unitLightVector = normalize(dirToLight);
+
+    float nDot1 = dot(unitNormal, unitLightVector);
+    float brightness = max(nDot1, 0.0);
+    vec3 diffuse = brightness * lightColour;
+
+	// Output color = color of the texture at the specified UV
+	color = vec4(diffuse, 1.0) * texColor;
+    color.a = 1.0;
+}

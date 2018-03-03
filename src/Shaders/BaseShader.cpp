@@ -15,7 +15,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     std::string VertexShaderCode;
     std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
 
-    ASSERT(VertexShaderStream.is_open(), "Impossible to open %s!\n", vertex_file_path);
+    ASSERT(VertexShaderStream.is_open(), "Impossible to open %s!\n", vertex_file_path.c_str());
     std::string Line;
     while(getline(VertexShaderStream, Line))
         VertexShaderCode += "\n" + Line;
@@ -35,7 +35,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     int InfoLogLength;
 
     // Compile Vertex Shader
-    printf("Compiling shader : %s\n", vertex_file_path);
+    printf("Compiling shader : %s\n", vertex_file_path.c_str());
     char const * VertexSourcePointer = VertexShaderCode.c_str();
     glShaderSource(VertexShaderID, 1, &VertexSourcePointer , nullptr);
     glCompileShader(VertexShaderID);
@@ -50,7 +50,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     }
 
     // Compile Fragment Shader
-    printf("Compiling shader : %s\n", fragment_file_path);
+    printf("Compiling shader : %s\n", fragment_file_path.c_str());
     char const * FragmentSourcePointer = FragmentShaderCode.c_str();
     glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , nullptr);
     glCompileShader(FragmentShaderID);

@@ -164,7 +164,7 @@ bool NFS_Loader::loadObj(std::string obj_path) {
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        Model obj_mesh = Model(shapes[s].name + "_obj", s, verts, uvs, norms, indices, false, std::vector<short>());
+        Model obj_mesh = Model(shapes[s].name + "_obj", s, verts, uvs, norms, indices, false, std::vector<short>(), false);
         meshes.emplace_back(obj_mesh);
     }
     return true;
@@ -195,7 +195,7 @@ std::vector<glm::vec3> NFS_Loader::getVertices(int partNumber, int offset, unsig
 
         /* Read X, Y, Z into vertices array*/
         for (int vertAxesIdx = 0; vertAxesIdx < 3; vertAxesIdx++) {
-            temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx]);// + globalBuffer[vertAxesIdx])/10;
+            temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx]+ globalBuffer[vertAxesIdx]);///10;
         }
         vertices.emplace_back(temp_vertex);
     }
@@ -233,12 +233,12 @@ std::vector<glm::vec3> NFS_Loader::getNormals(int offset, unsigned int length) {
     fseek(fce_file, offset, SEEK_SET);
 
     /*Read Normals in, and normalize dem normals!*/
-    for (int normIdx = 0; normIdx <= length; normIdx++) {
+    for (int normIdx = 0; normIdx < length; normIdx++) {
         fread(normBuffer, 4, 3, fce_file);
-        normalLength = static_cast<float>(sqrt(pow(normBuffer[0], 2) + pow(normBuffer[1], 2) + pow(normBuffer[2], 2)));
+        //normalLength = static_cast<float>(sqrt(pow(normBuffer[0], 2) + pow(normBuffer[1], 2) + pow(normBuffer[2], 2)));
         //TODO: Drop the hungarian typing?
         glm::vec3 temp_normals = glm::vec3(normBuffer[0], normBuffer[1], normBuffer[2]);
-        temp_normals /= normalLength;
+        //temp_normals /= normalLength;
         normals.emplace_back(temp_normals);
     }
 
@@ -333,10 +333,11 @@ void NFS_Loader::readFCE(const char *fce_path) {
     }
 
     for (int i = 0; i < model_names.size(); ++i) {
-        meshes.emplace_back(Model(model_names[i], i, getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]),
+        meshes.emplace_back(Model(model_names[i], i,
+                                  getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]),
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
                                   getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
-                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), true, std::vector<short>()));
+                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), true, std::vector<short>(), false));
         std::cout << "Mesh: " << meshes[i].getName() << " UVs: " << meshes[i].getUVs().size() << " Verts: "
                   << meshes[i].getVertices().size() << " Indices: " << meshes[i].getIndices().size() << " Normals: "
                   << meshes[i].getNormals().size() << std::endl;

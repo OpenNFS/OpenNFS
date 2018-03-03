@@ -21,6 +21,7 @@
 #include "nfs_data.h"
 #include <boost/concept_check.hpp>
 #include "Scene/TrackBlock.h"
+#include "Scene/Light.h"
 
 class Texture {
 public:
@@ -69,6 +70,8 @@ public:
     std::map<short, GLuint> getTextureGLMap();
 
     std::map<short, Texture> getTextures();
+
+    std::vector<Light> getLights();
 
 protected:
     std::map<short, GLuint> texture_gl_mappings;

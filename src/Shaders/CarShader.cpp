@@ -3,6 +3,7 @@
 //
 
 #include "CarShader.h"
+#include "../Scene/Light.h"
 
 const std::string vertexSrc = "../shaders/CarVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/CarFragmentShader.fragmentshader";
@@ -21,9 +22,11 @@ void CarShader::bindAttributes() {
 
 void CarShader::getAllUniformLocations() {
     // Get handles for uniforms
-    Matrix_UniformID = getUniformLocation("MVP");
-    Texture_UniformID = getUniformLocation("myTextureSampler");
-    Color_UniformID = getUniformLocation("color");
+    matrixLocation = getUniformLocation("MVP");
+    textureLocation = getUniformLocation("myTextureSampler");
+    colourLocation = getUniformLocation("carColour");
+    lightPositionLocation = getUniformLocation("lightPosition");
+    lightColourLocation = getUniformLocation("lightColour");
 }
 
 void CarShader::customCleanup(){
@@ -55,12 +58,17 @@ void CarShader::loadCarTexture(){
     glBindTexture(GL_TEXTURE_2D, TextureID);
 }
 
+void CarShader::loadLight(Light light){
+    loadVec3(lightPositionLocation, light.position);
+    loadVec3(lightColourLocation, light.colour);
+}
+
 void CarShader::loadCarColor(glm::vec3 color){
-    loadVec3(Color_UniformID, color);
+    loadVec3(colourLocation, color);
 }
 
 void CarShader::loadMVPMatrix(glm::mat4 matrix){
-    loadMat4(Matrix_UniformID, &matrix[0][0]);
+    loadMat4(matrixLocation, &matrix[0][0]);
 }
 
 

@@ -8,16 +8,15 @@ layout(location = 3) in vec4 nfsData;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
-out vec3 inColor;
+out uint texIndex;
 out vec4 nfsDataOut;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 MVP;
-uniform vec3 color;
 
 void main(){
-    // Pass through slider Colour
-    inColor = normal;
+    // Pass through texture Index (Using x in normal)
+    texIndex = int(normal.x);
 
     // Pass through nfs shading data
     nfsDataOut = nfsData;

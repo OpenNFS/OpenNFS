@@ -21,7 +21,6 @@ void TrackShader::bindAttributes() {
 void TrackShader::getAllUniformLocations() {
     // Get handles for uniforms
     MatrixID = getUniformLocation("MVP");
-    ColorID = getUniformLocation("color");
     TrackTexturesID = getUniformLocation("texture_array");
 }
 
@@ -39,10 +38,6 @@ void TrackShader::bindTrackTextures(Model track_block, std::map<short, GLuint> g
     const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
                                 24, 25, 26, 27, 28, 29, 30, 31};
     glUniform1iv(TrackTexturesID, 32, samplers);
-}
-
-void TrackShader::loadSkyColor(glm::vec3 color){
-    loadVec3(ColorID, color);
 }
 
 void TrackShader::loadMVPMatrix(glm::mat4 matrix){

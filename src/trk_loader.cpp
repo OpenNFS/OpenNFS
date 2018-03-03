@@ -3,6 +3,7 @@
 //
 
 #include "trk_loader.h"
+#include "Scene/Light.h"
 
 using namespace std;
 
@@ -424,12 +425,24 @@ std::vector<Model> trk_loader::ParseCOLModels() {
         }
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-        Model col_model = Model("ColBlock", i, verts, uvs, normals, indices, true, texture_ids);
+        Model col_model = Model("ColBlock", i, verts, uvs, normals, indices, true, texture_ids, true);
         col_model.enable();
-        col_model.track = true;
         col_models.emplace_back(col_model);
     }
     return col_models;
+}
+
+std::vector<Light> trk_loader::getLights(){
+    // TODO: Probably best to also do this per track block
+    std::vector<Light> lights;
+
+    for(int i = 0; i < nBlocks; i++){
+        TRKBLOCK trk_block = trk[i];
+        for(int j = 0; j < trk_block.nLightsrc; j++){
+            lights.emplace_back(Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type));
+        }
+    }
+    return lights;
 }
 
 void trk_loader::ParseTRKModels() {
@@ -491,9 +504,8 @@ void trk_loader::ParseTRKModels() {
                             }
                             // Get ordered list of unique texture id's present in block
                             std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-                            Model current_obj_model = Model("ObjBlock", (j+1)*(k+1), obj_verts, uvs, normals, indices, true, texture_ids, shading_verts);
+                            Model current_obj_model = Model("ObjBlock", (j+1)*(k+1), obj_verts, uvs, normals, indices, true, texture_ids, true, shading_verts);
                             current_obj_model.enable();
-                            current_obj_model.track = true;
                             current_track_block.models.emplace_back(current_obj_model);
                         }
                     }
@@ -548,9 +560,8 @@ void trk_loader::ParseTRKModels() {
                 }
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-                Model xobj_model = Model("XOBJ", l, verts, uvs, normals, indices, true, texture_ids, shading_verts);
+                Model xobj_model = Model("XOBJ", l, verts, uvs, normals, indices, true, texture_ids, true, shading_verts);
                 xobj_model.enable();
-                xobj_model.track = true;
                 current_track_block.models.emplace_back(xobj_model);
             }
         }
@@ -599,9 +610,8 @@ void trk_loader::ParseTRKModels() {
         }
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, normals);
-        Model current_trk_block_model = Model("TrkBlock", i, verts, uvs, normals, indices, true, texture_ids, shading_verts);
+        Model current_trk_block_model = Model("TrkBlock", i, verts, uvs, normals, indices, true, texture_ids, true, shading_verts);
         current_trk_block_model.enable();
-        current_trk_block_model.track = true;
         current_track_block.models.emplace_back(current_trk_block_model);
 
         track_blocks.emplace_back(current_track_block);

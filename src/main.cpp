@@ -64,11 +64,7 @@ public:
 
 bool init_opengl() {
     // Initialise GLFW
-    if (!glfwInit()) {
-        fprintf(stderr, "GLFW Init failed.\n");
-        getchar();
-        return false;
-    }
+    ASSERT(glfwInit(), "GLFW Init failed.\n");
 
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -143,6 +139,7 @@ int main(int argc, const char *argv[]) {
     trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
+    std::vector<Light> track_lights = trkLoader.getLights();
     // TODO: Reference COLs to track blocks
     //std::vector<Model> col_models = trkLoader.getCOLModels();
     //meshes.insert(meshes.end(), col_models.begin(), col_models.end());
@@ -231,33 +228,39 @@ int main(int argc, const char *argv[]) {
             oldWorldPosition = worldPosition;
         }
 
-        // Draw Car
         carShader.use();
         for (auto &mesh : meshes) {
             mesh.update();
             glm::mat4 MVP = ProjectionMatrix * ViewMatrix * mesh.ModelMatrix;
-            // Send our transformation to the currently bound shader, in the "MVP" uniform
             carShader.loadMVPMatrix(MVP);
             carShader.loadCarColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));
+            carShader.loadLight(Light(worldPosition, 1));
             carShader.loadCarTexture();
             mesh.render();
         }
         carShader.unbind();
 
-        // Draw TrackBlocks
         trackShader.use();
         for (auto &active_track_Block : activeTrackBlocks) {
             for (auto &track_block_model : active_track_Block.models) {
                 track_block_model.update();
                 glm::mat4 MVP = ProjectionMatrix * ViewMatrix * track_block_model.ModelMatrix;
-                // Send our transformation to the currently bound shader, in the "MVP" uniform
                 trackShader.loadMVPMatrix(MVP);
-                trackShader.loadSkyColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));
                 trackShader.bindTrackTextures(track_block_model, gl_id_map);
                 track_block_model.render();
             }
         }
         trackShader.unbind();
+
+        float lightSize = 0.5;
+        for(auto &light : track_lights){
+            glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0)));
+            glm::vec3 position_min = orientation*glm::vec3(light.position.x/10-lightSize,light.position.y/10-lightSize,light.position.z/10-lightSize);
+            glm::vec3 position_max = orientation*glm::vec3(light.position.x/10+lightSize,light.position.y/10+lightSize,light.position.z/10+lightSize);
+            btVector3 colour = btVector3(light.type/15, light.type/15,light.type/15);
+            mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z), btVector3(position_max.x, position_max.y, position_max.z),colour);
+        }
+
 
         // Draw UI (Tactically)
         static float f = 0.0f;
@@ -305,7 +308,6 @@ int main(int argc, const char *argv[]) {
     for (auto &mesh : meshes) {
         mesh.destroy();
     }
-
     carShader.cleanup();
     trackShader.cleanup();
     ImGui_ImplGlfwGL3_Shutdown();

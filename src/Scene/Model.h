@@ -30,11 +30,11 @@ public:
 class Model {
 public:
     Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-          std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids);
+          std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids, bool isTrack);
 
     Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-                 std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids, std::vector<glm::vec4> shading_data): Model(
-            std::move(name), model_id, verts, uvs, norms, indices, removeIndexing, tex_ids) {
+                 std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids,  bool isTrack, std::vector<glm::vec4> shading_data): Model(
+            std::move(name), model_id, verts, uvs, norms, indices, removeIndexing, tex_ids, isTrack) {
         if (removeIndexing) {
             for (unsigned int m_vertex_index : m_vertex_indices) {
                 m_shading_data.push_back(shading_data[m_vertex_index]);
