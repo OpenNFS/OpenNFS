@@ -15,7 +15,7 @@
 #include <vector>
 #include <cmath>
 #include <glm/vec3.hpp>
-#include "Scene/Model.h"
+#include "Scene/Car.h"
 #include <tiny_obj_loader.h>
 
 #define DATA_START 0x1F04
@@ -42,7 +42,7 @@ public:
     explicit NFS_Loader(const char *viv_path);
     void writeObj(std::string path);
     bool loadObj(std::string obj_path);
-    std::vector<Model> getMeshes();
+    std::vector<Car> getMeshes();
 private:
     void readFCE(const char *fce_path); //Add exception handling, true false return?
 
@@ -52,5 +52,5 @@ private:
     std::vector<unsigned int> getIndices(int offset, unsigned int length);
     /* Globals*/
     FILE *fce_file;
-    std::vector<Model> meshes;
+    std::vector<Car> meshes;
 };

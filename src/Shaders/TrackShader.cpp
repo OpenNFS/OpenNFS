@@ -14,7 +14,7 @@ TrackShader::TrackShader() : super(vertexSrc, fragSrc){
 void TrackShader::bindAttributes() {
     bindAttribute(0 ,"vertexPosition_modelspace");
     bindAttribute(1 ,"vertexUV");
-    bindAttribute(2 ,"normal");
+    bindAttribute(2 ,"textureIndex");
     bindAttribute(3 ,"nfsData");
 }
 
@@ -28,7 +28,7 @@ void TrackShader::customCleanup(){
 
 }
 
-void TrackShader::bindTrackTextures(Model track_block, std::map<short, GLuint> gl_id_map) {
+void TrackShader::bindTrackTextures(Track track_block, std::map<short, GLuint> gl_id_map) {
     // TODO: Somehow breaking the CORE profile here?
     GLenum texNum = GL_TEXTURE0;
     for (short texture_id : track_block.texture_ids) {

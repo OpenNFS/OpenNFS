@@ -56,6 +56,7 @@ void CarShader::load_tga_texture(const char *path) {
 void CarShader::loadCarTexture(){
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureID);
+    loadSampler2D(textureLocation, TextureID);
 }
 
 void CarShader::loadLight(Light light){

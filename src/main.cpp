@@ -133,16 +133,16 @@ int main(int argc, const char *argv[]) {
 
     NFS_Loader nfs_loader("../resources/car.viv");
     //Load Car data from unpacked NFS files
-    std::vector<Model> meshes = nfs_loader.getMeshes();
-    meshes[0].enable();
+    std::vector<Car> cars = nfs_loader.getMeshes();
+    cars[0].enable();
     //Load Track Data
     trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
     std::vector<Light> track_lights = trkLoader.getLights();
     // TODO: Reference COLs to track blocks
-    //std::vector<Model> col_models = trkLoader.getCOLModels();
-    //meshes.insert(meshes.end(), col_models.begin(), col_models.end());
+    //std::vector<Track> col_models = trkLoader.getCOLModels();
+    //cars.insert(cars.end(), col_models.begin(), col_models.end());
 
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase = new btDbvtBroadphase();
@@ -175,11 +175,11 @@ int main(int argc, const char *argv[]) {
 
     /*------- MODELS --------*/
     // Gen VBOs, add to Bullet Physics
-    for (auto &mesh : meshes) {
-        if (!mesh.genBuffers()) {
+    for (auto &car : cars) {
+        if (!car.genBuffers()) {
             return -1;
         }
-        dynamicsWorld->addRigidBody(mesh.rigidBody);
+        dynamicsWorld->addRigidBody(car.rigidBody);
     }
     for (auto &track_block : track_blocks) {
         for (auto &track_block_model : track_block.models) {
@@ -229,14 +229,14 @@ int main(int argc, const char *argv[]) {
         }
 
         carShader.use();
-        for (auto &mesh : meshes) {
-            mesh.update();
-            glm::mat4 MVP = ProjectionMatrix * ViewMatrix * mesh.ModelMatrix;
+        for (auto &car : cars) {
+            car.update();
+            glm::mat4 MVP = ProjectionMatrix * ViewMatrix * car.ModelMatrix;
             carShader.loadMVPMatrix(MVP);
             carShader.loadCarColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));
             carShader.loadLight(Light(worldPosition, 1));
             carShader.loadCarTexture();
-            mesh.render();
+            car.render();
         }
         carShader.unbind();
 
@@ -277,14 +277,14 @@ int main(int argc, const char *argv[]) {
         };
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
         ImGui::ColorEdit3("Frag Shader Input", (float *) &clear_color); // Edit 3 floats representing a color
-        for (auto &mesh : meshes) {
-            ImGui::Checkbox((mesh.getName() + std::to_string(mesh.id)).c_str(), &mesh.enabled);      // Edit bools storing model draw state
+        for (auto &mesh : cars) {
+            ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }
         if (ImGui::TreeNode("Track Blocks")) {
             for (auto &track_block : track_blocks) {
                 if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
                     for (auto &block_model : track_block.models) {
-                        if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.getName().c_str(), block_model.id)) {
+                        if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(), block_model.id)) {
                             ImGui::Checkbox("Enabled", &block_model.enabled);
                             ImGui::TreePop();
                         }
@@ -305,8 +305,8 @@ int main(int argc, const char *argv[]) {
     }
 
     // Cleanup VBOs and shaders
-    for (auto &mesh : meshes) {
-        mesh.destroy();
+    for (auto &car : cars) {
+        car.destroy();
     }
     carShader.cleanup();
     trackShader.cleanup();

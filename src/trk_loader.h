@@ -65,7 +65,7 @@ public:
 
     std::vector<TrackBlock> getTrackBlocks();
 
-    std::vector<Model> getCOLModels();
+    std::vector<Track> getCOLModels();
 
     std::map<short, GLuint> getTextureGLMap();
 
@@ -76,18 +76,18 @@ public:
 protected:
     std::map<short, GLuint> texture_gl_mappings;
     std::map<short, Texture> textures;
-    std::vector<Model> col_models;
+    std::vector<Track> col_models;
     std::vector<TrackBlock> track_blocks;
 
     bool LoadCOL(std::string col_path);
 
     std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
 
-    std::vector<Model> ParseCOLModels();
+    std::vector<Track> ParseCOLModels();
 
     void ParseTRKModels();
 
-    std::vector<short> RemapNormals(const std::set<short> &minimal_texture_ids_set, std::vector<glm::vec3> &normals);
+    std::vector<short> RemapNormals(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices);
 };
 
 #endif //FCE_TO_OBJ_TRK_LOADER_H

@@ -164,8 +164,8 @@ bool NFS_Loader::loadObj(std::string obj_path) {
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        Model obj_mesh = Model(shapes[s].name + "_obj", s, verts, uvs, norms, indices, false, std::vector<short>(), false);
-        meshes.emplace_back(obj_mesh);
+        Car obj_mesh = Car(shapes[s].name + "_obj", s, verts, uvs, norms, indices);
+        //meshes.emplace_back(obj_mesh);
     }
     return true;
 }
@@ -333,14 +333,14 @@ void NFS_Loader::readFCE(const char *fce_path) {
     }
 
     for (int i = 0; i < model_names.size(); ++i) {
-        meshes.emplace_back(Model(model_names[i], i,
+        meshes.emplace_back(Car(model_names[i], i,
                                   getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i]),
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
                                   getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
-                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), true, std::vector<short>(), false));
-        std::cout << "Mesh: " << meshes[i].getName() << " UVs: " << meshes[i].getUVs().size() << " Verts: "
-                  << meshes[i].getVertices().size() << " Indices: " << meshes[i].getIndices().size() << " Normals: "
-                  << meshes[i].getNormals().size() << std::endl;
+                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i])));
+        std::cout << "Mesh: " << meshes[i].m_name << " UVs: " << meshes[i].m_uvs.size() << " Verts: "
+                  << meshes[i].m_vertices.size() << " Indices: " << meshes[i].m_vertex_indices.size() << " Normals: "
+                  << meshes[i].m_normals.size() << std::endl;
     }
 
     fclose(fce_file);
@@ -354,24 +354,24 @@ void NFS_Loader::writeObj(std::string path) {
 
     for (Model &mesh : meshes) {
         /* Print Part name*/
-        obj_dump << "o " << mesh.getName() << std::endl;
+        obj_dump << "o " << mesh.m_name << std::endl;
         //Dump Vertices
-        for (auto vertex : mesh.getVertices()) {
+        for (auto vertex : mesh.m_vertices) {
             obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
         }
         //Dump UVs
-        for (auto uv : mesh.getUVs()) {
+        for (auto uv : mesh.m_uvs) {
             obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
         }
         //Dump Indices
-        for (auto vert_index : mesh.getIndices()) {
+        for (auto vert_index : mesh.m_vertex_indices) {
             obj_dump << "f " << vert_index << std::endl;
         }
     }
     obj_dump.close();
 }
 
-std::vector<Model> NFS_Loader::getMeshes() {
+std::vector<Car> NFS_Loader::getMeshes() {
     return meshes;
 }
 

@@ -17,61 +17,30 @@
 #include <glm/gtx/quaternion.hpp>
 #include <LinearMath/btDefaultMotionState.h>
 
-// TODO: Rename this to something reasonable
-class Buffers {
-public:
-    GLuint vertexbuffer;
-    GLuint uvbuffer;
-    GLuint elementbuffer;
-    GLuint normalbuffer;
-    GLuint shadingBuffer;
-};
-
 class Model {
 public:
     Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-          std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids, bool isTrack);
-
-    Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-                 std::vector<unsigned int> indices, bool removeIndexing, std::vector<short> tex_ids,  bool isTrack, std::vector<glm::vec4> shading_data): Model(
-            std::move(name), model_id, verts, uvs, norms, indices, removeIndexing, tex_ids, isTrack) {
-        if (removeIndexing) {
-            for (unsigned int m_vertex_index : m_vertex_indices) {
-                m_shading_data.push_back(shading_data[m_vertex_index]);
-            }
-        } else {
-            m_shading_data = std::move(shading_data);
-        }
-    }
-
-    std::string getName();
-
-    std::vector<glm::vec3> getVertices();
-
-    std::vector<glm::vec2> getUVs();
-
-    std::vector<glm::vec3> getNormals();
-
-    std::vector<unsigned int> getIndices();
-
-    bool genBuffers();
+          std::vector<unsigned int> indices, bool removeVertexIndexing);
+    std::string m_name;
+    std::vector<glm::vec3> m_vertices;
+    std::vector<glm::vec3> m_normals;
+    std::vector<glm::vec2> m_uvs;
+    std::vector<unsigned int> m_vertex_indices;
 
     void enable();
 
-    void update();
+    virtual bool genBuffers()= 0;
 
-    void destroy();
+    virtual void update()= 0;
 
-    void render();
+    virtual void destroy()= 0;
+
+    virtual void render()= 0;
 
     int id;
     /*--------- Model State --------*/
     //UI
     bool enabled = false;
-    bool indexed = false;
-    bool track = false; // Sign I need to superclass Model and provide Track and Car mesh implementations...
-    GLuint shader_id = 0;
-    std::vector<short> texture_ids;
     //Rendering
     glm::mat4 ModelMatrix = glm::mat4(1.0);
     glm::mat4 RotationMatrix;
@@ -103,18 +72,10 @@ public:
     };
 
     iterator begin() const { return iterator(val); }
-
     iterator end() const { return iterator(val + len); }
     std::vector<glm::vec4> m_shading_data;
     Model *val;
 private:
-    std::string m_name;
-    std::vector<glm::vec3> m_vertices;
-    std::vector<glm::vec3> m_normals;
-    std::vector<glm::vec2> m_uvs;
-
-    std::vector<unsigned int> m_vertex_indices;
     /* Iterator vars */
     unsigned len;
-    Buffers gl_buffers;
 };

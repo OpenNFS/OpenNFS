@@ -31,8 +31,6 @@ protected:
     GLint lightPositionLocation;
     GLint lightColourLocation;
     GLuint TextureID;
-
-
 };
 
 

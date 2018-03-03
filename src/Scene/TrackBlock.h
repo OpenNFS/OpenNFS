@@ -5,7 +5,7 @@
 #ifndef OPENNFS3_TRACKBLOCK_H
 #define OPENNFS3_TRACKBLOCK_H
 
-#include "Model.h"
+#include "Track.h"
 #include "../nfs_data.h"
 
 class TrackBlock {
@@ -13,7 +13,7 @@ public:
     TrackBlock(int blockID, struct TRKBLOCK &nfs_track_block);
     int block_id;
     struct TRKBLOCK trk;
-    std::vector<Model> models;
+    std::vector<Track> models;
 
     /* Iterators to allow for ranged for loops with class*/
     class iterator {
