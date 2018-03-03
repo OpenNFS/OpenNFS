@@ -9,23 +9,29 @@ layout(location = 2) in vec3 normal;
 out vec2 UV;
 out vec3 carColour;
 out vec3 surfaceNormal;
-out vec3 dirToLight;
+out vec3 toLightVector;
+out vec3 toCameraVector;
 
 // Values that stay constant for the whole mesh.
-uniform mat4 MVP;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 transformationMatrix;
+
 uniform vec3 colour;
 uniform vec3 lightPosition;
 
 void main(){
-    // Pass through slider Colour
-    carColour = colour;
+    vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
 
 	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
+	gl_Position =  projectionMatrix * viewMatrix * worldPosition;
 
-    surfaceNormal = (MVP * vec4(normal, 0.0)).xyz;
-    dirToLight = lightPosition - gl_Position.xyz;
+    surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
+    toLightVector = lightPosition - worldPosition.xyz;
+    toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 
+    // Pass through slider Colour
+    carColour = colour;
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
 }

@@ -107,7 +107,9 @@ bool init_opengl() {
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    glEnable(GL_FRONT);
+    /*glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
+    glEnable(GL_BACK);*/
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     return true;
@@ -168,7 +170,7 @@ int main(int argc, const char *argv[]) {
     CarShader carShader;
 
     // Data used for culling
-    Camera mainCamera(glm::vec3(0, 0, 5), 45.0f);
+    Camera mainCamera(glm::vec3(-31,0.07,-5), 45.0f);
     std::vector<TrackBlock> activeTrackBlocks;
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
@@ -192,6 +194,10 @@ int main(int argc, const char *argv[]) {
 
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 car_color = ImVec4(0.0f,0.0f,0.0f, 1.00f);
+    ImVec4 test_light_color = ImVec4(1.0f,1.0f,1.0f, 1.00f);
+    float specReflectivity = 1;
+    float specDamper = 10;
     bool window_active = true;
 
     while (!glfwWindowShouldClose(window)) {
@@ -231,10 +237,10 @@ int main(int argc, const char *argv[]) {
         carShader.use();
         for (auto &car : cars) {
             car.update();
-            glm::mat4 MVP = ProjectionMatrix * ViewMatrix * car.ModelMatrix;
-            carShader.loadMVPMatrix(MVP);
-            carShader.loadCarColor(glm::vec3(clear_color.x, clear_color.y, clear_color.z));
-            carShader.loadLight(Light(worldPosition, 1));
+            carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car.ModelMatrix);
+            carShader.loadSpecular(specDamper, specReflectivity);
+            carShader.loadCarColor(glm::vec3(car_color.x, car_color.y, car_color.z));
+            carShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
             carShader.loadCarTexture();
             car.render();
         }
@@ -276,7 +282,12 @@ int main(int argc, const char *argv[]) {
             mainCamera.resetView();
         };
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-        ImGui::ColorEdit3("Frag Shader Input", (float *) &clear_color); // Edit 3 floats representing a color
+        ImGui::ColorEdit3("Clear Colour", (float *) &clear_color); // Edit 3 floats representing a color
+        ImGui::ColorEdit3("Testing Light Colour", (float *) &test_light_color);
+        ImGui::ColorEdit3("Car Colour", (float *) &car_color);
+        ImGui::SliderFloat("Specular Damper", &specDamper, 0, 100);
+        ImGui::SliderFloat("Specular Reflectivity", &specReflectivity, 0, 10);
+
         for (auto &mesh : cars) {
             ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);      // Edit bools storing model draw state
         }

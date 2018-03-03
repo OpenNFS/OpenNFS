@@ -4,7 +4,8 @@
 in vec2 UV;
 in vec3 carColour;
 in vec3 surfaceNormal;
-in vec3 dirToLight;
+in vec3 toLightVector;
+in vec3 toCameraVector;
 
 // Ouput data
 out vec4 color;
@@ -12,18 +13,29 @@ out vec4 color;
 // Values that stay constant for the whole mesh.
 uniform sampler2D myTextureSampler;
 uniform vec3 lightColour;
+uniform float shineDamper;
+uniform float reflectivity;
 
 void main(){
     vec4 texColor = texture( myTextureSampler, UV ).rgba;
 
     vec3 unitNormal = normalize(surfaceNormal);
-    vec3 unitLightVector = normalize(dirToLight);
+    vec3 unitLightVector = normalize(toLightVector);
 
     float nDot1 = dot(unitNormal, unitLightVector);
-    float brightness = max(nDot1, 0.0);
+    float brightness = max(nDot1, 0.2);
     vec3 diffuse = brightness * lightColour;
 
+    vec3 unitVectorToCamera = normalize(toCameraVector);
+    vec3 lightDirection = -unitLightVector;
+    vec3 reflectedLightDirection = reflect(lightDirection, unitNormal);
+
+    float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
+    specularFactor = max(specularFactor, 0.0);
+    float dampedFactor = pow(specularFactor, shineDamper);
+    vec3 finalSpecular = dampedFactor * reflectivity * lightColour;
+
 	// Output color = color of the texture at the specified UV
-	color = vec4(diffuse, 1.0) * texColor;
+	color = vec4(diffuse, 1.0) * (texColor + vec4(carColour, 1.0)) + vec4(finalSpecular, 1.0) ;
     color.a = 1.0;
 }

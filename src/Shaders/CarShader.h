@@ -14,23 +14,30 @@
 class CarShader : public BaseShader {
 public:
     CarShader();
-    void loadMVPMatrix(glm::mat4 matrix);
     void loadCarColor(glm::vec3 color);
     void loadCarTexture();
     void loadLight(Light light);
+    void loadSpecular(float damper, float reflectivity);
+    void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
 
-    typedef BaseShader super;
 protected:
     void load_tga_texture(const char *path);
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
-    GLint matrixLocation;
+    GLint transformationMatrixLocation;
+    GLint projectionMatrixLocation;
+    GLint viewMatrixLocation;
     GLint textureLocation;
     GLint colourLocation;
     GLint lightPositionLocation;
     GLint lightColourLocation;
+    GLint shineDamperLocation;
+    GLint reflectivityLocation;
     GLuint TextureID;
+
+    typedef BaseShader super;
+
 };
 
 

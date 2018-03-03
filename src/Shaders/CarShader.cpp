@@ -22,11 +22,15 @@ void CarShader::bindAttributes() {
 
 void CarShader::getAllUniformLocations() {
     // Get handles for uniforms
-    matrixLocation = getUniformLocation("MVP");
+    transformationMatrixLocation = getUniformLocation("transformationMatrix");
+    projectionMatrixLocation = getUniformLocation("projectionMatrix");
+    viewMatrixLocation = getUniformLocation("viewMatrix");
     textureLocation = getUniformLocation("myTextureSampler");
-    colourLocation = getUniformLocation("carColour");
+    colourLocation = getUniformLocation("colour");
     lightPositionLocation = getUniformLocation("lightPosition");
     lightColourLocation = getUniformLocation("lightColour");
+    shineDamperLocation=  getUniformLocation("shineDamper");
+    reflectivityLocation =  getUniformLocation("reflectivity");
 }
 
 void CarShader::customCleanup(){
@@ -59,6 +63,17 @@ void CarShader::loadCarTexture(){
     loadSampler2D(textureLocation, TextureID);
 }
 
+void CarShader::loadSpecular(float damper, float reflectivity){
+    loadFloat(shineDamperLocation, damper);
+    loadFloat(reflectivityLocation, reflectivity);
+}
+
+void CarShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation){
+    loadMat4(viewMatrixLocation, &view[0][0]);
+    loadMat4(projectionMatrixLocation, &projection[0][0]);
+    loadMat4(transformationMatrixLocation, &transformation[0][0]);
+}
+
 void CarShader::loadLight(Light light){
     loadVec3(lightPositionLocation, light.position);
     loadVec3(lightColourLocation, light.colour);
@@ -66,10 +81,6 @@ void CarShader::loadLight(Light light){
 
 void CarShader::loadCarColor(glm::vec3 color){
     loadVec3(colourLocation, color);
-}
-
-void CarShader::loadMVPMatrix(glm::mat4 matrix){
-    loadMat4(matrixLocation, &matrix[0][0]);
 }
 
 

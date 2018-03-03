@@ -49,8 +49,8 @@ void main(){
      }
 
 
-    color.r = tempColor.r + (nfsDataOut.r);
-    color.g = tempColor.g + (nfsDataOut.g);
-    color.b = tempColor.b + (nfsDataOut.b);
+    color.r = tempColor.r;// + (nfsDataOut.r);
+    color.g = tempColor.g;// + (nfsDataOut.g);
+    color.b = tempColor.b;// + (nfsDataOut.b);
     color.a = nfsDataOut.w;
 }

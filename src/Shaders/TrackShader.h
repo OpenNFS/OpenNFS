@@ -18,7 +18,6 @@ public:
     void bindTrackTextures(Track track_block, map<short, GLuint> gl_id_map);
     void loadMVPMatrix(glm::mat4 matrix);
 
-    typedef BaseShader super;
 protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
@@ -26,6 +25,8 @@ protected:
     GLint MatrixID;
     GLint ColorID;
     GLint TrackTexturesID;
+
+    typedef BaseShader super;
 };
 
 

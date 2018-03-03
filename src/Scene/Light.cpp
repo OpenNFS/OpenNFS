@@ -4,6 +4,12 @@
 
 #include "Light.h"
 
+Light::Light(glm::vec3 light_position, glm::vec3 light_colour){
+    position= light_position;
+    type = 1;
+    colour = light_colour;
+}
+
 Light::Light(glm::vec3 light_position, long light_type){
     position= light_position;
     type = light_type;

@@ -195,7 +195,7 @@ std::vector<glm::vec3> NFS_Loader::getVertices(int partNumber, int offset, unsig
 
         /* Read X, Y, Z into vertices array*/
         for (int vertAxesIdx = 0; vertAxesIdx < 3; vertAxesIdx++) {
-            temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx]+ globalBuffer[vertAxesIdx]);///10;
+            temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx]+ globalBuffer[vertAxesIdx])/10;
         }
         vertices.emplace_back(temp_vertex);
     }

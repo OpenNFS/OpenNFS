@@ -15,7 +15,7 @@ Place car.viv in 'resources' directory, one level above your build output and ru
 
 ## Dependencies
 
-The CMake files are currently configured to detect external libraries from within the 'lib' folder at the same level as 'src'.
+The CMake files are currently configured to detect external libraries from within the 'lib' folder at the same level as 'src', just do a 'git submodule update --recursive --remote' to get them.
 
 * GLEW 2.1.0
 * GLFW 3.2.1
@@ -26,7 +26,7 @@ The CMake files are currently configured to detect external libraries from withi
 ## TODO
 
 * Add object picking w/ Bullet physics
-* Integrate T3ED track loading code from Denis Auroux, bind into OpenGL - (60%)
+* Integrate T3ED track loading code from Denis Auroux, bind into OpenGL - (80%)
 * Collision Detection, carp.txt performance model load into Physics
 * MUS File reading (http://www.vgmpf.com/Wiki/index.php/MUS_(Electronic_Arts))
 * 3D API Independence for eventual Vulkan/3Dfx Glide support ;)
@@ -37,6 +37,8 @@ The CMake files are currently configured to detect external libraries from withi
 Massive thanks to Denis Auroux, Vitaly 'Necromancer', EdasX, Ian Brown and Jesper Juul-Mortensen for their work on reverse engineering the FCE format. Check out their work here:
 
 https://sites.google.com/site/2torcs/labs/need-for-speed-3---hot-pursuit/nfs3-the-unofficial-file-format-descriptions
+
+Tom 'VapeTrick' Klapwijk - sarcasm and support and snaking my dev updates
 
 ## Legal:
 Models, textures, tracks, cars by PEA Seattle (C) 1998.
