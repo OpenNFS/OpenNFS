@@ -191,11 +191,9 @@ glm::vec3 NFS_Loader::getVertices(int partNumber, int offset, unsigned int lengt
     for (vertIdx = 0; vertIdx < length; vertIdx++) {
         fread(buffer, 4, 3, fce_file);
         glm::vec3 temp_vertex;
-        glm::vec3 temp_offset_vertex;
         /* Read X, Y, Z into vertices array*/
         for (int vertAxesIdx = 0; vertAxesIdx < 3; vertAxesIdx++) {
             temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx]+ globalBuffer[vertAxesIdx])/10;
-            temp_offset_vertex[vertAxesIdx] = globalBuffer[vertAxesIdx]/10;
         }
         vertices.emplace_back(temp_vertex);
     }

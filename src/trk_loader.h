@@ -22,15 +22,16 @@
 #include <boost/concept_check.hpp>
 #include "Scene/TrackBlock.h"
 #include "Scene/Light.h"
+#define EPSILON 0.000001
 
 class Texture {
 public:
     unsigned int texture_id, width, height;
-    unsigned char *texture_data;
+    GLubyte *texture_data;
 
     Texture() = default;
 
-    explicit Texture(unsigned int id, unsigned char *data, unsigned int w, unsigned int h) {
+    explicit Texture(unsigned int id, GLubyte *data, unsigned int w, unsigned int h) {
         texture_id = id;
         texture_data = data;
         width = w;
@@ -87,7 +88,24 @@ protected:
 
     void ParseTRKModels();
 
-    std::vector<short> RemapNormals(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices);
+    std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set,
+                                       std::vector<unsigned int> &texture_indices);
+
+    void BlockShadingFixer(int blk, float theta, float rho);
+
+    void ObjectShadingFixer(int blk, float theta, float rho);
+
+    FLOATPT VertexNormal(int blk, int VertexIndex);
+
+    FLOATPT VectorNormalize(FLOATPT nc);
+
+    FLOATPT SumVector(FLOATPT Vect1, FLOATPT Vect2);
+
+    FLOATPT QuadNormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c, FLOATPT d);
+
+    FLOATPT NormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c);
+
+    void raytrace(float rho, float theta);
 };
 
 #endif //FCE_TO_OBJ_TRK_LOADER_H

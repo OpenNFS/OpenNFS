@@ -16,14 +16,16 @@ class TrackShader : public BaseShader {
 public:
     TrackShader();
     void bindTrackTextures(Track track_block, map<short, GLuint> gl_id_map);
-    void loadMVPMatrix(glm::mat4 matrix);
+    void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
 
 protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
-    GLint MatrixID;
-    GLint ColorID;
+    GLint transformationMatrixLocation;
+    GLint projectionMatrixLocation;
+    GLint viewMatrixLocation;
+    GLint colorLocation;
     GLint TrackTexturesID;
 
     typedef BaseShader super;

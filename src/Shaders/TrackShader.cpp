@@ -16,11 +16,14 @@ void TrackShader::bindAttributes() {
     bindAttribute(1 ,"vertexUV");
     bindAttribute(2 ,"textureIndex");
     bindAttribute(3 ,"nfsData");
+    bindAttribute(4 ,"normal");
 }
 
 void TrackShader::getAllUniformLocations() {
     // Get handles for uniforms
-    MatrixID = getUniformLocation("MVP");
+    transformationMatrixLocation = getUniformLocation("transformationMatrix");
+    projectionMatrixLocation = getUniformLocation("projectionMatrix");
+    viewMatrixLocation = getUniformLocation("viewMatrix");
     TrackTexturesID = getUniformLocation("texture_array");
 }
 
@@ -40,8 +43,10 @@ void TrackShader::bindTrackTextures(Track track_block, std::map<short, GLuint> g
     glUniform1iv(TrackTexturesID, 32, samplers);
 }
 
-void TrackShader::loadMVPMatrix(glm::mat4 matrix){
-    loadMat4(MatrixID, &matrix[0][0]);
+void TrackShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation){
+    loadMat4(viewMatrixLocation, &view[0][0]);
+    loadMat4(projectionMatrixLocation, &projection[0][0]);
+    loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
 

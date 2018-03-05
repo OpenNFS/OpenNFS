@@ -5,6 +5,10 @@ in vec2 UV;
 flat in uint texIndex;
 in vec4 nfsDataOut;
 
+in vec3 world_pos;
+in vec3 world_normal;
+in vec4 viewSpace;
+
 // Ouput data
 out vec4 color;
 
@@ -48,5 +52,17 @@ void main(){
         case 31: tempColor = texture(texture_array[31], UV).rgba; break;
      }
 
-    color = tempColor + 0.4 * nfsDataOut;
+     vec4 fogColor = vec4(80.0f/255.0f, 55.0f/255.0f, 0.0f, 1.0f);
+     float dist = 0;
+     float fogFactor = 0;
+     // Compute distance used in fog equations
+     dist = length(viewSpace);
+     //linear fog
+     // FogEnd - Distance/FogEnd - FogStart
+     fogFactor = (80 - dist)/(80 - 1);
+     fogFactor = clamp( fogFactor, 0.0, 1.0 );
+
+     //vec4 nfsColor = 0.7 *(tempColor + vec4(nfsDataOut.xyz, 1.0f));
+     //color = mix(fogColor, nfsColor, fogFactor);
+     color = (tempColor + vec4(nfsDataOut.xyz, 0.0f));
 }

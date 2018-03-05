@@ -14,9 +14,7 @@ out vec3 toLightVector;
 out vec3 toCameraVector;
 
 // Values that stay constant for the whole mesh.
-uniform mat4 projectionMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 transformationMatrix;
+uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
 
 uniform vec3 colour;
 uniform vec3 lightPosition;

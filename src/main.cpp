@@ -193,7 +193,7 @@ int main(int argc, const char *argv[]) {
     }
 
     /*------- UI -------*/
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4((float) 64/255,(float) 30/255,(float)  130/255, 1.00f);
     ImVec4 car_color = ImVec4(0.0f,0.0f,0.0f, 1.00f);
     ImVec4 test_light_color = ImVec4(1.0f,1.0f,1.0f, 1.00f);
     float specReflectivity = 1;
@@ -250,8 +250,7 @@ int main(int argc, const char *argv[]) {
         for (auto &active_track_Block : activeTrackBlocks) {
             for (auto &track_block_model : active_track_Block.models) {
                 track_block_model.update();
-                glm::mat4 MVP = ProjectionMatrix * ViewMatrix * track_block_model.ModelMatrix;
-                trackShader.loadMVPMatrix(MVP);
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
                 trackShader.bindTrackTextures(track_block_model, gl_id_map);
                 track_block_model.render();
             }

@@ -2,40 +2,135 @@
 // Created by Amrik on 16/01/2018.
 //
 
+#include <afxres.h>
 #include "trk_loader.h"
-#include "Scene/Light.h"
-#include "Scene/Track.h"
+#include "Util/Assert.h"
 
 using namespace std;
 
+bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height) {
+    bool retval = false;
+    // load file and check if it looks reasonable
+    FILE *fp = fopen(fname, "rb");
+    FILE *fp_a = fopen(afname, "rb");
+    if (fp && fp_a) {
+        fseek(fp, 0L, 2);
+        fseek(fp_a, 0L, 2);
+        long size = ftell(fp);
+        long size_a = ftell(fp_a);
+        unsigned char *data = new unsigned char[size];
+        unsigned char *data_a = new unsigned char[size_a];
+        if (data && data_a) {
+            fseek(fp, 0L, 0);
+            fseek(fp_a, 0L, 0);
+            if ((fread(data, size, 1, fp) == 1) && (fread(data_a, size_a, 1, fp_a) == 1)) {
+                BITMAPFILEHEADER *file_header = (BITMAPFILEHEADER *) data;
+                BITMAPFILEHEADER *file_header_a = (BITMAPFILEHEADER *) data_a;
+                if (file_header->bfType == MAKEWORD('B', 'M')) {
+                    if (file_header->bfSize == (DWORD) size) {
+                        BITMAPINFO *info = (BITMAPINFO *) (data +
+                                                           sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
+                        BITMAPINFO *info_a = (BITMAPINFO *) (data_a +
+                                                           sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
+                        if (info->bmiHeader.biCompression == BI_RGB) {
+                            width = info->bmiHeader.biWidth;
+                            if (width > 0) {
+                                height = info->bmiHeader.biHeight;
+                                if (height) {
+                                    if (height < 0)
+                                        height = (-height);// we want RGBA. let's alloc enough space
+                                    *
+                                            bits = new GLubyte[width * height * 4L];
+                                    if (*bits) {
+                                        retval = true;
+                                        GLubyte *current_bits = *bits;
+                                        GLubyte *pixel = data + file_header->bfOffBits;
+                                        GLubyte *pixel_a = data_a + file_header_a->bfOffBits;
+                                        GLsizei h = height, w = width;
+                                        long padding, padding_a;
+                                        switch (info->bmiHeader.biBitCount) {// 24-bit bitmaps
+                                            case 24:
+                                                // Read the 8 Bit bitmap alpha data
+                                                padding_a = w % 2;
+                                                RGBQUAD rgba;
+                                                padding = (w * 3) % 2;
+                                                for (; h > 0; h--) {
+                                                    for (w = width; w > 0; w--) {
+                                                        rgba = info_a->bmiColors[*pixel_a];
+                                                        pixel_a++;
+                                                        *current_bits++ = pixel[2];
+                                                        *current_bits++ = pixel[1];
+                                                        *current_bits++ = pixel[0];
+                                                        *current_bits++ = rgba.rgbRed;
+                                                        pixel += 3;
+                                                    }
+                                                    pixel += padding;
+                                                    pixel_a += padding_a;
+                                                }
+                                                break;
+                                            case 32:
+                                                // 32-bit bitmaps
+                                                // never seen it, but Win32 SDK claims the existance
+                                                // of that value. 4th byte is assumed to be alpha-channel.
+                                                for (; h > 0; h--) {
+                                                    for (w = width; w > 0; w--) {
+                                                        *current_bits++ = pixel[2];
+                                                        *current_bits++ = pixel[1];
+                                                        *current_bits++ = pixel[0];
+                                                        *current_bits++ = pixel[3];
+                                                        pixel += 4;
+                                                    }
+                                                }
+                                                break;// I don't like 1,4 and 16 bit.
+                                            default:
+                                                delete[] *bits;
+                                                retval = false;
+                                                break;
+                                        }
+                                        if (retval) {// mirror image if neccessary (never tested)
+                                            if (info->bmiHeader.biHeight < 0) {
+                                                long *data_q = (long *) *bits;
+                                                long wt = width * 4L;
+                                                long *dest_q = (long *) (*bits + (height - 1) * wt);
+                                                long tmp;
+                                                while (data_q < dest_q) {
+                                                    for (w = width; w > 0; w--) {
+                                                        tmp = *data_q;
+                                                        *data_q++ = *dest_q;
+                                                        *dest_q++ = tmp;
+                                                    }
+                                                    dest_q -= (wt + wt);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            delete[] data;
+            delete[] data_a;
+        }
+        fclose(fp);
+        fclose(fp_a);
+    }
+    return retval;
+}
+
 Texture LoadTexture(TEXTUREBLOCK track_texture) {
-    int width, height;
-    unsigned char *data;
-    FILE *file;
     std::stringstream filename;
     filename << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-    file = fopen(filename.str().c_str(), "rb");
-    if (file == nullptr) {
-        std::cout << "Couldn't open " << filename.str() << std::endl;
-        assert(file == nullptr);
-    }
+    std::stringstream filename_alpha;
+    filename_alpha << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture
+                   << "-a.BMP";
 
-    width = track_texture.width;
-    height = track_texture.height;
-
-    data = (unsigned char *) malloc(width * height * 3);
-    fseek(file, 54, SEEK_SET);
-    fread(data, width * height * 3, 1, file);
-    fclose(file);
-
-    for (int i = 0; i < width * height; ++i) {
-        int index = i * 3;
-        unsigned char B, R;
-        B = data[index];
-        R = data[index + 2];
-        data[index] = R;
-        data[index + 2] = B;
-    }
+    GLubyte *data;
+    GLsizei width = track_texture.width;
+    GLsizei height = track_texture.height;
+    ASSERT(LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height),
+           "Texture %s or %s did not load succesfully!", filename.str().c_str(), filename_alpha.str().c_str());
 
     return Texture((unsigned int) track_texture.texture, data, track_texture.width, track_texture.height);
 }
@@ -211,7 +306,8 @@ bool trk_loader::LoadFRD(std::string frd_path) {
             if ((long) ar.read((char *) x->vert, 12 * x->nVertices).gcount() != 12 * x->nVertices) return false;
             x->unknVertices = (long *) malloc(static_cast<size_t>(4 * x->nVertices));
             if (x->unknVertices == nullptr) return false;
-            if ((long) ar.read((char *) x->unknVertices, 4 * x->nVertices).gcount() != 4 * x->nVertices) return false;
+            if ((long) ar.read((char *) x->unknVertices, 4 * x->nVertices).gcount() != 4 * x->nVertices)
+                return false;
             if (ar.read((char *) &(x->nPolygons), 4).gcount() != 4) return false;
             x->polyData = (struct POLYGONDATA *) malloc(static_cast<size_t>(x->nPolygons * 14));
             if (x->polyData == nullptr) return false;
@@ -340,7 +436,8 @@ bool trk_loader::LoadCOL(std::string col_path) {
     //ASSERT(col.vroadHead.nrec==trk[nBlocks-1].nStartPos+trk[nBlocks-1].nPositions);
     col.vroad = (struct COLVROAD *) malloc(col.vroadHead.nrec * sizeof(struct COLVROAD));
     if (col.vroad == NULL) return false;
-    if ((long) coll.read((char *) col.vroad, 36 * col.vroadHead.nrec).gcount() != 36 * col.vroadHead.nrec) return false;
+    if ((long) coll.read((char *) col.vroad, 36 * col.vroadHead.nrec).gcount() != 36 * col.vroadHead.nrec)
+        return false;
 
     return coll.read((char *) &i, 4).gcount() == 0; // we ought to be at EOF now
 }
@@ -359,16 +456,19 @@ std::map<short, GLuint> trk_loader::GenTrackTextures(std::map<short, Texture> te
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 3, texture.width, texture.height, GL_RGB, GL_UNSIGNED_BYTE,
-                          texture.texture_data);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE,
+                          (const GLvoid *) texture.texture_data);
     }
 
     return gl_id_map;
 }
 
-trk_loader::~trk_loader() = default;
+trk_loader::~trk_loader() =
+default;
 
-std::vector<short> trk_loader::RemapNormals(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices){
+std::vector<short>
+trk_loader::RemapTextureIDs(const std::set<short> &minimal_texture_ids_set,
+                            std::vector<unsigned int> &texture_indices) {
     // Get ordered list of unique texture id's present in block
     std::vector<short> texture_ids;
     texture_ids.assign(minimal_texture_ids_set.begin(), minimal_texture_ids_set.end());
@@ -425,21 +525,22 @@ std::vector<Track> trk_loader::ParseCOLModels() {
             texture_indices.emplace_back(texture_for_block.texture);
         }
         // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, texture_indices);
-        Track col_model = Track("ColBlock", i, verts, uvs, texture_indices, indices, texture_ids, std::vector<glm::vec4>());
+        std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+        Track col_model = Track("ColBlock", i, verts, uvs, texture_indices, indices, texture_ids,
+                                std::vector<glm::vec4>());
         col_model.enable();
         col_models.emplace_back(col_model);
     }
     return col_models;
 }
 
-std::vector<Light> trk_loader::getLights(){
+std::vector<Light> trk_loader::getLights() {
     // TODO: Probably best to also do this per track block
     std::vector<Light> lights;
 
-    for(int i = 0; i < nBlocks; i++){
+    for (int i = 0; i < nBlocks; i++) {
         TRKBLOCK trk_block = trk[i];
-        for(int j = 0; j < trk_block.nLightsrc; j++){
+        for (int j = 0; j < trk_block.nLightsrc; j++) {
             lights.emplace_back(Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type));
         }
     }
@@ -463,7 +564,9 @@ void trk_loader::ParseTRKModels() {
                                                  trk_block.vert[v].y / 10,
                                                  trk_block.vert[v].z / 10));
                 long shading_data = trk_block.unknVertices[v];
-                shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF)/255, ((shading_data >> 8) & 0xFF)/255, (shading_data & 0xFF)/255, ((shading_data >> 24) & 0xFF)/255));
+                shading_verts.emplace_back(
+                        glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
+                                  (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
             }
             // 4 OBJ Poly blocks
             for (int j = 0; j < 4; j++) {
@@ -478,11 +581,25 @@ void trk_loader::ParseTRKModels() {
                             std::vector<unsigned int> vertex_indices;
                             std::vector<glm::vec2> uvs;
                             std::vector<unsigned int> texture_indices;
+                            std::vector<glm::vec3> norms;
+                            struct FLOATPT norm_floatpt;
                             // Get Polygons in object
                             LPPOLYGONDATA object_polys = obj_polygon_block.poly[k];
                             for (int p = 0; p < obj_polygon_block.numpoly[k]; p++) {
                                 TEXTUREBLOCK texture_for_block = texture[object_polys[p].texture];
                                 minimal_texture_ids_set.insert(texture_for_block.texture);
+                                norm_floatpt = VertexNormal(i, object_polys[p].vertex[0]);
+                                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                                norm_floatpt = VertexNormal(i, object_polys[p].vertex[1]);
+                                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                                norm_floatpt = VertexNormal(i, object_polys[p].vertex[2]);
+                                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                                norm_floatpt = VertexNormal(i, object_polys[p].vertex[0]);
+                                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                                norm_floatpt = VertexNormal(i, object_polys[p].vertex[2]);
+                                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                                norm_floatpt = VertexNormal(i, object_polys[p].vertex[3]);
+                                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                                 vertex_indices.emplace_back(object_polys[p].vertex[0]);
                                 vertex_indices.emplace_back(object_polys[p].vertex[1]);
                                 vertex_indices.emplace_back(object_polys[p].vertex[2]);
@@ -504,8 +621,11 @@ void trk_loader::ParseTRKModels() {
                                 texture_indices.emplace_back(texture_for_block.texture);
                             }
                             // Get ordered list of unique texture id's present in block
-                            std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, texture_indices);
-                            Track current_track_model = Track("ObjBlock", (j+1)*(k+1), obj_verts, uvs, texture_indices, vertex_indices, texture_ids, shading_verts);
+                            std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set,
+                                                                             texture_indices);
+                            Track current_track_model = Track("ObjBlock", (j + 1) * (k + 1), obj_verts, uvs,
+                                                              texture_indices, vertex_indices, texture_ids,
+                                                              shading_verts);
                             current_track_model.enable();
                             current_track_block.models.emplace_back(current_track_model);
                         }
@@ -515,7 +635,7 @@ void trk_loader::ParseTRKModels() {
         }
 
         /* XOBJS - EXTRA OBJECTS */
-        for(int l = (i *4); l < (i * 4) + 4; l++){
+        for (int l = (i * 4); l < (i * 4) + 4; l++) {
             for (int j = 0; j < xobj[l].nobj; j++) {
                 XOBJDATA *x = &(xobj[l].obj[j]);
                 if (x->crosstype == 4) { // basic objects
@@ -530,16 +650,32 @@ void trk_loader::ParseTRKModels() {
                                                  x->ptRef.z / 10 + x->vert->z / 10));
                     long shading_data = x->unknVertices[k];
                     //RGBA
-                    shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF)/255, ((shading_data >> 8) & 0xFF)/255, (shading_data & 0xFF)/255, ((shading_data >> 24) & 0xFF)/255));
+                    shading_verts.emplace_back(
+                            glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
+                                      (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
                 }
                 // TODO: There are also these extras: x->unknVertices, sz: 4*x->nVertices
                 std::set<short> minimal_texture_ids_set;
                 std::vector<unsigned int> vertex_indices;
                 std::vector<glm::vec2> uvs;
                 std::vector<unsigned int> texture_indices;
+                std::vector<glm::vec3> norms;
+                struct FLOATPT norm_floatpt;
                 for (int k = 0; k < x->nPolygons; k++, x->polyData++) {
                     TEXTUREBLOCK texture_for_block = texture[x->polyData->texture];
                     minimal_texture_ids_set.insert(texture_for_block.texture);
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[0]);
+                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[1]);
+                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[2]);
+                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[0]);
+                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[2]);
+                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[4]);
+                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                     vertex_indices.emplace_back(x->polyData->vertex[0]);
                     vertex_indices.emplace_back(x->polyData->vertex[1]);
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
@@ -560,8 +696,9 @@ void trk_loader::ParseTRKModels() {
                     texture_indices.emplace_back(texture_for_block.texture);
                 }
                 // Get ordered list of unique texture id's present in block
-                std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, texture_indices);
-                Track xobj_model = Track("XOBJ", l, verts, uvs, texture_indices, vertex_indices, texture_ids, shading_verts);
+                std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+                Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids,
+                                         shading_verts);
                 xobj_model.enable();
                 current_track_block.models.emplace_back(xobj_model);
             }
@@ -575,18 +712,35 @@ void trk_loader::ParseTRKModels() {
         std::vector<unsigned int> texture_indices;
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> shading_verts;
+        std::vector<glm::vec3> norms;
         for (int j = 0; j < trk_block.nHiResVert; j++) {
-            verts.emplace_back(glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
+            verts.emplace_back(
+                    glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
             // Break long of RGB into 4 normalised floats and store into vec4
             long shading_data = trk_block.unknVertices[j];
-            shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF)/255, ((shading_data >> 8) & 0xFF)/255, (shading_data & 0xFF)/255, ((shading_data >> 24) & 0xFF)/255));
+            shading_verts.emplace_back(
+                    glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
+                              (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
         }
         // Get indices from Chunk 4 for High Res polys
         LPPOLYGONDATA poly_chunk = polygon_block.poly[4];
+        struct FLOATPT norm_floatpt;
         for (int chnk = 0; chnk < 6; chnk++) {
             for (int k = 0; k < polygon_block.sz[chnk]; k++) {
                 TEXTUREBLOCK texture_for_block = texture[poly_chunk[k].texture];
                 minimal_texture_ids_set.insert(texture_for_block.texture);
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0]);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[1]);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2]);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0]);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2]);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[3]);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                 vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[1]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
@@ -608,8 +762,10 @@ void trk_loader::ParseTRKModels() {
             }
         }
         // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids = RemapNormals(minimal_texture_ids_set, texture_indices);
-        Track current_trk_block_model = Track("TrkBlock", i, verts, uvs, texture_indices, vertex_indices, texture_ids, shading_verts);
+        std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+        Track current_trk_block_model = Track("TrkBlock", i, verts, norms, uvs, texture_indices, vertex_indices,
+                                              texture_ids,
+                                              shading_verts);
         current_trk_block_model.enable();
         current_track_block.models.emplace_back(current_trk_block_model);
         track_blocks.emplace_back(current_track_block);
@@ -621,12 +777,15 @@ trk_loader::trk_loader(const std::string &frd_path) {
         if (LoadCOL("../resources/TRK006/TR06.COL")) {
             std::cout << "Successful track load!" << std::endl;
             texture_gl_mappings = GenTrackTextures(textures);
+            float rho = 0.85;
+            float theta = 0;
+            //raytrace(rho, theta);
         } else
             return;
     } else
         return;
 
-   // col_models = ParseCOLModels();
+    // col_models = ParseCOLModels();
     ParseTRKModels();
 }
 
@@ -646,4 +805,1196 @@ std::map<short, Texture> trk_loader::getTextures() {
     return textures;
 }
 
+void trk_loader::raytrace(float rho, float theta) {
+    int startbl = 0;
+    int endbl = nBlocks;
+
+    for (int curBlock = startbl; curBlock < endbl; curBlock++) //Shadow raytracing for selected Blocks
+    {
+        std::cout << "RayTracing Shadows (Block  " << curBlock << ")" << "... (" << curBlock - startbl << " of "
+                  << endbl - startbl << " Blocks)" << std::endl;
+        BlockShadingFixer(curBlock, theta, rho);
+        ObjectShadingFixer(curBlock, theta, rho);
+    }
+}
+
+FLOATPT trk_loader::VectorNormalize(FLOATPT nc) {
+    float length = sqrt((nc.x * nc.x) + (nc.y * nc.y) + (nc.z * nc.z));
+    nc.x = nc.x / length;
+    nc.y = nc.y / length;
+    nc.z = nc.z / length;
+    return nc;
+}
+
+FLOATPT trk_loader::NormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c) {
+    FLOATPT v1, v2, out;
+
+    v1.x = c.x - a.x;
+    v1.y = c.y - a.y;
+    v1.z = c.z - a.z;
+
+    v2.x = b.x - a.x;
+    v2.y = b.y - a.y;
+    v2.z = b.z - a.z;
+
+    out.x = (v1.y * v2.z) - (v1.z * v2.y);
+    out.y = (v1.z * v2.x) - (v1.x * v2.z);
+    out.z = (v1.x * v2.y) - (v1.y * v2.x);
+
+    return VectorNormalize(out);
+}
+
+FLOATPT trk_loader::QuadNormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c, FLOATPT d) {
+    struct FLOATPT n1, n2, nc;
+    n1 = NormalVectorCalc(a, b, c);
+    n2 = NormalVectorCalc(a, c, d);
+    nc = SumVector(n1, n2);
+
+    return nc;
+}
+
+FLOATPT trk_loader::SumVector(FLOATPT Vect1, FLOATPT Vect2) {
+    struct FLOATPT SumVect;
+    SumVect.x = Vect1.x + Vect2.x;
+    SumVect.y = Vect1.y + Vect2.y;
+    SumVect.z = Vect1.z + Vect2.z;
+    SumVect = VectorNormalize(SumVect);
+
+    return SumVect;
+}
+
+FLOATPT trk_loader::VertexNormal(int blk, int VertexIndex) {
+    struct FLOATPT a, b, c, d;
+    struct FLOATPT normal;
+    LPPOLYGONDATA p;
+    struct TRKBLOCK *t;
+    struct FLOATPT *v;
+
+    normal.x = 0;
+    normal.y = 0;
+    normal.z = 0;
+
+    t = &trk[blk];
+    v = trk[blk].vert;
+
+    p = poly[blk].poly[4];
+    int num = poly[blk].sz[4];
+    for (int j = 0; j < num; j++, p++) {
+        for (int k = 0; k < 4; k++) {
+            if (p->vertex[k] == VertexIndex) {
+                a = v[p->vertex[0]];
+                b = v[p->vertex[1]];
+                c = v[p->vertex[2]];
+                d = v[p->vertex[3]];
+                normal = SumVector(normal, QuadNormalVectorCalc(a, b, c, d));
+            }
+        }
+    }
+    return normal;
+}
+
+int intersect_triangle(double orig[3], double dir[3], double vert0[3], double vert1[3], double vert2[3], double *t,
+                       double *u, double *v) {
+    double edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
+    double det, inv_det;
+
+
+#define CROSS(dest, v1, v2) \
+          dest[0]=v1[1]*v2[2]-v1[2]*v2[1]; \
+          dest[1]=v1[2]*v2[0]-v1[0]*v2[2]; \
+          dest[2]=v1[0]*v2[1]-v1[1]*v2[0];
+#define DOT(v1, v2) (v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2])
+
+#define SUB(dest, v1, v2) \
+          dest[0]=v1[0]-v2[0]; \
+          dest[1]=v1[1]-v2[1]; \
+          dest[2]=v1[2]-v2[2];
+
+
+    /* find vectors for two edges sharing vert0 */
+    SUB(edge1, vert1, vert0);
+    SUB(edge2, vert2, vert0);
+
+    /* begin calculating determinant - also used to calculate U parameter */
+    CROSS(pvec, dir, edge2);
+
+    /* if determinant is near zero, ray lies in plane of triangle */
+    det = DOT(edge1, pvec);
+
+    /* calculate distance from vert0 to ray origin */
+    SUB(tvec, orig, vert0);
+    inv_det = 1.0 / det;
+
+    CROSS(qvec, tvec, edge1);
+
+    if (det > EPSILON) {
+        *u = DOT(tvec, pvec);
+        if (*u < 0.0 || *u > det)
+            return 0;
+
+        /* calculate V parameter and test bounds */
+        *v = DOT(dir, qvec);
+        if (*v < 0.0 || *u + *v > det)
+            return 0;
+
+    }
+        /*else if(det < -EPSILON)
+        {
+           // calculate U parameter and test bounds
+           *u = DOT(tvec, pvec);
+           if (*u > 0.0 || *u < det)
+          return 0;
+
+           // calculate V parameter and test bounds
+           *v = DOT(dir, qvec) ;
+           if (*v > 0.0 || *u + *v < det)
+          return 0;
+        }*/
+    else return 0;  /* ray is parallell to the plane of the triangle */
+
+    *t = DOT(edge2, qvec) * inv_det;
+    (*u) *= inv_det;
+    (*v) *= inv_det;
+
+    return 1;
+}
+
+void trk_loader::BlockShadingFixer(int blk, float theta, float rho) {
+    int i, j, j2, k, num, num2, blk2;
+    int result;
+    double uu, vv, tt;
+    double corner1[3], corner2[3], corner3[3];
+    double Pos[3], RayDir[3], StartPos[3];
+
+    //long nGPolygons;
+    LPPOLYGONDATA p, p2;
+    struct TRKBLOCK *t;
+    struct FLOATPT *v, *v2;
+    unsigned long *sv;
+
+    t = &trk[blk];
+    v = trk[blk].vert;
+    sv = reinterpret_cast<unsigned long *>(trk[blk].unknVertices);
+
+    double PI = 3.14159265359;
+    double PitchAngle = (double) theta; //0.00;//4.712; //0.44; //Theta
+    double RhoAngle = (double) rho; //0.165; //0.13; //RHO
+    //to get real Yaw from Rho, it has to be multiplied with 4.(*WRONG*)
+    //Rho is given as fixed point. (1.0 is 2*pi in radian scale.)
+    double YawAngle = (2 * PI) * RhoAngle;
+
+    //to get real Pitch from Theta, it needs +pi
+    //PitchAngle=PitchAngle+pi;
+
+    //double r;
+    struct FLOATPT VNormal;
+    VNormal.x = 0;
+    VNormal.y = 0;
+    VNormal.z = (float) 0.05;
+    /*
+    x=rsin(phi)cos(theta), y=rsin(phi)sin(theta), z=rcos(phi), r=sqrt(x*x+y*y+z*z)...
+    */
+
+    p2 = poly[blk].poly[4];
+    num2 = poly[blk].sz[4];
+    for (j2 = 0; j2 < num2; j2++, p2++) {
+        for (k = 0; k < 4; k++) {
+
+            //bool tested = new bool[t->nVertices];
+            /*for (int temp=0; temp>trk[blk].nVertices; temp++)
+                tested[temp]=false;*/
+
+            assert (p2->vertex[k] >= 0 && p2->vertex[k] < t->nVertices);
+
+            if ((p2->vertex[k] < 0) || (p2->vertex[k] > t->nVertices)) {
+                std::cout << "FAILED! K: " << k << ", J2:" << j2 << ", BLK:" << blk << std::endl;
+                return;
+            }
+
+            VNormal = VertexNormal(blk, p2->vertex[k]);
+            StartPos[0] = (double) v[p2->vertex[k]].x + (VNormal.x / 5);
+            StartPos[1] = (double) v[p2->vertex[k]].y + (VNormal.y / 5);
+            StartPos[2] = (double) v[p2->vertex[k]].z + (VNormal.z / 5);
+
+
+            RayDir[0] = sin(YawAngle) * cos(PitchAngle);
+            RayDir[1] = sin(YawAngle) * sin(PitchAngle);
+            RayDir[2] = cos(YawAngle);
+
+            //used for known light point
+            /*EndPos[0]=372;
+            EndPos[1]=-790;
+            EndPos[2]=10;
+
+            RayDir[0]=(EndPos[0]-StartPos[0]);
+            RayDir[1]=(EndPos[1]-StartPos[1]);
+            RayDir[2]=(EndPos[2]-StartPos[2]);
+            r=sqrt((RayDir[0]*RayDir[0])+(RayDir[1]*RayDir[1])+(RayDir[2]*RayDir[2]));
+
+            RayDir[0]=RayDir[0]/r;
+            RayDir[1]=RayDir[1]/r;
+            RayDir[2]=RayDir[2]/r;*/
+
+            result = 0;
+            i = 0;
+
+            while ((t->nbdData[i].blk != -1) && (i < 300)) {
+
+                assert(i >= 0 && i < 300);
+
+
+                blk2 = t->nbdData[i].blk;
+
+
+                assert(blk2 >= 0 && blk2 < 300);
+
+                p = poly[blk2].poly[4];
+                num = poly[blk2].sz[4];
+                v2 = trk[blk2].vert;
+                //Track Polygons
+                //--------------
+
+                for (j = 0; j < num; j++, p++) {
+                    if (blk == 0 && j2 == 0 && k == 1) {
+                        std::cout << "keke" << std::endl;
+                    }
+
+                    //p->texture
+                    if (result != 1) {
+                        assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                        corner1[0] = (double) v2[p->vertex[0]].x;
+                        corner1[2] = (double) v2[p->vertex[0]].z;
+                        corner1[1] = (double) v2[p->vertex[0]].y;
+
+                        assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                        corner2[0] = (double) v2[p->vertex[3]].x;
+                        corner2[2] = (double) v2[p->vertex[3]].z;
+                        corner2[1] = (double) v2[p->vertex[3]].y;
+
+                        assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                        corner3[0] = (double) v2[p->vertex[2]].x;
+                        corner3[2] = (double) v2[p->vertex[2]].z;
+                        corner3[1] = (double) v2[p->vertex[2]].y;
+                        //run first Ray test, if false, then next quad.
+                        Pos[0] = StartPos[0];
+                        Pos[1] = StartPos[1];
+                        Pos[2] = StartPos[2];
+                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                    } else {
+                        j = num;
+                        i = 300;
+                    }
+
+                    if (result != 1) {
+                        corner1[0] = (double) v2[p->vertex[0]].x;
+                        corner1[2] = (double) v2[p->vertex[0]].z;
+                        corner1[1] = (double) v2[p->vertex[0]].y;
+
+                        corner2[0] = (double) v2[p->vertex[2]].x;
+                        corner2[2] = (double) v2[p->vertex[2]].z;
+                        corner2[1] = (double) v2[p->vertex[2]].y;
+
+                        corner3[0] = (double) v2[p->vertex[1]].x;
+                        corner3[2] = (double) v2[p->vertex[1]].z;
+                        corner3[1] = (double) v2[p->vertex[1]].y;
+                        //check the second half of the quad
+
+                        Pos[0] = StartPos[0];
+                        Pos[1] = StartPos[1];
+                        Pos[2] = StartPos[2];
+                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                    } else {
+                        j = num;
+                        i = 300;
+                    }
+
+
+                    if (result == 1) {
+                        std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k
+                                  << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
+                    }
+
+
+                }
+                //TrackPolygons End
+                //lane Polygons
+                //-------------
+                //if (result!=1) {
+                num = poly[blk2].sz[5];
+                p = poly[blk2].poly[5];
+                for (j = 0; j < num; j++, p++) {
+                    if (blk == 0 && j2 == 0 && k == 1) {
+                        std::cout << "keke" << std::endl;
+                    }
+
+                    //p->texture
+                    if (result != 1) {
+                        assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                        corner1[0] = (double) v2[p->vertex[0]].x;
+                        corner1[2] = (double) v2[p->vertex[0]].z;
+                        corner1[1] = (double) v2[p->vertex[0]].y;
+
+                        assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                        corner2[0] = (double) v2[p->vertex[3]].x;
+                        corner2[2] = (double) v2[p->vertex[3]].z;
+                        corner2[1] = (double) v2[p->vertex[3]].y;
+
+                        assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                        corner3[0] = (double) v2[p->vertex[2]].x;
+                        corner3[2] = (double) v2[p->vertex[2]].z;
+                        corner3[1] = (double) v2[p->vertex[2]].y;
+                        //run first Ray test, if false, then next quad.
+                        Pos[0] = StartPos[0];
+                        Pos[1] = StartPos[1];
+                        Pos[2] = StartPos[2];
+                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                    } else {
+                        //j=num;
+                        i = 300;
+                    }
+
+                    if (result != 1) {
+                        corner1[0] = (double) v2[p->vertex[0]].x;
+                        corner1[2] = (double) v2[p->vertex[0]].z;
+                        corner1[1] = (double) v2[p->vertex[0]].y;
+
+                        corner2[0] = (double) v2[p->vertex[2]].x;
+                        corner2[2] = (double) v2[p->vertex[2]].z;
+                        corner2[1] = (double) v2[p->vertex[2]].y;
+
+                        corner3[0] = (double) v2[p->vertex[1]].x;
+                        corner3[2] = (double) v2[p->vertex[1]].z;
+                        corner3[1] = (double) v2[p->vertex[1]].y;
+                        //check the second half of the quad
+
+                        Pos[0] = StartPos[0];
+                        Pos[1] = StartPos[1];
+                        Pos[2] = StartPos[2];
+                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                    } else {
+                        //j=num;
+                        i = 300;
+                    }
+
+
+                    if (result == 1) {
+                        std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k
+                                  << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
+                    }
+
+
+                }
+                //}
+                //Lane Polygons End
+                //Blue Objects
+                //------------
+                for (long chunkcounter = 0; chunkcounter < 4; chunkcounter++) {
+                    long numobj = poly[blk2].obj[chunkcounter].nobj;
+                    for (long objcounter = 0; objcounter < numobj; objcounter++) {
+                        num = poly[blk2].obj[chunkcounter].numpoly[objcounter];
+
+                        p = poly[blk2].obj[chunkcounter].poly[objcounter];
+                        for (j = 0; j < num; j++, p++) {
+                            if (blk == 0 && j2 == 0 && k == 1) {
+                                std::cout << "keke" << std::endl;
+                            }
+
+                            //p->texture
+                            if (result != 1) {
+                                assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                                corner1[0] = (double) v2[p->vertex[2]].x;
+                                corner1[2] = (double) v2[p->vertex[2]].z;
+                                corner1[1] = (double) v2[p->vertex[2]].y;
+
+                                assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                                corner2[0] = (double) v2[p->vertex[3]].x;
+                                corner2[2] = (double) v2[p->vertex[3]].z;
+                                corner2[1] = (double) v2[p->vertex[3]].y;
+
+                                assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                                corner3[0] = (double) v2[p->vertex[0]].x;
+                                corner3[2] = (double) v2[p->vertex[0]].z;
+                                corner3[1] = (double) v2[p->vertex[0]].y;
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+                            if (result != 1) {
+                                corner1[0] = (double) v2[p->vertex[1]].x;
+                                corner1[2] = (double) v2[p->vertex[1]].z;
+                                corner1[1] = (double) v2[p->vertex[1]].y;
+
+                                corner2[0] = (double) v2[p->vertex[2]].x;
+                                corner2[2] = (double) v2[p->vertex[2]].z;
+                                corner2[1] = (double) v2[p->vertex[2]].y;
+
+                                corner3[0] = (double) v2[p->vertex[0]].x;
+                                corner3[2] = (double) v2[p->vertex[0]].z;
+                                corner3[1] = (double) v2[p->vertex[0]].y;
+                                //check the second half of the quad
+
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+                            //Make same with another side:
+                            if (result != 1) {
+                                assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                                corner1[0] = (double) v2[p->vertex[0]].x;
+                                corner1[2] = (double) v2[p->vertex[0]].z;
+                                corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                                corner2[0] = (double) v2[p->vertex[3]].x;
+                                corner2[2] = (double) v2[p->vertex[3]].z;
+                                corner2[1] = (double) v2[p->vertex[3]].y;
+
+                                assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                                corner3[0] = (double) v2[p->vertex[2]].x;
+                                corner3[2] = (double) v2[p->vertex[2]].z;
+                                corner3[1] = (double) v2[p->vertex[2]].y;
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+                            if (result != 1) {
+                                corner1[0] = (double) v2[p->vertex[0]].x;
+                                corner1[2] = (double) v2[p->vertex[0]].z;
+                                corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                corner2[0] = (double) v2[p->vertex[2]].x;
+                                corner2[2] = (double) v2[p->vertex[2]].z;
+                                corner2[1] = (double) v2[p->vertex[2]].y;
+
+                                corner3[0] = (double) v2[p->vertex[1]].x;
+                                corner3[2] = (double) v2[p->vertex[1]].z;
+                                corner3[1] = (double) v2[p->vertex[1]].y;
+                                //check the second half of the quad
+
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+                            if (result == 1) {
+                                std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k
+                                          << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
+                            }
+
+                        }
+                    }
+                }
+
+                //}
+                //Blue Polygons End.
+                //Xtra Object Start
+
+                for (int XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
+                    FLOATPT *vert_array = xobj[blk2].obj[XObjCounter].vert;
+                    if (xobj[blk2].obj[XObjCounter].crosstype != 6) {
+                        for (int XObjPoly = 0; XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++) {
+
+                            POLYGONDATA &quad = xobj[blk2].obj[XObjCounter].polyData[XObjPoly];
+                            FLOATPT &ref_point = xobj[blk2].obj[XObjCounter].ptRef;
+
+
+                            if (result != 1) {
+
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
+
+                                    corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
+                                    corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
+                                    corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[3]].x + ref_point.x;
+                                    corner2[2] = (double) vert_array[quad.vertex[3]].z + ref_point.z;
+                                    corner2[1] = (double) vert_array[quad.vertex[3]].y + ref_point.y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
+                                    corner3[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
+                                    corner3[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
+                                } else {
+                                    corner1[0] = (double) vert_array[quad.vertex[0]].x;
+                                    corner1[2] = (double) vert_array[quad.vertex[0]].z;
+                                    corner1[1] = (double) vert_array[quad.vertex[0]].y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[3]].x;
+                                    corner2[2] = (double) vert_array[quad.vertex[3]].z;
+                                    corner2[1] = (double) vert_array[quad.vertex[3]].y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[2]].x;
+                                    corner3[2] = (double) vert_array[quad.vertex[2]].z;
+                                    corner3[1] = (double) vert_array[quad.vertex[2]].y;
+                                }
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+                            if (result != 1) {
+
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
+
+                                    corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
+                                    corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
+                                    corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
+                                    corner2[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
+                                    corner2[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[1]].x + ref_point.x;
+                                    corner3[2] = (double) vert_array[quad.vertex[1]].z + ref_point.z;
+                                    corner3[1] = (double) vert_array[quad.vertex[1]].y + ref_point.y;
+                                } else {
+                                    corner1[0] = (double) vert_array[quad.vertex[0]].x;
+                                    corner1[2] = (double) vert_array[quad.vertex[0]].z;
+                                    corner1[1] = (double) vert_array[quad.vertex[0]].y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[2]].x;
+                                    corner2[2] = (double) vert_array[quad.vertex[2]].z;
+                                    corner2[1] = (double) vert_array[quad.vertex[2]].y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[1]].x;
+                                    corner3[2] = (double) vert_array[quad.vertex[1]].z;
+                                    corner3[1] = (double) vert_array[quad.vertex[1]].y;
+                                }
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+                            //usually Dualsided, so another look with reversed vertex order:
+                            if (result != 1) {
+
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
+
+                                    corner1[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
+                                    corner1[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
+                                    corner1[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[3]].x + ref_point.x;
+                                    corner2[2] = (double) vert_array[quad.vertex[3]].z + ref_point.z;
+                                    corner2[1] = (double) vert_array[quad.vertex[3]].y + ref_point.y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
+                                    corner3[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
+                                    corner3[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
+                                } else {
+                                    corner1[0] = (double) vert_array[quad.vertex[2]].x;
+                                    corner1[2] = (double) vert_array[quad.vertex[2]].z;
+                                    corner1[1] = (double) vert_array[quad.vertex[2]].y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[3]].x;
+                                    corner2[2] = (double) vert_array[quad.vertex[3]].z;
+                                    corner2[1] = (double) vert_array[quad.vertex[3]].y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[0]].x;
+                                    corner3[2] = (double) vert_array[quad.vertex[0]].z;
+                                    corner3[1] = (double) vert_array[quad.vertex[0]].y;
+                                }
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+                            if (result != 1) {
+
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
+
+                                    corner1[0] = (double) vert_array[quad.vertex[1]].x + ref_point.x;
+                                    corner1[2] = (double) vert_array[quad.vertex[1]].z + ref_point.z;
+                                    corner1[1] = (double) vert_array[quad.vertex[1]].y + ref_point.y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
+                                    corner2[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
+                                    corner2[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
+                                    corner3[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
+                                    corner3[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
+                                } else {
+                                    corner1[0] = (double) vert_array[quad.vertex[1]].x;
+                                    corner1[2] = (double) vert_array[quad.vertex[1]].z;
+                                    corner1[1] = (double) vert_array[quad.vertex[1]].y;
+
+
+                                    corner2[0] = (double) vert_array[quad.vertex[2]].x;
+                                    corner2[2] = (double) vert_array[quad.vertex[2]].z;
+                                    corner2[1] = (double) vert_array[quad.vertex[2]].y;
+
+
+                                    corner3[0] = (double) vert_array[quad.vertex[0]].x;
+                                    corner3[2] = (double) vert_array[quad.vertex[0]].z;
+                                    corner3[1] = (double) vert_array[quad.vertex[0]].y;
+                                }
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+                        }
+                    }
+                }
+                //}
+                //Xtra Object End.
+                i++;
+
+            }
+            if (result == 1)
+                sv[p2->vertex[k]] = 0xFF666666; //0xFF777777;
+            else
+                sv[p2->vertex[k]] = 0xFFFFFFFF;
+        }
+    }
+}
+
+void trk_loader::ObjectShadingFixer(int blk, float theta, float rho) {
+    int i, j, j2, k, num, num2, blk2;
+    int result;
+    double uu, vv, tt;
+    double corner1[3], corner2[3], corner3[3];
+    double Pos[3], RayDir[3], StartPos[3];
+
+    LPPOLYGONDATA p, p2;
+
+    struct TRKBLOCK *t;
+    struct FLOATPT *v, *v2;
+    unsigned long *sv;
+
+    t = &trk[blk];
+    v = trk[blk].vert;
+    sv = reinterpret_cast<unsigned long *>(trk[blk].unknVertices);
+
+    //malloc example:
+    // a1 = (double *)malloc(m*m*sizeof(double));
+
+    double PI = 3.14159265359;
+    double PitchAngle = (double) theta; //0.00;//4.712; //0.44; //Theta
+    double RhoAngle = (double) rho; //0.165; //0.13; //RHO
+    //to get real Yaw from Rho, it has to be multiplied with 4.(*WRONG*)
+    //Rho is given as fixed point. (1.0 is 2*pi in radian scale.)
+    double YawAngle = (2 * PI) * RhoAngle;
+
+    //to get real Pitch from Theta, it needs +pi
+    //PitchAngle=PitchAngle+pi;
+
+    //double r;
+    struct FLOATPT VNormal;
+    VNormal.x = 0;
+    VNormal.y = 0;
+    VNormal.z = (float) 0.05;
+
+    /*
+    x=rsin(phi)cos(theta), y=rsin(phi)sin(theta), z=rcos(phi), r=sqrt(x*x+y*y+z*z)...
+    */
+
+    for (long chkchunkcounter = 0; chkchunkcounter < 4; chkchunkcounter++) {
+        long chknumobj = poly[blk].obj[chkchunkcounter].nobj;
+        for (long chkobjcounter = 0; chkobjcounter < chknumobj; chkobjcounter++) {
+            num2 = poly[blk].obj[chkchunkcounter].numpoly[chkobjcounter];
+            p2 = poly[blk].obj[chkchunkcounter].poly[chkobjcounter];
+
+            for (j2 = 0; j2 < num2; j2++, p2++) {
+                for (k = 0; k < 4; k++) {
+
+                    //bool tested = new bool[t->nVertices];
+                    /*for (int temp=0; temp>trk[blk].nVertices; temp++)
+                        tested[temp]=false;*/
+
+                    assert (p2->vertex[k] >= 0 && p2->vertex[k] < t->nVertices);
+
+                    if ((p2->vertex[k] < 0) || (p2->vertex[k] > t->nVertices)) {
+                        std::cout << "FAILED! K: " << k << ", J2:" << j2 << ", BLK:" << blk << std::endl;
+                        return;
+                    }
+
+                    VNormal = VertexNormal(blk, p2->vertex[k]);
+                    StartPos[0] = (double) v[p2->vertex[k]].x + (VNormal.x / 5);
+                    StartPos[1] = (double) v[p2->vertex[k]].y + (VNormal.y / 5);
+                    StartPos[2] = (double) v[p2->vertex[k]].z + (VNormal.z / 5);
+
+
+                    RayDir[0] = sin(YawAngle) * cos(PitchAngle);
+                    RayDir[1] = sin(YawAngle) * sin(PitchAngle);
+                    RayDir[2] = cos(YawAngle);
+
+
+
+
+                    //used for known light point
+                    /*EndPos[0]=372;
+                    EndPos[1]=-790;
+                    EndPos[2]=10;
+
+                    RayDir[0]=(EndPos[0]-StartPos[0]);
+                    RayDir[1]=(EndPos[1]-StartPos[1]);
+                    RayDir[2]=(EndPos[2]-StartPos[2]);
+                    r=sqrt((RayDir[0]*RayDir[0])+(RayDir[1]*RayDir[1])+(RayDir[2]*RayDir[2]));
+
+                    RayDir[0]=RayDir[0]/r;
+                    RayDir[1]=RayDir[1]/r;
+                    RayDir[2]=RayDir[2]/r;*/
+
+                    result = 0;
+                    i = 0;
+
+
+                    while ((t->nbdData[i].blk != -1) && (i < 300)) {
+
+                        assert(i >= 0 && i < 300);
+
+
+                        blk2 = t->nbdData[i].blk;
+
+
+                        assert(blk2 >= 0 && blk2 < 300);
+
+                        p = poly[blk2].poly[4];
+                        num = poly[blk2].sz[4];
+                        v2 = trk[blk2].vert;
+                        //Track Polygons
+                        //--------------
+
+                        for (j = 0; j < num; j++, p++) {
+                            if (blk == 0 && j2 == 0 && k == 1) {
+                                std::cout << "keke" << std::endl;
+                            }
+
+                            //p->texture
+                            if (result != 1) {
+                                assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                                corner1[0] = (double) v2[p->vertex[0]].x;
+                                corner1[2] = (double) v2[p->vertex[0]].z;
+                                corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                                corner2[0] = (double) v2[p->vertex[3]].x;
+                                corner2[2] = (double) v2[p->vertex[3]].z;
+                                corner2[1] = (double) v2[p->vertex[3]].y;
+
+                                assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                                corner3[0] = (double) v2[p->vertex[2]].x;
+                                corner3[2] = (double) v2[p->vertex[2]].z;
+                                corner3[1] = (double) v2[p->vertex[2]].y;
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                j = num;
+                                i = 300;
+                            }
+
+                            if (result != 1) {
+                                corner1[0] = (double) v2[p->vertex[0]].x;
+                                corner1[2] = (double) v2[p->vertex[0]].z;
+                                corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                corner2[0] = (double) v2[p->vertex[2]].x;
+                                corner2[2] = (double) v2[p->vertex[2]].z;
+                                corner2[1] = (double) v2[p->vertex[2]].y;
+
+                                corner3[0] = (double) v2[p->vertex[1]].x;
+                                corner3[2] = (double) v2[p->vertex[1]].z;
+                                corner3[1] = (double) v2[p->vertex[1]].y;
+                                //check the second half of the quad
+
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                j = num;
+                                i = 300;
+                            }
+
+
+                            if (result == 1) {
+                                std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k
+                                          << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
+                            }
+
+
+                        }
+                        //TrackPolygons End
+                        //lane Polygons
+                        //-------------
+                        //if (result!=1) {
+                        num = poly[blk2].sz[5];
+                        p = poly[blk2].poly[5];
+                        for (j = 0; j < num; j++, p++) {
+                            if (blk == 0 && j2 == 0 && k == 1) {
+                                std::cout << "keke" << std::endl;
+                            }
+
+                            //p->texture
+                            if (result != 1) {
+                                assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                                corner1[0] = (double) v2[p->vertex[0]].x;
+                                corner1[2] = (double) v2[p->vertex[0]].z;
+                                corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                                corner2[0] = (double) v2[p->vertex[3]].x;
+                                corner2[2] = (double) v2[p->vertex[3]].z;
+                                corner2[1] = (double) v2[p->vertex[3]].y;
+
+                                assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                                corner3[0] = (double) v2[p->vertex[2]].x;
+                                corner3[2] = (double) v2[p->vertex[2]].z;
+                                corner3[1] = (double) v2[p->vertex[2]].y;
+                                //run first Ray test, if false, then next quad.
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+                            if (result != 1) {
+                                corner1[0] = (double) v2[p->vertex[0]].x;
+                                corner1[2] = (double) v2[p->vertex[0]].z;
+                                corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                corner2[0] = (double) v2[p->vertex[2]].x;
+                                corner2[2] = (double) v2[p->vertex[2]].z;
+                                corner2[1] = (double) v2[p->vertex[2]].y;
+
+                                corner3[0] = (double) v2[p->vertex[1]].x;
+                                corner3[2] = (double) v2[p->vertex[1]].z;
+                                corner3[1] = (double) v2[p->vertex[1]].y;
+                                //check the second half of the quad
+
+                                Pos[0] = StartPos[0];
+                                Pos[1] = StartPos[1];
+                                Pos[2] = StartPos[2];
+                                result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                            } else {
+                                //j=num;
+                                i = 300;
+                            }
+
+
+                            if (result == 1) {
+                                std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k
+                                          << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
+                            }
+
+
+                        }
+                        //}
+                        //Lane Polygons End
+                        //Blue Objects
+                        //------------
+                        //if (result!=1) {
+                        //for (k = 0; k < 4; k++)
+                        //{
+                        //for (j = 0; j < poly[nBlock].obj[k].nobj; j++)
+                        //{
+                        //for (i = 0; i < poly[nBlock].obj[k].numpoly[j]; i++)
+                        //{
+                        //poly[nBlock].obj[k].poly[j][i];
+                        for (long chunkcounter = 0; chunkcounter < 4; chunkcounter++) {
+                            long numobj = poly[blk2].obj[chunkcounter].nobj;
+                            for (long objcounter = 0; objcounter < numobj; objcounter++) {
+                                num = poly[blk2].obj[chunkcounter].numpoly[objcounter];
+
+                                p = poly[blk2].obj[chunkcounter].poly[objcounter];
+                                for (j = 0; j < num; j++, p++) {
+                                    if (blk == 0 && j2 == 0 && k == 1) {
+                                        std::cout << "keke" << std::endl;
+                                    }
+
+                                    //p->texture
+                                    if (result != 1) {
+                                        assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                                        corner1[0] = (double) v2[p->vertex[0]].x;
+                                        corner1[2] = (double) v2[p->vertex[0]].z;
+                                        corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                        assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                                        corner2[0] = (double) v2[p->vertex[3]].x;
+                                        corner2[2] = (double) v2[p->vertex[3]].z;
+                                        corner2[1] = (double) v2[p->vertex[3]].y;
+
+                                        assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                                        corner3[0] = (double) v2[p->vertex[2]].x;
+                                        corner3[2] = (double) v2[p->vertex[2]].z;
+                                        corner3[1] = (double) v2[p->vertex[2]].y;
+                                        //run first Ray test, if false, then next quad.
+                                        Pos[0] = StartPos[0];
+                                        Pos[1] = StartPos[1];
+                                        Pos[2] = StartPos[2];
+                                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt,
+                                                                    &uu,
+                                                                    &vv);
+                                    } else {
+                                        //j=num;
+                                        i = 300;
+                                    }
+
+                                    if (result != 1) {
+                                        corner1[0] = (double) v2[p->vertex[0]].x;
+                                        corner1[2] = (double) v2[p->vertex[0]].z;
+                                        corner1[1] = (double) v2[p->vertex[0]].y;
+
+                                        corner2[0] = (double) v2[p->vertex[2]].x;
+                                        corner2[2] = (double) v2[p->vertex[2]].z;
+                                        corner2[1] = (double) v2[p->vertex[2]].y;
+
+                                        corner3[0] = (double) v2[p->vertex[1]].x;
+                                        corner3[2] = (double) v2[p->vertex[1]].z;
+                                        corner3[1] = (double) v2[p->vertex[1]].y;
+                                        //check the second half of the quad
+
+                                        Pos[0] = StartPos[0];
+                                        Pos[1] = StartPos[1];
+                                        Pos[2] = StartPos[2];
+                                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt,
+                                                                    &uu,
+                                                                    &vv);
+                                    } else {
+                                        //j=num;
+                                        i = 300;
+                                    }
+                                    //Make same with another side: (FIX: not needed...)
+                                    /*if (result != 1) {
+                                        assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
+                                        corner1[0] = (double)v2[p->vertex[0]].x;
+                                        corner1[2] = (double)v2[p->vertex[0]].z;
+                                        corner1[1] = (double)v2[p->vertex[0]].y;
+
+                                        assert(p->vertex[1] >= 0 && p->vertex[1] < trk[blk2].nVertices);
+                                        corner2[0] = (double)v2[p->vertex[3]].x;
+                                        corner2[2] = (double)v2[p->vertex[3]].z;
+                                        corner2[1] = (double)v2[p->vertex[3]].y;
+
+                                        assert(p->vertex[2] >= 0 && p->vertex[2] < trk[blk2].nVertices);
+                                        corner3[0] = (double)v2[p->vertex[2]].x;
+                                        corner3[2] = (double)v2[p->vertex[2]].z;
+                                        corner3[1] = (double)v2[p->vertex[2]].y;
+                                        //run first Ray test, if false, then next quad.
+                                        Pos[0]=StartPos[0];
+                                        Pos[1]=StartPos[1];
+                                        Pos[2]=StartPos[2];
+                                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                                    }
+                                    else
+                                    {
+                                        //j=num;
+                                        i=300;
+                                    }
+
+                                    if (result != 1) {
+                                        corner1[0] = (double)v2[p->vertex[0]].x;
+                                        corner1[2] = (double)v2[p->vertex[0]].z;
+                                        corner1[1] = (double)v2[p->vertex[0]].y;
+
+                                        corner2[0] = (double)v2[p->vertex[2]].x;
+                                        corner2[2] = (double)v2[p->vertex[2]].z;
+                                        corner2[1] = (double)v2[p->vertex[2]].y;
+
+                                        corner3[0] = (double)v2[p->vertex[1]].x;
+                                        corner3[2] = (double)v2[p->vertex[1]].z;
+                                        corner3[1] = (double)v2[p->vertex[1]].y;
+                                        //check the second half of the quad
+
+                                        Pos[0]=StartPos[0];
+                                        Pos[1]=StartPos[1];
+                                        Pos[2]=StartPos[2];
+                                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
+                                    }
+                                    else
+                                    {
+                                        //j=num;
+                                        i=300;
+                                    }*/
+
+                                    if (result == 1) {
+                                        std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k
+                                                  << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
+                                    }
+
+                                }
+                            }
+                        }
+
+                        //}
+                        //Blue Polygons End.
+                        //Xtra Object Start
+                        //if (result=!1) {
+                        for (int XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
+                            FLOATPT *vert_array = xobj[blk2].obj[XObjCounter].vert;
+                            if (xobj[blk2].obj[XObjCounter].crosstype != 6) {
+                                for (int XObjPoly = 0;
+                                     XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++) {
+
+                                    POLYGONDATA &quad = xobj[blk2].obj[XObjCounter].polyData[XObjPoly];
+                                    FLOATPT &ref_point = xobj[blk2].obj[XObjCounter].ptRef;
+
+
+                                    if (result != 1) {
+
+                                        if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
+
+                                            corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
+                                            corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
+                                            corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
+
+
+                                            corner2[0] = (double) vert_array[quad.vertex[3]].x + ref_point.x;
+                                            corner2[2] = (double) vert_array[quad.vertex[3]].z + ref_point.z;
+                                            corner2[1] = (double) vert_array[quad.vertex[3]].y + ref_point.y;
+
+
+                                            corner3[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
+                                            corner3[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
+                                            corner3[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
+                                        } else {
+                                            corner1[0] = (double) vert_array[quad.vertex[0]].x;
+                                            corner1[2] = (double) vert_array[quad.vertex[0]].z;
+                                            corner1[1] = (double) vert_array[quad.vertex[0]].y;
+
+
+                                            corner2[0] = (double) vert_array[quad.vertex[3]].x;
+                                            corner2[2] = (double) vert_array[quad.vertex[3]].z;
+                                            corner2[1] = (double) vert_array[quad.vertex[3]].y;
+
+
+                                            corner3[0] = (double) vert_array[quad.vertex[2]].x;
+                                            corner3[2] = (double) vert_array[quad.vertex[2]].z;
+                                            corner3[1] = (double) vert_array[quad.vertex[2]].y;
+                                        }
+                                        //run first Ray test, if false, then next quad.
+                                        Pos[0] = StartPos[0];
+                                        Pos[1] = StartPos[1];
+                                        Pos[2] = StartPos[2];
+                                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt,
+                                                                    &uu,
+                                                                    &vv);
+                                    } else {
+                                        //j=num;
+                                        i = 300;
+                                    }
+
+                                    if (result != 1) {
+
+                                        if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
+
+                                            corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
+                                            corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
+                                            corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
+
+
+                                            corner2[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
+                                            corner2[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
+                                            corner2[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
+
+
+                                            corner3[0] = (double) vert_array[quad.vertex[1]].x + ref_point.x;
+                                            corner3[2] = (double) vert_array[quad.vertex[1]].z + ref_point.z;
+                                            corner3[1] = (double) vert_array[quad.vertex[1]].y + ref_point.y;
+                                        } else {
+                                            corner1[0] = (double) vert_array[quad.vertex[0]].x;
+                                            corner1[2] = (double) vert_array[quad.vertex[0]].z;
+                                            corner1[1] = (double) vert_array[quad.vertex[0]].y;
+
+
+                                            corner2[0] = (double) vert_array[quad.vertex[2]].x;
+                                            corner2[2] = (double) vert_array[quad.vertex[2]].z;
+                                            corner2[1] = (double) vert_array[quad.vertex[2]].y;
+
+
+                                            corner3[0] = (double) vert_array[quad.vertex[1]].x;
+                                            corner3[2] = (double) vert_array[quad.vertex[1]].z;
+                                            corner3[1] = (double) vert_array[quad.vertex[1]].y;
+                                        }
+                                        //run first Ray test, if false, then next quad.
+                                        Pos[0] = StartPos[0];
+                                        Pos[1] = StartPos[1];
+                                        Pos[2] = StartPos[2];
+                                        result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt,
+                                                                    &uu,
+                                                                    &vv);
+                                    } else {
+                                        //j=num;
+                                        i = 300;
+                                    }
+                                }
+                            }
+                        }
+                        //}
+                        //Xtra Object End.
+                        i++;
+
+                    }
+                    if (result == 1)
+                        sv[p2->vertex[k]] = 0xFF666666; //0xFF777777;
+                    else
+                        sv[p2->vertex[k]] = 0xFFFFFFFF;
+                    //result=0;
+                    //delete tested[];
+
+                }
+            }
+        }
+    }
+}
 
