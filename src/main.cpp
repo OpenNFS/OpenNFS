@@ -279,7 +279,7 @@ int main(int argc, const char *argv[]) {
         if (ImGui::Button("Reset View")) {
             mainCamera.resetView();
         };
-        ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, 200);
+        ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, trkLoader.nBlocks);
         ImGui::ColorEdit3("Clear Colour", (float *) &clear_color); // Edit 3 floats representing a color
         ImGui::ColorEdit3("Testing Light Colour", (float *) &test_light_color);
         ImGui::ColorEdit3("Car Colour", (float *) &car_color);
