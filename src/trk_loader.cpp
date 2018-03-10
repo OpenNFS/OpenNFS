@@ -561,10 +561,9 @@ void trk_loader::ParseTRKModels() {
                 obj_verts.emplace_back(glm::vec3(trk_block.vert[v].x / 10,
                                                  trk_block.vert[v].y / 10,
                                                  trk_block.vert[v].z / 10));
-                long shading_data = trk_block.unknVertices[v];
-                shading_verts.emplace_back(
-                        glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
-                                  (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
+                unsigned long shading_data = trk_block.unknVertices[v];
+                shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
+                                                     (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
             }
             // 4 OBJ Poly blocks
             for (int j = 0; j < 4; j++) {
@@ -648,11 +647,9 @@ void trk_loader::ParseTRKModels() {
                                                  x->ptRef.z / 10 + x->vert->z / 10));
                     long shading_data = x->unknVertices[k];
                     //RGBA
-                    shading_verts.emplace_back(
-                            glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
-                                      (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
+                    shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
+                                                         (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
                 }
-                // TODO: There are also these extras: x->unknVertices, sz: 4*x->nVertices
                 std::set<short> minimal_texture_ids_set;
                 std::vector<unsigned int> vertex_indices;
                 std::vector<glm::vec2> uvs;
@@ -715,10 +712,9 @@ void trk_loader::ParseTRKModels() {
             verts.emplace_back(
                     glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
             // Break long of RGB into 4 normalised floats and store into vec4
-            long shading_data = trk_block.unknVertices[j];
-            shading_verts.emplace_back(
-                    glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
-                              (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
+             long shading_data = trk_block.unknVertices[j];
+            shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
+                                                 (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
         // Get indices from Chunk 4 for High Res polys
         LPPOLYGONDATA poly_chunk = polygon_block.poly[4];
@@ -782,10 +778,9 @@ void trk_loader::ParseTRKModels() {
                 verts.emplace_back(
                         glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
                 // Break long of RGB into 4 normalised floats and store into vec4
-                long shading_data = trk_block.unknVertices[j];
-                shading_verts.emplace_back(
-                        glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
-                                  (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
+                 long shading_data = trk_block.unknVertices[j];
+                shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
+                                                     (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
             }
             // Get indices from Chunk 4 for High Res polys
             LPPOLYGONDATA poly_chunk = polygon_block.poly[6];
@@ -884,6 +879,8 @@ FLOATPT trk_loader::VectorNormalize(FLOATPT nc) {
     nc.z = nc.z / length;
     return nc;
 }
+
+
 
 FLOATPT trk_loader::NormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c) {
     FLOATPT v1, v2, out;

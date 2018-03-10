@@ -63,7 +63,7 @@ void main(){
      if (tempColor.a != 1.0)
         discard;
 
-     vec4 fogColor = vec4(80.0f/255.0f, 55.0f/255.0f, 0.0f, 1.0f);
+     /*vec4 fogColor = vec4(80.0f/255.0f, 55.0f/255.0f, 0.0f, 1.0f);
      float dist = 0;
      float fogFactor = 0;
      // Compute distance used in fog equations
@@ -78,9 +78,9 @@ void main(){
      color = (tempColor);
      color.r +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
      color.g +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
-     color.b +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
+     color.b +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;*/
 
-    /* vec3 unitNormal = normalize(surfaceNormal);
+     /*vec3 unitNormal = normalize(surfaceNormal);
      vec3 unitLightVector = normalize(toLightVector);
 
      // Diffuse
@@ -98,45 +98,44 @@ void main(){
      float dampedFactor = pow(specularFactor, shineDamper);
      vec3 finalSpecular = dampedFactor * reflectivity * lightColour;
 
-    color = vec4(diffuse, 1.0) * (tempColor);// + vec4(finalSpecular, 1.0) ;
-    color.a = 1.0;*/
+     color = vec4(diffuse, 1.0) * (tempColor);// + vec4(finalSpecular, 1.0) ;
+     color.a = 1.0;*/
 
      // NFS PS2.0 Port
-     /*vec4 v0 = nfsDataOut; // Something done to this? (Add diffuse and specular components)
-     vec4 v1 = vec4(0.0f); // Likely incorrect, fog factor
+     vec4 v0 = nfsDataOut; // Something done to this? (Add diffuse and specular components)
+     vec4 v1 = vec4(0.08f); // Fog factor (read from HRZ?)
      vec4 c5 = vec4(0.0f);
      vec4 c6 = vec4(1.0f);
      vec4 c7 = vec4(0.314f, 0.216f, 0.000f, 1.000f);
-     vec4 r0 = vec4(0.0f, 0.0f, 0.0f, 1.0f); // Black mip sample (Possibly incorrect)
-     vec4 r1 = trackColour;
-
+     vec4 r0 = vec4(0.0f, 0.0f, 0.0f, 0.0f); // Black mip sample (Possibly incorrect)
+     vec4 r1 = tempColor;
      vec4 r10 = nfsDataOut;
      vec4 r2 = c5;
      vec4 r3 = r0;
      vec4 r4;
      r4.xyz = r3.xyz;
-    r2 = c5;
-    r3 = r0;
-    r4.w = r3.w;
-    r0 = r4;
-    r2 = c5;
-    r3 = r1;
-    r4.xyz = r3.xyz;
-    r2 = c5;
-    r3 = r1;
-    r4.w = r3.w;
-    vec4 r5 = v0;
-    vec4 r6 = r4;
-    vec4 r7 = r5;
-    vec4 r8 = r7 * r6;
-    vec4 r9;
-    r9.xyz = r8.xyz;
-    r5 = v0;
-    r6 = r4;
-    r7 = r5;
-    r8 = r7 * r6;
-    r9.w = r8.w;
-    r10 = mix(r9, c7, v1.w);
-    r10.w = r9.w;
-    color = r10;*/
+     r2 = c5;
+     r3 = r0;
+     r4.w = r3.w;
+     r0 = r4;
+     r2 = c5;
+     r3 = r1;
+     r4.xyz = r3.xyz;
+     r2 = c5;
+     r3 = r1;
+     r4.w = r3.w;
+     vec4 r5 = v0;
+     vec4 r6 = r4;
+     vec4 r7 = r5;
+     vec4 r8 = r7 * r6;
+     vec4 r9;
+     r9.xyz = r8.xyz;
+     r5 = v0;
+     r6 = r4;
+     r7 = r5;
+     r8 = r7 * r6;
+     r9.w = r8.w;
+     r10 = mix(r9, c7, v1.w);
+     r10.w = r9.w;
+     color = r10;
 }

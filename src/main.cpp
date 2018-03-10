@@ -259,7 +259,7 @@ int main(int argc, const char *argv[]) {
             for (auto &track_block_model : active_track_Block.models) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
-                trackShader.loadSpecular(carSpecDamper, carSpecReflectivity);
+                trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
                 if(active_track_Block.lights.size() > 0){
                     trackShader.loadLight(active_track_Block.lights[0]);
                 } else {
@@ -273,11 +273,11 @@ int main(int argc, const char *argv[]) {
             for (auto &light : active_track_Block.lights) {
                 glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
                 glm::vec3 position_min = orientation *
-                                         glm::vec3(light.position.x / 10 - lightSize, light.position.y / 10 - lightSize,
-                                                   light.position.z / 10 - lightSize);
+                                         glm::vec3(light.position.x - lightSize, light.position.y - lightSize,
+                                                   light.position.z - lightSize);
                 glm::vec3 position_max = orientation *
-                                         glm::vec3(light.position.x / 10 + lightSize, light.position.y / 10 + lightSize,
-                                                   light.position.z / 10 + lightSize);
+                                         glm::vec3(light.position.x + lightSize, light.position.y + lightSize,
+                                                   light.position.z + lightSize);
                 btVector3 colour = btVector3(light.type / 15, light.type / 15, light.type / 15);
                 mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z),
                                       btVector3(position_max.x, position_max.y, position_max.z), colour);
