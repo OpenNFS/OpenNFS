@@ -72,8 +72,6 @@ public:
 
     std::map<short, Texture> getTextures();
 
-    std::vector<Light> getLights();
-
 protected:
     std::map<short, GLuint> texture_gl_mappings;
     std::map<short, Texture> textures;

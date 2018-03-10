@@ -5,38 +5,62 @@ in vec2 UV;
 flat in uint texIndex;
 in vec4 nfsDataOut;
 
-in vec3 world_pos;
-in vec3 world_normal;
+// Diffuse and Specular
+in vec3 surfaceNormal;
+in vec3 toLightVector;
+in vec3 toCameraVector;
+
+// Fog
+in vec3 worldPosition;
 in vec4 viewSpace;
 
 // Ouput data
 out vec4 color;
 
-uniform sampler2D texture_array[16];
+uniform sampler2D texture_array[32];
+uniform vec3 lightColour;
+uniform float shineDamper;
+uniform float reflectivity;
 
 void main(){
     vec4 tempColor;
      // Hack: Texture atlas implementation ASAP
      switch(texIndex){
-        case 0: tempColor = texture(texture_array[0], UV).rgba; break;
-        case 1: tempColor = texture(texture_array[1], UV).rgba; break;
-        case 2: tempColor = texture(texture_array[2], UV).rgba; break;
-        case 3: tempColor = texture(texture_array[3], UV).rgba; break;
-        case 4: tempColor = texture(texture_array[4], UV).rgba; break;
-        case 5: tempColor = texture(texture_array[5], UV).rgba; break;
-        case 6: tempColor = texture(texture_array[6], UV).rgba; break;
-        case 7: tempColor = texture(texture_array[7], UV).rgba; break;
-        case 8: tempColor = texture(texture_array[8], UV).rgba; break;
-        case 9: tempColor = texture(texture_array[9], UV).rgba; break;
-        case 10: tempColor = texture(texture_array[10], UV).rgba; break;
-        case 11: tempColor = texture(texture_array[11], UV).rgba; break;
-        case 12: tempColor = texture(texture_array[12], UV).rgba; break;
-        case 13: tempColor = texture(texture_array[13], UV).rgba; break;
-        case 14: tempColor = texture(texture_array[14], UV).rgba; break;
-        case 15: tempColor = texture(texture_array[15], UV).rgba; break;
+       case 0: tempColor = texture(texture_array[0], UV).rgba; break;
+               case 1: tempColor = texture(texture_array[1], UV).rgba; break;
+               case 2: tempColor = texture(texture_array[2], UV).rgba; break;
+               case 3: tempColor = texture(texture_array[3], UV).rgba; break;
+               case 4: tempColor = texture(texture_array[4], UV).rgba; break;
+               case 5: tempColor = texture(texture_array[5], UV).rgba; break;
+               case 6: tempColor = texture(texture_array[6], UV).rgba; break;
+               case 7: tempColor = texture(texture_array[7], UV).rgba; break;
+               case 8: tempColor = texture(texture_array[8], UV).rgba; break;
+               case 9: tempColor = texture(texture_array[9], UV).rgba; break;
+               case 10: tempColor = texture(texture_array[10], UV).rgba; break;
+               case 11: tempColor = texture(texture_array[11], UV).rgba; break;
+               case 12: tempColor = texture(texture_array[12], UV).rgba; break;
+               case 13: tempColor = texture(texture_array[13], UV).rgba; break;
+               case 14: tempColor = texture(texture_array[14], UV).rgba; break;
+               case 15: tempColor = texture(texture_array[15], UV).rgba; break;
+               case 16: tempColor = texture(texture_array[16], UV).rgba; break;
+               case 17: tempColor = texture(texture_array[17], UV).rgba; break;
+               case 18: tempColor = texture(texture_array[18], UV).rgba; break;
+               case 19: tempColor = texture(texture_array[19], UV).rgba; break;
+               case 20: tempColor = texture(texture_array[20], UV).rgba; break;
+               case 21: tempColor = texture(texture_array[21], UV).rgba; break;
+               case 22: tempColor = texture(texture_array[22], UV).rgba; break;
+               case 23: tempColor = texture(texture_array[23], UV).rgba; break;
+               case 24: tempColor = texture(texture_array[24], UV).rgba; break;
+               case 25: tempColor = texture(texture_array[25], UV).rgba; break;
+               case 26: tempColor = texture(texture_array[26], UV).rgba; break;
+               case 27: tempColor = texture(texture_array[27], UV).rgba; break;
+               case 28: tempColor = texture(texture_array[28], UV).rgba; break;
+               case 29: tempColor = texture(texture_array[29], UV).rgba; break;
+               case 30: tempColor = texture(texture_array[30], UV).rgba; break;
+               case 31: tempColor = texture(texture_array[31], UV).rgba; break;
      }
 
-     if (tempColor.a == 0.0)
+     if (tempColor.a != 1.0)
         discard;
 
      vec4 fogColor = vec4(80.0f/255.0f, 55.0f/255.0f, 0.0f, 1.0f);
@@ -51,5 +75,68 @@ void main(){
 
      //vec4 nfsColor = 0.7 *(tempColor + vec4(nfsDataOut.xyz, 1.0f));
      //color = mix(fogColor, nfsColor, fogFactor);
-     color = (tempColor + vec4(nfsDataOut.xyz, 0.0f));
+     color = (tempColor);
+     color.r +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
+     color.g +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
+     color.b +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
+
+    /* vec3 unitNormal = normalize(surfaceNormal);
+     vec3 unitLightVector = normalize(toLightVector);
+
+     // Diffuse
+     float nDot1 = dot(unitNormal, unitLightVector);
+     float brightness = max(nDot1, 0.2);
+     vec3 diffuse = brightness * lightColour;
+
+     vec3 unitVectorToCamera = normalize(toCameraVector);
+     vec3 lightDirection = -unitLightVector;
+     vec3 reflectedLightDirection = reflect(lightDirection, unitNormal);
+
+     // Specular
+     float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
+     specularFactor = max(specularFactor, 0.0);
+     float dampedFactor = pow(specularFactor, shineDamper);
+     vec3 finalSpecular = dampedFactor * reflectivity * lightColour;
+
+    color = vec4(diffuse, 1.0) * (tempColor);// + vec4(finalSpecular, 1.0) ;
+    color.a = 1.0;*/
+
+     // NFS PS2.0 Port
+     /*vec4 v0 = nfsDataOut; // Something done to this? (Add diffuse and specular components)
+     vec4 v1 = vec4(0.0f); // Likely incorrect, fog factor
+     vec4 c5 = vec4(0.0f);
+     vec4 c6 = vec4(1.0f);
+     vec4 c7 = vec4(0.314f, 0.216f, 0.000f, 1.000f);
+     vec4 r0 = vec4(0.0f, 0.0f, 0.0f, 1.0f); // Black mip sample (Possibly incorrect)
+     vec4 r1 = trackColour;
+
+     vec4 r10 = nfsDataOut;
+     vec4 r2 = c5;
+     vec4 r3 = r0;
+     vec4 r4;
+     r4.xyz = r3.xyz;
+    r2 = c5;
+    r3 = r0;
+    r4.w = r3.w;
+    r0 = r4;
+    r2 = c5;
+    r3 = r1;
+    r4.xyz = r3.xyz;
+    r2 = c5;
+    r3 = r1;
+    r4.w = r3.w;
+    vec4 r5 = v0;
+    vec4 r6 = r4;
+    vec4 r7 = r5;
+    vec4 r8 = r7 * r6;
+    vec4 r9;
+    r9.xyz = r8.xyz;
+    r5 = v0;
+    r6 = r4;
+    r7 = r5;
+    r8 = r7 * r6;
+    r9.w = r8.w;
+    r10 = mix(r9, c7, v1.w);
+    r10.w = r9.w;
+    color = r10;*/
 }

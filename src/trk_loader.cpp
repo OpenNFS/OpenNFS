@@ -31,7 +31,7 @@ bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLs
                         BITMAPINFO *info = (BITMAPINFO *) (data +
                                                            sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
                         BITMAPINFO *info_a = (BITMAPINFO *) (data_a +
-                                                           sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
+                                                             sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
                         if (info->bmiHeader.biCompression == BI_RGB) {
                             width = info->bmiHeader.biWidth;
                             if (width > 0) {
@@ -121,11 +121,16 @@ bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLs
 
 Texture LoadTexture(TEXTUREBLOCK track_texture) {
     std::stringstream filename;
-    filename << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
     std::stringstream filename_alpha;
-    filename_alpha << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture
-                   << "-a.BMP";
-
+    if (track_texture.islane) {
+        filename << "../resources/lanes/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
+        filename_alpha << "../resources/lanes/" << setfill('0') << setw(4) << track_texture.texture + 9
+                       << "-a.BMP";
+    } else {
+        filename << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+        filename_alpha << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture
+                       << "-a.BMP";
+    }
     GLubyte *data;
     GLsizei width = track_texture.width;
     GLsizei height = track_texture.height;
@@ -455,8 +460,8 @@ std::map<short, GLuint> trk_loader::GenTrackTextures(std::map<short, Texture> te
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         // TODO: Use Filtering for Textures with no alpha component
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         gluBuild2DMipmaps(GL_TEXTURE_2D, 4, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE,
                           (const GLvoid *) texture.texture_data);
     }
@@ -535,19 +540,6 @@ std::vector<Track> trk_loader::ParseCOLModels() {
     return col_models;
 }
 
-std::vector<Light> trk_loader::getLights() {
-    // TODO: Probably best to also do this per track block
-    std::vector<Light> lights;
-
-    for (int i = 0; i < nBlocks; i++) {
-        TRKBLOCK trk_block = trk[i];
-        for (int j = 0; j < trk_block.nLightsrc; j++) {
-            lights.emplace_back(Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type));
-        }
-    }
-    return lights;
-}
-
 void trk_loader::ParseTRKModels() {
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (int i = 0; i < nBlocks; i++) {
@@ -555,6 +547,11 @@ void trk_loader::ParseTRKModels() {
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
         TrackBlock current_track_block(i, trk_block);
+
+        // Light sources
+        for (int j = 0; j < trk_block.nLightsrc; j++) {
+            current_track_block.lights.emplace_back(Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type));
+        }
 
         if (trk_block.nXobj == 0) {
             // Get Object vertices
@@ -769,6 +766,67 @@ void trk_loader::ParseTRKModels() {
                                               shading_verts);
         current_trk_block_model.enable();
         current_track_block.models.emplace_back(current_trk_block_model);
+
+        // Road Lanes
+        if (trk_block.nVertices > trk_block.nHiResVert + 50) { // TODO: Segfault without this random heuristic in Debug mode. What is the real reason to exclude these trackblocks?
+            // Keep track of unique textures in trackblock for later OpenGL bind
+            std::set<short> minimal_texture_ids_set;
+            // Mesh Data
+            std::vector<unsigned int> vertex_indices;
+            std::vector<glm::vec2> uvs;
+            std::vector<unsigned int> texture_indices;
+            std::vector<glm::vec3> verts;
+            std::vector<glm::vec4> shading_verts;
+            std::vector<glm::vec3> norms;
+            for (int j = 0; j < trk_block.nVertices; j++) {
+                verts.emplace_back(
+                        glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
+                // Break long of RGB into 4 normalised floats and store into vec4
+                long shading_data = trk_block.unknVertices[j];
+                shading_verts.emplace_back(
+                        glm::vec4(((shading_data >> 16) & 0xFF) / 255, ((shading_data >> 8) & 0xFF) / 255,
+                                  (shading_data & 0xFF) / 255, ((shading_data >> 24) & 0xFF) / 255));
+            }
+            // Get indices from Chunk 4 for High Res polys
+            LPPOLYGONDATA poly_chunk = polygon_block.poly[6];
+            if(polygon_block.sz[6] != 0){
+                for (int k = 0; k < polygon_block.sz[6]; k++) {
+                    TEXTUREBLOCK texture_for_block = texture[poly_chunk[k].texture];
+                    minimal_texture_ids_set.insert(texture_for_block.texture);
+                    norms.emplace_back(glm::vec3(0, 0, 0));
+                    norms.emplace_back(glm::vec3(0, 0, 0));
+                    norms.emplace_back(glm::vec3(0, 0, 0));
+                    norms.emplace_back(glm::vec3(0, 0, 0));
+                    norms.emplace_back(glm::vec3(0, 0, 0));
+                    norms.emplace_back(glm::vec3(0, 0, 0));
+                    vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
+                    vertex_indices.emplace_back(poly_chunk[k].vertex[1]);
+                    vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
+                    vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
+                    vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
+                    vertex_indices.emplace_back(poly_chunk[k].vertex[3]);
+                    uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                    uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
+                    uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                    uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                    uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                    uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+                    texture_indices.emplace_back(texture_for_block.texture);
+                    texture_indices.emplace_back(texture_for_block.texture);
+                    texture_indices.emplace_back(texture_for_block.texture);
+                    texture_indices.emplace_back(texture_for_block.texture);
+                    texture_indices.emplace_back(texture_for_block.texture);
+                    texture_indices.emplace_back(texture_for_block.texture);
+                }
+                // Get ordered list of unique texture id's present in block
+                std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+                Track road_lane_model = Track("Lane", i, verts, norms, uvs, texture_indices, vertex_indices,
+                                              texture_ids,
+                                              shading_verts);
+                road_lane_model.enable();
+                current_track_block.models.emplace_back(road_lane_model);
+            }
+        }
         track_blocks.emplace_back(current_track_block);
     }
 }
@@ -1998,4 +2056,3 @@ void trk_loader::ObjectShadingFixer(int blk, float theta, float rho) {
         }
     }
 }
-

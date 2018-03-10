@@ -3,6 +3,7 @@
 //
 #include "TrackShader.h"
 
+
 const std::string vertexSrc = "../shaders/TrackVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/TrackFragmentShader.fragmentshader";
 
@@ -25,6 +26,10 @@ void TrackShader::getAllUniformLocations() {
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
     TrackTexturesID = getUniformLocation("texture_array");
+    lightPositionLocation = getUniformLocation("lightPosition");
+    lightColourLocation = getUniformLocation("lightColour");
+    shineDamperLocation=  getUniformLocation("shineDamper");
+    reflectivityLocation =  getUniformLocation("reflectivity");
 }
 
 void TrackShader::customCleanup(){
@@ -41,6 +46,16 @@ void TrackShader::bindTrackTextures(Track track_block, std::map<short, GLuint> g
     const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
                                 24, 25, 26, 27, 28, 29, 30, 31};
     glUniform1iv(TrackTexturesID, 32, samplers);
+}
+
+void TrackShader::loadLight(Light light){
+    loadVec3(lightPositionLocation, light.position);
+    loadVec3(lightColourLocation, light.colour);
+}
+
+void TrackShader::loadSpecular(float damper, float reflectivity){
+    loadFloat(shineDamperLocation, damper);
+    loadFloat(reflectivityLocation, reflectivity);
 }
 
 void TrackShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation){

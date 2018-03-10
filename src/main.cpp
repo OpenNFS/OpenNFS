@@ -141,7 +141,6 @@ int main(int argc, const char *argv[]) {
     trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
-    std::vector<Light> track_lights = trkLoader.getLights();
     // TODO: Reference COLs to track blocks
     //std::vector<Track> col_models = trkLoader.getCOLModels();
     //cars.insert(cars.end(), col_models.begin(), col_models.end());
@@ -170,7 +169,7 @@ int main(int argc, const char *argv[]) {
     CarShader carShader;
 
     // Data used for culling
-    Camera mainCamera(glm::vec3(-31,0.07,-5), 45.0f);
+    Camera mainCamera(glm::vec3(-31, 0.07, -5), 45.0f);
     std::vector<TrackBlock> activeTrackBlocks;
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
@@ -193,11 +192,15 @@ int main(int argc, const char *argv[]) {
     }
 
     /*------- UI -------*/
-    ImVec4 clear_color = ImVec4((float) 64/255,(float) 30/255,(float)  130/255, 1.00f);
-    ImVec4 car_color = ImVec4(0.0f,0.0f,0.0f, 1.00f);
-    ImVec4 test_light_color = ImVec4(1.0f,1.0f,1.0f, 1.00f);
-    float specReflectivity = 1;
-    float specDamper = 10;
+    ImVec4 clear_color = ImVec4((float) 64 / 255, (float) 30 / 255, (float) 130 / 255, 1.00f);
+    ImVec4 car_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
+    ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
+    float carSpecReflectivity = 1;
+    float carSpecDamper = 10;
+
+    float trackSpecReflectivity = 1;
+    float trackSpecDamper = 10;
+
     int blockDrawDistance = 15;
     bool window_active = true;
 
@@ -216,9 +219,12 @@ int main(int argc, const char *argv[]) {
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
             for (auto &track_block : track_blocks) {
-                glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0)));
-                glm::vec3 position = orientation*glm::vec3(track_block.trk.ptCentre.x / 10,track_block.trk.ptCentre.y / 10,track_block.trk.ptCentre.z / 10);
-                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(position.x,position.y, position.z)));
+                glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+                glm::vec3 position = orientation *
+                                     glm::vec3(track_block.trk.ptCentre.x / 10, track_block.trk.ptCentre.y / 10,
+                                               track_block.trk.ptCentre.z / 10);
+                float distanceSqr = glm::length2(
+                        glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
                 if (distanceSqr < lowestDistanceSqr) {
                     closestBlockID = track_block.block_id;
                     lowestDistanceSqr = distanceSqr;
@@ -238,33 +244,46 @@ int main(int argc, const char *argv[]) {
         for (auto &car : cars) {
             car.update();
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car.ModelMatrix);
-            carShader.loadSpecular(specDamper, specReflectivity);
+            carShader.loadSpecular(carSpecDamper, carSpecReflectivity);
             carShader.loadCarColor(glm::vec3(car_color.x, car_color.y, car_color.z));
-            carShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
+            carShader.loadLight(
+                    Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
             carShader.loadCarTexture();
             car.render();
         }
         carShader.unbind();
 
-        trackShader.use();
+
         for (auto &active_track_Block : activeTrackBlocks) {
+            trackShader.use();
             for (auto &track_block_model : active_track_Block.models) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
+                trackShader.loadSpecular(carSpecDamper, carSpecReflectivity);
+                if(active_track_Block.lights.size() > 0){
+                    trackShader.loadLight(active_track_Block.lights[0]);
+                } else {
+                    trackShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
+                }
                 trackShader.bindTrackTextures(track_block_model, gl_id_map);
                 track_block_model.render();
             }
+            trackShader.unbind();
+            float lightSize = 0.5;
+            for (auto &light : active_track_Block.lights) {
+                glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+                glm::vec3 position_min = orientation *
+                                         glm::vec3(light.position.x / 10 - lightSize, light.position.y / 10 - lightSize,
+                                                   light.position.z / 10 - lightSize);
+                glm::vec3 position_max = orientation *
+                                         glm::vec3(light.position.x / 10 + lightSize, light.position.y / 10 + lightSize,
+                                                   light.position.z / 10 + lightSize);
+                btVector3 colour = btVector3(light.type / 15, light.type / 15, light.type / 15);
+                mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z),
+                                      btVector3(position_max.x, position_max.y, position_max.z), colour);
+            }
         }
-        trackShader.unbind();
 
-        float lightSize = 0.5;
-        for(auto &light : track_lights){
-            glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0)));
-            glm::vec3 position_min = orientation*glm::vec3(light.position.x/10-lightSize,light.position.y/10-lightSize,light.position.z/10-lightSize);
-            glm::vec3 position_max = orientation*glm::vec3(light.position.x/10+lightSize,light.position.y/10+lightSize,light.position.z/10+lightSize);
-            btVector3 colour = btVector3(light.type/15, light.type/15,light.type/15);
-            mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z), btVector3(position_max.x, position_max.y, position_max.z),colour);
-        }
 
         // Draw UI (Tactically)
         static float f = 0.0f;
@@ -283,17 +302,21 @@ int main(int argc, const char *argv[]) {
         ImGui::ColorEdit3("Clear Colour", (float *) &clear_color); // Edit 3 floats representing a color
         ImGui::ColorEdit3("Testing Light Colour", (float *) &test_light_color);
         ImGui::ColorEdit3("Car Colour", (float *) &car_color);
-        ImGui::SliderFloat("Specular Damper", &specDamper, 0, 100);
-        ImGui::SliderFloat("Specular Reflectivity", &specReflectivity, 0, 10);
+        ImGui::SliderFloat("Car Specular Damper", &carSpecDamper, 0, 100);
+        ImGui::SliderFloat("Car Specular Reflectivity", &carSpecReflectivity, 0, 10);
+        ImGui::SliderFloat("Track Specular Damper", &trackSpecDamper, 0, 100);
+        ImGui::SliderFloat("Track Specular Reflectivity", &trackSpecReflectivity, 0, 10);
 
         for (auto &mesh : cars) {
-            ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);      // Edit bools storing model draw state
+            ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(),
+                            &mesh.enabled);      // Edit bools storing model draw state
         }
         if (ImGui::TreeNode("Track Blocks")) {
             for (auto &track_block : track_blocks) {
                 if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
                     for (auto &block_model : track_block.models) {
-                        if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(), block_model.id)) {
+                        if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(),
+                                            block_model.id)) {
                             ImGui::Checkbox("Enabled", &block_model.enabled);
                             ImGui::TreePop();
                         }

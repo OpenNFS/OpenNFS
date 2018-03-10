@@ -7,6 +7,7 @@
 
 #include "Track.h"
 #include "../nfs_data.h"
+#include "Light.h"
 
 class TrackBlock {
 public:
@@ -14,6 +15,7 @@ public:
     int block_id;
     struct TRKBLOCK trk;
     std::vector<Track> models;
+    std::vector<Light> lights;
 
     /* Iterators to allow for ranged for loops with class*/
     class iterator {
