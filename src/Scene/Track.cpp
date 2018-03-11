@@ -44,6 +44,7 @@ void Track::destroy() {
     glDeleteBuffers(1, &uvbuffer);
     glDeleteBuffers(1, &textureIndexBuffer);
     glDeleteBuffers(1, &shadingBuffer);
+    glDeleteBuffers(1, &normalBuffer);
 }
 
 void Track::render() {

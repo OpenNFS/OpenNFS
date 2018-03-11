@@ -24,6 +24,7 @@
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
 #include "Util/Assert.h"
+#include "Shaders/BillboardShader.h"
 
 GLFWwindow *window;
 
@@ -167,6 +168,7 @@ int main(int argc, const char *argv[]) {
     // Create and compile our GLSL programs from the shaders
     TrackShader trackShader;
     CarShader carShader;
+    BillboardShader billboardShader;
 
     // Data used for culling
     Camera mainCamera(glm::vec3(-31, 0.07, -5), 45.0f);
@@ -188,6 +190,11 @@ int main(int argc, const char *argv[]) {
                 return -1;
             }
             dynamicsWorld->addRigidBody(track_block_model.rigidBody);
+        }
+        for (auto &track_block_light : track_block.lights) {
+            if (!track_block_light.genBuffers()) {
+                return -1;
+            }
         }
     }
 
@@ -269,19 +276,15 @@ int main(int argc, const char *argv[]) {
                 track_block_model.render();
             }
             trackShader.unbind();
-            float lightSize = 0.5;
+
+            billboardShader.use();
             for (auto &light : active_track_Block.lights) {
-                glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-                glm::vec3 position_min = orientation *
-                                         glm::vec3(light.position.x - lightSize, light.position.y - lightSize,
-                                                   light.position.z - lightSize);
-                glm::vec3 position_max = orientation *
-                                         glm::vec3(light.position.x + lightSize, light.position.y + lightSize,
-                                                   light.position.z + lightSize);
-                btVector3 colour = btVector3(light.type / 15, light.type / 15, light.type / 15);
-                mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z),
-                                      btVector3(position_max.x, position_max.y, position_max.z), colour);
+                light.update();
+                billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
+                billboardShader.loadLight(light);
+                light.render();
             }
+            billboardShader.unbind();
         }
 
 

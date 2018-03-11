@@ -7,16 +7,11 @@ layout(location = 2) in vec3 normal;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
-out vec2 envUV;
-out vec3 carColour;
 out vec3 surfaceNormal;
-out vec3 toLightVector;
 out vec3 toCameraVector;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
-uniform vec3 colour;
-uniform vec3 lightPosition;
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
@@ -25,20 +20,9 @@ void main(){
 	gl_Position =  projectionMatrix * viewMatrix * worldPosition;
 
     surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
-    toLightVector = lightPosition - worldPosition.xyz;
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 
-    vec3 envReflectVector = reflect( toCameraVector, surfaceNormal);
-    float m = 2. * sqrt(
-        pow( envReflectVector.x, 2. ) +
-        pow( envReflectVector.y, 2. ) +
-        pow( envReflectVector.z + 1., 2. )
-      );
-    envUV = envReflectVector.xy / m + .5;
-
-    // Pass through slider Colour
-    carColour = colour;
-	// UV of the vertex. No special space for this one.
-	UV = vertexUV;
+	// UV of the vertex
+	UV = vec2(1.0, 1.0); //vertexUV;
 }
 

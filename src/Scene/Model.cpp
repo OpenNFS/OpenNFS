@@ -33,7 +33,8 @@ Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     rigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
             0,                  // mass, in kg. 0 -> Static object, will never move.
             motionstate,
-            genCollisionBox(m_vertices),  // collision shape of body
+            //genCollisionBox(m_vertices),  // collision shape of body
+            new btBoxShape(btVector3(5.0f, 5.0f, 5.0f)),
             btVector3(0, 0, 0)    // local inertia
     );
     rigidBody = new btRigidBody(rigidBodyCI);
