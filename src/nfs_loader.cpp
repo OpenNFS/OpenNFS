@@ -193,7 +193,7 @@ glm::vec3 NFS_Loader::getVertices(int partNumber, int offset, unsigned int lengt
         glm::vec3 temp_vertex;
         /* Read X, Y, Z into vertices array*/
         for (int vertAxesIdx = 0; vertAxesIdx < 3; vertAxesIdx++) {
-            temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx]+ globalBuffer[vertAxesIdx])/10;
+            temp_vertex[vertAxesIdx] = (buffer[vertAxesIdx])/10;
         }
         vertices.emplace_back(temp_vertex);
     }
@@ -233,10 +233,7 @@ std::vector<glm::vec3> NFS_Loader::getNormals(int offset, unsigned int length) {
     /*Read Normals in, and normalize dem normals!*/
     for (int normIdx = 0; normIdx < length; normIdx++) {
         fread(normBuffer, 4, 3, fce_file);
-        //normalLength = static_cast<float>(sqrt(pow(normBuffer[0], 2) + pow(normBuffer[1], 2) + pow(normBuffer[2], 2)));
-        //TODO: Drop the hungarian typing?
         glm::vec3 temp_normals = glm::vec3(normBuffer[0], normBuffer[1], normBuffer[2]);
-        //temp_normals /= normalLength;
         normals.emplace_back(temp_normals);
     }
 
@@ -333,6 +330,8 @@ void NFS_Loader::readFCE(const char *fce_path) {
     for (int i = 0; i < model_names.size(); ++i) {
         std::vector<glm::vec3> vertices;
         glm::vec3 center = getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i], vertices);
+        center /= 10;
+        //center += glm::vec3(-31,0.07,-5);
         meshes.emplace_back(Car(model_names[i], i,
                                   vertices,
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),

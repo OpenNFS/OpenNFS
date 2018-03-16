@@ -22,6 +22,8 @@
 #include <boost/concept_check.hpp>
 #include "Scene/TrackBlock.h"
 #include "Scene/Light.h"
+#include <afxres.h>
+#include "Util/Assert.h"
 #define EPSILON 0.000001
 
 class Texture {
@@ -38,6 +40,8 @@ public:
         height = h;
     }
 };
+
+Texture LoadTexture(TEXTUREBLOCK track_texture);
 
 class trk_loader {
 public:

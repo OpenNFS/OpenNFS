@@ -2,9 +2,9 @@
 // Created by Amrik on 16/01/2018.
 //
 
-#include <afxres.h>
+
 #include "trk_loader.h"
-#include "Util/Assert.h"
+
 
 using namespace std;
 
@@ -123,8 +123,8 @@ Texture LoadTexture(TEXTUREBLOCK track_texture) {
     std::stringstream filename;
     std::stringstream filename_alpha;
     if (track_texture.islane) {
-        filename << "../resources/lanes/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
-        filename_alpha << "../resources/lanes/" << setfill('0') << setw(4) << track_texture.texture + 9
+        filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
+        filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9
                        << "-a.BMP";
     } else {
         filename << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
@@ -134,6 +134,7 @@ Texture LoadTexture(TEXTUREBLOCK track_texture) {
     GLubyte *data;
     GLsizei width = track_texture.width;
     GLsizei height = track_texture.height;
+
     ASSERT(LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height),
            "Texture %s or %s did not load succesfully!", filename.str().c_str(), filename_alpha.str().c_str());
 
@@ -533,7 +534,7 @@ std::vector<Track> trk_loader::ParseCOLModels() {
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         Track col_model = Track("ColBlock", i, verts, uvs, texture_indices, indices, texture_ids,
-                                std::vector<glm::vec4>());
+                                std::vector<glm::vec4>(), glm::vec3(0,0,0));
         col_model.enable();
         col_models.emplace_back(col_model);
     }
@@ -547,6 +548,8 @@ void trk_loader::ParseTRKModels() {
         TRKBLOCK trk_block = trk[i];
         POLYGONBLOCK polygon_block = poly[i];
         TrackBlock current_track_block(i, trk_block);
+        glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+        glm::vec3 trk_block_center = orientation*glm::vec3(0, 0, 0);
 
         // Light sources
         for (int j = 0; j < trk_block.nLightsrc; j++) {
@@ -624,7 +627,7 @@ void trk_loader::ParseTRKModels() {
                                                                              texture_indices);
                             Track current_track_model = Track("ObjBlock", (j + 1) * (k + 1), obj_verts, uvs,
                                                               texture_indices, vertex_indices, texture_ids,
-                                                              shading_verts);
+                                                              shading_verts, trk_block_center);
                             current_track_model.enable();
                             current_track_block.models.emplace_back(current_track_model);
                         }
@@ -695,7 +698,7 @@ void trk_loader::ParseTRKModels() {
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
                 Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids,
-                                         shading_verts);
+                                         shading_verts, trk_block_center);
                 xobj_model.enable();
                 current_track_block.models.emplace_back(xobj_model);
             }
@@ -761,12 +764,12 @@ void trk_loader::ParseTRKModels() {
         std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         Track current_trk_block_model = Track("TrkBlock", i, verts, norms, uvs, texture_indices, vertex_indices,
                                               texture_ids,
-                                              shading_verts);
+                                              shading_verts, trk_block_center);
         current_trk_block_model.enable();
         current_track_block.models.emplace_back(current_trk_block_model);
 
         // Road Lanes
-        if (trk_block.nVertices > trk_block.nHiResVert + 50) { // TODO: Segfault without this random heuristic in Debug mode. What is the real reason to exclude these trackblocks?
+        if (false){//trk_block.nVertices > trk_block.nHiResVert) {
             // Keep track of unique textures in trackblock for later OpenGL bind
             std::set<short> lane_minimal_texture_ids_set;
             // Mesh Data
@@ -819,7 +822,7 @@ void trk_loader::ParseTRKModels() {
                 std::vector<short> lane_texture_ids = RemapTextureIDs(lane_minimal_texture_ids_set, lane_texture_indices);
                 Track road_lane_model = Track("Lane", i, lane_verts, lane_norms, lane_uvs, lane_texture_indices, lane_vertex_indices,
                                               lane_texture_ids,
-                                              lane_shading_verts);
+                                              lane_shading_verts, trk_block_center);
                 road_lane_model.enable();
                 current_track_block.models.emplace_back(road_lane_model);
             }

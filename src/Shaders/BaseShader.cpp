@@ -94,6 +94,11 @@ void BaseShader::loadVec3(GLint location, glm::vec3 value){
     glUniform3f(location, value.x, value.y, value.z);
 }
 
+
+void BaseShader::loadVec2(GLint location, glm::vec2 value){
+    glUniform2f(location, value.x, value.y);
+}
+
 void BaseShader::loadMat4(GLint location, const GLfloat *value){
     glUniformMatrix4fv(location, 1, GL_FALSE, value);
 }

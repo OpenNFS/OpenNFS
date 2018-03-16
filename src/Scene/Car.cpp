@@ -6,7 +6,7 @@
 #include "Car.h"
 
 Car::Car(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
-         std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center) : super(name, model_id, verts, uvs, norms, indices, true) {
+         std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position) : super(name, model_id, verts, uvs, norms, indices, true, center_position) {
         m_normals.clear();
         for (unsigned int m_vertex_index : m_vertex_indices) {
             m_normals.push_back(norms[m_vertex_index]);
@@ -14,10 +14,8 @@ Car::Car(std::string name, int model_id, std::vector<glm::vec3> verts, std::vect
 }
 
 void Car::update() {
-    position = glm::vec3(-31,0.07,-5);
     orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
-    position = glm::vec3(position.x, position.y, position.z);
     RotationMatrix = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix = TranslationMatrix * RotationMatrix;

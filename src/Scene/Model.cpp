@@ -7,7 +7,7 @@
 #include <utility>
 
 Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-             std::vector<unsigned int> indices, bool removeVertexIndexing) {
+             std::vector<unsigned int> indices, bool removeVertexIndexing, glm::vec3 center_position) {
     m_name = std::move(name);
     id =  model_id;
     m_uvs = std::move(uvs);
@@ -22,7 +22,7 @@ Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::
         m_vertices = std::move(verts);
     }
 
-    position = glm::vec3(0, 0, 0);
+    position = center_position;
     orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
     //Generate Physics collision data

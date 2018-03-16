@@ -30,6 +30,7 @@ set(SOURCE_FILES
         src/Shaders/BaseShader.cpp
         src/Shaders/BaseShader.h
         src/Util/Assert.h
+        tools/fshtool.c
         #[[IMGUI]]
         include/imgui/imgui.cpp
         include/imgui/imgui.h

@@ -5,7 +5,7 @@
 
 #include "Light.h"
 
-Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false) {
+Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
     // TODO: Redo all of this to make sense
     std::vector<glm::vec3> verts;
     verts.push_back(glm::vec3(-1, -1, 0)); // bottom left corner
@@ -17,15 +17,14 @@ Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 
     m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
     m_vertices.clear();
     for (unsigned int m_vertex_index : m_vertex_indices) {
-        m_vertices.push_back(verts[m_vertex_index]+light_position);
+        m_vertices.push_back(verts[m_vertex_index]);
     }
-
     position= light_position;
     type = 1;
     colour = light_colour;
 }
 
-Light::Light(INTPT light_position, long light_type) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false) {
+Light::Light(INTPT light_position, long light_type) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
     // TODO: Redo all of this to make sense
     std::vector<glm::vec3> verts;
     verts.push_back(glm::vec3(-1, -1, 0)); // bottom left corner
@@ -42,21 +41,26 @@ Light::Light(INTPT light_position, long light_type) : super("Light", 0, std::vec
     position.z = static_cast<float>(light_position.z / 65536.0)/10;
 
     for (unsigned int m_vertex_index : m_vertex_indices) {
-        m_vertices.push_back(verts[m_vertex_index]+position);
+        m_vertices.push_back(verts[m_vertex_index]);
     }
 
     type = light_type;
-    //colour = glm::vec3(0.0,1.0,1.0);
     colour = glm::vec3(0.8, 0.7,0.5);
 };
 
 void Light::update() {
-    position = glm::vec3(0.0,0.0,0.0);
     orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
     RotationMatrix = glm::toMat4(orientation);
-    TranslationMatrix = glm::translate(glm::mat4(1.0), position);
+    //Rotate around center
+    TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0,0,0));
     ModelMatrix = TranslationMatrix * RotationMatrix;
+
+    orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
+    orientation = glm::normalize(glm::quat(orientation_vec));
+    RotationMatrix = glm::toMat4(orientation);
+    // Move back to original position
+    ModelMatrix *= glm::translate(glm::mat4(1.0), position) * RotationMatrix;
 }
 
 

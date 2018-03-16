@@ -1390,7 +1390,7 @@ unsigned char *bmp_to_fsh()
   return outbuf;
 }
 
-int main(int argc,char **argv)
+int fsh_main(int argc,char **argv)
 {
   FILE *f;
   char *outfn,*p;

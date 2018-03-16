@@ -5,7 +5,7 @@
 #include "Track.h"
 
 Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
-             std::vector<glm::vec4> shading_data) : super(name, model_id, verts, uvs, std::vector<glm::vec3>(), indices, true){
+             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super(name, model_id, verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
     texture_ids = tex_ids;
@@ -16,7 +16,7 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
 }
 
 Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
-             std::vector<glm::vec4> shading_data) : super(name, model_id, verts, uvs, std::vector<glm::vec3>(), indices, true){
+             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super(name, model_id, verts, uvs, norms, indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
     texture_ids = tex_ids;
@@ -29,10 +29,8 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
 }
 
 void Track::update() {
-    position = glm::vec3(0, 0, 0);
     orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
-    position = glm::vec3(position.x, position.y, position.z);
     RotationMatrix = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix = TranslationMatrix * RotationMatrix;

@@ -9,8 +9,8 @@
 
 class Track : public Model {
 public:
-    Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids, std::vector<glm::vec4> shading_data);
-    Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids, std::vector<glm::vec4> shading_data);
+    Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids, std::vector<glm::vec4> shading_data, glm::vec3 center_position);
+    Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids, std::vector<glm::vec4> shading_data, glm::vec3 center_position);
     void update() override;
     void destroy() override;
     void render() override;

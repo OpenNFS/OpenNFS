@@ -108,9 +108,9 @@ bool init_opengl() {
     glDepthFunc(GL_LESS);
 
     // Cull triangles which normal is not towards the camera
-    /*glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     glFrontFace(GL_CW);
-    glEnable(GL_BACK);*/
+    glEnable(GL_BACK);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     return true;
@@ -200,7 +200,7 @@ int main(int argc, const char *argv[]) {
 
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4((float) 64 / 255, (float) 30 / 255, (float) 130 / 255, 1.00f);
-    ImVec4 car_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
+    ImVec4 car_color = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
     ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
     float carSpecReflectivity = 1;
     float carSpecDamper = 10;
@@ -228,10 +228,9 @@ int main(int argc, const char *argv[]) {
             for (auto &track_block : track_blocks) {
                 glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
                 glm::vec3 position = orientation *
-                                     glm::vec3(track_block.trk.ptCentre.x / 10, track_block.trk.ptCentre.y / 10,
-                                               track_block.trk.ptCentre.z / 10);
-                float distanceSqr = glm::length2(
-                        glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
+                                     glm::vec3(track_block.trk.ptCentre.x/10, track_block.trk.ptCentre.y/10,
+                                               track_block.trk.ptCentre.z/10);
+                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
                 if (distanceSqr < lowestDistanceSqr) {
                     closestBlockID = track_block.block_id;
                     lowestDistanceSqr = distanceSqr;
@@ -269,8 +268,6 @@ int main(int argc, const char *argv[]) {
                 trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
                 if(active_track_Block.lights.size() > 0){
                     trackShader.loadLight(active_track_Block.lights[0]);
-                } else {
-                    trackShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
                 }
                 trackShader.bindTrackTextures(track_block_model, gl_id_map);
                 track_block_model.render();
