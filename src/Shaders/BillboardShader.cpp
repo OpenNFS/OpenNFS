@@ -25,13 +25,11 @@ void BillboardShader::getAllUniformLocations() {
     boardTextureLocation = getUniformLocation("boardTextureSampler");
     lightColourLocation = getUniformLocation("lightColour");
     billboardPosLocation = getUniformLocation("billboardPos");
-    billboardSizeLocation = getUniformLocation("billboardSize");
 }
 
 void BillboardShader::loadLight(Light board_light) {
     loadVec3(lightColourLocation, board_light.colour);
-    loadVec3(billboardPosLocation, board_light.position);
-    loadVec2(billboardSizeLocation, glm::vec2(1.0f, 1.0f));
+    loadVec3(billboardPosLocation, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * board_light.position);
 }
 
 void BillboardShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation) {

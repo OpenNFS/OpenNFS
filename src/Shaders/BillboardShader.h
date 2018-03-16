@@ -25,7 +25,6 @@ protected:
     GLint boardTextureLocation;
     GLint lightColourLocation;
     GLint billboardPosLocation;
-    GLint billboardSizeLocation;
 
     GLuint textureID;
 
