@@ -25,20 +25,6 @@ Model::Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     position = center_position;
     orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
-    //Generate Physics collision data
-    motionstate = new btDefaultMotionState(btTransform(
-            btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w),
-            btVector3(position.x, position.y, position.z)
-    ));
-    rigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            0,                  // mass, in kg. 0 -> Static object, will never move.
-            motionstate,
-            //genCollisionBox(m_vertices),  // collision shape of body
-            new btBoxShape(btVector3(5.0f, 5.0f, 5.0f)),
-            btVector3(0, 0, 0)    // local inertia
-    );
-    rigidBody = new btRigidBody(rigidBodyCI);
-    rigidBody->setUserPointer(this);
 }
 
 void Model::enable() {

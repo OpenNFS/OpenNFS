@@ -3,17 +3,26 @@
 //
 
 
+#include <afxres.h>
 #include "Light.h"
 
 Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
     // TODO: Redo all of this to make sense
     std::vector<glm::vec3> verts;
-    verts.push_back(glm::vec3(-1, -1, 0)); // bottom left corner
-    verts.push_back(glm::vec3(-1,  1, 0)); // top left corner
-    verts.push_back(glm::vec3( 1,  1, 0)); // top right corner
-    verts.push_back(glm::vec3( 1, -1, 0)); // bottom right corner
+    verts.push_back(glm::vec3(-0.5, -0.5, 0)); // bottom left corner
+    verts.push_back(glm::vec3(-0.5,  0.5, 0)); // top left corner
+    verts.push_back(glm::vec3( 0.5,  0.5, 0)); // top right corner
+    verts.push_back(glm::vec3( 0.5, -0.5, 0)); // bottom right corner
     unsigned int indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
                               0,2,3}; // second triangle (bottom left - top right - bottom right)
+    m_uvs.clear();
+    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 0.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
+
     m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
     m_vertices.clear();
     for (unsigned int m_vertex_index : m_vertex_indices) {
@@ -27,12 +36,24 @@ Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 
 Light::Light(INTPT light_position, long light_type) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
     // TODO: Redo all of this to make sense
     std::vector<glm::vec3> verts;
-    verts.push_back(glm::vec3(-1, -1, 0)); // bottom left corner
-    verts.push_back(glm::vec3(-1,  1, 0)); // top left corner
-    verts.push_back(glm::vec3( 1,  1, 0)); // top right corner
-    verts.push_back(glm::vec3( 1, -1, 0)); // bottom right corner
+    verts.push_back(glm::vec3(0, -0.5, -0.5)); // bottom left corner
+    verts.push_back(glm::vec3(0,  0.5, -0.5)); // top left corner
+    verts.push_back(glm::vec3(0,  0.5,  0.5)); // top right corner
+    verts.push_back(glm::vec3(0, -0.5,  0.5)); // bottom right corner
     unsigned int indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
                               0,2,3}; // second triangle (bottom left - top right - bottom right)
+
+    m_uvs.clear();
+
+    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
+    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
+
+    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 0.0f));
+
+
     m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
     m_vertices.clear();
 

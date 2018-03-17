@@ -43,7 +43,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
 
     // Compute time difference between current and last frame
     double currentTime = glfwGetTime();
-    float deltaTime = float(currentTime - lastTime);
+    deltaTime = float(currentTime - lastTime);
 
     // Get mouse position
     double xpos, ypos;

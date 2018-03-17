@@ -331,7 +331,9 @@ void NFS_Loader::readFCE(const char *fce_path) {
         std::vector<glm::vec3> vertices;
         glm::vec3 center = getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i], vertices);
         center /= 10;
-        //center += glm::vec3(-31,0.07,-5);
+        if(i == 0){
+            center.y+=100;
+        }
         meshes.emplace_back(Car(model_names[i], i,
                                   vertices,
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),

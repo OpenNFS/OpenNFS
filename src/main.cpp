@@ -107,10 +107,9 @@ bool init_opengl() {
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
 
-    // Cull triangles which normal is not towards the camera
-    /*glEnable(GL_CULL_FACE);
+    // Cull triangles which normal is not towards the camera (when culling is enabled)
     glFrontFace(GL_CW);
-    glEnable(GL_BACK);*/
+    glEnable(GL_BACK);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     return true;
@@ -139,12 +138,9 @@ int main(int argc, const char *argv[]) {
     std::vector<Car> cars = nfs_loader.getMeshes();
     cars[0].enable();
     //Load Track Data
-    trk_loader trkLoader("../resources/TRK006/TR06.frd");
+    trk_loader trkLoader("../resources/TRK000/TR00.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
-    // TODO: Reference COLs to track blocks
-    //std::vector<Track> col_models = trkLoader.getCOLModels();
-    //cars.insert(cars.end(), col_models.begin(), col_models.end());
 
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase = new btDbvtBroadphase();
@@ -171,7 +167,8 @@ int main(int argc, const char *argv[]) {
     BillboardShader billboardShader;
 
     // Data used for culling
-    Camera mainCamera(glm::vec3(-31, 0.07, -5), 45.0f);
+    //Camera mainCamera(glm::vec3(-31, 0.07, -5), 45.0f);
+    Camera mainCamera(glm::vec3(-3,3,-3), 45.0f);
     std::vector<TrackBlock> activeTrackBlocks;
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
@@ -182,14 +179,15 @@ int main(int argc, const char *argv[]) {
         if (!car.genBuffers()) {
             return -1;
         }
-        dynamicsWorld->addRigidBody(car.rigidBody);
+        if(car.enabled) {
+            dynamicsWorld->addRigidBody(car.rigidBody);
+        }
     }
     for (auto &track_block : track_blocks) {
         for (auto &track_block_model : track_block.models) {
             if (!track_block_model.genBuffers()) {
                 return -1;
             }
-            dynamicsWorld->addRigidBody(track_block_model.rigidBody);
         }
         for (auto &track_block_light : track_block.lights) {
             if (!track_block_light.genBuffers()) {
@@ -197,6 +195,14 @@ int main(int argc, const char *argv[]) {
             }
         }
     }
+
+    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+
+    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    btRigidBody::btRigidBodyConstructionInfo
+            groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+    btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+    dynamicsWorld->addRigidBody(groundRigidBody);
 
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4((float) 64 / 255, (float) 30 / 255, (float) 130 / 255, 1.00f);
@@ -220,6 +226,12 @@ int main(int argc, const char *argv[]) {
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
         glm::vec3 worldPosition = mainCamera.position;
         mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
+
+        dynamicsWorld->stepSimulation(mainCamera.deltaTime, 10);
+        btTransform trans;
+        cars[0].rigidBody->getMotionState()->getWorldTransform(trans);
+        cars[0].position = glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ());
+        std::cout << "Car Height: " << trans.getOrigin().getY() << std::endl;
 
         // If camera moved
         if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
@@ -246,19 +258,19 @@ int main(int argc, const char *argv[]) {
             oldWorldPosition = worldPosition;
         }
 
+        glEnable(GL_CULL_FACE);
         carShader.use();
         for (auto &car : cars) {
             car.update();
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car.ModelMatrix);
             carShader.loadSpecular(carSpecDamper, carSpecReflectivity);
             carShader.loadCarColor(glm::vec3(car_color.x, car_color.y, car_color.z));
-            carShader.loadLight(
-                    Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
+            carShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
             carShader.loadCarTexture();
             car.render();
         }
         carShader.unbind();
-
+        glDisable(GL_CULL_FACE);
 
         for (auto &active_track_Block : activeTrackBlocks) {
             trackShader.use();
@@ -284,6 +296,7 @@ int main(int argc, const char *argv[]) {
             billboardShader.unbind();
         }
 
+        dynamicsWorld->debugDrawWorld();
 
         // Draw UI (Tactically)
         static float f = 0.0f;
@@ -345,6 +358,17 @@ int main(int argc, const char *argv[]) {
     ImGui_ImplGlfwGL3_Shutdown();
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
+
+    dynamicsWorld->removeRigidBody(cars[0].rigidBody);
+    dynamicsWorld->removeRigidBody(groundRigidBody);
+    delete groundRigidBody->getMotionState();
+    delete groundRigidBody;
+    delete groundShape;
+    delete dynamicsWorld;
+    delete solver;
+    delete dispatcher;
+    delete collisionConfiguration;
+    delete broadphase;
 
     return 0;
 }

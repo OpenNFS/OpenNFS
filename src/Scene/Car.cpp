@@ -11,6 +11,19 @@ Car::Car(std::string name, int model_id, std::vector<glm::vec3> verts, std::vect
         for (unsigned int m_vertex_index : m_vertex_indices) {
             m_normals.push_back(norms[m_vertex_index]);
         }
+    //Generate Physics collision data
+    motionstate = new btDefaultMotionState(btTransform(
+            btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w),
+            btVector3(position.x, position.y, position.z)
+    ));
+    rigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
+            1,                  // mass, in kg. 0 -> Static object, will never move.
+            motionstate,
+            genCollisionBox(m_vertices),  // collision shape of body
+            btVector3(0, 0, 0)    // local inertia
+    );
+    rigidBody = new btRigidBody(rigidBodyCI);
+    rigidBody->setUserPointer(this);
 }
 
 void Car::update() {

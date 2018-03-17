@@ -70,16 +70,11 @@ public:
 
     std::vector<TrackBlock> getTrackBlocks();
 
-    std::vector<Track> getCOLModels();
-
     std::map<short, GLuint> getTextureGLMap();
-
-    std::map<short, Texture> getTextures();
 
 protected:
     std::map<short, GLuint> texture_gl_mappings;
     std::map<short, Texture> textures;
-    std::vector<Track> col_models;
     std::vector<TrackBlock> track_blocks;
 
     bool LoadCOL(std::string col_path);

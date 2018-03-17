@@ -7,24 +7,19 @@ layout(location = 2) in vec3 normal;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
-out vec3 surfaceNormal;
-out vec3 toCameraVector;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
 uniform vec3 billboardPos; // Position of the center of the billboard
 
 void main(){
-    vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
-
-    surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
-    toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+    vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0f);
 
     // Output position of the vertex
-    gl_Position = projectionMatrix * viewMatrix * vec4(billboardPos, 1.0f); // Screen-space position of bb center
-    gl_Position /= gl_Position.w; // Perspective division
-    gl_Position.xy += vertexPosition_modelspace.xy * vec2(0.05, 0.05); // Move the vertex in directly screen space
+    gl_Position = projectionMatrix * viewMatrix * worldPosition; // Screen-space position of bb center
+    //gl_Position /= gl_Position.w; // Perspective division
+    //gl_Position.xy += vertexPosition_modelspace.xy * vec2(0.05, 0.05); // Move the vertex in directly screen space
 
 	// UV of the vertex
-	UV = vec2(1.0, 1.0); //vertexUV;
+	UV = vertexUV;
 }

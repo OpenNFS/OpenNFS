@@ -29,6 +29,10 @@ protected:
     GLuint textureID;
 
     typedef BaseShader super;
+
+    void loadBillboardTexture();
+
+    void load_bmp_texture();
 };
 
 

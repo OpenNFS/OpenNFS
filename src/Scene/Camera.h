@@ -27,5 +27,6 @@ public:
     glm::mat4 ViewMatrix;
     glm::mat4 ProjectionMatrix;
     glm::vec3 position;
+    float deltaTime;
 };
 
