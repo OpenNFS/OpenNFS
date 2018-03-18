@@ -5,6 +5,7 @@
 
 #include <afxres.h>
 #include "Light.h"
+#include "../Util/Utils.h"
 
 Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
     // TODO: Redo all of this to make sense
@@ -31,6 +32,8 @@ Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 
     position= light_position;
     type = 1;
     colour = light_colour;
+
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
 }
 
 Light::Light(INTPT light_position, long light_type) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
@@ -67,6 +70,8 @@ Light::Light(INTPT light_position, long light_type) : super("Light", 0, std::vec
 
     type = light_type;
     colour = glm::vec3(0.8, 0.7,0.5);
+
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
 };
 
 void Light::update() {

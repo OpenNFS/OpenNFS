@@ -3,42 +3,35 @@
 //
 
 
-#include "Car.h"
+#include "CarModel.h"
+#include "../Util/Utils.h"
 
-Car::Car(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
-         std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position) : super(name, model_id, verts, uvs, norms, indices, true, center_position) {
-        m_normals.clear();
-        for (unsigned int m_vertex_index : m_vertex_indices) {
-            m_normals.push_back(norms[m_vertex_index]);
-        }
-    //Generate Physics collision data
-    motionstate = new btDefaultMotionState(btTransform(
-            btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w),
-            btVector3(position.x, position.y, position.z)
-    ));
-    rigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            10,                  // mass, in kg. 0 -> Static object, will never move.
-            motionstate,
-            genCollisionBox(m_vertices),  // collision shape of body
-            btVector3(0, 0,0)    // local inertia
-    );
-    rigidBody = new btRigidBody(rigidBodyCI);
-    rigidBody->setUserPointer(this);
+CarModel::CarModel(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
+                   std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position) : super(
+        name, model_id, verts, uvs, norms, indices, true, center_position) {
+
+    m_normals.clear();
+    for (unsigned int m_vertex_index : m_vertex_indices) {
+        m_normals.push_back(norms[m_vertex_index]);
+    }
+
+    // Gen VBOs, add to Bullet Physics
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model %s", name.c_str());
 }
 
-void Car::update() {
+void CarModel::update() {
     RotationMatrix = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix = TranslationMatrix * RotationMatrix;
 }
 
-void Car::destroy() {
+void CarModel::destroy() {
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &uvbuffer);
     glDeleteBuffers(1, &normalbuffer);
 }
 
-void Car::render() {
+void CarModel::render() {
     if (!enabled)
         return;
 
@@ -83,7 +76,7 @@ void Car::render() {
     glDisableVertexAttribArray(3);
 }
 
-bool Car::genBuffers() {
+bool CarModel::genBuffers() {
     // Verts
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);

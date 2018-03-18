@@ -3,7 +3,7 @@
 //
 
 #include "CarShader.h"
-#include "../trk_loader.h"
+#include "../Loaders/trk_loader.h"
 
 const std::string vertexSrc = "../shaders/CarVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/CarFragmentShader.fragmentshader";

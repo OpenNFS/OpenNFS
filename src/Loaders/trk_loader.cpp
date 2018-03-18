@@ -8,116 +8,6 @@
 
 using namespace std;
 
-bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height) {
-    bool retval = false;
-    // load file and check if it looks reasonable
-    FILE *fp = fopen(fname, "rb");
-    FILE *fp_a = fopen(afname, "rb");
-    if (fp && fp_a) {
-        fseek(fp, 0L, 2);
-        fseek(fp_a, 0L, 2);
-        long size = ftell(fp);
-        long size_a = ftell(fp_a);
-        unsigned char *data = new unsigned char[size];
-        unsigned char *data_a = new unsigned char[size_a];
-        if (data && data_a) {
-            fseek(fp, 0L, 0);
-            fseek(fp_a, 0L, 0);
-            if ((fread(data, size, 1, fp) == 1) && (fread(data_a, size_a, 1, fp_a) == 1)) {
-                BITMAPFILEHEADER *file_header = (BITMAPFILEHEADER *) data;
-                BITMAPFILEHEADER *file_header_a = (BITMAPFILEHEADER *) data_a;
-                if (file_header->bfType == MAKEWORD('B', 'M')) {
-                    if (file_header->bfSize == (DWORD) size) {
-                        BITMAPINFO *info = (BITMAPINFO *) (data +
-                                                           sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
-                        BITMAPINFO *info_a = (BITMAPINFO *) (data_a +
-                                                             sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
-                        if (info->bmiHeader.biCompression == BI_RGB) {
-                            width = info->bmiHeader.biWidth;
-                            if (width > 0) {
-                                height = info->bmiHeader.biHeight;
-                                if (height) {
-                                    if (height < 0)
-                                        height = (-height);// we want RGBA. let's alloc enough space
-                                    *
-                                            bits = new GLubyte[width * height * 4L];
-                                    if (*bits) {
-                                        retval = true;
-                                        GLubyte *current_bits = *bits;
-                                        GLubyte *pixel = data + file_header->bfOffBits;
-                                        GLubyte *pixel_a = data_a + file_header_a->bfOffBits;
-                                        GLsizei h = height, w = width;
-                                        long padding, padding_a;
-                                        switch (info->bmiHeader.biBitCount) {// 24-bit bitmaps
-                                            case 24:
-                                                // Read the 8 Bit bitmap alpha data
-                                                padding_a = w % 2;
-                                                RGBQUAD rgba;
-                                                padding = (w * 3) % 2;
-                                                for (; h > 0; h--) {
-                                                    for (w = width; w > 0; w--) {
-                                                        rgba = info_a->bmiColors[*pixel_a];
-                                                        pixel_a++;
-                                                        *current_bits++ = pixel[2];
-                                                        *current_bits++ = pixel[1];
-                                                        *current_bits++ = pixel[0];
-                                                        *current_bits++ = rgba.rgbRed;
-                                                        pixel += 3;
-                                                    }
-                                                    pixel += padding;
-                                                    pixel_a += padding_a;
-                                                }
-                                                break;
-                                            case 32:
-                                                // 32-bit bitmaps
-                                                // never seen it, but Win32 SDK claims the existance
-                                                // of that value. 4th byte is assumed to be alpha-channel.
-                                                for (; h > 0; h--) {
-                                                    for (w = width; w > 0; w--) {
-                                                        *current_bits++ = pixel[2];
-                                                        *current_bits++ = pixel[1];
-                                                        *current_bits++ = pixel[0];
-                                                        *current_bits++ = pixel[3];
-                                                        pixel += 4;
-                                                    }
-                                                }
-                                                break;// I don't like 1,4 and 16 bit.
-                                            default:
-                                                delete[] *bits;
-                                                retval = false;
-                                                break;
-                                        }
-                                        if (retval) {// mirror image if neccessary (never tested)
-                                            if (info->bmiHeader.biHeight < 0) {
-                                                long *data_q = (long *) *bits;
-                                                long wt = width * 4L;
-                                                long *dest_q = (long *) (*bits + (height - 1) * wt);
-                                                long tmp;
-                                                while (data_q < dest_q) {
-                                                    for (w = width; w > 0; w--) {
-                                                        tmp = *data_q;
-                                                        *data_q++ = *dest_q;
-                                                        *dest_q++ = tmp;
-                                                    }
-                                                    dest_q -= (wt + wt);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            delete[] data;
-            delete[] data_a;
-        }
-        fclose(fp);
-        fclose(fp_a);
-    }
-    return retval;
-}
 
 Texture LoadTexture(TEXTUREBLOCK track_texture) {
     std::stringstream filename;
@@ -135,7 +25,7 @@ Texture LoadTexture(TEXTUREBLOCK track_texture) {
     GLsizei width = track_texture.width;
     GLsizei height = track_texture.height;
 
-    ASSERT(LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height),
+    ASSERT(Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height),
            "Texture %s or %s did not load succesfully!", filename.str().c_str(), filename_alpha.str().c_str());
 
     return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
@@ -649,7 +539,7 @@ void trk_loader::ParseTRKModels() {
                                                           texture_indices, vertex_indices, texture_ids,
                                                           obj_shading_verts, trk_block_center);
                         current_track_model.enable();
-                        current_track_block.models.emplace_back(current_track_model);
+                        current_track_block.objects.emplace_back(current_track_model);
                 }
             }
         }
@@ -719,7 +609,7 @@ void trk_loader::ParseTRKModels() {
                 Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids,
                                          xobj_shading_verts, trk_block_center);
                 xobj_model.enable();
-                current_track_block.models.emplace_back(xobj_model);
+                current_track_block.objects.emplace_back(xobj_model);
             }
         }
 
@@ -789,12 +679,14 @@ void trk_loader::ParseTRKModels() {
                                                   trk_block_shading_verts,
                                                   trk_block_center);
             current_trk_block_model.enable();
-            current_track_block.models.emplace_back(current_trk_block_model);
+            if(chnk != 6)
+                current_track_block.track.emplace_back(current_trk_block_model);
+            current_track_block.objects.emplace_back(current_trk_block_model);
         }
 
         if (i == 0) {
             std::vector<Track> col_models = ParseCOLModels();
-            current_track_block.models.insert(current_track_block.models.end(), col_models.begin(), col_models.end());
+            current_track_block.objects.insert(current_track_block.objects.end(), col_models.begin(), col_models.end());
         }
 
         track_blocks.emplace_back(current_track_block);

@@ -164,7 +164,7 @@ bool NFS_Loader::loadObj(std::string obj_path) {
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        Car obj_mesh = Car(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0));
+        CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0));
         meshes.emplace_back(obj_mesh);
     }
     return true;
@@ -331,11 +331,7 @@ void NFS_Loader::readFCE(const char *fce_path) {
         std::vector<glm::vec3> vertices;
         glm::vec3 center = getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i], vertices);
         center /= 10;
-        if(i == 0){
-            center.x+=90;
-            center.y+=10;
-        }
-        meshes.emplace_back(Car(model_names[i], i,
+        meshes.emplace_back(CarModel(model_names[i], i,
                                   vertices,
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
                                   getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
@@ -373,7 +369,7 @@ void NFS_Loader::writeObj(std::string path) {
     obj_dump.close();
 }
 
-std::vector<Car> NFS_Loader::getMeshes() {
+std::vector<CarModel> NFS_Loader::getMeshes() {
     return meshes;
 }
 

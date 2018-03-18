@@ -7,6 +7,7 @@
 
 
 #include "BaseShader.h"
+#include "../Util/Utils.h"
 #include "../Scene/Light.h"
 
 class BillboardShader : public BaseShader {

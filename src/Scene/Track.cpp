@@ -5,6 +5,7 @@
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
 #include "Track.h"
+#include "../Util/Utils.h"
 
 Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
              std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super(name, model_id, verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
@@ -15,6 +16,8 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     for(unsigned int m_vertex_index : indices) {
         m_shading_data.push_back(shading_data[m_vertex_index]);
     }
+
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model %s", name.c_str());
 }
 
 Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
@@ -28,6 +31,8 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
         m_shading_data.push_back(shading_data[m_vertex_index]);
         m_normals.push_back(norms[m_vertex_index]);
     }
+
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model %s", name.c_str());
 }
 
 btCollisionShape* Track::GenCollisionData(){

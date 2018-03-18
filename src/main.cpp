@@ -12,56 +12,24 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
-#include <btBulletDynamicsCommon.h>
 #include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
 #include <set>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // Source
+#include "Util/Utils.h"
 #include "Scene/Camera.h"
-#include "nfs_loader.h"
-#include "trk_loader.h"
+#include "Loaders/nfs_loader.h"
+#include "Loaders/trk_loader.h"
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
-#include "Util/Assert.h"
 #include "Shaders/BillboardShader.h"
+#include "Physics/Physics.h"
+#include "Physics/Car.h"
 
 GLFWwindow *window;
 
 using namespace ImGui;
-
-class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw {
-public:
-    void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix) {
-        glUseProgram(0); // Use Fixed-function pipeline (no shaders)
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(&pViewMatrix[0][0]);
-        glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf(&pProjectionMatrix[0][0]);
-    }
-
-    virtual void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) {
-        glColor3f(color.x(), color.y(), color.z());
-        glBegin(GL_LINES);
-        glVertex3f(from.x(), from.y(), from.z());
-        glVertex3f(to.x(), to.y(), to.z());
-        glEnd();
-    }
-
-    virtual void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &) {}
-
-    virtual void reportErrorWarning(const char *) {}
-
-    virtual void draw3dText(const btVector3 &, const char *) {}
-
-    virtual void setDebugMode(int p) {
-        m = p;
-    }
-
-    int getDebugMode(void) const { return 3; }
-
-    int m;
-};
 
 bool init_opengl() {
     // Initialise GLFW
@@ -133,32 +101,23 @@ int main(int argc, const char *argv[]) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
+    /*------- BULLET --------*/
+    Physics physicsEngine;
+
+    /*------ ASSET LOAD ------*/
     NFS_Loader nfs_loader("../resources/car.viv");
     //Load Car data from unpacked NFS files
-    std::vector<Car> cars = nfs_loader.getMeshes();
-    cars[0].enable();
+    Car car = Car(nfs_loader);
+    physicsEngine.registerVehicle(&car);
     //Load Track Data
     trk_loader trkLoader("../resources/TRK000/TR00.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
-
-    /*------- BULLET --------*/
-    btBroadphaseInterface *broadphase = new btDbvtBroadphase();
-    // Set up the collision configuration and dispatcher
-    btDefaultCollisionConfiguration *collisionConfiguration = new btDefaultCollisionConfiguration();
-    auto *dispatcher = new btCollisionDispatcher(collisionConfiguration);
-    // The actual physics solver
-    auto *solver = new btSequentialImpulseConstraintSolver;
-    // The world.
-    auto *dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
-    BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
-    dynamicsWorld->setDebugDrawer(&mydebugdrawer);
+    physicsEngine.registerTrack(track_blocks);
 
     /*------- ImGui -------*/
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
-    // Setup style
     ImGui::StyleColorsDark();
 
     // Create and compile our GLSL programs from the shaders
@@ -166,53 +125,12 @@ int main(int argc, const char *argv[]) {
     CarShader carShader;
     BillboardShader billboardShader;
 
+    Camera mainCamera(glm::vec3(98.46,3.98,0), 45.0f, 4.86f, -0.21f);
+
     // Data used for culling
-    //Camera mainCamera(glm::vec3(-31, 0.07, -5), 45.0f);
-    Camera mainCamera(glm::vec3(80,80,-7), 45.0f);
     std::vector<TrackBlock> activeTrackBlocks;
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
-
-    /*------- MODELS --------*/
-    // Gen VBOs, add to Bullet Physics
-    for (auto &car : cars) {
-        if (!car.genBuffers()) {
-            return -1;
-        }
-        if(car.enabled) {
-            dynamicsWorld->addRigidBody(car.rigidBody);
-        }
-    }
-    for (auto &track_block : track_blocks) {
-        for (auto &track_block_model : track_block.models) {
-            if (!track_block_model.genBuffers()) {
-                return -1;
-            }
-        }
-        for (auto &track_block_light : track_block.lights) {
-            if (!track_block_light.genBuffers()) {
-                return -1;
-            }
-        }
-    }
-
-    btTriangleMesh trackMesh;
-    // TODO: This sucks ass, separate TrackBlock into actual track blocks and XOBJs so that I'm not generation for Trees etc, use passable flags (flags&0x80)
-    for (auto &track_block : track_blocks) {
-        for (auto &track_block_model : track_block.models) {
-            for(int i = 0; i < track_block_model.m_vertices.size()-2; i+=3){
-                trackMesh.addTriangle(btVector3(track_block_model.m_vertices[i].x, track_block_model.m_vertices[i].y, track_block_model.m_vertices[i].z), btVector3(track_block_model.m_vertices[i+1].x, track_block_model.m_vertices[i+1].y, track_block_model.m_vertices[i+1].z), btVector3( track_block_model.m_vertices[i+2].x, track_block_model.m_vertices[i+2].y, track_block_model.m_vertices[i+2].z), false);
-            }
-        }
-    }
-
-    btCollisionShape* trackShape = new btBvhTriangleMeshShape(&trackMesh, false);
-    // TODO: Why is the -1.6 fiddle factor needed
-    glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2 -1.6,0,0)));
-    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(orientation.x, orientation.y, orientation.z,  1), btVector3(0,0,0)));
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, trackShape, btVector3(0, 0, 0));
-    btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
-    dynamicsWorld->addRigidBody(groundRigidBody);
 
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4((float) 64 / 255, (float) 30 / 255, (float) 130 / 255, 1.00f);
@@ -220,12 +138,11 @@ int main(int argc, const char *argv[]) {
     ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
     float carSpecReflectivity = 1;
     float carSpecDamper = 10;
-
     float trackSpecReflectivity = 1;
     float trackSpecDamper = 10;
-
     int blockDrawDistance = 15;
     bool window_active = true;
+    bool physics_debug_view = true;
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -235,18 +152,9 @@ int main(int argc, const char *argv[]) {
         glm::mat4 ProjectionMatrix = mainCamera.ProjectionMatrix;
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
         glm::vec3 worldPosition = mainCamera.position;
-        mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
+        physicsEngine.mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
 
-        dynamicsWorld->stepSimulation(mainCamera.deltaTime, 10);
-        btTransform trans;
-        cars[0].rigidBody->getMotionState()->getWorldTransform(trans);
-        cars[0].position = glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ());
-        cars[0].orientation.w = trans.getRotation().getW();
-        cars[0].orientation.x = trans.getRotation().getX();
-        cars[0].orientation.y = trans.getRotation().getY();
-        cars[0].orientation.z = trans.getRotation().getZ();
-
-        // If camera moved
+        // Basic Geometry Cull
         if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
@@ -271,23 +179,25 @@ int main(int argc, const char *argv[]) {
             oldWorldPosition = worldPosition;
         }
 
+        // Step the physics simulation
+        physicsEngine.stepSimulation(mainCamera.deltaTime);
+
         glEnable(GL_CULL_FACE);
         carShader.use();
-        for (auto &car : cars) {
-            car.update();
-            carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car.ModelMatrix);
+        for (auto &car_model : car.car_models) {
+            carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(carSpecDamper, carSpecReflectivity);
             carShader.loadCarColor(glm::vec3(car_color.x, car_color.y, car_color.z));
             carShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
             carShader.loadCarTexture();
-            car.render();
+            car_model.render();
         }
         carShader.unbind();
         glDisable(GL_CULL_FACE);
 
         for (auto &active_track_Block : activeTrackBlocks) {
             trackShader.use();
-            for (auto &track_block_model : active_track_Block.models) {
+            for (auto &track_block_model : active_track_Block.objects) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
                 trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
@@ -309,18 +219,21 @@ int main(int argc, const char *argv[]) {
             billboardShader.unbind();
         }
 
-        dynamicsWorld->debugDrawWorld();
+       if(physics_debug_view)
+           physicsEngine.getDynamicsWorld()->debugDrawWorld();
 
         // Draw UI (Tactically)
         static float f = 0.0f;
         ImGui::Text("NFS3 Engine");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
+        ImGui::Checkbox("Bullet Debug View", &physics_debug_view);
         std::stringstream world_position_string;
-        world_position_string << "X " << std::to_string(worldPosition.x) << " Y " << std::to_string(worldPosition.x)
-                              << " Z " << std::to_string(worldPosition.z);
+        world_position_string << "X " << std::to_string(worldPosition.x) << " Y " << std::to_string(worldPosition.y)
+                              << " Z " << std::to_string(worldPosition.z) << " H: " << std::to_string(mainCamera.horizontalAngle)  << " V: " << std::to_string(mainCamera.verticalAngle);
         ImGui::Text(world_position_string.str().c_str());
         ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
+
         if (ImGui::Button("Reset View")) {
             mainCamera.resetView();
         };
@@ -333,14 +246,14 @@ int main(int argc, const char *argv[]) {
         ImGui::SliderFloat("Track Specular Damper", &trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &trackSpecReflectivity, 0, 10);
 
-        for (auto &mesh : cars) {
+        for (auto &mesh : car.car_models) {
             ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(),
                             &mesh.enabled);      // Edit bools storing model draw state
         }
         if (ImGui::TreeNode("Track Blocks")) {
             for (auto &track_block : track_blocks) {
                 if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
-                    for (auto &block_model : track_block.models) {
+                    for (auto &block_model : track_block.objects) {
                         if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(),
                                             block_model.id)) {
                             ImGui::Checkbox("Enabled", &block_model.enabled);
@@ -363,25 +276,13 @@ int main(int argc, const char *argv[]) {
     }
 
     // Cleanup VBOs and shaders
-    for (auto &car : cars) {
-        car.destroy();
-    }
     carShader.cleanup();
     trackShader.cleanup();
     ImGui_ImplGlfwGL3_Shutdown();
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
 
-    dynamicsWorld->removeRigidBody(cars[0].rigidBody);
-    dynamicsWorld->removeRigidBody(groundRigidBody);
-    delete groundRigidBody->getMotionState();
-    delete groundRigidBody;
-    delete trackShape;
-    delete dynamicsWorld;
-    delete solver;
-    delete dispatcher;
-    delete collisionConfiguration;
-    delete broadphase;
+
 
     return 0;
 }

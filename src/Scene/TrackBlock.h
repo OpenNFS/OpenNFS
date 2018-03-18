@@ -14,7 +14,8 @@ public:
     TrackBlock(int blockID, struct TRKBLOCK &nfs_track_block);
     int block_id;
     struct TRKBLOCK trk;
-    std::vector<Track> models;
+    std::vector<Track> track;
+    std::vector<Track> objects;
     std::vector<Light> lights;
 
     /* Iterators to allow for ranged for loops with class*/

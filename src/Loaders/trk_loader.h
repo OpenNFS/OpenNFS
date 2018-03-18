@@ -16,14 +16,14 @@
 #include <fstream>
 #include <cstring>
 #include <map>
-#include "Scene/Model.h"
-#include "Scene/TrackBlock.h"
-#include "nfs_data.h"
+#include "../Scene/Model.h"
+#include "../Scene/TrackBlock.h"
+#include "../nfs_data.h"
 #include <boost/concept_check.hpp>
-#include "Scene/TrackBlock.h"
-#include "Scene/Light.h"
-#include <afxres.h>
-#include "Util/Assert.h"
+#include "../Scene/TrackBlock.h"
+#include "../Scene/Light.h"
+#include "../Util/Utils.h"
+
 #define EPSILON 0.000001
 
 class Texture {

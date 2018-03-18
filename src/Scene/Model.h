@@ -11,7 +11,6 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../Physics/Physics.h"
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -48,32 +47,23 @@ public:
     glm::vec3 position;
     glm::vec3 orientation_vec;
     glm::quat orientation;
-    // Physics
-    btRigidBody *rigidBody;
-    btDefaultMotionState* motionstate;
-    btRigidBody::btRigidBodyConstructionInfo rigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(0, nullptr, nullptr);
+
 
     /* Iterators to allow for ranged for loops with class*/
     class iterator {
     public:
         explicit iterator(Model *ptr) : ptr(ptr) { }
-
         iterator operator++() {
             ++ptr;
             return *this;
         }
-
         bool operator!=(const iterator &other) { return ptr != other.ptr; }
-
         const Model &operator*() const { return *ptr; }
-
     private:
         Model *ptr;
     };
-
     iterator begin() const { return iterator(val); }
     iterator end() const { return iterator(val + len); }
-    std::vector<glm::vec4> m_shading_data;
     Model *val;
 private:
     /* Iterator vars */

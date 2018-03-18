@@ -4,7 +4,7 @@
 
 #include <glm/vec3.hpp>
 #include "BaseShader.h"
-#include "../Util/Assert.h"
+#include "../Util/Utils.h"
 
 BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path) {
     // Create the shaders

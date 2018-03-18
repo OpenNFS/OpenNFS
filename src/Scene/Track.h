@@ -17,6 +17,7 @@ public:
     bool genBuffers()override;
     std::vector<unsigned int> m_texture_indices;
     std::vector<short> texture_ids;
+    std::vector<glm::vec4> m_shading_data;
 private:
     GLuint vertexbuffer;
     GLuint uvbuffer;

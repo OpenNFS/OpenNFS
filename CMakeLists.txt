@@ -8,12 +8,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations"
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})]]
 
 set(SOURCE_FILES
-        src/nfs_loader.cpp
+        src/Loaders/nfs_loader.cpp
         src/main.cpp
         src/Scene/Camera.cpp
         src/Scene/Model.cpp
         include/TGALoader/TGALoader.cpp
-        src/trk_loader.cpp
+        src/Loaders/trk_loader.cpp
         src/Physics/Physics.cpp
         lib/glew-cmake/src/glew.c
         src/Scene/TrackBlock.cpp
@@ -29,7 +29,8 @@ set(SOURCE_FILES
         src/Shaders/CarShader.h
         src/Shaders/BaseShader.cpp
         src/Shaders/BaseShader.h
-        src/Util/Assert.h
+        src/Util/Utils.cpp
+        src/Util/Utils.h
         tools/fshtool.c
         #[[IMGUI]]
         include/imgui/imgui.cpp
@@ -42,7 +43,7 @@ set(SOURCE_FILES
         include/imgui/stb_textedit.h
         include/imgui/stb_truetype.h
         include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
-        src/Scene/Car.cpp src/Scene/Car.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h)
+        src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h)
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 

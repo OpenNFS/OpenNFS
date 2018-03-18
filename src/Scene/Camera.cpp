@@ -2,11 +2,13 @@
 
 using namespace glm;
 
-Camera::Camera(glm::vec3 initial_position, float FoV){
+Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle){
     // Initial position : on +Z
     position = initial_position;
     // Initial Field of View
     initialFoV = FoV;
+    horizontalAngle = horizontal_angle;
+    verticalAngle = vertical_angle;
 }
 
 void Camera::resetView(){
