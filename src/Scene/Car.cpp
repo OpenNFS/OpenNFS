@@ -17,18 +17,16 @@ Car::Car(std::string name, int model_id, std::vector<glm::vec3> verts, std::vect
             btVector3(position.x, position.y, position.z)
     ));
     rigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            1,                  // mass, in kg. 0 -> Static object, will never move.
+            10,                  // mass, in kg. 0 -> Static object, will never move.
             motionstate,
             genCollisionBox(m_vertices),  // collision shape of body
-            btVector3(0, 0, 0)    // local inertia
+            btVector3(0, 0,0)    // local inertia
     );
     rigidBody = new btRigidBody(rigidBodyCI);
     rigidBody->setUserPointer(this);
 }
 
 void Car::update() {
-    orientation_vec = glm::vec3(0,0,0);
-    orientation = glm::normalize(glm::quat(orientation_vec));
     RotationMatrix = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix = TranslationMatrix * RotationMatrix;

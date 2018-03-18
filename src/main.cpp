@@ -168,7 +168,7 @@ int main(int argc, const char *argv[]) {
 
     // Data used for culling
     //Camera mainCamera(glm::vec3(-31, 0.07, -5), 45.0f);
-    Camera mainCamera(glm::vec3(-3,3,-3), 45.0f);
+    Camera mainCamera(glm::vec3(80,80,-7), 45.0f);
     std::vector<TrackBlock> activeTrackBlocks;
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
@@ -196,11 +196,21 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+    btTriangleMesh trackMesh;
+    // TODO: This sucks ass, separate TrackBlock into actual track blocks and XOBJs so that I'm not generation for Trees etc, use passable flags (flags&0x80)
+    for (auto &track_block : track_blocks) {
+        for (auto &track_block_model : track_block.models) {
+            for(int i = 0; i < track_block_model.m_vertices.size()-2; i+=3){
+                trackMesh.addTriangle(btVector3(track_block_model.m_vertices[i].x, track_block_model.m_vertices[i].y, track_block_model.m_vertices[i].z), btVector3(track_block_model.m_vertices[i+1].x, track_block_model.m_vertices[i+1].y, track_block_model.m_vertices[i+1].z), btVector3( track_block_model.m_vertices[i+2].x, track_block_model.m_vertices[i+2].y, track_block_model.m_vertices[i+2].z), false);
+            }
+        }
+    }
 
-    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
-    btRigidBody::btRigidBodyConstructionInfo
-            groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+    btCollisionShape* trackShape = new btBvhTriangleMeshShape(&trackMesh, false);
+    // TODO: Why is the -1.6 fiddle factor needed
+    glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2 -1.6,0,0)));
+    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(orientation.x, orientation.y, orientation.z,  1), btVector3(0,0,0)));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, trackShape, btVector3(0, 0, 0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
     dynamicsWorld->addRigidBody(groundRigidBody);
 
@@ -231,7 +241,10 @@ int main(int argc, const char *argv[]) {
         btTransform trans;
         cars[0].rigidBody->getMotionState()->getWorldTransform(trans);
         cars[0].position = glm::vec3(trans.getOrigin().getX(), trans.getOrigin().getY(), trans.getOrigin().getZ());
-        std::cout << "Car Height: " << trans.getOrigin().getY() << std::endl;
+        cars[0].orientation.w = trans.getRotation().getW();
+        cars[0].orientation.x = trans.getRotation().getX();
+        cars[0].orientation.y = trans.getRotation().getY();
+        cars[0].orientation.z = trans.getRotation().getZ();
 
         // If camera moved
         if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
@@ -363,7 +376,7 @@ int main(int argc, const char *argv[]) {
     dynamicsWorld->removeRigidBody(groundRigidBody);
     delete groundRigidBody->getMotionState();
     delete groundRigidBody;
-    delete groundShape;
+    delete trackShape;
     delete dynamicsWorld;
     delete solver;
     delete dispatcher;

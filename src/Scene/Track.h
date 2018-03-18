@@ -25,6 +25,8 @@ private:
     GLuint normalBuffer;
     std::vector<glm::vec4> shadingData;
     typedef Model super;
+
+    btCollisionShape *GenCollisionData();
 };
 
 

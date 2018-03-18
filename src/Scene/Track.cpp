@@ -2,6 +2,8 @@
 // Created by Amrik on 03/03/2018.
 //
 
+#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
+#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
 #include "Track.h"
 
 Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
@@ -27,6 +29,18 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
         m_normals.push_back(norms[m_vertex_index]);
     }
 }
+
+btCollisionShape* Track::GenCollisionData(){
+    // Build this from the track blocks
+    btTriangleMesh trackMesh;
+
+    for(int i = 0; i < m_vertices.size()-3; i+=3){
+        trackMesh.addTriangle(btVector3(m_vertices[i].x, m_vertices[i].y, m_vertices[i].z), btVector3(m_vertices[i+1].x, m_vertices[i+1].y, m_vertices[i+1].z), btVector3( m_vertices[i+2].x, m_vertices[i+2].y, m_vertices[i+2].z), false);
+    }
+
+    return new btBvhTriangleMeshShape(&trackMesh, false);
+}
+
 
 void Track::update() {
     orientation_vec = glm::vec3(-SIMD_PI/2,0,0);

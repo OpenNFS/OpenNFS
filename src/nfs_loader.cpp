@@ -332,7 +332,8 @@ void NFS_Loader::readFCE(const char *fce_path) {
         glm::vec3 center = getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i], vertices);
         center /= 10;
         if(i == 0){
-            center.y+=100;
+            center.x+=90;
+            center.y+=10;
         }
         meshes.emplace_back(Car(model_names[i], i,
                                   vertices,
