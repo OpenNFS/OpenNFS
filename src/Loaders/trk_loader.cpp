@@ -438,9 +438,6 @@ std::vector<Track> trk_loader::ParseCOLModels() {
                                 glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
         col_model.enable();
         col_models.emplace_back(col_model);
-
-
-
     }
     return col_models;
 }

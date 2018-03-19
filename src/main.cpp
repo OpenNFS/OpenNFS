@@ -101,19 +101,20 @@ int main(int argc, const char *argv[]) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
-    /*------- BULLET --------*/
-    Physics physicsEngine;
-
     /*------ ASSET LOAD ------*/
     NFS_Loader nfs_loader("../resources/car.viv");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
-    physicsEngine.registerVehicle(&car);
     //Load Track Data
     trk_loader trkLoader("../resources/TRK000/TR00.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
+
+    /*------- BULLET --------*/
+    Physics physicsEngine;
     physicsEngine.registerTrack(track_blocks);
+    //auto car_ptr = std::make_shared<Car>(Car(nfs_loader));
+    physicsEngine.registerVehicle(&car);
 
     /*------- ImGui -------*/
     ImGui::CreateContext();

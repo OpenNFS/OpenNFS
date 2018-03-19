@@ -20,7 +20,7 @@ void Physics::initSimulation() {
 }
 
 void Physics::stepSimulation(float time) {
-    dynamicsWorld->stepSimulation(time, 10);
+    dynamicsWorld->stepSimulation(time/10, 10);
     for(auto &car : cars){
         car->update();
     }
@@ -30,6 +30,10 @@ void Physics::cleanSimulation() {
     // TODO: Only cleanup if have loaded these guys
     for(auto &car : cars){
         dynamicsWorld->removeRigidBody(car->bodyRigidBody);
+        dynamicsWorld->removeRigidBody(car->fl_TireRigidBody);
+        dynamicsWorld->removeRigidBody(car->fr_TireRigidBody);
+        dynamicsWorld->removeRigidBody(car->bl_TireRigidBody);
+        dynamicsWorld->removeRigidBody(car->br_TireRigidBody);
     }
     dynamicsWorld->removeRigidBody(groundRigidBody);
     delete groundRigidBody->getMotionState();
@@ -65,7 +69,10 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
 void Physics::registerVehicle(Car *car) {
     cars.emplace_back(car);
     dynamicsWorld->addRigidBody(car->bodyRigidBody);
-    //dynamicsWorld->addRigidBody(car.fl_TireRigidBody);
+    dynamicsWorld->addRigidBody(car->fl_TireRigidBody);
+    dynamicsWorld->addRigidBody(car->fr_TireRigidBody);
+    dynamicsWorld->addRigidBody(car->bl_TireRigidBody);
+    dynamicsWorld->addRigidBody(car->br_TireRigidBody);
 }
 
 Physics::Physics() {
