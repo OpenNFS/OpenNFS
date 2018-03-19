@@ -20,7 +20,7 @@ void Physics::initSimulation() {
 }
 
 void Physics::stepSimulation(float time) {
-    dynamicsWorld->stepSimulation(time/10, 10);
+    dynamicsWorld->stepSimulation(time/100, 1);
     for(auto &car : cars){
         car->update();
     }
@@ -29,11 +29,7 @@ void Physics::stepSimulation(float time) {
 void Physics::cleanSimulation() {
     // TODO: Only cleanup if have loaded these guys
     for(auto &car : cars){
-        dynamicsWorld->removeRigidBody(car->bodyRigidBody);
-        dynamicsWorld->removeRigidBody(car->fl_TireRigidBody);
-        dynamicsWorld->removeRigidBody(car->fr_TireRigidBody);
-        dynamicsWorld->removeRigidBody(car->bl_TireRigidBody);
-        dynamicsWorld->removeRigidBody(car->br_TireRigidBody);
+        //dynamicsWorld->removeRigidBody(car->m);
     }
     dynamicsWorld->removeRigidBody(groundRigidBody);
     delete groundRigidBody->getMotionState();
@@ -68,11 +64,50 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
 
 void Physics::registerVehicle(Car *car) {
     cars.emplace_back(car);
-    dynamicsWorld->addRigidBody(car->bodyRigidBody);
-    dynamicsWorld->addRigidBody(car->fl_TireRigidBody);
-    dynamicsWorld->addRigidBody(car->fr_TireRigidBody);
-    dynamicsWorld->addRigidBody(car->bl_TireRigidBody);
-    dynamicsWorld->addRigidBody(car->br_TireRigidBody);
+
+    btVector3 wheelDirectionCS0(0,-1,0);
+    //-(car->car_models[0].position.x - car->car_models[1].position.x)
+    btVector3 wheelAxleCS(-1,0,0);
+    float	wheelRadius = car -> getWheelRadius();
+    float	wheelWidth = car -> getWheelWidth();
+    btScalar sRestLength = car -> getSuspensionRestLength();
+
+    dynamicsWorld -> getBroadphase()-> getOverlappingPairCache() ->
+            cleanProxyFromPairs(
+            car -> getVehicleRigidBody() -> getBroadphaseHandle(),
+            dynamicsWorld -> getDispatcher()
+    );
+
+    dynamicsWorld -> addRigidBody (car -> getVehicleRigidBody());
+    car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
+    car->m_vehicle = new btRaycastVehicle(
+            car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
+    car -> getVehicleRigidBody() -> setActivationState(DISABLE_DEACTIVATION);
+    dynamicsWorld -> addVehicle(car -> m_vehicle);
+    car->getRaycast() -> setCoordinateSystem(0,1,2);
+
+    // Wire up the wheels
+    // Fronties
+    btVector3 connectionPointCS0(Utils::glmToBullet(car->car_models[0].position - car->car_models[1].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, true);
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[2].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, true);
+
+    // Rearies
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[3].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning,false);
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[4].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning,false);
+
+    for (int i = 0; i < car->getRaycast()->getNumWheels(); i++)
+    {
+        btWheelInfo& wheel = car -> getRaycast() -> getWheelInfo(i);
+        wheel.m_suspensionStiffness = car -> getSuspensionStiffness();
+        wheel.m_wheelsDampingRelaxation = car -> getSuspensionDamping();
+        wheel.m_wheelsDampingCompression = car -> getSuspensionCompression();
+        wheel.m_frictionSlip = car -> getWheelFriction();
+        wheel.m_rollInfluence = car -> getRollInfluence();
+    }
 }
 
 Physics::Physics() {

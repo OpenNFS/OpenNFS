@@ -43,6 +43,7 @@ namespace Utils {
 // Affine transformations are OK but perspective transformations are not.
 
     btBoxShape* genCollisionBox(std::vector<glm::vec3> model_vertices);
+    glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices);
 };
 
 

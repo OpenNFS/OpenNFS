@@ -4,11 +4,27 @@
 
 
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
-#include "Car.h"
+ #include "Car.h"
 #include "../Util/Utils.h"
 
 
 Car::Car(NFS_Loader loader){
+    // Load these from Carp.txt
+    gEngineForce = 0.f;
+    gBreakingForce = 100.f;
+    maxEngineForce = 4000.f;
+    maxBreakingForce = 1000.f;
+    suspensionRestLength = btScalar(0.05);
+    suspensionStiffness = 200.f;
+    suspensionDamping = 200.f;
+    suspensionCompression = 200.4f;
+    wheelFriction = 10000;
+    rollInfluence = 0.04f;
+    gVehicleSteering = 0.f;
+    steeringIncrement = 0.001f;
+    steeringClamp = 0.2f;
+    steerRight = steerLeft = isReverse = false;
+
     glm::vec3 debug_offset(90, 4, 0);
     car_models = loader.getMeshes();
 
@@ -18,77 +34,38 @@ Car::Car(NFS_Loader loader){
         car_models[i].position += debug_offset;
     }
 
-    //Generate Physics collision data
-    bodyMotionstate = new btDefaultMotionState(btTransform(
+    glm::vec3 wheelDimensions = Utils::genDimensions(car_models[1].m_vertices);
+    wheelRadius = wheelDimensions.x;
+    wheelWidth = wheelDimensions.z;
+
+    // the chassis collision shape
+    btCollisionShape* chassisShape = Utils::genCollisionBox(car_models[0].m_vertices);
+    m_collisionShapes.push_back(chassisShape);
+
+    btCompoundShape* compound = new btCompoundShape();
+    m_collisionShapes.push_back(compound);
+    btTransform localTrans;
+    localTrans.setIdentity();
+
+    //Shift center of Mass (by 0 for now)
+    localTrans.setOrigin(btVector3(0.0,0.0,0));
+    compound->addChildShape(localTrans,chassisShape);
+
+    float mass = 1000.0f;
+    btVector3 localInertia(0,0,0);
+    compound->calculateLocalInertia(mass,localInertia);
+
+    // set initial location of vehicle in the world
+    vehicleMotionState = new btDefaultMotionState(btTransform(
             btQuaternion(Utils::glmToBullet(car_models[0].orientation)),
             btVector3(Utils::glmToBullet(car_models[0].position))
     ));
-    bodyRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            1625,                  // mass, in kg. 0 -> Static object, will never move.
-            bodyMotionstate,
-            Utils::genCollisionBox(car_models[0].m_vertices),  // collision shape of body
-            btVector3(0, 0,0)    // local inertia
-    );
-    bodyRigidBody = new btRigidBody(bodyRigidBodyCI);
-    bodyRigidBody->setUserPointer(this);
+    btRigidBody::btRigidBodyConstructionInfo cInfo(mass,vehicleMotionState,compound,localInertia);
+    m_carChassis = new btRigidBody(cInfo);
+    //m_carChassis->setDamping(0.2,0.2);
 
-    fl_TireBodyMotionstate = new btDefaultMotionState(btTransform(
-            btQuaternion(Utils::glmToBullet(car_models[1].orientation)),
-            btVector3(Utils::glmToBullet(car_models[1].position))
-    ));
-    fl_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            1,                  // mass, in kg. 0 -> Static object, will never move.
-            fl_TireBodyMotionstate,
-            Utils::genCollisionBox(car_models[1].m_vertices),  // collision shape of body
-            btVector3(0, 0,0)    // local inertia
-    );
-    fl_TireRigidBody = new btRigidBody(fl_TireRigidBodyCI);
-    fl_TireRigidBody->setUserPointer(this);
-
-
-
-    fr_TireBodyMotionstate = new btDefaultMotionState(btTransform(
-            btQuaternion(Utils::glmToBullet(car_models[2].orientation)),
-            btVector3(Utils::glmToBullet(car_models[2].position))
-    ));
-    fr_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            1,                  // mass, in kg. 0 -> Static object, will never move.
-            fr_TireBodyMotionstate,
-            Utils::genCollisionBox(car_models[2].m_vertices),  // collision shape of body
-            btVector3(0, 0,0)    // local inertia
-    );
-    fr_TireRigidBody = new btRigidBody(fr_TireRigidBodyCI);
-    fr_TireRigidBody->setUserPointer(this);
-
-
-
-    bl_TireBodyMotionstate = new btDefaultMotionState(btTransform(
-            btQuaternion(Utils::glmToBullet(car_models[3].orientation)),
-            btVector3(Utils::glmToBullet(car_models[3].position))
-    ));
-    bl_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            1,                  // mass, in kg. 0 -> Static object, will never move.
-            bl_TireBodyMotionstate,
-            Utils::genCollisionBox(car_models[3].m_vertices),  // collision shape of body
-            btVector3(0, 0,0)    // local inertia
-    );
-    bl_TireRigidBody = new btRigidBody(bl_TireRigidBodyCI);
-    bl_TireRigidBody->setUserPointer(this);
-
-
-
-    br_TireBodyMotionstate = new btDefaultMotionState(btTransform(
-            btQuaternion(Utils::glmToBullet(car_models[4].orientation)),
-            btVector3(Utils::glmToBullet(car_models[4].position))
-    ));
-    br_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(
-            1,                  // mass, in kg. 0 -> Static object, will never move.
-            br_TireBodyMotionstate,
-            Utils::genCollisionBox(car_models[4].m_vertices),  // collision shape of body
-            btVector3(0, 0,0)    // local inertia
-    );
-    br_TireRigidBody = new btRigidBody(br_TireRigidBodyCI);
-    br_TireRigidBody->setUserPointer(this);
+    m_carChassis -> setLinearVelocity(btVector3(0,0,0));
+    m_carChassis -> setAngularVelocity(btVector3(0,0,0));
 }
 
 Car::~Car() {
@@ -99,28 +76,61 @@ Car::~Car() {
 
 void Car::update() {
     btTransform trans;
-    bodyRigidBody->getMotionState()->getWorldTransform(trans);
+    vehicleMotionState->getWorldTransform(trans);
     car_models[0].position = Utils::bulletToGlm(trans.getOrigin());
     car_models[0].orientation = Utils::bulletToGlm(trans.getRotation());
     car_models[0].update();
 
-    fl_TireRigidBody->getMotionState()->getWorldTransform(trans);
-    car_models[1].position = Utils::bulletToGlm(trans.getOrigin());
-    car_models[1].orientation = Utils::bulletToGlm(trans.getRotation());
-    car_models[1].update();
+    for (int i = 0; i <m_vehicle->getNumWheels(); i++)
+    {
+        m_vehicle->updateWheelTransform(i,true);
+        trans = m_vehicle->getWheelInfo(i).m_worldTransform;
+        car_models[i + 1].position = Utils::bulletToGlm(trans.getOrigin());
+        car_models[i + 1].orientation = Utils::bulletToGlm(trans.getRotation());
+        car_models[i + 1].update();
+    }
 
-    fr_TireRigidBody->getMotionState()->getWorldTransform(trans);
-    car_models[2].position = Utils::bulletToGlm(trans.getOrigin());
-    car_models[2].orientation = Utils::bulletToGlm(trans.getRotation());
-    car_models[2].update();
+    // Set back wheels steering value
+    int wheelIndex = 2;
+    m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
+    m_vehicle->setBrake(gBreakingForce,wheelIndex);
 
-    bl_TireRigidBody->getMotionState()->getWorldTransform(trans);
-    car_models[3].position = Utils::bulletToGlm(trans.getOrigin());
-    car_models[3].orientation = Utils::bulletToGlm(trans.getRotation());
-    car_models[3].update();
+    wheelIndex = 3;
+    m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
+    m_vehicle->setBrake(gBreakingForce,wheelIndex);
 
-    br_TireRigidBody->getMotionState()->getWorldTransform(trans);
-    car_models[4].position = Utils::bulletToGlm(trans.getOrigin());
-    car_models[4].orientation = Utils::bulletToGlm(trans.getRotation());
-    car_models[4].update();
+    // update front wheels steering value
+    if (steerRight)
+    {
+        gVehicleSteering -= steeringIncrement;
+        if (gVehicleSteering < -steeringClamp) gVehicleSteering = -steeringClamp;
+    }
+    else if (steerLeft)
+    {
+        gVehicleSteering += steeringIncrement;
+        if (gVehicleSteering > steeringClamp) gVehicleSteering = steeringClamp;
+    }
+    else
+    {
+        gVehicleSteering = 0;
+    }
+
+    // Set front wheels steering value
+    wheelIndex = 0;
+    m_vehicle->setSteeringValue(gVehicleSteering,wheelIndex);
+    wheelIndex = 1;
+    m_vehicle->setSteeringValue(gVehicleSteering,wheelIndex);
+}
+
+void Car::resetCar()
+{
+    if (m_vehicle)
+    {
+        m_vehicle -> resetSuspension();
+        for (int i = 0; i < m_vehicle->getNumWheels(); i++)
+        {
+            //synchronize the wheels with the (interpolated) chassis worldtransform
+            m_vehicle -> updateWheelTransform(i, true);
+        }
+    }
 }

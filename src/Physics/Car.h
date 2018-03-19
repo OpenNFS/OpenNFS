@@ -8,6 +8,9 @@
 #include <LinearMath/btDefaultMotionState.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
+#include <BulletDynamics/Vehicle/btVehicleRaycaster.h>
+#include <BulletDynamics/Vehicle/btRaycastVehicle.h>
+#include <btBulletDynamicsCommon.h>
 #include "../Loaders/nfs_loader.h"
 #include "../Scene/CarModel.h"
 
@@ -16,31 +19,61 @@ public:
     Car(NFS_Loader loader);
     ~Car();
     void update();
+    void resetCar();
+
+    btDefaultMotionState* getMotionState() { return vehicleMotionState; }
+    btRigidBody* getVehicleRigidBody() { return m_carChassis; }
+    btVehicleRaycaster* getRaycaster() { return m_vehicleRayCaster; }
+    btRaycastVehicle*	getRaycast() { return m_vehicle; }
+
+    float getWheelRadius() { return wheelRadius; }
+    float getWheelWidth() { return wheelWidth; }
+    btScalar getSuspensionRestLength() { return suspensionRestLength; }
+    float getSuspensionStiffness() { return suspensionStiffness; }
+    float getSuspensionDamping() { return suspensionDamping; }
+    float getSuspensionCompression() { return suspensionCompression; }
+    float getWheelFriction() { return wheelFriction; }
+    float getRollInfluence() { return rollInfluence; }
+
+    // Meshes
     std::vector<CarModel> car_models;
     // Physics
-    // BODY
-    btRigidBody *bodyRigidBody;
-    btDefaultMotionState* bodyMotionstate;
-    btRigidBody::btRigidBodyConstructionInfo bodyRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(0, nullptr, nullptr);
-    // FL Tire
-    btRigidBody *fl_TireRigidBody;
-    btDefaultMotionState* fl_TireBodyMotionstate;
-    btRigidBody::btRigidBodyConstructionInfo fl_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(0, nullptr, nullptr);
-    // FR Tire
-    btRigidBody *fr_TireRigidBody;
-    btDefaultMotionState* fr_TireBodyMotionstate;
-    btRigidBody::btRigidBodyConstructionInfo fr_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(0, nullptr, nullptr);
-    // BL Tire
-    btRigidBody *bl_TireRigidBody;
-    btDefaultMotionState* bl_TireBodyMotionstate;
-    btRigidBody::btRigidBodyConstructionInfo bl_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(0, nullptr, nullptr);
-    // BR Tire
-    btRigidBody *br_TireRigidBody;
-    btDefaultMotionState* br_TireBodyMotionstate;
-    btRigidBody::btRigidBodyConstructionInfo br_TireRigidBodyCI = btRigidBody::btRigidBodyConstructionInfo(0, nullptr, nullptr);
+    btRaycastVehicle::btVehicleTuning m_tuning; // Wheel properties
+    btVehicleRaycaster* m_vehicleRayCaster;     // Wheel simulation
+    btRaycastVehicle* m_vehicle;
 
 private:
+    // Base Physics objects for car
+    btDefaultMotionState* vehicleMotionState;   // Retrieving vehicle location in world
+    btRigidBody* m_carChassis;
+    btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
 
+    // Vehicle Properties
+    float	gVehicleSteering;
+    float	steeringIncrement;   // Steering speed
+    float	steeringClamp;       // Max steering angle
+
+    float	gEngineForce;        // force to apply to engine
+    float	gBreakingForce;      // breaking force
+    float	maxEngineForce;      // max engine force to apply
+    float	maxBreakingForce;    // max breaking force
+
+    float	wheelRadius;
+    float	wheelWidth;
+    btScalar suspensionRestLength;
+
+    // Wheel Properties
+    float	suspensionStiffness;
+    float	suspensionDamping;
+    float	suspensionCompression;
+    float	wheelFriction;
+    // Shifts CoM
+    float	rollInfluence;
+    // Steering state
+    bool steerRight;
+    bool steerLeft;
+    bool isSteering;
+    bool isReverse;
 };
 
 
