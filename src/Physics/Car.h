@@ -27,6 +27,7 @@ public:
     btRaycastVehicle*	getRaycast() { return m_vehicle; }
 
     void applyAccelerationForce(bool apply);
+    void applyBrakingForce(bool apply);
     void applySteeringRight(bool apply);
     void applySteeringLeft(bool apply);
 

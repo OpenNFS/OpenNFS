@@ -72,6 +72,7 @@ void CarShader::getAllUniformLocations() {
     lightColourLocation = getUniformLocation("lightColour");
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
+    envReflectivityLocation  =  getUniformLocation("envReflectivity");
 }
 
 void CarShader::customCleanup(){
@@ -111,9 +112,10 @@ void CarShader::loadEnvironmentMapTexture(){
     glBindTexture(GL_TEXTURE_2D, envMapTextureID);
 }
 
-void CarShader::loadSpecular(float damper, float reflectivity){
+void CarShader::loadSpecular(float damper, float reflectivity, float env_reflectivity){
     loadFloat(shineDamperLocation, damper);
     loadFloat(reflectivityLocation, reflectivity);
+    loadFloat(envReflectivityLocation, env_reflectivity);
 }
 
 void CarShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation){

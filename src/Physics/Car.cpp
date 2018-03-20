@@ -89,9 +89,6 @@ void Car::update() {
         car_models[i + 1].update();
     }
 
-    gEngineForce = 100000000.0f;
-    gBreakingForce = 0.f;
-
     // Set back wheels steering value
     int wheelIndex = 2;
     m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
@@ -134,7 +131,6 @@ void Car::applyAccelerationForce(bool apply)
         if (!isReverse) gEngineForce = maxEngineForce;
         else gEngineForce = -maxEngineForce;
         gBreakingForce = 0.f;
-        steerRight = steerLeft = false;
     } else {
         gEngineForce = 0.f;
     }
@@ -142,17 +138,22 @@ void Car::applyAccelerationForce(bool apply)
 
 void Car::applySteeringRight(bool apply)
 {
-    if (apply)
-        steerRight = apply;
-        steerLeft = false;
+    steerRight = apply;
 }
 
 
 void Car::applySteeringLeft(bool apply)
 {
-    if(apply)
-        steerLeft = apply;
-        steerRight = false;
+    steerLeft = apply;
+}
+
+void Car::applyBrakingForce(bool apply)
+{
+    if (apply) {
+        gBreakingForce = maxBreakingForce;
+    } else {
+        gBreakingForce = 0.f;
+    }
 }
 
 void Car::resetCar()

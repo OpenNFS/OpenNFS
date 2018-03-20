@@ -7,9 +7,12 @@
 #include "../Util/Utils.h"
 
 CarModel::CarModel(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
-                   std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position) : super(
+                   std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(
         name, model_id, verts, uvs, norms, indices, true, center_position) {
 
+    specularDamper = specular_damper;
+    specularReflectivity = specular_reflectivity;
+    envReflectivity = env_reflectivity;
     m_normals.clear();
     for (unsigned int m_vertex_index : m_vertex_indices) {
         m_normals.push_back(norms[m_vertex_index]);

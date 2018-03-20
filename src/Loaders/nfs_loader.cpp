@@ -164,7 +164,7 @@ bool NFS_Loader::loadObj(std::string obj_path) {
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0));
+        CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
         meshes.emplace_back(obj_mesh);
     }
     return true;
@@ -331,11 +331,20 @@ void NFS_Loader::readFCE(const char *fce_path) {
         std::vector<glm::vec3> vertices;
         glm::vec3 center = getVertices(i, vertOffset + partVertOffsets[i], partVertNumbers[i], vertices);
         center /= 10;
+        float specularDamper = 0;
+        float specularReflectivity = 0;
+        float envReflectivity = 0;
+        // Body specific shading
+        if(i == 0){
+            specularDamper = 0.2;
+            specularReflectivity = 0.02;
+            envReflectivity = 0.4;
+        }
         meshes.emplace_back(CarModel(model_names[i], i,
                                   vertices,
                                   getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
                                   getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
-                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), center));
+                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), center, specularDamper, specularReflectivity, envReflectivity));
         std::cout << "Mesh: " << meshes[i].m_name << " UVs: " << meshes[i].m_uvs.size() << " Verts: "
                   << meshes[i].m_vertices.size() << " Indices: " << meshes[i].m_vertex_indices.size() << " Normals: "
                   << meshes[i].m_normals.size() << std::endl;

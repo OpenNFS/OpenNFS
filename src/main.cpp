@@ -134,9 +134,9 @@ int main(int argc, const char *argv[]) {
     int closestBlockID = 0;
 
     /*------- UI -------*/
-    ImVec4 clear_color = ImVec4((float) 64 / 255, (float) 30 / 255, (float) 130 / 255, 1.00f);
-    ImVec4 car_color = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
-    ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.00f);
+    ImVec4 clear_color = ImVec4(64 / 255.0f, 30 / 255.0f, 130 / 255.0f, 1.0f);
+    ImVec4 car_color = ImVec4(247/255.0f, 203/255.0f, 32/255.0f, 1.0f );
+    ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     float carSpecReflectivity = 1;
     float carSpecDamper = 10;
     float trackSpecReflectivity = 1;
@@ -154,6 +154,14 @@ int main(int argc, const char *argv[]) {
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
         glm::vec3 worldPosition = mainCamera.position;
         physicsEngine.mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
+
+        //TODO: Refactor to controller class?
+        if(!window_active){
+            car.applyAccelerationForce(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+            car.applyBrakingForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
+            car.applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+            car.applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+        }
 
         // Basic Geometry Cull
         if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
@@ -185,8 +193,8 @@ int main(int argc, const char *argv[]) {
         carShader.use();
         for (auto &car_model : car.car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
-            carShader.loadSpecular(carSpecDamper, carSpecReflectivity);
-            carShader.loadCarColor(glm::vec3(car_color.x, car_color.y, car_color.z));
+            carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
+            carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1,1));
             carShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
             carShader.loadCarTexture();
             car_model.render();
@@ -239,15 +247,6 @@ int main(int argc, const char *argv[]) {
         ImGui::SameLine(0, -1.0f);
         if (ImGui::Button("Reset Car")) {
             car.resetCar();
-        };
-        if (ImGui::Button("Accelerate")) {
-            car.applyAccelerationForce(true);
-        };
-        if (ImGui::Button("Steer Left")) {
-            car.applySteeringLeft(true);
-        };
-        if (ImGui::Button("Steer Right")) {
-            car.applySteeringRight(true);
         };
         ImGui::NewLine();
         ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, trkLoader.nBlocks);

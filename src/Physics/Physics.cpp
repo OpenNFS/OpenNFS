@@ -54,7 +54,7 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
             }
         }
     }
-    btCollisionShape* trackShape = new btBvhTriangleMeshShape(&trackMesh, true, true);
+    btCollisionShape* trackShape =new btBvhTriangleMeshShape(&trackMesh, true, true); // new btStaticPlaneShape(btVector3(0,1,0),1);//
     btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0,0,0)));
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, trackShape, btVector3(0, 0, 0));
     groundRigidBody = new btRigidBody(groundRigidBodyCI);
@@ -66,7 +66,6 @@ void Physics::registerVehicle(Car *car) {
     cars.emplace_back(car);
 
     btVector3 wheelDirectionCS0(0,-1,0);
-    //-(car->car_models[0].position.x - car->car_models[1].position.x)
     btVector3 wheelAxleCS(-1,0,0);
     float	wheelRadius = car -> getWheelRadius();
     float	wheelWidth = car -> getWheelWidth();

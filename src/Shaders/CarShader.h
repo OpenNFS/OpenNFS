@@ -17,7 +17,7 @@ public:
     void loadCarColor(glm::vec3 color);
     void loadCarTexture();
     void loadLight(Light light);
-    void loadSpecular(float damper, float reflectivity);
+    void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
 
 protected:
@@ -35,6 +35,7 @@ protected:
     GLint lightColourLocation;
     GLint shineDamperLocation;
     GLint reflectivityLocation;
+    GLint envReflectivityLocation;
     GLuint textureID;
     GLuint envMapTextureID;
 
