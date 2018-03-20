@@ -26,6 +26,10 @@ public:
     btVehicleRaycaster* getRaycaster() { return m_vehicleRayCaster; }
     btRaycastVehicle*	getRaycast() { return m_vehicle; }
 
+    void applyAccelerationForce(bool apply);
+    void applySteeringRight(bool apply);
+    void applySteeringLeft(bool apply);
+
     float getWheelRadius() { return wheelRadius; }
     float getWheelWidth() { return wheelWidth; }
     btScalar getSuspensionRestLength() { return suspensionRestLength; }

@@ -20,7 +20,7 @@ void Physics::initSimulation() {
 }
 
 void Physics::stepSimulation(float time) {
-    dynamicsWorld->stepSimulation(time/100, 1);
+    dynamicsWorld->stepSimulation(time, 15);
     for(auto &car : cars){
         car->update();
     }
@@ -58,7 +58,7 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
     btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0,0,0)));
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, trackShape, btVector3(0, 0, 0));
     groundRigidBody = new btRigidBody(groundRigidBodyCI);
-    groundRigidBody->setFriction(btScalar(0.9));
+    groundRigidBody->setFriction(btScalar(2.0f));
     dynamicsWorld->addRigidBody(groundRigidBody);
 }
 
@@ -80,23 +80,22 @@ void Physics::registerVehicle(Car *car) {
 
     dynamicsWorld -> addRigidBody (car -> getVehicleRigidBody());
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
-    car->m_vehicle = new btRaycastVehicle(
-            car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
+    car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
     car -> getVehicleRigidBody() -> setActivationState(DISABLE_DEACTIVATION);
     dynamicsWorld -> addVehicle(car -> m_vehicle);
     car->getRaycast() -> setCoordinateSystem(0,1,2);
 
     // Wire up the wheels
     // Fronties
-    btVector3 connectionPointCS0(Utils::glmToBullet(car->car_models[0].position - car->car_models[1].position));
+    btVector3 connectionPointCS0(Utils::glmToBullet(car->car_models[0].position - car->car_models[3].position));
     car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, true);
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[2].position));
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[4].position));
     car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, true);
 
     // Rearies
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[3].position));
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[1].position));
     car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning,false);
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[4].position));
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[0].position - car->car_models[2].position));
     car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning,false);
 
     for (int i = 0; i < car->getRaycast()->getNumWheels(); i++)

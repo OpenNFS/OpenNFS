@@ -21,11 +21,11 @@ Car::Car(NFS_Loader loader){
     wheelFriction = 10000;
     rollInfluence = 0.04f;
     gVehicleSteering = 0.f;
-    steeringIncrement = 0.001f;
-    steeringClamp = 0.2f;
+    steeringIncrement = 0.01f;
+    steeringClamp = 0.5f;
     steerRight = steerLeft = isReverse = false;
 
-    glm::vec3 debug_offset(90, 4, 0);
+    glm::vec3 debug_offset(91, 1.5, 0);
     car_models = loader.getMeshes();
 
     // Enable High Res wheels and body
@@ -81,23 +81,25 @@ void Car::update() {
     car_models[0].orientation = Utils::bulletToGlm(trans.getRotation());
     car_models[0].update();
 
-    for (int i = 0; i <m_vehicle->getNumWheels(); i++)
-    {
-        m_vehicle->updateWheelTransform(i,true);
+    for (int i = 0; i <m_vehicle->getNumWheels(); i++) {
+        m_vehicle->updateWheelTransform(i, true);
         trans = m_vehicle->getWheelInfo(i).m_worldTransform;
         car_models[i + 1].position = Utils::bulletToGlm(trans.getOrigin());
         car_models[i + 1].orientation = Utils::bulletToGlm(trans.getRotation());
         car_models[i + 1].update();
     }
 
+    gEngineForce = 100000000.0f;
+    gBreakingForce = 0.f;
+
     // Set back wheels steering value
     int wheelIndex = 2;
     m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
-    m_vehicle->setBrake(gBreakingForce,wheelIndex);
+    //m_vehicle->setBrake(gBreakingForce,wheelIndex);
 
     wheelIndex = 3;
     m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
-    m_vehicle->setBrake(gBreakingForce,wheelIndex);
+    //m_vehicle->setBrake(gBreakingForce,wheelIndex);
 
     // update front wheels steering value
     if (steerRight)
@@ -112,7 +114,11 @@ void Car::update() {
     }
     else
     {
-        gVehicleSteering = 0;
+      if(gVehicleSteering > 0){
+          gVehicleSteering -= steeringIncrement;
+      } else if (gVehicleSteering < 0){
+          gVehicleSteering += steeringIncrement;
+      }
     }
 
     // Set front wheels steering value
@@ -120,6 +126,33 @@ void Car::update() {
     m_vehicle->setSteeringValue(gVehicleSteering,wheelIndex);
     wheelIndex = 1;
     m_vehicle->setSteeringValue(gVehicleSteering,wheelIndex);
+}
+
+void Car::applyAccelerationForce(bool apply)
+{
+    if (apply) {
+        if (!isReverse) gEngineForce = maxEngineForce;
+        else gEngineForce = -maxEngineForce;
+        gBreakingForce = 0.f;
+        steerRight = steerLeft = false;
+    } else {
+        gEngineForce = 0.f;
+    }
+}
+
+void Car::applySteeringRight(bool apply)
+{
+    if (apply)
+        steerRight = apply;
+        steerLeft = false;
+}
+
+
+void Car::applySteeringLeft(bool apply)
+{
+    if(apply)
+        steerLeft = apply;
+        steerRight = false;
 }
 
 void Car::resetCar()

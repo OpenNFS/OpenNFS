@@ -106,7 +106,7 @@ int main(int argc, const char *argv[]) {
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data
-    trk_loader trkLoader("../resources/TRK000/TR00.frd");
+    trk_loader trkLoader("../resources/TRK006/TR06.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
 
@@ -143,7 +143,7 @@ int main(int argc, const char *argv[]) {
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;
     bool window_active = true;
-    bool physics_debug_view = true;
+    bool physics_debug_view = false;
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -170,9 +170,7 @@ int main(int argc, const char *argv[]) {
                     lowestDistanceSqr = distanceSqr;
                 }
             }
-            int frontBlock =
-                    closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance
-                                                                             : track_blocks.size();
+            int frontBlock = closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance : track_blocks.size();
             int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID - blockDrawDistance : 0;
             std::vector<TrackBlock>::const_iterator first = track_blocks.begin() + backBlock;
             std::vector<TrackBlock>::const_iterator last = track_blocks.begin() + frontBlock;
@@ -238,9 +236,20 @@ int main(int argc, const char *argv[]) {
         if (ImGui::Button("Reset View")) {
             mainCamera.resetView();
         };
+        ImGui::SameLine(0, -1.0f);
         if (ImGui::Button("Reset Car")) {
             car.resetCar();
         };
+        if (ImGui::Button("Accelerate")) {
+            car.applyAccelerationForce(true);
+        };
+        if (ImGui::Button("Steer Left")) {
+            car.applySteeringLeft(true);
+        };
+        if (ImGui::Button("Steer Right")) {
+            car.applySteeringRight(true);
+        };
+        ImGui::NewLine();
         ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, trkLoader.nBlocks);
         ImGui::ColorEdit3("Clear Colour", (float *) &clear_color); // Edit 3 floats representing a color
         ImGui::ColorEdit3("Testing Light Colour", (float *) &test_light_color);

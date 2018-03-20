@@ -17,8 +17,8 @@ Texture LoadTexture(TEXTUREBLOCK track_texture) {
         filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9
                        << "-a.BMP";
     } else {
-        filename << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-        filename_alpha << "../resources/TRK000/textures/" << setfill('0') << setw(4) << track_texture.texture
+        filename << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+        filename_alpha << "../resources/TRK006/textures/" << setfill('0') << setw(4) << track_texture.texture
                        << "-a.BMP";
     }
     GLubyte *data;
@@ -692,7 +692,7 @@ void trk_loader::ParseTRKModels() {
 
 trk_loader::trk_loader(const std::string &frd_path) {
     if (LoadFRD(frd_path)) {
-        if (LoadCOL("../resources/TRK000/TR00.COL")) {
+        if (LoadCOL("../resources/TRK006/TR06.COL")) {
             texture_gl_mappings = GenTrackTextures(textures);
             float rho = 0.85;
             float theta = 0;
