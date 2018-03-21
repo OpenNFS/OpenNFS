@@ -35,12 +35,20 @@ void CarModel::destroy() {
 }
 
 void CarModel::render() {
-    if (!enabled)
-        return;
+    if (enabled){
+        glBindVertexArray(VertexArrayID);
+        glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+        glBindVertexArray(0);
+    }
+}
 
-    // 1st attribute buffer : Vertices
-    glEnableVertexAttribArray(0);
+bool CarModel::genBuffers() {
+    glGenVertexArrays(1, &VertexArrayID);
+    glBindVertexArray(VertexArrayID);
+    // Verts
+    glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
     glVertexAttribPointer(
             0,                  // attribute
             3,                  // size
@@ -49,9 +57,12 @@ void CarModel::render() {
             0,                  // stride
             (void *) 0            // array buffer offset
     );
-    // 2nd attribute buffer : UVs
-    glEnableVertexAttribArray(1);
+    // 1st attribute buffer : Vertices
+    glEnableVertexAttribArray(0);
+    // UVs
+    glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
     glVertexAttribPointer(
             1,                                // attribute
             2,                                // size
@@ -60,9 +71,12 @@ void CarModel::render() {
             0,                                // stride
             (void *) 0                          // array buffer offset
     );
-    // 3rd attribute buffer : Normals
-    glEnableVertexAttribArray(2);
+    // 2nd attribute buffer : UVs
+    glEnableVertexAttribArray(1);
+    // Normals
+    glGenBuffers(1, &normalbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
     glVertexAttribPointer(
             2,                  // attribute
             3,                  // size
@@ -71,27 +85,9 @@ void CarModel::render() {
             0,                  // stride
             (void *) 0            // array buffer offset
     );
-    // Draw the triangles !
-    glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(3);
-}
-
-bool CarModel::genBuffers() {
-    // Verts
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
-    // UVs
-    glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
-    // Normals
-    glGenBuffers(1, &normalbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
+    // 3rd attribute buffer : Normals
+    glEnableVertexAttribArray(2);
+    glBindVertexArray(0);
     return true;
 }
 

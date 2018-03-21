@@ -65,6 +65,8 @@ public:
     iterator begin() const { return iterator(val); }
     iterator end() const { return iterator(val + len); }
     Model *val;
+protected:
+    GLuint VertexArrayID;
 private:
     /* Iterator vars */
     unsigned len;
