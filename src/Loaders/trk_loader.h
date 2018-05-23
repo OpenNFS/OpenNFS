@@ -23,8 +23,8 @@
 #include "../Scene/TrackBlock.h"
 #include "../Scene/Light.h"
 #include "../Util/Utils.h"
+#include "../Util/Raytracer.h"
 
-#define EPSILON 0.000001
 
 class Texture {
 public:
@@ -87,22 +87,6 @@ protected:
 
     std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set,
                                        std::vector<unsigned int> &texture_indices);
-
-    void BlockShadingFixer(int blk, float theta, float rho);
-
-    void ObjectShadingFixer(int blk, float theta, float rho);
-
-    FLOATPT VertexNormal(int blk, int VertexIndex);
-
-    FLOATPT VectorNormalize(FLOATPT nc);
-
-    FLOATPT SumVector(FLOATPT Vect1, FLOATPT Vect2);
-
-    FLOATPT QuadNormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c, FLOATPT d);
-
-    FLOATPT NormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c);
-
-    void raytrace(float rho, float theta);
 };
 
 #endif //FCE_TO_OBJ_TRK_LOADER_H

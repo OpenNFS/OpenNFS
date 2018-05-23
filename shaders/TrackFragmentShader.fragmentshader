@@ -25,8 +25,8 @@ uniform float reflectivity;
 void main(){
     vec4 tempColor;
      // Hack: Texture atlas implementation ASAP
-     switch(texIndex){
-       case 0: tempColor = texture(texture_array[0], UV).rgba; break;
+     switch(int(texIndex)){
+               case 0: tempColor = texture(texture_array[0], UV).rgba; break;
                case 1: tempColor = texture(texture_array[1], UV).rgba; break;
                case 2: tempColor = texture(texture_array[2], UV).rgba; break;
                case 3: tempColor = texture(texture_array[3], UV).rgba; break;
@@ -58,6 +58,8 @@ void main(){
                case 29: tempColor = texture(texture_array[29], UV).rgba; break;
                case 30: tempColor = texture(texture_array[30], UV).rgba; break;
                case 31: tempColor = texture(texture_array[31], UV).rgba; break;
+               default: texture(texture_array[0], UV).rgba; break;
+
      }
 
      if (tempColor.a <= 0.5)

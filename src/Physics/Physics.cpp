@@ -44,7 +44,7 @@ void Physics::cleanSimulation() {
 void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
     // TODO: Use passable flags (flags&0x80), refactor track block into nice data structure. One superset
     for (auto &track_block : track_blocks) {
-        for (auto &track_block_model : track_block.track) {
+        for (auto &track_block_model : track_block.objects) {
             glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0)));
             for(int i = 0; i < track_block_model.m_vertices.size()-2; i+=3){
                 glm::vec3 triangle = orientation * glm::vec3(track_block_model.m_vertices[i].x, track_block_model.m_vertices[i].y, track_block_model.m_vertices[i].z);
@@ -58,7 +58,7 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
     btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0,0,0)));
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, trackShape, btVector3(0, 0, 0));
     groundRigidBody = new btRigidBody(groundRigidBodyCI);
-    groundRigidBody->setFriction(btScalar(2.0f));
+    groundRigidBody->setFriction(btScalar(1.f));
     dynamicsWorld->addRigidBody(groundRigidBody);
 }
 

@@ -2,30 +2,28 @@
 // Created by Amrik on 18/03/2018.
 //
 
-
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
- #include "Car.h"
+#include "Car.h"
 #include "../Util/Utils.h"
-
 
 Car::Car(NFS_Loader loader){
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
-    maxEngineForce = 4000.f;
+    maxEngineForce = 2000.f;
     maxBreakingForce = 1000.f;
-    suspensionRestLength = btScalar(0.05);
-    suspensionStiffness = 200.f;
+    suspensionRestLength = btScalar(0.064);
+    suspensionStiffness = 500.f;
     suspensionDamping = 200.f;
     suspensionCompression = 200.4f;
     wheelFriction = 10000;
     rollInfluence = 0.04f;
     gVehicleSteering = 0.f;
     steeringIncrement = 0.01f;
-    steeringClamp = 0.5f;
+    steeringClamp = 0.2f;
     steerRight = steerLeft = isReverse = false;
 
-    glm::vec3 debug_offset(91, 1.5, 0);
+    glm::vec3 debug_offset(49, 4, -53);
     car_models = loader.getMeshes();
 
     // Enable High Res wheels and body
@@ -35,8 +33,8 @@ Car::Car(NFS_Loader loader){
     }
 
     glm::vec3 wheelDimensions = Utils::genDimensions(car_models[1].m_vertices);
-    wheelRadius = wheelDimensions.x;
-    wheelWidth = wheelDimensions.z;
+    wheelRadius = wheelDimensions.z;
+    wheelWidth = wheelDimensions.x;
 
     // the chassis collision shape
     btCollisionShape* chassisShape = Utils::genCollisionBox(car_models[0].m_vertices);
@@ -92,11 +90,11 @@ void Car::update() {
     // Set back wheels steering value
     int wheelIndex = 2;
     m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
-    //m_vehicle->setBrake(gBreakingForce,wheelIndex);
+    m_vehicle->setBrake(gBreakingForce,wheelIndex);
 
     wheelIndex = 3;
     m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
-    //m_vehicle->setBrake(gBreakingForce,wheelIndex);
+    m_vehicle->setBrake(gBreakingForce,wheelIndex);
 
     // update front wheels steering value
     if (steerRight)
@@ -154,6 +152,11 @@ void Car::applyBrakingForce(bool apply)
     } else {
         gBreakingForce = 0.f;
     }
+}
+
+void Car::toggleReverse()
+{
+    isReverse = (isReverse? false : true);
 }
 
 void Car::resetCar()

@@ -30,6 +30,7 @@ public:
     void applyBrakingForce(bool apply);
     void applySteeringRight(bool apply);
     void applySteeringLeft(bool apply);
+    void toggleReverse();
 
     float getWheelRadius() { return wheelRadius; }
     float getWheelWidth() { return wheelWidth; }
@@ -79,6 +80,7 @@ private:
     bool steerLeft;
     bool isSteering;
     bool isReverse;
+
 };
 
 

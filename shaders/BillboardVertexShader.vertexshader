@@ -13,7 +13,7 @@ uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
 uniform vec3 billboardPos; // Position of the center of the billboard
 
 void main(){
-    vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0f);
+    vec4 worldPosition = transformationMatrix * vec4(billboardPos, 1.0f);
 
     // Output position of the vertex
     gl_Position = projectionMatrix * viewMatrix * worldPosition; // Screen-space position of bb center

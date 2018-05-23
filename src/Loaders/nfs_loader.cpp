@@ -125,7 +125,6 @@ NFS_Loader::NFS_Loader(const char *viv_path) {
     readFCE("car.fce");
 }
 
-
 bool NFS_Loader::loadObj(std::string obj_path) {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;

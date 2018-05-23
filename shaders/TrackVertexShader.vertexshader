@@ -9,7 +9,7 @@ layout(location = 4) in vec3 normal;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
-out flat uint texIndex;
+flat out uint texIndex;
 out vec4 nfsDataOut;
 
 // Diffuse and Specular

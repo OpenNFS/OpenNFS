@@ -78,6 +78,7 @@ bool init_opengl() {
     // Cull triangles which normal is not towards the camera (when culling is enabled)
     glFrontFace(GL_CW);
     glEnable(GL_BACK);
+    //glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     return true;
@@ -102,11 +103,11 @@ int main(int argc, const char *argv[]) {
     ASSERT(init_opengl(), "OpenGL init failed.");
 
     /*------ ASSET LOAD ------*/
-    NFS_Loader nfs_loader("../resources/car.viv");
+    NFS_Loader nfs_loader("../resources/car_f1.viv");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data
-    trk_loader trkLoader("../resources/TRK006/TR06.frd");
+    trk_loader trkLoader("../resources/TRK002/TR02.frd");
     std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
     std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
 
@@ -127,6 +128,7 @@ int main(int argc, const char *argv[]) {
     BillboardShader billboardShader;
 
     Camera mainCamera(glm::vec3(98.46,3.98,0), 45.0f, 4.86f, -0.21f);
+    Light cameraLight(mainCamera.position, glm::vec3(1, 1, 1));
 
     // Data used for culling
     std::vector<TrackBlock> activeTrackBlocks;
@@ -134,7 +136,7 @@ int main(int argc, const char *argv[]) {
     int closestBlockID = 0;
 
     /*------- UI -------*/
-    ImVec4 clear_color = ImVec4(64 / 255.0f, 30 / 255.0f, 130 / 255.0f, 1.0f);
+    ImVec4 clear_color = ImVec4(119 / 255.0f, 197 / 255.0f, 252 / 255.0f, 1.0f);
     ImVec4 car_color = ImVec4(247/255.0f, 203/255.0f, 32/255.0f, 1.0f );
     ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     float carSpecReflectivity = 1;
@@ -149,6 +151,12 @@ int main(int argc, const char *argv[]) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         newFrame(window_active);
         // Compute the MVP matrix from keyboard and mouse input
+        glm::vec3 carCam =  car.car_models[0].position;
+        carCam.y += 0.2;
+        //carCam.z -= 1;
+        if(!ImGui::GetIO().MouseDown[1]){
+            mainCamera.position = carCam;
+        }
         mainCamera.computeMatricesFromInputs(window_active, ImGui::GetIO());
         glm::mat4 ProjectionMatrix = mainCamera.ProjectionMatrix;
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
@@ -156,15 +164,19 @@ int main(int argc, const char *argv[]) {
         physicsEngine.mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
 
         //TODO: Refactor to controller class?
-        if(!window_active){
+        if(window_active && !ImGui::GetIO().MouseDown[1]){
             car.applyAccelerationForce(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
             car.applyBrakingForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
             car.applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
             car.applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+            if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
+                car.toggleReverse();
+            }
         }
 
         // Basic Geometry Cull
         if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
+            cameraLight.position = worldPosition;
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
             for (auto &track_block : track_blocks) {
@@ -189,18 +201,17 @@ int main(int argc, const char *argv[]) {
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
 
-        glEnable(GL_CULL_FACE);
+
         carShader.use();
         for (auto &car_model : car.car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
             carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1,1));
-            carShader.loadLight(Light(worldPosition, glm::vec3(test_light_color.x, test_light_color.y, test_light_color.z)));
+            carShader.loadLight(cameraLight);
             carShader.loadCarTexture();
             car_model.render();
         }
         carShader.unbind();
-        glDisable(GL_CULL_FACE);
 
         for (auto &active_track_Block : activeTrackBlocks) {
             trackShader.use();
@@ -216,14 +227,14 @@ int main(int argc, const char *argv[]) {
             }
             trackShader.unbind();
 
-            billboardShader.use();
+           /* billboardShader.use();
             for (auto &light : active_track_Block.lights) {
                 light.update();
                 billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
                 billboardShader.loadLight(light);
                 light.render();
             }
-            billboardShader.unbind();
+            billboardShader.unbind();*/
         }
 
        if(physics_debug_view)

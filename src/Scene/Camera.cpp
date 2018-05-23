@@ -80,6 +80,8 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     } else {
         speed = 3.0f;
     }
+
+    if(ImGui::GetIO().MouseDown[1]){
     // Move forward
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += direction * deltaTime * speed;
@@ -95,6 +97,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     // Strafe left
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
         position -= right * deltaTime * speed;
+    }
     }
 
     float FoV = initialFoV;
