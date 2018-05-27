@@ -20,6 +20,7 @@
 #include "Util/Utils.h"
 #include "Scene/Camera.h"
 #include "Loaders/nfs_loader.h"
+#include "Loaders/nfs2_trk_loader.h"
 #include "Loaders/trk_loader.h"
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
@@ -99,6 +100,7 @@ void newFrame(bool &window_active) {
 }
 
 int main(int argc, const char *argv[]) {
+    nfs2_trk_loader nfs2TrkLoader("../resources/NFS2/tr02/TR02.trk");
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 

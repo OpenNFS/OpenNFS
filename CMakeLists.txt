@@ -44,7 +44,7 @@ set(SOURCE_FILES
         include/imgui/stb_truetype.h
         include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h
-        resources/asset/icon.rc src/Util/Raytracer.cpp src/Util/Raytracer.h)
+        resources/asset/icon.rc src/Util/Raytracer.cpp src/Util/Raytracer.h src/nfs2_data.h src/Loaders/nfs2_trk_loader.cpp src/Loaders/nfs2_trk_loader.h)
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 
