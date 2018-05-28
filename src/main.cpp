@@ -100,7 +100,7 @@ void newFrame(bool &window_active) {
 }
 
 int main(int argc, const char *argv[]) {
-    nfs2_trk_loader nfs2TrkLoader("../resources/NFS2/tr02/TR02.trk");
+    nfs2_trk_loader nfs2TrkLoader("../resources/PS1/tr02b/ZZZTR02B.TRK");
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 

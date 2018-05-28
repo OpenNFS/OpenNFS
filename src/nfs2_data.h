@@ -10,11 +10,11 @@
 
 // ---- CORE DATA TYPES ----
 typedef struct NFS2_VERT {
-    uint16_t x, z, y;
+    int16_t x, z, y;
 } NFS2_VERT;
 
 typedef struct NFS2_VERT_HIGH {
-    uint32_t x, z, y;
+    int32_t x, z, y;
 } NFS2_VERT_HIGH;
 
 typedef struct NFS2_ANIM_POS {
