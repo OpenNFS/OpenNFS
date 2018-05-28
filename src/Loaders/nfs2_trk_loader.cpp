@@ -212,9 +212,15 @@ void dbgPrintVerts(NFS2_SUPERBLOCK *superblocks, long nSuperBlocks, long nBlocks
                 // Find the structure reference that matches this structure, else use block default
                 for(int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx){
                     // Only check fixed type structure references
-                    if(trkBlock.structureRefData[structRef_Idx].recType == 1){
-                        if(trkBlock.structureRefData[structRef_Idx].structureRef == structure_Idx){
+                    if(trkBlock.structureRefData[structRef_Idx].structureRef == structure_Idx){
+                        if(trkBlock.structureRefData[structRef_Idx].recType == 1){
                             structureReferenceCoordinates = trkBlock.structureRefData[structure_Idx].refCoordinates;
+                        }
+                        else {
+                            if(trkBlock.structureRefData[structure_Idx].animLength != 0){
+                                // For now, if animated, use position 0 of animation sequence
+                                structureReferenceCoordinates = trkBlock.structureRefData[structure_Idx].animationData[0].position;
+                            }
                         }
                     }
                 }
