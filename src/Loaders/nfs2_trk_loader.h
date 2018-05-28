@@ -10,7 +10,7 @@
 #include <fstream>
 #include "../nfs2_data.h"
 
-void dbgPrintVerts(NFS2_SUPERBLOCK *superblocks, long nSuperBlocks, NFS2_VERT_HIGH *blockReferenceCoords);
+void dbgPrintVerts(NFS2_SUPERBLOCK *superblocks, long nSuperBlocks, long nBlocks, NFS2_VERT_HIGH *blockReferenceCoords, std::string path,bool printFaces);
 
 class nfs2_trk_loader {
 public:

@@ -106,6 +106,7 @@ int main(int argc, const char *argv[]) {
 
     /*------ ASSET LOAD ------*/
     NFS_Loader nfs_loader("../resources/car_f1.viv");
+    nfs_loader.loadObj("C:/Users/Amrik/Desktop/trk.obj");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data
