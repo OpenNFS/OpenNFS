@@ -33,7 +33,7 @@ typedef struct NFS2_VROAD {
     NFS2_VERT forwardVec;
 } NFS2_VROAD;
 
-// ----- EXTRA BLOCKS -----
+// ----------------- EXTRA BLOCKS -----------------
 typedef struct NFS2_EXTRABLOCK_HEADER {
     uint32_t recSize;
     uint16_t XBID;
@@ -85,7 +85,17 @@ typedef struct NFS2_LANE_BLOCK {
     uint8_t polyRef; // Inside Full-res B3D structure, 0 to nFullRes
 } NFS2_LANE_BLOCK;
 
-// ---- TRACK BLOCKS ----
+// ---- COL Specific Extra Blocks ----
+typedef struct NFS2_TEXTURE_BLOCK {
+    // XBID = 9
+    uint16_t texNumber; // Texture number in QFS file
+    uint16_t alignmentData;
+    uint8_t RGB[3]; // Luminosity
+    uint8_t RGBlack[3]; // Usually black
+} NFS2_TEXTURE_BLOCK;
+
+
+// ------------ TRACK BLOCKS ----------------
 typedef struct NFS2_TRKBLOCK_HEADER {
     uint32_t blockSize;
     uint32_t blockSizeDup;
@@ -94,9 +104,9 @@ typedef struct NFS2_TRKBLOCK_HEADER {
     uint32_t blockSerial;
     struct NFS2_VERT_HIGH clippingRect[4];
     uint32_t extraBlockTblOffset;
-    uint16_t nStickToNextVerts;
-    uint16_t nLowResVert, nMedResVert, nHighResVert;
-    uint32_t nLowResPoly, nMedResPoly, nHighResPoly; // Possible uint32_t on PC, and uint16_t on PS1
+    uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
+    uint16_t nLowResPoly, nMedResPoly, nHighResPoly; // Possible uint32_t on PC, and uint16_t on PS1
+    //uint16_t padding;
 } NFS2_TRKBLOCK_HEADER;
 
 

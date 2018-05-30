@@ -3,7 +3,6 @@
 //
 
 
-#include <afxres.h>
 #include "Light.h"
 #include "../Util/Utils.h"
 

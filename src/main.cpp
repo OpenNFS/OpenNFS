@@ -100,13 +100,12 @@ void newFrame(bool &window_active) {
 }
 
 int main(int argc, const char *argv[]) {
-    nfs2_trk_loader nfs2TrkLoader("../resources/PS1/tr02b/ZZZTR02B.TRK");
+    nfs2_trk_loader nfs2TrkLoader("../resources/NFS2/tr00");
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
     /*------ ASSET LOAD ------*/
     NFS_Loader nfs_loader("../resources/car_f1.viv");
-    nfs_loader.loadObj("C:/Users/Amrik/Desktop/trk.obj");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data

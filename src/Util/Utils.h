@@ -15,10 +15,53 @@
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <GL/glew.h>
 #include <vector>
-#include <windef.h>
-#include <afxres.h>
 #include <cassert>
 #include <cstdio>
+
+#define BI_RGB 0x0000
+
+typedef unsigned long DWORD;
+typedef unsigned short WORD;
+typedef unsigned char BYTE;
+typedef long LONG;
+
+#pragma pack(push,2)
+typedef struct tagBITMAPFILEHEADER {
+    WORD	bfType;
+    DWORD	bfSize;
+    WORD	bfReserved1;
+    WORD	bfReserved2;
+    DWORD	bfOffBits;
+} BITMAPFILEHEADER,*LPBITMAPFILEHEADER,*PBITMAPFILEHEADER;
+#pragma pack(pop)
+
+typedef struct tagBITMAPINFOHEADER {
+    DWORD biSize;
+    LONG  biWidth;
+    LONG  biHeight;
+    WORD  biPlanes;
+    WORD  biBitCount;
+    DWORD biCompression;
+    DWORD biSizeImage;
+    LONG  biXPelsPerMeter;
+    LONG  biYPelsPerMeter;
+    DWORD biClrUsed;
+    DWORD biClrImportant;
+} BITMAPINFOHEADER, *PBITMAPINFOHEADER;
+
+typedef struct tagRGBQUAD {
+    BYTE rgbBlue;
+    BYTE rgbGreen;
+    BYTE rgbRed;
+    BYTE rgbReserved;
+} RGBQUAD;
+
+typedef struct tagBITMAPINFO {
+    BITMAPINFOHEADER bmiHeader;
+    RGBQUAD          bmiColors[1];
+} BITMAPINFO, *PBITMAPINFO;
+
+#define MAKEWORD(a,b)	((WORD)(((BYTE)(a))|(((WORD)((BYTE)(b)))<<8)))
 
 #define ASSERT(condition,...) assert( \
     condition|| \

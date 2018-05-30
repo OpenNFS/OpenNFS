@@ -14,14 +14,13 @@ void dbgPrintVerts(NFS2_SUPERBLOCK *superblocks, long nSuperBlocks, long nBlocks
 
 class nfs2_trk_loader {
 public:
-    explicit nfs2_trk_loader(const std::string &trk_path);
+    explicit nfs2_trk_loader(const std::string &track_base_path);
     bool LoadTRK(std::string trk_path);
+    bool LoadCOL(std::string col_path);
     ~nfs2_trk_loader() = default;
 private:
-    long unknownHeader[5];
     long nSuperBlocks;
     long nBlocks;
-
     NFS2_SUPERBLOCK *superblocks;
 };
 
