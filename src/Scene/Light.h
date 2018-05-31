@@ -9,6 +9,8 @@
 #include "../nfs_data.h"
 #include "Model.h"
 
+using namespace NFS3;
+
 class Light : public Model {
 public:
     Light(INTPT light_position, long light_type);

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.4)
 project(OpenNFS3)
 
 set(BUILD_SHARED_LIBS OFF)
-set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations")
 #[[set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})]]
@@ -44,7 +44,7 @@ set(SOURCE_FILES
         include/imgui/stb_truetype.h
         include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h
-        resources/asset/icon.rc src/Util/Raytracer.cpp src/Util/Raytracer.h src/nfs2_data.h src/Loaders/nfs2_trk_loader.cpp src/Loaders/nfs2_trk_loader.h)
+        resources/asset/icon.rc src/Util/Raytracer.cpp src/Util/Raytracer.h src/Loaders/nfs2_trk_loader.cpp src/Loaders/nfs2_trk_loader.h)
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 

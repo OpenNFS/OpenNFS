@@ -25,7 +25,6 @@
 #include "../Util/Utils.h"
 #include "../Util/Raytracer.h"
 
-
 class Texture {
 public:
     unsigned int texture_id, width, height;
@@ -52,14 +51,14 @@ public:
     bool bHSMode;
     char header[28]; /* file header */
     long nBlocks;
-    struct TRKBLOCK *trk;
-    struct POLYGONBLOCK *poly;
-    struct XOBJBLOCK *xobj; // xobj[4*blk+chunk]; global=xobj[4*nblocks]
+    NFS3::TRKBLOCK *trk;
+    NFS3::POLYGONBLOCK *poly;
+    NFS3::XOBJBLOCK *xobj; // xobj[4*blk+chunk]; global=xobj[4*nblocks]
     long hs_morexobjlen;
     char *hs_morexobj;  // 4N & 4N+1 in HS format (xobj[4N] left empty)
     long nTextures;
-    struct TEXTUREBLOCK *texture;
-    struct COLFILE col;
+    NFS3::TEXTUREBLOCK *texture;
+    NFS3::COLFILE col;
 
     // Implementation
     explicit trk_loader(const std::string &frd_path);
