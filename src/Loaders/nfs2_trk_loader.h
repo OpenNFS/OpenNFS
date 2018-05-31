@@ -19,9 +19,19 @@ public:
     bool LoadCOL(std::string col_path);
     ~nfs2_trk_loader() = default;
 private:
-    long nSuperBlocks;
-    long nBlocks;
+    // TRK data
+    uint32_t nSuperBlocks;
+    uint32_t nBlocks;
     NFS2_SUPERBLOCK *superblocks;
+    // COL data
+    uint32_t nTextures;
+    NFS2_TEXTURE_BLOCK *polyToQFStexTable;
+    uint32_t nColStructures;
+    NFS2_3D_BLOCK *colStructures;
+    uint32_t nColStructureReferences;
+    NFS2_3D_REF_BLOCK *colStructureRefData;
+    uint32_t nCollisionData;
+    NFS2_COLLISION_BLOCK *collisionData;
 };
 
 

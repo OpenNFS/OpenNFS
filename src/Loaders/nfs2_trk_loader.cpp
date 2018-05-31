@@ -212,30 +212,72 @@ bool nfs2_trk_loader::LoadCOL(std::string col_path) {
     uint32_t *extraBlockOffsets = (uint32_t *) calloc(nExtraBlocks, sizeof(uint32_t));
     col.read((char*) extraBlockOffsets, nExtraBlocks*sizeof(uint32_t));
 
-
-    uint32_t nTextures = (extraBlockOffsets[1] - extraBlockOffsets[0])/sizeof(NFS2_TEXTURE_BLOCK);
-    NFS2_TEXTURE_BLOCK *textureTable = (NFS2_TEXTURE_BLOCK *) calloc(nTextures, sizeof(NFS2_TEXTURE_BLOCK));
-
     for(int xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx) {
-        col.seekg(32 + extraBlockOffsets[xBlock_Idx] + 16, ios_base::beg);
+        col.seekg(16 + extraBlockOffsets[xBlock_Idx] + 16, ios_base::beg);
 
-        // First xbock always texture table
         switch (xBlock_Idx) {
-            case 0:
-                col.read((char *) textureTable, nTextures * sizeof(NFS2_TEXTURE_BLOCK));
+            case 0: // First xbock always texture table
+                nTextures = (extraBlockOffsets[1] - extraBlockOffsets[0])/sizeof(NFS2_TEXTURE_BLOCK);
+                polyToQFStexTable = (NFS2_TEXTURE_BLOCK *) calloc(nTextures, sizeof(NFS2_TEXTURE_BLOCK));
+                col.read((char *) polyToQFStexTable, nTextures * sizeof(NFS2_TEXTURE_BLOCK));
                 break;
-            case 1:
+            case 1: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2
+                if(nExtraBlocks == 4){
+                    nColStructures = (extraBlockOffsets[2] - extraBlockOffsets[1])/sizeof(NFS2_3D_BLOCK);
+                    colStructures = (NFS2_3D_BLOCK *) calloc(nColStructures, sizeof(NFS2_3D_BLOCK));
+                    for(int structure_Idx = 0; structure_Idx < nColStructures; ++structure_Idx){
+                        streamoff padCheck = col.tellg();
+                        col.read((char*) &colStructures[structure_Idx].recSize, sizeof(uint32_t));
+                        col.read((char*) &colStructures[structure_Idx].nVerts, sizeof(uint16_t));
+                        col.read((char*) &colStructures[structure_Idx].nPoly, sizeof(uint16_t));
+                        colStructures[structure_Idx].vertexTable = (NFS2_VERT *) calloc(colStructures[structure_Idx].nVerts, sizeof(NFS2_VERT));
+                        for(int vert_Idx = 0; vert_Idx < colStructures[structure_Idx].nVerts; ++vert_Idx){
+                            col.read((char *) &colStructures[structure_Idx].vertexTable[vert_Idx], sizeof(NFS2_VERT));
+                        }
+                        colStructures[structure_Idx].polygonTable = (NFS2_POLYGONDATA *) calloc(colStructures[structure_Idx].nPoly, sizeof(NFS2_POLYGONDATA));
+                        for(int poly_Idx = 0; poly_Idx < colStructures[structure_Idx].nPoly; ++poly_Idx){
+                            col.read((char *) &colStructures[structure_Idx].polygonTable[poly_Idx], sizeof(NFS2_POLYGONDATA));
+                        }
+                        col.seekg(colStructures[structure_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                    }
+                }
                 break;
-            case 2:
+            case 2: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
+                if(nExtraBlocks == 4){
+                    nColStructureReferences = (extraBlockOffsets[3] - extraBlockOffsets[2])/sizeof(NFS2_3D_REF_BLOCK);
+                    colStructureRefData = (NFS2_3D_REF_BLOCK *) calloc(nColStructureReferences, sizeof(NFS2_3D_REF_BLOCK));
+                    for(int structureRef_Idx = 0; structureRef_Idx < nColStructures; ++structureRef_Idx){
+                        streamoff padCheck = col.tellg();
+                        col.read((char*) &colStructureRefData[structureRef_Idx].recSize, sizeof(uint16_t));
+                        col.read((char*) &colStructureRefData[structureRef_Idx].recType, sizeof(uint8_t));
+                        col.read((char*) &colStructureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
+                        // Fixed type
+                        if(colStructureRefData[structureRef_Idx].recType == 1){
+                            col.read((char*) &colStructureRefData[structureRef_Idx].refCoordinates, sizeof(NFS2_VERT_HIGH));
+                        }
+                        else if(colStructureRefData[structureRef_Idx].recType == 3){ // Animated type
+                            col.read((char*) &colStructureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
+                            col.read((char*) &colStructureRefData[structureRef_Idx].unknown, sizeof(uint16_t));
+                            colStructureRefData[structureRef_Idx].animationData = (NFS2_ANIM_POS *) calloc(colStructureRefData[structureRef_Idx].animLength, sizeof(NFS2_ANIM_POS));
+                            for(int animation_Idx = 0; animation_Idx < colStructureRefData[structureRef_Idx].animLength; ++animation_Idx){
+                                col.read((char*) &colStructureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(NFS2_ANIM_POS));
+                            }
+                        } else {
+                            std::cout << "Unknown Structure Reference type: " << (int) colStructureRefData[structureRef_Idx].recType << std::endl;
+                        }
+                        col.seekg(colStructureRefData[structureRef_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                    }
+                }
                 break;
             case 3:
-                break;
-
-            default:
+                uint32_t nCollisionData  = (nExtraBlocks == 2) ? (extraBlockOffsets[2] - extraBlockOffsets[1])/sizeof(NFS2_COLLISION_BLOCK) : (extraBlockOffsets[4] - extraBlockOffsets[3])/sizeof(NFS2_COLLISION_BLOCK);
+                NFS2_COLLISION_BLOCK *collisionData = (NFS2_COLLISION_BLOCK *) calloc(nCollisionData, sizeof(NFS2_COLLISION_BLOCK));
+                col.read((char*) collisionData, nCollisionData * sizeof(NFS2_COLLISION_BLOCK));
                 break;
         }
     }
     col.close();
+    return true;
 }
 
 void dbgPrintVerts(NFS2_SUPERBLOCK *superblocks, long nSuperBlocks, long nBlocks, NFS2_VERT_HIGH *blockReferenceCoords, std::string path, bool printFaces) {

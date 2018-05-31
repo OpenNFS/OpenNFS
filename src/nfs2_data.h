@@ -87,13 +87,27 @@ typedef struct NFS2_LANE_BLOCK {
 
 // ---- COL Specific Extra Blocks ----
 typedef struct NFS2_TEXTURE_BLOCK {
-    // XBID = 9
+    // XBID = 2
     uint16_t texNumber; // Texture number in QFS file
     uint16_t alignmentData;
     uint8_t RGB[3]; // Luminosity
     uint8_t RGBlack[3]; // Usually black
 } NFS2_TEXTURE_BLOCK;
 
+typedef struct NFS2_COLLISION_BLOCK {
+    // XBID = 15
+    NFS2_VERT_HIGH trackPosition; // Position along track on a single line, either at center or side of road
+    int8_t vertVec[3];  // The three vectors are mutually orthogonal, and are normalized so that
+    int8_t fwdVec[3];   // each vector's norm is slightly less than 128. Each vector is coded on
+    int8_t rightVec[3]; // 3 bytes : its x, z and y components are each signed 8-bit values.
+    uint8_t zero;
+    uint16_t blockNumber;
+    uint16_t unknown;    // The left and right border values indicate the two limits beyond which no car can go. This is the data used for delimitation between the road and scenery
+    uint16_t leftBorder; // Formula to find the coordinates of the left-most point of the road is (left-most point) = (reference point) - 2.(left border).(right vector):  there is a factor of 2 between absolute
+    uint16_t rightBorder;// 32-bit coordinates and the othe data in the record. Similarly, for the right-most point of the road, (right-most point) = (reference point) + 2.(right border).(right vector).
+    uint16_t postCrashPosition; // Lateral position after respawn
+    uint32_t unknown2;
+} NFS2_COLLISION_BLOCK;
 
 // ------------ TRACK BLOCKS ----------------
 typedef struct NFS2_TRKBLOCK_HEADER {
@@ -134,6 +148,5 @@ typedef struct NFS2_SUPERBLOCK {
     uint32_t padding;
     NFS2_TRKBLOCK *trackBlocks;
 } NFS2_SUPERBLOCK;
-
 
 #endif //OPENNFS3_NFS2_DATA_H
