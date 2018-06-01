@@ -3,7 +3,6 @@
 //
 #include "TrackShader.h"
 
-
 const std::string vertexSrc = "../shaders/TrackVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/TrackFragmentShader.fragmentshader";
 

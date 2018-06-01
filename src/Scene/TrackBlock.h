@@ -5,8 +5,8 @@
 #ifndef OPENNFS3_TRACKBLOCK_H
 #define OPENNFS3_TRACKBLOCK_H
 
-#include "Track.h"
 #include "../nfs_data.h"
+#include "Track.h"
 #include "Light.h"
 
 class TrackBlock {

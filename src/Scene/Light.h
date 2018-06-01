@@ -6,14 +6,14 @@
 #define OPENNFS3_LIGHT_H
 
 #include <glm/vec3.hpp>
-#include "../nfs_data.h"
 #include "Model.h"
+#include "../nfs_data.h"
 
 using namespace NFS3;
 
 class Light : public Model {
 public:
-    Light(INTPT light_position, long light_type);
+    Light(INTPT light_position, uint32_t light_type);
     Light(glm::vec3 light_position, glm::vec3 light_colour);
 
     void update() override;

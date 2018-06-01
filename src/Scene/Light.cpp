@@ -35,7 +35,7 @@ Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
 }
 
-Light::Light(INTPT light_position, long light_type) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
+Light::Light(INTPT light_position, uint32_t light_type) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
     // TODO: Redo all of this to make sense
     std::vector<glm::vec3> verts;
     verts.push_back(glm::vec3(0, -0.5, -0.5)); // bottom left corner
@@ -87,7 +87,6 @@ void Light::update() {
     // Move back to original position
     ModelMatrix *= glm::translate(glm::mat4(1.0), position) * RotationMatrix;
 }
-
 
 void Light::destroy() {
     glDeleteBuffers(1, &vertexbuffer);

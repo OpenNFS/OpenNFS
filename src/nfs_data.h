@@ -8,6 +8,11 @@
 #define OPENNFS3_NFS_DATA_H
 
 #include <cstdint>
+#include <map>
+#include <vector>
+#include <GL/glew.h>
+
+class TrackBlock;
 
 namespace NFS3 {
     typedef struct FLOATPT {
@@ -15,20 +20,20 @@ namespace NFS3 {
     } FLOATPT;
 
     typedef struct INTPT {
-        long x, z, y;
+        uint32_t x, z, y;
     } INTPT;
 
     typedef struct NEIGHBORDATA  // info on neighbouring block numbers
     {
-        short blk, unknown;
+        uint16_t blk, unknown;
     } NEIGHBORDATA;
 
     typedef struct POSITIONDATA  // enumerate polygons which lie at center
     {
-        short polygon;
+        uint16_t polygon;
         unsigned char nPolygons;
         char unknown;
-        short extraNeighbor1, extraNeighbor2;
+        uint16_t extraNeighbor1, extraNeighbor2;
     } POSITIONDATA;
 
     typedef struct POLYVROADDATA  // vroad data associated with a polygon
@@ -43,8 +48,8 @@ namespace NFS3 {
 
     typedef struct VROADDATA  // vroad vectors
     {
-        short xNorm, zNorm, yNorm;
-        short xForw, zForw, yForw;
+        uint16_t xNorm, zNorm, yNorm;
+        uint16_t xForw, zForw, yForw;
     } VROADDATA;
 
 // WARNING: in the following 2 structures, don't rely on crossindex :
@@ -55,48 +60,48 @@ namespace NFS3 {
     typedef struct REFXOBJ // description of a block's XOBJects.
     {
         struct INTPT pt;
-        short unknown1;
-        short globalno;  // sequence number in all of the track's xobjs
-        short unknown2;
+        uint16_t unknown1;
+        uint16_t globalno;  // sequence number in all of the track's xobjs
+        uint16_t unknown2;
         char crossindex; // position in first POLYOBJ chunk (0 if not in first chunk)
         char unknown3;
     } REFXOBJ; // !!! does not list the animated XOBJs
 
     typedef struct SOUNDSRC {
         struct INTPT refpoint;
-        long type;
+        uint32_t type;
     } SOUNDSRC;
 
     typedef struct LIGHTSRC {
         struct INTPT refpoint;
-        long type;
+        uint32_t type;
     } LIGHTSRC;
 
     typedef struct TRKBLOCK {
         struct FLOATPT ptCentre;
         struct FLOATPT ptBounding[4];
-        long nVertices; // total stored
-        long nHiResVert, nLoResVert, nMedResVert; // #poly[...]+#polyobj
-        long nVerticesDup, nObjectVert;
+        uint32_t nVertices; // total stored
+        uint32_t nHiResVert, nLoResVert, nMedResVert; // #poly[...]+#polyobj
+        uint32_t nVerticesDup, nObjectVert;
         struct FLOATPT *vert;  // the vertices
-        long *unknVertices;
+        uint32_t *unknVertices;
         struct NEIGHBORDATA nbdData[0x12C];  // neighboring blocks
-        long nStartPos, nPositions;
-        long nPolygons, nVRoad, nXobj, nPolyobj, nSoundsrc, nLightsrc;
-        struct POSITIONDATA *posData;  // positions along track
+        uint32_t nStartPos, nPositions;
+        uint32_t nPolygons, nVRoad, nXobj, nPolyobj, nSoundsrc, nLightsrc;
+        struct POSITIONDATA *posData;  // positions auint32_t track
         struct POLYVROADDATA *polyData;  // polygon vroad references & flags
         struct VROADDATA *vroadData;   // vroad vectors
         struct REFXOBJ *xobj;
         struct SOUNDSRC *soundsrc;
         struct LIGHTSRC *lightsrc;
         struct FLOATPT hs_ptMin, hs_ptMax;
-        long hs_neighbors[8];
+        uint32_t hs_neighbors[8];
     } TRKBLOCK;
 
     typedef struct POLYGONDATA {
-        short vertex[4];
-        short texture;
-        short unknown1; // only used in road lane polygonblock ?
+        uint16_t vertex[4];
+        uint16_t texture;
+        uint16_t unknown1; // only used in road lane polygonblock ?
         unsigned char flags; // 00 normally, 20 at end of row, 10 two-sided
         unsigned char unknown2; // F9
     } POLYGONDATA;
@@ -105,16 +110,16 @@ namespace NFS3 {
 
     typedef struct OBJPOLYBLOCK  // a POLYOBJ chunk
     {
-        long n1;        // total number of polygons
-        long n2;        // total number of objects including XOBJs
-        long nobj;      // not stored in .FRD : number of type 1 objects
-        long *types;    // when 1, there is an associated object; else XOBJ
-        long *numpoly;  // size of each object (only for type 1 objects)
+        uint32_t n1;        // total number of polygons
+        uint32_t n2;        // total number of objects including XOBJs
+        uint32_t nobj;      // not stored in .FRD : number of type 1 objects
+        uint32_t *types;    // when 1, there is an associated object; else XOBJ
+        uint32_t *numpoly;  // size of each object (only for type 1 objects)
         LPPOLYGONDATA *poly;    // the polygons themselves
     } OBJPOLYBLOCK;
 
     typedef struct POLYGONBLOCK {
-        long sz[7], szdup[7];
+        uint32_t sz[7], szdup[7];
         // 7 blocks == low res / 0 / med. res / 0 / high res / 0 / ??central
         LPPOLYGONDATA poly[7];
         struct OBJPOLYBLOCK obj[4]; // the POLYOBJ chunks
@@ -128,40 +133,40 @@ namespace NFS3 {
     } ANIMDATA;
 
     typedef struct XOBJDATA {
-        long crosstype; // type 4, or more rarely 3 (animated)
-        long crossno;   // obj number from REFXOBJ table in TRKBLOCK
-        long unknown;
+        uint32_t crosstype; // type 4, or more rarely 3 (animated)
+        uint32_t crossno;   // obj number from REFXOBJ table in TRKBLOCK
+        uint32_t unknown;
 // this section only for type 4 basic objects
         struct FLOATPT ptRef;
-        long unknown2; // in HS, stores the unknown long for type 3 as well
+        uint32_t unknown2; // in HS, stores the unknown uint32_t for type 3 as well
 // this section only for type 3 animated objects
-        short unknown3[9]; // 6 first are all alike; [6]==[8]=?; [7]=0
+        uint16_t unknown3[9]; // 6 first are all alike; [6]==[8]=?; [7]=0
         // in HS, only 6 are used ; 6 = expected 4
         char type3, objno;  // type3==3; objno==index among all block's objects?
-        short nAnimLength, unknown4;
+        uint16_t nAnimLength, unknown4;
         struct ANIMDATA *animData;
 // common section
-        long nVertices;
+        uint32_t nVertices;
         struct FLOATPT *vert;  // the vertices
-        long *unknVertices;
-        long nPolygons;
+        uint32_t *unknVertices;
+        uint32_t nPolygons;
         struct POLYGONDATA *polyData;  // polygon data
     } XOBJDATA;
 
     typedef struct XOBJBLOCK {
-        long nobj;
+        uint32_t nobj;
         struct XOBJDATA *obj;
     } XOBJBLOCK;
 
 #pragma pack(1)
     typedef struct TEXTUREBLOCK // WARNING: packed but not byte-aligned !!!
     {
-        short width, height;
-        long unknown1;
+        uint16_t width, height;
+        uint32_t unknown1;
         float corners[8]; // 4x planar coordinates == tiling?
-        long unknown2;
+        uint32_t unknown2;
         char islane;      // 1 if not a real texture (lane), 0 usually
-        short texture;    // index in QFS file
+        uint16_t texture;    // index in QFS file
     } TEXTUREBLOCK;
 #pragma pack()
 
@@ -174,44 +179,44 @@ namespace NFS3 {
 #define XBID_VROAD 15
 
     typedef struct XBHEAD {
-        long size;
-        short xbid;
-        short nrec;
+        uint32_t size;
+        uint16_t xbid;
+        uint16_t nrec;
     } XBHEAD;
 
     typedef struct COLTEXTUREINFO {
-        short texture;  // position in .QFS file
-        short unknown1; // zero ?
-        short unknown2; // texture offset ?
-        short unknown3;
+        uint16_t texture;  // position in .QFS file
+        uint16_t unknown1; // zero ?
+        uint16_t unknown2; // texture offset ?
+        uint16_t unknown3;
     } COLTEXTUREINFO;
 
     typedef struct COLVERTEX {
         struct FLOATPT pt; // relative coord
-        long unknown;      // like the unknVertices structures in FRD
+        uint32_t unknown;      // like the unknVertices structures in FRD
     } COLVERTEX;
 
     typedef struct COLPOLYGON {
-        short texture;
+        uint16_t texture;
         char v[4]; // vertices
     } COLPOLYGON;
 
     typedef struct COLSTRUCT3D {
-        long size;
-        short nVert, nPoly;
+        uint32_t size;
+        uint16_t nVert, nPoly;
         struct COLVERTEX *vertex;
         struct COLPOLYGON *polygon;
     } COLSTRUCT3D;
 
     typedef struct COLOBJECT {
-        short size;
+        uint16_t size;
         char type;     // 1 = basic object, 3 = animated ...
         char struct3D; // reference in previous block
 // type 1
         struct INTPT ptRef;
 // type 3
-        short animLength;
-        short unknown;
+        uint16_t animLength;
+        uint16_t unknown;
         struct ANIMDATA *animData; // same structure as in xobjs
     } COLOBJECT;
 
@@ -221,9 +226,9 @@ namespace NFS3 {
 
     typedef struct COLVROAD {
         struct INTPT refPt;
-        long unknown;  // flags ?
+        uint32_t unknown;  // flags ?
         struct COLVECTOR normal, forward, right;
-        long leftWall, rightWall;
+        uint32_t leftWall, rightWall;
     } COLVROAD;
 
     typedef struct HS_VROADBLOCK { // HS's equivalent to a COLVROAD
@@ -231,15 +236,15 @@ namespace NFS3 {
         struct FLOATPT normal, forward, right;
         float leftWall, rightWall;
         float unknown1[2];
-        long unknown2[5];
+        uint32_t unknown2[5];
     } HS_VROADBLOCK;
 
     typedef struct COLFILE {
         char collID[4]; // 'COLL'
-        long version;   // 11
-        long fileLength;
-        long nBlocks;
-        long xbTable[5];
+        uint32_t version;   // 11
+        uint32_t fileLength;
+        uint32_t nBlocks;
+        uint32_t xbTable[5];
         struct XBHEAD textureHead;
         struct COLTEXTUREINFO *texture;
         struct XBHEAD struct3DHead;
@@ -250,11 +255,52 @@ namespace NFS3 {
         struct COLOBJECT *object2;
         struct XBHEAD vroadHead;
         struct COLVROAD *vroad;
-        long *hs_extra; // for the extra HS data in COLVROAD
+        uint32_t *hs_extra; // for the extra HS data in COLVROAD
     } COLFILE;
+
+
+    // ---- NFS3 GL Structures -----
+    class Texture {
+    public:
+        unsigned int texture_id, width, height;
+        GLubyte *texture_data;
+
+        Texture() = default;
+
+        explicit Texture(unsigned int id, GLubyte *data, unsigned int w, unsigned int h) {
+            texture_id = id;
+            texture_data = data;
+            width = w;
+            height = h;
+        }
+    };
+
+    // ---- MASTER TRACK STRUCT ----
+
+    typedef struct TRACK {
+        // !!! for arrays : structures are aligned to their largest member
+        // !!! structure members are aligned on their own size (up to the /Zp parameter)
+        // Attributes
+        bool bEmpty;
+        bool bHSMode;
+
+        uint32_t nBlocks;
+        TRKBLOCK *trk;
+        POLYGONBLOCK *poly;
+        XOBJBLOCK *xobj; // xobj[4*blk+chunk]; global=xobj[4*nblocks]
+        uint32_t hs_morexobjlen;
+        char *hs_morexobj;  // 4N & 4N+1 in HS format (xobj[4N] left empty)
+        uint32_t nTextures;
+        TEXTUREBLOCK *texture;
+        COLFILE col;
+        // GL 3D Render Data
+        std::vector<TrackBlock> track_blocks;
+        std::map<short, Texture> textures;
+        std::map<short, GLuint> texture_gl_mappings;
+    } TRACK;
 }
 
-namespace NFS2{
+namespace NFS2 {
     // ---- CORE DATA TYPES ----
     typedef struct VERT {
         int16_t x, z, y;
@@ -327,7 +373,7 @@ namespace NFS2{
     typedef struct LANE_BLOCK {
         // XBID = 9
         uint8_t vertRef; // Inside B3D structure: 0 to nFullRes + nStickToNext
-        uint8_t trackPos; // Position along track inside block (0 to 7)
+        uint8_t trackPos; // Position auint32_t track inside block (0 to 7)
         uint8_t latPos; // Lateral position, -1 at the end
         uint8_t polyRef; // Inside Full-res B3D structure, 0 to nFullRes
     } LANE_BLOCK;
@@ -343,7 +389,7 @@ namespace NFS2{
 
     typedef struct COLLISION_BLOCK {
         // XBID = 15
-        VERT_HIGH trackPosition; // Position along track on a single line, either at center or side of road
+        VERT_HIGH trackPosition; // Position auint32_t track on a single line, either at center or side of road
         int8_t vertVec[3];  // The three vectors are mutually orthogonal, and are normalized so that
         int8_t fwdVec[3];   // each vector's norm is slightly less than 128. Each vector is coded on
         int8_t rightVec[3]; // 3 bytes : its x, z and y components are each signed 8-bit values.

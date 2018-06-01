@@ -20,7 +20,6 @@
 #include "Util/Utils.h"
 #include "Scene/Camera.h"
 #include "Loaders/nfs_loader.h"
-#include "Loaders/nfs2_trk_loader.h"
 #include "Loaders/trk_loader.h"
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
@@ -100,7 +99,7 @@ void newFrame(bool &window_active) {
 }
 
 int main(int argc, const char *argv[]) {
-    NFS2::TRACK *track = NFS2::trk_loadera("../resources/NFS2/TR00");
+    NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
     free(track);
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
@@ -110,9 +109,9 @@ int main(int argc, const char *argv[]) {
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data
-    trk_loader trkLoader("../resources/TRK002/TR02.frd");
-    std::map<short, GLuint> gl_id_map = trkLoader.getTextureGLMap();
-    std::vector<TrackBlock> track_blocks = trkLoader.getTrackBlocks();
+    NFS3::TRACK *nfs3_track = NFS3::trk_loader("../resources/TRK002");
+    std::map<short, GLuint> gl_id_map = nfs3_track->texture_gl_mappings;
+    std::vector<TrackBlock> track_blocks = nfs3_track->track_blocks;
 
     /*------- BULLET --------*/
     Physics physicsEngine;
@@ -270,7 +269,7 @@ int main(int argc, const char *argv[]) {
             car.resetCar();
         };
         ImGui::NewLine();
-        ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, trkLoader.nBlocks);
+        ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, nfs3_track->nBlocks);
         ImGui::ColorEdit3("Clear Colour", (float *) &clear_color); // Edit 3 floats representing a color
         ImGui::ColorEdit3("Testing Light Colour", (float *) &test_light_color);
         ImGui::ColorEdit3("Car Colour", (float *) &car_color);
