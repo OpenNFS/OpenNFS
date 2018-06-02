@@ -770,8 +770,8 @@ namespace NFS2{
             return false;
 
         // Reference coordinates for each block
-        VERT_HIGH *blockReferenceCoords = static_cast<VERT_HIGH *>(calloc(track->nBlocks, sizeof(VERT_HIGH)));
-        if (trk.read((char *) blockReferenceCoords, track->nBlocks * sizeof(VERT_HIGH)).gcount() != track->nBlocks * sizeof(VERT_HIGH)){
+        VERT_HIGHP *blockReferenceCoords = static_cast<VERT_HIGHP *>(calloc(track->nBlocks, sizeof(VERT_HIGHP)));
+        if (trk.read((char *) blockReferenceCoords, track->nBlocks * sizeof(VERT_HIGHP)).gcount() != track->nBlocks * sizeof(VERT_HIGHP)){
             free(blockReferenceCoords);
             return false;
         }
@@ -867,7 +867,7 @@ namespace NFS2{
                                     trk.read((char*) &trackblock->structureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
                                     // Fixed type
                                     if(trackblock->structureRefData[structureRef_Idx].recType == 1){
-                                        trk.read((char*) &trackblock->structureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGH));
+                                        trk.read((char*) &trackblock->structureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
                                     }
                                     else if(trackblock->structureRefData[structureRef_Idx].recType == 3){ // Animated type
                                         trk.read((char*) &trackblock->structureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
@@ -976,7 +976,7 @@ namespace NFS2{
                             col.read((char*) &track->colStructureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
                             // Fixed type
                             if(track->colStructureRefData[structureRef_Idx].recType == 1){
-                                col.read((char*) &track->colStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGH));
+                                col.read((char*) &track->colStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
                             }
                             else if(track->colStructureRefData[structureRef_Idx].recType == 3){ // Animated type
                                 col.read((char*) &track->colStructureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
@@ -1004,14 +1004,14 @@ namespace NFS2{
         return true;
     }
 
-    void dbgPrintVerts(TRACK *track, VERT_HIGH *blockReferenceCoords, const std::string &path, bool printFaces) {
+    void dbgPrintVerts(TRACK *track, VERT_HIGHP *blockReferenceCoords, const std::string &path, bool printFaces) {
         std::ofstream obj_dump;
 
         for(int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx){
             SUPERBLOCK superblock = track->superblocks[superBlock_Idx];
             for (int block_Idx = 0; block_Idx < superblock.nBlocks; ++block_Idx) {
                 TRKBLOCK trkBlock = superblock.trackBlocks[block_Idx];
-                VERT_HIGH blockReferenceCoord;
+                VERT_HIGHP blockReferenceCoord;
                 // Print clipping rectangle
                 //obj_dump << "o Block" << trkBlock.header->blockSerial << "ClippingRect" << std::endl;
                 //for(int i = 0; i < 4; i++){
@@ -1045,7 +1045,7 @@ namespace NFS2{
                     std::ostringstream stringStream1;
                     stringStream1 << path << &trkBlock.structures[structure_Idx] << ".obj";
                     obj_dump.open(stringStream1.str());
-                    VERT_HIGH *structureReferenceCoordinates = &blockReferenceCoords[trkBlock.header->blockSerial];
+                    VERT_HIGHP *structureReferenceCoordinates = &blockReferenceCoords[trkBlock.header->blockSerial];
                     // Find the structure reference that matches this structure, else use block default
                     for(int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx){
                         // Only check fixed type structure references

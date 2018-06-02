@@ -306,12 +306,12 @@ namespace NFS2 {
         int16_t x, z, y;
     } VERT;
 
-    typedef struct VERT_HIGH {
+    typedef struct VERT_HIGHP {
         int32_t x, z, y;
-    } VERT_HIGH;
+    } VERT_HIGHP;
 
     typedef struct ANIM_POS {
-        VERT_HIGH position;
+        VERT_HIGHP position;
         uint16_t unknown[4];
     } ANIM_POS;
 
@@ -355,7 +355,7 @@ namespace NFS2 {
         uint8_t recType;
         uint8_t structureRef;
         // Fixed Type (recType == 1)
-        VERT_HIGH refCoordinates;
+        VERT_HIGHP refCoordinates;
         // Animated Type (recType == 3)
         uint16_t animLength; // num of position records
         uint16_t unknown; // Potentially time between animation steps?
@@ -389,7 +389,7 @@ namespace NFS2 {
 
     typedef struct COLLISION_BLOCK {
         // XBID = 15
-        VERT_HIGH trackPosition; // Position auint32_t track on a single line, either at center or side of road
+        VERT_HIGHP trackPosition; // Position auint32_t track on a single line, either at center or side of road
         int8_t vertVec[3];  // The three vectors are mutually orthogonal, and are normalized so that
         int8_t fwdVec[3];   // each vector's norm is slightly less than 128. Each vector is coded on
         int8_t rightVec[3]; // 3 bytes : its x, z and y components are each signed 8-bit values.
@@ -409,7 +409,7 @@ namespace NFS2 {
         uint16_t nExtraBlocks;
         uint16_t unknown;
         uint32_t blockSerial;
-        struct VERT_HIGH clippingRect[4];
+        struct VERT_HIGHP clippingRect[4];
         uint32_t extraBlockTblOffset;
         uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
         uint16_t nLowResPoly, nMedResPoly, nHighResPoly; // Possible uint32_t on PC, and uint16_t on PS1
@@ -458,7 +458,34 @@ namespace NFS2 {
         uint32_t nCollisionData;
         COLLISION_BLOCK *collisionData;
     } TRACK;
+}
 
+namespace Music {
+    typedef struct MAPHeader
+    {
+        char szID[4];
+        uint8_t bUnknown1;
+        uint8_t bFirstSection;
+        uint8_t bNumSections;
+        uint8_t bRecordSize; // ???
+        uint8_t Unknown2[3];
+        uint8_t bNumRecords;
+    } MAPHeader;
+
+    typedef struct MAPSectionDefRecord
+    {
+        uint8_t bUnknown;
+        uint8_t bMagic;
+        uint8_t bNextSection;
+    } MAPSectionDefRecord;
+
+    typedef struct MAPSectionDef
+    {
+        uint8_t bIndex;
+        uint8_t bNumRecords;
+        uint8_t szID[2];
+        struct MAPSectionDefRecord msdRecords[8];
+    } MAPSectionDef;
 }
 
 #endif //OPENNFS3_NFS_DATA_H

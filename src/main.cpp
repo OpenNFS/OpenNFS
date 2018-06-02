@@ -21,6 +21,7 @@
 #include "Scene/Camera.h"
 #include "Loaders/nfs_loader.h"
 #include "Loaders/trk_loader.h"
+#include "Loaders/music_loader.h"
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
 #include "Shaders/BillboardShader.h"
@@ -99,27 +100,25 @@ void newFrame(bool &window_active) {
 }
 
 int main(int argc, const char *argv[]) {
+    Music::ParseMAP("C:\\Users\\Amrik\\Desktop\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech.map");
     NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
     free(track);
-    std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
+    /*std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
-    /*------ ASSET LOAD ------*/
+    *//*------ ASSET LOAD ------*//*
     NFS_Loader nfs_loader("../resources/car_f1.viv");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data
     NFS3::TRACK *nfs3_track = NFS3::trk_loader("../resources/TRK002");
-    std::map<short, GLuint> gl_id_map = nfs3_track->texture_gl_mappings;
-    std::vector<TrackBlock> track_blocks = nfs3_track->track_blocks;
 
-    /*------- BULLET --------*/
+    *//*------- BULLET --------*//*
     Physics physicsEngine;
-    physicsEngine.registerTrack(track_blocks);
-    //auto car_ptr = std::make_shared<Car>(Car(nfs_loader));
+    physicsEngine.registerTrack(nfs3_track->track_blocks);
     physicsEngine.registerVehicle(&car);
 
-    /*------- ImGui -------*/
+    *//*------- ImGui -------*//*
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
     ImGui::StyleColorsDark();
@@ -137,7 +136,7 @@ int main(int argc, const char *argv[]) {
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
 
-    /*------- UI -------*/
+    *//*------- UI -------*//*
     ImVec4 clear_color = ImVec4(119 / 255.0f, 197 / 255.0f, 252 / 255.0f, 1.0f);
     ImVec4 car_color = ImVec4(247 / 255.0f, 203 / 255.0f, 32 / 255.0f, 1.0f);
     ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -181,24 +180,21 @@ int main(int argc, const char *argv[]) {
             cameraLight.position = worldPosition;
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
-            for (auto &track_block : track_blocks) {
+            for (auto &track_block :  nfs3_track->track_blocks) {
                 glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
                 glm::vec3 position = orientation *
                                      glm::vec3(track_block.trk.ptCentre.x / 10, track_block.trk.ptCentre.y / 10,
                                                track_block.trk.ptCentre.z / 10);
-                float distanceSqr = glm::length2(
-                        glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
+                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
                 if (distanceSqr < lowestDistanceSqr) {
                     closestBlockID = track_block.block_id;
                     lowestDistanceSqr = distanceSqr;
                 }
             }
-            int frontBlock =
-                    closestBlockID < track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance
-                                                                             : track_blocks.size();
+            int frontBlock = closestBlockID <  nfs3_track->track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance :  nfs3_track->track_blocks.size();
             int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID - blockDrawDistance : 0;
-            std::vector<TrackBlock>::const_iterator first = track_blocks.begin() + backBlock;
-            std::vector<TrackBlock>::const_iterator last = track_blocks.begin() + frontBlock;
+            std::vector<TrackBlock>::const_iterator first =  nfs3_track->track_blocks.begin() + backBlock;
+            std::vector<TrackBlock>::const_iterator last =  nfs3_track->track_blocks.begin() + frontBlock;
             activeTrackBlocks = std::vector<TrackBlock>(first, last);
             oldWorldPosition = worldPosition;
         }
@@ -229,19 +225,19 @@ int main(int argc, const char *argv[]) {
                 if (active_track_Block.lights.size() > 0) {
                     trackShader.loadLight(active_track_Block.lights[0]);
                 }
-                trackShader.bindTrackTextures(track_block_model, gl_id_map);
+                trackShader.bindTrackTextures(track_block_model, nfs3_track->texture_gl_mappings);
                 track_block_model.render();
             }
             trackShader.unbind();
 
-            /* billboardShader.use();
+            *//* billboardShader.use();
              for (auto &light : active_track_Block.lights) {
                  light.update();
                  billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
                  billboardShader.loadLight(light);
                  light.render();
              }
-             billboardShader.unbind();*/
+             billboardShader.unbind();*//*
         }
 
         if (physics_debug_view)
@@ -283,7 +279,7 @@ int main(int argc, const char *argv[]) {
                             &mesh.enabled);      // Edit bools storing model draw state
         }
         if (ImGui::TreeNode("Track Blocks")) {
-            for (auto &track_block : track_blocks) {
+            for (auto &track_block :  nfs3_track->track_blocks) {
                 if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
                     for (auto &block_model : track_block.objects) {
                         if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(),
@@ -313,7 +309,7 @@ int main(int argc, const char *argv[]) {
     ImGui_ImplGlfwGL3_Shutdown();
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
-
+*/
 
     return 0;
 }

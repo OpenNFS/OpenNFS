@@ -9,12 +9,12 @@
 #include <sstream>
 #include <set>
 #include <iomanip>
-#include <glm/vec3.hpp>
-#include "boost/filesystem.hpp"
 #include <iostream>
 #include <fstream>
 #include <cstring>
 #include <map>
+#include "boost/filesystem.hpp"
+#include <glm/vec3.hpp>
 #include "../nfs_data.h"
 #include "../Scene/TrackBlock.h"
 #include "../Scene/Track.h"
@@ -46,7 +46,7 @@ namespace NFS2 {
     TRACK *trk_loader(const std::string &track_base_path);
     bool LoadTRK(std::string trk_path, TRACK *track);
     bool LoadCOL(std::string col_path, TRACK *track);
-    void dbgPrintVerts(TRACK *track, VERT_HIGH *blockReferenceCoords, const std::string &path, bool printFaces);
+    void dbgPrintVerts(TRACK *track, VERT_HIGHP *blockReferenceCoords, const std::string &path, bool printFaces);
 }
 
 
