@@ -486,6 +486,13 @@ namespace Music {
         uint8_t szID[2];
         struct MAPSectionDefRecord msdRecords[8];
     } MAPSectionDef;
+
+    struct ASFBlockHeader
+    {
+        char  szBlockID[4];
+        uint32_t dwSize;
+    };
+
 }
 
 #endif //OPENNFS3_NFS_DATA_H

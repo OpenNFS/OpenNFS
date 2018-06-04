@@ -100,7 +100,7 @@ void newFrame(bool &window_active) {
 }
 
 int main(int argc, const char *argv[]) {
-    Music::ParseMAP("C:\\Users\\Amrik\\Desktop\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech.map");
+    MusicLoader musicLoader("C:\\Users\\Amrik\\Desktop\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
     NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
     free(track);
     /*std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
