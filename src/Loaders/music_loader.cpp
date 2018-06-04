@@ -25,6 +25,8 @@
 #include "music_loader.h"
 
 #define SWAPDWORD(x) ((((x)&0xFF)<<24)+(((x)>>24)&0xFF)+(((x)>>8)&0xFF00)+(((x)<<8)&0xFF0000))
+#define HINIBBLE(byte) ((byte) >> 4)
+#define LONIBBLE(byte) ((byte) & 0x0F)
 
 MusicLoader::MusicLoader(const std::string &song_base_path) {
     boost::filesystem::path p(song_base_path);
@@ -136,6 +138,162 @@ void MusicLoader::ParsePTHeader(FILE *file) {
     }
 }
 
+void write_little_endian(unsigned int word, int num_bytes, FILE *wav_file)
+{
+    unsigned buf;
+    while(num_bytes>0)
+    {   buf = word & 0xff;
+        fwrite(&buf, 1,1, wav_file);
+        num_bytes--;
+        word >>= 8;
+    }
+}
+
+/* make_wav.c
+ * Creates a WAV file from an array of ints.
+ * Output is monophonic, signed 16-bit samples
+ * copyright
+ * Fri Jun 18 16:36:23 PDT 2010 Kevin Karplus
+ * Creative Commons license Attribution-NonCommercial
+ *  http://creativecommons.org/licenses/by-nc/3.0/
+ */
+void start_write_wav(FILE* wav_file, unsigned long num_samples, int s_rate)
+{
+    unsigned int sample_rate;
+    unsigned int num_channels;
+    unsigned int bytes_per_sample;
+    unsigned int byte_rate;
+    unsigned long i;    /* counter for samples */
+
+    num_channels = 1;   /* monoaural */
+    bytes_per_sample = 2;
+
+    if (s_rate<=0) sample_rate = 44100;
+    else sample_rate = (unsigned int) s_rate;
+
+    byte_rate = sample_rate*num_channels*bytes_per_sample;
+
+    assert(wav_file);   /* make sure it opened */
+
+    /* write RIFF header */
+    fwrite("RIFF", 1, 4, wav_file);
+    write_little_endian(36 + bytes_per_sample* num_samples*num_channels, 4, wav_file);
+    fwrite("WAVE", 1, 4, wav_file);
+
+    /* write fmt  subchunk */
+    fwrite("fmt ", 1, 4, wav_file);
+    write_little_endian(16, 4, wav_file);   /* SubChunk1Size is 16 */
+    write_little_endian(1, 2, wav_file);    /* PCM is format 1 */
+    write_little_endian(num_channels, 2, wav_file);
+    write_little_endian(sample_rate, 4, wav_file);
+    write_little_endian(byte_rate, 4, wav_file);
+    write_little_endian(num_channels*bytes_per_sample, 2, wav_file);  /* block align */
+    write_little_endian(8*bytes_per_sample, 2, wav_file);  /* bits/sample */
+
+    /* write data subchunk */
+    fwrite("data", 1, 4, wav_file);
+    write_little_endian(bytes_per_sample* num_samples*num_channels, 4, wav_file);
+}
+
+int32_t Clip16BitSample(int32_t sample)
+{
+    if (sample>32767)
+        return 32767;
+    else if (sample<-32768)
+        return (-32768);
+    else
+        return sample;
+}
+
+void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, uint8_t audioData[]){
+    stringstream wav_path;
+    wav_path << asfChunkHeader->dwOutSize*asfChunkHeader->lCurSampleLeft << ".wav";
+    FILE *wav_file = fopen(wav_path.str().c_str(), "w");
+    start_write_wav(wav_file, asfChunkHeader->dwOutSize, 22050);
+
+    // TODO: Different stuff for MONO/Stereo
+    int32_t lCurSampleLeft = asfChunkHeader->lCurSampleLeft;
+    int32_t lCurSampleRight = asfChunkHeader->lCurSampleRight;
+    int32_t lPrevSampleLeft = asfChunkHeader->lPrevSampleLeft;
+    int32_t lPrevSampleRight = asfChunkHeader->lPrevSampleRight;
+
+    uint8_t  bInput;
+    uint32_t i = 0;
+    int32_t  c1left,c2left,c1right,c2right,left,right;
+    uint8_t  dleft,dright;
+    uint32_t dwSubOutSize=0x1c;
+
+    // process integral number of (dwSubOutSize) samples
+    for (uint32_t bCount=0;bCount<(asfChunkHeader->dwOutSize/dwSubOutSize);bCount++)
+    {
+        bInput=audioData[i++];
+        c1left=EATable[HINIBBLE(bInput)];   // predictor coeffs for left channel
+        c2left=EATable[HINIBBLE(bInput)+4];
+        c1right=EATable[LONIBBLE(bInput)];  // predictor coeffs for right channel
+        c2right=EATable[LONIBBLE(bInput)+4];
+        bInput=audioData[i++];
+        dleft=HINIBBLE(bInput)+8;   // shift value for left channel
+        dright=LONIBBLE(bInput)+8;  // shift value for right channel
+        for (uint32_t sCount=0;sCount<dwSubOutSize;sCount++)
+        {
+            bInput=audioData[i++];
+            left=HINIBBLE(bInput);  // HIGHER nibble for left channel
+            right=LONIBBLE(bInput); // LOWER nibble for right channel
+            left=(left<<0x1c)>>dleft;
+            right=(right<<0x1c)>>dright;
+            left=(left+lCurSampleLeft*c1left+lPrevSampleLeft*c2left+0x80)>>8;
+            right=(right+lCurSampleRight*c1right+lPrevSampleRight*c2right+0x80)>>8;
+            left=Clip16BitSample(left);
+            right=Clip16BitSample(right);
+            lPrevSampleLeft=lCurSampleLeft;
+            lCurSampleLeft=left;
+            lPrevSampleRight=lCurSampleRight;
+            lCurSampleRight=right;
+
+            // Now we've got lCurSampleLeft and lCurSampleRight which form one stereo
+            // sample and all is set for the next input byte...
+            std::cout << lCurSampleLeft << " " << lCurSampleRight << std::endl; // send the sample to output
+            write_little_endian((uint32_t) lCurSampleLeft, 2, wav_file);
+        }
+    }
+
+    // process the rest (if any)
+    if ((asfChunkHeader->dwOutSize % dwSubOutSize) != 0)
+    {
+        bInput=audioData[i++];
+        c1left=EATable[HINIBBLE(bInput)];   // predictor coeffs for left channel
+        c2left=EATable[HINIBBLE(bInput)+4];
+        c1right=EATable[LONIBBLE(bInput)];  // predictor coeffs for right channel
+        c2right=EATable[LONIBBLE(bInput)+4];
+        bInput=audioData[i++];
+        dleft=HINIBBLE(bInput)+8;   // shift value for left channel
+        dright=LONIBBLE(bInput)+8;  // shift value for right channel
+        for (uint32_t sCount = 0;sCount<(asfChunkHeader->dwOutSize % dwSubOutSize);sCount++)
+        {
+            bInput=audioData[i++];
+            left=HINIBBLE(bInput);  // HIGHER nibble for left channel
+            right=LONIBBLE(bInput); // LOWER nibble for right channel
+            left=(left<<0x1c)>>dleft;
+            right=(right<<0x1c)>>dright;
+            left=(left+lCurSampleLeft*c1left+lPrevSampleLeft*c2left+0x80)>>8;
+            right=(right+lCurSampleRight*c1right+lPrevSampleRight*c2right+0x80)>>8;
+            left=Clip16BitSample(left);
+            right=Clip16BitSample(right);
+            lPrevSampleLeft=lCurSampleLeft;
+            lCurSampleLeft=left;
+            lPrevSampleRight=lCurSampleRight;
+            lCurSampleRight=right;
+
+            // Now we've got lCurSampleLeft and lCurSampleRight which form one stereo
+            // sample and all is set for the next input byte...
+            std::cout << lCurSampleLeft << " " << lCurSampleRight << std::endl; // send the sample to output
+            write_little_endian((uint32_t) lCurSampleLeft, 2, wav_file);
+        }
+    }
+
+    fclose(wav_file);
+}
+
 bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
     fseek(mus_file, static_cast<long>(sch1Offset), SEEK_SET);
 
@@ -169,6 +327,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
 
     long totalSCD1InterleaveSize = 0;
 
+    // TODO: Add a check for compression flag = 0x7, EADPCM decode
     // Get PCM data from SCD1 blocks
     for(uint8_t scd1_Idx = 0; scd1_Idx < nSCD1Blocks; ++scd1_Idx){
         // Jump to next block
@@ -182,23 +341,21 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
             return false;
         }
 
+        ASFChunkHeader *asfChunkHeader = (ASFChunkHeader*) calloc(1, sizeof(ASFChunkHeader));
+        fread(asfChunkHeader, sizeof(ASFChunkHeader), 1, mus_file);
+
+        uint8_t PCMData[asfChunkHeader->dwOutSize];
+        
+        // 22050 Hz
+        for(uint32_t samp_Idx = 0; samp_Idx < asfChunkHeader->dwOutSize; samp_Idx+=2){
+            fread(&PCMData[samp_Idx], sizeof(uint8_t), 1, mus_file); // L
+            fread(&PCMData[samp_Idx+1], sizeof(uint8_t), 1, mus_file); // R
+        }
+        DecompressEAADPCM(asfChunkHeader, PCMData);
         totalSCD1InterleaveSize +=chk->dwSize;
 
-        uint8_t nBlockSamples;
-        fread(&nBlockSamples, sizeof(uint8_t), 1, mus_file);
-        int16_t* lPCM = (int16_t *) calloc(nBlockSamples, sizeof(int16_t));
-        int16_t* rPCM = (int16_t *) calloc(nBlockSamples, sizeof(int16_t));
-        // 22050 Hz
-        for(uint8_t samp_Idx = 0; samp_Idx < nBlockSamples; ++samp_Idx){
-            fread(&lPCM[samp_Idx], sizeof(int16_t), 1, mus_file);
-            fread(&rPCM[samp_Idx], sizeof(int16_t), 1, mus_file);
-            std::cout << lPCM[samp_Idx] << " " << rPCM[samp_Idx] << std::endl;
-        }
-
-        free(lPCM);
-        free(rPCM);
+        free(asfChunkHeader);
     }
-
     fseek(mus_file, static_cast<long>(sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
 
     // Check we successfully reached end block SCEl

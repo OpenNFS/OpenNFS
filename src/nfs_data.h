@@ -461,8 +461,7 @@ namespace NFS2 {
 }
 
 namespace Music {
-    typedef struct MAPHeader
-    {
+    typedef struct MAPHeader {
         char szID[4];
         uint8_t bUnknown1;
         uint8_t bFirstSection;
@@ -472,26 +471,32 @@ namespace Music {
         uint8_t bNumRecords;
     } MAPHeader;
 
-    typedef struct MAPSectionDefRecord
-    {
+    typedef struct MAPSectionDefRecord {
         uint8_t bUnknown;
         uint8_t bMagic;
         uint8_t bNextSection;
     } MAPSectionDefRecord;
 
-    typedef struct MAPSectionDef
-    {
+    typedef struct MAPSectionDef {
         uint8_t bIndex;
         uint8_t bNumRecords;
         uint8_t szID[2];
         struct MAPSectionDefRecord msdRecords[8];
     } MAPSectionDef;
 
-    struct ASFBlockHeader
-    {
-        char  szBlockID[4];
+    struct ASFBlockHeader {
+        char szBlockID[4];
         uint32_t dwSize;
     };
+
+    struct ASFChunkHeader {
+        uint32_t dwOutSize;
+        uint16_t lCurSampleLeft;
+        uint16_t lPrevSampleLeft;
+        uint16_t lCurSampleRight;
+        uint16_t lPrevSampleRight;
+    };
+
 
 }
 
