@@ -749,7 +749,7 @@ namespace NFS2{
             return false;
         }
         // Header should contain TRAC
-        if (header[0] != 'T' || header[3] != 'C'){
+        if (memcmp(header, "TRAC", sizeof(header)) != 0){
             std::cout << "Invalid TRK file." << std::endl;
             return false;
         }
@@ -918,7 +918,7 @@ namespace NFS2{
         // Check we're in a valid TRK file
         unsigned char header[4];
         if (col.read(((char *) header), sizeof(unsigned char) * 4).gcount() != sizeof(unsigned char) * 4) return false;
-        if (!strcmp(reinterpret_cast<const char *>(header), "COLL")) return false;
+        if (memcmp(header, "COLL", sizeof(header)) != 0) return false;
 
         uint32_t version;
         col.read((char *) &version, sizeof(uint32_t));

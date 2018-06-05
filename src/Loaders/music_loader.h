@@ -60,7 +60,7 @@ private:
 
     bool ReadSCHl(FILE *mus_file, uint32_t sch1Offset);
 
-    void DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, uint8_t audioData[]);
+    void DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, int8_t audioData[], long nSamples);
 
     void ParsePTHeader(FILE* file);
 };

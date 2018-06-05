@@ -205,11 +205,11 @@ int32_t Clip16BitSample(int32_t sample)
         return sample;
 }
 
-void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, uint8_t audioData[]){
+void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, int8_t audioData[], long nSamples){
     stringstream wav_path;
     wav_path << asfChunkHeader->dwOutSize*asfChunkHeader->lCurSampleLeft << ".wav";
     FILE *wav_file = fopen(wav_path.str().c_str(), "w");
-    start_write_wav(wav_file, asfChunkHeader->dwOutSize, 22050);
+    start_write_wav(wav_file, nSamples, 22050);
 
     // TODO: Different stuff for MONO/Stereo
     int32_t lCurSampleLeft = asfChunkHeader->lCurSampleLeft;
@@ -253,7 +253,7 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, uint8_t audi
             // Now we've got lCurSampleLeft and lCurSampleRight which form one stereo
             // sample and all is set for the next input byte...
             std::cout << lCurSampleLeft << " " << lCurSampleRight << std::endl; // send the sample to output
-            write_little_endian((uint32_t) lCurSampleLeft, 2, wav_file);
+            write_little_endian((uint16_t) lCurSampleLeft, 2, wav_file);
         }
     }
 
@@ -287,7 +287,7 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, uint8_t audi
             // Now we've got lCurSampleLeft and lCurSampleRight which form one stereo
             // sample and all is set for the next input byte...
             std::cout << lCurSampleLeft << " " << lCurSampleRight << std::endl; // send the sample to output
-            write_little_endian((uint32_t) lCurSampleLeft, 2, wav_file);
+            write_little_endian((uint16_t) lCurSampleLeft, 2, wav_file);
         }
     }
 
@@ -299,7 +299,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
 
     ASFBlockHeader *chk = (ASFBlockHeader *) calloc(1, sizeof(ASFBlockHeader));
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
-    if(!((chk->szBlockID[0] == 'S')&&(chk->szBlockID[1] == 'C')&&(chk->szBlockID[2] == 'H')&&(chk->szBlockID[3] == 'l'))){
+    if(memcmp(chk->szBlockID, "SCHl", sizeof(chk->szBlockID)) != 0){
         free(chk);
         fclose(mus_file);
         return false;
@@ -316,7 +316,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
 
     // Check in SCC1 Count block
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
-    if(!((chk->szBlockID[0] == 'S')&&(chk->szBlockID[1] == 'C')&&(chk->szBlockID[2] == 'C')&&(chk->szBlockID[3] == 'l'))){
+    if(memcmp(chk->szBlockID, "SCCl", sizeof(chk->szBlockID)) != 0){
         free(chk);
         fclose(mus_file);
         return false;
@@ -335,7 +335,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
 
         // Check in SCD1
         fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
-        if(!((chk->szBlockID[0] == 'S')&&(chk->szBlockID[1] == 'C')&&(chk->szBlockID[2] == 'D')&&(chk->szBlockID[3] == 'l'))){
+        if(memcmp(chk->szBlockID, "SCDl", sizeof(chk->szBlockID)) != 0){
             free(chk);
             fclose(mus_file);
             return false;
@@ -344,14 +344,10 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
         ASFChunkHeader *asfChunkHeader = (ASFChunkHeader*) calloc(1, sizeof(ASFChunkHeader));
         fread(asfChunkHeader, sizeof(ASFChunkHeader), 1, mus_file);
 
-        uint8_t PCMData[asfChunkHeader->dwOutSize];
-        
         // 22050 Hz
-        for(uint32_t samp_Idx = 0; samp_Idx < asfChunkHeader->dwOutSize; samp_Idx+=2){
-            fread(&PCMData[samp_Idx], sizeof(uint8_t), 1, mus_file); // L
-            fread(&PCMData[samp_Idx+1], sizeof(uint8_t), 1, mus_file); // R
-        }
-        DecompressEAADPCM(asfChunkHeader, PCMData);
+        int8_t PCMData[chk->dwSize - sizeof(ASFBlockHeader)-sizeof(ASFChunkHeader)];
+        // TODO: Work out how PCM data is stored here
+        DecompressEAADPCM(asfChunkHeader, PCMData, chk->dwSize - sizeof(ASFBlockHeader)-sizeof(ASFChunkHeader));
         totalSCD1InterleaveSize +=chk->dwSize;
 
         free(asfChunkHeader);
@@ -360,7 +356,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
 
     // Check we successfully reached end block SCEl
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
-    bool success = (chk->szBlockID[0] == 'S')&&(chk->szBlockID[1] == 'C')&&(chk->szBlockID[2] == 'E')&&(chk->szBlockID[3] == 'l');
+    bool success = memcmp(chk->szBlockID, "SCEl", sizeof(chk->szBlockID)) == 0;
     free(chk);
     return success;
 }
@@ -399,7 +395,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     while (sectionDefTable[section_Idx].bNumRecords > 0) {
         // Starting positions are raw offsets into MUS file
         // Read the SCH1 header and further blocks in MUS to play the section
-        if(!ReadSCHl(mus_file, startingPositions[section_Idx])){
+        if(!ReadSCHl(mus_file, startingPositions[section_Idx])){ //
             std::cout << "Error reading SCHl block." << std::endl;
             break;
         }
