@@ -19,3 +19,6 @@
 [submodule "include/tinyobjloader"]
 	path = include/tinyobjloader
 	url = https://github.com/syoyo/tinyobjloader.git
+[submodule "lib/open-al"]
+	path = lib/open-al
+	url = https://github.com/kcat/openal-soft.git
