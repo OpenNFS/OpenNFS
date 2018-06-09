@@ -14,8 +14,7 @@
 #include <stdio.h>
 #include "../nfs_data.h"
 #include "../Util/Utils.h"
-
-#include "SDL.h"
+#include <set>
 
 using namespace std;
 using namespace Music;

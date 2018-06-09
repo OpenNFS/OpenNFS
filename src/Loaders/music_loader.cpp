@@ -23,13 +23,6 @@
 
 #include "music_loader.h"
 
-//Buffer:
-//|-----------|-------------|
-//chunk-------pos---len-----|
-static  Uint8  *audio_chunk;
-static  Uint32  audio_len;
-static  Uint8  *audio_pos;
-
 #define SWAPDWORD(x) ((((x)&0xFF)<<24)+(((x)>>24)&0xFF)+(((x)>>8)&0xFF00)+(((x)<<8)&0xFF0000))
 #define HINIBBLE(byte) ((byte) >> 4)
 #define LONIBBLE(byte) ((byte) & 0x0F)
@@ -43,16 +36,8 @@ MusicLoader::MusicLoader(const std::string &song_base_path) {
 
     mus_path << song_base_path << ".mus";
     map_path << song_base_path << ".map";
-
-    //Init
-	if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER)) {
-		std::cout << SDL_GetError();
-		//std::cout << "Could not initialize SDL - " << sdl_err;
-	}
-
+  
     ParseMAP(map_path.str(), mus_path.str());
-
-    SDL_Quit();
 }
 
 uint32_t MusicLoader::ReadBytes(FILE *file, uint8_t count) {
@@ -150,23 +135,6 @@ void MusicLoader::ParsePTHeader(FILE *file) {
                 fseek(file, byte, SEEK_CUR);
         }
     }
-}
-
-/* Audio Callback
- * The audio function callback takes the following parameters:
- * stream: A pointer to the audio buffer to be filled
- * len: The length (in bytes) of the audio buffer
- *
-*/
-void  fill_audio(void *udata,Uint8 *stream,int len){
-    //SDL 2.0
-    SDL_memset(stream, 0, len);
-    if(audio_len==0)
-        return;
-    len=(len>audio_len?audio_len:len);
-    SDL_MixAudio(stream,audio_pos,len,SDL_MIX_MAXVOLUME);
-    audio_pos += len;
-    audio_len -= len;
 }
 
 int32_t Clip16BitSample(int32_t sample) {
@@ -298,7 +266,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file) 
 
     uint32_t sch1Size = chk->dwSize;
     // Jump to next block
-    fseek(mus_file, static_cast<long>(sch1Size), SEEK_SET);
+    fseek(mus_file, sch1Offset + static_cast<long>(sch1Size), SEEK_SET);
 
     // Check in SCC1 Count block
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
@@ -317,7 +285,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file) 
     // Get PCM data from SCD1 blocks
     for (uint8_t scd1_Idx = 0; scd1_Idx < nSCD1Blocks; ++scd1_Idx) {
         // Jump to next block
-        fseek(mus_file, static_cast<long>(sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
+        fseek(mus_file, sch1Offset + static_cast<long>(sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
 
         // Check in SCD1
         fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
@@ -334,7 +302,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file) 
 
         free(asfChunkHeader);
     }
-    fseek(mus_file, static_cast<long>(sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
+    fseek(mus_file, sch1Offset + static_cast<long>(sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
 
     // Check we successfully reached end block SCEl
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
@@ -376,6 +344,8 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     // Get starting position of first section
     uint8_t section_Idx = mapHeader->bFirstSection;
 
+	auto playedSections = std::set<uint8_t>();
+	
     while (sectionDefTable[section_Idx].bNumRecords > 0) {
         // Starting positions are raw offsets into MUS file
         // Read the SCH1 header and further blocks in MUS to play the section
@@ -383,11 +353,19 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
             std::cout << "Error reading SCHl block." << std::endl;
             break;
         }
-        section_Idx = sectionDefTable[section_Idx].msdRecords[sectionDefTable[section_Idx].bNumRecords - 1].bNextSection;
-        // TODO: We should loop if we come across a section we've already played. Add to set and check presence? (or break)
+
+		// Check if we've already played this section before. If we have, (TODO: What do we do?)
+		if(playedSections.insert(section_Idx).second)
+		{
+			section_Idx = sectionDefTable[section_Idx].msdRecords[sectionDefTable[section_Idx].bNumRecords - 1].bNextSection;
+		} else
+		{
+			section_Idx++;
+		}
     }
 
     free(startingPositions);
     free(sectionDefTable);
     fclose(mus_file);
+	fclose(pcm_file);
 }
