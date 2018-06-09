@@ -15,6 +15,8 @@
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <GL/glew.h>
 #include <vector>
+#include <iostream>
+#include <string>
 #include <cassert>
 #include <cstdio>
 
@@ -63,11 +65,14 @@ typedef struct tagBITMAPINFO {
 
 #define MAKEWORD(a,b)	((WORD)(((BYTE)(a))|(((WORD)((BYTE)(b)))<<8)))
 
-#define ASSERT(condition,...) assert( \
-    condition|| \
-    (fprintf(stdout,__VA_ARGS__)&&fprintf(stdout," at %s:%d\n",__FILE__,__LINE__)) \
-);
-
+#define ASSERT(condition, message) \
+    do { \
+        if (! (condition)) { \
+            std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
+                      << " line " << __LINE__ << ": " << message << std::endl; \
+            std::terminate(); \
+        } \
+    } while (false)
 
 namespace Utils {
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height);

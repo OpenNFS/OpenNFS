@@ -15,7 +15,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     std::string VertexShaderCode;
     std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
 
-    ASSERT(VertexShaderStream.is_open(), "Impossible to open %s!\n", vertex_file_path.c_str());
+    ASSERT(VertexShaderStream.is_open(), "Impossible to open! " << vertex_file_path);
     std::string Line;
     while(getline(VertexShaderStream, Line))
         VertexShaderCode += "\n" + Line;
@@ -124,7 +124,7 @@ BaseShader::~BaseShader(){
 }
 
 GLint BaseShader::getUniformLocation(std::string uniformName){
-    glGetUniformLocation(ProgramID, uniformName.c_str());
+    return glGetUniformLocation(ProgramID, uniformName.c_str());
 }
 
 void BaseShader::bindAttribute(GLuint attribute, std::string variableName) {

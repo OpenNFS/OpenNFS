@@ -17,7 +17,7 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
         m_shading_data.push_back(shading_data[m_vertex_index]);
     }
 
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model %s", name.c_str());
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model " << name);
 }
 
 Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
@@ -32,7 +32,7 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
         m_normals.push_back(norms[m_vertex_index]);
     }
 
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model %s", name.c_str());
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model " << name);
 }
 
 btCollisionShape* Track::GenCollisionData(){

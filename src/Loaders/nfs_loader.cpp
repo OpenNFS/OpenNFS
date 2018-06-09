@@ -306,22 +306,22 @@ void NFS_Loader::readFCE(const char *fce_path) {
 
     //Retrieve part by part data, Vert/Tri
     fseek(fce_file, PNumVerticesOffset, SEEK_SET);//Get part vertex amount
-    unsigned int partVertNumbers[numParts];
+    unsigned int *partVertNumbers = new unsigned int[numParts];
     for (int i = 0; i < numParts; i++) {
         partVertNumbers[i] = readInt32(fce_file, true);
     }
     fseek(fce_file, P1stVerticesOffset, SEEK_SET);//Get part vert offsets
-    unsigned int partVertOffsets[numParts];
+    unsigned int *partVertOffsets = new unsigned int[numParts];
     for (int i = 0; i < numParts; i++) {
         partVertOffsets[i] = readInt32(fce_file, true) * tVectorSize;
     }
     fseek(fce_file, PNumTrianglesOffset, SEEK_SET);//Get part Tri amount
-    unsigned int partTriNumbers[numParts];
+    unsigned int *partTriNumbers = new unsigned int[numParts];
     for (int i = 0; i < numParts; i++) {
         partTriNumbers[i] = readInt32(fce_file, true);
     }
     fseek(fce_file, P1stTriangleOffset, SEEK_SET);//Get part tri offsets
-    unsigned int partTriOffsets[numParts];
+    unsigned int *partTriOffsets = new unsigned int[numParts];
     for (int i = 0; i < numParts; i++) {
         partTriOffsets[i] = readInt32(fce_file, true) * tTriangleSize;
     }
@@ -348,6 +348,11 @@ void NFS_Loader::readFCE(const char *fce_path) {
                   << meshes[i].m_vertices.size() << " Indices: " << meshes[i].m_vertex_indices.size() << " Normals: "
                   << meshes[i].m_normals.size() << std::endl;
     }
+
+	delete partTriNumbers;
+	delete partTriOffsets;
+	delete partVertNumbers;
+	delete partVertOffsets;
 
     fclose(fce_file);
 }

@@ -2,8 +2,6 @@
 // Created by Amrik on 26/02/2018.
 //
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #ifndef OPENNFS3_NFS_DATA_H
 #define OPENNFS3_NFS_DATA_H
 
@@ -501,4 +499,3 @@ namespace Music {
 }
 
 #endif //OPENNFS3_NFS_DATA_H
-#pragma clang diagnostic pop

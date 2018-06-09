@@ -3,7 +3,7 @@ project(OpenNFS3)
 
 set(BUILD_SHARED_LIBS OFF)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations -U__STRICT_ANSI__")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 #[[set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})]]
 
@@ -59,6 +59,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 add_subdirectory(lib/boost-cmake/)
 target_link_libraries(OpenNFS3 Boost::filesystem Boost::boost)
 #[[Bullet Configuration]]
+set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_CLSOCKET OFF CACHE BOOL "" FORCE)
 set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
@@ -70,6 +71,12 @@ set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3")
 TARGET_LINK_LIBRARIES(OpenNFS3 BulletDynamics BulletCollision LinearMath Bullet3Common)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
+#[[SDL Configuration]]
+# Support both 32 and 64 bit builds
+set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sdl")
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+target_link_libraries(OpenNFS3 ${SDL2_LIBRARIES})
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")

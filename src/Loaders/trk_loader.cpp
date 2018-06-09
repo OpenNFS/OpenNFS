@@ -9,7 +9,7 @@ namespace NFS3{
     TRACK *trk_loader(const std::string &track_base_path) {
         std::cout << "--- Loading NFS3 Track ---" << std::endl;
 
-        TRACK *track = static_cast<TRACK *>(calloc(1, sizeof(TRACK)));
+		TRACK *track = new TRACK();
         boost::filesystem::path p(track_base_path);
         std::string track_name = p.filename().string();
         stringstream frd_path, col_path;
@@ -30,11 +30,11 @@ namespace NFS3{
                 track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
             }
             else {
-                free(track);
+                delete track;
                 return nullptr ;
             }
         } else {
-            free(track);
+			delete track;
             return nullptr ;
         }
 
@@ -96,16 +96,10 @@ namespace NFS3{
         if (ar.read((char *) &track->nBlocks, 4).gcount() < 4) return false;
         track->nBlocks++;
         if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
-
-        track->trk = (TRKBLOCK *) malloc(track->nBlocks * sizeof(TRKBLOCK));
-        if (track->trk == nullptr) return false;
-        memset(track->trk, 0, track->nBlocks * sizeof(TRKBLOCK));
-        track->poly = (POLYGONBLOCK *) malloc(track->nBlocks * sizeof(POLYGONBLOCK));
-        if (track->poly == nullptr) return false;
-        memset(track->poly, 0, track->nBlocks * sizeof(POLYGONBLOCK));
-        track->xobj = (XOBJBLOCK *) malloc((4 * track->nBlocks + 1) * sizeof(XOBJBLOCK));
-        if (track->xobj == nullptr) return false;
-        memset(track->xobj, 0, (4 * track->nBlocks + 1) * sizeof(XOBJBLOCK));
+        
+    	track->trk = (TRKBLOCK *) calloc(track->nBlocks, sizeof(TRKBLOCK));
+        track->poly = (POLYGONBLOCK *) calloc(track->nBlocks, sizeof(POLYGONBLOCK));
+        track->xobj = (XOBJBLOCK *) calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK));
 
         if (ar.read((char *) &l, 4).gcount() < 4) return false; // choose between NFS3 & NFSHS
         if ((l < 0) || (l > 5000)) track->bHSMode = false;
@@ -121,11 +115,11 @@ namespace NFS3{
             // ptCentre, ptBounding, 6 nVertices == 84 bytes
             if (block_Idx != 0) { if (ar.read((char *) trackBlock, 84).gcount() != 84) return false; }
             if ((trackBlock->nVertices < 0)) return false;
-            trackBlock->vert = (FLOATPT *) malloc(trackBlock->nVertices * sizeof(FLOATPT));
-            if (trackBlock->vert == nullptr) return false;
+            trackBlock->vert = (FLOATPT *) calloc(trackBlock->nVertices, sizeof(FLOATPT));
+
             if ((uint32_t) ar.read((char *) trackBlock->vert, 12 * trackBlock->nVertices).gcount() != 12 * trackBlock->nVertices) return false;
-            trackBlock->unknVertices = (uint32_t *) malloc(trackBlock->nVertices * sizeof(uint32_t));
-            if (trackBlock->unknVertices == nullptr) return false;
+            trackBlock->unknVertices = (uint32_t *) calloc(trackBlock->nVertices, sizeof(uint32_t));
+
             if ((uint32_t) ar.read((char *) trackBlock->unknVertices, 4 * trackBlock->nVertices).gcount() != 4 * trackBlock->nVertices) return false;
             if (ar.read((char *) trackBlock->nbdData, 4 * 0x12C).gcount() != 4 * 0x12C) return false;
 
@@ -260,10 +254,10 @@ namespace NFS3{
             }
         }
 
+
         // TEXTUREBLOCKs
         if (ar.read((char *) &track->nTextures, 4).gcount() != 4) return false;
-        track->textures = map<short, Texture>();
-        track->texture = (TEXTUREBLOCK *) malloc(track->nTextures * sizeof(TEXTUREBLOCK));
+        track->texture = (TEXTUREBLOCK *) calloc(track->nTextures, sizeof(TEXTUREBLOCK));
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
             if (ar.read((char *) &(track->texture[tex_Idx]), 47).gcount() != 47) return false;
             auto p = std::make_pair(track->texture[tex_Idx].texture, LoadTexture(track->texture[tex_Idx]));
@@ -709,7 +703,7 @@ namespace NFS3{
         GLsizei height = track_texture.height;
 
         ASSERT(Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height),
-               "Texture %s or %s did not load succesfully!", filename.str().c_str(), filename_alpha.str().c_str());
+               "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!");
 
         return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
                        static_cast<unsigned int>(track_texture.height));
@@ -763,7 +757,7 @@ namespace NFS2{
         track->superblocks = static_cast<SUPERBLOCK *>(calloc(track->nBlocks, sizeof(SUPERBLOCK)));
 
         // Offsets of Superblocks in TRK file
-        uint32_t superblockOffsets[track->nSuperBlocks];
+        uint32_t *superblockOffsets = new uint32_t[track->nSuperBlocks];
         if (trk.read(((char *) superblockOffsets), track->nSuperBlocks * sizeof(uint32_t)).gcount() !=
             track->nSuperBlocks * sizeof(uint32_t))
             return false;

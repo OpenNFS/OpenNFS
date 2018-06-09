@@ -21,10 +21,14 @@
 // http://nfscheats.com/nfstoolbox
 // Additional info on PT header block types. The author of utilities for NFS'x.
 
-#include <stdio.h>
-#include <cmath>
-#include <math.h>
 #include "music_loader.h"
+
+//Buffer:
+//|-----------|-------------|
+//chunk-------pos---len-----|
+static  Uint8  *audio_chunk;
+static  Uint32  audio_len;
+static  Uint8  *audio_pos;
 
 #define SWAPDWORD(x) ((((x)&0xFF)<<24)+(((x)>>24)&0xFF)+(((x)>>8)&0xFF00)+(((x)<<8)&0xFF0000))
 #define HINIBBLE(byte) ((byte) >> 4)
@@ -40,7 +44,15 @@ MusicLoader::MusicLoader(const std::string &song_base_path) {
     mus_path << song_base_path << ".mus";
     map_path << song_base_path << ".map";
 
+    //Init
+	if (!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER)) {
+		std::cout << SDL_GetError();
+		//std::cout << "Could not initialize SDL - " << sdl_err;
+	}
+
     ParseMAP(map_path.str(), mus_path.str());
+
+    SDL_Quit();
 }
 
 uint32_t MusicLoader::ReadBytes(FILE *file, uint8_t count) {
@@ -140,63 +152,21 @@ void MusicLoader::ParsePTHeader(FILE *file) {
     }
 }
 
-void write_little_endian(unsigned int word, int num_bytes, FILE *wav_file) {
-    unsigned buf;
-    while (num_bytes > 0) {
-        buf = word & 0xff;
-        fwrite(&buf, 1, 1, wav_file);
-        num_bytes--;
-        word >>= 8;
-    }
-}
-
-void write_shit(unsigned int word, FILE*file){
-    fwrite(&word, 2, 1, file);
-}
-
-/* make_wav.c
- * Creates a WAV file from an array of ints.
- * Output is monophonic, signed 16-bit samples
- * copyright
- * Fri Jun 18 16:36:23 PDT 2010 Kevin Karplus
- * Creative Commons license Attribution-NonCommercial
- *  http://creativecommons.org/licenses/by-nc/3.0/
- */
-void start_write_wav(FILE *wav_file, unsigned long num_samples, int s_rate) {
-    unsigned int sample_rate;
-    unsigned int num_channels;
-    unsigned int bytes_per_sample;
-    unsigned int byte_rate;
-    unsigned long i;    /* counter for samples */
-
-    num_channels = 1;   /* monoaural */
-    bytes_per_sample = 2;
-
-    if (s_rate <= 0) sample_rate = 44100;
-    else sample_rate = (unsigned int) s_rate;
-
-    byte_rate = sample_rate * num_channels * bytes_per_sample;
-
-    assert(wav_file);   /* make sure it opened */
-
-    /* write RIFF header */
-    fwrite("RIFF", 1, 4, wav_file);
-    write_little_endian(36 + bytes_per_sample * num_samples * num_channels, 4, wav_file);
-    fwrite("WAVE", 1, 4, wav_file);
-
-    /* write fmt  subchunk */
-    fwrite("fmt ", 1, 4, wav_file);
-    write_little_endian(16, 4, wav_file);   /* SubChunk1Size is 16 */
-    write_little_endian(1, 2, wav_file);    /* PCM is format 1 */
-    write_little_endian(num_channels, 2, wav_file);
-    write_little_endian(sample_rate, 4, wav_file);
-    write_little_endian(byte_rate, 4, wav_file);
-    write_little_endian(num_channels * bytes_per_sample, 2, wav_file);  /* block align */
-    write_little_endian(8 * bytes_per_sample, 2, wav_file);  /* bits/sample */
-
-    /* write data subchunk */
-    fwrite("data", 1, 4, wav_file);
-    write_little_endian(bytes_per_sample * num_samples * num_channels, 4, wav_file);
+/* Audio Callback
+ * The audio function callback takes the following parameters:
+ * stream: A pointer to the audio buffer to be filled
+ * len: The length (in bytes) of the audio buffer
+ *
+*/
+void  fill_audio(void *udata,Uint8 *stream,int len){
+    //SDL 2.0
+    SDL_memset(stream, 0, len);
+    if(audio_len==0)
+        return;
+    len=(len>audio_len?audio_len:len);
+    SDL_MixAudio(stream,audio_pos,len,SDL_MIX_MAXVOLUME);
+    audio_pos += len;
+    audio_len -= len;
 }
 
 int32_t Clip16BitSample(int32_t sample) {
@@ -208,17 +178,20 @@ int32_t Clip16BitSample(int32_t sample) {
         return sample;
 }
 
-void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE* mus_file) {
-    // 22050 Hz
-    //stringstream wav_path;
-    //wav_path << asfChunkHeader->dwOutSize * asfChunkHeader->lCurSampleLeft << ".wav";
-    //FILE *wav_file = fopen(wav_path.str().c_str(), "w");
-    //start_write_wav(wav_file, nSamples, 22050);
+void write_little_endian(unsigned int word, int num_bytes, FILE *wav_file) {
+	unsigned buf;
+	while (num_bytes > 0) {
+		buf = word & 0xff;
+		fwrite(&buf, 1, 1, wav_file);
+		num_bytes--;
+		word >>= 8;
+	}
+}
 
-    uint32_t l = 0, r =0;
+void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE* mus_file, FILE *pcm_file) {
+    uint32_t l = 0, r = 0;
     uint16_t *outBufL = (uint16_t*) calloc(nSamples, sizeof(uint16_t));
     uint16_t *outBufR = (uint16_t*) calloc(nSamples, sizeof(uint16_t));
-
 
     // TODO: Different stuff for MONO/Stereo
     int32_t lCurSampleLeft = asfChunkHeader->lCurSampleLeft;
@@ -258,8 +231,6 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
 
             // Now we've got lCurSampleLeft and lCurSampleRight which form one stereo
             // sample and all is set for the next input byte...
-            std::cout << lCurSampleLeft << " " << lCurSampleRight << std::endl; // send the sample to output
-            //write_little_endian((uint16_t) lCurSampleLeft, 2, wav_file);
             outBufL[l++] = (uint16_t)lCurSampleLeft;
             outBufR[r++] = (uint16_t)lCurSampleRight;
         }
@@ -294,33 +265,22 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
 
             // Now we've got lCurSampleLeft and lCurSampleRight which form one stereo
             // sample and all is set for the next input byte...
-            std::cout << lCurSampleLeft << " " << lCurSampleRight << std::endl; // send the sample to output
-            //write_little_endian((uint16_t) lCurSampleLeft, 2, wav_file);
             outBufL[l++] = (uint16_t)lCurSampleLeft;
             outBufR[r++] = (uint16_t)lCurSampleRight;
         }
     }
 
-    // TODO: PLay OUTBUFL and OUTBUFR using OpenAL
-    stringstream wav_path;
-    wav_path << asfChunkHeader->dwOutSize * asfChunkHeader->lCurSampleLeft << ".pcm";
-    FILE *wav_file = fopen(wav_path.str().c_str(), "w");
-    for (int t = 0; t < nSamples; ++t)
-    {
-        short s16 = outBufL[t];
-        unsigned char c;
-        c = (unsigned)s16 % 256;
-        fwrite(&c, 1, 1, wav_file);
-        c = (unsigned)s16 / 256 % 256;
-        fwrite(&c, 1, 1, wav_file);
-    }
-    fclose(wav_file);
-
+	for(auto t = 0; t < nSamples; ++t)
+	{
+		write_little_endian((uint16_t)outBufL[t], 2, pcm_file);
+		write_little_endian((uint16_t)outBufR[t], 2, pcm_file);
+	}
+	
     free(outBufL);
     free(outBufR);
 }
 
-bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
+bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file) {
     fseek(mus_file, static_cast<long>(sch1Offset), SEEK_SET);
 
     ASFBlockHeader *chk = (ASFBlockHeader *) calloc(1, sizeof(ASFBlockHeader));
@@ -369,7 +329,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
 
         ASFChunkHeader *asfChunkHeader = (ASFChunkHeader *) calloc(1, sizeof(ASFChunkHeader));
         fread(asfChunkHeader, sizeof(ASFChunkHeader), 1, mus_file);
-        DecompressEAADPCM(asfChunkHeader, chk->dwSize - sizeof(ASFBlockHeader)-sizeof(ASFChunkHeader), mus_file);
+        DecompressEAADPCM(asfChunkHeader, chk->dwSize - sizeof(ASFBlockHeader)-sizeof(ASFChunkHeader), mus_file, pcm_file);
         totalSCD1InterleaveSize += chk->dwSize;
 
         free(asfChunkHeader);
@@ -384,6 +344,8 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset) {
 }
 
 void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_path) {
+	FILE *pcm_file = fopen("stereo.pcm", "wb");
+
     std::cout << "- Parsing MAP File " << std::endl;
     ifstream map(map_path, ios::in | ios::binary);
 
@@ -417,12 +379,11 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     while (sectionDefTable[section_Idx].bNumRecords > 0) {
         // Starting positions are raw offsets into MUS file
         // Read the SCH1 header and further blocks in MUS to play the section
-        if (!ReadSCHl(mus_file, startingPositions[section_Idx])) { //
+        if (!ReadSCHl(mus_file, startingPositions[section_Idx], pcm_file)) { //
             std::cout << "Error reading SCHl block." << std::endl;
             break;
         }
-        section_Idx = sectionDefTable[section_Idx].msdRecords[sectionDefTable[section_Idx].bNumRecords -
-                                                              1].bNextSection;
+        section_Idx = sectionDefTable[section_Idx].msdRecords[sectionDefTable[section_Idx].bNumRecords - 1].bNextSection;
         // TODO: We should loop if we come across a section we've already played. Add to set and check presence? (or break)
     }
 

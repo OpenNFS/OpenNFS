@@ -99,26 +99,26 @@ void newFrame(bool &window_active) {
     ImGui_ImplGlfwGL3_NewFrame();
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, char **argv) {
     MusicLoader musicLoader("C:\\Users\\Amrik\\Desktop\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
-    NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
-    free(track);
-    /*std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
+    //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
+    //free(track);
+    std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
-    *//*------ ASSET LOAD ------*//*
+    /*------ ASSET LOAD ------*/
     NFS_Loader nfs_loader("../resources/car_f1.viv");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data
     NFS3::TRACK *nfs3_track = NFS3::trk_loader("../resources/TRK002");
 
-    *//*------- BULLET --------*//*
+    /*------- BULLET --------*/
     Physics physicsEngine;
     physicsEngine.registerTrack(nfs3_track->track_blocks);
     physicsEngine.registerVehicle(&car);
 
-    *//*------- ImGui -------*//*
+    /*------- ImGui -------*/
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
     ImGui::StyleColorsDark();
@@ -136,7 +136,7 @@ int main(int argc, const char *argv[]) {
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
 
-    *//*------- UI -------*//*
+    /*------- UI -------*/
     ImVec4 clear_color = ImVec4(119 / 255.0f, 197 / 255.0f, 252 / 255.0f, 1.0f);
     ImVec4 car_color = ImVec4(247 / 255.0f, 203 / 255.0f, 32 / 255.0f, 1.0f);
     ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -230,14 +230,14 @@ int main(int argc, const char *argv[]) {
             }
             trackShader.unbind();
 
-            *//* billboardShader.use();
-             for (auto &light : active_track_Block.lights) {
-                 light.update();
-                 billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
-                 billboardShader.loadLight(light);
-                 light.render();
-             }
-             billboardShader.unbind();*//*
+             // billboardShader.use();
+             // for (auto &light : active_track_Block.lights) {
+             //     light.update();
+             //     billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
+             //     billboardShader.loadLight(light);
+             //     light.render();
+             // }
+             // billboardShader.unbind();
         }
 
         if (physics_debug_view)
@@ -309,7 +309,7 @@ int main(int argc, const char *argv[]) {
     ImGui_ImplGlfwGL3_Shutdown();
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
-*/
+
 
     return 0;
 }

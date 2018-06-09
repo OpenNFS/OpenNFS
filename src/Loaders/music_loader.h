@@ -11,7 +11,11 @@
 #include <iostream>
 #include <boost/filesystem/path.hpp>
 #include <sstream>
+#include <stdio.h>
 #include "../nfs_data.h"
+#include "../Util/Utils.h"
+
+#include "SDL.h"
 
 using namespace std;
 using namespace Music;
@@ -58,9 +62,9 @@ private:
 
     uint32_t ReadBytes(FILE* file, uint8_t count);
 
-    bool ReadSCHl(FILE *mus_file, uint32_t sch1Offset);
+    bool ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file);
 
-    void DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE* mus_file);
+    void DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE* mus_file, FILE *pcm_file);
 
     void ParsePTHeader(FILE* file);
 };
