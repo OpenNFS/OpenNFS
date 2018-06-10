@@ -54,7 +54,7 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
             }
         }
     }
-    btCollisionShape* trackShape =new btBvhTriangleMeshShape(&trackMesh, true, true); // new btStaticPlaneShape(btVector3(0,1,0),1);//
+    btCollisionShape* trackShape = new btBvhTriangleMeshShape(&trackMesh, true, true); // new btStaticPlaneShape(btVector3(0,1,0),1);//
     btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0,0,0)));
     btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, trackShape, btVector3(0, 0, 0));
     groundRigidBody = new btRigidBody(groundRigidBodyCI);

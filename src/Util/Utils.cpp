@@ -5,6 +5,107 @@
 #include "Utils.h"
 
 namespace Utils {
+    // TODO: Integrate into LoadBmpCustomAlpha as a master bitmap loader
+    bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, int alphaColour) {
+        GLsizei width, height;
+        bool retval = false;
+        // load file and check if it looks reasonable
+        FILE *fp = fopen(fname, "rb");
+        if (fp) {
+            fseek(fp, 0L, 2);
+            long size = ftell(fp);
+            if (size > (long) sizeof(BITMAPFILEHEADER)) {
+                unsigned char *data = new unsigned char[size];
+                if (data) {
+                    fseek(fp, 0L, 0);
+                    if (fread(data, size, 1, fp) == 1) {
+                        BITMAPFILEHEADER *file_header = (BITMAPFILEHEADER *) data;
+                        if (file_header->bfType == MAKEWORD('B', 'M')) {
+                            if (file_header->bfSize == (DWORD) size) {
+                                BITMAPINFO *info = (BITMAPINFO *) (data + sizeof(BITMAPFILEHEADER));
+                                // we only handle uncompressed bitmaps
+                                if (info->bmiHeader.biCompression == BI_RGB) {
+                                    width = info->bmiHeader.biWidth;
+                                    *width_ = width;
+                                    if (width > 0) {
+                                        height = info->bmiHeader.biHeight;
+                                        *height_ = height;
+                                        if (height) {
+                                            if (height < 0) height = (-height);
+                                            // we want RGBA. let's alloc enough space
+                                            *bits = new GLubyte[width * height * 4L];
+                                            if (*bits) {
+                                                retval = true;
+                                                GLubyte *current_bits = *bits;
+                                                GLubyte *pixel = data + file_header->bfOffBits;
+                                                GLsizei h = height, w = width;
+                                                long padding;
+                                                switch (info->bmiHeader.biBitCount) {
+                                                    // 8-bit palette bitmaps
+                                                    case 8:
+                                                        padding = w % 2;
+                                                        RGBQUAD rgba;
+                                                        for (; h > 0; h--) {
+                                                            for (w = width; w > 0; w--) {
+                                                                rgba = info->bmiColors[*pixel];
+                                                                pixel++;
+                                                                *current_bits++ = rgba.rgbRed;
+                                                                *current_bits++ = rgba.rgbGreen;
+                                                                *current_bits++ = rgba.rgbBlue;
+                                                                *current_bits++ = 255;
+                                                            }
+                                                            pixel += padding;
+                                                        }
+                                                        break;
+                                                    // 24-bit bitmaps
+                                                    case 24:
+                                                        padding = (w * 3) % 2;
+                                                        for (; h > 0; h--) {
+                                                            for (w = width; w > 0; w--) {
+                                                                *current_bits++ = pixel[2];
+                                                                *current_bits++ = pixel[1];
+                                                                *current_bits++ = pixel[0];
+                                                                *current_bits++ = 255;
+                                                                pixel += 3;
+                                                            }
+                                                            pixel += padding;
+                                                        }
+                                                        break;
+                                                    default:
+                                                        delete[] *bits;
+                                                        retval = false;
+                                                        break;
+                                                }
+                                                if (retval) {
+                                                    if (info->bmiHeader.biHeight < 0) {
+                                                        long *data_q = (long *) *bits;
+                                                        long wt = width * 4L;
+                                                        long *dest_q = (long *) (*bits + (height - 1) * wt);
+                                                        long tmp;
+                                                        while (data_q < dest_q) {
+                                                            for (w = width; w > 0; w--) {
+                                                                tmp = *data_q;
+                                                                *data_q++ = *dest_q;
+                                                                *dest_q++ = tmp;
+                                                            }
+                                                            dest_q -= (wt + wt);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    delete[] data;
+                }
+            }
+            fclose(fp);
+        }
+        return retval;
+    }
 
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height) {
         bool retval = false;
@@ -188,7 +289,8 @@ namespace Utils {
             }
         }
 
-        return glm::vec3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2, (top_right.z - bottom_left.z) / 2);
+        return glm::vec3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
+                         (top_right.z - bottom_left.z) / 2);
     }
 }
 

@@ -22,23 +22,19 @@
 #include "../Util/Utils.h"
 #include "../Util/Raytracer.h"
 
+std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
+
+std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set,
+                                   std::vector<unsigned int> &texture_indices);
+
+// TODO: Now that the similarities are clear, refactor into children from base class
 namespace NFS3 {
     // Implementation
     TRACK *trk_loader(const std::string &track_base_path);
-
     bool LoadFRD(std::string frd_path, TRACK *track);
-
     bool LoadCOL(std::string col_path, TRACK *track);
-
     std::vector<TrackBlock> ParseTRKModels(TRACK *track);
-
     std::vector<Track> ParseCOLModels(TRACK *track);
-
-    std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
-
-    std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set,
-                                       std::vector<unsigned int> &texture_indices);
-
     Texture LoadTexture(TEXTUREBLOCK track_texture);
 }
 
@@ -47,6 +43,9 @@ namespace NFS2 {
     bool LoadTRK(std::string trk_path, TRACK *track);
     bool LoadCOL(std::string col_path, TRACK *track);
     void dbgPrintVerts(TRACK *track, const std::string &path);
+    std::vector<TrackBlock> ParseTRKModels(TRACK *track);
+    std::vector<Track> ParseCOLModels(TRACK *track);
+    Texture LoadTexture(TEXTURE_BLOCK track_texture);
 }
 
 

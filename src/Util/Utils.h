@@ -75,6 +75,8 @@ typedef struct tagBITMAPINFO {
     } while (false)
 
 namespace Utils {
+    bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, int alphaColour);
+
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height);
 
     glm::vec3 bulletToGlm(const btVector3& v);

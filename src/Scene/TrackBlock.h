@@ -11,9 +11,9 @@
 
 class TrackBlock {
 public:
-    TrackBlock(int blockID, struct NFS3::TRKBLOCK &nfs_track_block);
+    TrackBlock(int blockID, glm::vec3 center_pos);
+    glm::vec3 center;
     int block_id;
-    struct NFS3::TRKBLOCK trk;
     std::vector<Track> track;
     std::vector<Track> objects;
     std::vector<Light> lights;

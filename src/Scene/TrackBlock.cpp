@@ -4,7 +4,7 @@
 
 #include "TrackBlock.h"
 
-TrackBlock::TrackBlock(int blockID, struct TRKBLOCK &nfs_track_block) {
+TrackBlock::TrackBlock(int blockID, glm::vec3 center_pos) {
     block_id = blockID;
-    trk = nfs_track_block;
+    center = center_pos;
 }

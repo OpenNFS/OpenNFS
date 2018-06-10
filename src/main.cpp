@@ -108,17 +108,16 @@ int main(int argc, char **argv) {
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
 
-	NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
-	free(track);
-    //Load Track Data
-    NFS3::TRACK *nfs3_track = NFS3::trk_loader("../resources/TRK002");
+    //Load Track Data`
+    NFS2::TRACK *nfs2_track = NFS2::trk_loader("../resources/NFS2/TR08");
+    //NFS3::TRACK *nfs3_track = NFS3::trk_loader("../resources/TRK002");
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
     /*------- BULLET --------*/
-    Physics physicsEngine;
-    physicsEngine.registerTrack(nfs3_track->track_blocks);
-    physicsEngine.registerVehicle(&car);
+    /*Physics physicsEngine;
+    physicsEngine.registerTrack(nfs2_track->track_blocks);
+    physicsEngine.registerVehicle(&car);*/
 
     /*------- ImGui -------*/
     ImGui::CreateContext();
@@ -164,7 +163,7 @@ int main(int argc, char **argv) {
         glm::mat4 ProjectionMatrix = mainCamera.ProjectionMatrix;
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
         glm::vec3 worldPosition = mainCamera.position;
-        physicsEngine.mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
+        //physicsEngine.mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
 
         //TODO: Refactor to controller class?
         if (window_active && !ImGui::GetIO().MouseDown[1]) {
@@ -182,43 +181,41 @@ int main(int argc, char **argv) {
             cameraLight.position = worldPosition;
             float lowestDistanceSqr = FLT_MAX;
             //Primitive Draw distance
-            for (auto &track_block :  nfs3_track->track_blocks) {
+            for (auto &track_block :  nfs2_track->track_blocks) {
                 glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
                 glm::vec3 position = orientation *
-                                     glm::vec3(track_block.trk.ptCentre.x / 10, track_block.trk.ptCentre.y / 10,
-                                               track_block.trk.ptCentre.z / 10);
+                                     glm::vec3(track_block.center.x / 10, track_block.center.y / 10,
+                                               track_block.center.z / 10);
                 float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
                 if (distanceSqr < lowestDistanceSqr) {
                     closestBlockID = track_block.block_id;
                     lowestDistanceSqr = distanceSqr;
                 }
             }
-            int frontBlock = closestBlockID <  nfs3_track->track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance :  nfs3_track->track_blocks.size();
+            int frontBlock = closestBlockID <  nfs2_track->track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance :  nfs2_track->track_blocks.size();
             int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID - blockDrawDistance : 0;
-            std::vector<TrackBlock>::const_iterator first =  nfs3_track->track_blocks.begin() + backBlock;
-            std::vector<TrackBlock>::const_iterator last =  nfs3_track->track_blocks.begin() + frontBlock;
+            std::vector<TrackBlock>::const_iterator first =  nfs2_track->track_blocks.begin() + backBlock;
+            std::vector<TrackBlock>::const_iterator last =  nfs2_track->track_blocks.begin() + frontBlock;
             activeTrackBlocks = std::vector<TrackBlock>(first, last);
             oldWorldPosition = worldPosition;
         }
 
         // Step the physics simulation
-        physicsEngine.stepSimulation(mainCamera.deltaTime);
+        //physicsEngine.stepSimulation(mainCamera.deltaTime);
 
 
         carShader.use();
         for (auto &car_model : car.car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
-            carShader.loadCarColor(
-                    car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1,
-                                                                                                                   1));
+            carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1, 1));
             carShader.loadLight(cameraLight);
             carShader.loadCarTexture();
             car_model.render();
         }
         carShader.unbind();
 
-        for (auto &active_track_Block : activeTrackBlocks) {
+        for (auto &active_track_Block : nfs2_track->track_blocks) {
             trackShader.use();
             for (auto &track_block_model : active_track_Block.objects) {
                 track_block_model.update();
@@ -227,7 +224,7 @@ int main(int argc, char **argv) {
                 if (active_track_Block.lights.size() > 0) {
                     trackShader.loadLight(active_track_Block.lights[0]);
                 }
-                trackShader.bindTrackTextures(track_block_model, nfs3_track->texture_gl_mappings);
+                trackShader.bindTrackTextures(track_block_model, nfs2_track->texture_gl_mappings);
                 track_block_model.render();
             }
             trackShader.unbind();
@@ -242,8 +239,8 @@ int main(int argc, char **argv) {
              // billboardShader.unbind();
         }
 
-        if (physics_debug_view)
-            physicsEngine.getDynamicsWorld()->debugDrawWorld();
+        /*if (physics_debug_view)
+            physicsEngine.getDynamicsWorld()->debugDrawWorld();*/
 
         // Draw UI (Tactically)
         static float f = 0.0f;
@@ -267,7 +264,7 @@ int main(int argc, char **argv) {
             car.resetCar();
         };
         ImGui::NewLine();
-        ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, nfs3_track->nBlocks);
+        ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, nfs2_track->nBlocks);
         ImGui::ColorEdit3("Clear Colour", (float *) &clear_color); // Edit 3 floats representing a color
         ImGui::ColorEdit3("Testing Light Colour", (float *) &test_light_color);
         ImGui::ColorEdit3("Car Colour", (float *) &car_color);
@@ -281,7 +278,7 @@ int main(int argc, char **argv) {
                             &mesh.enabled);      // Edit bools storing model draw state
         }
         if (ImGui::TreeNode("Track Blocks")) {
-            for (auto &track_block :  nfs3_track->track_blocks) {
+            for (auto &track_block :  nfs2_track->track_blocks) {
                 if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
                     for (auto &block_model : track_block.objects) {
                         if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(),
@@ -305,6 +302,8 @@ int main(int argc, char **argv) {
         glfwSwapBuffers(window);
     }
 
+    free(nfs2_track);
+    //free(nfs3_track);
     // Cleanup VBOs and shaders
     carShader.cleanup();
     trackShader.cleanup();

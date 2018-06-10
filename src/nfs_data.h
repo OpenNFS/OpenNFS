@@ -12,6 +12,22 @@
 
 class TrackBlock;
 
+// ---- NFS2/3 GL Structures -----
+class Texture {
+public:
+    unsigned int texture_id, width, height;
+    GLubyte *texture_data;
+
+    Texture() = default;
+
+    explicit Texture(unsigned int id, GLubyte *data, unsigned int w, unsigned int h) {
+        texture_id = id;
+        texture_data = data;
+        width = w;
+        height = h;
+    }
+};
+
 namespace NFS3 {
     typedef struct FLOATPT {
         float x, z, y;
@@ -256,25 +272,7 @@ namespace NFS3 {
         uint32_t *hs_extra; // for the extra HS data in COLVROAD
     } COLFILE;
 
-
-    // ---- NFS3 GL Structures -----
-    class Texture {
-    public:
-        unsigned int texture_id, width, height;
-        GLubyte *texture_data;
-
-        Texture() = default;
-
-        explicit Texture(unsigned int id, GLubyte *data, unsigned int w, unsigned int h) {
-            texture_id = id;
-            texture_data = data;
-            width = w;
-            height = h;
-        }
-    };
-
     // ---- MASTER TRACK STRUCT ----
-
     typedef struct TRACK {
         // !!! for arrays : structures are aligned to their largest member
         // !!! structure members are aligned on their own size (up to the /Zp parameter)
@@ -360,13 +358,11 @@ namespace NFS2 {
         ANIM_POS *animationData; // Sequence of positions which animation follows
     } GEOM_REF_BLOCK;
 
-
 // Matches number of full resolution polygons
     typedef struct MEDIAN_BLOCK {
         // XBID = 6
         uint8_t refPoly[8];
     } MEDIAN_BLOCK;
-
 
     typedef struct LANE_BLOCK {
         // XBID = 9
@@ -411,7 +407,6 @@ namespace NFS2 {
         uint32_t extraBlockTblOffset;
         uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
         uint32_t nLowResPoly, nMedResPoly, nHighResPoly; // Possible uint32_t on PC, and uint16_t on PS1
-        //uint16_t padding;
     } TRKBLOCK_HEADER;
 
     typedef struct TRKBLOCK {
@@ -456,6 +451,10 @@ namespace NFS2 {
         GEOM_REF_BLOCK *colStructureRefData;
         uint32_t nCollisionData;
         COLLISION_BLOCK *collisionData;
+        // GL 3D Render Data
+        std::vector<TrackBlock> track_blocks;
+        std::map<short, Texture> textures;
+        std::map<short, GLuint> texture_gl_mappings;
     } TRACK;
 }
 
