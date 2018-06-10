@@ -48,24 +48,14 @@ private:
                     0xFFFFFFFD,
                     0xFFFFFFFC
             };
-    uint32_t  dwSampleRate = 0;
-    uint32_t  dwChannels = 0;
-    uint32_t  dwCompression = 0;
-    uint32_t  dwNumSamples = 0;
-    uint32_t  dwDataStart = 0;
-    uint32_t  dwLoopOffset = 0;
-    uint32_t  dwLoopLength = 0;
-    uint32_t  dwBytesPerSample = 0;
-    uint32_t bSplit = 0;
-    uint32_t bSplitCompression = 0;
-
+   
     uint32_t ReadBytes(FILE* file, uint8_t count);
 
     bool ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file);
 
     void DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE* mus_file, FILE *pcm_file);
 
-    void ParsePTHeader(FILE* file);
+    void ParsePTHeader(FILE* file, uint32_t  *dwSampleRate, uint32_t  *dwChannels, uint32_t  *dwCompression, uint32_t  *dwNumSamples, uint32_t  *dwDataStart, uint32_t  *dwLoopOffset, uint32_t  *dwLoopLength, uint32_t *dwBytesPerSample, uint32_t  *bSplit, uint32_t  *bSplitCompression);
 };
 
 #endif //OPENNFS3_MAP_LOADER_H

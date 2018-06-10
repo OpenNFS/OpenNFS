@@ -73,10 +73,10 @@ TARGET_LINK_LIBRARIES(OpenNFS3 BulletDynamics BulletCollision LinearMath Bullet3
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
 #[[SDL Configuration]]
 # Support both 32 and 64 bit builds
-set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sdl")
+#[[set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sdl")
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
-target_link_libraries(OpenNFS3 ${SDL2_LIBRARIES})
+target_link_libraries(OpenNFS3 ${SDL2_LIBRARIES})]]
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")

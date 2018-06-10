@@ -100,9 +100,6 @@ void newFrame(bool &window_active) {
 }
 
 int main(int argc, char **argv) {
-    MusicLoader musicLoader("C:\\Users\\Amrik\\Desktop\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
-    //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
-    //free(track);
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
@@ -110,8 +107,13 @@ int main(int argc, char **argv) {
     NFS_Loader nfs_loader("../resources/car_f1.viv");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
+
+	NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
+	free(track);
     //Load Track Data
     NFS3::TRACK *nfs3_track = NFS3::trk_loader("../resources/TRK002");
+	//Load Music
+	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
     /*------- BULLET --------*/
     Physics physicsEngine;

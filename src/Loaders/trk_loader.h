@@ -46,7 +46,7 @@ namespace NFS2 {
     TRACK *trk_loader(const std::string &track_base_path);
     bool LoadTRK(std::string trk_path, TRACK *track);
     bool LoadCOL(std::string col_path, TRACK *track);
-    void dbgPrintVerts(TRACK *track, VERT_HIGHP *blockReferenceCoords, const std::string &path, bool printFaces);
+    void dbgPrintVerts(TRACK *track, const std::string &path);
 }
 
 

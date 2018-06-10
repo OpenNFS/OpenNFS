@@ -27,6 +27,25 @@
 #define HINIBBLE(byte) ((byte) >> 4)
 #define LONIBBLE(byte) ((byte) & 0x0F)
 
+int32_t Clip16BitSample(int32_t sample) {
+	if (sample > 32767)
+		return 32767;
+	else if (sample < -32768)
+		return (-32768);
+	else
+		return sample;
+}
+
+void write_little_endian(unsigned int word, int num_bytes, FILE *wav_file) {
+	unsigned buf;
+	while (num_bytes > 0) {
+		buf = word & 0xff;
+		fwrite(&buf, 1, 1, wav_file);
+		num_bytes--;
+		word >>= 8;
+	}
+}
+
 MusicLoader::MusicLoader(const std::string &song_base_path) {
     boost::filesystem::path p(song_base_path);
     std::string song_name = p.filename().string();
@@ -56,7 +75,7 @@ uint32_t MusicLoader::ReadBytes(FILE *file, uint8_t count) {
 
 // This function assumes that the current file pointer is set to the
 // start of PT header data, that is, just after PT string ID "PT\0\0"
-void MusicLoader::ParsePTHeader(FILE *file) {
+void MusicLoader::ParsePTHeader(FILE *file, uint32_t  *dwSampleRate, uint32_t  *dwChannels, uint32_t  *dwCompression, uint32_t  *dwNumSamples, uint32_t  *dwDataStart, uint32_t  *dwLoopOffset, uint32_t  *dwLoopLength, uint32_t *dwBytesPerSample, uint32_t  *bSplit, uint32_t  *bSplitCompression) {
     uint8_t byte;
     bool bInHeader, bInSubHeader;
 
@@ -78,43 +97,43 @@ void MusicLoader::ParsePTHeader(FILE *file) {
                     {
                         case 0x82:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwChannels = ReadBytes(file, byte);
+                            *dwChannels = ReadBytes(file, byte);
                             break;
                         case 0x83:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwCompression = ReadBytes(file, byte);
+                            *dwCompression = ReadBytes(file, byte);
                             break;
                         case 0x84:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwSampleRate = ReadBytes(file, byte);
+							*dwSampleRate = ReadBytes(file, byte);
                             break;
                         case 0x85:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwNumSamples = ReadBytes(file, byte);
+							*dwNumSamples = ReadBytes(file, byte);
                             break;
                         case 0x86:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwLoopOffset = ReadBytes(file, byte);
+							*dwLoopOffset = ReadBytes(file, byte);
                             break;
                         case 0x87:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwLoopLength = ReadBytes(file, byte);
+							*dwLoopLength = ReadBytes(file, byte);
                             break;
                         case 0x88:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwDataStart = ReadBytes(file, byte);
+							*dwDataStart = ReadBytes(file, byte);
                             break;
                         case 0x92:
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            dwBytesPerSample = ReadBytes(file, byte);
+							*dwBytesPerSample = ReadBytes(file, byte);
                             break;
                         case 0x80: // ???
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            bSplit = ReadBytes(file, byte);
+							*bSplit = ReadBytes(file, byte);
                             break;
                         case 0xA0: // ???
                             fread(&byte, sizeof(uint8_t), 1, file);
-                            bSplitCompression = ReadBytes(file, byte);
+							*bSplitCompression = ReadBytes(file, byte);
                             break;
                         case 0xFF:
                             bInSubHeader = false;
@@ -135,25 +154,6 @@ void MusicLoader::ParsePTHeader(FILE *file) {
                 fseek(file, byte, SEEK_CUR);
         }
     }
-}
-
-int32_t Clip16BitSample(int32_t sample) {
-    if (sample > 32767)
-        return 32767;
-    else if (sample < -32768)
-        return (-32768);
-    else
-        return sample;
-}
-
-void write_little_endian(unsigned int word, int num_bytes, FILE *wav_file) {
-	unsigned buf;
-	while (num_bytes > 0) {
-		buf = word & 0xff;
-		fwrite(&buf, 1, 1, wav_file);
-		num_bytes--;
-		word >>= 8;
-	}
 }
 
 void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE* mus_file, FILE *pcm_file) {
@@ -262,11 +262,23 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file) 
     char blockIDString[4];
     // Check ID string is PT
     fread(blockIDString, sizeof(char), 4, mus_file);
-    ParsePTHeader(mus_file);
+
+	uint32_t  dwSampleRate = 0;
+	uint32_t  dwChannels = 0;
+	uint32_t  dwCompression = 0;
+	uint32_t  dwNumSamples = 0;
+	uint32_t  dwDataStart = 0;
+	uint32_t  dwLoopOffset = 0;
+	uint32_t  dwLoopLength = 0;
+	uint32_t  dwBytesPerSample = 0;
+	uint32_t bSplit = 0;
+	uint32_t bSplitCompression = 0;
+
+    ParsePTHeader(mus_file, &dwSampleRate, &dwChannels, &dwCompression, &dwNumSamples, &dwDataStart, &dwLoopOffset, &dwLoopLength, &dwBytesPerSample, &bSplit, &bSplitCompression);
 
     uint32_t sch1Size = chk->dwSize;
     // Jump to next block
-    fseek(mus_file, sch1Offset + static_cast<long>(sch1Size), SEEK_SET);
+    fseek(mus_file, static_cast<long>(sch1Offset + sch1Size), SEEK_SET);
 
     // Check in SCC1 Count block
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
@@ -285,7 +297,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file) 
     // Get PCM data from SCD1 blocks
     for (uint8_t scd1_Idx = 0; scd1_Idx < nSCD1Blocks; ++scd1_Idx) {
         // Jump to next block
-        fseek(mus_file, sch1Offset + static_cast<long>(sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
+        fseek(mus_file,static_cast<long>(sch1Offset + sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
 
         // Check in SCD1
         fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
@@ -302,7 +314,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE* pcm_file) 
 
         free(asfChunkHeader);
     }
-    fseek(mus_file, sch1Offset + static_cast<long>(sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
+    fseek(mus_file, static_cast<long>(sch1Offset + sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
 
     // Check we successfully reached end block SCEl
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
@@ -344,25 +356,39 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     // Get starting position of first section
     uint8_t section_Idx = mapHeader->bFirstSection;
 
-	auto playedSections = std::set<uint8_t>();
-	
-    while (sectionDefTable[section_Idx].bNumRecords > 0) {
+    // TODO: Linear playthrough until I work out the looping malarkey
+	for (auto lol = 0; lol < mapHeader->bNumSections; ++lol)
+	{
+		if (!ReadSCHl(mus_file, startingPositions[lol], pcm_file)) { //
+			std::cout << "Error reading SCHl block, POS: " << (int)lol << " Offset: " << startingPositions[lol] << std::endl;
+			break;
+		}
+	}
+
+    /*
+     * // Out of spec: Track number of times played section, use to set next section
+	auto playedSections = std::map<uint8_t, int8_t>();
+     *
+     *
+     * while (sectionDefTable[section_Idx].bNumRecords > 0 && section_Idx < mapHeader->bNumSections) {
         // Starting positions are raw offsets into MUS file
         // Read the SCH1 header and further blocks in MUS to play the section
         if (!ReadSCHl(mus_file, startingPositions[section_Idx], pcm_file)) { //
-            std::cout << "Error reading SCHl block." << std::endl;
+            std::cout << "Error reading SCHl block, POS: " << (int) section_Idx << " Offset: " << startingPositions[section_Idx] << std::endl;
             break;
-        }
+        }	
 
-		// Check if we've already played this section before. If we have, (TODO: What do we do?)
-		if(playedSections.insert(section_Idx).second)
+		// Check if we've already played this section before. If we have, drop record number, else set to highest record index
+		playedSections[section_Idx] = playedSections.count(section_Idx) ? playedSections[section_Idx]-1 : sectionDefTable[section_Idx].bNumRecords - 1;
+
+		// If played all next records, quit playback? TODO: Implies that Track data must correlate to MAP derived loops
+		if (playedSections[section_Idx] < 0)
 		{
-			section_Idx = sectionDefTable[section_Idx].msdRecords[sectionDefTable[section_Idx].bNumRecords - 1].bNextSection;
-		} else
-		{
-			section_Idx++;
+			break;
 		}
-    }
+		
+		section_Idx = sectionDefTable[section_Idx].msdRecords[playedSections[section_Idx]].bNextSection;
+    }*/
 
     free(startingPositions);
     free(sectionDefTable);

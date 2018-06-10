@@ -410,7 +410,7 @@ namespace NFS2 {
         struct VERT_HIGHP clippingRect[4];
         uint32_t extraBlockTblOffset;
         uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
-        uint16_t nLowResPoly, nMedResPoly, nHighResPoly; // Possible uint32_t on PC, and uint16_t on PS1
+        uint32_t nLowResPoly, nMedResPoly, nHighResPoly; // Possible uint32_t on PC, and uint16_t on PS1
         //uint16_t padding;
     } TRKBLOCK_HEADER;
 
@@ -446,6 +446,7 @@ namespace NFS2 {
         uint32_t nSuperBlocks;
         uint32_t nBlocks;
         SUPERBLOCK *superblocks;
+        VERT_HIGHP *blockReferenceCoords;
         // COL data
         uint32_t nTextures;
         TEXTURE_BLOCK *polyToQFStexTable;

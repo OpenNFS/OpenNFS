@@ -96,7 +96,7 @@ namespace NFS3{
         if (ar.read((char *) &track->nBlocks, 4).gcount() < 4) return false;
         track->nBlocks++;
         if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
-        
+
     	track->trk = (TRKBLOCK *) calloc(track->nBlocks, sizeof(TRKBLOCK));
         track->poly = (POLYGONBLOCK *) calloc(track->nBlocks, sizeof(POLYGONBLOCK));
         track->xobj = (XOBJBLOCK *) calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK));
@@ -727,6 +727,8 @@ namespace NFS2{
             LoadCOL(col_path.str(), track); // Load Catalogue file to get global (non trkblock specific) data
         };
 
+        dbgPrintVerts(track, "C:/Users/Amrik/Desktop/Tr02b/");
+
         return track;
     }
 
@@ -757,15 +759,16 @@ namespace NFS2{
         track->superblocks = static_cast<SUPERBLOCK *>(calloc(track->nBlocks, sizeof(SUPERBLOCK)));
 
         // Offsets of Superblocks in TRK file
-        uint32_t *superblockOffsets = new uint32_t[track->nSuperBlocks];
-        if (trk.read(((char *) superblockOffsets), track->nSuperBlocks * sizeof(uint32_t)).gcount() !=
-            track->nSuperBlocks * sizeof(uint32_t))
+        uint32_t *superblockOffsets = static_cast<uint32_t *>(calloc(track->nSuperBlocks, sizeof(uint32_t)));
+        if (trk.read(((char *) superblockOffsets), track->nSuperBlocks * sizeof(uint32_t)).gcount() != track->nSuperBlocks * sizeof(uint32_t)){
+            free(superblockOffsets);
             return false;
+        }
 
         // Reference coordinates for each block
-        VERT_HIGHP *blockReferenceCoords = static_cast<VERT_HIGHP *>(calloc(track->nBlocks, sizeof(VERT_HIGHP)));
-        if (trk.read((char *) blockReferenceCoords, track->nBlocks * sizeof(VERT_HIGHP)).gcount() != track->nBlocks * sizeof(VERT_HIGHP)){
-            free(blockReferenceCoords);
+        track->blockReferenceCoords = static_cast<VERT_HIGHP *>(calloc(track->nBlocks, sizeof(VERT_HIGHP)));
+        if (trk.read((char *)  track->blockReferenceCoords, track->nBlocks * sizeof(VERT_HIGHP)).gcount() != track->nBlocks * sizeof(VERT_HIGHP)){
+            free(superblockOffsets);
             return false;
         }
 
@@ -795,13 +798,13 @@ namespace NFS2{
                     // Sanity Checks
                     if((trackblock->header->blockSize != trackblock->header->blockSizeDup)||(trackblock->header->blockSerial > track->nBlocks)){
                         std::cout<< "   --- Bad Block" << std::endl;
-                        free(blockReferenceCoords);
+                        free(superblockOffsets);
                         return false;
                     }
 
                     // Read 3D Data
-                    trackblock->vertexTable = (VERT *) calloc(static_cast<size_t>(trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert), sizeof(VERT));
-                    for(int vert_Idx = 0; vert_Idx < trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert; ++vert_Idx){
+                    trackblock->vertexTable = static_cast<VERT *>(calloc(static_cast<size_t>(trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert), sizeof(VERT)));
+                    for(unsigned int vert_Idx = 0; vert_Idx < trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert; ++vert_Idx){
                         trk.read((char *) &trackblock->vertexTable[vert_Idx], sizeof(VERT));
                     }
 
@@ -820,6 +823,7 @@ namespace NFS2{
                         trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + extrablockOffsets[xblock_Idx], ios_base::beg);
                         EXTRABLOCK_HEADER *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
                         trk.read((char*) xblockHeader, sizeof(EXTRABLOCK_HEADER));
+
                         switch(xblockHeader->XBID){
                             case 5:
                                 trackblock->polyTypes = static_cast<POLY_TYPE *>(calloc(xblockHeader->nRecords, sizeof(POLY_TYPE)));
@@ -838,7 +842,7 @@ namespace NFS2{
                                     trk.read((char*) &trackblock->structures[structure_Idx].recSize, sizeof(uint32_t));
                                     trk.read((char*) &trackblock->structures[structure_Idx].nVerts, sizeof(uint16_t));
                                     trk.read((char*) &trackblock->structures[structure_Idx].nPoly, sizeof(uint16_t));
-                                    trackblock->structures[structure_Idx].vertexTable = (VERT *) calloc(trackblock->structures[structure_Idx].nVerts, sizeof(VERT));
+                                    trackblock->structures[structure_Idx].vertexTable = static_cast<VERT *>(calloc(trackblock->structures[structure_Idx].nVerts, sizeof(VERT)));
                                     for(int vert_Idx = 0; vert_Idx < trackblock->structures[structure_Idx].nVerts; ++vert_Idx){
                                         trk.read((char *) &trackblock->structures[structure_Idx].vertexTable[vert_Idx], sizeof(VERT));
                                     }
@@ -900,8 +904,7 @@ namespace NFS2{
                 free(blockOffsets);
             }
         }
-        dbgPrintVerts(track, blockReferenceCoords, "C:/Users/Amrik/Desktop/Tr02b/", true);
-        free(blockReferenceCoords);
+        free(superblockOffsets);
         trk.close();
         return true;
     }
@@ -927,26 +930,31 @@ namespace NFS2{
         uint32_t *extraBlockOffsets = (uint32_t *) calloc(nExtraBlocks, sizeof(uint32_t));
         col.read((char*) extraBlockOffsets, nExtraBlocks*sizeof(uint32_t));
 
-        for(int xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx) {
-            col.seekg(16 + extraBlockOffsets[xBlock_Idx] + 16, ios_base::beg);
+        std::cout << "  Version: " << version << "\n  nExtraBlocks: " << nExtraBlocks << "\nParsing COL Extrablocks" << std::endl;
 
-            // TODO: Fix reading of all other blocks that aren't TexTable
-            switch (xBlock_Idx) {
-                case 0: // First xbock always texture table
-                    track->nTextures = (extraBlockOffsets[1] - extraBlockOffsets[0])/sizeof(TEXTURE_BLOCK);
+        for(int xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx) {
+            col.seekg(16 + extraBlockOffsets[xBlock_Idx], ios_base::beg);
+
+            EXTRABLOCK_HEADER *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
+            col.read((char*) xblockHeader, sizeof(EXTRABLOCK_HEADER));
+
+            std::cout << "  XBID " << (int) xblockHeader->XBID << " (XBlock " << xBlock_Idx + 1 << " of " << nExtraBlocks << ")" << std::endl;
+
+            switch (xblockHeader->XBID) {
+                case 2: // First xbock always texture table
+                    track->nTextures = xblockHeader->nRecords;
                     track->polyToQFStexTable = static_cast<TEXTURE_BLOCK *>(calloc(track->nTextures, sizeof(TEXTURE_BLOCK)));
                     col.read((char *) track->polyToQFStexTable, track->nTextures * sizeof(TEXTURE_BLOCK));
                     break;
-                case 1: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2
-                    if(nExtraBlocks == 4){
-                        track->nColStructures = (extraBlockOffsets[2] - extraBlockOffsets[1])/sizeof(GEOM_BLOCK);
+                case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2
+                        track->nColStructures = xblockHeader->nRecords;
                         track->colStructures = static_cast<GEOM_BLOCK *>(calloc(track->nColStructures, sizeof(GEOM_BLOCK)));
                         for(int structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx){
                             streamoff padCheck = col.tellg();
                             col.read((char*) &track->colStructures[structure_Idx].recSize, sizeof(uint32_t));
                             col.read((char*) &track->colStructures[structure_Idx].nVerts, sizeof(uint16_t));
                             col.read((char*) &track->colStructures[structure_Idx].nPoly, sizeof(uint16_t));
-                            track->colStructures[structure_Idx].vertexTable = (VERT *) calloc(track->colStructures[structure_Idx].nVerts, sizeof(VERT));
+                            track->colStructures[structure_Idx].vertexTable = static_cast<VERT *>(calloc(track->colStructures[structure_Idx].nVerts, sizeof(VERT)));
                             for(int vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx){
                                 col.read((char *) &track->colStructures[structure_Idx].vertexTable[vert_Idx], sizeof(VERT));
                             }
@@ -956,11 +964,9 @@ namespace NFS2{
                             }
                             col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
                         }
-                    }
                     break;
-                case 2: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
-                    if(nExtraBlocks == 4){
-                        track->nColStructureReferences = (extraBlockOffsets[3] - extraBlockOffsets[2])/sizeof(GEOM_REF_BLOCK);
+                case 7: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
+                        track->nColStructureReferences = xblockHeader->nRecords;
                         track->colStructureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(track->nColStructureReferences, sizeof(GEOM_REF_BLOCK)));
                         for(int structureRef_Idx = 0; structureRef_Idx < track->nColStructures; ++structureRef_Idx){
                             streamoff padCheck = col.tellg();
@@ -983,10 +989,9 @@ namespace NFS2{
                             }
                             col.seekg(track->colStructureRefData[structureRef_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
                         }
-                    }
                     break;
-                case 3:
-                    track->nCollisionData  = (nExtraBlocks == 2) ? (extraBlockOffsets[2] - extraBlockOffsets[1])/sizeof(COLLISION_BLOCK) : (extraBlockOffsets[4] - extraBlockOffsets[3])/sizeof(COLLISION_BLOCK);
+                case 15:
+                    track->nCollisionData  = xblockHeader->nRecords;
                     track->collisionData = static_cast<COLLISION_BLOCK *>(calloc(track->nCollisionData, sizeof(COLLISION_BLOCK)));
                     col.read((char*) track->collisionData, track->nCollisionData * sizeof(COLLISION_BLOCK));
                     break;
@@ -997,13 +1002,16 @@ namespace NFS2{
         return true;
     }
 
-    void dbgPrintVerts(TRACK *track, VERT_HIGHP *blockReferenceCoords, const std::string &path, bool printFaces) {
+    void dbgPrintVerts(TRACK *track, const std::string &path) {
         std::ofstream obj_dump;
 
+        float scaleFactor = 100000;
+
+        // Parse out TRKBlock data
         for(int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx){
-            SUPERBLOCK superblock = track->superblocks[superBlock_Idx];
-            for (int block_Idx = 0; block_Idx < superblock.nBlocks; ++block_Idx) {
-                TRKBLOCK trkBlock = superblock.trackBlocks[block_Idx];
+            SUPERBLOCK *superblock = &track->superblocks[superBlock_Idx];
+            for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
+                TRKBLOCK trkBlock = superblock->trackBlocks[block_Idx];
                 VERT_HIGHP blockReferenceCoord;
                 // Print clipping rectangle
                 //obj_dump << "o Block" << trkBlock.header->blockSerial << "ClippingRect" << std::endl;
@@ -1012,33 +1020,31 @@ namespace NFS2{
                 //}
                 // obj_dump << "f " << 1+(4*trkBlock.header->blockSerial) << " " << 2+(4*trkBlock.header->blockSerial) << " " << 3+(4*trkBlock.header->blockSerial) << " " << 4+(4*trkBlock.header->blockSerial) << std::endl;
                 std::ostringstream stringStream;
-                stringStream << path << trkBlock.header->blockSerial << ".obj";
+                stringStream << path << "TrackBlock" << trkBlock.header->blockSerial << ".obj";
                 obj_dump.open(stringStream.str());
-                obj_dump << "o Block" << trkBlock.header->blockSerial << std::endl;
+                obj_dump << "o TrackBlock" << trkBlock.header->blockSerial << std::endl;
                 for (int i = 0; i < trkBlock.header->nStickToNextVerts + trkBlock.header->nHighResVert; i++) {
                     if (i < trkBlock.header->nStickToNextVerts) {
                         // If in last block go get ref coord of first block, else get ref of next block
-                        blockReferenceCoord =  (trkBlock.header->blockSerial == track->nBlocks-1) ? blockReferenceCoords[0] :  blockReferenceCoords[trkBlock.header->blockSerial+1];
+                        blockReferenceCoord =  (trkBlock.header->blockSerial == track->nBlocks-1) ? track->blockReferenceCoords[0] :  track->blockReferenceCoords[trkBlock.header->blockSerial+1];
                     } else {
-                        blockReferenceCoord = blockReferenceCoords[trkBlock.header->blockSerial];
+                        blockReferenceCoord = track->blockReferenceCoords[trkBlock.header->blockSerial];
                     }
                     int32_t x = (blockReferenceCoord.x + (256 * trkBlock.vertexTable[i].x));
                     int32_t y = (blockReferenceCoord.y + (256 * trkBlock.vertexTable[i].y));
                     int32_t z = (blockReferenceCoord.z + (256 * trkBlock.vertexTable[i].z));
-                    obj_dump << "v " << x << " " << z << " " << y << std::endl;
+                    obj_dump << "v " << x/scaleFactor << " " << z/scaleFactor << " " << y/scaleFactor << std::endl;
                 }
-                if(printFaces){
-                    for (int poly_Idx = (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly); poly_Idx < (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly + trkBlock.header->nHighResPoly); ++poly_Idx)
-                    {
-                        obj_dump << "f " << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[0]+1 << " " << (unsigned int)trkBlock.polygonTable[poly_Idx].vertex[1]+1 << " " << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[2]+1 << " " << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[3]+1<< std::endl;
-                    }
+                for (int poly_Idx = (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly); poly_Idx < (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly + trkBlock.header->nHighResPoly); ++poly_Idx)
+                {
+                    obj_dump << "f " << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[0]+1 << " " << (unsigned int)trkBlock.polygonTable[poly_Idx].vertex[1]+1 << " " << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[2]+1 << " " << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[3]+1<< std::endl;
                 }
                 obj_dump.close();
                 for(int structure_Idx = 0; structure_Idx < trkBlock.nStructures; ++structure_Idx){
                     std::ostringstream stringStream1;
-                    stringStream1 << path << &trkBlock.structures[structure_Idx] << ".obj";
+                    stringStream1 << path << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
                     obj_dump.open(stringStream1.str());
-                    VERT_HIGHP *structureReferenceCoordinates = &blockReferenceCoords[trkBlock.header->blockSerial];
+                    VERT_HIGHP *structureReferenceCoordinates = &track->blockReferenceCoords[trkBlock.header->blockSerial];
                     // Find the structure reference that matches this structure, else use block default
                     for(int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx){
                         // Only check fixed type structure references
@@ -1046,7 +1052,7 @@ namespace NFS2{
                             if(trkBlock.structureRefData[structRef_Idx].recType == 1){
                                 structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].refCoordinates;
                             }
-                            else if(trkBlock.structureRefData[structRef_Idx].recType == 4) {
+                            else if(trkBlock.structureRefData[structRef_Idx].recType == 3) {
                                 if(trkBlock.structureRefData[structure_Idx].animLength != 0){
                                     // For now, if animated, use position 0 of animation sequence
                                     structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].animationData[0].position;
@@ -1059,17 +1065,48 @@ namespace NFS2{
                         int32_t x = (structureReferenceCoordinates->x + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x));
                         int32_t y = (structureReferenceCoordinates->y + (256 *trkBlock.structures[structure_Idx].vertexTable[vert_Idx].y));
                         int32_t z = (structureReferenceCoordinates->z + (256 *trkBlock.structures[structure_Idx].vertexTable[vert_Idx].z));
-                        obj_dump << "v " << x << " " << z << " " << y << std::endl;
+                        obj_dump << "v " << x/scaleFactor << " " << z/scaleFactor << " " << y/scaleFactor << std::endl;
                     }
-                    if(printFaces){
-                        for(int poly_Idx = 0; poly_Idx < trkBlock.structures[structure_Idx].nPoly; ++poly_Idx){
-                            obj_dump << "f " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[0]+1 << " " << (unsigned int)trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[1]+1 << " " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[2]+1 << " " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[3]+1 << std::endl;
-                        }
+                    for(int poly_Idx = 0; poly_Idx < trkBlock.structures[structure_Idx].nPoly; ++poly_Idx){
+                        obj_dump << "f " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[0]+1 << " " << (unsigned int)trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[1]+1 << " " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[2]+1 << " " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[3]+1 << std::endl;
                     }
                     obj_dump.close();
                 }
             }
         }
-        obj_dump.close();
+
+        // Parse out COL data
+        for(int structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx){
+            std::ostringstream stringStream1;
+            stringStream1 << path << "COL" << structure_Idx << ".obj";
+            obj_dump.open(stringStream1.str());
+            VERT_HIGHP *structureReferenceCoordinates = static_cast<VERT_HIGHP *>(calloc(1, sizeof(VERT_HIGHP)));
+            // Find the structure reference that matches this structure, else use block default
+            for(int structRef_Idx = 0; structRef_Idx < track->nColStructureReferences; ++structRef_Idx){
+                // Only check fixed type structure references
+                if(track->colStructureRefData[structRef_Idx].structureRef == structure_Idx){
+                    if(track->colStructureRefData[structRef_Idx].recType == 1){
+                        structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].refCoordinates;
+                    }
+                    else if(track->colStructureRefData[structRef_Idx].recType == 3) {
+                        if(track->colStructureRefData[structure_Idx].animLength != 0){
+                            // For now, if animated, use position 0 of animation sequence
+                            structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].animationData[0].position;
+                        }
+                    }
+                }
+            }
+            obj_dump << "o ColStruct" << &track->colStructures[structure_Idx] << std::endl;
+            for(uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx){
+                int32_t x = (structureReferenceCoordinates->x + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
+                int32_t y = (structureReferenceCoordinates->y + (256 *track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
+                int32_t z = (structureReferenceCoordinates->z + (256 *track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
+                obj_dump << "v " << x/scaleFactor << " " << z/scaleFactor << " " << y/scaleFactor << std::endl;
+            }
+            for(int poly_Idx = 0; poly_Idx < track->colStructures[structure_Idx].nPoly; ++poly_Idx){
+                obj_dump << "f " << (unsigned int) track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[0]+1 << " " << (unsigned int)track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[1]+1 << " " << (unsigned int) track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[2]+1 << " " << (unsigned int) track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[3]+1 << std::endl;
+            }
+            obj_dump.close();
+        }
     }
 }
