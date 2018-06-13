@@ -15,7 +15,9 @@
 #include <vector>
 #include <cmath>
 #include <glm/vec3.hpp>
+#include <sstream>
 #include "../Scene/CarModel.h"
+#include "../Config.h"
 
 #define DATA_START 0x1F04
 #define VertTblOffset 0x0010

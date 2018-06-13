@@ -43,15 +43,34 @@ std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_se
     return texture_ids;
 }
 
-bool ExtractTrackTextures(const std::string &track_base_path, const::std::string track_name){
+bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version){
     std::stringstream output_dir;
-    output_dir << track_base_path << "/textures/";
+    output_dir << TRACK_PATH;
+    switch(nfs_version){
+        case NFS_2:
+            output_dir << "NFS2/";
+            break;
+        case NFS_3:
+            output_dir << "NFS3/";
+            break;
+        default:
+            output_dir << "UNKNOWN/";
+            break;
+    }
+    output_dir << track_name;
+
+
     if(boost::filesystem::exists(output_dir.str())){
         return true;
-    };
+    } else {
+        boost::filesystem::create_directories(output_dir.str());
+    }
 
     std::stringstream qfs_path;
-    qfs_path << track_base_path << "/" << track_name << "0" << ".QFS";
+    output_dir << "/textures/";
+    qfs_path << track_path << "0" << ".QFS";
+
+    std::cout << "Extracting track textures" << std::endl;
 
     return (Utils::ExtractQFS(qfs_path.str(), output_dir.str()));
 }
@@ -69,12 +88,12 @@ namespace NFS3{
         if(pos!= string::npos)
             track_name.replace(pos, strip.size(), "");
 
-        frd_path << track_base_path <<  "/" << track_name << ".frd";
-        col_path << track_base_path <<  "/" << track_name << ".col";
+        frd_path << track_base_path << ".frd";
+        col_path << track_base_path << ".col";
 
-        ASSERT(LoadFRD(frd_path.str(), track, track_base_path), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+        ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
+        ASSERT(LoadFRD(frd_path.str(), track, track_name), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
         ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-        ASSERT(ExtractTrackTextures(track_base_path, track_name), "Could not extract " << track_name << " QFS texture pack.");
 
         track->texture_gl_mappings = GenTrackTextures(track->textures);
         track->track_blocks = ParseTRKModels(track);
@@ -86,7 +105,7 @@ namespace NFS3{
         return track;
     }
 
-    bool LoadFRD(std::string frd_path, TRACK *track, const std::string &track_base_path) {
+    bool LoadFRD(std::string frd_path, TRACK *track, const std::string &track_name) {
         // TODO: Wrap each fread with if(STATEMENT) != numElementsToRead) return false; MACRO?
         ifstream ar(frd_path, ios::in | ios::binary);
 
@@ -265,7 +284,7 @@ namespace NFS3{
         track->texture = (TEXTUREBLOCK *) calloc(track->nTextures, sizeof(TEXTUREBLOCK));
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
             if (ar.read((char *) &(track->texture[tex_Idx]), 47).gcount() != 47) return false;
-            auto p = std::make_pair(track->texture[tex_Idx].texture, LoadTexture(track->texture[tex_Idx], track_base_path));
+            auto p = std::make_pair(track->texture[tex_Idx].texture, LoadTexture(track->texture[tex_Idx], track_name));
             track->textures.insert(p);
         }
 
@@ -691,7 +710,7 @@ namespace NFS3{
         return track_blocks;
     }
 
-    Texture LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_base_path) {
+    Texture LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name) {
         std::stringstream filename;
         std::stringstream filename_alpha;
 
@@ -699,8 +718,8 @@ namespace NFS3{
             filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
             filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << "-a.BMP";
         } else {
-            filename << track_base_path << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-            filename << track_base_path << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
+            filename << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+            filename << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
         }
 
         GLubyte *data;
@@ -724,16 +743,16 @@ namespace NFS2{
         std::string track_name = p.filename().string();
         stringstream trk_path, col_path;
 
-        trk_path << track_base_path <<  "/" << track_name << ".TRK";
-        col_path << track_base_path <<  "/" << track_name << ".col";
+        trk_path << track_base_path << ".TRK";
+        col_path << track_base_path << ".COL";
 
         ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
         ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-        ASSERT(ExtractTrackTextures(track_base_path, track_name), "Could not extract " << track_name << " QFS texture pack.");
+        ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_2), "Could not extract " << track_name << " QFS texture pack.");
 
         // Load up the textures
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
-            auto id_tex_pair = std::make_pair(track->polyToQFStexTable[tex_Idx].texNumber, LoadTexture(track->polyToQFStexTable[tex_Idx], track_base_path));
+            auto id_tex_pair = std::make_pair(track->polyToQFStexTable[tex_Idx].texNumber, LoadTexture(track->polyToQFStexTable[tex_Idx], track_name));
             track->textures.insert(id_tex_pair);
         }
         track->texture_gl_mappings = GenTrackTextures(track->textures);
@@ -1022,7 +1041,7 @@ namespace NFS2{
         std::ofstream obj_dump;
 
         if(!(boost::filesystem::exists(path))){
-            boost::filesystem::create_directory(path);
+            boost::filesystem::create_directories(path);
         }
 
         float scaleFactor = 100000;
@@ -1371,9 +1390,9 @@ namespace NFS2{
         return col_models;
     }
 
-    Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_base_path) {
+    Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name) {
         std::stringstream filename;
-        filename << track_base_path << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";
+        filename << TRACK_PATH << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";
 
         GLubyte *data;
         GLsizei width;

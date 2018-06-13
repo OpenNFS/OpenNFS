@@ -12,6 +12,8 @@
 
 class TrackBlock;
 
+enum NFSVer { NFS_1, NFS_2, NFS_3, NFS_4, NFS_5};
+
 // ---- NFS2/3 GL Structures -----
 class Texture {
 public:

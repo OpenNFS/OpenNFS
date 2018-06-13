@@ -5,6 +5,7 @@
 //  Created by Amrik Sadhra on 27/10/2017.
 //
 
+
 #include "nfs_loader.h"
 
 void convertFCE(const char *fce_path, const char *out_path) {
@@ -90,7 +91,11 @@ void extractViv(const char *viv_path) {
 
         currentpos = ftell(vivfile);
 
-        if ((outfile = fopen(filename, "wb")) == NULL) {
+        // TODO: Can place into a subdirectory using car name, wherever it's stored.
+        std::stringstream out_file_path;
+        out_file_path << CAR_PATH << filename;
+
+        if ((outfile = fopen(out_file_path.str().c_str(), "wb")) == NULL) {
             printf("Error while opening file %s\n", filename);
             fclose(vivfile);
             exit(4);
@@ -118,8 +123,11 @@ void extractViv(const char *viv_path) {
 
 NFS_Loader::NFS_Loader(const char *viv_path) {
     std::cout << "Loading FCE File" << std::endl;
+    std::stringstream fce_path;
+    fce_path << CAR_PATH << "car.fce";
+
     extractViv(viv_path);
-    readFCE("car.fce");
+    readFCE(fce_path.str().c_str());
 }
 
 glm::vec3 NFS_Loader::getVertices(int partNumber, int offset, unsigned int length, std::vector<glm::vec3> &vertices) {

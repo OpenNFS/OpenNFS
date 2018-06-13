@@ -99,18 +99,28 @@ void newFrame(bool &window_active) {
     ImGui_ImplGlfwGL3_NewFrame();
 }
 
+void initDirectories(){
+    if(!(boost::filesystem::exists(CAR_PATH))){
+        boost::filesystem::create_directories(CAR_PATH);
+    }
+    if(!(boost::filesystem::exists(TRACK_PATH))){
+        boost::filesystem::create_directories(TRACK_PATH);
+    }
+}
+
 int main(int argc, char **argv) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
     /*------ ASSET LOAD ------*/
+    initDirectories();
     NFS_Loader nfs_loader("../resources/car.viv");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
 
     //Load Track Data`
-    NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/TR00");
-    //NFS3::TRACK *nfs3_track = NFS3::trk_loader("../resources/TRK002");
+    //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/GAMEDATA/TRACKS/SE/TR02");
+    NFS3::TRACK *track = NFS3::trk_loader("../resources/NFS3/gamedata/tracks/TRK000/tr00");
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
@@ -303,14 +313,12 @@ int main(int argc, char **argv) {
     }
 
     free(track);
-    //free(nfs3_track);
     // Cleanup VBOs and shaders
     carShader.cleanup();
     trackShader.cleanup();
     ImGui_ImplGlfwGL3_Shutdown();
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
-
 
     return 0;
 }
