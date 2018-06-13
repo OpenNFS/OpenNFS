@@ -292,6 +292,58 @@ namespace Utils {
         return glm::vec3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
                          (top_right.z - bottom_left.z) / 2);
     }
+
+    std::vector<CarModel> loadObj(std::string obj_path) {
+        std::vector<CarModel> meshes;
+
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string err;
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, obj_path.c_str())) {
+            std::cout << err << std::endl;
+            return meshes;
+        }
+        // Loop over shapes
+        for (size_t s = 0; s < shapes.size(); s++) {
+            std::vector<glm::vec3> verts = std::vector<glm::vec3>();
+            std::vector<glm::vec3> norms = std::vector<glm::vec3>();
+            std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
+            std::vector<unsigned int> indices = std::vector<unsigned int>();
+            // Loop over faces(polygon)
+            size_t index_offset = 0;
+            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+                int fv = shapes[s].mesh.num_face_vertices[f];
+                // Loop over vertices in the face.
+                for (size_t v = 0; v < fv; v++) {
+                    // access to vertex
+                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                    indices.emplace_back((const unsigned int &) idx.vertex_index);
+
+                    verts.emplace_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.1,
+                                                 attrib.vertices[3 * idx.vertex_index + 1] * 0.1,
+                                                 attrib.vertices[3 * idx.vertex_index + 2] * 0.1));
+                    norms.emplace_back(
+                            glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1],
+                                      attrib.normals[3 * idx.normal_index + 2]));
+                    uvs.emplace_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0],
+                                               1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]));
+                }
+                index_offset += fv;
+                // per-face material
+                shapes[s].mesh.material_ids[f];
+            }
+            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
+            meshes.emplace_back(obj_mesh);
+        }
+        return meshes;
+    }
+
+// Move this to a native resource handler class
+    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir){
+        char * args[3] = {"", strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
+        return (fsh_main(3, args) == 0);
+    }
 }
 
 

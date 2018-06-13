@@ -25,46 +25,7 @@
  
  ************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <malloc.h>
-#include <string.h>
-
-/* Windows compatibility */
-#ifdef _WIN32
-#include <direct.h>
-#define rmdir _rmdir
-#define mkdir(a,b) _mkdir(a)
-#define chdir _chdir
-#endif
-
-/* QFS compression quality factor */
-#define QFS_MAXITER 50  /* quick and not so bad */
-
-typedef struct FSH_HDR {  /* header of a FSH file */
-  char SHPI[4]; /* 'SHPI' */
-  int filesize;
-  int nbmp;
-  char dirId[4];
-} FSH_HDR;
-    
-typedef struct BMPDIR {
-  char name[4];
-  int ofs;
-} BMPDIR;
-
-typedef struct BMPHEAD {
-  int size,null,ofsbmp;
-  int hsz,wid,hei;
-  short planes,bpp;
-  int compr,imsz,xpel,ypel,clrs,clri;
-} BMPHEAD;
-
-typedef struct ENTRYHDR {
-  int code;
-  short width,height;
-  short misc[4];
-} ENTRYHDR;
+#include "fshtool.h"
 
 int inlen;
 unsigned char *inbuf;
@@ -1390,7 +1351,7 @@ unsigned char *bmp_to_fsh()
   return outbuf;
 }
 
-int fsh_main(int argc,char **argv)
+int fsh_main(int argc, char **argv)
 {
   FILE *f;
   char *outfn,*p;

@@ -31,11 +31,11 @@ std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_se
 namespace NFS3 {
     // Implementation
     TRACK *trk_loader(const std::string &track_base_path);
-    bool LoadFRD(std::string frd_path, TRACK *track);
+    bool LoadFRD(std::string frd_path, TRACK *track, const std::string &track_base_path);
     bool LoadCOL(std::string col_path, TRACK *track);
     std::vector<TrackBlock> ParseTRKModels(TRACK *track);
     std::vector<Track> ParseCOLModels(TRACK *track);
-    Texture LoadTexture(TEXTUREBLOCK track_texture);
+    Texture LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_base_path);
 }
 
 namespace NFS2 {
@@ -45,7 +45,7 @@ namespace NFS2 {
     void dbgPrintVerts(TRACK *track, const std::string &path);
     std::vector<TrackBlock> ParseTRKModels(TRACK *track);
     std::vector<Track> ParseCOLModels(TRACK *track);
-    Texture LoadTexture(TEXTURE_BLOCK track_texture);
+    Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_base_path);
 }
 
 

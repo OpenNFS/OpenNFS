@@ -5,10 +5,7 @@
 //  Created by Amrik Sadhra on 27/10/2017.
 //
 
-
-#include <tiny_obj_loader.h>
 #include "nfs_loader.h"
-
 
 void convertFCE(const char *fce_path, const char *out_path) {
     NFS_Loader fce_reader(fce_path);
@@ -123,50 +120,6 @@ NFS_Loader::NFS_Loader(const char *viv_path) {
     std::cout << "Loading FCE File" << std::endl;
     extractViv(viv_path);
     readFCE("car.fce");
-}
-
-bool NFS_Loader::loadObj(std::string obj_path) {
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string err;
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, obj_path.c_str())) {
-        std::cout << err << std::endl;
-        return false;
-    }
-    // Loop over shapes
-    for (size_t s = 0; s < shapes.size(); s++) {
-        std::vector<glm::vec3> verts = std::vector<glm::vec3>();
-        std::vector<glm::vec3> norms = std::vector<glm::vec3>();
-        std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
-        std::vector<unsigned int> indices = std::vector<unsigned int>();
-        // Loop over faces(polygon)
-        size_t index_offset = 0;
-        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-            int fv = shapes[s].mesh.num_face_vertices[f];
-            // Loop over vertices in the face.
-            for (size_t v = 0; v < fv; v++) {
-                // access to vertex
-                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                indices.emplace_back((const unsigned int &) idx.vertex_index);
-
-                verts.emplace_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.1,
-                                             attrib.vertices[3 * idx.vertex_index + 1] * 0.1,
-                                             attrib.vertices[3 * idx.vertex_index + 2] * 0.1));
-                norms.emplace_back(
-                        glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1],
-                                  attrib.normals[3 * idx.normal_index + 2]));
-                uvs.emplace_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0],
-                                           1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]));
-            }
-            index_offset += fv;
-            // per-face material
-            shapes[s].mesh.material_ids[f];
-        }
-        CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
-        meshes.emplace_back(obj_mesh);
-    }
-    return true;
 }
 
 glm::vec3 NFS_Loader::getVertices(int partNumber, int offset, unsigned int length, std::vector<glm::vec3> &vertices) {

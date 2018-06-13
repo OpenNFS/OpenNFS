@@ -9,6 +9,7 @@
 #include <LinearMath/btVector3.h>
 #include <LinearMath/btQuaternion.h>
 #include <LinearMath/btMatrix3x3.h>
+#include <tiny_obj_loader.h>
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -19,6 +20,10 @@
 #include <string>
 #include <cassert>
 #include <cstdio>
+#include "../Scene/CarModel.h"
+extern "C" {
+    #include "../../tools/fshtool.h"
+}
 
 #define BI_RGB 0x0000
 
@@ -94,6 +99,10 @@ namespace Utils {
 
     btBoxShape* genCollisionBox(std::vector<glm::vec3> model_vertices);
     glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices);
+
+    std::vector<CarModel> loadObj(std::string obj_path);
+
+    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
 };
 
 

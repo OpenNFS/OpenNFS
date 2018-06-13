@@ -70,6 +70,7 @@ Car::~Car() {
     for (auto &car_model : car_models) {
         car_model.destroy();
     }
+
 }
 
 void Car::update() {
