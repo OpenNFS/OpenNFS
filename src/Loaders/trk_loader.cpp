@@ -117,22 +117,17 @@ namespace NFS3{
     bool LoadFRD(std::string frd_path, TRACK *track, const std::string &track_name) {
         ifstream ar(frd_path, ios::in | ios::binary);
 
-        int j, k, l;
-        TRKBLOCK *trackBlock;
-        POLYGONBLOCK *p;
-        XOBJDATA *x;
-        OBJPOLYBLOCK *o;
-
         char header[28]; /* file header */
         SAFE_READ(ar, header, 28); // header & numblocks
         SAFE_READ(ar, &track->nBlocks, 4);
         track->nBlocks++;
         if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
 
-        track->trk = (TRKBLOCK *) (calloc(track->nBlocks, sizeof(TRKBLOCK)));
-        track->poly = (POLYGONBLOCK *) (calloc(track->nBlocks, sizeof(POLYGONBLOCK)));
-        track->xobj = (XOBJBLOCK *) (calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK)));
+        track->trk = static_cast<TRKBLOCK *>(calloc(track->nBlocks, sizeof(TRKBLOCK)));
+        track->poly = static_cast<POLYGONBLOCK *>(calloc(track->nBlocks, sizeof(POLYGONBLOCK)));
+        track->xobj = static_cast<XOBJBLOCK *>(calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK)));
 
+        int l;
         SAFE_READ(ar, &l, 4); // choose between NFS3 & NFSHS
         if ((l < 0) || (l > 5000)) track->bHSMode = false;
         else if (((l + 7) / 8) == track->nBlocks) track->bHSMode = true;
@@ -143,7 +138,7 @@ namespace NFS3{
 
         // TRKBLOCKs
         for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
-            trackBlock = &(track->trk[block_Idx]);
+            TRKBLOCK *trackBlock = &(track->trk[block_Idx]);
             // ptCentre, ptBounding, 6 nVertices == 84 bytes
             if (block_Idx != 0) { SAFE_READ(ar, trackBlock, 84); }
             if ((trackBlock->nVertices < 0)) return false;
@@ -165,7 +160,7 @@ namespace NFS3{
 
             trackBlock->polyData = static_cast<POLYVROADDATA *>(calloc(trackBlock->nPolygons, sizeof(POLYVROADDATA)));
 
-            for (j = 0; j < trackBlock->nPolygons; j++)
+            for (int j = 0; j < trackBlock->nPolygons; j++)
                 SAFE_READ(ar, trackBlock->polyData + j, 8);
 
             trackBlock->vroadData = static_cast<VROADDATA *>(calloc(trackBlock->nVRoad, sizeof(VROADDATA)));
@@ -191,8 +186,8 @@ namespace NFS3{
 
         // POLYGONBLOCKs
         for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
-            p = &(track->poly[block_Idx]);
-            for (j = 0; j < 7; j++) {
+            POLYGONBLOCK *p = &(track->poly[block_Idx]);
+            for (int j = 0; j < 7; j++) {
                 SAFE_READ(ar, &(p->sz[j]), 0x4);
                 if (p->sz[j] != 0) {
                     SAFE_READ(ar, &(p->szdup[j]), 0x4);
@@ -202,8 +197,8 @@ namespace NFS3{
                 }
             }
             if (p->sz[4] != track->trk[block_Idx].nPolygons) return false; // sanity check
-            for (j = 0; j < 4; j++) {
-                o = &(p->obj[j]);
+            for (int obj_Idx = 0; obj_Idx < 4; obj_Idx++) {
+                OBJPOLYBLOCK *o = &(p->obj[obj_Idx]);
                 SAFE_READ(ar, &(o->n1), 0x4);
                 if (o->n1 > 0) {
                     SAFE_READ(ar, &(o->n2), 0x4);
@@ -212,7 +207,7 @@ namespace NFS3{
                     o->poly = static_cast<LPPOLYGONDATA *>(calloc(static_cast<size_t>(o->n2), sizeof(LPPOLYGONDATA)));
                     o->nobj = 0;
                     l = 0;
-                    for (k = 0; k < o->n2; k++) {
+                    for (int k = 0; k < o->n2; k++) {
                         SAFE_READ(ar, o->types + k, 0x4);
                         if (o->types[k] == 1) {
                             SAFE_READ(ar, o->numpoly + o->nobj, 0x4);
@@ -235,8 +230,8 @@ namespace NFS3{
                 track->xobj[xblock_Idx].obj = static_cast<XOBJDATA *>(calloc(track->xobj[xblock_Idx].nobj,
                                                                              sizeof(XOBJDATA)));
             }
-            for (j = 0; j < track->xobj[xblock_Idx].nobj; j++) {
-                x = &(track->xobj[xblock_Idx].obj[j]);
+            for (int xobj_Idx = 0; xobj_Idx < track->xobj[xblock_Idx].nobj; xobj_Idx++) {
+                XOBJDATA *x = &(track->xobj[xblock_Idx].obj[xobj_Idx]);
                 // 3 headers == 12 bytes
                 SAFE_READ(ar, x, 12);
                 if (x->crosstype == 4) { // basic objects
