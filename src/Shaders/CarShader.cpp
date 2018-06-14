@@ -11,7 +11,7 @@ const std::string fragSrc = "../shaders/CarFragmentShader.fragmentshader";
 CarShader::CarShader() : super(vertexSrc, fragSrc){
     bindAttributes();
     getAllUniformLocations();
-    load_tga_texture("car00.tga");
+    load_tga_texture("./assets/car/car00.tga");
     LoadEnvMapTexture();
 }
 
@@ -82,10 +82,7 @@ void CarShader::customCleanup(){
 void CarShader::load_tga_texture(const char *path) {
     NS_TGALOADER::IMAGE texture_loader;
 
-    if (!texture_loader.LoadTGA(path)) {
-        printf("Texture loading failed!\n");
-        exit(2);
-    }
+    ASSERT(texture_loader.LoadTGA(path), "Car Texture loading failed!");
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);

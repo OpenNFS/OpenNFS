@@ -59,19 +59,28 @@ bool ExtractTrackTextures(const std::string &track_path, const::std::string trac
     }
     output_dir << track_name;
 
-
     if(boost::filesystem::exists(output_dir.str())){
         return true;
     } else {
         boost::filesystem::create_directories(output_dir.str());
     }
 
-    std::stringstream qfs_path;
-    output_dir << "/textures/";
-    qfs_path << track_path << "0" << ".QFS";
-
     std::cout << "Extracting track textures" << std::endl;
 
+    if(nfs_version == NFS_3){
+        std::stringstream sky_fsh_path;
+        sky_fsh_path << track_path.substr(0, track_path.find_last_of('/')) << "/sky.fsh";
+        if(boost::filesystem::exists(sky_fsh_path.str())){
+            std::stringstream sky_textures_path;
+            sky_textures_path << output_dir.str() << "/sky_textures/";
+            std::cout << sky_fsh_path.str() << std::endl;
+            ASSERT(Utils::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from sky.fsh");
+        }
+    }
+
+    std::stringstream qfs_path;
+    output_dir << "/textures/";
+    qfs_path << track_path << "0" << ".qfs";
     return (Utils::ExtractQFS(qfs_path.str(), output_dir.str()));
 }
 
@@ -719,15 +728,20 @@ namespace NFS3{
             filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << "-a.BMP";
         } else {
             filename << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-            filename << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
+            filename_alpha << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
         }
 
         GLubyte *data;
         GLsizei width = track_texture.width;
         GLsizei height = track_texture.height;
 
-        ASSERT(Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height),
-               "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!");
+        if(!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)){
+            std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!" << std::endl;
+            // If the texture is missing, load a "MISSING" texture of identical size.
+            ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width, height), "Even the 'missing' texture is missing!");
+            return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
+                           static_cast<unsigned int>(track_texture.height));
+        }
 
         return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
                        static_cast<unsigned int>(track_texture.height));

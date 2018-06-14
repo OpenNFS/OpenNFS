@@ -114,13 +114,13 @@ int main(int argc, char **argv) {
 
     /*------ ASSET LOAD ------*/
     initDirectories();
-    NFS_Loader nfs_loader("../resources/car.viv");
+    NFS_Loader nfs_loader("../resources/cars/car.viv");
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
 
     //Load Track Data`
     //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/GAMEDATA/TRACKS/SE/TR02");
-    NFS3::TRACK *track = NFS3::trk_loader("../resources/NFS3/gamedata/tracks/TRK000/tr00");
+    NFS3::TRACK *track = NFS3::trk_loader("../resources/NFS3/gamedata/tracks/trk003/tr03");
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
@@ -225,9 +225,9 @@ int main(int argc, char **argv) {
         }
         carShader.unbind();
 
-        for (auto &active_track_Block : track->track_blocks) {
+        for (auto &active_track_Block : activeTrackBlocks) {
             trackShader.use();
-            for (auto &track_block_model : active_track_Block.objects) {
+            for (auto &track_block_model : active_track_Block.track) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
                 trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);

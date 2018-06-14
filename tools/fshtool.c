@@ -1353,7 +1353,7 @@ unsigned char *bmp_to_fsh()
 
 int fsh_main(int argc, char **argv)
 {
-  FILE *f;
+  FILE *f = NULL;
   char *outfn,*p;
   unsigned char *tmpbuf;
   int i,j,choice;
@@ -1366,7 +1366,7 @@ int fsh_main(int argc, char **argv)
     usage();
     abort();
   }
-  
+
   /* try to open the given file and determine its type from the first few bytes */
   f=fopen(argv[1],"rb");
   if (f==NULL) {
@@ -1505,6 +1505,5 @@ int fsh_main(int argc, char **argv)
   else { printf("Unknown file format.\n"); abort(); }
 
   printf("Conversion performed successfully.\n");
-  printf("Press Enter to exit.\n"); getchar();
   return 1;
 }

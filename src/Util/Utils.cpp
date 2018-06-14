@@ -148,10 +148,27 @@ namespace Utils {
                                             GLsizei h = height, w = width;
                                             long padding, padding_a;
                                             switch (info->bmiHeader.biBitCount) {// 24-bit bitmaps
+                                                case 8:
+                                                    padding_a = w % 2;
+                                                    padding = w % 2;
+                                                    RGBQUAD rgba;
+                                                    for (; h > 0; h--) {
+                                                        for (w = width; w > 0; w--) {
+                                                            rgba = info->bmiColors[*pixel];
+                                                            pixel++;
+                                                            pixel_a++;
+                                                            *current_bits++ = rgba.rgbRed;
+                                                            *current_bits++ = rgba.rgbGreen;
+                                                            *current_bits++ = rgba.rgbBlue;
+                                                            *current_bits++ = rgba.rgbRed;
+                                                        }
+                                                        pixel += padding;
+                                                        pixel_a += padding_a;
+                                                    }
+                                                    break;
                                                 case 24:
                                                     // Read the 8 Bit bitmap alpha data
                                                     padding_a = w % 2;
-                                                    RGBQUAD rgba;
                                                     padding = (w * 3) % 2;
                                                     for (; h > 0; h--) {
                                                         for (w = width; w > 0; w--) {
@@ -342,7 +359,7 @@ namespace Utils {
 // Move this to a native resource handler class
     bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir){
         char * args[3] = {"", strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
-        return (fsh_main(3, args) == 0);
+        return (fsh_main(3, args) == 1);
     }
 }
 
