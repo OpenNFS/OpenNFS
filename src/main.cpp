@@ -114,10 +114,10 @@ int main(int argc, char **argv) {
 
     /*------ ASSET LOAD ------*/
     initDirectories();
-    NFS_Loader nfs_loader("../resources/cars/car.viv");
+    std::string car_name;
+    NFS_Loader nfs_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
-
     //Load Track Data`
     //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/GAMEDATA/TRACKS/SE/TR02");
     NFS3::TRACK *track = NFS3::trk_loader("../resources/NFS3/gamedata/tracks/trk003/tr03");
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
 
     // Create and compile our GLSL programs from the shaders
     TrackShader trackShader;
-    CarShader carShader;
+    CarShader carShader(car_name);
     BillboardShader billboardShader;
 
     Camera mainCamera(glm::vec3(98.46, 3.98, 0), 45.0f, 4.86f, -0.21f);

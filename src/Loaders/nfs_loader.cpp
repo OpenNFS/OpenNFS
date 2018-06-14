@@ -5,129 +5,27 @@
 //  Created by Amrik Sadhra on 27/10/2017.
 //
 
-
 #include "nfs_loader.h"
 
-void convertFCE(const char *fce_path, const char *out_path) {
-    NFS_Loader fce_reader(fce_path);
-    fce_reader.writeObj(out_path);
+using namespace Utils;
+
+void ConvertFCE(const std::string &fce_path, const std::string &obj_out_path) {
+    std::string car_name;
+    NFS_Loader fce_reader(fce_path, &car_name);
+    fce_reader.writeObj(obj_out_path);
 }
 
-unsigned int endian_swap(unsigned int x) {
-    int swapped;
+NFS_Loader::NFS_Loader(const std::string &car_base_path, std::string *car_name) {
+    boost::filesystem::path p(car_base_path);
+    *car_name = p.filename().string();
 
-    swapped = (x >> 24) |
-              ((x << 8) & 0x00FF0000) |
-              ((x >> 8) & 0x0000FF00) |
-              (x << 24);
+    std::stringstream viv_path, car_out_path, fce_path;
+    viv_path << car_base_path << "/car.viv";
+    car_out_path << CAR_PATH << car_name << "/";
+    fce_path << CAR_PATH << car_name << "/car.fce";
 
-    return static_cast<unsigned int>(swapped);
-}
-
-unsigned int readInt32(FILE *file, bool littleEndian) {
-    int data = fgetc(file);
-    data = data << 8 | fgetc(file);
-    data = data << 8 | fgetc(file);
-    data = data << 8 | fgetc(file);
-
-    return littleEndian ? endian_swap(static_cast<unsigned int>(data)) : data;
-}
-
-void extractViv(const char *viv_path) {
-    FILE *vivfile, *outfile;  // file stream
-    int numberOfFiles; // number of files in viv file
-    char filename[100];
-    int filepos, filesize;
-    char buf[4];
-    int c;
-    int pos;
-    long currentpos;
-    int a, b;
-
-    vivfile = fopen(viv_path, "rb");
-
-    if (!vivfile) {
-        printf("Error while opening %s\n", viv_path);
-        exit(2);
-    }
-
-    for (a = 0; a < 4; a++) {
-        buf[a] = fgetc(vivfile);
-    }
-
-    if (memcmp(buf, "BIGF", 4)) {
-        printf("%s if not a viv file\n", viv_path);
-        fclose(vivfile);
-        exit(3);
-    }
-
-    readInt32(vivfile, false); // size of viv file
-
-    numberOfFiles = readInt32(vivfile, false);
-    printf("Number of files: %d\n", numberOfFiles);
-
-    int startPos = readInt32(vivfile, false); // start position of files
-
-    currentpos = ftell(vivfile);
-
-    for (a = 0; a < numberOfFiles; a++) {
-        if (fseek(vivfile, currentpos, SEEK_SET)) {
-            printf("Error while seeking in file %s\n", viv_path);
-            fclose(vivfile);
-            exit(4);
-        }
-
-        filepos = readInt32(vivfile, false);
-        filesize = readInt32(vivfile, false);
-
-        pos = 0;
-        c = fgetc(vivfile);
-        while (c != '\0') {
-            filename[pos] = (char) c;
-            pos++;
-            c = fgetc(vivfile);
-        }
-        filename[pos] = '\0';
-
-        currentpos = ftell(vivfile);
-
-        // TODO: Can place into a subdirectory using car name, wherever it's stored.
-        std::stringstream out_file_path;
-        out_file_path << CAR_PATH << filename;
-
-        if ((outfile = fopen(out_file_path.str().c_str(), "wb")) == NULL) {
-            printf("Error while opening file %s\n", filename);
-            fclose(vivfile);
-            exit(4);
-        }
-
-        if (fseek(vivfile, filepos, SEEK_SET)) {
-            printf("Error while seeking in file %s\n", viv_path);
-            fclose(vivfile);
-            exit(3);
-        }
-
-        for (b = 0; b < filesize; b++) {
-            c = fgetc(vivfile);
-            fputc(c, outfile);
-        }
-
-        fclose(outfile);
-
-        printf("File %s written successfully\n", filename);
-    }
-
-    fclose(vivfile);
-}
-
-
-NFS_Loader::NFS_Loader(const char *viv_path) {
-    std::cout << "Loading FCE File" << std::endl;
-    std::stringstream fce_path;
-    fce_path << CAR_PATH << "car.fce";
-
-    extractViv(viv_path);
-    readFCE(fce_path.str().c_str());
+    ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+    ASSERT(readFCE(fce_path.str()), "Unable to load " << fce_path.str());
 }
 
 glm::vec3 NFS_Loader::getVertices(int partNumber, int offset, unsigned int length, std::vector<glm::vec3> &vertices) {
@@ -217,12 +115,13 @@ std::vector<unsigned int> NFS_Loader::getIndices(int offset, unsigned int length
     return indices;
 }
 
-void NFS_Loader::readFCE(const char *fce_path) {
-    fce_file = fopen(fce_path, "rb");
+bool NFS_Loader::readFCE(const std::string fce_path) {
+    std::cout << "Loading FCE File: "  << fce_path <<  std::endl;
+    fce_file = fopen(fce_path.c_str(), "rb");
 
     if (!fce_file) {
-        printf("Error while opening %s\n", fce_path);
-        exit(2);
+        printf("Error while opening %s\n", fce_path.c_str());
+        return false;
     }
 
     fseek(fce_file, 0x0008, SEEK_SET);
@@ -316,9 +215,10 @@ void NFS_Loader::readFCE(const char *fce_path) {
 	delete partVertOffsets;
 
     fclose(fce_file);
+    return true;
 }
 
-void NFS_Loader::writeObj(std::string path) {
+void NFS_Loader::writeObj(const std::string &path) {
     std::cout << "Writing Meshes to " << path << std::endl;
 
     std::ofstream obj_dump;

@@ -11,7 +11,8 @@ An attempt to recreate the original Need for Speed 3, unpacking it's original da
 
 ## To run (for now):
 
-Place car.viv in 'resources' directory, one level above your build output and run.
+* Place NFS3 "GAMEDATA" folder into a subfolder named "NFS3" inside the "resources" folder e.g. resources/NFS3/GAMEDATA.
+* Place NFS2 "GAMEDATA" folder into a subfolder named "NFS2" inside the "resources" folder e.g. resources/NFS2/GAMEDATA.
 
 ## Trello Development Board
 

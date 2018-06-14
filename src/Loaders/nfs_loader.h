@@ -11,12 +11,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <glm/vec2.hpp>
 #include <vector>
 #include <cmath>
-#include <glm/vec3.hpp>
 #include <sstream>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include "../Scene/CarModel.h"
+#include "../Util/Utils.h"
 #include "../Config.h"
 
 #define DATA_START 0x1F04
@@ -34,18 +35,16 @@
 #define tVectorSize 0x0C
 #define tTriangleSize 0x38
 
-void convertFCE(const char *fce_path, const char* out_path);
-void extractViv(const char *viv_path);
-unsigned int endian_swap(unsigned int x);
+void ConvertFCE(const std::string &fce_path, const std::string &obj_out_path);
 
 class NFS_Loader {
 public:
-    explicit NFS_Loader(const char *viv_path);
-    void writeObj(std::string path);
+    explicit NFS_Loader(const std::string &car_base_path, std::string *car_name);
+    void writeObj(const std::string &path);
     bool loadObj(std::string obj_path);
     std::vector<CarModel> getMeshes();
 private:
-    void readFCE(const char *fce_path); //Add exception handling, true false return?
+    bool readFCE(const std::string fce_path);
     glm::vec3 getVertices(int partNumber, int offset, unsigned int length, std::vector<glm::vec3> &vertices);
     std::vector<glm::vec2> getTexCoords(int offset, unsigned int numTriangles);
     std::vector<glm::vec3> getNormals(int offset, unsigned int length);

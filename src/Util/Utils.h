@@ -14,12 +14,15 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <GL/glew.h>
 #include <vector>
 #include <iostream>
 #include <string>
 #include <cassert>
 #include <cstdio>
+#include <sstream>
 #include "../Scene/CarModel.h"
 extern "C" {
     #include "../../tools/fshtool.h"
@@ -80,30 +83,37 @@ typedef struct tagBITMAPINFO {
     } while (false)
 
 namespace Utils {
+    glm::vec3 bulletToGlm(const btVector3 &v);
+
+    btVector3 glmToBullet(const glm::vec3 &v);
+
+    // btTransform does not contain a full 4x4 matrix, so this transform is lossy.
+    // Affine transformations are OK but perspective transformations are not.
+    glm::quat bulletToGlm(const btQuaternion &q);
+
+    btQuaternion glmToBullet(const glm::quat &q);
+
+    btMatrix3x3 glmToBullet(const glm::mat3 &m);
+
+    btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices);
+
+    glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices);
+
+    unsigned int endian_swap(unsigned int x);
+
+    unsigned int readInt32(FILE *file, bool littleEndian);
+
+    // TODO: Move to resource handling class
+    std::vector<CarModel> LoadOBJ(std::string obj_path);
+
+    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
+
+    bool ExtractVIV(const std::string &viv_path, const std::string &output_dir);
+
     bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, int alphaColour);
 
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height);
-
-    glm::vec3 bulletToGlm(const btVector3& v);
-
-    btVector3 glmToBullet(const glm::vec3& v);
-
-    glm::quat bulletToGlm(const btQuaternion& q);
-
-    btQuaternion glmToBullet(const glm::quat& q);
-
-    btMatrix3x3 glmToBullet(const glm::mat3& m);
-
-// btTransform does not contain a full 4x4 matrix, so this transform is lossy.
-// Affine transformations are OK but perspective transformations are not.
-
-    btBoxShape* genCollisionBox(std::vector<glm::vec3> model_vertices);
-    glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices);
-
-    std::vector<CarModel> loadObj(std::string obj_path);
-
-    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
-};
+}
 
 
 #endif //OPENNFS3_UTILS_H

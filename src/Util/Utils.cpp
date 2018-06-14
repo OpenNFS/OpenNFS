@@ -5,6 +5,255 @@
 #include "Utils.h"
 
 namespace Utils {
+    glm::vec3 bulletToGlm(const btVector3 &v) { return glm::vec3(v.getX(), v.getY(), v.getZ()); }
+
+    btVector3 glmToBullet(const glm::vec3 &v) { return btVector3(v.x, v.y, v.z); }
+
+    glm::quat bulletToGlm(const btQuaternion &q) {
+        return glm::quat(q.getW(), q.getX(), q.getY(), q.getZ());
+    }
+
+    btQuaternion glmToBullet(const glm::quat &q) { return btQuaternion(q.x, q.y, q.z, q.w); }
+
+    btMatrix3x3 glmToBullet(const glm::mat3 &m) {
+        return btMatrix3x3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]);
+    }
+
+    btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices) {
+        glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
+        glm::vec3 top_right = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
+
+
+        for (auto &vertex : model_vertices) {
+            if (vertex.x < bottom_left.x) {
+                bottom_left.x = vertex.x;
+            }
+            if (vertex.y < bottom_left.y) {
+                bottom_left.y = vertex.y;
+            }
+            if (vertex.z < bottom_left.z) {
+                bottom_left.z = vertex.z;
+            }
+            if (vertex.x > top_right.x) {
+                top_right.x = vertex.x;
+            }
+            if (vertex.y > top_right.y) {
+                top_right.y = vertex.y;
+            }
+            if (vertex.z > top_right.z) {
+                top_right.z = vertex.z;
+            }
+        }
+
+        return new btBoxShape(
+                btVector3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
+                          (top_right.z - bottom_left.z) / 2));
+    }
+
+    glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices) {
+        glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
+        glm::vec3 top_right = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
+
+
+        for (auto &vertex : model_vertices) {
+            if (vertex.x < bottom_left.x) {
+                bottom_left.x = vertex.x;
+            }
+            if (vertex.y < bottom_left.y) {
+                bottom_left.y = vertex.y;
+            }
+            if (vertex.z < bottom_left.z) {
+                bottom_left.z = vertex.z;
+            }
+            if (vertex.x > top_right.x) {
+                top_right.x = vertex.x;
+            }
+            if (vertex.y > top_right.y) {
+                top_right.y = vertex.y;
+            }
+            if (vertex.z > top_right.z) {
+                top_right.z = vertex.z;
+            }
+        }
+
+        return glm::vec3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
+                         (top_right.z - bottom_left.z) / 2);
+    }
+
+    unsigned int endian_swap(unsigned int x) {
+        int swapped;
+
+        swapped = (x >> 24) |
+                  ((x << 8) & 0x00FF0000) |
+                  ((x >> 8) & 0x0000FF00) |
+                  (x << 24);
+
+        return static_cast<unsigned int>(swapped);
+    }
+
+    unsigned int readInt32(FILE *file, bool littleEndian) {
+        int data = fgetc(file);
+        data = data << 8 | fgetc(file);
+        data = data << 8 | fgetc(file);
+        data = data << 8 | fgetc(file);
+
+        return littleEndian ? endian_swap(static_cast<unsigned int>(data)) : data;
+    }
+
+    // Move these to a native resource handler class
+    std::vector<CarModel> LoadOBJ(std::string obj_path) {
+        std::vector<CarModel> meshes;
+
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string err;
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, obj_path.c_str())) {
+            std::cout << err << std::endl;
+            return meshes;
+        }
+        // Loop over shapes
+        for (size_t s = 0; s < shapes.size(); s++) {
+            std::vector<glm::vec3> verts = std::vector<glm::vec3>();
+            std::vector<glm::vec3> norms = std::vector<glm::vec3>();
+            std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
+            std::vector<unsigned int> indices = std::vector<unsigned int>();
+            // Loop over faces(polygon)
+            size_t index_offset = 0;
+            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+                int fv = shapes[s].mesh.num_face_vertices[f];
+                // Loop over vertices in the face.
+                for (size_t v = 0; v < fv; v++) {
+                    // access to vertex
+                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                    indices.emplace_back((const unsigned int &) idx.vertex_index);
+
+                    verts.emplace_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.1,
+                                                 attrib.vertices[3 * idx.vertex_index + 1] * 0.1,
+                                                 attrib.vertices[3 * idx.vertex_index + 2] * 0.1));
+                    norms.emplace_back(
+                            glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1],
+                                      attrib.normals[3 * idx.normal_index + 2]));
+                    uvs.emplace_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0],
+                                               1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]));
+                }
+                index_offset += fv;
+                // per-face material
+                shapes[s].mesh.material_ids[f];
+            }
+            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
+            meshes.emplace_back(obj_mesh);
+        }
+        return meshes;
+    }
+
+    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir){
+        // Fshtool molests the current working directory, save and restore
+        char cwd[1024];
+        getcwd(cwd, sizeof(cwd));
+
+        char * args[3] = {"", strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
+        int returnCode = (fsh_main(3, args) == 1);
+
+        chdir(cwd);
+
+        return returnCode;
+    }
+
+    bool ExtractVIV(const std::string &viv_path, const std::string &output_dir) {
+        FILE *vivfile, *outfile;  // file stream
+        int numberOfFiles; // number of files in viv file
+        char filename[100];
+        int filepos, filesize;
+        char buf[4];
+        int c;
+        int pos;
+        long currentpos;
+        int a, b;
+
+        if(boost::filesystem::exists(output_dir)){
+            std::cout << "VIV already extracted." << std::endl;
+            return true;
+        } else {
+            boost::filesystem::create_directories(output_dir);
+        }
+
+        vivfile = fopen(viv_path.c_str(), "rb");
+
+        if (!vivfile) {
+            printf("Error while opening %s\n", viv_path.c_str());
+            return false;
+        }
+
+        for (a = 0; a < 4; a++) {
+            buf[a] = fgetc(vivfile);
+        }
+
+        if (memcmp(buf, "BIGF", 4)) {
+            printf("%s if not a viv file\n", viv_path.c_str());
+            fclose(vivfile);
+            return false;
+        }
+
+        readInt32(vivfile, false); // size of viv file
+
+        numberOfFiles = readInt32(vivfile, false);
+        printf("Number of files: %d\n", numberOfFiles);
+
+        int startPos = readInt32(vivfile, false); // start position of files
+
+        currentpos = ftell(vivfile);
+
+        for (a = 0; a < numberOfFiles; a++) {
+            if (fseek(vivfile, currentpos, SEEK_SET)) {
+                printf("Error while seeking in file %s\n", viv_path.c_str());
+                fclose(vivfile);
+                return false;
+            }
+
+            filepos = readInt32(vivfile, false);
+            filesize = readInt32(vivfile, false);
+
+            pos = 0;
+            c = fgetc(vivfile);
+            while (c != '\0') {
+                filename[pos] = (char) c;
+                pos++;
+                c = fgetc(vivfile);
+            }
+            filename[pos] = '\0';
+
+            currentpos = ftell(vivfile);
+
+            // TODO: Can place into a subdirectory using car name, wherever it's stored.
+            std::stringstream out_file_path;
+            out_file_path << output_dir << filename;
+
+            if ((outfile = fopen(out_file_path.str().c_str(), "wb")) == NULL) {
+                printf("Error while opening file %s\n", filename);
+                fclose(vivfile);
+                return false;
+            }
+
+            if (fseek(vivfile, filepos, SEEK_SET)) {
+                printf("Error while seeking in file %s\n", viv_path.c_str());
+                fclose(vivfile);
+                return false;
+            }
+
+            for (b = 0; b < filesize; b++) {
+                c = fgetc(vivfile);
+                fputc(c, outfile);
+            }
+
+            fclose(outfile);
+            printf("File %s written successfully\n", filename);
+        }
+        fclose(vivfile);
+
+        return true;
+    }
+
     // TODO: Integrate into LoadBmpCustomAlpha as a master bitmap loader
     bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, int alphaColour) {
         GLsizei width, height;
@@ -57,7 +306,7 @@ namespace Utils {
                                                             pixel += padding;
                                                         }
                                                         break;
-                                                    // 24-bit bitmaps
+                                                        // 24-bit bitmaps
                                                     case 24:
                                                         padding = (w * 3) % 2;
                                                         for (; h > 0; h--) {
@@ -233,141 +482,6 @@ namespace Utils {
             fclose(fp_a);
         }
         return retval;
-    }
-
-    glm::vec3 bulletToGlm(const btVector3 &v) { return glm::vec3(v.getX(), v.getY(), v.getZ()); }
-
-    btVector3 glmToBullet(const glm::vec3 &v) { return btVector3(v.x, v.y, v.z); }
-
-    glm::quat bulletToGlm(const btQuaternion &q) {
-        return glm::quat(q.getW(), q.getX(), q.getY(), q.getZ());
-    }
-
-    btQuaternion glmToBullet(const glm::quat &q) { return btQuaternion(q.x, q.y, q.z, q.w); }
-
-    btMatrix3x3 glmToBullet(const glm::mat3 &m) {
-        return btMatrix3x3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]);
-    }
-
-    btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices) {
-        glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
-        glm::vec3 top_right = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
-
-
-        for (auto &vertex : model_vertices) {
-            if (vertex.x < bottom_left.x) {
-                bottom_left.x = vertex.x;
-            }
-            if (vertex.y < bottom_left.y) {
-                bottom_left.y = vertex.y;
-            }
-            if (vertex.z < bottom_left.z) {
-                bottom_left.z = vertex.z;
-            }
-            if (vertex.x > top_right.x) {
-                top_right.x = vertex.x;
-            }
-            if (vertex.y > top_right.y) {
-                top_right.y = vertex.y;
-            }
-            if (vertex.z > top_right.z) {
-                top_right.z = vertex.z;
-            }
-        }
-
-        return new btBoxShape(
-                btVector3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
-                          (top_right.z - bottom_left.z) / 2));
-    }
-
-    glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices) {
-        glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
-        glm::vec3 top_right = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
-
-
-        for (auto &vertex : model_vertices) {
-            if (vertex.x < bottom_left.x) {
-                bottom_left.x = vertex.x;
-            }
-            if (vertex.y < bottom_left.y) {
-                bottom_left.y = vertex.y;
-            }
-            if (vertex.z < bottom_left.z) {
-                bottom_left.z = vertex.z;
-            }
-            if (vertex.x > top_right.x) {
-                top_right.x = vertex.x;
-            }
-            if (vertex.y > top_right.y) {
-                top_right.y = vertex.y;
-            }
-            if (vertex.z > top_right.z) {
-                top_right.z = vertex.z;
-            }
-        }
-
-        return glm::vec3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
-                         (top_right.z - bottom_left.z) / 2);
-    }
-
-    std::vector<CarModel> loadObj(std::string obj_path) {
-        std::vector<CarModel> meshes;
-
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string err;
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, obj_path.c_str())) {
-            std::cout << err << std::endl;
-            return meshes;
-        }
-        // Loop over shapes
-        for (size_t s = 0; s < shapes.size(); s++) {
-            std::vector<glm::vec3> verts = std::vector<glm::vec3>();
-            std::vector<glm::vec3> norms = std::vector<glm::vec3>();
-            std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
-            std::vector<unsigned int> indices = std::vector<unsigned int>();
-            // Loop over faces(polygon)
-            size_t index_offset = 0;
-            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-                int fv = shapes[s].mesh.num_face_vertices[f];
-                // Loop over vertices in the face.
-                for (size_t v = 0; v < fv; v++) {
-                    // access to vertex
-                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                    indices.emplace_back((const unsigned int &) idx.vertex_index);
-
-                    verts.emplace_back(glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.1,
-                                                 attrib.vertices[3 * idx.vertex_index + 1] * 0.1,
-                                                 attrib.vertices[3 * idx.vertex_index + 2] * 0.1));
-                    norms.emplace_back(
-                            glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1],
-                                      attrib.normals[3 * idx.normal_index + 2]));
-                    uvs.emplace_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0],
-                                               1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]));
-                }
-                index_offset += fv;
-                // per-face material
-                shapes[s].mesh.material_ids[f];
-            }
-            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
-            meshes.emplace_back(obj_mesh);
-        }
-        return meshes;
-    }
-
-// Move this to a native resource handler class
-    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir){
-        // Fshtool molests the current working directory, save and restore
-        char cwd[1024];
-        getcwd(cwd, sizeof(cwd));
-
-        char * args[3] = {"", strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
-        int returnCode = (fsh_main(3, args) == 1);
-
-        chdir(cwd);
-
-        return returnCode;
     }
 }
 
