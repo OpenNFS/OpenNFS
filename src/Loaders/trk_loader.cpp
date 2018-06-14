@@ -129,9 +129,9 @@ namespace NFS3{
         track->nBlocks++;
         if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
 
-        track->trk = (TRKBLOCK *) calloc(track->nBlocks, sizeof(TRKBLOCK));
-        track->poly = (POLYGONBLOCK *) calloc(track->nBlocks, sizeof(POLYGONBLOCK));
-        track->xobj = (XOBJBLOCK *) calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK));
+        track->trk = (TRKBLOCK *) (calloc(track->nBlocks, sizeof(TRKBLOCK)));
+        track->poly = (POLYGONBLOCK *) (calloc(track->nBlocks, sizeof(POLYGONBLOCK)));
+        track->xobj = (XOBJBLOCK *) (calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK)));
 
         SAFE_READ(ar, &l, 4); // choose between NFS3 & NFSHS
         if ((l < 0) || (l > 5000)) track->bHSMode = false;
@@ -139,37 +139,40 @@ namespace NFS3{
         else return false; // unknown file type
 
         memcpy(track->trk, &l, 4);
-        SAFE_READ(ar, track->trk +4, 80);
+        if (ar.read(((char *) track->trk) + 4, 80).gcount() != 80) return false;
 
         // TRKBLOCKs
         for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
             trackBlock = &(track->trk[block_Idx]);
             // ptCentre, ptBounding, 6 nVertices == 84 bytes
-            if (block_Idx != 0) { SAFE_READ(ar, trackBlock, 84);}
+            if (block_Idx != 0) { SAFE_READ(ar, trackBlock, 84); }
             if ((trackBlock->nVertices < 0)) return false;
-            trackBlock->vert = (FLOATPT *) calloc(trackBlock->nVertices, sizeof(FLOATPT));
+            trackBlock->vert = static_cast<FLOATPT *>(calloc(trackBlock->nVertices, sizeof(FLOATPT)));
 
-            SAFE_READ(ar, trackBlock->vert, 12 *trackBlock->nVertices);
-            trackBlock->unknVertices = (uint32_t *) calloc(trackBlock->nVertices, sizeof(uint32_t));
-            SAFE_READ(ar, trackBlock->unknVertices, 4*trackBlock->nVertices);
-            SAFE_READ(ar, trackBlock->nbdData, 4*0x12c);
+            SAFE_READ(ar, trackBlock->vert, 12 * trackBlock->nVertices);
+            trackBlock->unknVertices = static_cast<uint32_t *>(calloc(trackBlock->nVertices, sizeof(uint32_t)));
+            SAFE_READ(ar, trackBlock->unknVertices, 4 * trackBlock->nVertices);
+            SAFE_READ(ar, trackBlock->nbdData, 4 * 0x12c);
             // nStartPos & various blk sizes == 32 bytes
             SAFE_READ(ar, &(trackBlock->nStartPos), 32);
 
-            if (block_Idx > 0) if (trackBlock->nStartPos != track->trk[block_Idx - 1].nStartPos + track->trk[block_Idx - 1].nPositions) return false;
-            trackBlock->posData = (POSITIONDATA *) calloc(trackBlock->nPositions, sizeof(POSITIONDATA));
-            SAFE_READ(ar, trackBlock->posData, 8*trackBlock->nPositions);
+            if (block_Idx > 0)
+                if (trackBlock->nStartPos !=
+                    track->trk[block_Idx - 1].nStartPos + track->trk[block_Idx - 1].nPositions)
+                    return false;
+            trackBlock->posData = static_cast<POSITIONDATA *>(calloc(trackBlock->nPositions, sizeof(POSITIONDATA)));
+            SAFE_READ(ar, trackBlock->posData, 8 * trackBlock->nPositions);
 
-            trackBlock->polyData = (POLYVROADDATA *) calloc(trackBlock->nPolygons, sizeof(POLYVROADDATA));
+            trackBlock->polyData = static_cast<POLYVROADDATA *>(calloc(trackBlock->nPolygons, sizeof(POLYVROADDATA)));
 
             for (j = 0; j < trackBlock->nPolygons; j++)
-                SAFE_READ(ar, trackBlock->polyData +j, 8);
+                SAFE_READ(ar, trackBlock->polyData + j, 8);
 
-            trackBlock->vroadData = (VROADDATA *) calloc(trackBlock->nVRoad, sizeof(VROADDATA));
+            trackBlock->vroadData = static_cast<VROADDATA *>(calloc(trackBlock->nVRoad, sizeof(VROADDATA)));
             SAFE_READ(ar, trackBlock->vroadData, 12 * trackBlock->nVRoad);
 
             if (trackBlock->nXobj > 0) {
-                trackBlock->xobj = (REFXOBJ *) calloc(trackBlock->nXobj, sizeof(REFXOBJ));
+                trackBlock->xobj = static_cast<REFXOBJ *>(calloc(trackBlock->nXobj, sizeof(REFXOBJ)));
                 SAFE_READ(ar, trackBlock->xobj, 20 * trackBlock->nXobj);
             }
             if (trackBlock->nPolyobj > 0) {
@@ -177,12 +180,12 @@ namespace NFS3{
             }
             trackBlock->nPolyobj = 0;
             if (trackBlock->nSoundsrc > 0) {
-                trackBlock->soundsrc = (SOUNDSRC *) calloc(trackBlock->nSoundsrc, sizeof(SOUNDSRC));
-                SAFE_READ(ar, trackBlock->soundsrc, 16*trackBlock->nSoundsrc);
+                trackBlock->soundsrc = static_cast<SOUNDSRC *>(calloc(trackBlock->nSoundsrc, sizeof(SOUNDSRC)));
+                SAFE_READ(ar, trackBlock->soundsrc, 16 * trackBlock->nSoundsrc);
             }
             if (trackBlock->nLightsrc > 0) {
-                trackBlock->lightsrc = (LIGHTSRC *) calloc(trackBlock->nLightsrc, sizeof(LIGHTSRC));
-                SAFE_READ(ar, trackBlock->lightsrc, 16*trackBlock->nLightsrc);
+                trackBlock->lightsrc = static_cast<LIGHTSRC *>(calloc(trackBlock->nLightsrc, sizeof(LIGHTSRC)));
+                SAFE_READ(ar, trackBlock->lightsrc, 16 * trackBlock->nLightsrc);
             }
         }
 
@@ -194,7 +197,7 @@ namespace NFS3{
                 if (p->sz[j] != 0) {
                     SAFE_READ(ar, &(p->szdup[j]), 0x4);
                     if (p->szdup[j] != p->sz[j]) return false;
-                    p->poly[j] = (LPPOLYGONDATA) malloc(p->sz[j] * sizeof(POLYGONDATA));
+                    p->poly[j] = static_cast<LPPOLYGONDATA>(calloc(p->sz[j], sizeof(POLYGONDATA)));
                     SAFE_READ(ar, p->poly[j], 14 * p->sz[j]);
                 }
             }
@@ -204,16 +207,17 @@ namespace NFS3{
                 SAFE_READ(ar, &(o->n1), 0x4);
                 if (o->n1 > 0) {
                     SAFE_READ(ar, &(o->n2), 0x4);
-                    o->types = (uint32_t *) calloc(static_cast<size_t>(o->n2), sizeof(uint32_t));
-                    o->numpoly = (uint32_t *) malloc(o->n2 * sizeof(uint32_t));
-                    o->poly = (LPPOLYGONDATA *) calloc(static_cast<size_t>(o->n2), sizeof(LPPOLYGONDATA));
+                    o->types = static_cast<uint32_t *>(calloc(static_cast<size_t>(o->n2), sizeof(uint32_t)));
+                    o->numpoly = static_cast<uint32_t *>(malloc(o->n2 * sizeof(uint32_t)));
+                    o->poly = static_cast<LPPOLYGONDATA *>(calloc(static_cast<size_t>(o->n2), sizeof(LPPOLYGONDATA)));
                     o->nobj = 0;
                     l = 0;
                     for (k = 0; k < o->n2; k++) {
                         SAFE_READ(ar, o->types + k, 0x4);
                         if (o->types[k] == 1) {
                             SAFE_READ(ar, o->numpoly + o->nobj, 0x4);
-                            o->poly[o->nobj] = (LPPOLYGONDATA) malloc(o->numpoly[o->nobj] * sizeof(POLYGONDATA));
+                            o->poly[o->nobj] = static_cast<LPPOLYGONDATA>(calloc(o->numpoly[o->nobj],
+                                                                                 sizeof(POLYGONDATA)));
                             SAFE_READ(ar, o->poly[o->nobj], 14 * o->numpoly[o->nobj]);
                             l += o->numpoly[o->nobj];
                             o->nobj++;
@@ -228,7 +232,8 @@ namespace NFS3{
         for (uint32_t xblock_Idx = 0; xblock_Idx <= 4 * track->nBlocks; xblock_Idx++) {
             SAFE_READ(ar, &(track->xobj[xblock_Idx].nobj), 4);
             if (track->xobj[xblock_Idx].nobj > 0) {
-                track->xobj[xblock_Idx].obj = (XOBJDATA *) calloc(track->xobj[xblock_Idx].nobj, sizeof(XOBJDATA));
+                track->xobj[xblock_Idx].obj = static_cast<XOBJDATA *>(calloc(track->xobj[xblock_Idx].nobj,
+                                                                             sizeof(XOBJDATA)));
             }
             for (j = 0; j < track->xobj[xblock_Idx].nobj; j++) {
                 x = &(track->xobj[xblock_Idx].obj[j]);
@@ -241,7 +246,7 @@ namespace NFS3{
                     // unkn3, type3, objno, nAnimLength, unkn4 == 24 bytes
                     SAFE_READ(ar, x->unknown3, 24);
                     if (x->type3 != 3) return false;
-                    x->animData = (ANIMDATA *) calloc(20, x->nAnimLength);
+                    x->animData = static_cast<ANIMDATA *>(calloc(20, x->nAnimLength));
                     SAFE_READ(ar, x->animData, 20 * x->nAnimLength);
                     // make a ref point from first anim position
                     x->ptRef.x = (float) (x->animData->pt.x / 65536.0);
@@ -251,20 +256,19 @@ namespace NFS3{
 
                 // common part : vertices & polygons
                 SAFE_READ(ar, &(x->nVertices), 4);
-                x->vert = (FLOATPT *) calloc(12, x->nVertices);
+                x->vert = static_cast<FLOATPT *>(calloc(12, x->nVertices));
                 SAFE_READ(ar, x->vert, 12 * x->nVertices);
-                x->unknVertices = (uint32_t *) calloc(4, x->nVertices);
-                SAFE_READ(ar, x->unknVertices, 4*x->nVertices);
-
+                x->unknVertices = static_cast<uint32_t *>(calloc(4, x->nVertices));
+                SAFE_READ(ar, x->unknVertices, 4 * x->nVertices);
                 SAFE_READ(ar, &(x->nPolygons), 4);
-                x->polyData = (POLYGONDATA *) calloc(x->nPolygons , 14);
+                x->polyData = static_cast<POLYGONDATA *>(calloc(x->nPolygons, 14));
                 SAFE_READ(ar, x->polyData, 14 * x->nPolygons);
             }
         }
 
         // TEXTUREBLOCKs
         SAFE_READ(ar, &track->nTextures, 4);
-        track->texture = (TEXTUREBLOCK *) calloc(track->nTextures, sizeof(TEXTUREBLOCK));
+        track->texture = static_cast<TEXTUREBLOCK *>(calloc(track->nTextures, sizeof(TEXTUREBLOCK)));
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
             SAFE_READ(ar, &(track->texture[tex_Idx]), 47);
             auto p = std::make_pair(track->texture[tex_Idx].texture, LoadTexture(track->texture[tex_Idx], track_name));
