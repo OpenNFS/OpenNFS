@@ -115,7 +115,6 @@ namespace NFS3{
     }
 
     bool LoadFRD(std::string frd_path, TRACK *track, const std::string &track_name) {
-        // TODO: Wrap each fread with if(STATEMENT) != numElementsToRead) return false; MACRO?
         ifstream ar(frd_path, ios::in | ios::binary);
 
         int j, k, l;
@@ -125,112 +124,97 @@ namespace NFS3{
         OBJPOLYBLOCK *o;
 
         char header[28]; /* file header */
-        if (ar.read(header, 28).gcount() != 28) return false; // header & numblocks
-        if (ar.read((char *) &track->nBlocks, 4).gcount() < 4) return false;
+        SAFE_READ(ar, header, 28); // header & numblocks
+        SAFE_READ(ar, &track->nBlocks, 4);
         track->nBlocks++;
         if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
 
-    	track->trk = (TRKBLOCK *) calloc(track->nBlocks, sizeof(TRKBLOCK));
+        track->trk = (TRKBLOCK *) calloc(track->nBlocks, sizeof(TRKBLOCK));
         track->poly = (POLYGONBLOCK *) calloc(track->nBlocks, sizeof(POLYGONBLOCK));
         track->xobj = (XOBJBLOCK *) calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK));
 
-        if (ar.read((char *) &l, 4).gcount() < 4) return false; // choose between NFS3 & NFSHS
+        SAFE_READ(ar, &l, 4); // choose between NFS3 & NFSHS
         if ((l < 0) || (l > 5000)) track->bHSMode = false;
         else if (((l + 7) / 8) == track->nBlocks) track->bHSMode = true;
         else return false; // unknown file type
 
         memcpy(track->trk, &l, 4);
-        if (ar.read(((char *) track->trk) + 4, 80).gcount() != 80) return false;
+        SAFE_READ(ar, track->trk +4, 80);
 
         // TRKBLOCKs
         for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
             trackBlock = &(track->trk[block_Idx]);
             // ptCentre, ptBounding, 6 nVertices == 84 bytes
-            if (block_Idx != 0) { if (ar.read((char *) trackBlock, 84).gcount() != 84) return false; }
+            if (block_Idx != 0) { SAFE_READ(ar, trackBlock, 84);}
             if ((trackBlock->nVertices < 0)) return false;
             trackBlock->vert = (FLOATPT *) calloc(trackBlock->nVertices, sizeof(FLOATPT));
 
-            if ((uint32_t) ar.read((char *) trackBlock->vert, 12 * trackBlock->nVertices).gcount() != 12 * trackBlock->nVertices) return false;
+            SAFE_READ(ar, trackBlock->vert, 12 *trackBlock->nVertices);
             trackBlock->unknVertices = (uint32_t *) calloc(trackBlock->nVertices, sizeof(uint32_t));
-
-            if ((uint32_t) ar.read((char *) trackBlock->unknVertices, 4 * trackBlock->nVertices).gcount() != 4 * trackBlock->nVertices) return false;
-            if (ar.read((char *) trackBlock->nbdData, 4 * 0x12C).gcount() != 4 * 0x12C) return false;
-
+            SAFE_READ(ar, trackBlock->unknVertices, 4*trackBlock->nVertices);
+            SAFE_READ(ar, trackBlock->nbdData, 4*0x12c);
             // nStartPos & various blk sizes == 32 bytes
-            if (ar.read((char *) &(trackBlock->nStartPos), 32).gcount() != 32) return false;
+            SAFE_READ(ar, &(trackBlock->nStartPos), 32);
+
             if (block_Idx > 0) if (trackBlock->nStartPos != track->trk[block_Idx - 1].nStartPos + track->trk[block_Idx - 1].nPositions) return false;
-            trackBlock->posData = (POSITIONDATA *) malloc(trackBlock->nPositions * sizeof(POSITIONDATA));
-            if (trackBlock->posData == nullptr) return false;
-            if ((uint32_t) ar.read((char *) trackBlock->posData, 8 * trackBlock->nPositions).gcount() != 8 * trackBlock->nPositions) return false;
-            trackBlock->polyData = (POLYVROADDATA *) malloc(trackBlock->nPolygons * sizeof(POLYVROADDATA));
-            if (trackBlock->polyData == nullptr) return false;
-            memset(trackBlock->polyData, 0, trackBlock->nPolygons * sizeof(POLYVROADDATA));
+            trackBlock->posData = (POSITIONDATA *) calloc(trackBlock->nPositions, sizeof(POSITIONDATA));
+            SAFE_READ(ar, trackBlock->posData, 8*trackBlock->nPositions);
+
+            trackBlock->polyData = (POLYVROADDATA *) calloc(trackBlock->nPolygons, sizeof(POLYVROADDATA));
+
             for (j = 0; j < trackBlock->nPolygons; j++)
-                if (ar.read((char *) trackBlock->polyData + j, 8).gcount() != 8) return false;
-            trackBlock->vroadData = (VROADDATA *) malloc(trackBlock->nVRoad * sizeof(VROADDATA));
-            if (trackBlock->vroadData == nullptr) return false;
-            if ((uint32_t) ar.read((char *) trackBlock->vroadData, 12 * trackBlock->nVRoad).gcount() != 12 * trackBlock->nVRoad) return false;
+                SAFE_READ(ar, trackBlock->polyData +j, 8);
+
+            trackBlock->vroadData = (VROADDATA *) calloc(trackBlock->nVRoad, sizeof(VROADDATA));
+            SAFE_READ(ar, trackBlock->vroadData, 12 * trackBlock->nVRoad);
+
             if (trackBlock->nXobj > 0) {
-                trackBlock->xobj = (REFXOBJ *) malloc(trackBlock->nXobj * sizeof(REFXOBJ));
-                if (trackBlock->xobj == nullptr) return false;
-                if ((uint32_t) ar.read((char *) trackBlock->xobj, 20 * trackBlock->nXobj).gcount() != 20 * trackBlock->nXobj) return false;
+                trackBlock->xobj = (REFXOBJ *) calloc(trackBlock->nXobj, sizeof(REFXOBJ));
+                SAFE_READ(ar, trackBlock->xobj, 20 * trackBlock->nXobj);
             }
             if (trackBlock->nPolyobj > 0) {
                 ar.seekg(20 * trackBlock->nPolyobj, ios_base::cur);
             }
             trackBlock->nPolyobj = 0;
             if (trackBlock->nSoundsrc > 0) {
-                trackBlock->soundsrc = (SOUNDSRC *) malloc(trackBlock->nSoundsrc * sizeof(SOUNDSRC));
-                if (trackBlock->soundsrc == nullptr) return false;
-                if ((uint32_t) ar.read((char *) trackBlock->soundsrc, 16 * trackBlock->nSoundsrc).gcount() != 16 * trackBlock->nSoundsrc) return false;
+                trackBlock->soundsrc = (SOUNDSRC *) calloc(trackBlock->nSoundsrc, sizeof(SOUNDSRC));
+                SAFE_READ(ar, trackBlock->soundsrc, 16*trackBlock->nSoundsrc);
             }
             if (trackBlock->nLightsrc > 0) {
-                trackBlock->lightsrc = (LIGHTSRC *) malloc(trackBlock->nLightsrc * sizeof(LIGHTSRC));
-                if (trackBlock->lightsrc == nullptr) return false;
-                if ((uint32_t) ar.read((char *) trackBlock->lightsrc, 16 * trackBlock->nLightsrc).gcount() != 16 * trackBlock->nLightsrc) return false;
+                trackBlock->lightsrc = (LIGHTSRC *) calloc(trackBlock->nLightsrc, sizeof(LIGHTSRC));
+                SAFE_READ(ar, trackBlock->lightsrc, 16*trackBlock->nLightsrc);
             }
         }
-
-        // TODO: Identify in what cases stream reads garbage
-        // This workaround is emblematic of a larger problem, why does the file stream 'ar' not read into these structs
-        auto pos = static_cast<int>(ar.tellg());
-        FILE *trk_file = fopen(frd_path.c_str(), "rb");
-        fseek(trk_file, pos, SEEK_SET);
 
         // POLYGONBLOCKs
         for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
             p = &(track->poly[block_Idx]);
             for (j = 0; j < 7; j++) {
-                fread(&(p->sz[j]), 0x4, 1, trk_file);
+                SAFE_READ(ar, &(p->sz[j]), 0x4);
                 if (p->sz[j] != 0) {
-                    fread(&(p->szdup[j]), 0x4, 1, trk_file);
+                    SAFE_READ(ar, &(p->szdup[j]), 0x4);
                     if (p->szdup[j] != p->sz[j]) return false;
                     p->poly[j] = (LPPOLYGONDATA) malloc(p->sz[j] * sizeof(POLYGONDATA));
-                    if (p->poly[j] == nullptr) return false;
-                    fread(p->poly[j], static_cast<size_t>(14 * p->sz[j]), 1, trk_file);
+                    SAFE_READ(ar, p->poly[j], 14 * p->sz[j]);
                 }
             }
             if (p->sz[4] != track->trk[block_Idx].nPolygons) return false; // sanity check
             for (j = 0; j < 4; j++) {
                 o = &(p->obj[j]);
-                fread(&(o->n1), 0x4, 1, trk_file);
+                SAFE_READ(ar, &(o->n1), 0x4);
                 if (o->n1 > 0) {
-                    fread(&(o->n2), 0x4, 1, trk_file);
+                    SAFE_READ(ar, &(o->n2), 0x4);
                     o->types = (uint32_t *) calloc(static_cast<size_t>(o->n2), sizeof(uint32_t));
-                    if (o->types == nullptr) return false;
                     o->numpoly = (uint32_t *) malloc(o->n2 * sizeof(uint32_t));
-                    if (o->numpoly == nullptr) return false;
                     o->poly = (LPPOLYGONDATA *) calloc(static_cast<size_t>(o->n2), sizeof(LPPOLYGONDATA));
-                    if (o->poly == nullptr) return false;
                     o->nobj = 0;
                     l = 0;
                     for (k = 0; k < o->n2; k++) {
-                        fread(o->types + k, 0x4, 1, trk_file);
+                        SAFE_READ(ar, o->types + k, 0x4);
                         if (o->types[k] == 1) {
-                            fread(o->numpoly + o->nobj, 0x4, 1, trk_file);
+                            SAFE_READ(ar, o->numpoly + o->nobj, 0x4);
                             o->poly[o->nobj] = (LPPOLYGONDATA) malloc(o->numpoly[o->nobj] * sizeof(POLYGONDATA));
-                            if (o->poly[o->nobj] == nullptr) return false;
-                            fread(o->poly[o->nobj], static_cast<size_t>(14 * o->numpoly[o->nobj]), 1, trk_file);
+                            SAFE_READ(ar, o->poly[o->nobj], 14 * o->numpoly[o->nobj]);
                             l += o->numpoly[o->nobj];
                             o->nobj++;
                         }
@@ -240,59 +224,49 @@ namespace NFS3{
             }
         }
 
-        ar.seekg(ftell(trk_file), ar.beg);
-        fclose(trk_file);
-
         // XOBJBLOCKs
         for (uint32_t xblock_Idx = 0; xblock_Idx <= 4 * track->nBlocks; xblock_Idx++) {
-            if (ar.read((char *) &(track->xobj[xblock_Idx].nobj), 4).gcount() != 4) return false;
+            SAFE_READ(ar, &(track->xobj[xblock_Idx].nobj), 4);
             if (track->xobj[xblock_Idx].nobj > 0) {
-                track->xobj[xblock_Idx].obj = (XOBJDATA *) malloc(track->xobj[xblock_Idx].nobj * sizeof(XOBJDATA));
-                if (track->xobj[xblock_Idx].obj == nullptr) return false;
-                memset(track->xobj[xblock_Idx].obj, 0, track->xobj[xblock_Idx].nobj * sizeof(XOBJDATA));
+                track->xobj[xblock_Idx].obj = (XOBJDATA *) calloc(track->xobj[xblock_Idx].nobj, sizeof(XOBJDATA));
             }
             for (j = 0; j < track->xobj[xblock_Idx].nobj; j++) {
                 x = &(track->xobj[xblock_Idx].obj[j]);
                 // 3 headers == 12 bytes
-                if (ar.read((char *) x, 12).gcount() != 12) return false;
+                SAFE_READ(ar, x, 12);
                 if (x->crosstype == 4) { // basic objects
-                    if (ar.read((char *) &(x->ptRef), 12).gcount() != 12) return false;
-                    if (ar.read((char *) &(x->unknown2), 4).gcount() != 4) return false;
+                    SAFE_READ(ar, &(x->ptRef), 12);
+                    SAFE_READ(ar, &(x->unknown2), 4);
                 } else if (x->crosstype == 3) { // animated objects
                     // unkn3, type3, objno, nAnimLength, unkn4 == 24 bytes
-                    if (ar.read((char *) x->unknown3, 24).gcount() != 24) return false;
+                    SAFE_READ(ar, x->unknown3, 24);
                     if (x->type3 != 3) return false;
-                    x->animData = (ANIMDATA *) malloc(static_cast<size_t>(20 * x->nAnimLength));
-                    if (x->animData == nullptr) return false;
-                    if ((uint32_t) ar.read((char *) x->animData, 20 * x->nAnimLength).gcount() != 20 * x->nAnimLength)
-                        return false;
+                    x->animData = (ANIMDATA *) calloc(20, x->nAnimLength);
+                    SAFE_READ(ar, x->animData, 20 * x->nAnimLength);
                     // make a ref point from first anim position
                     x->ptRef.x = (float) (x->animData->pt.x / 65536.0);
                     x->ptRef.z = (float) (x->animData->pt.z / 65536.0);
                     x->ptRef.y = (float) (x->animData->pt.y / 65536.0);
                 } else return false; // unknown object type
+
                 // common part : vertices & polygons
-                if (ar.read((char *) &(x->nVertices), 4).gcount() != 4) return false;
-                x->vert = (FLOATPT *) malloc(static_cast<size_t>(12 * x->nVertices));
-                if (x->vert == nullptr) return false;
-                if ((uint32_t) ar.read((char *) x->vert, 12 * x->nVertices).gcount() != 12 * x->nVertices) return false;
-                x->unknVertices = (uint32_t *) malloc(static_cast<size_t>(4 * x->nVertices));
-                if (x->unknVertices == nullptr) return false;
-                if ((uint32_t) ar.read((char *) x->unknVertices, 4 * x->nVertices).gcount() != 4 * x->nVertices)
-                    return false;
-                if (ar.read((char *) &(x->nPolygons), 4).gcount() != 4) return false;
-                x->polyData = (POLYGONDATA *) malloc(static_cast<size_t>(x->nPolygons * 14));
-                if (x->polyData == nullptr) return false;
-                if ((uint32_t) ar.read((char *) x->polyData, 14 * x->nPolygons).gcount() != 14 * x->nPolygons) return false;
+                SAFE_READ(ar, &(x->nVertices), 4);
+                x->vert = (FLOATPT *) calloc(12, x->nVertices);
+                SAFE_READ(ar, x->vert, 12 * x->nVertices);
+                x->unknVertices = (uint32_t *) calloc(4, x->nVertices);
+                SAFE_READ(ar, x->unknVertices, 4*x->nVertices);
+
+                SAFE_READ(ar, &(x->nPolygons), 4);
+                x->polyData = (POLYGONDATA *) calloc(x->nPolygons , 14);
+                SAFE_READ(ar, x->polyData, 14 * x->nPolygons);
             }
         }
 
-
         // TEXTUREBLOCKs
-        if (ar.read((char *) &track->nTextures, 4).gcount() != 4) return false;
+        SAFE_READ(ar, &track->nTextures, 4);
         track->texture = (TEXTUREBLOCK *) calloc(track->nTextures, sizeof(TEXTUREBLOCK));
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
-            if (ar.read((char *) &(track->texture[tex_Idx]), 47).gcount() != 47) return false;
+            SAFE_READ(ar, &(track->texture[tex_Idx]), 47);
             auto p = std::make_pair(track->texture[tex_Idx].texture, LoadTexture(track->texture[tex_Idx], track_name));
             track->textures.insert(p);
         }
@@ -361,12 +335,10 @@ namespace NFS3{
                     if (o->size != 16) return false;
                     if (coll.read((char *) &(o->ptRef), 12).gcount() != 12) return false;
                 } else if (o->type == 3) {
-                    if (coll.read((char *) &(o->animLength), 4).gcount() != 4) return false;
+                    coll.read((char *) &(o->animLength), 4).gcount();
                     if (o->size != 8 + 20 * o->animLength) return false;
                     o->animData = (ANIMDATA *) malloc(20 * o->animLength);
-                    if (o->animData == nullptr) return false;
-                    if ((uint32_t) coll.read((char *) o->animData, 20 * o->animLength).gcount() != 20 * o->animLength)
-                        return false;
+                    coll.read((char *) o->animData, 20 * o->animLength).gcount();
                     o->ptRef.x = o->animData->pt.x;
                     o->ptRef.z = o->animData->pt.z;
                     o->ptRef.y = o->animData->pt.y;

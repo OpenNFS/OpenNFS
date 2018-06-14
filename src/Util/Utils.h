@@ -71,8 +71,8 @@ typedef struct tagBITMAPINFO {
     RGBQUAD          bmiColors[1];
 } BITMAPINFO, *PBITMAPINFO;
 
+#define SAFE_READ(file, structure, size)  if((file).read((char *) (structure), (size)).gcount() != (size)) return false
 #define MAKEWORD(a,b)	((WORD)(((BYTE)(a))|(((WORD)((BYTE)(b)))<<8)))
-
 #define ASSERT(condition, message) \
     do { \
         if (! (condition)) { \
