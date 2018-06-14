@@ -358,8 +358,16 @@ namespace Utils {
 
 // Move this to a native resource handler class
     bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir){
+        // Fshtool molests the current working directory, save and restore
+        char cwd[1024];
+        getcwd(cwd, sizeof(cwd));
+
         char * args[3] = {"", strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
-        return (fsh_main(3, args) == 1);
+        int returnCode = (fsh_main(3, args) == 1);
+
+        chdir(cwd);
+
+        return returnCode;
     }
 }
 

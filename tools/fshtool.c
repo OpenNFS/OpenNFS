@@ -49,7 +49,6 @@ void usage()
 void abort()
 {
     printf("\nUnsuccessful termination. See README.TXT for more details.\n");
-    printf("Press Enter to exit.\n"); getchar();
     exit(0);
 }
 
@@ -1353,7 +1352,7 @@ unsigned char *bmp_to_fsh()
 
 int fsh_main(int argc, char **argv)
 {
-  FILE *f = NULL;
+  FILE *f;
   char *outfn,*p;
   unsigned char *tmpbuf;
   int i,j,choice;
@@ -1370,10 +1369,11 @@ int fsh_main(int argc, char **argv)
   /* try to open the given file and determine its type from the first few bytes */
   f=fopen(argv[1],"rb");
   if (f==NULL) {
-    printf("Input file %s not found.\n",argv[1]);
+    printf("Could not open: %s. %s\n", argv[1], strerror(errno));
+    //printf("Input file %s not found.\n",argv[1]);
     abort();
   }
-  
+
   fseek(f,0,SEEK_END);
   inlen=ftell(f);
   rewind(f);
@@ -1504,6 +1504,7 @@ int fsh_main(int argc, char **argv)
   }
   else { printf("Unknown file format.\n"); abort(); }
 
+  fclose(f);
   printf("Conversion performed successfully.\n");
   return 1;
 }
