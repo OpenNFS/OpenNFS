@@ -12,8 +12,7 @@ std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures) {
         Texture texture = it->second;
         GLuint textureID;
         glGenTextures(1, &textureID);
-        auto p = std::make_pair(it->first, textureID);
-        gl_id_map.insert(p);
+        gl_id_map[it->first] = textureID;
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -34,8 +33,7 @@ std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_se
     // Remap Normals to correspond to ordered texture ID's
     std::map<int, int> ordered_mapping;
     for (int t = 0; t < texture_ids.size(); ++t) {
-        auto p = std::make_pair((int) texture_ids[t], t);
-        ordered_mapping.insert(p);
+        ordered_mapping[texture_ids[t]] = t;
     }
     for (auto &texture_index : texture_indices) {
         texture_index = static_cast<unsigned int>(ordered_mapping.find(texture_index)->second);
@@ -266,8 +264,7 @@ namespace NFS3{
         track->texture = static_cast<TEXTUREBLOCK *>(calloc(track->nTextures, sizeof(TEXTUREBLOCK)));
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
             SAFE_READ(ar, &(track->texture[tex_Idx]), 47);
-            auto p = std::make_pair(track->texture[tex_Idx].texture, LoadTexture(track->texture[tex_Idx], track_name));
-            track->textures.insert(p);
+            track->textures[track->texture[tex_Idx].texture] = LoadTexture(track->texture[tex_Idx], track_name);
         }
 
         uint32_t pad;
@@ -275,69 +272,62 @@ namespace NFS3{
     }
 
     bool LoadCOL(std::string col_path, TRACK *track) {
-        // TODO: Wrap each fread with if(STATEMENT) != numElementsToRead) return false; MACRO?
         ifstream coll(col_path, ios::in | ios::binary);
 
         COLOBJECT *o;
 
         track->col.hs_extra = NULL;
         if (coll.read((char *) &track->col, 16).gcount() != 16) return false;
-        if ((track->col.collID[0] != 'C') || (track->col.collID[1] != 'O') ||
-            (track->col.collID[2] != 'L') || (track->col.collID[3] != 'L'))
+        if (memcmp(track->col.collID, "COLL", sizeof(track->col.collID[0])) != 0){
+            std::cout << "Invalid COL file." << std::endl;
             return false;
+        }
+
         if (track->col.version != 11) return false;
         if ((track->col.nBlocks != 2) && (track->col.nBlocks != 4) && (track->col.nBlocks != 5)) return false;
-        if ((uint32_t) coll.read((char *) track->col.xbTable, 4 * track->col.nBlocks).gcount() != 4 * track->col.nBlocks) return false;
+        SAFE_READ(coll, track->col.xbTable, 4 * track->col.nBlocks);
 
         // texture XB
-        if (coll.read((char *) &track->col.textureHead, 8).gcount() != 8) return false;
+        SAFE_READ(coll, &track->col.textureHead, 8);
         if (track->col.textureHead.xbid != XBID_TEXTUREINFO) return false;
-        //if (col.textureHead.size != 8 + 8 * col.textureHead.nrec) return false;
-        track->col.texture = (COLTEXTUREINFO *) malloc(track->col.textureHead.nrec * sizeof(COLTEXTUREINFO));
-        if (track->col.texture == NULL) return false;
-        if ((uint32_t) coll.read((char *) track->col.texture, 8 * track->col.textureHead.nrec).gcount() != 8 * track->col.textureHead.nrec)
-            return false;
+
+        track->col.texture = static_cast<COLTEXTUREINFO *>(calloc(track->col.textureHead.nrec, sizeof(COLTEXTUREINFO)));
+        SAFE_READ(coll, track->col.texture, 8 * track->col.textureHead.nrec);
 
         // struct3D XB
         if (track->col.nBlocks >= 4) {
-            if (coll.read((char *) &track->col.struct3DHead, 8).gcount() != 8) return false;
+            SAFE_READ(coll, &track->col.struct3DHead, 8);
             if (track->col.struct3DHead.xbid != XBID_STRUCT3D) return false;
-            COLSTRUCT3D *s = track->col.struct3D = (COLSTRUCT3D *) malloc(track->col.struct3DHead.nrec * sizeof(COLSTRUCT3D));
-            if (s == NULL) return false;
-            memset(s, 0, track->col.struct3DHead.nrec * sizeof(COLSTRUCT3D));
+            COLSTRUCT3D *s = track->col.struct3D = static_cast<COLSTRUCT3D *>(calloc(track->col.struct3DHead.nrec, sizeof(COLSTRUCT3D)));
             int delta;
             for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.struct3DHead.nrec; colRec_Idx++, s++) {
-                if (coll.read((char *) s, 8).gcount() != 8) return false;
+                SAFE_READ(coll, s, 8);
                 delta = (8 + 16 * s->nVert + 6 * s->nPoly) % 4;
                 delta = (4 - delta) % 4;
                 if (s->size != 8 + 16 * s->nVert + 6 * s->nPoly + delta) return false;
-                s->vertex = (COLVERTEX *) malloc(16 * s->nVert);
-                if (s->vertex == NULL) return false;
-                if ((uint32_t) coll.read((char *) s->vertex, 16 * s->nVert).gcount() != 16 * s->nVert) return false;
-                s->polygon = (COLPOLYGON *) malloc(6 * s->nPoly);
-                if (s->polygon == NULL) return false;
-                if ((uint32_t) coll.read((char *) s->polygon, 6 * s->nPoly).gcount() != 6 * s->nPoly) return false;
+                s->vertex = static_cast<COLVERTEX *>(calloc(16, s->nVert));
+                SAFE_READ(coll, s->vertex, 16 * s->nVert);
+                s->polygon = static_cast<COLPOLYGON *>(calloc(6, s->nPoly));
+                SAFE_READ(coll, s->polygon, 6*s->nPoly);
                 int dummy;
-                if (delta > 0) if ((int) coll.read((char *) &dummy, delta).gcount() != delta) return false;
+                if (delta > 0) SAFE_READ(coll, &dummy, delta);
             }
 
             // object XB
-            if (coll.read((char *) &track->col.objectHead, 8).gcount() != 8) return false;
+            SAFE_READ(coll, &track->col.objectHead, 8);
             if ((track->col.objectHead.xbid != XBID_OBJECT) && (track->col.objectHead.xbid != XBID_OBJECT2)) return false;
-            o = track->col.object = (COLOBJECT *)
-                    malloc(track->col.objectHead.nrec * sizeof(COLOBJECT));
-            if (o == NULL) return false;
-            memset(o, 0, track->col.objectHead.nrec * sizeof(COLOBJECT));
+            o = track->col.object = static_cast<COLOBJECT *>(calloc(track->col.objectHead.nrec, sizeof(COLOBJECT)));
+
             for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.objectHead.nrec; colRec_Idx++, o++) {
-                if (coll.read((char *) o, 4).gcount() != 4) return false;
+                SAFE_READ(coll, o, 4);
                 if (o->type == 1) {
                     if (o->size != 16) return false;
-                    if (coll.read((char *) &(o->ptRef), 12).gcount() != 12) return false;
+                    SAFE_READ(coll, &(o->ptRef), 12);
                 } else if (o->type == 3) {
-                    coll.read((char *) &(o->animLength), 4).gcount();
+                    SAFE_READ(coll, &(o->animLength), 4);
                     if (o->size != 8 + 20 * o->animLength) return false;
-                    o->animData = (ANIMDATA *) malloc(20 * o->animLength);
-                    coll.read((char *) o->animData, 20 * o->animLength).gcount();
+                    o->animData = static_cast<ANIMDATA *>(calloc(20, o->animLength));
+                    SAFE_READ(coll, o->animData, 20 * o->animLength);
                     o->ptRef.x = o->animData->pt.x;
                     o->ptRef.z = o->animData->pt.z;
                     o->ptRef.y = o->animData->pt.y;
@@ -347,24 +337,20 @@ namespace NFS3{
 
         // object2 XB
         if (track->col.nBlocks == 5) {
-            if (coll.read((char *) &track->col.object2Head, 8).gcount() != 8) return false;
+            SAFE_READ(coll, &track->col.object2Head, 8);
             if ((track->col.object2Head.xbid != XBID_OBJECT) && (track->col.object2Head.xbid != XBID_OBJECT2)) return false;
-            o = track->col.object2 = (COLOBJECT *)
-                    malloc(track->col.object2Head.nrec * sizeof(COLOBJECT));
-            if (o == NULL) return false;
-            memset(o, 0, track->col.object2Head.nrec * sizeof(COLOBJECT));
+            o = track->col.object2 = static_cast<COLOBJECT *>(calloc(track->col.object2Head.nrec, sizeof(COLOBJECT)));
+
             for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.object2Head.nrec; colRec_Idx++, o++) {
-                if (coll.read((char *) o, 4).gcount() != 4) return false;
+                SAFE_READ(coll, o, 4);
                 if (o->type == 1) {
                     if (o->size != 16) return false;
-                    if (coll.read((char *) &(o->ptRef), 12).gcount() != 12) return false;
+                    SAFE_READ(coll, &(o->ptRef), 12);
                 } else if (o->type == 3) {
-                    if (coll.read((char *) &(o->animLength), 4).gcount() != 4) return false;
+                    SAFE_READ(coll, &(o->animLength), 4);
                     if (o->size != 8 + 20 * o->animLength) return false;
-                    o->animData = (ANIMDATA *) malloc(20 * o->animLength);
-                    if (o->animData == NULL) return false;
-                    if ((uint32_t) coll.read((char *) o->animData, 20 * o->animLength).gcount() != 20 * o->animLength)
-                        return false;
+                    o->animData = static_cast<ANIMDATA *>(calloc(20, o->animLength));
+                    SAFE_READ(coll, o->animData, 20 * o->animLength);
                     o->ptRef.x = o->animData->pt.x;
                     o->ptRef.z = o->animData->pt.z;
                     o->ptRef.y = o->animData->pt.y;
@@ -373,14 +359,11 @@ namespace NFS3{
         }
 
         // vroad XB
-        if (coll.read((char *) &track->col.vroadHead, 8).gcount() != 8) return false;
+        SAFE_READ(coll, &track->col.vroadHead, 8);
         if (track->col.vroadHead.xbid != XBID_VROAD) return false;
         if (track->col.vroadHead.size != 8 + 36 * track->col.vroadHead.nrec) return false;
-        //ASSERT(col.vroadHead.nrec==trk[nBlocks-1].nStartPos+trk[nBlocks-1].nPositions);
-        track->col.vroad = (COLVROAD *) malloc(track->col.vroadHead.nrec * sizeof(COLVROAD));
-        if (track->col.vroad == NULL) return false;
-        if ((uint32_t) coll.read((char *) track->col.vroad, 36 * track->col.vroadHead.nrec).gcount() != 36 * track->col.vroadHead.nrec)
-            return false;
+        track->col.vroad = static_cast<COLVROAD *>(calloc(track->col.vroadHead.nrec, sizeof(COLVROAD)));
+        SAFE_READ(coll, track->col.vroad, 36 * track->col.vroadHead.nrec);
 
         uint32_t pad;
         return coll.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
@@ -737,8 +720,7 @@ namespace NFS2{
 
         // Load up the textures
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
-            auto id_tex_pair = std::make_pair(track->polyToQFStexTable[tex_Idx].texNumber, LoadTexture(track->polyToQFStexTable[tex_Idx], track_name));
-            track->textures.insert(id_tex_pair);
+            track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track_name);
         }
         track->texture_gl_mappings = GenTrackTextures(track->textures);
 
@@ -761,12 +743,12 @@ namespace NFS2{
 
         // Check we're in a valid TRK file
         if (trk.read(((char *) header), sizeof(unsigned char) * 4).gcount() != sizeof(unsigned char) * 4) {
-            std::cout << trk_path << std::endl;
+            std::cout << "Couldn't open file/truncated." << std::endl;
             return false;
         }
         // Header should contain TRAC
         if (memcmp(header, "TRAC", sizeof(header)) != 0){
-            std::cout << "Invalid TRK file." << std::endl;
+            std::cout << "Invalid TRK Header." << std::endl;
             return false;
         }
 
