@@ -139,7 +139,7 @@ namespace NFS3{
             TRKBLOCK *trackBlock = &(track->trk[block_Idx]);
             // ptCentre, ptBounding, 6 nVertices == 84 bytes
             if (block_Idx != 0) { SAFE_READ(ar, trackBlock, 84); }
-            if ((trackBlock->nVertices < 0)) return false;
+            if ((trackBlock->nVertices == 0)) return false;
             trackBlock->vert = static_cast<FLOATPT *>(calloc(trackBlock->nVertices, sizeof(FLOATPT)));
 
             SAFE_READ(ar, trackBlock->vert, 12 * trackBlock->nVertices);
@@ -1179,12 +1179,12 @@ namespace NFS2{
                         vertex_indices.emplace_back(trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
                         vertex_indices.emplace_back(trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[3]);
                         // TODO: Use textures alignment data to modify these UV's
+                        uvs.emplace_back(1.0f, 1.0f);
                         uvs.emplace_back(0.0f, 1.0f);
-                        uvs.emplace_back(0.0f, 1.0f);
-                        uvs.emplace_back(0.0f, 1.0f);
-                        uvs.emplace_back(0.0f, 1.0f);
-                        uvs.emplace_back(0.0f, 1.0f);
-                        uvs.emplace_back(0.0f, 1.0f);
+                        uvs.emplace_back(0.0f, 0.0f);
+                        uvs.emplace_back(1.0f, 1.0f);
+                        uvs.emplace_back(0.0f, 0.0f);
+                        uvs.emplace_back(1.0f, 0.0f);
                         texture_indices.emplace_back(texture_for_block.texNumber);
                         texture_indices.emplace_back(texture_for_block.texNumber);
                         texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1244,12 +1244,12 @@ namespace NFS2{
                    vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[2]);
                    vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[3]);
                     // TODO: Use textures alignment data to modify these UV's
+                    uvs.emplace_back(1.0f, 1.0f);
                     uvs.emplace_back(0.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 1.0f);
+                    uvs.emplace_back(0.0f, 0.0f);
+                    uvs.emplace_back(1.0f, 1.0f);
+                    uvs.emplace_back(0.0f, 0.0f);
+                    uvs.emplace_back(1.0f, 0.0f);
                     texture_indices.emplace_back(texture_for_block.texNumber);
                     texture_indices.emplace_back(texture_for_block.texNumber);
                     texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1334,12 +1334,12 @@ namespace NFS2{
                 indices.emplace_back( track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
                 indices.emplace_back( track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[3]);
                 // TODO: Use textures alignment data to modify these UV's
+                uvs.emplace_back(1.0f, 1.0f);
                 uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
+                uvs.emplace_back(0.0f, 0.0f);
+                uvs.emplace_back(1.0f, 1.0f);
+                uvs.emplace_back(0.0f, 0.0f);
+                uvs.emplace_back(1.0f, 0.0f);
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1359,7 +1359,7 @@ namespace NFS2{
 
     Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name) {
         std::stringstream filename;
-        filename << TRACK_PATH << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";
+        filename << TRACK_PATH << "NFS2/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";
 
         GLubyte *data;
         GLsizei width;

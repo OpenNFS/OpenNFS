@@ -23,7 +23,7 @@ Car::Car(NFS_Loader loader){
     steeringClamp = 0.2f;
     steerRight = steerLeft = isReverse = false;
 
-    glm::vec3 debug_offset(49, 4, -53);
+    glm::vec3 debug_offset(0, 0, 0);
     car_models = loader.getMeshes();
 
     // Enable High Res wheels and body

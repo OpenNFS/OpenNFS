@@ -20,7 +20,7 @@ void CarShader::LoadEnvMapTexture() {
     unsigned char *data;
     FILE *file;
     std::stringstream filename;
-    filename << "../resources/TRK000/sky_textures/" << "0010.BMP";
+    filename << "./assets/tracks/NFS3/tr03/sky_textures/" << "0010.BMP";
     file = fopen(filename.str().c_str(), "rb");
     if (file == nullptr) {
         std::cout << "Couldn't open " << filename.str() << std::endl;

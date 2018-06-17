@@ -8,12 +8,15 @@
 #include <string>
 #include <iostream>
 #include <GL/glew.h>
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
 #include <set>
+
+#include "vkRenderer.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // Source
@@ -32,15 +35,21 @@ GLFWwindow *window;
 
 using namespace ImGui;
 
+static void glfwError(int id, const char* description)
+{
+    std::cout << description << std::endl;
+}
+
 bool init_opengl() {
     // Initialise GLFW
     ASSERT(glfwInit(), "GLFW Init failed.\n");
-
+    glfwSetErrorCallback(&glfwError);
     glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    // TODO: If we fail to create a GL context, fall back to not requesting any (Keiiko Bug #1)
+    /*glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
 
     window = glfwCreateWindow(1024, 768, "OpenNFS3", nullptr, nullptr);
 
@@ -109,18 +118,29 @@ void initDirectories(){
 }
 
 int main(int argc, char **argv) {
+    vkRenderer renderer;
+
+    try {
+        renderer.run();
+    } catch (const std::runtime_error& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
     /*------ ASSET LOAD ------*/
     initDirectories();
     std::string car_name;
-    NFS_Loader nfs_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
+    NFS_Loader nfs_loader("../resources/diab", &car_name);
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data`
-    //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/GAMEDATA/TRACKS/SE/TR02");
-    NFS3::TRACK *track = NFS3::trk_loader("../resources/NFS3/gamedata/tracks/trk003/tr03");
+    NFS2::TRACK *track = NFS2::trk_loader("../resources/PS1/ZZZTR02B");
+    //NFS3::TRACK *track = NFS3::trk_loader("../resources/TRK003/tr03");
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
@@ -225,9 +245,9 @@ int main(int argc, char **argv) {
         }
         carShader.unbind();
 
-        for (auto &active_track_Block : activeTrackBlocks) {
+        for (auto &active_track_Block : track->track_blocks) {
             trackShader.use();
-            for (auto &track_block_model : active_track_Block.track) {
+            for (auto &track_block_model : active_track_Block.objects) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
                 trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
@@ -249,8 +269,8 @@ int main(int argc, char **argv) {
              // billboardShader.unbind();
         }
 
-        /*if (physics_debug_view)
-            physicsEngine.getDynamicsWorld()->debugDrawWorld();*/
+        if (physics_debug_view)
+            //physicsEngine.getDynamicsWorld()->debugDrawWorld();
 
         // Draw UI (Tactically)
         static float f = 0.0f;

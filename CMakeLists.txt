@@ -49,7 +49,7 @@ set(SOURCE_FILES
         tools/fshtool.h
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h
         src/Util/Raytracer.cpp src/Util/Raytracer.h
-        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h)
+        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/vkRenderer.cpp src/vkRenderer.h)
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 
@@ -88,6 +88,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glm")
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS3 ${OPENGL_LIBRARIES})
+#[[VULKAN]]
+set(VULKAN_INCLUDE_DIR "C:/VulkanSDK/1.1.70.1/Include")
+include_directories(${VULKAN_INCLUDE_DIR})
+target_link_libraries(OpenNFS3 C:/VulkanSDK/1.1.70.1/Lib32/vulkan-1.lib)
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)

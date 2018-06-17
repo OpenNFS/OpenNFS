@@ -15,7 +15,7 @@ void Physics::initSimulation() {
     solver = new btSequentialImpulseConstraintSolver;
     // The world.
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
+    dynamicsWorld->setGravity(btVector3(0, 0, 0));
     dynamicsWorld->setDebugDrawer(&mydebugdrawer);
 }
 

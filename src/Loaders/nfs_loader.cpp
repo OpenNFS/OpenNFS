@@ -21,8 +21,8 @@ NFS_Loader::NFS_Loader(const std::string &car_base_path, std::string *car_name) 
 
     std::stringstream viv_path, car_out_path, fce_path;
     viv_path << car_base_path << "/car.viv";
-    car_out_path << CAR_PATH << car_name << "/";
-    fce_path << CAR_PATH << car_name << "/car.fce";
+    car_out_path << CAR_PATH << *car_name << "/";
+    fce_path << CAR_PATH << *car_name << "/car.fce";
 
     ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
     ASSERT(readFCE(fce_path.str()), "Unable to load " << fce_path.str());
@@ -199,20 +199,11 @@ bool NFS_Loader::readFCE(const std::string fce_path) {
             specularReflectivity = 0.02;
             envReflectivity = 0.4;
         }
-        meshes.emplace_back(CarModel(model_names[i], i,
-                                  vertices,
-                                  getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]),
-                                  getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]),
-                                  getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), center, specularDamper, specularReflectivity, envReflectivity));
+        meshes.emplace_back(CarModel(model_names[i], i, vertices, getTexCoords(triOffset + partTriOffsets[i], partTriNumbers[i]), getNormals(normOffset + partVertOffsets[i], partVertNumbers[i]), getIndices(triOffset + partTriOffsets[i], partTriNumbers[i]), center, specularDamper, specularReflectivity, envReflectivity));
         std::cout << "Mesh: " << meshes[i].m_name << " UVs: " << meshes[i].m_uvs.size() << " Verts: "
                   << meshes[i].m_vertices.size() << " Indices: " << meshes[i].m_vertex_indices.size() << " Normals: "
                   << meshes[i].m_normals.size() << std::endl;
     }
-
-	delete partTriNumbers;
-	delete partTriOffsets;
-	delete partVertNumbers;
-	delete partVertOffsets;
 
     fclose(fce_file);
     return true;
