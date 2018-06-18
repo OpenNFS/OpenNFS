@@ -76,7 +76,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
 
     // Speed boost
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        speed = 20.0f;
+        speed = 100.0f;
     } else {
         speed = 3.0f;
     }

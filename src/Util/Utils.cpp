@@ -320,6 +320,20 @@ namespace Utils {
                                                             pixel += padding;
                                                         }
                                                         break;
+                                                    case 32:
+                                                        // 32-bit bitmaps
+                                                        // never seen it, but Win32 SDK claims the existance
+                                                        // of that value. 4th byte is assumed to be alpha-channel.
+                                                        for (; h > 0; h--) {
+                                                            for (w = width; w > 0; w--) {
+                                                                *current_bits++ = pixel[2];
+                                                                *current_bits++ = pixel[1];
+                                                                *current_bits++ = pixel[0];
+                                                                *current_bits++ = pixel[3];
+                                                                pixel += 4;
+                                                            }
+                                                        }
+                                                        break;// I don't like 1,4 and 16 bit.
                                                     default:
                                                         delete[] *bits;
                                                         retval = false;

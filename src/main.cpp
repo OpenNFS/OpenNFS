@@ -46,10 +46,10 @@ bool init_opengl() {
     glfwSetErrorCallback(&glfwError);
     glfwWindowHint(GLFW_SAMPLES, 4);
     // TODO: If we fail to create a GL context, fall back to not requesting any (Keiiko Bug #1)
-    /*glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     window = glfwCreateWindow(1024, 768, "OpenNFS3", nullptr, nullptr);
 
@@ -117,7 +117,7 @@ void initDirectories(){
     }
 }
 
-int main(int argc, char **argv) {
+int launchVK(){
     vkRenderer renderer;
 
     try {
@@ -128,7 +128,9 @@ int main(int argc, char **argv) {
     }
 
     return EXIT_SUCCESS;
+}
 
+int main(int argc, char **argv) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
 
@@ -139,6 +141,7 @@ int main(int argc, char **argv) {
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data`
+    //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/GAMEDATA/TRACKS/SE/TR02");
     NFS2::TRACK *track = NFS2::trk_loader("../resources/PS1/ZZZTR02B");
     //NFS3::TRACK *track = NFS3::trk_loader("../resources/TRK003/tr03");
 	//Load Music

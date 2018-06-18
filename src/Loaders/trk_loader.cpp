@@ -716,7 +716,7 @@ namespace NFS2{
 
         ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
         ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-        ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_2), "Could not extract " << track_name << " QFS texture pack.");
+        //ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_2), "Could not extract " << track_name << " QFS texture pack.");
 
         // Load up the textures
         for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
@@ -775,7 +775,7 @@ namespace NFS2{
         }
 
         for (int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx) {
-            std::cout << "SuperBlock " << superBlock_Idx+1 << " of " << track->nSuperBlocks << std::endl;
+            //std::cout << "SuperBlock " << superBlock_Idx+1 << " of " << track->nSuperBlocks << std::endl;
             // Get the superblock header
             SUPERBLOCK *superblock = &track->superblocks[superBlock_Idx];
             trk.seekg(superblockOffsets[superBlock_Idx], ios_base::beg);
@@ -790,7 +790,7 @@ namespace NFS2{
                 superblock->trackBlocks = static_cast<TRKBLOCK *>(calloc(static_cast<size_t>(superblock->nBlocks), sizeof(TRKBLOCK)));
 
                 for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
-                    std::cout << "  Block " << block_Idx+1 << " of " << superblock->nBlocks << std::endl;
+                    //std::cout << "  Block " << block_Idx+1 << " of " << superblock->nBlocks << std::endl;
                     TRKBLOCK *trackblock = &superblock->trackBlocks[block_Idx];
                     // Read Header
                     trackblock->header = static_cast<TRKBLOCK_HEADER *>(calloc(1, sizeof(TRKBLOCK_HEADER)));
@@ -844,6 +844,14 @@ namespace NFS2{
                                     trk.read((char*) &trackblock->structures[structure_Idx].recSize, sizeof(uint32_t));
                                     trk.read((char*) &trackblock->structures[structure_Idx].nVerts, sizeof(uint16_t));
                                     trk.read((char*) &trackblock->structures[structure_Idx].nPoly, sizeof(uint16_t));
+
+                                    if(structure_Idx == 0){
+                                        std::cout << " " << trackblock->structures[structure_Idx].nPoly << " " << trackblock->structures[structure_Idx].nVerts << " " <<
+                                                  (trackblock->structures[structure_Idx].recSize - (((trackblock->structures[structure_Idx].nVerts * sizeof(VERT))
+                                                                                                     + (trackblock->structures[structure_Idx].nPoly* sizeof(POLYGONDATA)))
+                                                                                                    +sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t))) << std::endl;
+                                    }
+
                                     trackblock->structures[structure_Idx].vertexTable = static_cast<VERT *>(calloc(trackblock->structures[structure_Idx].nVerts, sizeof(VERT)));
                                     for(int vert_Idx = 0; vert_Idx < trackblock->structures[structure_Idx].nVerts; ++vert_Idx){
                                         trk.read((char *) &trackblock->structures[structure_Idx].vertexTable[vert_Idx], sizeof(VERT));
@@ -876,7 +884,7 @@ namespace NFS2{
                                             trk.read((char*) &trackblock->structureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
                                         }
                                     } else {
-                                        std::cout << "Unknown Structure Reference type: " << (int) trackblock->structureRefData[structureRef_Idx].recType << std::endl;
+                                        //std::cout << "Unknown Structure Reference type: " << (int) trackblock->structureRefData[structureRef_Idx].recType << std::endl;
                                     }
                                     trk.seekg(trackblock->structureRefData[structureRef_Idx].recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
                                 }
@@ -896,7 +904,7 @@ namespace NFS2{
                                 trk.read((char *) trackblock->laneData, trackblock->nLanes * sizeof(LANE_BLOCK));
                                 break;
                             default:
-                                std::cout << "Unknown XBID: " << xblockHeader->XBID << std::endl;
+                                //std::cout << "Unknown XBID: " << xblockHeader->XBID << std::endl;
                                 break;
                         }
                         free(xblockHeader);
@@ -1271,7 +1279,7 @@ namespace NFS2{
                                                       trk_block_shading_verts,
                                                       trk_block_center);
                 current_trk_block_model.enable();
-                current_track_block.track.emplace_back(current_trk_block_model);
+                //current_track_block.track.emplace_back(current_trk_block_model);
                 current_track_block.objects.emplace_back(current_trk_block_model);
 
                 track_blocks.emplace_back(current_track_block);

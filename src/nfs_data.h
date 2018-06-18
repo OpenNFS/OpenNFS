@@ -300,8 +300,15 @@ namespace NFS3 {
 
 namespace NFS2 {
     // ---- CORE DATA TYPES ----
-    typedef struct VERT {
+
+    // PC
+    /*typedef struct VERT {
         int16_t x, z, y;
+    } VERT;*/
+
+    // PS1
+    typedef struct VERT {
+        int16_t x, z, y, w;
     } VERT;
 
     typedef struct VERT_HIGHP {
@@ -313,9 +320,18 @@ namespace NFS2 {
         uint16_t unknown[4];
     } ANIM_POS;
 
+    // PC
+    /*typedef struct POLYGONDATA {
+        int16_t texture;
+        int16_t otherSideTex;
+        uint8_t vertex[4];
+        //uint32_t unknown;
+    } POLYGONDATA;*/
+
+    //PS1
     typedef struct POLYGONDATA {
-        uint16_t texture;
-        uint16_t otherSideTex;
+        uint8_t texture;
+        uint8_t otherSideTex;
         uint8_t vertex[4];
     } POLYGONDATA;
 
@@ -408,7 +424,8 @@ namespace NFS2 {
         struct VERT_HIGHP clippingRect[4];
         uint32_t extraBlockTblOffset;
         uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
-        uint32_t nLowResPoly, nMedResPoly, nHighResPoly; // Possible uint32_t on PC, and uint16_t on PS1
+        uint16_t nLowResPoly, nMedResPoly, nHighResPoly;
+        uint16_t unknownPad[3];
     } TRKBLOCK_HEADER;
 
     typedef struct TRKBLOCK {
