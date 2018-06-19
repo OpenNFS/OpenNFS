@@ -703,6 +703,8 @@ namespace NFS3{
 }
 
 namespace NFS2{
+    using namespace PC;
+
     TRACK *trk_loader(const std::string &track_base_path) {
         std::cout << "--- Loading NFS2 Track ---" << std::endl;
 
