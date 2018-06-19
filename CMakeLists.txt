@@ -27,7 +27,6 @@ set(SOURCE_FILES
         src/Scene/Camera.cpp
         src/Scene/Model.cpp
         include/TGALoader/TGALoader.cpp
-        src/Loaders/trk_loader.cpp
         src/Physics/Physics.cpp
         lib/glew-cmake/src/glew.c
         src/Scene/TrackBlock.cpp
@@ -48,8 +47,7 @@ set(SOURCE_FILES
         tools/fshtool.c
         tools/fshtool.h
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h
-        src/Util/Raytracer.cpp src/Util/Raytracer.h
-        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/vkRenderer.cpp src/vkRenderer.h)
+        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/vkRenderer.cpp src/vkRenderer.h src/Loaders/trk_loader.h)
 
 add_executable(OpenNFS3 ${SOURCE_FILES})
 

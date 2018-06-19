@@ -9,7 +9,10 @@
 #include "Model.h"
 #include "../nfs_data.h"
 
-using namespace NFS3;
+struct INTPT {
+    uint32_t x, z, y;
+};
+
 
 class Light : public Model {
 public:

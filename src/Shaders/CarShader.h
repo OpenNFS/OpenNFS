@@ -5,11 +5,15 @@
 #pragma once
 
 #include "BaseShader.h"
+#include <sstream>
+#include <glm/detail/type_mat.hpp>
+#include <glm/detail/type_mat4x4.hpp>
+#include "../Config.h"
+#include "../Util/Utils.h"
 #include "../Scene/Model.h"
 #include "../../include/TGALoader/TGALoader.h"
 #include "../Scene/Light.h"
-#include <glm/detail/type_mat.hpp>
-#include <glm/detail/type_mat4x4.hpp>
+
 
 class CarShader : public BaseShader {
 public:
