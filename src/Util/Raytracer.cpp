@@ -2,12 +2,8 @@
 // Created by Amrik on 22/05/2018.
 //
 
-#include <iostream>
-#include <cmath>
-#include <assert.h>
 #include "Raytracer.h"
 
-using namespace NFS3;
 
 Raytracer::Raytracer(float rho, float theta, int nBlocks, TRKBLOCK *trk, POLYGONBLOCK *poly, XOBJBLOCK *xobj) {
     int startbl = 0;

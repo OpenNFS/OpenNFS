@@ -8,22 +8,21 @@
 #include <string>
 #include <iostream>
 #include <GL/glew.h>
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
 #include <set>
-
-#include "vkRenderer.h"
+/*#define GLFW_INCLUDE_VULKAN
+#include "vkRenderer.h"*/
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // Source
 #include "Util/Utils.h"
 #include "Scene/Camera.h"
 #include "Loaders/nfs_loader.h"
-#include "Loaders/trk_loader.h"
+#include "Loaders/nfs2_loader.h"
 #include "Loaders/music_loader.h"
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
@@ -117,7 +116,7 @@ void initDirectories(){
     }
 }
 
-int launchVK(){
+/*int launchVK(){
     vkRenderer renderer;
 
     try {
@@ -128,7 +127,7 @@ int launchVK(){
     }
 
     return EXIT_SUCCESS;
-}
+}*/
 
 int main(int argc, char **argv) {
     std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
@@ -256,9 +255,9 @@ int main(int argc, char **argv) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
                 trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
-                if (active_track_Block.lights.size() > 0) {
-                    trackShader.loadLight(active_track_Block.lights[0]);
-                }
+                //if (active_track_Block.lights.size() > 0) {
+                //    trackShader.loadLight(active_track_Block.lights[0]);
+                //}
                 trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
                 track_block_model.render();
             }

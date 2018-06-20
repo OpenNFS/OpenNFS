@@ -2,11 +2,9 @@
 // Created by Amrik on 26/02/2018.
 //
 
-#ifndef OPENNFS3_TRACKBLOCK_H
-#define OPENNFS3_TRACKBLOCK_H
+#pragma once
 
 #include "Track.h"
-#include "Light.h"
 
 class TrackBlock {
 public:
@@ -15,7 +13,6 @@ public:
     int block_id;
     std::vector<Track> track;
     std::vector<Track> objects;
-    std::vector<Light> lights;
 
     /* Iterators to allow for ranged for loops with class*/
     class iterator {
@@ -44,5 +41,3 @@ private:
     /* Iterator vars */
     unsigned len;
 };
-
-#endif //OPENNFS3_TRACKBLOCK_H

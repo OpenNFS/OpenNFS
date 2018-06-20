@@ -2,10 +2,13 @@
 // Created by Amrik on 22/05/2018.
 //
 
-#ifndef OPENNFS3_RAYTRACER_H
-#define OPENNFS3_RAYTRACER_H
+#pragma once
 
-#include "../nfs_data.h"
+#include <iostream>
+#include <cmath>
+#include <assert.h>
+#include "../Loaders/nfs3_loader.h"
+
 #define EPSILON 0.000001
 
 NFS3::FLOATPT VectorNormalize(NFS3::FLOATPT nc);
@@ -28,6 +31,3 @@ class Raytracer {
 public:
     explicit Raytracer(float rho, float theta, int nBlocks, NFS3::TRKBLOCK *trk, NFS3::POLYGONBLOCK *poly, NFS3::XOBJBLOCK *xobj);
 };
-
-
-#endif //OPENNFS3_RAYTRACER_H

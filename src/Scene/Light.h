@@ -7,12 +7,7 @@
 
 #include <glm/vec3.hpp>
 #include "Model.h"
-#include "../nfs_data.h"
-
-struct INTPT {
-    uint32_t x, z, y;
-};
-
+#include "../Loaders/nfs3_loader.h"
 
 class Light : public Model {
 public:
