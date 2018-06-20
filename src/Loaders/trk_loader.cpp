@@ -48,9 +48,16 @@ bool ExtractTrackTextures(const std::string &track_path, const::std::string trac
         case NFS_2:
             output_dir << "NFS2/";
             break;
+        case NFS_2_SE:
+            output_dir << "NFS2_SE/";
+            break;
         case NFS_3:
             output_dir << "NFS3/";
             break;
+        case NFS_3_PS1:
+            output_dir << "NFS3_PS1/";
+            break;
+        case UNKNOWN:
         default:
             output_dir << "UNKNOWN/";
             break;

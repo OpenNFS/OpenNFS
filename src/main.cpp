@@ -140,10 +140,10 @@ int main(int argc, char **argv) {
     //Load Car data from unpacked NFS files
     Car car = Car(nfs_loader);
     //Load Track Data`
-    //NFS2::TRACK *track = NFS2::trk_loader("../resources/NFS2/GAMEDATA/TRACKS/SE/TR02");
-    NFS2_Loader<PS1> trk_loader("../resources/PS1/ZZZTR02B");
-    PS1::TRACK *track = trk_loader.track;
-    //PS1::TRACK *track = NFS2_Loader trk_loader();
+    NFS2_Loader<PC> trk_loader("../resources/NFS2/GAMEDATA/TRACKS/PC/TR08");
+    NFS2::PC::TRACK *track = trk_loader.track;
+    //NFS2_Loader<PS1> trk_loader("../resources/PS1/ZZZTR02B");
+    //NFS2::PS1::TRACK *track = trk_loader.track;
     //NFS3::TRACK *track = NFS3::trk_loader("../resources/TRK003/tr03");
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");

@@ -255,7 +255,7 @@ namespace Utils {
     }
 
     // TODO: Integrate into LoadBmpCustomAlpha as a master bitmap loader
-    bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, int alphaColour) {
+    bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour) {
         GLsizei width, height;
         bool retval = false;
         // load file and check if it looks reasonable
@@ -301,7 +301,11 @@ namespace Utils {
                                                                 *current_bits++ = rgba.rgbRed;
                                                                 *current_bits++ = rgba.rgbGreen;
                                                                 *current_bits++ = rgba.rgbBlue;
-                                                                *current_bits++ = 255;
+                                                                if(rgba.rgbRed == 0 && rgba.rgbGreen == alphaColour && rgba.rgbBlue == 0){
+                                                                    *current_bits++ = 0;
+                                                                } else {
+                                                                    *current_bits++ = 255;
+                                                                }
                                                             }
                                                             pixel += padding;
                                                         }
@@ -314,7 +318,11 @@ namespace Utils {
                                                                 *current_bits++ = pixel[2];
                                                                 *current_bits++ = pixel[1];
                                                                 *current_bits++ = pixel[0];
-                                                                *current_bits++ = 255;
+                                                                if(pixel[2] == 0 && pixel[1] == alphaColour && pixel[0] == 0){
+                                                                    *current_bits++ = 0;
+                                                                } else {
+                                                                    *current_bits++ = 255;
+                                                                }
                                                                 pixel += 3;
                                                             }
                                                             pixel += padding;
@@ -329,7 +337,11 @@ namespace Utils {
                                                                 *current_bits++ = pixel[2];
                                                                 *current_bits++ = pixel[1];
                                                                 *current_bits++ = pixel[0];
-                                                                *current_bits++ = pixel[3];
+                                                                if(pixel[2] == 0 && pixel[1] == alphaColour && pixel[0] == 0){
+                                                                    *current_bits++ = 0;
+                                                                } else {
+                                                                    *current_bits++ = pixel[3];
+                                                                }
                                                                 pixel += 4;
                                                             }
                                                         }

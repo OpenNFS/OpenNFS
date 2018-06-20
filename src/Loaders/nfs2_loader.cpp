@@ -7,6 +7,18 @@
 template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::string &track_base_path) {
     std::cout << "--- Loading NFS2 Track ---" << std::endl;
 
+    NFSVer nfs_version = UNKNOWN;
+
+    if (std::is_same<Platform, PC>::value){
+        if(track_base_path.find("NFS2_SE") != std::string::npos){
+            nfs_version = NFS_2_SE;
+        } else {
+            nfs_version = NFS_2;
+        }
+    } else if (std::is_same<Platform, PS1>::value){
+        nfs_version = NFS_3_PS1;
+    }
+
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
     stringstream trk_path, col_path;
@@ -16,11 +28,11 @@ template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::strin
 
     ASSERT(LoadTRK(trk_path.str()), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str()), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    //ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_2), "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(ExtractTrackTextures(track_base_path, track_name, nfs_version), "Could not extract " << track_name << " QFS texture pack.");
 
     // Load up the textures
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
-        track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track_name);
+        track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track_name, nfs_version);
     }
     track->texture_gl_mappings = GenTrackTextures(track->textures);
 
@@ -73,7 +85,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
     }
 
     for (int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx) {
-        //std::cout << "SuperBlock " << superBlock_Idx+1 << " of " << track->nSuperBlocks << std::endl;
+        std::cout << "SuperBlock " << superBlock_Idx+1 << " of " << track->nSuperBlocks << std::endl;
         // Get the superblock header
         typename Platform::SUPERBLOCK *superblock = &track->superblocks[superBlock_Idx];
         trk.seekg(superblockOffsets[superBlock_Idx], ios_base::beg);
@@ -88,7 +100,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
             superblock->trackBlocks = static_cast<typename Platform::TRKBLOCK *>(calloc(static_cast<size_t>(superblock->nBlocks), sizeof(typename Platform::TRKBLOCK)));
 
             for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
-                //std::cout << "  Block " << block_Idx+1 << " of " << superblock->nBlocks << std::endl;
+                std::cout << "  Block " << block_Idx+1 << " of " << superblock->nBlocks << std::endl;
                 typename Platform::TRKBLOCK *trackblock = &superblock->trackBlocks[block_Idx];
                 // Read Header
                 trackblock->header = static_cast<TRKBLOCK_HEADER *>(calloc(1, sizeof(TRKBLOCK_HEADER)));
@@ -143,13 +155,6 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
                                 trk.read((char*) &trackblock->structures[structure_Idx].nVerts, sizeof(uint16_t));
                                 trk.read((char*) &trackblock->structures[structure_Idx].nPoly, sizeof(uint16_t));
 
-                                if(structure_Idx == 0){
-                                    std::cout << " " << trackblock->structures[structure_Idx].nPoly << " " << trackblock->structures[structure_Idx].nVerts << " " <<
-                                              (trackblock->structures[structure_Idx].recSize - (((trackblock->structures[structure_Idx].nVerts * sizeof(typename Platform::VERT))
-                                                                                                 + (trackblock->structures[structure_Idx].nPoly* sizeof(typename Platform::POLYGONDATA)))
-                                                                                                +sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t))) << std::endl;
-                                }
-
                                 trackblock->structures[structure_Idx].vertexTable = static_cast<typename Platform::VERT *>(calloc(trackblock->structures[structure_Idx].nVerts, sizeof(typename Platform::VERT)));
                                 for(int vert_Idx = 0; vert_Idx < trackblock->structures[structure_Idx].nVerts; ++vert_Idx){
                                     trk.read((char *) &trackblock->structures[structure_Idx].vertexTable[vert_Idx], sizeof(typename Platform::VERT));
@@ -181,8 +186,13 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
                                     for(int animation_Idx = 0; animation_Idx < trackblock->structureRefData[structureRef_Idx].animLength; ++animation_Idx){
                                         trk.read((char*) &trackblock->structureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
                                     }
+                                } else if(trackblock->structureRefData[structureRef_Idx].recType == 4) {
+                                    // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
+                                    trk.read((char*) &trackblock->structureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
                                 } else {
-                                    //std::cout << "Unknown Structure Reference type: " << (int) trackblock->structureRefData[structureRef_Idx].recType << std::endl;
+                                    std::cout << "Unknown Structure Reference type: " << (int) trackblock->structureRefData[structureRef_Idx].recType
+                                              << " Size: " << (int) trackblock->structureRefData[structureRef_Idx].recSize
+                                              << " StructRef: " << (int) trackblock->structureRefData[structureRef_Idx].structureRef << std::endl;
                                 }
                                 trk.seekg(trackblock->structureRefData[structureRef_Idx].recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
                             }
@@ -202,7 +212,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
                             trk.read((char *) trackblock->laneData, trackblock->nLanes * sizeof(LANE_BLOCK));
                             break;
                         default:
-                            //std::cout << "Unknown XBID: " << xblockHeader->XBID << std::endl;
+                            std::cout << "Unknown XBID: " << xblockHeader->XBID << " nRecords: " << xblockHeader->nRecords << " RecSize: " << xblockHeader->recSize << std::endl;
                             break;
                     }
                     free(xblockHeader);
@@ -292,6 +302,9 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadCOL(std::string col
                         for(int animation_Idx = 0; animation_Idx < track->colStructureRefData[structureRef_Idx].animLength; ++animation_Idx){
                             col.read((char*) &track->colStructureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
                         }
+                    } else if(track->colStructureRefData[structureRef_Idx].recType == 4) {
+                        // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
+                        col.read((char*) &track->colStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
                     } else {
                         std::cout << "Unknown Structure Reference type: " << (int) track->colStructureRefData[structureRef_Idx].recType << std::endl;
                     }
@@ -316,8 +329,6 @@ template <typename Platform> void NFS2_Loader<Platform>::dbgPrintVerts(const std
     if(!(boost::filesystem::exists(path))){
         boost::filesystem::create_directories(path);
     }
-
-    float scaleFactor = 100000;
 
     // Parse out TRKBlock data
     for(int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx){
@@ -361,16 +372,20 @@ template <typename Platform> void NFS2_Loader<Platform>::dbgPrintVerts(const std
                 for(int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx){
                     // Only check fixed type structure references
                     if(trkBlock.structureRefData[structRef_Idx].structureRef == structure_Idx){
-                        if(trkBlock.structureRefData[structRef_Idx].recType == 1){
+                        if(trkBlock.structureRefData[structRef_Idx].recType == 1||trkBlock.structureRefData[structRef_Idx].recType == 4){
                             structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].refCoordinates;
+                            break;
                         }
                         else if(trkBlock.structureRefData[structRef_Idx].recType == 3) {
                             if(trkBlock.structureRefData[structure_Idx].animLength != 0){
                                 // For now, if animated, use position 0 of animation sequence
                                 structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].animationData[0].position;
+                                break;
                             }
                         }
                     }
+                    if (structRef_Idx == trkBlock.nStructureReferences - 1)
+                        std::cout << "Couldn't find a reference coordinate for Structure " << structRef_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
                 }
                 obj_dump << "o Struct" << &trkBlock.structures[structure_Idx] << std::endl;
                 for(uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx){
@@ -397,16 +412,20 @@ template <typename Platform> void NFS2_Loader<Platform>::dbgPrintVerts(const std
         for(int structRef_Idx = 0; structRef_Idx < track->nColStructureReferences; ++structRef_Idx){
             // Only check fixed type structure references
             if(track->colStructureRefData[structRef_Idx].structureRef == structure_Idx){
-                if(track->colStructureRefData[structRef_Idx].recType == 1){
+                if(track->colStructureRefData[structRef_Idx].recType == 1||track->colStructureRefData[structRef_Idx].recType == 4){
                     structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].refCoordinates;
+                    break;
                 }
                 else if(track->colStructureRefData[structRef_Idx].recType == 3) {
                     if(track->colStructureRefData[structure_Idx].animLength != 0){
                         // For now, if animated, use position 0 of animation sequence
                         structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].animationData[0].position;
+                        break;
                     }
                 }
             }
+            if (structRef_Idx == track->nColStructureReferences - 1)
+                std::cout << "Couldn't find a reference coordinate for COL Structure " << structRef_Idx << std::endl;
         }
         obj_dump << "o ColStruct" << &track->colStructures[structure_Idx] << std::endl;
         for(uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx){
@@ -423,8 +442,6 @@ template <typename Platform> void NFS2_Loader<Platform>::dbgPrintVerts(const std
 }
 
 template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::ParseTRKModels() {
-    float scaleFactor = 100000;
-
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
 
     // Parse out TRKBlock data
@@ -456,16 +473,20 @@ template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::Pars
                 for(int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx){
                     // Only check fixed type structure references
                     if(trkBlock.structureRefData[structRef_Idx].structureRef == structure_Idx){
-                        if(trkBlock.structureRefData[structRef_Idx].recType == 1){
+                        if(trkBlock.structureRefData[structRef_Idx].recType == 1||trkBlock.structureRefData[structRef_Idx].recType == 4){
                             structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].refCoordinates;
+                            break;
                         }
                         else if(trkBlock.structureRefData[structRef_Idx].recType == 3) {
                             if(trkBlock.structureRefData[structure_Idx].animLength != 0){
                                 // For now, if animated, use position 0 of animation sequence
                                 structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].animationData[0].position;
+                                break;
                             }
                         }
                     }
+                    if (structRef_Idx == trkBlock.nStructureReferences - 1)
+                        std::cout << "Couldn't find a reference coordinate for Structure " << structRef_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
                 }
                 for(uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx){
                     int32_t x = (structureReferenceCoordinates->x + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x));
@@ -549,6 +570,12 @@ template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::Pars
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[0]);
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[2]);
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[3]);
+
+                float scrollA = ((texture_for_block.alignmentData >> 12) & 0xF) / 16.0f;
+                float scrollB = ((texture_for_block.alignmentData >> 8) & 0xF) / 16.0f;
+                float scrollC = ((texture_for_block.alignmentData >>  4) & 0xF)  / 16.0f;
+                float scrollD = (texture_for_block.alignmentData & 0xF)  / 16.0f;
+
                 // TODO: Use textures alignment data to modify these UV's
                 uvs.emplace_back(1.0f, 1.0f);
                 uvs.emplace_back(0.0f, 1.0f);
@@ -589,8 +616,6 @@ template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::Pars
 }
 
 template <typename Platform> std::vector<Track> NFS2_Loader<Platform>::ParseCOLModels() {
-    float scaleFactor = 100000;
-
     std::vector<Track> col_models;
 
     // Parse out COL data
@@ -608,16 +633,20 @@ template <typename Platform> std::vector<Track> NFS2_Loader<Platform>::ParseCOLM
         for(int structRef_Idx = 0; structRef_Idx < track->nColStructureReferences; ++structRef_Idx){
             // Only check fixed type structure references
             if(track->colStructureRefData[structRef_Idx].structureRef == structure_Idx){
-                if(track->colStructureRefData[structRef_Idx].recType == 1){
+                if(track->colStructureRefData[structRef_Idx].recType == 1||track->colStructureRefData[structRef_Idx].recType == 4){
                     structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].refCoordinates;
+                    break;
                 }
                 else if(track->colStructureRefData[structRef_Idx].recType == 3) {
                     if(track->colStructureRefData[structure_Idx].animLength != 0){
                         // For now, if animated, use position 0 of animation sequence
                         structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].animationData[0].position;
+                        break;
                     }
                 }
             }
+            if (structRef_Idx == track->nColStructureReferences - 1)
+                std::cout << "Couldn't find a reference coordinate for COL Structure " << structRef_Idx << std::endl;
         }
         for(uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx){
             int32_t x = (structureReferenceCoordinates->x + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
@@ -663,15 +692,31 @@ template <typename Platform> std::vector<Track> NFS2_Loader<Platform>::ParseCOLM
     return col_models;
 }
 
-template <typename Platform> Texture NFS2_Loader<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name) {
+template <typename Platform> Texture NFS2_Loader<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version) {
     std::stringstream filename;
-    filename << TRACK_PATH << "NFS2/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";
+    filename << TRACK_PATH;
+    switch(nfs_version){
+        case NFS_2:
+            filename << "NFS2/";
+            break;
+        case NFS_2_SE:
+            filename << "NFS2_SE/";
+            break;
+        case NFS_3_PS1:
+            filename << "NFS3_PS1/";
+            break;
+        case UNKNOWN:
+        default:
+            filename << "UNKNOWN/";
+            break;
+    }
+    filename << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";;
 
     GLubyte *data;
     GLsizei width;
     GLsizei height;
 
-    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, 0),
+    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, 248u),
            "Texture " << filename.str() << " did not load succesfully!");
 
     return Texture((unsigned int) track_texture.texNumber, data, static_cast<unsigned int>(width),

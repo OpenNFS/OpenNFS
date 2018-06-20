@@ -110,7 +110,7 @@ namespace Utils {
 
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir);
 
-    bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, int alphaColour);
+    bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
 
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height);
 }

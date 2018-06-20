@@ -320,8 +320,10 @@ std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
                                              trk_block.vert[v].z / 10));
             uint32_t shading_data = trk_block.unknVertices[v];
             obj_shading_verts.emplace_back(
-                    glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
-                              (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
+                    glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f,
+                              ((shading_data >> 8) & 0xFF) / 255.0f,
+                              (shading_data & 0xFF) / 255.0f,
+                              ((shading_data >> 24) & 0xFF) / 255.0f));
         }
         // 4 OBJ Poly blocks
         for (int j = 0; j < 4; j++) {
