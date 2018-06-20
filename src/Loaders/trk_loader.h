@@ -19,3 +19,7 @@ std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
 std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) ;
 
 bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version);
+
+class trk_loader {
+
+};

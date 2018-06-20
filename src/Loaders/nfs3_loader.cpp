@@ -4,6 +4,32 @@
 
 #include "nfs3_loader.h"
 
+NFS3_Loader::NFS3_Loader(const std::string &track_base_path) {
+    std::cout << "--- Loading NFS3 Track ---" << std::endl;
+
+    boost::filesystem::path p(track_base_path);
+    std::string track_name = p.filename().string();
+    stringstream frd_path, col_path;
+    string strip = "K0";
+    unsigned int pos= track_name.find(strip);
+    if(pos!= string::npos)
+        track_name.replace(pos, strip.size(), "");
+
+    frd_path << track_base_path << ".frd";
+    col_path << track_base_path << ".col";
+
+    ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(LoadFRD(frd_path.str(), track_name), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCOL(col_path.str()), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+
+    track->texture_gl_mappings = GenTrackTextures(track->textures);
+    track->track_blocks = ParseTRKModels();
+    std::vector<Track> col_models = ParseCOLModels();
+    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
+
+    std::cout << "Successful track load!" << std::endl;
+}
+
 bool NFS3_Loader::LoadFRD(std::string frd_path, const std::string &track_name) {
     ifstream ar(frd_path, ios::in | ios::binary);
 
@@ -261,66 +287,6 @@ bool NFS3_Loader::LoadCOL(std::string col_path) {
     return coll.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
 }
 
-std::vector<Track> NFS3_Loader::ParseCOLModels() {
-    std::vector<Track> col_models;
-    COLOBJECT *o = track->col.object;
-    /* COL DATA - TODO: Come back for VROAD AI/Collision data */
-    for (int i = 0; i < track->col.objectHead.nrec; i++, o++) {
-        COLSTRUCT3D s = track->col.struct3D[o->struct3D];
-        // Keep track of unique textures in trackblock for later OpenGL bind
-        std::set<short> minimal_texture_ids_set;
-        std::vector<unsigned int> indices;
-        std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
-        std::vector<glm::vec3> verts;
-        std::vector<glm::vec4> shading_data;
-        for (int j = 0; j < s.nVert; j++, s.vertex++) {
-            verts.emplace_back(glm::vec3(s.vertex->pt.x / 10,
-                                         s.vertex->pt.y / 10,
-                                         s.vertex->pt.z / 10));
-            shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
-        }
-        for (int k = 0; k < s.nPoly; k++, s.polygon++) {
-            // Remap the COL TextureID's using the COL texture block (XBID2)
-            COLTEXTUREINFO col_texture = track->col.texture[s.polygon->texture];
-            TEXTUREBLOCK texture_for_block;
-            // Find the texture by it's file name, but use the Texture table to get the block. TODO: Not mapping this so, must do a manual search.
-            for (int t = 0; t < track->nTextures; t++) {
-                if (track->texture[t].texture == col_texture.texture) {
-                    texture_for_block = track->texture[t];
-                }
-            }
-            minimal_texture_ids_set.insert(texture_for_block.texture);
-            indices.emplace_back(s.polygon->v[0]);
-            indices.emplace_back(s.polygon->v[1]);
-            indices.emplace_back(s.polygon->v[2]);
-            indices.emplace_back(s.polygon->v[0]);
-            indices.emplace_back(s.polygon->v[2]);
-            indices.emplace_back(s.polygon->v[3]);
-            uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-            uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
-            uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-            uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-            uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-            uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
-            texture_indices.emplace_back(texture_for_block.texture);
-            texture_indices.emplace_back(texture_for_block.texture);
-            texture_indices.emplace_back(texture_for_block.texture);
-            texture_indices.emplace_back(texture_for_block.texture);
-            texture_indices.emplace_back(texture_for_block.texture);
-            texture_indices.emplace_back(texture_for_block.texture);
-        }
-        // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-        glm::vec3 position = glm::vec3(static_cast<float>(o->ptRef.x / 65536.0)/10, static_cast<float>(o->ptRef.y / 65536.0)/10, static_cast<float>(o->ptRef.z / 65536.0)/10);
-        Track col_model = Track("ColBlock", i, verts, uvs, texture_indices, indices, texture_ids, shading_data,
-                                glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
-        col_model.enable();
-        col_models.emplace_back(col_model);
-    }
-    return col_models;
-}
-
 std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
@@ -334,7 +300,7 @@ std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
 
         // Light sources
         for (int j = 0; j < trk_block.nLightsrc; j++) {
-           // Light temp_light = Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type);
+            // Light temp_light = Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type);
             //temp_light.enable();
             //current_track_block.lights.emplace_back(temp_light);
         }
@@ -565,6 +531,66 @@ std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
     return track_blocks;
 }
 
+std::vector<Track> NFS3_Loader::ParseCOLModels() {
+    std::vector<Track> col_models;
+    COLOBJECT *o = track->col.object;
+    /* COL DATA - TODO: Come back for VROAD AI/Collision data */
+    for (int i = 0; i < track->col.objectHead.nrec; i++, o++) {
+        COLSTRUCT3D s = track->col.struct3D[o->struct3D];
+        // Keep track of unique textures in trackblock for later OpenGL bind
+        std::set<short> minimal_texture_ids_set;
+        std::vector<unsigned int> indices;
+        std::vector<glm::vec2> uvs;
+        std::vector<unsigned int> texture_indices;
+        std::vector<glm::vec3> verts;
+        std::vector<glm::vec4> shading_data;
+        for (int j = 0; j < s.nVert; j++, s.vertex++) {
+            verts.emplace_back(glm::vec3(s.vertex->pt.x / 10,
+                                         s.vertex->pt.y / 10,
+                                         s.vertex->pt.z / 10));
+            shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
+        }
+        for (int k = 0; k < s.nPoly; k++, s.polygon++) {
+            // Remap the COL TextureID's using the COL texture block (XBID2)
+            COLTEXTUREINFO col_texture = track->col.texture[s.polygon->texture];
+            TEXTUREBLOCK texture_for_block;
+            // Find the texture by it's file name, but use the Texture table to get the block. TODO: Not mapping this so, must do a manual search.
+            for (int t = 0; t < track->nTextures; t++) {
+                if (track->texture[t].texture == col_texture.texture) {
+                    texture_for_block = track->texture[t];
+                }
+            }
+            minimal_texture_ids_set.insert(texture_for_block.texture);
+            indices.emplace_back(s.polygon->v[0]);
+            indices.emplace_back(s.polygon->v[1]);
+            indices.emplace_back(s.polygon->v[2]);
+            indices.emplace_back(s.polygon->v[0]);
+            indices.emplace_back(s.polygon->v[2]);
+            indices.emplace_back(s.polygon->v[3]);
+            uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+            uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
+            uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+            uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+            uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+            uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+            texture_indices.emplace_back(texture_for_block.texture);
+            texture_indices.emplace_back(texture_for_block.texture);
+            texture_indices.emplace_back(texture_for_block.texture);
+            texture_indices.emplace_back(texture_for_block.texture);
+            texture_indices.emplace_back(texture_for_block.texture);
+            texture_indices.emplace_back(texture_for_block.texture);
+        }
+        // Get ordered list of unique texture id's present in block
+        std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+        glm::vec3 position = glm::vec3(static_cast<float>(o->ptRef.x / 65536.0)/10, static_cast<float>(o->ptRef.y / 65536.0)/10, static_cast<float>(o->ptRef.z / 65536.0)/10);
+        Track col_model = Track("ColBlock", i, verts, uvs, texture_indices, indices, texture_ids, shading_data,
+                                glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
+        col_model.enable();
+        col_models.emplace_back(col_model);
+    }
+    return col_models;
+}
+
 Texture NFS3_Loader::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name) {
     std::stringstream filename;
     std::stringstream filename_alpha;
@@ -591,32 +617,4 @@ Texture NFS3_Loader::LoadTexture(TEXTUREBLOCK track_texture, const std::string &
 
     return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
                    static_cast<unsigned int>(track_texture.height));
-}
-
-TRACK *NFS3_Loader::trk_loader(const std::string &track_base_path) {
-    std::cout << "--- Loading NFS3 Track ---" << std::endl;
-
-    boost::filesystem::path p(track_base_path);
-    std::string track_name = p.filename().string();
-    stringstream frd_path, col_path;
-    string strip = "K0";
-    unsigned int pos= track_name.find(strip);
-    if(pos!= string::npos)
-        track_name.replace(pos, strip.size(), "");
-
-    frd_path << track_base_path << ".frd";
-    col_path << track_base_path << ".col";
-
-    ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track_name), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCOL(col_path.str()), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-
-    track->texture_gl_mappings = GenTrackTextures(track->textures);
-    track->track_blocks = ParseTRKModels();
-    std::vector<Track> col_models = ParseCOLModels();
-    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
-
-    std::cout << "Successful track load!" << std::endl;
-
-    return track;
 }
