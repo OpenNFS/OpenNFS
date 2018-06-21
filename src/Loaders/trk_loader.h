@@ -20,6 +20,10 @@ std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_se
 
 bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version);
 
+bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
+
+bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
+
 class trk_loader {
 
 };

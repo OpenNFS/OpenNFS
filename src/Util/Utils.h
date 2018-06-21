@@ -106,8 +106,6 @@ namespace Utils {
     // TODO: Move to resource handling class
     std::vector<CarModel> LoadOBJ(std::string obj_path);
 
-    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
-
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir);
 
     bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);

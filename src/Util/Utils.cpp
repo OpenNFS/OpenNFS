@@ -147,19 +147,6 @@ namespace Utils {
         return meshes;
     }
 
-    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir){
-        // Fshtool molests the current working directory, save and restore
-        char cwd[1024];
-        getcwd(cwd, sizeof(cwd));
-
-        char * args[3] = {"", strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
-        int returnCode = (fsh_main(3, args) == 1);
-
-        chdir(cwd);
-
-        return returnCode;
-    }
-
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir) {
         FILE *vivfile, *outfile;  // file stream
         int numberOfFiles; // number of files in viv file

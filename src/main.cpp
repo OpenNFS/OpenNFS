@@ -144,10 +144,10 @@ int main(int argc, char **argv) {
     //NFS3::TRACK *track = trk_loader.track;
     //NFS2::PC::TRACK *track = trk_loader.track;
     //NFS2_Loader<PC> trk_loader("../resources/NFS2/GAMEDATA/TRACKS/PC/TR02");
-    NFS2_Loader<PC> trk_loader("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR08");
-    NFS2::PC::TRACK *track = trk_loader.track;
-    //NFS2_Loader<PS1> trk_loader("../resources/PS1/ZZZTR02B");
-    //NFS2::PS1::TRACK *track = trk_loader.track;
+    //NFS2_Loader<PC> trk_loader("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR08");
+    //NFS2::PC::TRACK *track = trk_loader.track;
+    NFS2_Loader<PS1> trk_loader("../resources/NFS3_PS1/ZZZTR02B");
+    NFS2::PS1::TRACK *track = trk_loader.track;
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 

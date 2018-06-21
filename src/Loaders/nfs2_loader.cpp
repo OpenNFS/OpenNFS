@@ -318,6 +318,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadCOL(std::string col
                 break;
             default:break;
         }
+        free(xblockHeader);
     }
     col.close();
     return true;
@@ -438,6 +439,7 @@ template <typename Platform> void NFS2_Loader<Platform>::dbgPrintVerts(const std
             obj_dump << "f " << (unsigned int) track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[0]+1 << " " << (unsigned int)track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[1]+1 << " " << (unsigned int) track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[2]+1 << " " << (unsigned int) track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[3]+1 << std::endl;
         }
         obj_dump.close();
+        free(structureReferenceCoordinates);
     }
 }
 
@@ -577,12 +579,16 @@ template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::Pars
                 float scrollD = (texture_for_block.alignmentData & 0xF)  / 16.0f;
 
                 // TODO: Use textures alignment data to modify these UV's
-                uvs.emplace_back(1.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 0.0f);
-                uvs.emplace_back(1.0f, 1.0f);
-                uvs.emplace_back(0.0f, 0.0f);
-                uvs.emplace_back(1.0f, 0.0f);
+
+                //FLIP SHIT HERE
+                uvs.emplace_back(1.0f, 1.0f); //0
+                uvs.emplace_back(0.0f, 1.0f); //1
+                uvs.emplace_back(0.0f, 0.0f); //2
+                uvs.emplace_back(1.0f, 1.0f); //0
+                uvs.emplace_back(0.0f, 0.0f); //2
+                uvs.emplace_back(1.0f, 0.0f); //3
+
+
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
@@ -688,6 +694,7 @@ template <typename Platform> std::vector<Track> NFS2_Loader<Platform>::ParseCOLM
         Track col_model = Track("ColBlock", structure_Idx, verts, uvs, texture_indices, indices, texture_ids, shading_data, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
         col_model.enable();
         col_models.emplace_back(col_model);
+        free(structureReferenceCoordinates);
     }
     return col_models;
 }
@@ -696,6 +703,7 @@ template <typename Platform> Texture NFS2_Loader<Platform>::LoadTexture(TEXTURE_
     std::stringstream filename;
     uint8_t alphaColour= 0;
     filename << TRACK_PATH;
+
     switch(nfs_version){
         case NFS_2:
             alphaColour = 0u;

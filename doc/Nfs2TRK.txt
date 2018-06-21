@@ -1,0 +1,481 @@
+============================================================================
+NFSII UNOFFICIAL TRACK FILE FORMATS - (c) Denis Auroux, 1997 - Version 0.11
+============================================================================
+
+DISCLAIMER: No warranty of any kind comes with this file ! Its contents are
+totally *unofficial*, and Electronic Arts has no responsibility in all of
+this (they just made a fine game :-) Also, it is illegal to use the 
+information contained herein for commercial purposes.
+
+NOTE: I am *not* planning to release a track editor for NFSII !
+So if you have a good knowledge of Windows programming, 3D structures and
+user interfaces, and if you have time and are motivated, please write your
+own track editor ! I will help anyone working on such a project if more
+detail is needed about the file formats or interaction with NFSII, but
+I won't do all the work because I don't want to spend my days and nights 
+on user interfaces (and also because I'm perfectly happy with the builtin
+tracks).
+____________________________________________________________________________
+
+The general setup :
+
+The track data in NFSII is contained in the subdirectory GAMEDATA\TRACKS\PC
+of your NFS directory or of the CDROM. This directory contains four files for
+each one of the seven tracks :
+
+- TR0*.TRK : the main track data file, containing all 3D structures and so on
+- TR0*0.QFS : the texture bitmaps, compressed using a LZ77 algorithm
+- TR0*.COL : additional track data
+- TR0*.HRZ : information about the horizon (color and height of the sky)
+
+The '*' must be replaced by 0 (Proving Grounds), 2 (Outback), 
+3 (Pacific Spirit), 5 (North Country), 6 (Mediterraneo), 7 (Mystic Peaks), 
+or 8 (Monolithic Studios).
+
+To install the track files on the hard disk if they are currently loaded on
+the CDROM :
+a) create a subdirectory called GAMEDATA\TRACKS\PC in your NFS directory, and
+   copy the contents of the directory \GAMEDATA\TRACKS\PC from the CD into it.
+b) edit the file called INSTALL.WIN in the root of your NFS directory, and 
+   look for a line that says something like "3rnD:\GameData\Tracks\pc\"
+   (it should be the 7th line), and replace "D:" (or whatever your CD drive 
+   is called) with "."
+
+The following is information about the .TRK and .COL file formats.
+Note that it is still valid in NFS2 Special Edition, where the only
+difference is that the files are in GAMEDATA\TRACKS\SE.
+However the .QFS compressed bitmaps are stored in 64K-color mode 
+in NFS2SE, rather than NFS2's 256-color mode.
+____________________________________________________________________________
+
+1. TRK Track files start with a 32-byte header :
+
+offset  len  data
+====================
+ 0       4   'TRAC'
+ 4       4   ?
+ 8       4   ?
+ 12      4   ?
+ 16      4   ?
+ 20      4   ?
+ 24      4   Number of superblocks (nsblk)
+ 28      4   Number of blocks (nblk)
+___________________________________________________________________________
+
+2. Each track is subdivided into 150 to 250 blocks, which are grouped by 8
+within "superblocks". The header is followed by the superblock offset list,
+located at offset 32 in the file.
+
+offset  len   data
+====================
+ 32      4    Offset of superblock #0 in file
+ 36      4    Offset of superblock #1 in file
+                ...
+              Offset of superblock #(nsblk-1) in file
+___________________________________________________________________________
+
+3. There is then a list of block reference positions : for each block, this
+list defines 3 absolute coordinates, falling close to all objects inside the
+block. The coordinates inside the block structure are then most of the time
+relative 16-bit coordinates, to which one must add the reference position
+in order to obtain absolute coordinates :
+
+  absolute coord. (32) = reference coord. (32) + 256 * relative coord. (16)
+
+For each block (#0 ... #(nblk-1)), the list of block reference positions
+contains a 12-byte entry containing :
+
+offset  len   data
+====================
+ 0       4     reference x coordinate
+ 4       4     reference z coordinate
+ 8       4     reference y coordinate
+
+The z axis is pointing upwards ; the x and y axes are horizontal, and
+usually x points to the right of the starting line, while y points 
+forward of it.
+___________________________________________________________________________
+
+4. The header and two above tables are followed by some useless padding
+and then all the superblocks, each of them containing a superblock header
+followed by all the blocks contained in the superblock. The superblocks are
+usually contiguous, and make up all of the remaining file data.
+The superblock header is as follows :
+
+offset  len   data
+====================
+ 0       4    superblock size in bytes
+ 4       4    number of blocks in superblock (usually 8 except last sblock)
+ 8       4    0
+ 12      4    offset of first block inside superblock
+ 16      4    offset of second block inside superblock
+ ...
+ 40      4    offset of 8th block inside superblock (if there are 8 blocks)
+
+This header is immediately followed by the blocks (the first block thus
+usually has offset 44, except for the last superblock of a track where the
+header may be shorter).
+___________________________________________________________________________
+
+5. Each block consists of several parts : first, a 88-byte header as follows :
+
+offset  len   data
+====================
+ 0       4    block size in bytes
+ 4       4    block size in bytes
+ 8       2    number of extrablocks
+ 10      2    ?
+ 12      4    block serial number (from 0 up to nblk-1)
+ 16      4    x1 absolute coordinate
+ 20      4    z1 absolute coordinate
+ 24      4    y1 absolute coordinate
+ 28      4    x2 absolute coordinate
+ 32      4    z2 absolute coordinate
+ 36      4    y2 absolute coordinate
+ 40      4    x3 absolute coordinate
+ 44      4    z3 absolute coordinate
+ 48      4    y3 absolute coordinate
+ 52      4    x4 absolute coordinate
+ 56      4    z4 absolute coordinate
+ 60      4    y4 absolute coordinate
+ 64      4    relative offset to extrablock-table (from here)
+ 68      2    number of stick-to-next vertices (nv8)
+ 70      2    number of own vertices for 1/4 resolution (nv4)
+ 72      2    number of own vertices for 1/2 resolution (nv2)
+ 74      2    number of own vertices for full resolution (nv1)
+ 76      4    number of polygons for 1/4 resolution (np4)
+ 80      4    number of polygons for 1/2 resolution (np2)
+ 84      4    number of polygons for full resolution (np1)
+
+The 4 series of absolute coordinates correspond to the vertices of a
+"clipping rectangle" : this is a rectangle that, on a map, contains
+all the objects of the block. (but it has no thickness in the z direction,
+and usually z1=z2=z3=z4).
+
+The numbers of vertices and polygons correspond to a 3D structure that
+represents all of the ground (the road itself and its surrounding terrain,
+which can be a gentle slope, a hill, the wall of a building, ...) but not
+the objects ("background 3D structure"). This background 3D structure exists
+in three resolutions : full resolution (the length along the track is
+subdivided into 8 vertices), half resolution (only 4 subdivisions), and
+1/4 resolution (only 2 subdivisions). So the 3D engine decreases the
+resolution for track sections that are too far away !
+
+There are four different numbers of vertices : the first number (nv8) 
+corresponds to the number of vertices in the 3D structure whose coordinates
+are actually relative not to the reference position of this block, but to
+that of the NEXT block (or the first block if this is the last one).
+So vertices 0 to (nv8-1) are actually linked to the next block, although
+the coordinates are stored and used in this block. The second number (nv4)
+corresponds to the number of "normal" (i.e. not in the nv8 first) vertices
+used by the 1/4 resolution structure : so in 1/4 resolution, one needs
+vertices 0 to (nv8+nv4-1). Similarly, nv2 is for the 1/2 resolution,
+where one needs vertices 0 to (nv8+nv2-1) -- the nv2 vertices include the
+nv4, since the 1/2 resolution structure contains the 1/4 resolution).
+Finally, nv1 is for full resolution, using vertices 0 to (nv8+nv1-1).
+The total number of vertices stored in the structure is thus nv8+nv1.
+
+Similarly, there are three different numbers of polygons : the first 
+one is the number of polygons in the 1/4 resolution 3D structure
+(using polygons 0 to np4-1), the second one corresponds to 1/2 resolution
+(using polygons np4 to np4+np2-1), and the last one corresponds to full
+resolution (using polygons np4+np2 to np4+np2+np1-1). Note that unlike the 
+case of vertices, none of the low-resolution polygons belongs to the 
+full-resolution structure, so the total number of polygons stored in the
+structure is np4+np2+np1.
+___________________________________________________________________________
+
+6. The background 3D structure starts at offset 88 inside the block (just
+after the header), and consists of two tables :
+
+- the vertex table, which lists the relative 16-bit coordinates corresponding
+to all vertices of the structure (total size = 6*nvert bytes). Each entry is
+
+offset  len  data
+=================
+ 0       2    relative x
+ 2       2    relative z
+ 4       2    relative y
+
+(once again, absolute coordinates are obtained by multiplying by 256 and
+adding the reference coordinates)
+
+- the polygon table, which lists the various polygons making up the structure
+(total size = 8*npoly bytes). Each entry is
+
+offset  len  data
+=================
+ 0       2    texture number
+ 2       2    -1 (texture number for the other side == none ?)
+ 4       1    first vertex
+ 5       1    second vertex
+ 6       1    third vertex
+ 7       1    fourth vertex
+
+To draw the road, the NFS2 engine thus needs to, for each polygon, find
+the coordinates of its four vertices by looking up the previous table,
+look up the correct texture in the corresponding .QFS file, and map the
+texture on the polygon.
+___________________________________________________________________________
+
+7. The background 3D structure is followed by an extrablock table, which
+lists the position of some "extrablocks", containing necessary data besides
+the 3D background structure. The extrablock table may be preceded by two
+bytes of padding, so its position must be looked up in the block header
+(at offset 64). The extrablock table contains a variable number of entries
+(because some extrablocks may be missing); the number of entries is found
+at offset 8 in the block header.
+
+Each entry in the extrablock table is a 32-bit offset relative to the 
+beginning of the block (not the beginning of the extrablock table), 
+indicating the position of the corresponding extrablock. 
+
+Each extrablock has the same 8-byte header :
+
+offset  len   data
+===================
+ 0       4     size of the extrablock in bytes
+ 4       2     extrablock type identifier (XBID)
+ 6       2     number of data records
+ 
+This header is immediately followed by the data records (variable size
+depending on the component) ; there may be 2 bytes of padding after the
+data records, so one must use the declared size or the extrablock 
+table to find the following extrablock.
+
+The extrablock type identifier helps identifying the contents of an
+extrablock. A typical block contains 8 extrablocks, whose XBIDs are
+respectively equal to 5, 4, 8, 7, 18, 6, 13 and 9... but some of these
+may be missing and others may be added !
+_____________________________________________________________________________
+
+8. XBID 5 : these extrablocks have 2-byte data records. The number of
+records is equal to the number np1 of polygons in the full resolution 
+background 3D structure. For each polygon in the background 3D structure :
+- the first byte refers to an entry in the XBID=13 extrablock (see below),
+which describes virtual road data associated to the polygon.
+- the second byte describes the behavior a car should have when arriving on 
+this polygon it : e.g. whether one can drive through it, whether the car
+should be considered as wrecked and put back on the track, ...
+_____________________________________________________________________________
+
+9. XBID 4 : these extrablocks have 2-byte data records, used to list
+all block numbers close to the current one : in block #n, these numbers are
+respectively : n, n+1, n-1, n+2, n-2, n+3, n-3, and so on. Of course, if
+the numbers go beyond the track length they start back at 0, and if they
+drop below 0 they start back at the track length - 1.
+_____________________________________________________________________________
+
+10. XBID 8 : these extrablocks contain 3D structures for the objects. 
+The 8-byte extrablock header (see above) is followed by the 3D structures, 
+each having the following format :
+
+offset  len  data
+==================
+ 0       4   size of the 3D structure in bytes
+ 4       2   number of vertices (nv)
+ 6       2   number of polygons (np)
+ 8     6.nv  vertex table
+8+6.nv 8.np  polygon table
+(there may be 2 bytes of padding after the polygon table)
+
+For descriptions of the vertex table (three 16-bit relative coordinates
+for each vertex) and the polygon table (8 bytes for each polygon listing
+its two textures and four vertices), see above (section 6.)
+_____________________________________________________________________________
+
+11. XBIDs 7 and 18 : these extrablocks list the objects that appear in the
+scene, using the 3D structures stored in the XBID=8 extrablock. The data 
+records have the following structure (variable length):
+
+offset  len  data
+==================
+ 0       2    size of the record in bytes
+ 2       1    type of record (1 = basic object, 3 = animated, ...)
+ 3       1    object type (# of 3D-structure inside XBID=8 extrablock)
+ 4       depends on record type
+
+The simplest case is that of a fixed object : the record is then 16 bytes
+long and the data consists just of a set of reference 32-bit coordinates
+to be used for the 3D structure : the record structure is then
+
+offset  len  data
+==================
+ 0       2    16 (size in bytes)
+ 2       1    1 (basic object)
+ 3       1    object type (# of 3D-structure)
+ 4       4    reference x coordinate (absolute 32-bit) for the 3D structure
+ 8       4    reference z coordinate
+ 12      4    reference y coordinate
+
+For an animated object, the record has instead the following structure
+
+offset  len  data
+==================
+ 0       2   size (variable : equal to 8 + 20*animation length)
+ 2       1   3 (animated object)
+ 3       1   object type (# of 3D-structure)
+ 4       2   animation length (number of position-records)
+ 6       2   ?
+ 8       4   first position : reference x (absolute 32-bit)
+ 12      4   first position : reference z
+ 16      4   first position : reference y
+ 20      2   first position : ?
+ 22      2   first position : ?
+ 24      2   first position : ?
+ 26      2   first position : ?
+ 28      4   second position: reference x
+ ...         ......
+_____________________________________________________________________________
+
+12. XBID 6 : these extrablocks consist of 8-byte data records.
+ The first byte in each record is a polygon number between 0 and np1-1,
+ listing all those that correspond to the median position (the track itself)
+_____________________________________________________________________________
+
+13. XBID 13 : 12-byte data records. These records are used to describe the
+virtual road data corresponding to every polygon in the background 3D 
+structure. The correspondance between polygons and records is described in
+the XBID=5 extrablock (see above), but there may be several polygons with
+the same record. Each record has the following structure :
+
+offset len  data
+==================
+ 0      2    x coordinate of the normal vector
+ 2      2    z coordinate of the normal vector
+ 4      2    y coordinate of the normal vector
+ 6      2    x coordinate of the forward vector
+ 8      2    z coordinate of the forward vector
+ 10     2    y coordinate of the forward vector
+
+Each of these two vectors is normalized with norm 32767 (only in order to
+avoid numerical overflows). The normal vector is perpendicular to the polygon
+and pointing upwards (and so usually has very large z !) ; for example, if
+its x coordinate is >0, this means that in the direction of increasing x the
+road is facing downwards (this may be either a slope or a twist). The forward
+vector is pointing straight ahead along the track and is e.g. used to
+indicate in what direction to position the cars on the starting line.
+
+Note: big slopes are reasonably well tolerated by the NFS2 engine, but I've
+had tons of bugs during experiments with big twists. So track editors ought
+to put reasonable restrictions on twists (no more than about 20%)
+_____________________________________________________________________________
+
+14. XBID 9 : 4-byte data records. These records outline sequences of
+positions on the track, forming kinds of "lanes" on the road : there are
+usually 3 or 4 "lanes", but this is variable (and they sometimes vanish!)
+Each record has the following format :
+
+offset len data
+================
+ 0      1   vertex number (inside background 3D structure : 0 to nv1+nv8)
+ 1      1   position along track inside block (0 to 7)
+ 2      1   lateral position ? (constant in each lane), -1 at the end
+ 3      1   polygon number (inside full-res backgnd 3D structure : 0 to np1)
+
+The different lanes inside an extrablock are delimited by setting the 
+lateral position byte to -1 for the last position of a lane (whose vertex
+number is usually <nv8 since it links to the next block); in each series,
+the position along track increases between 0 and 7 (unless the lane vanishes
+at some point in the block); the given vertex is always one of the vertices
+of the given polygon.
+_____________________________________________________________________________
+
+15. Format of the .COL files : these files store in extrablock structures
+(see above) the information that is global (i.e. does not belong to any 
+block in particular and so does not fit in the .TRK file). Its 16-byte 
+header is
+
+offset len data
+================
+ 0      4   'COLL'
+ 4      4   11
+ 8      4   file size in bytes
+ 12     4   number of extrablocks (2 or 4)
+
+The header is followed by a table listing relative offsets to the 
+various extrablocks. These offsets (4 bytes per extrablock) are relative
+to the beginning of the table, and one must add 16 to obtain the offset in
+the file.
+
+The first extrablock has XBID 2 (see below) and is a translation table
+between the textures referenced in the 3D structures and the bitmaps
+in the .QFS file. The second extrablock has XBID 8 (see above) and lists 
+the 3D structures used for the global objects. The third extrablock has 
+XBID 7 (see above) and lists the reference positions for animation of these 
+same objects. The last extrablock has XBID 15 (see below). 
+
+The second and third extrablocks are used to describe global animated 
+objects that move along large parts of the track (for example, the airplane 
+in Proving Grounds) or are bigger than blocks (for example, the water in 
+Outback). If there are no such objects, the .COL file contains only the two
+other extrablocks.
+_____________________________________________________________________________
+
+16. XBID 2 : this extrablock consists of 10-byte records and describes the
+translation between the textures used by the .TRK file and those contained
+in the .QFS compressed bitmap file : a polygon referencing texture #0 in
+the track data is drawn not using the first texture of the .QFS file, but
+rather using the texture described by the first entry of this extrablock.
+Each entry has the following format :
+
+offset len data
+================
+ 0      2   texture number in .QFS file
+ 2      2   alignment data
+ 4      3   RGB color (texture's average luminosity ?)
+ 7      3   RGB color (usually black ?)
+
+The texture number references an entry of the .QFS file. This bitmap is
+actually scrolled by an amount described in the alignment data before it
+is mapped, so that the resulting scene displays objects whose textures
+extend smoothly across edges. The two RGB colors appear to be here only
+for informative purposes and do not seem to have any effect in the game
+(maybe this will be used for some cool transparency effect in NFS2SE ?)
+_____________________________________________________________________________
+
+17. XBID 15 : these extrablocks consist of 36-byte records (many of them !)
+Each entry has the following format :
+
+offset len  data
+=================
+ 0      4   absolute x coordinate
+ 4      4   absolute z coordinate
+ 8      4   absolute y coordinate
+ 12     3   vertical vector
+ 15     3   forward vector
+ 18     3   right vector
+ 21     1   0
+ 22     2   block number
+ 24     2   ?
+ 26     2   left border
+ 28     2   right border
+ 30     2   post-crash position
+ 32     4   ?
+
+There are usually 8 records per block, but the number of records may be
+very slightly different from 8*nblocks. 
+The absolute coordinates list positions along the track (all along
+a single line, either to the side or at the center of the road).
+
+The three vectors are mutually orthogonal, and are normalized so that
+each vector's norm is slightly less than 128. Each vector is coded on
+3 bytes : its x, z and y components are each signed 8-bit values.
+The first vector points in the normal direction to the track (vertical if
+the track is flat), the second one points forward, the third one points
+to the right of the track.
+
+The left and right border values indicate the two limits beyond which
+no car can go. This is the data used for delimitation between the road
+and the scenery (except in the case where there is an obstacle in the
+middle of the road, where the XBID 5 extrablocks are important). The
+formula to find the coordinates of the left-most point of the road is
+(left-most point) = (reference point) - 2.(left border).(right vector):
+there is a factor of 2 between absolute 32-bit coordinates and the other
+data in the record. Similarly, for the right-most point of the road,
+(right-most point) = (reference point) + 2.(right border).(right vector).
+The post-crash position value corresponds to the lateral position at
+which a car reappears on the road after crashing.
+_____________________________________________________________________________
+
+-- Please e-mail any comments and questions to auroux@clipper.ens.fr --
