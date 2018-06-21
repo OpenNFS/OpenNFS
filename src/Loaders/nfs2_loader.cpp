@@ -478,11 +478,11 @@ template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::Pars
                             break;
                         }
                         else if(trkBlock.structureRefData[structRef_Idx].recType == 3) {
-                            if(trkBlock.structureRefData[structure_Idx].animLength != 0){
+                            //if(trkBlock.structureRefData[structure_Idx].animLength != 0){
                                 // For now, if animated, use position 0 of animation sequence
                                 structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].animationData[0].position;
                                 break;
-                            }
+                            //}
                         }
                     }
                     if (structRef_Idx == trkBlock.nStructureReferences - 1)
@@ -638,11 +638,11 @@ template <typename Platform> std::vector<Track> NFS2_Loader<Platform>::ParseCOLM
                     break;
                 }
                 else if(track->colStructureRefData[structRef_Idx].recType == 3) {
-                    if(track->colStructureRefData[structure_Idx].animLength != 0){
+                    //if(track->colStructureRefData[structure_Idx].animLength != 0){
                         // For now, if animated, use position 0 of animation sequence
                         structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].animationData[0].position;
                         break;
-                    }
+                    //}
                 }
             }
             if (structRef_Idx == track->nColStructureReferences - 1)
@@ -694,12 +694,15 @@ template <typename Platform> std::vector<Track> NFS2_Loader<Platform>::ParseCOLM
 
 template <typename Platform> Texture NFS2_Loader<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version) {
     std::stringstream filename;
+    uint8_t alphaColour= 0;
     filename << TRACK_PATH;
     switch(nfs_version){
         case NFS_2:
+            alphaColour = 0u;
             filename << "NFS2/";
             break;
         case NFS_2_SE:
+            alphaColour = 248u;
             filename << "NFS2_SE/";
             break;
         case NFS_3_PS1:
@@ -716,7 +719,7 @@ template <typename Platform> Texture NFS2_Loader<Platform>::LoadTexture(TEXTURE_
     GLsizei width;
     GLsizei height;
 
-    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, 248u),
+    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour),
            "Texture " << filename.str() << " did not load succesfully!");
 
     return Texture((unsigned int) track_texture.texNumber, data, static_cast<unsigned int>(width),

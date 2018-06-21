@@ -42,20 +42,25 @@ std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_se
 }
 
 bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version){
-    std::stringstream output_dir;
+    std::stringstream output_dir, qfs_path;
     output_dir << TRACK_PATH;
+
     switch(nfs_version){
         case NFS_2:
             output_dir << "NFS2/";
+            qfs_path << track_path << "0" << ".qfs";
             break;
         case NFS_2_SE:
             output_dir << "NFS2_SE/";
+            qfs_path << track_path << "0M" << ".qfs";
             break;
         case NFS_3:
             output_dir << "NFS3/";
+            qfs_path << track_path << "0" << ".qfs";
             break;
         case NFS_3_PS1:
             output_dir << "NFS3_PS1/";
+            qfs_path << track_path << "0" << ".qfs"; // TODO: Change to PSH and extract using PSH extractor
             break;
         case UNKNOWN:
         default:
@@ -83,8 +88,6 @@ bool ExtractTrackTextures(const std::string &track_path, const::std::string trac
         }
     }
 
-    std::stringstream qfs_path;
     output_dir << "/textures/";
-    qfs_path << track_path << "0" << ".qfs";
     return (Utils::ExtractQFS(qfs_path.str(), output_dir.str()));
 }
