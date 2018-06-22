@@ -6,6 +6,12 @@
 
 template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::string &track_base_path) {
     std::cout << "--- Loading NFS2 Track ---" << std::endl;
+    boost::filesystem::path p(track_base_path);
+    std::string track_name = p.filename().string();
+    stringstream trk_path, col_path;
+
+    trk_path << track_base_path << ".TRK";
+    col_path << track_base_path << ".COL";
 
     NFSVer nfs_version = UNKNOWN;
 
@@ -17,14 +23,11 @@ template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::strin
         }
     } else if (std::is_same<Platform, PS1>::value){
         nfs_version = NFS_3_PS1;
+        std::string ps1_col_path = col_path.str();
+        ps1_col_path.replace(ps1_col_path.find("ZZ"), 2, "");
+        col_path.str(std::string());
+        col_path << ps1_col_path;
     }
-
-    boost::filesystem::path p(track_base_path);
-    std::string track_name = p.filename().string();
-    stringstream trk_path, col_path;
-
-    trk_path << track_base_path << ".TRK";
-    col_path << track_base_path << ".COL";
 
     ASSERT(LoadTRK(trk_path.str()), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str()), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
