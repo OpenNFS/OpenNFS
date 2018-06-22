@@ -27,7 +27,8 @@ std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures) {
     return gl_id_map;
 }
 
-std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) {
+std::vector<short>
+RemapTextureIDs(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) {
     // Get ordered list of unique texture id's present in block
     std::vector<short> texture_ids;
     texture_ids.assign(minimal_texture_ids_set.begin(), minimal_texture_ids_set.end());
@@ -42,12 +43,12 @@ std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_se
     return texture_ids;
 }
 
-bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version){
+bool ExtractTrackTextures(const std::string &track_path, const ::std::string track_name, NFSVer nfs_version) {
     std::stringstream output_dir, tex_archive_path;
     std::string psh_path = track_path;
     output_dir << TRACK_PATH;
 
-    switch(nfs_version){
+    switch (nfs_version) {
         case NFS_2:
             output_dir << "NFS2/";
             tex_archive_path << track_path << "0.qfs";
@@ -72,7 +73,7 @@ bool ExtractTrackTextures(const std::string &track_path, const::std::string trac
     }
     output_dir << track_name;
 
-    if(boost::filesystem::exists(output_dir.str())){
+    if (boost::filesystem::exists(output_dir.str())) {
         return true;
     } else {
         boost::filesystem::create_directories(output_dir.str());
@@ -80,17 +81,18 @@ bool ExtractTrackTextures(const std::string &track_path, const::std::string trac
 
     std::cout << "Extracting track textures" << std::endl;
 
-    if(nfs_version == NFS_3_PS1){
+    if (nfs_version == NFS_3_PS1) {
         output_dir << "/textures/";
-        return ExtractPSH(tex_archive_path.str(),output_dir.str());
-    } else if(nfs_version == NFS_3){
+        return ExtractPSH(tex_archive_path.str(), output_dir.str());
+    } else if (nfs_version == NFS_3) {
         std::stringstream sky_fsh_path;
         sky_fsh_path << track_path.substr(0, track_path.find_last_of('/')) << "/sky.fsh";
-        if(boost::filesystem::exists(sky_fsh_path.str())){
+        if (boost::filesystem::exists(sky_fsh_path.str())) {
             std::stringstream sky_textures_path;
             sky_textures_path << output_dir.str() << "/sky_textures/";
             std::cout << sky_fsh_path.str() << std::endl;
-            ASSERT(ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from sky.fsh");
+            ASSERT(ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()),
+                   "Unable to extract sky textures from sky.fsh");
         }
     }
 
@@ -116,9 +118,9 @@ uint32_t abgr1555ToARGB8888(uint16_t abgr1555) {
 // lpBits    : Specifies the bitmap bits      -> the buffer (content of the) image
 // w    : Specifies the image width
 // h    : Specifies the image height
-bool SaveImage(const char* szPathName, void* lpBits, uint16_t w, uint16_t h) {
+bool SaveImage(const char *szPathName, void *lpBits, uint16_t w, uint16_t h) {
     // Create a new file for writing
-    FILE* pFile = fopen(szPathName, "wb"); // wb -> w: writable b: binary, open as writable and binary
+    FILE *pFile = fopen(szPathName, "wb"); // wb -> w: writable b: binary, open as writable and binary
     if (pFile == NULL) {
         return false;
     }
@@ -159,7 +161,7 @@ bool SaveImage(const char* szPathName, void* lpBits, uint16_t w, uint16_t h) {
     return true;
 }
 
-bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
+bool ExtractPSH(const std::string &psh_path, const std::string &output_path) {
     using namespace NFS2;
     boost::filesystem::create_directories(output_path);
     std::cout << "Extracting PSH File " << std::endl;
@@ -177,7 +179,8 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
     std::cout << pshHeader->nDirectories << " images inside PSH" << std::endl;
 
     // Header should contain TRAC
-    if (memcmp(pshHeader->header, "SHPP", sizeof(pshHeader->header)) != 0 && memcmp(pshHeader->chk, "GIMX", sizeof(pshHeader->chk)) != 0){
+    if (memcmp(pshHeader->header, "SHPP", sizeof(pshHeader->header)) != 0 &&
+        memcmp(pshHeader->chk, "GIMX", sizeof(pshHeader->chk)) != 0) {
         std::cout << "Invalid PSH Header(s)." << std::endl;
         delete pshHeader;
         return false;
@@ -187,20 +190,21 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
     auto *directoryEntries = new PS1::PSH::DIR_ENTRY[pshHeader->nDirectories];
     psh.read(((char *) directoryEntries), pshHeader->nDirectories * sizeof(PS1::PSH::DIR_ENTRY));
 
-    for(int image_Idx = 0; image_Idx < pshHeader->nDirectories; ++image_Idx){
+    for (int image_Idx = 0; image_Idx < pshHeader->nDirectories; ++image_Idx) {
+        std::cout << "Extracting GIMX " << image_Idx << std::endl;
         psh.seekg(directoryEntries[image_Idx].imageOffset, ios_base::beg);
         auto *imageHeader = new PS1::PSH::IMAGE_HEADER();
-        psh.read(((char *) imageHeader), sizeof( PS1::PSH::IMAGE_HEADER ));
+        psh.read(((char *) imageHeader), sizeof(PS1::PSH::IMAGE_HEADER));
 
         uint8_t bitDepth = static_cast<uint8_t>(imageHeader->imageType & 0x3);
         uint32_t pixels[imageHeader->width * imageHeader->height];
-        uint8_t *indexPair =  new uint8_t();
+        uint8_t *indexPair = new uint8_t();
         uint8_t *indexes = new uint8_t[imageHeader->width * imageHeader->height]; // Only used if indexed
         bool hasAlpha = false;
         bool isPadded = false;
-        if(bitDepth == 0) {
-            isPadded =  (imageHeader->width % 4 == 1) || (imageHeader->width % 4 == 2);
-        } else if (bitDepth == 1||bitDepth==3) {
+        if (bitDepth == 0) {
+            isPadded = (imageHeader->width % 4 == 1) || (imageHeader->width % 4 == 2);
+        } else if (bitDepth == 1 || bitDepth == 3) {
             isPadded = imageHeader->width % 2 == 1;
         }
 
@@ -210,7 +214,7 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
                     case 0: { // 4-bit indexed colour
                         uint8_t index;
                         if (x % 2 == 0) {
-                            psh.read((char*) indexPair, sizeof(uint8_t));
+                            psh.read((char *) indexPair, sizeof(uint8_t));
                             index = static_cast<uint8_t>(*indexPair & 0xF);
                         } else {
                             index = *indexPair >> 4;
@@ -218,8 +222,8 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
                         indexes[(x + y * imageHeader->width)] = index;
                         break;
                     }
-                    case 1:{ // 8-bit indexed colour
-                        psh.read((char*) &indexes[(x + y * imageHeader->width)], sizeof(uint8_t));
+                    case 1: { // 8-bit indexed colour
+                        psh.read((char *) &indexes[(x + y * imageHeader->width)], sizeof(uint8_t));
                         break;
                     }
                     case 2: { // 16-bit direct colour
@@ -233,7 +237,7 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
                     case 3: { // 24-bit direct colour
                         uint8_t alpha = 255u;
                         uint8_t rgb[3];
-                        psh.read((char *) rgb, 3*sizeof(uint8_t));
+                        psh.read((char *) rgb, 3 * sizeof(uint8_t));
                         if ((rgb[0] == 0) && (rgb[1] == 0) && (rgb[2] == 0)) {
                             hasAlpha = true;
                             alpha = 0;
@@ -241,20 +245,36 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
                         pixels[(x + y * imageHeader->width)] = (alpha << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]);
                     }
                 }
-                if ((x == imageHeader->width - 1) && (isPadded)){
+                if ((x == imageHeader->width - 1) && (isPadded)) {
                     psh.seekg(1, ios_base::cur); // Skip a byte of padding
                 }
             }
         }
 
-        // TODO: Perform a search for the palette Header, as  2, 4, or 6 unknown bytes can be in between. Find a uint16_t 16, then move 4 bytes back from it and grab the header
         // We only have to look up a Palette if an indexed type
-        if(bitDepth == 0 or bitDepth == 1){
+        if (bitDepth == 0 or bitDepth == 1) {
             auto *paletteHeader = new PS1::PSH::PALETTE_HEADER();
-            psh.read((char*) paletteHeader, sizeof(PS1::PSH::PALETTE_HEADER));
-
-            if((paletteHeader->paletteWidth != 16)&&(paletteHeader->paletteWidth != 256)){
-                asm("nop");
+            psh.read((char *) paletteHeader, sizeof(PS1::PSH::PALETTE_HEADER));
+            if (paletteHeader->paletteHeight != 1) {
+                // There is padding, search for a '1' in the paletteHeader as this is constant as the height of all paletteHeaders,
+                // then jump backwards by how offset 'height' is into paletteHeader to get proper
+                psh.seekg(-(signed)sizeof(PS1::PSH::PALETTE_HEADER), ios_base::cur);
+                if (paletteHeader->unknown == 1) { //8 bytes early
+                    psh.seekg(-8, ios_base::cur);
+                } else if (paletteHeader->paletteWidth == 1) { // 4 bytes early
+                    psh.seekg(-4, ios_base::cur);
+                } else if (paletteHeader->nPaletteEntries == 1) { // 2 bytes late
+                    psh.seekg(2, ios_base::cur);
+                } else if (paletteHeader->unknown2[0] == 1) { // 4 bytes late
+                    psh.seekg(4, ios_base::cur);
+                } else if (paletteHeader->unknown2[1] == 1) { // 6 bytes late
+                    psh.seekg(6, ios_base::cur);
+                } else if (paletteHeader->unknown2[2] == 1) { //8 bytes late
+                    psh.seekg(8, ios_base::cur);
+                } else {
+                    // TODO: Well damn. It's padded a lot further out. Do a uint16 '1' search, then for a '16' or '256' imm following
+                }
+                psh.read((char *) paletteHeader, sizeof(PS1::PSH::PALETTE_HEADER));
             }
 
             // Read Palette
@@ -263,7 +283,7 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
             }
 
             uint16_t *paletteColours = new uint16_t[paletteHeader->nPaletteEntries];
-            psh.read((char*) paletteColours, paletteHeader->nPaletteEntries * sizeof(uint16_t));
+            psh.read((char *) paletteColours, paletteHeader->nPaletteEntries * sizeof(uint16_t));
 
             // Rewrite the pixels using the palette data
             if ((bitDepth == 0) || (bitDepth == 1)) {
@@ -279,15 +299,17 @@ bool ExtractPSH(const std::string &psh_path, const std::string &output_path){
         output_bmp << output_path << setfill('0') << setw(4) << image_Idx << ".BMP";;
         SaveImage(output_bmp.str().c_str(), &pixels, imageHeader->width, imageHeader->height);
     }
+
     delete pshHeader;
+    return true;
 }
 
-bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir){
+bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir) {
     // Fshtool molests the current working directory, save and restore
     char cwd[1024];
     getcwd(cwd, sizeof(cwd));
 
-    char * args[3] = {const_cast<char *>(""), strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
+    char *args[3] = {const_cast<char *>(""), strdup(qfs_input.c_str()), strdup(output_dir.c_str())};
     int returnCode = (fsh_main(3, args) == 1);
 
     chdir(cwd);

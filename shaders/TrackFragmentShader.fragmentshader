@@ -17,7 +17,7 @@ in vec4 viewSpace;
 // Ouput data
 out vec4 color;
 
-uniform sampler2D texture_array[32];
+uniform sampler2D texture_array[16];
 uniform vec3 lightColour;
 uniform float shineDamper;
 uniform float reflectivity;
@@ -42,22 +42,7 @@ void main(){
                case 13: tempColor = texture(texture_array[13], UV).rgba; break;
                case 14: tempColor = texture(texture_array[14], UV).rgba; break;
                case 15: tempColor = texture(texture_array[15], UV).rgba; break;
-               case 16: tempColor = texture(texture_array[16], UV).rgba; break;
-               case 17: tempColor = texture(texture_array[17], UV).rgba; break;
-               case 18: tempColor = texture(texture_array[18], UV).rgba; break;
-               case 19: tempColor = texture(texture_array[19], UV).rgba; break;
-               case 20: tempColor = texture(texture_array[20], UV).rgba; break;
-               case 21: tempColor = texture(texture_array[21], UV).rgba; break;
-               case 22: tempColor = texture(texture_array[22], UV).rgba; break;
-               case 23: tempColor = texture(texture_array[23], UV).rgba; break;
-               case 24: tempColor = texture(texture_array[24], UV).rgba; break;
-               case 25: tempColor = texture(texture_array[25], UV).rgba; break;
-               case 26: tempColor = texture(texture_array[26], UV).rgba; break;
-               case 27: tempColor = texture(texture_array[27], UV).rgba; break;
-               case 28: tempColor = texture(texture_array[28], UV).rgba; break;
-               case 29: tempColor = texture(texture_array[29], UV).rgba; break;
-               case 30: tempColor = texture(texture_array[30], UV).rgba; break;
-               case 31: tempColor = texture(texture_array[31], UV).rgba; break;
+
                default: texture(texture_array[0], UV).rgba; break;
 
      }
