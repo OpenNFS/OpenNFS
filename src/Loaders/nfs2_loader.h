@@ -23,6 +23,7 @@ public:
     void dbgPrintVerts(const std::string &path);
     typename Platform::TRACK *track = new typename Platform::TRACK();
 private:
+    bool LoadGEO(std::string geo_path);
     bool LoadTRK(std::string trk_path);
     bool LoadCOL(std::string col_path);
     std::vector<TrackBlock> ParseTRKModels();

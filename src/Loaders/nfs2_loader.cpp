@@ -10,6 +10,8 @@ template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::strin
     std::string track_name = p.filename().string();
     stringstream trk_path, col_path;
 
+    LoadGEO("../resources/NFS2/GAMEDATA/CARMODEL/PC/MERC.GEO");
+
     trk_path << track_base_path << ".TRK";
     col_path << track_base_path << ".COL";
 
@@ -31,7 +33,7 @@ template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::strin
 
     ASSERT(LoadTRK(trk_path.str()), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str()), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(ExtractTrackTextures(track_base_path, track_name, nfs_version), "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(ExtractTrackTextures(track_base_path, track_name, nfs_version), "Could not extract " << track_name << " texture pack.");
 
     // Load up the textures
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
@@ -40,11 +42,35 @@ template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::strin
     track->texture_gl_mappings = GenTrackTextures(track->textures);
 
     track->track_blocks = ParseTRKModels();
-    std::vector<Track> col_models = ParseCOLModels();
+    //std::vector<Track> col_models = ParseCOLModels();
 
-    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
+    //track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Track loaded successfully" << std::endl;
+}
+
+template <typename Platform> bool NFS2_Loader<Platform>::LoadGEO(std::string geo_path){
+    std::cout << "- Parsing GEO File " << std::endl;
+    ifstream geo(geo_path, ios::in | ios::binary);
+
+    auto *geoFileHeader = new GEO_FILE_HEADER();
+    if (geo.read((char*) geoFileHeader, sizeof(GEO_FILE_HEADER)).gcount() != sizeof(GEO_FILE_HEADER)) {
+        std::cout << "Couldn't open file/truncated." << std::endl;
+        return false;
+    }
+
+    while(geo.tellg() != -1){
+        auto *geoBlockHeader = new GEO_BLOCK_HEADER();
+        while(geoBlockHeader->nVerts == 0){
+            geo.read((char*) geoBlockHeader, sizeof(GEO_BLOCK_HEADER));
+        }
+
+        auto *vertices = new GEO_BLOCK_3D[geoBlockHeader->nVerts];
+        geo.read((char*) vertices, geoBlockHeader->nVerts * sizeof(GEO_BLOCK_3D));
+
+        auto *polygons = new GEO_POLY_3D[geoBlockHeader->nPolygons];
+        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(GEO_POLY_3D));
+    }
 }
 
 template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk_path) {
@@ -266,6 +292,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadCOL(std::string col
                 track->nTextures = xblockHeader->nRecords;
                 track->polyToQFStexTable = static_cast<TEXTURE_BLOCK *>(calloc(track->nTextures, sizeof(TEXTURE_BLOCK)));
                 col.read((char *) track->polyToQFStexTable, track->nTextures * sizeof(TEXTURE_BLOCK));
+                return true;
                 break;
             case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2
                 track->nColStructures = xblockHeader->nRecords;
