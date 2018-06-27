@@ -24,6 +24,7 @@ public:
     typename Platform::TRACK *track = new typename Platform::TRACK();
 private:
     bool LoadGEO(std::string geo_path);
+    bool LoadPS1GEO(std::string geo_path); // TODO: Clean this up after we know shit works
     bool LoadTRK(std::string trk_path);
     bool LoadCOL(std::string col_path);
     std::vector<TrackBlock> ParseTRKModels();

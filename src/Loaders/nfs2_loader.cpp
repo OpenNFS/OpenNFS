@@ -10,7 +10,8 @@ template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::strin
     std::string track_name = p.filename().string();
     stringstream trk_path, col_path;
 
-    LoadGEO("../resources/NFS2/GAMEDATA/CARMODEL/PC/MERC.GEO");
+    LoadPS1GEO("../resources/NFS3_PS1/ZARMY.GEO");
+    LoadGEO("../resources/NFS2/GAMEDATA/CARMODEL/PC/ARMY.GEO");
 
     trk_path << track_base_path << ".TRK";
     col_path << track_base_path << ".COL";
@@ -53,25 +54,68 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadGEO(std::string geo
     std::cout << "- Parsing GEO File " << std::endl;
     ifstream geo(geo_path, ios::in | ios::binary);
 
-    auto *geoFileHeader = new GEO_FILE_HEADER();
-    if (geo.read((char*) geoFileHeader, sizeof(GEO_FILE_HEADER)).gcount() != sizeof(GEO_FILE_HEADER)) {
+    auto *geoFileHeader = new PC::GEO::HEADER();
+    if (geo.read((char*) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
         std::cout << "Couldn't open file/truncated." << std::endl;
         return false;
     }
 
     while(geo.tellg() != -1){
-        auto *geoBlockHeader = new GEO_BLOCK_HEADER();
+        auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
         while(geoBlockHeader->nVerts == 0){
-            geo.read((char*) geoBlockHeader, sizeof(GEO_BLOCK_HEADER));
+            geo.read((char*) geoBlockHeader, sizeof(PC::GEO::BLOCK_HEADER));
         }
 
-        auto *vertices = new GEO_BLOCK_3D[geoBlockHeader->nVerts];
-        geo.read((char*) vertices, geoBlockHeader->nVerts * sizeof(GEO_BLOCK_3D));
+        auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
+        geo.read((char*) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
 
-        auto *polygons = new GEO_POLY_3D[geoBlockHeader->nPolygons];
-        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(GEO_POLY_3D));
+        auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
+        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
     }
 }
+
+template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path){
+    std::cout << "- Parsing GEO File " << std::endl;
+    ifstream geo(geo_path, ios::in | ios::binary);
+
+    auto *geoFileHeader = new PS1::GEO::HEADER();
+    if (geo.read((char*) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
+        std::cout << "Couldn't open file/truncated." << std::endl;
+        return false;
+    }
+
+    geo.seekg(1548, ios_base::cur);
+
+    while(geo.tellg() != -1){
+        auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
+        while(geoBlockHeader->nVerts != 50){
+            geo.read((char*) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
+        }
+
+        auto *unknown = new uint32_t[geoBlockHeader->nSomething-1];
+        geo.read((char*) unknown, geoBlockHeader->nSomething-1 * sizeof(uint32_t));
+
+        auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
+        geo.read((char*) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
+
+
+        // DEBUG CODE
+        std::ofstream obj_dump;
+        obj_dump.open("./assets/ps1_geo.obj");
+
+        /* Print Part name*/
+        obj_dump << "o " << "PS1_Test" << std::endl;
+
+        for(int i = 0; i < geoBlockHeader->nVerts; ++i ){
+            obj_dump << "v " << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
+        }
+        obj_dump.close();
+
+        auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
+        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
+    }
+}
+
 
 template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk_path) {
     std::cout << "- Parsing TRK File " << std::endl;
@@ -116,7 +160,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
     for (int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx) {
         std::cout << "SuperBlock " << superBlock_Idx+1 << " of " << track->nSuperBlocks << std::endl;
         // Get the superblock header
-        typename Platform::SUPERBLOCK *superblock = &track->superblocks[superBlock_Idx];
+        auto *superblock = &track->superblocks[superBlock_Idx];
         trk.seekg(superblockOffsets[superBlock_Idx], ios_base::beg);
         trk.read((char *) &superblock->superBlockSize, sizeof(uint32_t));
         trk.read((char *) &superblock->nBlocks, sizeof(uint32_t));
@@ -130,11 +174,13 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
 
             for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
                 std::cout << "  Block " << block_Idx+1 << " of " << superblock->nBlocks << std::endl;
-                typename Platform::TRKBLOCK *trackblock = &superblock->trackBlocks[block_Idx];
+                auto *trackblock = &superblock->trackBlocks[block_Idx];
                 // Read Header
                 trackblock->header = static_cast<TRKBLOCK_HEADER *>(calloc(1, sizeof(TRKBLOCK_HEADER)));
                 trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx], ios_base::beg);
                 trk.read((char *) trackblock->header, sizeof(TRKBLOCK_HEADER));
+
+                std::cout << trackblock->header->unknownPad[0] << " " << trackblock->header->unknownPad[1] << " " << trackblock->header->unknownPad[2] << std::endl;
 
                 // Sanity Checks
                 if((trackblock->header->blockSize != trackblock->header->blockSizeDup)||(trackblock->header->blockSerial > track->nBlocks)){
@@ -162,7 +208,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadTRK(std::string trk
 
                 for(int xblock_Idx = 0; xblock_Idx < trackblock->header->nExtraBlocks; ++xblock_Idx){
                     trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + extrablockOffsets[xblock_Idx], ios_base::beg);
-                    EXTRABLOCK_HEADER *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
+                    auto *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
                     trk.read((char*) xblockHeader, sizeof(EXTRABLOCK_HEADER));
 
                     switch(xblockHeader->XBID){
@@ -282,7 +328,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadCOL(std::string col
     for(int xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx) {
         col.seekg(16 + extraBlockOffsets[xBlock_Idx], ios_base::beg);
 
-        EXTRABLOCK_HEADER *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
+        auto *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
         col.read((char*) xblockHeader, sizeof(EXTRABLOCK_HEADER));
 
         std::cout << "  XBID " << (int) xblockHeader->XBID << " (XBlock " << xBlock_Idx + 1 << " of " << nExtraBlocks << ")" << std::endl;
@@ -292,7 +338,6 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadCOL(std::string col
                 track->nTextures = xblockHeader->nRecords;
                 track->polyToQFStexTable = static_cast<TEXTURE_BLOCK *>(calloc(track->nTextures, sizeof(TEXTURE_BLOCK)));
                 col.read((char *) track->polyToQFStexTable, track->nTextures * sizeof(TEXTURE_BLOCK));
-                return true;
                 break;
             case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2
                 track->nColStructures = xblockHeader->nRecords;
@@ -363,9 +408,9 @@ template <typename Platform> void NFS2_Loader<Platform>::dbgPrintVerts(const std
 
     // Parse out TRKBlock data
     for(int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx){
-        typename Platform::SUPERBLOCK *superblock = &track->superblocks[superBlock_Idx];
+        auto *superblock = &track->superblocks[superBlock_Idx];
         for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
-            typename Platform::TRKBLOCK trkBlock = superblock->trackBlocks[block_Idx];
+            auto trkBlock = superblock->trackBlocks[block_Idx];
             VERT_HIGHP blockReferenceCoord;
             // Print clipping rectangle
             //obj_dump << "o Block" << trkBlock.header->blockSerial << "ClippingRect" << std::endl;
@@ -478,16 +523,16 @@ template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::Pars
 
     // Parse out TRKBlock data
     for(int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx){
-        typename Platform::SUPERBLOCK *superblock = &track->superblocks[superBlock_Idx];
+        auto *superblock = &track->superblocks[superBlock_Idx];
         for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
             // Base Track Geometry
-            typename Platform::TRKBLOCK trkBlock = superblock->trackBlocks[block_Idx];
+            auto trkBlock = superblock->trackBlocks[block_Idx];
             VERT_HIGHP blockReferenceCoord;
 
             TrackBlock current_track_block(superBlock_Idx, glm::vec3(trkBlock.header->clippingRect->x/scaleFactor, trkBlock.header->clippingRect->y/scaleFactor, trkBlock.header->clippingRect->z/scaleFactor));
             glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
             glm::vec3 trk_block_center = orientation * glm::vec3(0, 0, 0);
-
+            std::cout << "Trk block " << (int) trkBlock.header->blockSerial << " NStruct: " <<  trkBlock.nStructures << std::endl;
             // Structures
             for(int structure_Idx = 0; structure_Idx < trkBlock.nStructures; ++structure_Idx){
                 // Keep track of unique textures in trackblock for later OpenGL bind
@@ -517,8 +562,8 @@ template <typename Platform> std::vector<TrackBlock> NFS2_Loader<Platform>::Pars
                             //}
                         }
                     }
-                    if (structRef_Idx == trkBlock.nStructureReferences - 1)
-                        std::cout << "Couldn't find a reference coordinate for Structure " << structRef_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
+                    //if (structRef_Idx == trkBlock.nStructureReferences - 1){}
+                    //    std::cout << "Couldn't find a reference coordinate for Structure " << structRef_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
                 }
                 for(uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx){
                     int32_t x = (structureReferenceCoordinates->x + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x));
@@ -681,8 +726,8 @@ template <typename Platform> std::vector<Track> NFS2_Loader<Platform>::ParseCOLM
                     //}
                 }
             }
-            if (structRef_Idx == track->nColStructureReferences - 1)
-                std::cout << "Couldn't find a reference coordinate for COL Structure " << structRef_Idx << std::endl;
+            //if (structRef_Idx == track->nColStructureReferences - 1)
+                //std::cout << "Couldn't find a reference coordinate for COL Structure " << structRef_Idx << std::endl;
         }
         for(uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx){
             int32_t x = (structureReferenceCoordinates->x + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));

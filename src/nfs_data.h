@@ -464,6 +464,41 @@ namespace NFS2 {
             std::map<short, Texture> textures;
             std::map<short, GLuint> texture_gl_mappings;
         };
+
+        struct GEO {
+#pragma pack(push,2)
+            struct HEADER {
+                uint32_t padding; // Possible value: 0x00, 0x01, 0x02
+                uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for calculating the position of the blocks)
+                uint64_t unknown2; //  always 0x00
+            };
+
+
+            struct BLOCK_HEADER {
+                uint32_t nVerts; // If nVert = 0x00, jump sizeof(GEO_BLOCK_HEADER) forwards, if odd, add 1
+                uint32_t nPolygons;
+                int32_t position[3]; // Absolute XYZ of the block
+                uint32_t unknown;  // ? similar to the value in the list above
+                uint32_t unknown1; // ? similar to the value in the list above
+                uint64_t pad0; // always 0x00
+                uint64_t pad1; // always 0x01
+                uint64_t pad2; // always 0x01
+            };
+#pragma pack(pop)
+
+            // Maybe this is a platform specific VERT HIGH P scenario?
+            struct BLOCK_3D {
+                int16_t x;
+                int16_t y;
+                int16_t z;
+            };
+
+            struct POLY_3D{
+                uint32_t texMapType;
+                uint8_t vertex[4];
+                char texName[4];
+            };
+        };
     };
 
     struct PS1  {
@@ -569,42 +604,42 @@ namespace NFS2 {
                 uint16_t unknown2[3]; // [0] always 0 [1] always 0 [2] often 240, sometimes 0
             };
         };
-    };
 
+        struct GEO {
 #pragma pack(push,2)
-    struct GEO_FILE_HEADER {
-        uint32_t padding; // Possible value: 0x00, 0x01, 0x02
-        uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for calculating the position of the blocks)
-        uint64_t unknown2; //  always 0x00
-    };
+            struct HEADER {
+                uint32_t padding; // Possible value: 0x00, 0x01, 0x02
+                uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for calculating the position of the blocks)
+                uint64_t unknown2; //  always 0x00
+            };
 
 
-    struct GEO_BLOCK_HEADER {
-        uint32_t nVerts; // If nVert = 0x00, jump sizeof(GEO_BLOCK_HEADER) forwards, if odd, add 1
-        uint32_t nPolygons;
-        int32_t position[3]; // Absolute XYZ of the block
-        uint32_t unknown;  // ? similar to the value in the list above
-        uint32_t unknown1; // ? similar to the value in the list above
-        uint64_t pad0; // always 0x00
-        uint64_t pad1; // always 0x01
-        uint64_t pad2; // always 0x01
-    };
+            struct BLOCK_HEADER {
+                uint64_t unknown[2]; // Always 1?
+                uint32_t nVerts;
+                uint32_t unknown1;  // Always 1?
+                uint32_t nSomething;  // No clue, but theres a table of it that fits in nicely of nSomething-1 * 4 bytes
+                uint32_t nPolygons; // always 0x00
+                int32_t position[3]; // Absolute X,Y,Z reference
+            };
 #pragma pack(pop)
 
-    // Maybe this is a platform specific VERT HIGH P scenario?
-    struct GEO_BLOCK_3D {
-        int16_t x;
-        int16_t y;
-        int16_t z;
+            // Maybe this is a platform specific VERT HIGH P scenario?
+            struct BLOCK_3D {
+                int16_t x;
+                int16_t y;
+                int16_t z;
+                int16_t w;
+            };
+
+            struct POLY_3D{
+                uint32_t texMapType;
+                uint8_t vertex[4];
+                uint32_t unknown[4];
+                char texName[4];
+            };
+        };
     };
-
-    struct GEO_POLY_3D{
-        uint32_t texMapType;
-        uint8_t vertex[4];
-        char texName[4];
-    };
-
-
 }
 
 namespace Music {
