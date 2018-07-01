@@ -10,8 +10,8 @@ template <typename Platform> NFS2_Loader<Platform>::NFS2_Loader(const std::strin
     std::string track_name = p.filename().string();
     stringstream trk_path, col_path;
 
-    LoadPS1GEO("../resources/NFS3_PS1/ZARMY.GEO");
-    LoadGEO("../resources/NFS2/GAMEDATA/CARMODEL/PC/ARMY.GEO");
+    LoadPS1GEO("../resources/NFS3_PS1/ZF355.GEO");
+    //LoadGEO("../resources/NFS2/GAMEDATA/CARMODEL/PC/MCF1.GEO");
 
     trk_path << track_base_path << ".TRK";
     col_path << track_base_path << ".COL";
@@ -60,6 +60,13 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadGEO(std::string geo
         return false;
     }
 
+    // DEBUG CODE
+    std::ofstream obj_dump;
+    obj_dump.open("./assets/nfs2_pc_geo.obj");
+
+    /* Print Part name*/
+    obj_dump << "o " << "PC_Test" << std::endl;
+
     while(geo.tellg() != -1){
         auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
         while(geoBlockHeader->nVerts == 0){
@@ -69,9 +76,16 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadGEO(std::string geo
         auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
         geo.read((char*) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
 
+
+        for(int i = 0; i < geoBlockHeader->nVerts; ++i ){
+            obj_dump << "v " << geoBlockHeader->position[0] + vertices[i].x << " " << geoBlockHeader->position[1] +vertices[i].y << " " << geoBlockHeader->position[2] +vertices[i].z << std::endl;
+        }
+
         auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
         geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
     }
+
+    obj_dump.close();
 }
 
 template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path){
@@ -84,36 +98,46 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string 
         return false;
     }
 
-    geo.seekg(1548, ios_base::cur);
+    std::ofstream obj_dump;
+    obj_dump.open("./assets/ps1_geo.obj");
+
+    /* Print Part name*/
+    obj_dump << "o " << "PS1_Test" << std::endl;
+
 
     while(geo.tellg() != -1){
         auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
-        while(geoBlockHeader->nVerts != 50){
+        while(geoBlockHeader->nVerts == 0){
             geo.read((char*) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
         }
 
-        auto *unknown = new uint32_t[geoBlockHeader->nSomething-1];
-        geo.read((char*) unknown, geoBlockHeader->nSomething-1 * sizeof(uint32_t));
+        if (geoBlockHeader->nVerts > 1000)
+            break;
 
-        auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
-        geo.read((char*) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
+        uint8_t extraPadByte = geoBlockHeader->unknown1 % 2;
 
+        // Unknown1 + 1 lots of 4 byte numbers
+        uint16_t *pad = new uint16_t[(geoBlockHeader->unknown1 + extraPadByte)*2];
+        geo.read((char*) pad, (geoBlockHeader->unknown1 + extraPadByte) * 2 * sizeof(uint16_t));
 
-        // DEBUG CODE
-        std::ofstream obj_dump;
-        obj_dump.open("./assets/ps1_geo.obj");
-
-        /* Print Part name*/
-        obj_dump << "o " << "PS1_Test" << std::endl;
-
-        for(int i = 0; i < geoBlockHeader->nVerts; ++i ){
-            obj_dump << "v " << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
-        }
-        obj_dump.close();
+        auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nSomething + geoBlockHeader->nVerts];
+        geo.read((char*) vertices, (geoBlockHeader->nSomething + geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
 
         auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
-        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
+        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
+
+        for(int i = 0; i <  geoBlockHeader->nSomething + geoBlockHeader->nVerts; ++i ){
+            obj_dump << "v " << geoBlockHeader->position[0] + vertices[i].x << " " << geoBlockHeader->position[1] +vertices[i].y << " " << geoBlockHeader->position[2] +vertices[i].z << std::endl;
+        }
+
+        for(int j = 0; j <  geoBlockHeader->nPolygons; ++j ){
+            obj_dump << "f " << (int) polygons[j].vertex[0][0] << " " <<  (int) polygons[j].vertex[0][1] << " "<<  (int)  polygons[j].vertex[0][2] <<  " " << (int)  polygons[j].vertex[0][3] << std::endl;
+            //obj_dump << "f " << (int) polygons[j].vertex[1][0] << " " <<  (int) polygons[j].vertex[1][1] << " "<<  (int)  polygons[j].vertex[1][2] <<  " " << (int)  polygons[j].vertex[1][3] << std::endl;
+            obj_dump << "f " << (int) polygons[j].vertex[2][0] << " " <<  (int) polygons[j].vertex[2][1] << " "<<  (int)  polygons[j].vertex[2][2] <<  " " << (int)  polygons[j].vertex[2][3] << std::endl;
+        }
+        asm("nop");
     }
+    obj_dump.close();
 }
 
 

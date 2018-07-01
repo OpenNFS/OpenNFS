@@ -615,29 +615,28 @@ namespace NFS2 {
 
 
             struct BLOCK_HEADER {
-                uint64_t unknown[2]; // Always 1?
                 uint32_t nVerts;
-                uint32_t unknown1;  // Always 1?
-                uint32_t nSomething;  // No clue, but theres a table of it that fits in nicely of nSomething-1 * 4 bytes
-                uint32_t nPolygons; // always 0x00
+                uint32_t unknown1;  // Block type? Changes how many padding bytes there are uint16_t[(unknown1 + extraPadByte)*2]
+                uint32_t nSomething;  // Extra verts for higher LOD?
+                uint32_t nPolygons;
                 int32_t position[3]; // Absolute X,Y,Z reference
+                int16_t unknown2[4][2]; // No clue
+                uint64_t unknown[3]; // Always 0, 1, 1
             };
-#pragma pack(pop)
 
             // Maybe this is a platform specific VERT HIGH P scenario?
             struct BLOCK_3D {
                 int16_t x;
                 int16_t y;
                 int16_t z;
-                int16_t w;
             };
 
             struct POLY_3D{
-                uint32_t texMapType;
-                uint8_t vertex[4];
-                uint32_t unknown[4];
+                uint16_t texMapType[2];
+                uint16_t vertex[3][4]; // Literally wtf, 3 groups of 4 numbers that look like the vert indexes. One set [1] is usually 0,0,0,0 or 1,1,1,1
                 char texName[4];
             };
+#pragma pack(pop)
         };
     };
 }
