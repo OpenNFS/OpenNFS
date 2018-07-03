@@ -13,7 +13,7 @@
 #include <GL/glew.h>
 #include "Scene/TrackBlock.h"
 
-enum NFSVer { UNKNOWN, NFS_1, NFS_2, NFS_2_SE, NFS_3, NFS_3_PS1, NFS_4, NFS_5};
+enum NFSVer { UNKNOWN, NFS_1, NFS_2, NFS_2_PS1, NFS_2_SE, NFS_3, NFS_3_PS1, NFS_4, NFS_5};
 
 // ---- NFS2/3 GL Structures -----
 class Texture {
@@ -30,6 +30,90 @@ public:
         height = h;
     }
 };
+
+namespace NFS4{
+    struct FCE {
+        struct VECTOR{
+            float x, y, z;
+        };
+
+        struct COLOUR {
+            uint8_t H, S, B, T;
+        };
+
+        // Valid values for components:
+        //    K : "H" (Headlights); "T" (Taillights); "B" (Brakelight); "R" (Reverse light); "P" (Direction indicator); "S" (Siren);
+        //    C : "W" (White); "R" (Red); "B" (Blue); "O" (Orange); "Y" (Yellow)
+        //    B : "Y" (Yes); "N" (No)
+        //    F : "O" (Flashing at moment 1); "E" (Flashing at moment 2); "N" (No flashing)
+        //    I : Number between 0 and 9 with 0 being broken (normal max 5)
+        //   Next only used with flashing lights:
+        //    T : Number between 1 and 9 with 9 being longest time and 0 being constant (normal max 5)
+        //    D : Number between 0 and 9 with 9 being longest delay and 0 no delay (normal max 2)
+        struct DUMMY {
+            char kind, colour, breakable, flashing, intensity, time, delay;
+        };
+
+        struct PART {
+            char name[5];
+        };
+
+        struct TRIANGLE {
+            uint32_t texPage;
+            uint32_t vertex[3]; // Local indexes, add part first Vert index from "partFirstVertIndices"
+            uint16_t padding[6]; // 00FF
+            float uvTable[6]; // U1 U2 U3, V1 V2 V3
+        };
+
+        struct HEADER {
+            uint32_t header; // Value always seems to be 14 10 10 00
+            uint32_t unknown;
+            uint32_t nTriangles;
+            uint32_t nVertices;
+            uint32_t nArts;
+
+            uint32_t vertTblOffset;
+            uint32_t normTblOffset;
+            uint32_t triTblOffset;
+
+            uint32_t tempStoreOffsets[3]; // -- ALL offset from 0x2038
+            uint32_t undamagedVertsOffset;
+            uint32_t undamagedNormsOffset;
+            uint32_t damagedVertsOffset;
+            uint32_t damagedNormsOffset;
+            uint32_t unknownAreaOffset;
+            uint32_t driverMovementOffset;
+            uint32_t unknownOffsets[2];
+
+            float modelHalfSize[3]; // X, Y, Z
+
+            uint32_t nDummies; // 0..16
+            VECTOR dummyCoords[16];
+
+            uint32_t nParts;
+            VECTOR partCoords[64];
+
+            uint32_t partFirstVertIndices[64];
+            uint32_t partNumVertices[64];
+            uint32_t partFirstTriIndices[64];
+            uint32_t partNumTriangles[64];
+
+            uint32_t nColours;
+            COLOUR primaryColours[16];
+            COLOUR interiorColours[16];
+            COLOUR secondaryColours[16];
+            COLOUR driverHairColours[16];
+
+            uint8_t unknownTable[68]; // Probably part related, with 4 byte table header?
+
+            DUMMY dummyObjectInfo[16];
+
+            PART partNames[64];
+
+            uint8_t unknownTable2[568];
+            };
+    };
+}
 
 namespace NFS3 {
     struct FLOATPT {
@@ -609,7 +693,7 @@ namespace NFS2 {
 #pragma pack(push,2)
             struct HEADER {
                 uint32_t padding; // Possible value: 0x00, 0x01, 0x02
-                uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for calculating the position of the blocks)
+                uint16_t unknown[64]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for calculating the position of the blocks)
                 uint64_t unknown2; //  always 0x00
             };
 

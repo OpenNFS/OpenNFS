@@ -19,7 +19,7 @@ CarModel::CarModel(std::string name, int model_id, std::vector<glm::vec3> verts,
     }
 
     // Gen VBOs, add to Bullet Physics
-    //ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model " << name);
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model " << name);
 }
 
 void CarModel::update() {

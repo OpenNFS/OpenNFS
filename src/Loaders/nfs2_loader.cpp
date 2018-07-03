@@ -57,6 +57,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadGEO(std::string geo
     auto *geoFileHeader = new PC::GEO::HEADER();
     if (geo.read((char*) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
         std::cout << "Couldn't open file/truncated." << std::endl;
+        delete geoFileHeader;
         return false;
     }
 
@@ -76,13 +77,16 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadGEO(std::string geo
         auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
         geo.read((char*) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
 
+        auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
+        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
 
         for(int i = 0; i < geoBlockHeader->nVerts; ++i ){
             obj_dump << "v " << geoBlockHeader->position[0] + vertices[i].x << " " << geoBlockHeader->position[1] +vertices[i].y << " " << geoBlockHeader->position[2] +vertices[i].z << std::endl;
         }
 
-        auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
-        geo.read((char*) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
+        for(int j = 0; j < geoBlockHeader->nPolygons; ++j ){
+            obj_dump << "f " << (int) polygons[j].vertex[0] + 1 << " " <<  (int) polygons[j].vertex[1]+ 1  << " "<<  (int)  polygons[j].vertex[2] + 1 <<  " " << (int)  polygons[j].vertex[3]+ 1  << std::endl;
+        }
     }
 
     obj_dump.close();
@@ -92,11 +96,18 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string 
     std::cout << "- Parsing GEO File " << std::endl;
     ifstream geo(geo_path, ios::in | ios::binary);
 
+    std::string psh_path = geo_path;
+    psh_path.replace(psh_path.find("GEO"), 3, "PSH");
+
+    ExtractPSH(psh_path, "./assets/car/psx_test/");
+
     auto *geoFileHeader = new PS1::GEO::HEADER();
     if (geo.read((char*) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
         std::cout << "Couldn't open file/truncated." << std::endl;
+        delete geoFileHeader;
         return false;
     }
+
 
     std::ofstream obj_dump;
     obj_dump.open("./assets/ps1_geo.obj");
@@ -104,15 +115,14 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string 
     /* Print Part name*/
     obj_dump << "o " << "PS1_Test" << std::endl;
 
-
-    while(geo.tellg() != -1){
+    for(int block_Idx = 0; block_Idx != -1; ++block_Idx){
         auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
         while(geoBlockHeader->nVerts == 0){
             geo.read((char*) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
         }
 
-        if (geoBlockHeader->nVerts > 1000)
-            break;
+        if ((geoBlockHeader->unknown[0] != 0)||(geoBlockHeader->unknown[1] != 1)||(geoBlockHeader->unknown[2] != 1))
+            block_Idx = -1;
 
         uint8_t extraPadByte = geoBlockHeader->unknown1 % 2;
 
@@ -130,12 +140,21 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string 
             obj_dump << "v " << geoBlockHeader->position[0] + vertices[i].x << " " << geoBlockHeader->position[1] +vertices[i].y << " " << geoBlockHeader->position[2] +vertices[i].z << std::endl;
         }
 
-        for(int j = 0; j <  geoBlockHeader->nPolygons; ++j ){
-            obj_dump << "f " << (int) polygons[j].vertex[0][0] << " " <<  (int) polygons[j].vertex[0][1] << " "<<  (int)  polygons[j].vertex[0][2] <<  " " << (int)  polygons[j].vertex[0][3] << std::endl;
-            //obj_dump << "f " << (int) polygons[j].vertex[1][0] << " " <<  (int) polygons[j].vertex[1][1] << " "<<  (int)  polygons[j].vertex[1][2] <<  " " << (int)  polygons[j].vertex[1][3] << std::endl;
-            obj_dump << "f " << (int) polygons[j].vertex[2][0] << " " <<  (int) polygons[j].vertex[2][1] << " "<<  (int)  polygons[j].vertex[2][2] <<  " " << (int)  polygons[j].vertex[2][3] << std::endl;
-        }
-        asm("nop");
+        // UV
+        //for(int j = 0; j <  geoBlockHeader->nPolygons; ++j ){
+        //    obj_dump << "f " << (int) polygons[j].vertex[0][0] << " " <<  (int) polygons[j].vertex[0][1] << " "<<  (int)  polygons[j].vertex[0][2] <<  " " << (int)  polygons[j].vertex[0][3] << std::endl;
+        //    if(( polygons[j].vertex[0][0] > geoBlockHeader->nVerts + geoBlockHeader->nSomething)||( polygons[j].vertex[0][1] > geoBlockHeader->nVerts+ geoBlockHeader->nSomething)||( polygons[j].vertex[0][2] > geoBlockHeader->nVerts+ geoBlockHeader->nSomething)||( polygons[j].vertex[0][3] > geoBlockHeader->nVerts+ geoBlockHeader->nSomething)||
+        //       ( polygons[j].vertex[2][0] > geoBlockHeader->nVerts + geoBlockHeader->nSomething)||( polygons[j].vertex[2][1] > geoBlockHeader->nVerts+ geoBlockHeader->nSomething)||( polygons[j].vertex[2][2] > geoBlockHeader->nVerts+ geoBlockHeader->nSomething)||( polygons[j].vertex[2][3] > geoBlockHeader->nVerts+ geoBlockHeader->nSomething)){
+        //        asm("nop");
+        //    }
+        //    //obj_dump << "f " << (int) polygons[j].vertex[1][0] << " " <<  (int) polygons[j].vertex[1][1] << " "<<  (int)  polygons[j].vertex[1][2] <<  " " << (int)  polygons[j].vertex[1][3] << std::endl;
+        //    //obj_dump << "f " << (int) polygons[j].vertex[2][0] << " " <<  (int) polygons[j].vertex[2][1] << " "<<  (int)  polygons[j].vertex[2][2] <<  " " << (int)  polygons[j].vertex[2][3] << std::endl;
+        //}
+
+        delete geoBlockHeader;
+        delete[] pad;
+        delete[] vertices;
+        delete[] polygons;
     }
     obj_dump.close();
 }
