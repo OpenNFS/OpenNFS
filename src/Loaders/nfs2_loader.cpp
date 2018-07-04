@@ -99,7 +99,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string 
     std::string psh_path = geo_path;
     psh_path.replace(psh_path.find("GEO"), 3, "PSH");
 
-    ExtractPSH(psh_path, "./assets/car/psx_test/");
+    Utils::ExtractPSH(psh_path, "./assets/car/psx_test/");
 
     auto *geoFileHeader = new PS1::GEO::HEADER();
     if (geo.read((char*) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {

@@ -32,6 +32,7 @@ public:
 };
 
 namespace NFS4{
+
     struct FCE {
         struct VECTOR{
             float x, y, z;
@@ -51,17 +52,19 @@ namespace NFS4{
         //    T : Number between 1 and 9 with 9 being longest time and 0 being constant (normal max 5)
         //    D : Number between 0 and 9 with 9 being longest delay and 0 no delay (normal max 2)
         struct DUMMY {
-            char kind, colour, breakable, flashing, intensity, time, delay;
+            char data[64];
+            //char kind, colour, breakable, flashing, intensity, time, delay;
         };
 
         struct PART {
-            char name[5];
+            char name[64];
         };
 
         struct TRIANGLE {
             uint32_t texPage;
             uint32_t vertex[3]; // Local indexes, add part first Vert index from "partFirstVertIndices"
             uint16_t padding[6]; // 00FF
+            uint32_t smoothingBits;
             float uvTable[6]; // U1 U2 U3, V1 V2 V3
         };
 
@@ -104,13 +107,13 @@ namespace NFS4{
             COLOUR secondaryColours[16];
             COLOUR driverHairColours[16];
 
-            uint8_t unknownTable[68]; // Probably part related, with 4 byte table header?
+            uint8_t unknownTable[260]; // Probably part related, with 4 byte table header?
 
             DUMMY dummyObjectInfo[16];
 
             PART partNames[64];
 
-            uint8_t unknownTable2[568];
+            uint8_t unknownTable2[528];
             };
     };
 }

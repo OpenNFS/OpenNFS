@@ -2,11 +2,10 @@
 // Created by Amrik on 18/03/2018.
 //
 
-#include <BulletCollision/CollisionShapes/btBoxShape.h>
-#include "Car.h"
-#include "../Util/Utils.h"
 
-Car::Car(NFS_Loader loader){
+#include "Car.h"
+
+Car::Car(NFS4_Loader loader){
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
@@ -24,7 +23,7 @@ Car::Car(NFS_Loader loader){
     steerRight = steerLeft = isReverse = false;
 
     glm::vec3 debug_offset(0, 0, 0);
-    car_models = loader.getMeshes();
+    car_models = loader.meshes;
 
     // Enable High Res wheels and body
     for(int i = 0; i < 5; i++){

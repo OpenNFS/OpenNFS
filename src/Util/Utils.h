@@ -2,8 +2,7 @@
 // Created by Amrik on 11/03/2018.
 //
 
-#ifndef OPENNFS3_UTILS_H
-#define OPENNFS3_UTILS_H
+#pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <LinearMath/btVector3.h>
@@ -23,6 +22,8 @@
 #include <cassert>
 #include <cstdio>
 #include <sstream>
+#include <iomanip>
+#include "../nfs_data.h"
 #include "../Scene/CarModel.h"
 extern "C" {
     #include "../../tools/fshtool.h"
@@ -108,10 +109,11 @@ namespace Utils {
 
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir);
 
+    bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
+
+    bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
+
     bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
 
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height);
 }
-
-
-#endif //OPENNFS3_UTILS_H

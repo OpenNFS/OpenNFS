@@ -14,8 +14,8 @@
 class NFS4_Loader {
 public:
     explicit NFS4_Loader(const std::string &track_base_path, std::string *car_name);
+    std::vector<CarModel> meshes;
 private:
     bool LoadFCE(const std::string fce_path);
-    std::vector<CarModel> meshes;
 };
 

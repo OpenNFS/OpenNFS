@@ -2,21 +2,24 @@
 // Created by Amrik on 18/03/2018.
 //
 
-#ifndef OPENNFS3_CAR_H
-#define OPENNFS3_CAR_H
+#pragma once
 
 #include <LinearMath/btDefaultMotionState.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletDynamics/Vehicle/btVehicleRaycaster.h>
 #include <BulletDynamics/Vehicle/btRaycastVehicle.h>
+#include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
+
+#include "../Loaders/nfs4_loader.h"
 #include "../Loaders/nfs_loader.h"
 #include "../Scene/CarModel.h"
+#include "../Util/Utils.h"
 
 class Car {
 public:
-    Car(NFS_Loader loader);
+    Car(NFS4_Loader loader);
     ~Car();
     void update();
     void resetCar();
@@ -82,6 +85,3 @@ private:
     bool isReverse;
 
 };
-
-
-#endif //OPENNFS3_CAR_H
