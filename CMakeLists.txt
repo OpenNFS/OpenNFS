@@ -22,7 +22,6 @@ set(SOURCE_FILES
         include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
         resources/asset/icon.rc
         # Source
-        src/Loaders/nfs_loader.cpp
         src/main.cpp
         src/Scene/Camera.cpp
         src/Scene/Model.cpp

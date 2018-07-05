@@ -21,7 +21,8 @@
 // Source
 #include "Util/Utils.h"
 #include "Scene/Camera.h"
-#include "Loaders/nfs_loader.h"
+#include "Loaders/nfs4_loader.h"
+#include "Loaders/nfs3_loader.h"
 #include "Loaders/nfs2_loader.h"
 #include "Loaders/music_loader.h"
 #include "Shaders/TrackShader.h"
@@ -29,7 +30,7 @@
 #include "Shaders/BillboardShader.h"
 #include "Physics/Physics.h"
 #include "Physics/Car.h"
-#include "Loaders/nfs4_loader.h"
+
 
 GLFWwindow *window;
 
@@ -136,10 +137,10 @@ int main(int argc, char **argv) {
     /*------ ASSET LOAD ------*/
     initDirectories();
     std::string car_name;
-    NFS4_Loader nfs4_loader("../resources/NFS4/DATA/CARS/COLT", &car_name);
-    //NFS_Loader nfs_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
+    //NFS4_Loader nfs4_loader("../resources/NFS4/DATA/CARS/COLT", &car_name);
+    NFS3_Loader nfs3_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
     //Load Car data from unpacked NFS files
-    Car car = Car(nfs4_loader);
+    Car car = Car(nfs3_loader);
     //Load Track Data`
     NFS3_Loader trk_loader("../resources/NFS3/gamedata/tracks/trk006/tr06");
     NFS3::TRACK *track = trk_loader.track;

@@ -5,11 +5,14 @@
 #pragma once
 
 #include <sstream>
+#include <string>
 #include <boost/filesystem/path.hpp>
 #include "../Config.h"
 #include "../nfs_data.h"
 #include "../Util/Utils.h"
-#include <string>
+
+using namespace Utils;
+using namespace NFS4;
 
 class NFS4_Loader {
 public:

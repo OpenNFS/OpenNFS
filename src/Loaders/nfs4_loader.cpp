@@ -4,9 +4,6 @@
 
 #include "nfs4_loader.h"
 
-using namespace Utils;
-using namespace NFS4;
-
 
 NFS4_Loader::NFS4_Loader(const std::string &car_base_path, std::string *car_name) {
     boost::filesystem::path p(car_base_path);
@@ -38,7 +35,7 @@ bool NFS4_Loader::LoadFCE(const std::string fce_path) {
         std::vector<glm::vec3> normals;
         std::vector<glm::vec2> uvs;
 
-        std::string part_name(fceHeader->partNames[part_Idx].name);
+        std::string part_name(fceHeader->partNames[part_Idx]);
         glm::vec3 center(fceHeader->partCoords[part_Idx].x, fceHeader->partCoords[part_Idx].y, fceHeader->partCoords[part_Idx].z);
         center /= 10;
 

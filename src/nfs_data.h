@@ -56,10 +56,6 @@ namespace NFS4{
             //char kind, colour, breakable, flashing, intensity, time, delay;
         };
 
-        struct PART {
-            char name[64];
-        };
-
         struct TRIANGLE {
             uint32_t texPage;
             uint32_t vertex[3]; // Local indexes, add part first Vert index from "partFirstVertIndices"
@@ -111,7 +107,7 @@ namespace NFS4{
 
             DUMMY dummyObjectInfo[16];
 
-            PART partNames[64];
+            char partNames[64][64];
 
             uint8_t unknownTable2[528];
             };
@@ -383,6 +379,58 @@ namespace NFS3 {
         std::vector<TrackBlock> track_blocks;
         std::map<short, Texture> textures;
         std::map<short, GLuint> texture_gl_mappings;
+    };
+
+    struct FCE {
+        struct COLOUR {
+            uint32_t H, S, B, T;
+        };
+
+        struct TRIANGLE {
+            uint32_t texPage;
+            uint32_t vertex[3]; // Local indexes, add part first Vert index from "partFirstVertIndices"
+            uint16_t padding[6]; // FF00
+            uint32_t smoothingBits;
+            float uvTable[6]; // U1 U2 U3, V1 V2 V3
+        };
+
+        struct HEADER {
+            uint32_t unknown;
+
+            uint32_t nTriangles;
+            uint32_t nVertices;
+            uint32_t nArts;
+
+            uint32_t vertTblOffset;
+            uint32_t normTblOffset;
+            uint32_t triTblOffset;
+            uint32_t reserve1Offset;
+            uint32_t reserve2Offset;
+            uint32_t reserve3Offset;
+
+            FLOATPT modelHalfSize;
+
+            uint32_t nDummies;
+            FLOATPT dummyCoords[16];
+
+            uint32_t nParts;
+            FLOATPT partCoords[64];
+
+            uint32_t partFirstVertIndices[64];
+            uint32_t partNumVertices[64];
+            uint32_t partFirstTriIndices[64];
+            uint32_t partNumTriangles[64];
+
+            uint32_t nPriColours;
+            COLOUR primaryColours[16];
+            uint32_t nSecColours;
+            COLOUR secondaryColours[16];
+
+            char dummyNames[64][16];
+            char partNames[64][64];
+
+            uint32_t unknownTable[64];
+        };
     };
 };
 

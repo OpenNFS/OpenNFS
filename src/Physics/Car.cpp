@@ -5,7 +5,7 @@
 
 #include "Car.h"
 
-Car::Car(NFS4_Loader loader){
+Car::Car(NFS3_Loader loader){
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;

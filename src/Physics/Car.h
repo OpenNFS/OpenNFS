@@ -13,13 +13,13 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "../Loaders/nfs4_loader.h"
-#include "../Loaders/nfs_loader.h"
+#include "../Loaders/nfs3_loader.h"
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
 
 class Car {
 public:
-    Car(NFS4_Loader loader);
+    Car(NFS3_Loader loader);
     ~Car();
     void update();
     void resetCar();
