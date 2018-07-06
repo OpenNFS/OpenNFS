@@ -1,6 +1,6 @@
-# OpenNFS3
+# OpenNFS
 
-An attempt to recreate the original Need for Speed 3, unpacking it's original data files into a modern scratch build engine. Extremely early in development, current features include:
+An attempt to recreate the classic Need for Speed Games (1-5), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
  
 * Full NFS3/NFS4 Car Viv file loading. 
 * Full NFS3/4 Track .frd/.col loading (inc. PSX w/ PSH textures)
@@ -14,7 +14,7 @@ Below is a table better describing the current level of asset load into OpenNFS3
 |----------|------|--------|-------|
 | NFS5     |      |        |       |
 | NFS4 PC  | 90%  | 60%    |       |
-| NFS4 PS1 | 90%  | 60%    |       |
+| NFS4 PS1 | 5%   | 5%     |       |
 | NFS3 PC  | 100% | 100%   | 95%   |
 | NFS3 PS1 | 40%  | 100%   | 95%   |
 | NFS2 SE  | 80%  | 80%    |       |
@@ -29,7 +29,7 @@ Below is a table better describing the current level of asset load into OpenNFS3
 * Place NFS3 "GAMEDATA" folder into a subfolder named "NFS3" inside the "resources" folder e.g. resources/NFS3/GAMEDATA.
 * Place NFS3 PS1 contents (ecm to iso) into a subfolder named "NFS3_PS1" inside the "resources" folder.
 * Place NFS2 "GAMEDATA" folder into a subfolder named "NFS2" inside the "resources" folder e.g. resources/NFS2/GAMEDATA.
-* Place NFS2 "DATA" folder into a subfolder named "NFS4" inside the "resources" folder e.g. resources/NFS4/DATA.
+* Place NFS4 "DATA" folder into a subfolder named "NFS4" inside the "resources" folder e.g. resources/NFS4/DATA.
 
 ## Trello Development Board
 
