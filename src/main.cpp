@@ -132,7 +132,7 @@ void initDirectories(){
 }*/
 
 int main(int argc, char **argv) {
-    std::cout << "----------- OpenNFS3 v0.01 -----------" << std::endl;
+    std::cout << "----------- OpenNFS3 v0.011 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
     /*------ ASSET LOAD ------*/
     initDirectories();
