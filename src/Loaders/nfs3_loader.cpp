@@ -265,7 +265,7 @@ bool NFS3_Loader::LoadFRD(std::string frd_path, const std::string &track_name) {
             SAFE_READ(ar, x, 12);
             if (x->crosstype == 4) { // basic objects
                 SAFE_READ(ar, &(x->ptRef), 12);
-                SAFE_READ(ar, &(x->unknown2), 4);
+                SAFE_READ(ar, &(x->AnimMemory), 4);
             } else if (x->crosstype == 3) { // animated objects
                 // unkn3, type3, objno, nAnimLength, unkn4 == 24 bytes
                 SAFE_READ(ar, x->unknown3, 24);

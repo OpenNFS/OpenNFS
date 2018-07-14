@@ -5,7 +5,7 @@
 
 #include "Car.h"
 
-Car::Car(NFS3_Loader loader){
+Car::Car(NFS4_Loader *loader){
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
@@ -23,7 +23,7 @@ Car::Car(NFS3_Loader loader){
     steerRight = steerLeft = isReverse = false;
 
     glm::vec3 debug_offset(0, 0, 0);
-    car_models = loader.meshes;
+    car_models = loader->meshes;
 
     // Enable High Res wheels and body
     for(int i = 0; i < 5; i++){
@@ -69,7 +69,6 @@ Car::~Car() {
     for (auto &car_model : car_models) {
         car_model.destroy();
     }
-
 }
 
 void Car::update() {

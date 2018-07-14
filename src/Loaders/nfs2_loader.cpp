@@ -124,11 +124,18 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string 
         if ((geoBlockHeader->unknown[0] != 0)||(geoBlockHeader->unknown[1] != 1)||(geoBlockHeader->unknown[2] != 1))
             block_Idx = -1;
 
-        uint8_t extraPadByte = geoBlockHeader->unknown1 % 2;
-
         // Unknown1 + 1 lots of 4 byte numbers
-        uint16_t *pad = new uint16_t[(geoBlockHeader->unknown1 + extraPadByte)*2];
-        geo.read((char*) pad, (geoBlockHeader->unknown1 + extraPadByte) * 2 * sizeof(uint16_t));
+        uint16_t *pad = new uint16_t[(geoBlockHeader->unknown1)*2];
+        geo.read((char*) pad, (geoBlockHeader->unknown1) * 2 * sizeof(uint16_t));
+
+        std::cout << geo.tellg() << std::endl;
+
+        //int padding = 16 - (geo.tellg() % 16);
+        //if (padding){
+        //    geo.seekg(padding, ios_base::cur);
+        //}
+
+
 
         auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nSomething + geoBlockHeader->nVerts];
         geo.read((char*) vertices, (geoBlockHeader->nSomething + geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
@@ -152,7 +159,7 @@ template <typename Platform> bool NFS2_Loader<Platform>::LoadPS1GEO(std::string 
         //}
 
         delete geoBlockHeader;
-        delete[] pad;
+        //delete[] pad;
         delete[] vertices;
         delete[] polygons;
     }

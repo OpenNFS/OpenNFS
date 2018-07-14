@@ -19,7 +19,7 @@
 
 class Car {
 public:
-    Car(NFS3_Loader loader);
+    Car(NFS4_Loader *loader);
     ~Car();
     void update();
     void resetCar();
@@ -83,5 +83,4 @@ private:
     bool steerLeft;
     bool isSteering;
     bool isReverse;
-
 };

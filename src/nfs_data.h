@@ -238,7 +238,7 @@ namespace NFS3 {
         uint32_t unknown;
 // this section only for type 4 basic objects
         struct FLOATPT ptRef;
-        uint32_t unknown2; // in HS, stores the unknown uint32_t for type 3 as well
+        uint32_t AnimMemory; // in HS, stores the unknown uint32_t for type 3 as well
 // this section only for type 3 animated objects
         uint16_t unknown3[9]; // 6 first are all alike; [6]==[8]=?; [7]=0
         // in HS, only 6 are used ; 6 = expected 4

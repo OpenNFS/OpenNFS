@@ -137,26 +137,28 @@ int main(int argc, char **argv) {
     /*------ ASSET LOAD ------*/
     initDirectories();
     std::string car_name;
-    //NFS4_Loader nfs4_loader("../resources/NFS4/DATA/CARS/COLT", &car_name);
-    NFS3_Loader nfs3_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
-    //Load Car data from unpacked NFS files
-    Car car = Car(nfs3_loader);
+    // TODO: Use polymorphism to avoid this
+    NFS4_Loader nfs4_track_loader("../resources/NFS4/DATA/TRACKS/GT1");
+    NFS4_Loader nfs4_loader("../resources/NFS4/DATA/CARS/COLT", &car_name);
     //Load Track Data`
-    NFS3_Loader trk_loader("../resources/NFS3/gamedata/tracks/trk006/tr06");
-    NFS3::TRACK *track = trk_loader.track;
+    NFS3_Loader trk_loader1("../resources/NFS3/gamedata/tracks/trk006/tr06");
+    NFS3::TRACK *track = trk_loader1.track;
     //NFS2::PC::TRACK *track = trk_loader.track;
     //NFS2_Loader<PC> trk_loader("../resources/NFS2/GAMEDATA/TRACKS/PC/TR02");
     //NFS2_Loader<PC> trk_loader("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR08");
     //NFS2::PC::TRACK *track = trk_loader.track;
     //NFS2_Loader<PS1> trk_loader("../resources/NFS3_PS1/ZZZTR04A");
     //NFS2::PS1::TRACK *track = trk_loader.track;
+    //NFS3_Loader nfs3_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
+    //Load Car data from unpacked NFS files
+    Car car = Car(&nfs4_loader);
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
     /*------- BULLET --------*/
-    /*Physics physicsEngine;
+    Physics physicsEngine;
     physicsEngine.registerTrack(track->track_blocks);
-    physicsEngine.registerVehicle(&car);*/
+    physicsEngine.registerVehicle(&car);
 
     /*------- ImGui -------*/
     ImGui::CreateContext();
@@ -202,7 +204,7 @@ int main(int argc, char **argv) {
         glm::mat4 ProjectionMatrix = mainCamera.ProjectionMatrix;
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
         glm::vec3 worldPosition = mainCamera.position;
-        //physicsEngine.mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
+        physicsEngine.mydebugdrawer.SetMatrices(ViewMatrix, ProjectionMatrix);
 
         //TODO: Refactor to controller class?
         if (window_active && !ImGui::GetIO().MouseDown[1]) {
@@ -240,7 +242,7 @@ int main(int argc, char **argv) {
         }
 
         // Step the physics simulation
-        //physicsEngine.stepSimulation(mainCamera.deltaTime);
+        physicsEngine.stepSimulation(mainCamera.deltaTime);
 
 
         carShader.use();

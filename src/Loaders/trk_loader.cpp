@@ -66,6 +66,10 @@ bool ExtractTrackTextures(const std::string &track_path, const ::std::string tra
             output_dir << "NFS3_PS1/";
             tex_archive_path << psh_path << "0.PSH";
             break;
+        case NFS_4:
+            output_dir << "NFS4/";
+            tex_archive_path << track_path << "/TR0.qfs";
+            break;
         case UNKNOWN:
         default:
             output_dir << "UNKNOWN/";
@@ -74,7 +78,7 @@ bool ExtractTrackTextures(const std::string &track_path, const ::std::string tra
     output_dir << track_name;
 
     if (boost::filesystem::exists(output_dir.str())) {
-        return true;
+       return true;
     } else {
         boost::filesystem::create_directories(output_dir.str());
     }
