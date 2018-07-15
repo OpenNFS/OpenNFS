@@ -116,7 +116,7 @@ bool Track::genBuffers() {
     );
     // 3rd attribute buffer : Texture Indices
     glEnableVertexAttribArray(2);
-    // NFS3 Shading Data
+    // NFS3_4 Shading Data
     glGenBuffers(1, &shadingBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, shadingBuffer);
     glBufferData(GL_ARRAY_BUFFER, m_shading_data.size() * sizeof(glm::vec4), &m_shading_data[0], GL_STATIC_DRAW);
@@ -128,7 +128,7 @@ bool Track::genBuffers() {
             0,
             (void *) 0
     );
-    // 4th attribute buffer : NFS3 Shading Data
+    // 4th attribute buffer : NFS3_4 Shading Data
     glEnableVertexAttribArray(3);
     // Normals
     glGenBuffers(1, &normalBuffer);

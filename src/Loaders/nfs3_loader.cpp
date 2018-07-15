@@ -6,7 +6,7 @@
 
 // CAR
 
-NFS3_Loader::NFS3_Loader(const std::string &car_base_path, std::string *car_name){
+NFS3_Loader::NFS3_Loader(const std::string &car_base_path, std::string *car_name) {
     boost::filesystem::path p(car_base_path);
     *car_name = p.filename().string();
 
@@ -15,18 +15,19 @@ NFS3_Loader::NFS3_Loader(const std::string &car_base_path, std::string *car_name
     car_out_path << CAR_PATH << *car_name << "/";
     fce_path << CAR_PATH << *car_name << "/car.fce";
 
-    ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+    ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()),
+           "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
     ASSERT(LoadFCE(fce_path.str()), "Unable to load " << fce_path.str());
 }
 
 bool NFS3_Loader::LoadFCE(const std::string fce_path) {
-    std::cout << "- Parsing FCE File: "  << fce_path <<  std::endl;
+    std::cout << "- Parsing FCE File: " << fce_path << std::endl;
     ifstream fce(fce_path, ios::in | ios::binary);
 
-    auto *fceHeader = new FCE::HEADER();
-    fce.read((char*) fceHeader, sizeof(FCE::HEADER));
+    auto *fceHeader = new FCE::NFS3::HEADER();
+    fce.read((char *) fceHeader, sizeof(FCE::NFS3::HEADER));
 
-    for(int part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx){
+    for (int part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
         float specularDamper = 0.2;
         float specularReflectivity = 0.02;
         float envReflectivity = 0.4;
@@ -37,28 +38,34 @@ bool NFS3_Loader::LoadFCE(const std::string fce_path) {
         std::vector<glm::vec2> uvs;
 
         std::string part_name(fceHeader->partNames[part_Idx]);
-        glm::vec3 center(fceHeader->partCoords[part_Idx].x, fceHeader->partCoords[part_Idx].y, fceHeader->partCoords[part_Idx].z);
+        glm::vec3 center(fceHeader->partCoords[part_Idx].x, fceHeader->partCoords[part_Idx].y,
+                         fceHeader->partCoords[part_Idx].z);
         center /= 10;
 
         auto *partVertices = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partTriangles = new FCE::TRIANGLE[fceHeader->partNumTriangles[part_Idx]];
 
-        fce.seekg(sizeof(FCE::HEADER)+fceHeader->vertTblOffset+(fceHeader->partFirstVertIndices[part_Idx]*sizeof(FLOATPT)), ios_base::beg);
-        fce.read((char*) partVertices, fceHeader->partNumVertices[part_Idx]*sizeof(FLOATPT));
-        for(int vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx){
-            vertices.emplace_back(glm::vec3(partVertices[vert_Idx].x, partVertices[vert_Idx].y, partVertices[vert_Idx].z));
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->vertTblOffset +
+                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
+        for (int vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
+            vertices.emplace_back(
+                    glm::vec3(partVertices[vert_Idx].x, partVertices[vert_Idx].y, partVertices[vert_Idx].z));
         }
 
-        fce.seekg(sizeof(FCE::HEADER)+fceHeader->normTblOffset+(fceHeader->partFirstVertIndices[part_Idx]*sizeof(FLOATPT)), ios_base::beg);
-        fce.read((char*) partNormals, fceHeader->partNumVertices[part_Idx]*sizeof(FLOATPT));
-        for(int normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx){
-            normals.emplace_back(glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->normTblOffset +
+                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
+        for (int normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
+            normals.emplace_back(
+                    glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
         }
 
-        fce.seekg(sizeof(FCE::HEADER)+fceHeader->triTblOffset+(fceHeader->partFirstTriIndices[part_Idx]*sizeof(FCE::TRIANGLE)), ios_base::beg);
-        fce.read((char*) partTriangles, fceHeader->partNumTriangles[part_Idx]*sizeof(FCE::TRIANGLE));
-        for(int tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx){
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset +
+                  (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
+        fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
+        for (int tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
             indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[1]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[2]);
@@ -67,11 +74,12 @@ bool NFS3_Loader::LoadFCE(const std::string fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, part_Idx, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
+        meshes.emplace_back(CarModel(part_name, part_Idx, vertices, uvs, normals, indices, center, specularDamper,
+                                     specularReflectivity, envReflectivity));
         std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: "
-                  << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size() << " Normals: "
+                  << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
+                  << " Normals: "
                   << meshes[part_Idx].m_normals.size() << std::endl;
-        meshes[part_Idx].enable();
 
         delete[] partNormals;
         delete[] partVertices;
@@ -118,27 +126,31 @@ void NFS3_Loader::WriteObj(const std::string &path) {
 // TRACK
 
 NFS3_Loader::NFS3_Loader(const std::string &track_base_path) {
-    std::cout << "--- Loading NFS3 Track ---" << std::endl;
+    std::cout << "--- Loading NFS3_4 Track ---" << std::endl;
 
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
     stringstream frd_path, col_path;
     string strip = "K0";
-    unsigned int pos= track_name.find(strip);
-    if(pos!= string::npos)
+    unsigned int pos = track_name.find(strip);
+    if (pos != string::npos)
         track_name.replace(pos, strip.size(), "");
 
     frd_path << track_base_path << ".frd";
     col_path << track_base_path << ".col";
 
-    ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track_name), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCOL(col_path.str()), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3),
+           "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(LoadFRD(frd_path.str(), track_name),
+           "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCOL(col_path.str()), "Could not load COL file: "
+            << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
 
     track->texture_gl_mappings = GenTrackTextures(track->textures);
     track->track_blocks = ParseTRKModels();
     std::vector<Track> col_models = ParseCOLModels();
-    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
+    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(),
+                                          col_models.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Successful track load!" << std::endl;
 }
@@ -152,12 +164,12 @@ bool NFS3_Loader::LoadFRD(std::string frd_path, const std::string &track_name) {
     track->nBlocks++;
     if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
 
-    track->trk = static_cast<TRKBLOCK *>(calloc(track->nBlocks, sizeof(TRKBLOCK)));
-    track->poly = static_cast<POLYGONBLOCK *>(calloc(track->nBlocks, sizeof(POLYGONBLOCK)));
-    track->xobj = static_cast<XOBJBLOCK *>(calloc((4 * track->nBlocks + 1), sizeof(XOBJBLOCK)));
+    track->trk = new TRKBLOCK[track->nBlocks]();
+    track->poly = new POLYGONBLOCK[track->nBlocks]();
+    track->xobj = new XOBJBLOCK[4 * track->nBlocks + 1]();
 
     int l;
-    SAFE_READ(ar, &l, 4); // choose between NFS3 & NFSHS
+    SAFE_READ(ar, &l, 4); // choose between NFS3_4 & NFSHS
     if ((l < 0) || (l > 5000)) track->bHSMode = false;
     else if (((l + 7) / 8) == track->nBlocks) track->bHSMode = true;
     else return false; // unknown file type
@@ -309,7 +321,7 @@ bool NFS3_Loader::LoadCOL(std::string col_path) {
 
     track->col.hs_extra = NULL;
     if (coll.read((char *) &track->col, 16).gcount() != 16) return false;
-    if (memcmp(track->col.collID, "COLL", sizeof(track->col.collID[0])) != 0){
+    if (memcmp(track->col.collID, "COLL", sizeof(track->col.collID[0])) != 0) {
         std::cout << "Invalid COL file." << std::endl;
         return false;
     }
@@ -329,7 +341,8 @@ bool NFS3_Loader::LoadCOL(std::string col_path) {
     if (track->col.nBlocks >= 4) {
         SAFE_READ(coll, &track->col.struct3DHead, 8);
         if (track->col.struct3DHead.xbid != XBID_STRUCT3D) return false;
-        COLSTRUCT3D *s = track->col.struct3D = static_cast<COLSTRUCT3D *>(calloc(track->col.struct3DHead.nrec, sizeof(COLSTRUCT3D)));
+        COLSTRUCT3D *s = track->col.struct3D = static_cast<COLSTRUCT3D *>(calloc(track->col.struct3DHead.nrec,
+                                                                                 sizeof(COLSTRUCT3D)));
         int delta;
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.struct3DHead.nrec; colRec_Idx++, s++) {
             SAFE_READ(coll, s, 8);
@@ -339,7 +352,7 @@ bool NFS3_Loader::LoadCOL(std::string col_path) {
             s->vertex = static_cast<COLVERTEX *>(calloc(16, s->nVert));
             SAFE_READ(coll, s->vertex, 16 * s->nVert);
             s->polygon = static_cast<COLPOLYGON *>(calloc(6, s->nPoly));
-            SAFE_READ(coll, s->polygon, 6*s->nPoly);
+            SAFE_READ(coll, s->polygon, 6 * s->nPoly);
             int dummy;
             if (delta > 0) SAFE_READ(coll, &dummy, delta);
         }
@@ -418,7 +431,7 @@ std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
             //current_track_block.lights.emplace_back(temp_light);
         }
 
-        for(int s = 0; s < trk_block.nSoundsrc; s++){
+        for (int s = 0; s < trk_block.nSoundsrc; s++) {
             //Light temp_light = Light(trk_block.soundsrc[s].refpoint, trk_block.soundsrc[s].type);
             //temp_light.enable();
             //current_track_block.lights.emplace_back(temp_light);
@@ -593,7 +606,7 @@ std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
         FLOATPT norm_floatpt;
         // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
         for (int chnk = 4; chnk <= 6; chnk++) {
-            if((chnk == 6)&&(trk_block.nVertices <= trk_block.nHiResVert))
+            if ((chnk == 6) && (trk_block.nVertices <= trk_block.nHiResVert))
                 continue;
             LPPOLYGONDATA poly_chunk = polygon_block.poly[chnk];
             for (int k = 0; k < polygon_block.sz[chnk]; k++) {
@@ -637,7 +650,7 @@ std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
                                                   trk_block_shading_verts,
                                                   trk_block_center);
             current_trk_block_model.enable();
-            if(chnk != 6)
+            if (chnk != 6)
                 current_track_block.track.emplace_back(current_trk_block_model);
             current_track_block.objects.emplace_back(current_trk_block_model);
         }
@@ -697,7 +710,9 @@ std::vector<Track> NFS3_Loader::ParseCOLModels() {
         }
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-        glm::vec3 position = glm::vec3(static_cast<float>(o->ptRef.x / 65536.0)/10, static_cast<float>(o->ptRef.y / 65536.0)/10, static_cast<float>(o->ptRef.z / 65536.0)/10);
+        glm::vec3 position = glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10,
+                                       static_cast<float>(o->ptRef.y / 65536.0) / 10,
+                                       static_cast<float>(o->ptRef.z / 65536.0) / 10);
         Track col_model = Track("ColBlock", i, verts, uvs, texture_indices, indices, texture_ids, shading_data,
                                 glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
         col_model.enable();
@@ -714,18 +729,22 @@ Texture NFS3_Loader::LoadTexture(TEXTUREBLOCK track_texture, const std::string &
         filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
         filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
+        filename << TRACK_PATH << "NFS3_4/" << track_name << "/textures/" << setfill('0') << setw(4)
+                 << track_texture.texture << ".BMP";
+        filename_alpha << TRACK_PATH << "NFS3_4/" << track_name << "/textures/" << setfill('0') << setw(4)
+                       << track_texture.texture << "-a.BMP";
     }
 
     GLubyte *data;
     GLsizei width = track_texture.width;
     GLsizei height = track_texture.height;
 
-    if(!LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)){
-        std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!" << std::endl;
+    if (!LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)) {
+        std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!"
+                  << std::endl;
         // If the texture is missing, load a "MISSING" texture of identical size.
-        ASSERT(LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width, height), "Even the 'missing' texture is missing!");
+        ASSERT(LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width,
+                                height), "Even the 'missing' texture is missing!");
         return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
                        static_cast<unsigned int>(track_texture.height));
     }

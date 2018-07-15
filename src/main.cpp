@@ -133,27 +133,28 @@ void initDirectories(){
 
 int main(int argc, char **argv) {
     std::cout << "----------- OpenNFS3 v0.011 -----------" << std::endl;
+
     ASSERT(init_opengl(), "OpenGL init failed.");
     /*------ ASSET LOAD ------*/
     initDirectories();
     std::string car_name;
     // TODO: Use polymorphism to avoid this
-    NFS4_Loader nfs4_track_loader("../resources/NFS4/DATA/TRACKS/GT1");
+    NFS4_Loader nfs4_track_loader("../resources/NFS4/DATA/TRACKS/FRANCE");
     NFS4_Loader nfs4_loader("../resources/NFS4/DATA/CARS/COLT", &car_name);
     //Load Track Data`
-    NFS3_Loader trk_loader1("../resources/NFS3/gamedata/tracks/trk006/tr06");
-    NFS3::TRACK *track = trk_loader1.track;
+    //NFS3_Loader trk_loader1("../resources/NFS3_4/gamedata/tracks/trk006/tr06");
+    NFS3_4::TRACK *track = nfs4_track_loader.track;
     //NFS2::PC::TRACK *track = trk_loader.track;
     //NFS2_Loader<PC> trk_loader("../resources/NFS2/GAMEDATA/TRACKS/PC/TR02");
     //NFS2_Loader<PC> trk_loader("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR08");
     //NFS2::PC::TRACK *track = trk_loader.track;
     //NFS2_Loader<PS1> trk_loader("../resources/NFS3_PS1/ZZZTR04A");
     //NFS2::PS1::TRACK *track = trk_loader.track;
-    //NFS3_Loader nfs3_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
+    //NFS3_Loader nfs3_loader("../resources/NFS3_4/gamedata/carmodel/diab", &car_name);
     //Load Car data from unpacked NFS files
     Car car = Car(&nfs4_loader);
 	//Load Music
-	//MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
+	//MusicLoader musicLoader("F:\\NFS3_4\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
     /*------- BULLET --------*/
     Physics physicsEngine;
@@ -256,7 +257,7 @@ int main(int argc, char **argv) {
         }
         carShader.unbind();
 
-        for (auto &active_track_Block : track->track_blocks) {
+        for (auto &active_track_Block : activeTrackBlocks) {
             trackShader.use();
             for (auto &track_block_model : active_track_Block.objects) {
                 track_block_model.update();
@@ -285,7 +286,7 @@ int main(int argc, char **argv) {
 
         // Draw UI (Tactically)
         static float f = 0.0f;
-        ImGui::Text("NFS3 Engine");
+        ImGui::Text("NFS3_4 Engine");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                     ImGui::GetIO().Framerate);
         ImGui::Checkbox("Bullet Debug View", &physics_debug_view);

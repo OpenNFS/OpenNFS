@@ -14,7 +14,7 @@
 #include "../Scene/TrackBlock.h"
 #include "../nfs_data.h"
 
-using namespace NFS3;
+using namespace NFS3_4;
 using namespace Utils;
 
 void ConvertFCE(const std::string &fce_path, const std::string &obj_out_path);

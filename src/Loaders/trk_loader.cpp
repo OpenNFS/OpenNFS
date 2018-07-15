@@ -5,7 +5,6 @@
 #include <iomanip>
 #include "trk_loader.h"
 
-
 std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures) {
     std::map<short, GLuint> gl_id_map;
 
@@ -58,7 +57,7 @@ bool ExtractTrackTextures(const std::string &track_path, const ::std::string tra
             tex_archive_path << track_path << "0M.qfs";
             break;
         case NFS_3:
-            output_dir << "NFS3/";
+            output_dir << "NFS3_4/";
             tex_archive_path << track_path << "0.qfs";
             break;
         case NFS_3_PS1:
