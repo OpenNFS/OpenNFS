@@ -741,7 +741,7 @@ namespace NFS2 {
             struct BLOCK_HEADER {
                 uint32_t nVerts;
                 uint32_t unknown1;  // Block type? Changes how many padding bytes there are uint16_t[(unknown1 + extraPadByte)*2]
-                uint32_t nSomething;  // Extra verts for higher LOD?
+                uint32_t nNormals;  // Extra verts for higher LOD?
                 uint32_t nPolygons;
                 int32_t position[3]; // Absolute X,Y,Z reference
                 int16_t unknown2[4][2]; // No clue
@@ -759,6 +759,18 @@ namespace NFS2 {
                 uint16_t texMapType[2];
                 uint16_t vertex[3][4]; // Literally wtf, 3 groups of 4 numbers that look like the vert indexes. One set [1] is usually 0,0,0,0 or 1,1,1,1
                 char texName[4];
+            };
+
+            struct XBLOCK_3 {
+                uint8_t unknown[16];
+            };
+
+            struct XBLOCK_1 {
+                uint8_t unknown[8];
+            };
+
+            struct XBLOCK_2 {
+                uint8_t unknown[8];
             };
 #pragma pack(pop)
         };

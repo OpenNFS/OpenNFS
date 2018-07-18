@@ -603,29 +603,41 @@ bool NFS4_Loader::LoadFRD(const std::string &frd_path, const std::string &track_
                 if (pp->texture > m) m = pp->texture;
         }
     }
+
+
+    std::stringstream tex_dir;
+
+    using namespace boost::filesystem;
+    using namespace boost::lambda;
+
+    tex_dir << TRACK_PATH << "NFS4/" << track_name << "/textures/";
+    path tex_path(tex_dir.str());
+
+    int nData = std::count_if(directory_iterator(tex_path), directory_iterator(), static_cast<bool(*)(const path&)>(is_regular_file) );
+
     //HOO: This is changed because some pStockBitmap can not be seen (3)
     track->nTextures = m += 15;
     //HOO: (3)
     track->texture = new TEXTUREBLOCK[m]();
     for (int i = 0; i < m; i++) {
-        track->texture[i].width = 16;
-        track->texture[i].height = 16; // WHY ?????
-        track->texture[i].corners[2] = 1.0; // (1,0)
-        track->texture[i].corners[4] = 1.0; // (1,1)
-        track->texture[i].corners[5] = 1.0;
-        track->texture[i].corners[7] = 1.0; // (0,1)
+        track->texture[i].width=16;
+        track->texture[i].height=16; // WHY ?????
+        track->texture[i].corners[2]=1.0; // (1,0)
+        track->texture[i].corners[4]=1.0; // (1,1)
+        track->texture[i].corners[5]=1.0;
+        track->texture[i].corners[7]=1.0; // (0,1)
         track->texture[i].texture = i & 0x7FF;  // ANYWAY WE CAN'T FIND IT !
         track->texture[i].islane = i >> 11;
-        track->textures[track->texture[i].texture] = LoadTexture(track->texture[i], track_name);
+        if(track->texture[i].texture < nData -1||track->texture[i].islane){
+            track->textures[track->texture[i].texture] = LoadTexture(track->texture[i], track_name);
+        }
     }
-
     //CorrectVirtualRoad();
     return true;
 }
 
-
 std::vector<glm::vec2> highStakesToGLUV(POLYGONDATA poly) {
-    glm::vec2 converted_uvs[6] = {};
+    std::vector<glm::vec2> converted_uvs;
     int map[4], hold;
     //(flags>>2)&3 indicates the multiple of 90° by which the
     //texture should be rotated (0 for no rotation, 1 for 90°,
@@ -698,7 +710,7 @@ std::vector<glm::vec2> highStakesToGLUV(POLYGONDATA poly) {
     }
     // Scale Factor
     switch ((poly.hs_texflags >> 6) & 7) {
-        case 0:
+       /* case 0:
             oi[1] = 1.0f;
             ii[0] = 1.0f;
             ii[1] = 1.0f;
@@ -727,21 +739,53 @@ std::vector<glm::vec2> highStakesToGLUV(POLYGONDATA poly) {
             ii[0] = 1.0f;
             ii[1] = 0.25f;
             io[0] = 1.0f;
+            break;*/
+        {
+            case 0:
+            oi[1] = 1.0f;
+            ii[0] = 1.0f;
+            ii[1] = 1.0f;
+            io[0] = 1.0f;
             break;
+            case 1:
+            oi[1] = 1.0f;
+            ii[0] = 2.0f;
+            ii[1] = 1.0f;
+            io[0] = 2.0f;
+            break;
+            case 2:
+            oi[1] = 2.0f;
+            ii[0] = 1.0f;
+            ii[1] = 2.0f;
+            io[0] = 1.0f;
+            break;
+            case 3:
+            oi[1] = 1.0f;
+            ii[0] = 4.0f;
+            ii[1] = 1.0f;
+            io[0] = 4.0f;
+            break;
+            case 4:
+            oi[1] = 4.0f;
+            ii[0] = 1.0f;
+            ii[1] = 4.0f;
+            io[0] = 1.0f;
+            break;
+        }
     }
     oi[0] = 0.0f;
     io[1] = 0.0f;
     oo[0] = 0.0f;
     oo[1] = 0.0f;
 
-    converted_uvs[map[0]] = glm::vec2(oi[0], oi[1]);
-    converted_uvs[map[1]] = glm::vec2(ii[0], ii[1]);
-    converted_uvs[map[2]] = glm::vec2(io[0], io[1]);
-    converted_uvs[map[0]] = glm::vec2(oi[0], oi[1]);
-    converted_uvs[map[2]] = glm::vec2(io[0], io[1]);
-    converted_uvs[map[3]] = glm::vec2(oo[0], oo[1]);
+    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
+    converted_uvs.push_back(glm::vec2(ii[0], ii[1]));
+    converted_uvs.push_back(glm::vec2(io[0], io[1]));
+    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
+    converted_uvs.push_back(glm::vec2(io[0], io[1]));
+    converted_uvs.push_back(glm::vec2(oo[0], oo[1]));
 
-    return std::vector<glm::vec2>(converted_uvs, converted_uvs + 6);
+    return converted_uvs;//std::vector<glm::vec2>(converted_uvs, converted_uvs + 6);
 }
 
 std::vector<TrackBlock> NFS4_Loader::ParseTRKModels() {
@@ -823,6 +867,12 @@ std::vector<TrackBlock> NFS4_Loader::ParseTRKModels() {
 
                         std::vector<glm::vec2> converted_uvs = highStakesToGLUV(object_polys[p]);
                         uvs.insert(uvs.end(), converted_uvs.begin(), converted_uvs.end());
+                       /* uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                        uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
+                        uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                        uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                        uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                        uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);*/
 
                         // Use TextureID in place of normal
                         texture_indices.emplace_back(object_polys[p].texture);
@@ -895,6 +945,12 @@ std::vector<TrackBlock> NFS4_Loader::ParseTRKModels() {
 
                     std::vector<glm::vec2> converted_uvs = highStakesToGLUV(poly);
                     uvs.insert(uvs.end(), converted_uvs.begin(), converted_uvs.end());
+                    /*uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                    uvs.emplace_back(1.0f - texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);*/
 
                     texture_indices.emplace_back(poly.texture);
                     texture_indices.emplace_back(poly.texture);
@@ -937,7 +993,7 @@ std::vector<TrackBlock> NFS4_Loader::ParseTRKModels() {
                 continue;
             LPPOLYGONDATA poly_chunk = polygon_block.poly[chnk];
             for (int k = 0; k < polygon_block.sz[chnk]; k++) {
-                //TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
+                TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
                 minimal_texture_ids_set.insert(poly_chunk[k].texture);
                 //norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0]);
                 //norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
@@ -960,6 +1016,12 @@ std::vector<TrackBlock> NFS4_Loader::ParseTRKModels() {
 
                 std::vector<glm::vec2> converted_uvs = highStakesToGLUV(poly_chunk[k]);
                 uvs.insert(uvs.end(), converted_uvs.begin(), converted_uvs.end());
+                /*uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
+                uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
+                uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
+                uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);*/
 
                 texture_indices.emplace_back(poly_chunk[k].texture);
                 texture_indices.emplace_back(poly_chunk[k].texture);

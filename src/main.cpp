@@ -133,8 +133,9 @@ void initDirectories(){
 
 int main(int argc, char **argv) {
     std::cout << "----------- OpenNFS3 v0.011 -----------" << std::endl;
-
     ASSERT(init_opengl(), "OpenGL init failed.");
+
+    NFS2_Loader<PC> trk_loader("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR08");
     /*------ ASSET LOAD ------*/
     initDirectories();
     std::string car_name;
