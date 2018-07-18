@@ -118,7 +118,6 @@ bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path) {
         return false;
     }
 
-
     std::ofstream obj_dump;
     obj_dump.open("./assets/ps1_geo.obj");
 
@@ -126,7 +125,8 @@ bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path) {
     obj_dump << "o " << "PS1_Test" << std::endl;
     bool eof = false;
     for (int block_Idx = 0; block_Idx != -1; ++block_Idx) {
-        std::cout << block_Idx << " off: " << geo.tellg() << std::endl;
+        streamoff start = geo.tellg();
+        std::cout << block_Idx << " BlockStartOffset: " << start << std::endl;
 
         auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
         while (geoBlockHeader->nVerts == 0) {
@@ -147,57 +147,76 @@ bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path) {
         auto *normals = new PS1::GEO::BLOCK_3D[geoBlockHeader->nNormals];
         geo.read((char *) normals, (geoBlockHeader->nNormals) * sizeof(PS1::GEO::BLOCK_3D));
 
-        auto *xblock_3 = new PS1::GEO::XBLOCK_3();
+
         auto *xblock_1 = new PS1::GEO::XBLOCK_1();
         auto *xblock_2 = new PS1::GEO::XBLOCK_2();
+        auto *xblock_3 = new PS1::GEO::XBLOCK_3();
+        auto *xblock_4 = new PS1::GEO::XBLOCK_4();
         switch(geoBlockHeader->unknown1){
-            case 3:
-                geo.read((char*) xblock_3, sizeof(PS1::GEO::XBLOCK_3));
-                delete xblock_1;
-                delete xblock_2;
-                break;
             case 1:
                 geo.read((char*) xblock_1, sizeof(PS1::GEO::XBLOCK_1));
                 delete xblock_2;
                 delete xblock_3;
+                delete xblock_4;
                 break;
             case 2:
                 geo.read((char*) xblock_2, sizeof(PS1::GEO::XBLOCK_2));
                 delete xblock_1;
                 delete xblock_3;
+                delete xblock_4;
                 break;
+            case 3:
+                geo.read((char*) xblock_3, sizeof(PS1::GEO::XBLOCK_3));
+                delete xblock_1;
+                delete xblock_2;
+                delete xblock_4;
+                break;
+            case 4:
+                geo.read((char*) xblock_4, sizeof(PS1::GEO::XBLOCK_4));
+                delete xblock_1;
+                delete xblock_2;
+                delete xblock_3;
+                break;
+
             default:
                 std::cout << "Unknown block type:  " << geoBlockHeader->unknown1 << std::endl;
         }
 
+        streamoff end = geo.tellg();
+        std::cout << "PolyTblEndOffset: " << end << " Size: " << end-start << std::endl;
+        // Polygon Table start is aligned on 4 Byte boundary
+        if(((end-start)%4)){
+            std::cout << "Pad Contents: " << std::endl;
+            uint16_t *pad = new uint16_t[3];
+            geo.read((char*)pad, sizeof(uint16_t) *3);
+            for(int i = 0; i < 3; ++i){
+                std::cout << pad[i] << std::endl;
+            }
+            delete[] pad;
+        }
 
         auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
         geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
+
+
+        std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg()-start << std::endl;
 
         for (int i = 0; i < geoBlockHeader->nVerts; ++i) {
             obj_dump << "v " << geoBlockHeader->position[0] + vertices[i].x << " " << geoBlockHeader->position[1] + vertices[i].y << " " << geoBlockHeader->position[2] + vertices[i].z << std::endl;
         }
 
-        for(int i = 0; i <  geoBlockHeader->nNormals; ++i ){
-            obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
-        }
+        //for(int i = 0; i <  geoBlockHeader->nNormals; ++i ){
+        //    obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
+        //}
 
         for(int i = 0; i <  geoBlockHeader->nPolygons; ++i ){
             obj_dump << "f " << polygons[i].vertex[0][0] << " " << polygons[i].vertex[0][1] << " " << polygons[i].vertex[0][2] << " " << polygons[i].vertex[0][3] << std::endl;
         }
 
-        if (block_Idx >= 5 && block_Idx != 9 && block_Idx != 11 && block_Idx != 12 && block_Idx != 21 &&
-            block_Idx != 22 && block_Idx != 23 && block_Idx != 24 && block_Idx != 25 && block_Idx != 27 &&
-            block_Idx != 28) {
-            std::cout << "Skipping 6 Bytes " << std::endl;
-            geo.seekg(6, ios_base::cur);
-        } else {
-            std::cout << "No skip " << std::endl;
-        }
-        std::cout << geoBlockHeader->nVerts << "," << std::endl;
-        std::cout << geoBlockHeader->unknown1 << "," << std::endl;
-        std::cout << geoBlockHeader->nNormals << "," << std::endl;
-        std::cout << geoBlockHeader->nPolygons << "," << std::endl;
+        std::cout << "nVerts: " << geoBlockHeader->nVerts << "," << std::endl;
+        std::cout << "unknown1: " << geoBlockHeader->unknown1 << "," << std::endl;
+        std::cout << "nNormals: " << geoBlockHeader->nNormals << "," << std::endl;
+        std::cout << "nPolygons: " << geoBlockHeader->nPolygons << "," << std::endl;
         for (int o = 0; o < 4; ++o) {
             std::cout << geoBlockHeader->unknown2[o][0] << "," << std::endl;
             std::cout << geoBlockHeader->unknown2[o][1] << "," << std::endl;
@@ -206,7 +225,7 @@ bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path) {
             std::cout << geoBlockHeader->unknown[j] << "," << std::endl;
         }
 
-        /*switch(geoBlockHeader->unknown1){
+        switch(geoBlockHeader->unknown1){
             case 3:
                 std::cout << "XBlock 3: " << std::endl;
                for(int i = 0; i <  sizeof(xblock_3->unknown)/sizeof(xblock_3->unknown[0]); ++i){
@@ -225,11 +244,12 @@ bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path) {
                     std::cout << (int) xblock_2->unknown[i] << std::endl;
                 }
                 break;
-        }*/
+        }
         std::cout << "--------------------------" << std::endl;
 
 
         delete geoBlockHeader;
+        delete[] normals;
         delete[] vertices;
         delete[] polygons;
     }

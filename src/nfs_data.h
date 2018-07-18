@@ -772,6 +772,10 @@ namespace NFS2 {
             struct XBLOCK_2 {
                 uint8_t unknown[8];
             };
+
+            struct XBLOCK_4 {
+                uint8_t unknown[10];
+            };
 #pragma pack(pop)
         };
     };
