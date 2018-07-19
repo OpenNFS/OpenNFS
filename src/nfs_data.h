@@ -4,13 +4,12 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-#ifndef OPENNFS3_NFS_DATA_H
-#define OPENNFS3_NFS_DATA_H
+
+#pragma once
 
 #include <cstdint>
 #include <map>
 #include <vector>
-#include <GL/glew.h>
 #include "Scene/TrackBlock.h"
 
 enum NFSVer {
@@ -33,7 +32,7 @@ public:
     }
 };
 
-namespace NFS3_4 {
+namespace NFS3_4_DATA {
     struct FLOATPT {
         float x, z, y;
     };
@@ -423,7 +422,7 @@ namespace NFS3_4 {
     };
 };
 
-namespace NFS2 {
+namespace NFS2_DATA {
     // ---- CORE DATA TYPES ----
     struct VERT_HIGHP {
         int32_t x, z, y;
@@ -786,12 +785,6 @@ namespace NFS2 {
     };
 }
 
-union NFS_TRACK {
-    NFS3_4::TRACK *nfs3_4_pc_track;
-    NFS2::PC::TRACK *nfs2_pc_track;
-    NFS2::PS1::TRACK *nfs2_ps1_track;
-};
-
 namespace Music {
     typedef struct MAPHeader {
         char szID[4];
@@ -831,7 +824,5 @@ namespace Music {
 
 
 }
-
-#endif //OPENNFS3_NFS_DATA_H
 
 #pragma clang diagnostic pop

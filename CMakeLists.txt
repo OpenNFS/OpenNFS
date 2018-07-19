@@ -4,6 +4,8 @@ project(OpenNFS)
 set(BUILD_SHARED_LIBS OFF)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+
 set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 #[[set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})]]
@@ -46,7 +48,7 @@ set(SOURCE_FILES
         tools/fshtool.c
         tools/fshtool.h
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h
-        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs2_loader.h src/Loaders/nfs3_loader.cpp src/Loaders/nfs3_loader.h src/Loaders/trk_loader.cpp src/Loaders/trk_loader.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs4_loader.cpp src/Loaders/nfs4_loader.h)
+        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs2_loader.h src/Loaders/nfs3_loader.cpp src/Loaders/nfs3_loader.h src/Loaders/trk_loader.cpp src/Loaders/trk_loader.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs4_loader.cpp src/Loaders/nfs4_loader.h src/Renderer/Renderer.cpp src/Renderer/Renderer.h src/Loaders/track_utils.cpp src/Loaders/track_utils.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

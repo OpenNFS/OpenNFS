@@ -39,7 +39,7 @@ void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::
 
 // TODO: Use template specialization/overload to avoid this
 template<typename Platform>
-std::vector<CarModel> NFS2_Loader<Platform>::LoadGEO(const std::string &geo_path) {
+std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
     if(std::is_same<Platform,PS1>::value){
         std::cout << "- Parsing GEO File " << std::endl;
         std::vector<CarModel> car_meshes;
@@ -225,14 +225,14 @@ std::vector<CarModel> NFS2_Loader<Platform>::LoadGEO(const std::string &geo_path
 }
 
 template<typename Platform>
-std::shared_ptr<Car> NFS2_Loader<Platform>::LoadCar(const std::string &car_base_path) {
+std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     ASSERT(false, "Unimplemented! No UVs or Normals.");
     return std::make_shared<Car>(LoadGEO(car_base_path));
 }
 // TRACK
 template<typename Platform>
-shared_ptr<typename Platform::TRACK> NFS2_Loader<Platform>::LoadTrack(const std::string &track_base_path) {
-    std::cout << "--- Loading NFS2_Loader Track ---" << std::endl;
+shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string &track_base_path) {
+    std::cout << "--- Loading NFS2 Track ---" << std::endl;
     shared_ptr<typename Platform::TRACK> track(new typename Platform::TRACK());
 
     boost::filesystem::path p(track_base_path);
@@ -245,7 +245,7 @@ shared_ptr<typename Platform::TRACK> NFS2_Loader<Platform>::LoadTrack(const std:
     NFSVer nfs_version = UNKNOWN;
 
     if (std::is_same<Platform, PC>::value) {
-        if (track_base_path.find("NFS2_Loader_SE") != std::string::npos) {
+        if (track_base_path.find("NFS2_SE") != std::string::npos) {
             nfs_version = NFS_2_SE;
         } else {
             nfs_version = NFS_2;
@@ -262,7 +262,7 @@ shared_ptr<typename Platform::TRACK> NFS2_Loader<Platform>::LoadTrack(const std:
            "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
             << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(ExtractTrackTextures(track_base_path, track_name, nfs_version),
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, nfs_version),
            "Could not extract " << track_name << " texture pack.");
 
     // Load up the textures
@@ -270,7 +270,7 @@ shared_ptr<typename Platform::TRACK> NFS2_Loader<Platform>::LoadTrack(const std:
         track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx],
                                                                                    track_name, nfs_version);
     }
-    track->texture_gl_mappings = GenTrackTextures(track->textures);
+    track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
 
     ParseTRKModels(track);
     //std::vector<Track> col_models = ParseCOLModels(track);
@@ -280,7 +280,7 @@ shared_ptr<typename Platform::TRACK> NFS2_Loader<Platform>::LoadTrack(const std:
 }
 
 template<typename Platform>
-bool NFS2_Loader<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform::TRACK> track) {
+bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform::TRACK> track) {
     std::cout << "- Parsing TRK File " << std::endl;
     ifstream trk(trk_path, ios::in | ios::binary);
     // TRK file header data
@@ -516,7 +516,7 @@ bool NFS2_Loader<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Pl
 }
 
 template<typename Platform>
-bool NFS2_Loader<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Platform::TRACK> track) {
+bool NFS2<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Platform::TRACK> track) {
     std::cout << "- Parsing COL File " << std::endl;
     ifstream col(col_path, ios::in | ios::binary);
     // Check we're in a valid TRK file
@@ -633,7 +633,7 @@ bool NFS2_Loader<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Pl
 }
 
 template<typename Platform>
-void NFS2_Loader<Platform>::dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track) {
+void NFS2<Platform>::dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track) {
     std::ofstream obj_dump;
 
     if (!(boost::filesystem::exists(path))) {
@@ -780,7 +780,7 @@ void NFS2_Loader<Platform>::dbgPrintVerts(const std::string &path, shared_ptr<ty
 }
 
 template<typename Platform>
-void NFS2_Loader<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) {
+void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) {
     // Parse out TRKBlock data
     for (int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx) {
         auto *superblock = &track->superblocks[superBlock_Idx];
@@ -872,7 +872,7 @@ void NFS2_Loader<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> 
                 std::stringstream xobj_name;
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
                 // Get ordered list of unique texture id's present in block
-                std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+                std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
                 Track xobj_model = Track(xobj_name.str(), trkBlock.header->blockSerial * structure_Idx, verts, norms,
                                          uvs, texture_indices, vertex_indices, texture_ids, shading_verts,
                                          trk_block_center);
@@ -951,7 +951,7 @@ void NFS2_Loader<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> 
                 norms.emplace_back(glm::vec3(1, 1, 1));
             }
             // Get ordered list of unique texture id's present in block
-            std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+            std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
             Track current_trk_block_model = Track("TrkBlock", trkBlock.header->blockSerial, verts, uvs, texture_indices,
                                                   vertex_indices,
                                                   texture_ids,
@@ -968,7 +968,7 @@ void NFS2_Loader<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> 
 }
 
 template<typename Platform>
-std::vector<Track> NFS2_Loader<Platform>::ParseCOLModels(shared_ptr<typename Platform::TRACK> track) {
+std::vector<Track> NFS2<Platform>::ParseCOLModels(shared_ptr<typename Platform::TRACK> track) {
     std::vector<Track> col_models;
 
     // Parse out COL data
@@ -1039,7 +1039,7 @@ std::vector<Track> NFS2_Loader<Platform>::ParseCOLModels(shared_ptr<typename Pla
             texture_indices.emplace_back(texture_for_block.texNumber);
         }
         // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+        std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = glm::vec3(0, 0, 0);
         Track col_model = Track("ColBlock", structure_Idx, verts, uvs, texture_indices, indices, texture_ids,
                                 shading_data, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
@@ -1052,7 +1052,7 @@ std::vector<Track> NFS2_Loader<Platform>::ParseCOLModels(shared_ptr<typename Pla
 
 template<typename Platform>
 Texture
-NFS2_Loader<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version) {
+NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version) {
     std::stringstream filename;
     uint8_t alphaColour = 0;
     filename << TRACK_PATH;
@@ -1060,11 +1060,11 @@ NFS2_Loader<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::strin
     switch (nfs_version) {
         case NFS_2:
             alphaColour = 0u;
-            filename << "NFS2_Loader/";
+            filename << "NFS2/";
             break;
         case NFS_2_SE:
             alphaColour = 248u;
-            filename << "NFS2_Loader_SE/";
+            filename << "NFS2_SE/";
             break;
         case NFS_3_PS1:
             filename << "NFS3_PS1/";
@@ -1088,7 +1088,7 @@ NFS2_Loader<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::strin
 }
 
 template
-class NFS2_Loader<PS1>;
+class NFS2<PS1>;
 
 template
-class NFS2_Loader<PC>;
+class NFS2<PC>;

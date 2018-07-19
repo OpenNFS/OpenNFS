@@ -8,15 +8,14 @@
 #include <iomanip>
 #include <cstdint>
 #include <cstdlib>
-#include "trk_loader.h"
+#include "track_utils.h"
 #include "../Physics/Car.h"
 #include "../Config.h"
 #include "../Util/Utils.h"
 #include "../Scene/TrackBlock.h"
 #include "../nfs_data.h"
 
-using namespace NFS3_4;
-using namespace Utils;
+using namespace NFS3_4_DATA;
 
 class NFS3 {
 public:

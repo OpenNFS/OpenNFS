@@ -14,7 +14,7 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path, std::string
     car_out_path << CAR_PATH << *car_name << "/";
     fce_path << CAR_PATH << *car_name << "/car.fce";
 
-    ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
     return std::make_shared<Car>(LoadFCE(fce_path.str()));
 }
@@ -114,11 +114,11 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     frd_path << track_base_path << ".frd";
     col_path << track_base_path << ".col";
 
-    ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
 
-    track->texture_gl_mappings = GenTrackTextures(track->textures);
+    track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
     track->track_blocks = ParseTRKModels(track);
     std::vector<Track> col_models = ParseCOLModels(track);
     track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
@@ -479,7 +479,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK>track) {
                         texture_indices.emplace_back(texture_for_block.texture);
                     }
                     // Get ordered list of unique texture id's present in block
-                    std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set,
+                    std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set,
                                                                      texture_indices);
                     Track current_track_model = Track("ObjBlock", (j + 1) * (k + 1), obj_verts, uvs,
                                                       texture_indices, vertex_indices, texture_ids,
@@ -551,7 +551,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK>track) {
                     texture_indices.emplace_back(texture_for_block.texture);
                 }
                 // Get ordered list of unique texture id's present in block
-                std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+                std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
                 Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids,
                                          xobj_shading_verts, trk_block_center);
                 xobj_model.enable();
@@ -619,7 +619,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK>track) {
                 texture_indices.emplace_back(texture_for_block.texture);
             }
             // Get ordered list of unique texture id's present in block
-            std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+            std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
             Track current_trk_block_model = Track("TrkBlock", i, verts, uvs, texture_indices, vertex_indices,
                                                   texture_ids,
                                                   trk_block_shading_verts,
@@ -684,7 +684,7 @@ std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
             texture_indices.emplace_back(texture_for_block.texture);
         }
         // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids = RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+        std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10,
                                        static_cast<float>(o->ptRef.y / 65536.0) / 10,
                                        static_cast<float>(o->ptRef.z / 65536.0) / 10);
@@ -714,11 +714,11 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     GLsizei width = track_texture.width;
     GLsizei height = track_texture.height;
 
-    if (!LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)) {
+    if (!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)) {
         std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!"
                   << std::endl;
         // If the texture is missing, load a "MISSING" texture of identical size.
-        ASSERT(LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width,
+        ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width,
                                 height), "Even the 'missing' texture is missing!");
         return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
                        static_cast<unsigned int>(track_texture.height));

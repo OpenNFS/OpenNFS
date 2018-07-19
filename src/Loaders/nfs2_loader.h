@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <cstdint>
 #include <cstdlib>
-#include "trk_loader.h"
+#include "track_utils.h"
 #include "../Physics/Car.h"
 #include "../Config.h"
 #include "../Util/Utils.h"
@@ -17,14 +17,14 @@
 
 #define scaleFactor 100000
 
-using namespace NFS2;
+using namespace NFS2_DATA;
 
-template <typename Platform>  class NFS2_Loader {
+template <typename Platform>  class NFS2 {
 public:
     static std::shared_ptr<typename Platform::TRACK> LoadTrack(const std::string &track_base_path);
     static std::shared_ptr<Car> LoadCar(const std::string &track_base_path);
 
-    void dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track);
+    static void dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track);
 private:
     // Car
     static std::vector<CarModel> LoadGEO(const std::string &geo_path);

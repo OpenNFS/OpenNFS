@@ -4,22 +4,23 @@
 
 #pragma once
 
-#include <string>
-#include <set>
-#include <sstream>
-#include <iostream>
-#include <GL/glew.h>
-#include <boost/filesystem/operations.hpp>
+#include <memory>
 #include "../nfs_data.h"
-#include "../Config.h"
-#include "../Util/Utils.h"
+#include "nfs3_loader.h"
+#include "nfs2_loader.h"
+#include "nfs4_loader.h"
+#include <boost/variant.hpp>
 
-std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
+class NFS_TRACK {
+public:
+    explicit NFS_TRACK(const std::string &track_path);
+    ~NFS_TRACK() {}
 
-std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) ;
+    NFSVer tag;
+    typedef boost::variant<shared_ptr<NFS3_4_DATA::TRACK>, shared_ptr<NFS2_DATA::PS1::TRACK>, shared_ptr<NFS2_DATA::PC::TRACK>> track;
+    track trackData;
 
-bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version);
-
-class trk_loader {
-
+    std::vector<TrackBlock> track_blocks;
+    uint32_t nBlocks;
+    map<short, GLuint> texture_gl_mappings;
 };

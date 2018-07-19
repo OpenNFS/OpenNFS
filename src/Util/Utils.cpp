@@ -304,7 +304,7 @@ namespace Utils {
     }
 
     bool ExtractPSH(const std::string &psh_path, const std::string &output_path) {
-        using namespace NFS2;
+        using namespace NFS2_DATA;
         boost::filesystem::create_directories(output_path);
         std::cout << "Extracting PSH File " << std::endl;
         ifstream psh(psh_path, ios::in | ios::binary);

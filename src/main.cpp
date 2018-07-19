@@ -21,15 +21,14 @@
 // Source
 #include "Util/Utils.h"
 #include "Scene/Camera.h"
-#include "Loaders/nfs4_loader.h"
-#include "Loaders/nfs3_loader.h"
-#include "Loaders/nfs2_loader.h"
+#include "Loaders/trk_loader.h"
 #include "Loaders/music_loader.h"
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
 #include "Shaders/BillboardShader.h"
 #include "Physics/Physics.h"
 #include "Physics/Car.h"
+
 
 GLFWwindow *window;
 
@@ -131,13 +130,13 @@ void initDirectories(){
 }*/
 
 int main(int argc, char **argv) {
-    std::cout << "----------- OpenNFS3 v0.011 -----------" << std::endl;
+    std::cout << "----------- OpenNFS3 v0.1 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
     /*------ ASSET LOAD ------*/
     initDirectories();
     std::string car_name;
     //Load Track Data`
-    std::shared_ptr<NFS3_4::TRACK> track = NFS3::LoadTrack("../resources/NFS3/gamedata/tracks/trk006/tr06");
+    std::shared_ptr<NFS_TRACK> track(new NFS_TRACK("../resources/NFS3/gamedata/tracks/trk006/tr06"));
     //Load Car data from unpacked NFS files
     std::shared_ptr<Car> car = NFS3::LoadCar("../resources/NFS3/gamedata/carmodel/diab", &car_name);
 

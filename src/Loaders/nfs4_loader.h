@@ -6,16 +6,16 @@
 
 #include <sstream>
 #include <string>
-#include <boost/filesystem/path.hpp>
-#include "trk_loader.h"
+#include <boost/filesystem.hpp>
+#include <boost/lambda/bind.hpp>
+#include "track_utils.h"
 #include "../Physics/Car.h"
 #include "../Config.h"
 #include "../Util/Utils.h"
 #include "../Scene/TrackBlock.h"
 #include "../nfs_data.h"
 
-using namespace Utils;
-using namespace NFS3_4;
+using namespace NFS3_4_DATA;
 
 class NFS4 {
 public:
