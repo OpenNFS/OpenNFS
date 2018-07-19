@@ -17,11 +17,14 @@
 
 class Car {
 public:
-    explicit Car(std::vector<CarModel> car_meshes);
+    explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
     ~Car();
     void update();
     void resetCar();
     void writeObj(const std::string &path);
+
+    NFSVer tag;
+    std::string name;
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }

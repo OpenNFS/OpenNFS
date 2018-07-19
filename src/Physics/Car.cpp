@@ -5,7 +5,10 @@
 
 #include "Car.h"
 
-Car::Car(std::vector<CarModel> car_meshes){
+Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
+    tag = nfs_version;
+    name = car_name;
+
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;

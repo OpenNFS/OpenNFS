@@ -5,22 +5,22 @@
 #include "nfs3_loader.h"
 
 // CAR
-std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path, std::string *car_name) {
+std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
     boost::filesystem::path p(car_base_path);
-    *car_name = p.filename().string();
+    std::string car_name = p.filename().string();
 
     std::stringstream viv_path, car_out_path, fce_path;
     viv_path << car_base_path << "/car.viv";
-    car_out_path << CAR_PATH << *car_name << "/";
-    fce_path << CAR_PATH << *car_name << "/car.fce";
+    car_out_path << CAR_PATH << car_name << "/";
+    fce_path << CAR_PATH << car_name << "/car.fce";
 
     ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
-    return std::make_shared<Car>(LoadFCE(fce_path.str()));
+    return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_3, car_name);
 }
 
 void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_path) {
-    std::shared_ptr<Car> car(new Car(LoadFCE(fce_path)));
+    std::shared_ptr<Car> car(new Car(LoadFCE(fce_path), NFS_3, "Converted"));
     car->writeObj(obj_out_path);
 }
 

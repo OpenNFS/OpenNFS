@@ -226,8 +226,10 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
 
 template<typename Platform>
 std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
+    boost::filesystem::path p(car_base_path);
+    std::string car_name = p.filename().string();
     ASSERT(false, "Unimplemented! No UVs or Normals.");
-    return std::make_shared<Car>(LoadGEO(car_base_path));
+    return std::make_shared<Car>(LoadGEO(car_base_path), NFS_2, car_name);
 }
 // TRACK
 template<typename Platform>

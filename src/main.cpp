@@ -22,6 +22,7 @@
 #include "Util/Utils.h"
 #include "Scene/Camera.h"
 #include "Loaders/trk_loader.h"
+#include "Loaders/car_loader.h"
 #include "Loaders/music_loader.h"
 #include "Shaders/TrackShader.h"
 #include "Shaders/CarShader.h"
@@ -134,11 +135,10 @@ int main(int argc, char **argv) {
     ASSERT(init_opengl(), "OpenGL init failed.");
     /*------ ASSET LOAD ------*/
     initDirectories();
-    std::string car_name;
     //Load Track Data`
     std::shared_ptr<NFS_TRACK> track(new NFS_TRACK("../resources/NFS3/gamedata/tracks/trk006/tr06"));
     //Load Car data from unpacked NFS files
-    std::shared_ptr<Car> car = NFS3::LoadCar("../resources/NFS3/gamedata/carmodel/diab", &car_name);
+    std::shared_ptr<Car> car = CarLoader::LoadCar("../resources/NFS3/gamedata/carmodel/diab");
 
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3_4\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
 
     // Create and compile our GLSL programs from the shaders
     TrackShader trackShader;
-    CarShader carShader(car_name);
+    CarShader carShader(car->name);
     BillboardShader billboardShader;
 
     Camera mainCamera(glm::vec3(98.46, 3.98, 0), 45.0f, 4.86f, -0.21f);

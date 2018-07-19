@@ -214,9 +214,9 @@ A: Make sure that your input file has a .FSH or .QFS extension. If not,
 Q: I get the error message "Unknown file format" even though the file I
    clicked on is a .FSH or a .QFS.
 A: The file is an unrecognized format. The only known instance of this is 
-   the 8-bit texture file for the "Summit" track in NFS3_4, which uses a
+   the 8-bit texture file for the "Summit" track in NFS3, which uses a
    nonstandard compression algorithm. If this happens to you with a game
-   in the NFS series at least as recent as NFS3_4 and with another file than
+   in the NFS series at least as recent as NFS3 and with another file than
    the Summit track textures, please let me know the NFS version and the 
    directory and file name.
 

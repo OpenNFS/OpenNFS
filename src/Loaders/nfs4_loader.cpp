@@ -4,19 +4,19 @@
 
 #include "nfs4_loader.h"
 
-std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path, std::string *car_name) {
+std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path) {
     boost::filesystem::path p(car_base_path);
-    *car_name = p.filename().string();
+    std::string car_name = p.filename().string();
 
     std::stringstream viv_path, car_out_path, fce_path;
     viv_path << car_base_path << "/car.viv";
-    car_out_path << CAR_PATH << *car_name << "/";
-    fce_path << CAR_PATH << *car_name << "/car.fce";
+    car_out_path << CAR_PATH << car_name << "/";
+    fce_path << CAR_PATH << car_name << "/car.fce";
 
     ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()),
            "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
-    return std::make_shared<Car>(LoadFCE(fce_path.str()));
+    return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_4, car_name);
 }
 
 std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
