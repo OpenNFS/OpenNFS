@@ -12,17 +12,16 @@
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
 
-#include "../Loaders/nfs4_loader.h"
-#include "../Loaders/nfs3_loader.h"
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
 
 class Car {
 public:
-    Car(NFS4_Loader *loader);
+    explicit Car(std::vector<CarModel> car_meshes);
     ~Car();
     void update();
     void resetCar();
+    void writeObj(const std::string &path);
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4)
-project(OpenNFS3)
+project(OpenNFS)
 
 set(BUILD_SHARED_LIBS OFF)
 
@@ -48,7 +48,7 @@ set(SOURCE_FILES
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h
         src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs2_loader.h src/Loaders/nfs3_loader.cpp src/Loaders/nfs3_loader.h src/Loaders/trk_loader.cpp src/Loaders/trk_loader.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs4_loader.cpp src/Loaders/nfs4_loader.h)
 
-add_executable(OpenNFS3 ${SOURCE_FILES})
+add_executable(OpenNFS ${SOURCE_FILES})
 
 #[[IMGUI]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
@@ -56,7 +56,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/)
-target_link_libraries(OpenNFS3 Boost::filesystem Boost::boost)
+target_link_libraries(OpenNFS Boost::filesystem Boost::boost)
 #[[Bullet Configuration]]
 #[[set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)]]
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
@@ -68,14 +68,14 @@ set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3")
-TARGET_LINK_LIBRARIES(OpenNFS3 BulletDynamics BulletCollision LinearMath Bullet3Common)
+TARGET_LINK_LIBRARIES(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
 #[[SDL Configuration]]
 # Support both 32 and 64 bit builds
 #[[set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sdl")
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
-target_link_libraries(OpenNFS3 ${SDL2_LIBRARIES})]]
+target_link_libraries(OpenNFS ${SDL2_LIBRARIES})]]
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")
@@ -84,14 +84,14 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glm")
 #[[OpenGL Configuration]]
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS})
-target_link_libraries(OpenNFS3 ${OPENGL_LIBRARIES})
+target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[VULKAN]]
 #[[set(VULKAN_INCLUDE_DIR "C:/VulkanSDK/1.1.70.1/Include")
 include_directories(${VULKAN_INCLUDE_DIR})
-target_link_libraries(OpenNFS3 C:/VulkanSDK/1.1.70.1/Lib32/vulkan-1.lib)]]
+target_link_libraries(OpenNFS C:/VulkanSDK/1.1.70.1/Lib32/vulkan-1.lib)]]
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
-target_link_libraries(OpenNFS3 glfw)
+target_link_libraries(OpenNFS glfw)

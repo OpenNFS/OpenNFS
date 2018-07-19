@@ -31,7 +31,6 @@
 #include "Physics/Physics.h"
 #include "Physics/Car.h"
 
-
 GLFWwindow *window;
 
 using namespace ImGui;
@@ -134,33 +133,21 @@ void initDirectories(){
 int main(int argc, char **argv) {
     std::cout << "----------- OpenNFS3 v0.011 -----------" << std::endl;
     ASSERT(init_opengl(), "OpenGL init failed.");
-
-    NFS2_Loader<PC> trk_loader("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR08");
     /*------ ASSET LOAD ------*/
     initDirectories();
     std::string car_name;
-    // TODO: Use polymorphism to avoid this
-    NFS4_Loader nfs4_track_loader("../resources/NFS4/DATA/TRACKS/FRANCE");
-    NFS4_Loader nfs4_loader("../resources/NFS4/DATA/CARS/COLT", &car_name);
     //Load Track Data`
-    //NFS3_Loader trk_loader1("../resources/NFS3_4/gamedata/tracks/trk006/tr06");
-    NFS3_4::TRACK *track = nfs4_track_loader.track;
-    //NFS2::PC::TRACK *track = trk_loader.track;
-    //NFS2_Loader<PC> trk_loader("../resources/NFS2/GAMEDATA/TRACKS/PC/TR02");
-    //NFS2_Loader<PC> trk_loader("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR08");
-    //NFS2::PC::TRACK *track = trk_loader.track;
-    //NFS2_Loader<PS1> trk_loader("../resources/NFS3_PS1/ZZZTR04A");
-    //NFS2::PS1::TRACK *track = trk_loader.track;
-    //NFS3_Loader nfs3_loader("../resources/NFS3_4/gamedata/carmodel/diab", &car_name);
+    std::shared_ptr<NFS3_4::TRACK> track = NFS3::LoadTrack("../resources/NFS3/gamedata/tracks/trk006/tr06");
     //Load Car data from unpacked NFS files
-    Car car = Car(&nfs4_loader);
+    std::shared_ptr<Car> car = NFS3::LoadCar("../resources/NFS3/gamedata/carmodel/diab", &car_name);
+
 	//Load Music
 	//MusicLoader musicLoader("F:\\NFS3_4\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
 
     /*------- BULLET --------*/
     Physics physicsEngine;
     physicsEngine.registerTrack(track->track_blocks);
-    physicsEngine.registerVehicle(&car);
+    physicsEngine.registerVehicle(car);
 
     /*------- ImGui -------*/
     ImGui::CreateContext();
@@ -196,7 +183,7 @@ int main(int argc, char **argv) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         newFrame(window_active);
         // Compute the MVP matrix from keyboard and mouse input
-        glm::vec3 carCam = car.car_models[0].position;
+        glm::vec3 carCam = car->car_models[0].position;
         carCam.y += 0.2;
         //carCam.z -= 1;
         if (!ImGui::GetIO().MouseDown[1]) {
@@ -210,12 +197,12 @@ int main(int argc, char **argv) {
 
         //TODO: Refactor to controller class?
         if (window_active && !ImGui::GetIO().MouseDown[1]) {
-            car.applyAccelerationForce(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
-            car.applyBrakingForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
-            car.applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
-            car.applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+            car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+            car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
+            car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+            car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
             if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-                car.toggleReverse();
+                car.get()->toggleReverse();
             }
         }
 
@@ -248,7 +235,7 @@ int main(int argc, char **argv) {
 
 
         carShader.use();
-        for (auto &car_model : car.car_models) {
+        for (auto &car_model : car->car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
             carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1, 1));
@@ -304,7 +291,7 @@ int main(int argc, char **argv) {
         };
         ImGui::SameLine(0, -1.0f);
         if (ImGui::Button("Reset Car")) {
-            car.resetCar();
+            car->resetCar();
         };
         ImGui::NewLine();
         ImGui::SliderInt("Draw Distance", &blockDrawDistance, 0, track->nBlocks);
@@ -316,7 +303,7 @@ int main(int argc, char **argv) {
         ImGui::SliderFloat("Track Specular Damper", &trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &trackSpecReflectivity, 0, 10);
 
-        for (auto &mesh : car.car_models) {
+        for (auto &mesh : car->car_models) {
             ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(),
                             &mesh.enabled);      // Edit bools storing model draw state
         }
@@ -345,7 +332,7 @@ int main(int argc, char **argv) {
         glfwSwapBuffers(window);
     }
 
-    free(track);
+
     // Cleanup VBOs and shaders
     carShader.cleanup();
     trackShader.cleanup();

@@ -4,15 +4,240 @@
 
 #include "nfs2_loader.h"
 
+void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices,
+               PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
+    std::ofstream obj_dump;
+    std::stringstream obj_name;
+    obj_name << "./assets/ps1_geo_" << block_Idx << ".obj";
+    obj_dump.open(obj_name.str());
+
+    /* Print Part name*/
+    obj_dump << "o " << "PS1_Test" << std::endl;
+    for (int i = 0; i < geoBlockHeader->nVerts; ++i) {
+        obj_dump << "v " << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
+    }
+
+    // TODO: How can these be normals if there aren't enough for Per vertex? On PSX they're likely per polygon
+    //for(int i = 0; i <  geoBlockHeader->nNormals; ++i ){
+    //    obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
+    //}
+
+    for (int i = 0; i < geoBlockHeader->nPolygons; ++i) {
+        if ((polygons[i].vertex[1][0] == 0) && (polygons[i].vertex[1][1] == 0)) {
+            obj_dump << "f " << polygons[i].vertex[0][0] + 1 << " " << polygons[i].vertex[0][1] + 1 << " "
+                     << polygons[i].vertex[0][2] + 1 << " " << polygons[i].vertex[0][3] + 1 << std::endl;
+        } else if ((polygons[i].vertex[1][0] == 1) && (polygons[i].vertex[1][1] == 1)) {
+            // Transparent ?
+            obj_dump << "f " << polygons[i].vertex[0][0] + 1 << " " << polygons[i].vertex[0][1] + 1 << " "
+                     << polygons[i].vertex[0][2] + 1 << " " << polygons[i].vertex[0][3] + 1 << std::endl;
+        } else {
+            asm(nyop);
+        }
+    }
+    obj_dump.close();
+}
+
+// TODO: Use template specialization/overload to avoid this
 template<typename Platform>
-NFS2_Loader<Platform>::NFS2_Loader(const std::string &track_base_path) {
-    std::cout << "--- Loading NFS2 Track ---" << std::endl;
+std::vector<CarModel> NFS2_Loader<Platform>::LoadGEO(const std::string &geo_path) {
+    if(std::is_same<Platform,PS1>::value){
+        std::cout << "- Parsing GEO File " << std::endl;
+        std::vector<CarModel> car_meshes;
+
+        ifstream geo(geo_path, ios::in | ios::binary);
+
+        std::string psh_path = geo_path;
+        psh_path.replace(psh_path.find("GEO"), 3, "PSH");
+
+        Utils::ExtractPSH(psh_path, "./assets/car/psx_test/");
+
+        auto *geoFileHeader = new PS1::GEO::HEADER();
+        if (geo.read((char *) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
+            std::cout << "Couldn't open file/truncated." << std::endl;
+            delete geoFileHeader;
+            return car_meshes;
+        }
+        bool eof = false;
+
+        for (int block_Idx = 0;; ++block_Idx) {
+            streamoff start = geo.tellg();
+            std::cout << block_Idx << " BlockStartOffset: " << start << std::endl;
+
+            auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
+            while (geoBlockHeader->nVerts == 0) {
+                geo.read((char *) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
+                if (geo.eof()) {
+                    eof = true;
+                    break;
+                }
+            }
+            if (eof) break;
+
+            if ((geoBlockHeader->unknown[0] != 0) || (geoBlockHeader->unknown[1] != 1) ||
+                (geoBlockHeader->unknown[2] != 1)) {
+                std::cout << "Invalid geometry header. This file is special (or corrupt)" << std::endl;
+                delete geoBlockHeader;
+                delete geoFileHeader;
+                return car_meshes;
+            }
+
+            auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
+            geo.read((char *) vertices, (geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
+
+            std::cout << "VertTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+
+            auto *normals = new PS1::GEO::BLOCK_3D[geoBlockHeader->nNormals];
+            geo.read((char *) normals, (geoBlockHeader->nNormals) * sizeof(PS1::GEO::BLOCK_3D));
+
+            std::cout << "NormTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+
+            auto *xblock_1 = new PS1::GEO::XBLOCK_1();
+            auto *xblock_2 = new PS1::GEO::XBLOCK_2();
+            auto *xblock_3 = new PS1::GEO::XBLOCK_3();
+            auto *xblock_4 = new PS1::GEO::XBLOCK_4();
+            auto *xblock_5 = new PS1::GEO::XBLOCK_5();
+            switch (geoBlockHeader->unknown1) {
+                case 1:
+                    geo.read((char *) xblock_1, sizeof(PS1::GEO::XBLOCK_1));
+                    break;
+                case 2:
+                    geo.read((char *) xblock_2, sizeof(PS1::GEO::XBLOCK_2));
+                    break;
+                case 3:
+                    geo.read((char *) xblock_3, sizeof(PS1::GEO::XBLOCK_3));
+                    break;
+                case 4:
+                    geo.read((char *) xblock_4, sizeof(PS1::GEO::XBLOCK_4));
+                    break;
+                case 5:
+                    geo.read((char *) xblock_5, sizeof(PS1::GEO::XBLOCK_5));
+                    break;
+                default:
+                    std::cout << "Unknown block type:  " << geoBlockHeader->unknown1 << std::endl;
+            }
+
+            streamoff end = geo.tellg();
+            std::cout << "PolyTblStartOffset: " << end << " Size: " << end - start << std::endl;
+            // Polygon Table start is aligned on 4 Byte boundary
+            if (((end - start) % 4)) {
+                std::cout << "Pad Contents: " << std::endl;
+                uint16_t *pad = new uint16_t[3];
+                geo.read((char *) pad, sizeof(uint16_t) * 3);
+                for (int i = 0; i < 3; ++i) {
+                    std::cout << pad[i] << std::endl;
+                }
+                delete[] pad;
+            }
+
+            // TODO: This skip is only applicable to DIAB/CORV/others, not F355 or F550 or ARMY. Debug before commit.
+            if (block_Idx == 5 || block_Idx == 6) {
+                std::cout << "Skipping 12 Bytes - BUT WHY" << std::endl;
+                geo.seekg(0xC, ios_base::cur);
+            }
+
+            auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
+            geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
+            DumpToObj(block_Idx, geoBlockHeader, vertices, normals, polygons);
+
+            std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+
+            // Dump GeoBlock data for correlating with geometry/LOD's/Special Cases
+            std::cout << "nVerts: " << geoBlockHeader->nVerts << std::endl;
+            std::cout << "unknown1: " << geoBlockHeader->unknown1 << std::endl;
+            std::cout << "nNormals: " << geoBlockHeader->nNormals << std::endl;
+            std::cout << "nPolygons: " << geoBlockHeader->nPolygons << std::endl;
+            for (int o = 0; o < 4; ++o) {
+                std::cout << geoBlockHeader->unknown2[o][0] << std::endl;
+                std::cout << geoBlockHeader->unknown2[o][1] << std::endl;
+            }
+            for (int j = 0; j < 4; ++j) {
+                std::cout << geoBlockHeader->unknown[j] << std::endl;
+            }
+            switch (geoBlockHeader->unknown1) {
+                case 3:
+                    std::cout << "XBlock 3: " << std::endl;
+                    for (int i = 0; i < sizeof(xblock_3->unknown) / sizeof(xblock_3->unknown[0]); ++i) {
+                        std::cout << (int) xblock_3->unknown[i] << std::endl;
+                    }
+                    break;
+                case 1:
+                    std::cout << "XBlock 1: " << std::endl;
+                    for (int i = 0; i < sizeof(xblock_1->unknown) / sizeof(xblock_1->unknown[0]); ++i) {
+                        std::cout << (int) xblock_1->unknown[i] << std::endl;
+                    }
+                    break;
+                case 2:
+                    std::cout << "XBlock 2: " << std::endl;
+                    for (int i = 0; i < sizeof(xblock_2->unknown) / sizeof(xblock_2->unknown[0]); ++i) {
+                        std::cout << (int) xblock_2->unknown[i] << std::endl;
+                    }
+                    break;
+            }
+            std::cout << "--------------------------" << std::endl;
+
+            delete geoBlockHeader;
+            delete[] normals;
+            delete[] vertices;
+            delete[] polygons;
+            delete xblock_1;
+            delete xblock_2;
+            delete xblock_3;
+            delete xblock_4;
+            delete xblock_5;
+        }
+        delete geoFileHeader;
+
+        return car_meshes;
+    } else {
+        std::cout << "- Parsing GEO File " << std::endl;
+        std::vector<CarModel> car_meshes;
+
+        ifstream geo(geo_path, ios::in | ios::binary);
+
+        auto *geoFileHeader = new PC::GEO::HEADER();
+        if (geo.read((char *) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
+            std::cout << "Couldn't open file/truncated." << std::endl;
+            delete geoFileHeader;
+            return car_meshes;
+        }
+
+        while (geo.tellg() != -1) {
+            auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
+            while (geoBlockHeader->nVerts == 0) {
+                geo.read((char *) geoBlockHeader, sizeof(PC::GEO::BLOCK_HEADER));
+            }
+
+            auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
+            geo.read((char *) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
+
+            auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
+            geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
+
+
+            delete geoBlockHeader;
+            delete[] vertices;
+            delete[] polygons;
+        }
+        delete geoFileHeader;
+
+        return car_meshes;
+    }
+}
+
+template<typename Platform>
+std::shared_ptr<Car> NFS2_Loader<Platform>::LoadCar(const std::string &car_base_path) {
+    ASSERT(false, "Unimplemented! No UVs or Normals.");
+    return std::make_shared<Car>(LoadGEO(car_base_path));
+}
+// TRACK
+template<typename Platform>
+shared_ptr<typename Platform::TRACK> NFS2_Loader<Platform>::LoadTrack(const std::string &track_base_path) {
+    std::cout << "--- Loading NFS2_Loader Track ---" << std::endl;
+    shared_ptr<typename Platform::TRACK> track(new typename Platform::TRACK());
+
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
     stringstream trk_path, col_path;
-
-    LoadPS1GEO("../resources/NFS3_PS1/ZF355.GEO");
-    //LoadGEO("../resources/NFS2/GAMEDATA/CARMODEL/PC/MCF1.GEO");
 
     trk_path << track_base_path << ".TRK";
     col_path << track_base_path << ".COL";
@@ -20,7 +245,7 @@ NFS2_Loader<Platform>::NFS2_Loader(const std::string &track_base_path) {
     NFSVer nfs_version = UNKNOWN;
 
     if (std::is_same<Platform, PC>::value) {
-        if (track_base_path.find("NFS2_SE") != std::string::npos) {
+        if (track_base_path.find("NFS2_Loader_SE") != std::string::npos) {
             nfs_version = NFS_2_SE;
         } else {
             nfs_version = NFS_2;
@@ -33,9 +258,9 @@ NFS2_Loader<Platform>::NFS2_Loader(const std::string &track_base_path) {
         col_path << ps1_col_path;
     }
 
-    ASSERT(LoadTRK(trk_path.str()),
+    ASSERT(LoadTRK(trk_path.str(), track),
            "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
-    ASSERT(LoadCOL(col_path.str()), "Could not load COL file: "
+    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
             << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(ExtractTrackTextures(track_base_path, track_name, nfs_version),
            "Could not extract " << track_name << " texture pack.");
@@ -47,219 +272,15 @@ NFS2_Loader<Platform>::NFS2_Loader(const std::string &track_base_path) {
     }
     track->texture_gl_mappings = GenTrackTextures(track->textures);
 
-    track->track_blocks = ParseTRKModels();
-    //std::vector<Track> col_models = ParseCOLModels();
-
+    ParseTRKModels(track);
+    //std::vector<Track> col_models = ParseCOLModels(track);
     //track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Track loaded successfully" << std::endl;
 }
 
 template<typename Platform>
-bool NFS2_Loader<Platform>::LoadGEO(std::string geo_path) {
-    std::cout << "- Parsing GEO File " << std::endl;
-    ifstream geo(geo_path, ios::in | ios::binary);
-
-    auto *geoFileHeader = new PC::GEO::HEADER();
-    if (geo.read((char *) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
-        std::cout << "Couldn't open file/truncated." << std::endl;
-        delete geoFileHeader;
-        return false;
-    }
-
-    // DEBUG CODE
-    std::ofstream obj_dump;
-    obj_dump.open("./assets/nfs2_pc_geo.obj");
-
-    /* Print Part name*/
-    obj_dump << "o " << "PC_Test" << std::endl;
-
-    while (geo.tellg() != -1) {
-        auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
-        while (geoBlockHeader->nVerts == 0) {
-            geo.read((char *) geoBlockHeader, sizeof(PC::GEO::BLOCK_HEADER));
-        }
-
-        auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
-        geo.read((char *) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
-
-        auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
-        geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
-
-        for (int i = 0; i < geoBlockHeader->nVerts; ++i) {
-            obj_dump << "v " << geoBlockHeader->position[0] + vertices[i].x << " "
-                     << geoBlockHeader->position[1] + vertices[i].y << " "
-                     << geoBlockHeader->position[2] + vertices[i].z << std::endl;
-        }
-
-        for (int j = 0; j < geoBlockHeader->nPolygons; ++j) {
-            obj_dump << "f " << (int) polygons[j].vertex[0] + 1 << " " << (int) polygons[j].vertex[1] + 1 << " "
-                     << (int) polygons[j].vertex[2] + 1 << " " << (int) polygons[j].vertex[3] + 1 << std::endl;
-        }
-    }
-
-    obj_dump.close();
-}
-
-template<typename Platform>
-bool NFS2_Loader<Platform>::LoadPS1GEO(std::string geo_path) {
-    std::cout << "- Parsing GEO File " << std::endl;
-    ifstream geo(geo_path, ios::in | ios::binary);
-
-    std::string psh_path = geo_path;
-    psh_path.replace(psh_path.find("GEO"), 3, "PSH");
-
-    Utils::ExtractPSH(psh_path, "./assets/car/psx_test/");
-
-    auto *geoFileHeader = new PS1::GEO::HEADER();
-    if (geo.read((char *) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
-        std::cout << "Couldn't open file/truncated." << std::endl;
-        delete geoFileHeader;
-        return false;
-    }
-
-    std::ofstream obj_dump;
-    obj_dump.open("./assets/ps1_geo.obj");
-
-    /* Print Part name*/
-    obj_dump << "o " << "PS1_Test" << std::endl;
-    bool eof = false;
-    for (int block_Idx = 0; block_Idx != -1; ++block_Idx) {
-        streamoff start = geo.tellg();
-        std::cout << block_Idx << " BlockStartOffset: " << start << std::endl;
-
-        auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
-        while (geoBlockHeader->nVerts == 0) {
-            geo.read((char *) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
-            if (geo.eof()) {
-                eof = true;
-                break;
-            }
-        }
-        if (eof) break;
-
-        if ((geoBlockHeader->unknown[0] != 0) || (geoBlockHeader->unknown[1] != 1) || (geoBlockHeader->unknown[2] != 1))
-            block_Idx = -1;
-
-        auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
-        geo.read((char *) vertices, (geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
-
-        auto *normals = new PS1::GEO::BLOCK_3D[geoBlockHeader->nNormals];
-        geo.read((char *) normals, (geoBlockHeader->nNormals) * sizeof(PS1::GEO::BLOCK_3D));
-
-
-        auto *xblock_1 = new PS1::GEO::XBLOCK_1();
-        auto *xblock_2 = new PS1::GEO::XBLOCK_2();
-        auto *xblock_3 = new PS1::GEO::XBLOCK_3();
-        auto *xblock_4 = new PS1::GEO::XBLOCK_4();
-        switch(geoBlockHeader->unknown1){
-            case 1:
-                geo.read((char*) xblock_1, sizeof(PS1::GEO::XBLOCK_1));
-                delete xblock_2;
-                delete xblock_3;
-                delete xblock_4;
-                break;
-            case 2:
-                geo.read((char*) xblock_2, sizeof(PS1::GEO::XBLOCK_2));
-                delete xblock_1;
-                delete xblock_3;
-                delete xblock_4;
-                break;
-            case 3:
-                geo.read((char*) xblock_3, sizeof(PS1::GEO::XBLOCK_3));
-                delete xblock_1;
-                delete xblock_2;
-                delete xblock_4;
-                break;
-            case 4:
-                geo.read((char*) xblock_4, sizeof(PS1::GEO::XBLOCK_4));
-                delete xblock_1;
-                delete xblock_2;
-                delete xblock_3;
-                break;
-
-            default:
-                std::cout << "Unknown block type:  " << geoBlockHeader->unknown1 << std::endl;
-        }
-
-        streamoff end = geo.tellg();
-        std::cout << "PolyTblEndOffset: " << end << " Size: " << end-start << std::endl;
-        // Polygon Table start is aligned on 4 Byte boundary
-        if(((end-start)%4)){
-            std::cout << "Pad Contents: " << std::endl;
-            uint16_t *pad = new uint16_t[3];
-            geo.read((char*)pad, sizeof(uint16_t) *3);
-            for(int i = 0; i < 3; ++i){
-                std::cout << pad[i] << std::endl;
-            }
-            delete[] pad;
-        }
-
-        auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
-        geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
-
-
-        std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg()-start << std::endl;
-
-        for (int i = 0; i < geoBlockHeader->nVerts; ++i) {
-            obj_dump << "v " << geoBlockHeader->position[0] + vertices[i].x << " " << geoBlockHeader->position[1] + vertices[i].y << " " << geoBlockHeader->position[2] + vertices[i].z << std::endl;
-        }
-
-        //for(int i = 0; i <  geoBlockHeader->nNormals; ++i ){
-        //    obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
-        //}
-
-        for(int i = 0; i <  geoBlockHeader->nPolygons; ++i ){
-            obj_dump << "f " << polygons[i].vertex[0][0] << " " << polygons[i].vertex[0][1] << " " << polygons[i].vertex[0][2] << " " << polygons[i].vertex[0][3] << std::endl;
-        }
-
-        std::cout << "nVerts: " << geoBlockHeader->nVerts << "," << std::endl;
-        std::cout << "unknown1: " << geoBlockHeader->unknown1 << "," << std::endl;
-        std::cout << "nNormals: " << geoBlockHeader->nNormals << "," << std::endl;
-        std::cout << "nPolygons: " << geoBlockHeader->nPolygons << "," << std::endl;
-        for (int o = 0; o < 4; ++o) {
-            std::cout << geoBlockHeader->unknown2[o][0] << "," << std::endl;
-            std::cout << geoBlockHeader->unknown2[o][1] << "," << std::endl;
-        }
-        for (int j = 0; j < 4; ++j) {
-            std::cout << geoBlockHeader->unknown[j] << "," << std::endl;
-        }
-
-        switch(geoBlockHeader->unknown1){
-            case 3:
-                std::cout << "XBlock 3: " << std::endl;
-               for(int i = 0; i <  sizeof(xblock_3->unknown)/sizeof(xblock_3->unknown[0]); ++i){
-                   std::cout << (int) xblock_3->unknown[i] << std::endl;
-               }
-                break;
-            case 1:
-                std::cout << "XBlock 1: " << std::endl;
-                for(int i = 0; i <  sizeof(xblock_1->unknown)/sizeof(xblock_1->unknown[0]); ++i){
-                    std::cout << (int) xblock_1->unknown[i] << std::endl;
-                }
-                break;
-            case 2:
-                std::cout << "XBlock 2: " << std::endl;
-                for(int i = 0; i < sizeof(xblock_2->unknown)/sizeof(xblock_2->unknown[0]); ++i){
-                    std::cout << (int) xblock_2->unknown[i] << std::endl;
-                }
-                break;
-        }
-        std::cout << "--------------------------" << std::endl;
-
-
-        delete geoBlockHeader;
-        delete[] normals;
-        delete[] vertices;
-        delete[] polygons;
-    }
-    delete geoFileHeader;
-    obj_dump.close();
-}
-
-
-template<typename Platform>
-bool NFS2_Loader<Platform>::LoadTRK(std::string trk_path) {
+bool NFS2_Loader<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform::TRACK> track) {
     std::cout << "- Parsing TRK File " << std::endl;
     ifstream trk(trk_path, ios::in | ios::binary);
     // TRK file header data
@@ -495,7 +516,7 @@ bool NFS2_Loader<Platform>::LoadTRK(std::string trk_path) {
 }
 
 template<typename Platform>
-bool NFS2_Loader<Platform>::LoadCOL(std::string col_path) {
+bool NFS2_Loader<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Platform::TRACK> track) {
     std::cout << "- Parsing COL File " << std::endl;
     ifstream col(col_path, ios::in | ios::binary);
     // Check we're in a valid TRK file
@@ -612,7 +633,7 @@ bool NFS2_Loader<Platform>::LoadCOL(std::string col_path) {
 }
 
 template<typename Platform>
-void NFS2_Loader<Platform>::dbgPrintVerts(const std::string &path) {
+void NFS2_Loader<Platform>::dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track) {
     std::ofstream obj_dump;
 
     if (!(boost::filesystem::exists(path))) {
@@ -759,9 +780,7 @@ void NFS2_Loader<Platform>::dbgPrintVerts(const std::string &path) {
 }
 
 template<typename Platform>
-std::vector<TrackBlock> NFS2_Loader<Platform>::ParseTRKModels() {
-    std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
-
+void NFS2_Loader<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) {
     // Parse out TRKBlock data
     for (int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx) {
         auto *superblock = &track->superblocks[superBlock_Idx];
@@ -942,16 +961,14 @@ std::vector<TrackBlock> NFS2_Loader<Platform>::ParseTRKModels() {
             //current_track_block.track.emplace_back(current_trk_block_model);
             current_track_block.objects.emplace_back(current_trk_block_model);
 
-            track_blocks.emplace_back(current_track_block);
+            track->track_blocks.emplace_back(current_track_block);
         }
 
     }
-
-    return track_blocks;
 }
 
 template<typename Platform>
-std::vector<Track> NFS2_Loader<Platform>::ParseCOLModels() {
+std::vector<Track> NFS2_Loader<Platform>::ParseCOLModels(shared_ptr<typename Platform::TRACK> track) {
     std::vector<Track> col_models;
 
     // Parse out COL data
@@ -1043,11 +1060,11 @@ NFS2_Loader<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::strin
     switch (nfs_version) {
         case NFS_2:
             alphaColour = 0u;
-            filename << "NFS2/";
+            filename << "NFS2_Loader/";
             break;
         case NFS_2_SE:
             alphaColour = 248u;
-            filename << "NFS2_SE/";
+            filename << "NFS2_Loader_SE/";
             break;
         case NFS_3_PS1:
             filename << "NFS3_PS1/";

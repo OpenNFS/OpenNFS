@@ -83,6 +83,8 @@ typedef struct tagBITMAPINFO {
         } \
     } while (false)
 
+#define nyop "nop"
+
 namespace Utils {
     glm::vec3 bulletToGlm(const btVector3 &v);
 

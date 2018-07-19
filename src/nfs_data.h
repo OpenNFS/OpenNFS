@@ -761,9 +761,6 @@ namespace NFS2 {
                 char texName[4];
             };
 
-            struct XBLOCK_3 {
-                uint8_t unknown[16];
-            };
 
             struct XBLOCK_1 {
                 uint8_t unknown[8];
@@ -773,13 +770,27 @@ namespace NFS2 {
                 uint8_t unknown[8];
             };
 
+            struct XBLOCK_3 {
+                uint8_t unknown[16];
+            };
+
             struct XBLOCK_4 {
                 uint8_t unknown[10];
+            };
+
+            struct XBLOCK_5 {
+                uint8_t unknown[18];
             };
 #pragma pack(pop)
         };
     };
 }
+
+union NFS_TRACK {
+    NFS3_4::TRACK *nfs3_4_pc_track;
+    NFS2::PC::TRACK *nfs2_pc_track;
+    NFS2::PS1::TRACK *nfs2_ps1_track;
+};
 
 namespace Music {
     typedef struct MAPHeader {

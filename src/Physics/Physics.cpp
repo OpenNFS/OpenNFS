@@ -62,7 +62,7 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
     dynamicsWorld->addRigidBody(groundRigidBody);
 }
 
-void Physics::registerVehicle(Car *car) {
+void Physics::registerVehicle(std::shared_ptr<Car> car) {
     cars.emplace_back(car);
 
     btVector3 wheelDirectionCS0(0,-1,0);

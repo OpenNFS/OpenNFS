@@ -66,13 +66,13 @@ public:
     void stepSimulation(float time);
     void cleanSimulation();
     btDynamicsWorld* getDynamicsWorld() { return dynamicsWorld; }
-    void registerVehicle(Car *car);
+    void registerVehicle(std::shared_ptr<Car> car);
     void registerTrack(const std::vector<TrackBlock> &track_blocks);
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
 
 private:
-    std::vector<Car *> cars;
+    std::vector<std::shared_ptr<Car>> cars;
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase;
     btDefaultCollisionConfiguration *collisionConfiguration;

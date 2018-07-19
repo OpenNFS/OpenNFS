@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lambda/bind.hpp>
 
-NFS4_Loader::NFS4_Loader(const std::string &car_base_path, std::string *car_name) {
+std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path, std::string *car_name) {
     boost::filesystem::path p(car_base_path);
     *car_name = p.filename().string();
 
@@ -18,11 +18,13 @@ NFS4_Loader::NFS4_Loader(const std::string &car_base_path, std::string *car_name
 
     ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()),
            "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
-    ASSERT(LoadFCE(fce_path.str()), "Unable to load " << fce_path.str());
+
+    return std::make_shared<Car>(LoadFCE(fce_path.str()));
 }
 
-NFS4_Loader::NFS4_Loader(const std::string &track_base_path) {
+std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     std::cout << "--- Loading NFS4 Track ---" << std::endl;
+    std::shared_ptr<TRACK> track(new TRACK());
 
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
@@ -36,17 +38,18 @@ NFS4_Loader::NFS4_Loader(const std::string &track_base_path) {
 
     ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_4),
            "Could not extract " << track_name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track_name),
-           "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
 
     track->texture_gl_mappings = GenTrackTextures(track->textures);
-    track->track_blocks = ParseTRKModels();
+    track->track_blocks = ParseTRKModels(track);
 
     std::cout << "Successful track load!" << std::endl;
 }
 
-bool NFS4_Loader::LoadFCE(const std::string &fce_path) {
+std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
+    std::vector<CarModel> meshes;
+
     ifstream fce(fce_path, ios::in | ios::binary);
 
     auto *fceHeader = new FCE::NFS4::HEADER();
@@ -114,10 +117,10 @@ bool NFS4_Loader::LoadFCE(const std::string &fce_path) {
     fce.close();
 
     delete fceHeader;
-    return true;
+    return meshes;
 }
 
-bool NFS4_Loader::LoadFRD(const std::string &frd_path, const std::string &track_name) {
+bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, std::shared_ptr<TRACK> track) {
     ifstream ar(frd_path, ios::in | ios::binary);
     uint32_t nPos;
     unsigned char ptrspace[44]; // some useless data from HS FRDs
@@ -788,7 +791,7 @@ std::vector<glm::vec2> highStakesToGLUV(POLYGONDATA poly) {
     return converted_uvs;//std::vector<glm::vec2>(converted_uvs, converted_uvs + 6);
 }
 
-std::vector<TrackBlock> NFS4_Loader::ParseTRKModels() {
+std::vector<TrackBlock> NFS4::ParseTRKModels(std::shared_ptr<TRACK> track) {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (int i = 0; i < track->nBlocks; i++) {
@@ -1046,7 +1049,7 @@ std::vector<TrackBlock> NFS4_Loader::ParseTRKModels() {
     return track_blocks;
 }
 
-Texture NFS4_Loader::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name) {
+Texture NFS4::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name) {
     std::stringstream filename;
     std::stringstream filename_alpha;
 

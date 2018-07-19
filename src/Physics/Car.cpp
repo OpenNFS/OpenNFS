@@ -5,7 +5,7 @@
 
 #include "Car.h"
 
-Car::Car(NFS4_Loader *loader){
+Car::Car(std::vector<CarModel> car_meshes){
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
@@ -23,7 +23,7 @@ Car::Car(NFS4_Loader *loader){
     steerRight = steerLeft = isReverse = false;
 
     glm::vec3 debug_offset(0, 0, 0);
-    car_models = loader->meshes;
+    car_models = car_meshes;
 
     // Enable High Res wheels and body
     for(int i = 0; i < 5; i++){
@@ -169,4 +169,30 @@ void Car::resetCar()
             m_vehicle -> updateWheelTransform(i, true);
         }
     }
+}
+
+
+void Car::writeObj(const std::string &path) {
+    std::cout << "Writing Meshes to " << path << std::endl;
+
+    std::ofstream obj_dump;
+    obj_dump.open(path);
+
+    for (Model &mesh : car_models) {
+        /* Print Part name*/
+        obj_dump << "o " << mesh.m_name << std::endl;
+        //Dump Vertices
+        for (auto vertex : mesh.m_vertices) {
+            obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
+        }
+        //Dump UVs
+        for (auto uv : mesh.m_uvs) {
+            obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
+        }
+        //Dump Indices
+        for (auto vert_index : mesh.m_vertex_indices) {
+            obj_dump << "f " << vert_index << std::endl;
+        }
+    }
+    obj_dump.close();
 }

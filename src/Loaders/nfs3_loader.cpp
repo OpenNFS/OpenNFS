@@ -5,8 +5,7 @@
 #include "nfs3_loader.h"
 
 // CAR
-
-NFS3_Loader::NFS3_Loader(const std::string &car_base_path, std::string *car_name) {
+std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path, std::string *car_name) {
     boost::filesystem::path p(car_base_path);
     *car_name = p.filename().string();
 
@@ -15,13 +14,20 @@ NFS3_Loader::NFS3_Loader(const std::string &car_base_path, std::string *car_name
     car_out_path << CAR_PATH << *car_name << "/";
     fce_path << CAR_PATH << *car_name << "/car.fce";
 
-    ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()),
-           "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
-    ASSERT(LoadFCE(fce_path.str()), "Unable to load " << fce_path.str());
+    ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+
+    return std::make_shared<Car>(LoadFCE(fce_path.str()));
 }
 
-bool NFS3_Loader::LoadFCE(const std::string fce_path) {
+void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_path) {
+    std::shared_ptr<Car> car(new Car(LoadFCE(fce_path)));
+    car->writeObj(obj_out_path);
+}
+
+std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
+    std::vector<CarModel> meshes;
+
     ifstream fce(fce_path, ios::in | ios::binary);
 
     auto *fceHeader = new FCE::NFS3::HEADER();
@@ -89,44 +95,13 @@ bool NFS3_Loader::LoadFCE(const std::string fce_path) {
     fce.close();
 
     delete fceHeader;
-    return true;
-}
-
-void ConvertFCE(const std::string &fce_path, const std::string &obj_out_path) {
-    std::string car_name;
-    NFS3_Loader fce_reader(fce_path, &car_name);
-    fce_reader.WriteObj(obj_out_path);
-}
-
-void NFS3_Loader::WriteObj(const std::string &path) {
-    std::cout << "Writing Meshes to " << path << std::endl;
-
-    std::ofstream obj_dump;
-    obj_dump.open(path);
-
-    for (Model &mesh : meshes) {
-        /* Print Part name*/
-        obj_dump << "o " << mesh.m_name << std::endl;
-        //Dump Vertices
-        for (auto vertex : mesh.m_vertices) {
-            obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
-        }
-        //Dump UVs
-        for (auto uv : mesh.m_uvs) {
-            obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
-        }
-        //Dump Indices
-        for (auto vert_index : mesh.m_vertex_indices) {
-            obj_dump << "f " << vert_index << std::endl;
-        }
-    }
-    obj_dump.close();
+    return meshes;
 }
 
 // TRACK
-
-NFS3_Loader::NFS3_Loader(const std::string &track_base_path) {
+std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     std::cout << "--- Loading NFS3_4 Track ---" << std::endl;
+    std::shared_ptr<TRACK> track(new TRACK());
 
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
@@ -139,23 +114,20 @@ NFS3_Loader::NFS3_Loader(const std::string &track_base_path) {
     frd_path << track_base_path << ".frd";
     col_path << track_base_path << ".col";
 
-    ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3),
-           "Could not extract " << track_name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track_name),
-           "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCOL(col_path.str()), "Could not load COL file: "
-            << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
 
     track->texture_gl_mappings = GenTrackTextures(track->textures);
-    track->track_blocks = ParseTRKModels();
-    std::vector<Track> col_models = ParseCOLModels();
-    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(),
-                                          col_models.end()); // Insert the COL models into track block 0 for now
+    track->track_blocks = ParseTRKModels(track);
+    std::vector<Track> col_models = ParseCOLModels(track);
+    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Successful track load!" << std::endl;
+    return track;
 }
 
-bool NFS3_Loader::LoadFRD(std::string frd_path, const std::string &track_name) {
+bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::shared_ptr<TRACK> track) {
     ifstream ar(frd_path, ios::in | ios::binary);
 
     char header[28]; /* file header */
@@ -314,7 +286,7 @@ bool NFS3_Loader::LoadFRD(std::string frd_path, const std::string &track_name) {
     return ar.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
 }
 
-bool NFS3_Loader::LoadCOL(std::string col_path) {
+bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
     ifstream coll(col_path, ios::in | ios::binary);
 
     COLOBJECT *o;
@@ -359,7 +331,8 @@ bool NFS3_Loader::LoadCOL(std::string col_path) {
 
         // object XB
         SAFE_READ(coll, &track->col.objectHead, 8);
-        if ((track->col.objectHead.xbid != XBID_OBJECT) && (track->col.objectHead.xbid != XBID_OBJECT2)) return false;
+        if ((track->col.objectHead.xbid != XBID_OBJECT) && (track->col.objectHead.xbid != XBID_OBJECT2))
+            return false;
         o = track->col.object = static_cast<COLOBJECT *>(calloc(track->col.objectHead.nrec, sizeof(COLOBJECT)));
 
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.objectHead.nrec; colRec_Idx++, o++) {
@@ -382,7 +355,8 @@ bool NFS3_Loader::LoadCOL(std::string col_path) {
     // object2 XB
     if (track->col.nBlocks == 5) {
         SAFE_READ(coll, &track->col.object2Head, 8);
-        if ((track->col.object2Head.xbid != XBID_OBJECT) && (track->col.object2Head.xbid != XBID_OBJECT2)) return false;
+        if ((track->col.object2Head.xbid != XBID_OBJECT) && (track->col.object2Head.xbid != XBID_OBJECT2))
+            return false;
         o = track->col.object2 = static_cast<COLOBJECT *>(calloc(track->col.object2Head.nrec, sizeof(COLOBJECT)));
 
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.object2Head.nrec; colRec_Idx++, o++) {
@@ -413,14 +387,15 @@ bool NFS3_Loader::LoadCOL(std::string col_path) {
     return coll.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
 }
 
-std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
+std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK>track) {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (int i = 0; i < track->nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = track->trk[i];
         POLYGONBLOCK polygon_block = track->poly[i];
-        TrackBlock current_track_block(i, glm::vec3(trk_block.ptCentre.x, trk_block.ptCentre.y, trk_block.ptCentre.z));
+        TrackBlock current_track_block(i,
+                                       glm::vec3(trk_block.ptCentre.x, trk_block.ptCentre.y, trk_block.ptCentre.z));
         glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         glm::vec3 trk_block_center = orientation * glm::vec3(0, 0, 0);
 
@@ -659,7 +634,7 @@ std::vector<TrackBlock> NFS3_Loader::ParseTRKModels() {
     return track_blocks;
 }
 
-std::vector<Track> NFS3_Loader::ParseCOLModels() {
+std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
     std::vector<Track> col_models;
     COLOBJECT *o = track->col.object;
     /* COL DATA - TODO: Come back for VROAD AI/Collision data */
@@ -721,7 +696,7 @@ std::vector<Track> NFS3_Loader::ParseCOLModels() {
     return col_models;
 }
 
-Texture NFS3_Loader::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name) {
+Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name) {
     std::stringstream filename;
     std::stringstream filename_alpha;
 
