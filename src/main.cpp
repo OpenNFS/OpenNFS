@@ -29,6 +29,7 @@
 #include "Shaders/BillboardShader.h"
 #include "Physics/Physics.h"
 #include "Physics/Car.h"
+#include "Renderer/HermiteCurve.h"
 
 
 GLFWwindow *window;
@@ -136,7 +137,7 @@ int main(int argc, char **argv) {
     /*------ ASSET LOAD ------*/
     initDirectories();
     //Load Track Data`
-    std::shared_ptr<NFS_TRACK> track(new NFS_TRACK("../resources/NFS3/gamedata/tracks/trk006/tr06"));
+    std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk006/tr06");
     //Load Car data from unpacked NFS files
     std::shared_ptr<Car> car = CarLoader::LoadCar("../resources/NFS3/gamedata/carmodel/diab");
 
@@ -166,6 +167,15 @@ int main(int argc, char **argv) {
     glm::vec3 oldWorldPosition(0, 0, 0);
     int closestBlockID = 0;
 
+    std::vector<glm::vec3> cameraPoints;
+    for(auto &track_block : track->track_blocks){
+        glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+        glm::vec3 position = orientation * glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
+        cameraPoints.emplace_back(position);
+    }
+    HermiteCurve cameraSpline = HermiteCurve(cameraPoints, 0.5, 0.0f);
+    int loopTime = cameraSpline.points.size() * 100;
+
     /*------- UI -------*/
     ImVec4 clear_color = ImVec4(119 / 255.0f, 197 / 255.0f, 252 / 255.0f, 1.0f);
     ImVec4 car_color = ImVec4(247 / 255.0f, 203 / 255.0f, 32 / 255.0f, 1.0f);
@@ -177,18 +187,24 @@ int main(int argc, char **argv) {
     int blockDrawDistance = 15;
     bool window_active = true;
     bool physics_debug_view = false;
-
+    float totalTime = 1;
     while (!glfwWindowShouldClose(window)) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         newFrame(window_active);
         // Compute the MVP matrix from keyboard and mouse input
-        glm::vec3 carCam = car->car_models[0].position;
-        carCam.y += 0.2;
-        //carCam.z -= 1;
         if (!ImGui::GetIO().MouseDown[1]) {
-            mainCamera.position = carCam;
+            //glm::vec3 carCam = car->car_models[0].position;
+            //carCam.y += 0.2;
+            //carCam.z -= 1;
+            //mainCamera.position = carCam;
+            // Camera position along the spline
+            float tmod = mainCamera.deltaTime > 0 ? ((int) mainCamera.deltaTime % loopTime ) / loopTime : 1;
+            totalTime+=mainCamera.deltaTime;
+            tmod = (totalTime) / (loopTime/200);
+            mainCamera.position = cameraSpline.getPointAt( tmod );
         }
         mainCamera.computeMatricesFromInputs(window_active, ImGui::GetIO());
+
         glm::mat4 ProjectionMatrix = mainCamera.ProjectionMatrix;
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
         glm::vec3 worldPosition = mainCamera.position;
@@ -212,9 +228,7 @@ int main(int argc, char **argv) {
             //Primitive Draw distance
             for (auto &track_block :  track->track_blocks) {
                 glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-                glm::vec3 position = orientation *
-                                     glm::vec3(track_block.center.x / 10, track_block.center.y / 10,
-                                               track_block.center.z / 10);
+                glm::vec3 position = orientation * glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
                 float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
                 if (distanceSqr < lowestDistanceSqr) {
                     closestBlockID = track_block.block_id;

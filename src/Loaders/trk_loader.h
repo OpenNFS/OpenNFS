@@ -11,10 +11,10 @@
 #include "nfs4_loader.h"
 #include <boost/variant.hpp>
 
-class NFS_TRACK {
+class ONFSTrack {
 public:
-    explicit NFS_TRACK(const std::string &track_path);
-    ~NFS_TRACK() {}
+    explicit ONFSTrack(const std::string &track_path);
+    ~ONFSTrack() {}
 
     NFSVer tag;
     typedef boost::variant<shared_ptr<NFS3_4_DATA::TRACK>, shared_ptr<NFS2_DATA::PS1::TRACK>, shared_ptr<NFS2_DATA::PC::TRACK>> track;
@@ -23,4 +23,9 @@ public:
     std::vector<TrackBlock> track_blocks;
     uint32_t nBlocks;
     map<short, GLuint> texture_gl_mappings;
+};
+
+class TrackLoader {
+public:
+    static shared_ptr<ONFSTrack> LoadTrack(const std::string &track_path);
 };

@@ -4,7 +4,7 @@
 
 #include "trk_loader.h"
 
-NFS_TRACK::NFS_TRACK(const std::string &track_path) {
+ONFSTrack::ONFSTrack(const std::string &track_path) {
     // Do some custom NFS detection logic (realistically just check the path for the enums)
     if (track_path.find("NFS2_SE") != std::string::npos) {
         tag = NFS_2_SE;
@@ -58,4 +58,6 @@ NFS_TRACK::NFS_TRACK(const std::string &track_path) {
     }
 }
 
-
+shared_ptr<ONFSTrack> TrackLoader::LoadTrack(const std::string &track_path){
+    return std::shared_ptr<ONFSTrack>(new ONFSTrack("../resources/NFS3/gamedata/tracks/trk006/tr06"));
+}
