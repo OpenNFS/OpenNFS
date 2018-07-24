@@ -17,7 +17,8 @@
 
 class CarShader : public BaseShader {
 public:
-    CarShader(const std::string &car_name);
+    CarShader();
+    CarShader(shared_ptr<Car> current_car);
     void loadCarColor(glm::vec3 color);
     void loadCarTexture();
     void loadLight(Light light);
@@ -25,10 +26,11 @@ public:
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
 
 protected:
-    void load_tga_texture(const std::string &car_name);
+    void load_tga_texture();
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
+    shared_ptr<Car> car;
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
     GLint viewMatrixLocation;

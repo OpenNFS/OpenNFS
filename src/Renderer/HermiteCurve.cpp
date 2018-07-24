@@ -66,6 +66,8 @@ glm::vec3 HermiteCurve::Interpolate(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, gl
     return h0 * p1 + h1 * m0 + h2 * m1 + h3 * p2;
 }
 
+HermiteCurve::HermiteCurve() {}
+
 
 
 

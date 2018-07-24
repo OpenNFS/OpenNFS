@@ -101,7 +101,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
 
 // TRACK
 std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
-    std::cout << "--- Loading NFS3_4 Track ---" << std::endl;
+    std::cout << "--- Loading NFS3 Track ---" << std::endl;
     std::shared_ptr<TRACK> track(new TRACK());
 
     boost::filesystem::path p(track_base_path);
@@ -151,7 +151,7 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
     track->xobj = new XOBJBLOCK[4 * track->nBlocks + 1]();
 
     int l;
-    SAFE_READ(ar, &l, 4); // choose between NFS3_4 & NFSHS
+    SAFE_READ(ar, &l, 4); // choose between NFS3 & NFSHS
     if ((l < 0) || (l > 5000)) track->bHSMode = false;
     else if (((l + 7) / 8) == track->nBlocks) track->bHSMode = true;
     else return false; // unknown file type
@@ -711,9 +711,9 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
         filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
         filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << "NFS3_4/" << track_name << "/textures/" << setfill('0') << setw(4)
+        filename << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4)
                  << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << "NFS3_4/" << track_name << "/textures/" << setfill('0') << setw(4)
+        filename_alpha << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4)
                        << track_texture.texture << "-a.BMP";
     }
 

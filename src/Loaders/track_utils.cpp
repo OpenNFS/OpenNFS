@@ -56,7 +56,7 @@ namespace TrackUtils {
                 tex_archive_path << track_path << "0M.qfs";
                 break;
             case NFS_3:
-                output_dir << "NFS3_4/";
+                output_dir << "NFS3/";
                 tex_archive_path << track_path << "0.qfs";
                 break;
             case NFS_3_PS1:

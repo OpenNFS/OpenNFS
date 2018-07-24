@@ -14,6 +14,8 @@ public:
     Light(INTPT light_position, uint32_t light_type);
     Light(glm::vec3 light_position, glm::vec3 light_colour);
 
+    Light();
+
     void update() override;
     void destroy() override;
     void render() override;

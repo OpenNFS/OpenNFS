@@ -7,17 +7,18 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 
-extern GLFWwindow* window;
-
 class Camera {
 private:
     // Initial Field of View
     float initialFoV;
     float speed = 3.0f; // 3 units / second
     float mouseSpeed = 0.005f;
-
+    GLFWwindow* window;
 public:
-    Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle);
+    Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window);
+
+    Camera();
+
     void resetView();
     void computeMatricesFromInputs(bool &window_active, ImGuiIO& io);
     glm::mat4 ViewMatrix;

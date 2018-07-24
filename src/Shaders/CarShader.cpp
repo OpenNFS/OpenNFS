@@ -7,10 +7,11 @@
 const std::string vertexSrc = "../shaders/CarVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/CarFragmentShader.fragmentshader";
 
-CarShader::CarShader(const std::string &car_name) : super(vertexSrc, fragSrc){
+CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
+    car = current_car;
     bindAttributes();
     getAllUniformLocations();
-    load_tga_texture(car_name);
+    load_tga_texture();
     LoadEnvMapTexture();
 }
 
@@ -19,7 +20,7 @@ void CarShader::LoadEnvMapTexture() {
     unsigned char *data;
     FILE *file;
     std::stringstream filename;
-    filename << "./assets/tracks/NFS3_4/tr03/sky_textures/" << "0010.BMP";
+    filename << "./assets/tracks/NFS3/tr03/sky_textures/" << "0010.BMP";
     file = fopen(filename.str().c_str(), "rb");
     if (file == nullptr) {
         std::cout << "Couldn't open " << filename.str() << std::endl;
@@ -78,9 +79,9 @@ void CarShader::customCleanup(){
     glDeleteTextures(1, &textureID);
 }
 
-void CarShader::load_tga_texture(const std::string &car_name) {
+void CarShader::load_tga_texture() {
     std::stringstream car_texture_path;
-    car_texture_path << CAR_PATH << car_name << "/car00.tga";
+    car_texture_path << CAR_PATH << car->name << "/car00.tga";
 
     NS_TGALOADER::IMAGE texture_loader;
     ASSERT(texture_loader.LoadTGA(car_texture_path.str().c_str()), "Car Texture loading failed!");
@@ -129,6 +130,10 @@ void CarShader::loadLight(Light light){
 
 void CarShader::loadCarColor(glm::vec3 color){
     loadVec3(colourLocation, color);
+}
+
+CarShader::CarShader() : super(vertexSrc, fragSrc) {
+
 }
 
 

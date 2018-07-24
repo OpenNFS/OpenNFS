@@ -151,3 +151,5 @@ bool Light::genBuffers() {
     return true;
 }
 
+Light::Light() : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0,0,0)){}
+

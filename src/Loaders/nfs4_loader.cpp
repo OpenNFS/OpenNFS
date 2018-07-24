@@ -132,7 +132,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, s
     track->poly = new POLYGONBLOCK[track->nBlocks]();
     track->xobj = new XOBJBLOCK[4 * track->nBlocks + 1]();
 
-    SAFE_READ(ar, &nPos, 4); // choose between NFS3_4 & NFSHS
+    SAFE_READ(ar, &nPos, 4); // choose between NFS3 & NFSHS
     if (nPos > 5000) track->bHSMode = false;
     else if (((nPos + 7) / 8) == track->nBlocks) track->bHSMode = true;
     else return false; // unknown file type

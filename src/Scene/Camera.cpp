@@ -2,7 +2,8 @@
 
 using namespace glm;
 
-Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle){
+Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window){
+    window = gl_window;
     // Initial position : on +Z
     position = initial_position;
     // Initial Field of View
@@ -114,3 +115,5 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
     // For the next frame, the "last time" will be "now"
     lastTime = currentTime;
 }
+
+Camera::Camera() {}

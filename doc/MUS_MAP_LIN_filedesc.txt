@@ -8,7 +8,7 @@ In this document I'll try to describe audio file formats used in many (new)
 Electronic Arts games. Described are formats for music, movie soundtracks and
 partly sound effects/speech.
 
-The games using these formats include: Need For Speed 2, NFS3_4, NFS4, NFS5,
+The games using these formats include: Need For Speed 2, NFS3, NFS4, NFS5,
 NBA Live'98, NBA'99, NBA'2000, NHL Online'98, NHL'99, NHL'2000, NHL'2001,
 FIFA'98, FIFA'99, FIFA'2000, FIFA'2001, FIFA'2002, Bundesliga Stars 2000,
 Madden NFL'98, Madden NFL'99, Madden NFL'2000, EURO'2000, World Cup 98,
