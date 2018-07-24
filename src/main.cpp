@@ -345,7 +345,6 @@ int main(int argc, char **argv) {
         glfwSwapBuffers(window);
     }
 
-
     // Cleanup VBOs and shaders
     carShader.cleanup();
     trackShader.cleanup();

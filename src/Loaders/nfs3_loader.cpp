@@ -14,7 +14,8 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
     car_out_path << CAR_PATH << car_name << "/";
     fce_path << CAR_PATH << car_name << "/car.fce";
 
-    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()),
+           "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
     return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_3, car_name);
 }
@@ -114,17 +115,26 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     frd_path << track_base_path << ".frd";
     col_path << track_base_path << ".col";
 
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3),
+           "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(LoadFRD(frd_path.str(), track_name, track),
+           "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
+            << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
 
     track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
     track->track_blocks = ParseTRKModels(track);
     std::vector<Track> col_models = ParseCOLModels(track);
-    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
+    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(),
+                                          col_models.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Successful track load!" << std::endl;
     return track;
+}
+
+void NFS3::FreeTrack(std::shared_ptr<TRACK> track) {
+  FreeFRD(track);
+  FreeCOL(track);
 }
 
 bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::shared_ptr<TRACK> track) {
@@ -155,10 +165,10 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
         // ptCentre, ptBounding, 6 nVertices == 84 bytes
         if (block_Idx != 0) { SAFE_READ(ar, trackBlock, 84); }
         if ((trackBlock->nVertices == 0)) return false;
-        trackBlock->vert = static_cast<FLOATPT *>(calloc(trackBlock->nVertices, sizeof(FLOATPT)));
+        trackBlock->vert = new FLOATPT[trackBlock->nVertices];;
 
         SAFE_READ(ar, trackBlock->vert, 12 * trackBlock->nVertices);
-        trackBlock->unknVertices = static_cast<uint32_t *>(calloc(trackBlock->nVertices, sizeof(uint32_t)));
+        trackBlock->unknVertices = new uint32_t[trackBlock->nVertices];
         SAFE_READ(ar, trackBlock->unknVertices, 4 * trackBlock->nVertices);
         SAFE_READ(ar, trackBlock->nbdData, 4 * 0x12c);
         // nStartPos & various blk sizes == 32 bytes
@@ -168,19 +178,19 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
             if (trackBlock->nStartPos !=
                 track->trk[block_Idx - 1].nStartPos + track->trk[block_Idx - 1].nPositions)
                 return false;
-        trackBlock->posData = static_cast<POSITIONDATA *>(calloc(trackBlock->nPositions, sizeof(POSITIONDATA)));
+        trackBlock->posData = new POSITIONDATA[trackBlock->nPositions];
         SAFE_READ(ar, trackBlock->posData, 8 * trackBlock->nPositions);
 
-        trackBlock->polyData = static_cast<POLYVROADDATA *>(calloc(trackBlock->nPolygons, sizeof(POLYVROADDATA)));
+        trackBlock->polyData = new POLYVROADDATA[trackBlock->nPolygons];
 
         for (int j = 0; j < trackBlock->nPolygons; j++)
             SAFE_READ(ar, trackBlock->polyData + j, 8);
 
-        trackBlock->vroadData = static_cast<VROADDATA *>(calloc(trackBlock->nVRoad, sizeof(VROADDATA)));
+        trackBlock->vroadData = new VROADDATA[trackBlock->nVRoad];
         SAFE_READ(ar, trackBlock->vroadData, 12 * trackBlock->nVRoad);
 
         if (trackBlock->nXobj > 0) {
-            trackBlock->xobj = static_cast<REFXOBJ *>(calloc(trackBlock->nXobj, sizeof(REFXOBJ)));
+            trackBlock->xobj = new REFXOBJ[trackBlock->nXobj];
             SAFE_READ(ar, trackBlock->xobj, 20 * trackBlock->nXobj);
         }
         if (trackBlock->nPolyobj > 0) {
@@ -188,11 +198,11 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
         }
         trackBlock->nPolyobj = 0;
         if (trackBlock->nSoundsrc > 0) {
-            trackBlock->soundsrc = static_cast<SOUNDSRC *>(calloc(trackBlock->nSoundsrc, sizeof(SOUNDSRC)));
+            trackBlock->soundsrc = new SOUNDSRC[trackBlock->nSoundsrc];
             SAFE_READ(ar, trackBlock->soundsrc, 16 * trackBlock->nSoundsrc);
         }
         if (trackBlock->nLightsrc > 0) {
-            trackBlock->lightsrc = static_cast<LIGHTSRC *>(calloc(trackBlock->nLightsrc, sizeof(LIGHTSRC)));
+            trackBlock->lightsrc = new LIGHTSRC[trackBlock->nLightsrc];
             SAFE_READ(ar, trackBlock->lightsrc, 16 * trackBlock->nLightsrc);
         }
     }
@@ -215,17 +225,16 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
             SAFE_READ(ar, &(o->n1), 0x4);
             if (o->n1 > 0) {
                 SAFE_READ(ar, &(o->n2), 0x4);
-                o->types = static_cast<uint32_t *>(calloc(static_cast<size_t>(o->n2), sizeof(uint32_t)));
-                o->numpoly = static_cast<uint32_t *>(malloc(o->n2 * sizeof(uint32_t)));
-                o->poly = static_cast<LPPOLYGONDATA *>(calloc(static_cast<size_t>(o->n2), sizeof(LPPOLYGONDATA)));
+                o->types = new uint32_t[o->n2];
+                o->numpoly = new uint32_t[o->n2];
+                o->poly = new LPPOLYGONDATA[o->n2];
                 o->nobj = 0;
                 l = 0;
                 for (int k = 0; k < o->n2; k++) {
                     SAFE_READ(ar, o->types + k, 0x4);
                     if (o->types[k] == 1) {
                         SAFE_READ(ar, o->numpoly + o->nobj, 0x4);
-                        o->poly[o->nobj] = static_cast<LPPOLYGONDATA>(calloc(o->numpoly[o->nobj],
-                                                                             sizeof(POLYGONDATA)));
+                        o->poly[o->nobj] = static_cast<LPPOLYGONDATA>(calloc(o->numpoly[o->nobj], sizeof(POLYGONDATA)));
                         SAFE_READ(ar, o->poly[o->nobj], 14 * o->numpoly[o->nobj]);
                         l += o->numpoly[o->nobj];
                         o->nobj++;
@@ -240,8 +249,7 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
     for (uint32_t xblock_Idx = 0; xblock_Idx <= 4 * track->nBlocks; xblock_Idx++) {
         SAFE_READ(ar, &(track->xobj[xblock_Idx].nobj), 4);
         if (track->xobj[xblock_Idx].nobj > 0) {
-            track->xobj[xblock_Idx].obj = static_cast<XOBJDATA *>(calloc(track->xobj[xblock_Idx].nobj,
-                                                                         sizeof(XOBJDATA)));
+            track->xobj[xblock_Idx].obj = new XOBJDATA[track->xobj[xblock_Idx].nobj];
         }
         for (int xobj_Idx = 0; xobj_Idx < track->xobj[xblock_Idx].nobj; xobj_Idx++) {
             XOBJDATA *x = &(track->xobj[xblock_Idx].obj[xobj_Idx]);
@@ -254,7 +262,7 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
                 // unkn3, type3, objno, nAnimLength, unkn4 == 24 bytes
                 SAFE_READ(ar, x->unknown3, 24);
                 if (x->type3 != 3) return false;
-                x->animData = static_cast<ANIMDATA *>(calloc(20, x->nAnimLength));
+                x->animData = new ANIMDATA[x->nAnimLength];
                 SAFE_READ(ar, x->animData, 20 * x->nAnimLength);
                 // make a ref point from first anim position
                 x->ptRef.x = (float) (x->animData->pt.x / 65536.0);
@@ -264,19 +272,19 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::sha
 
             // common part : vertices & polygons
             SAFE_READ(ar, &(x->nVertices), 4);
-            x->vert = static_cast<FLOATPT *>(calloc(12, x->nVertices));
+            x->vert = new FLOATPT[x->nVertices];
             SAFE_READ(ar, x->vert, 12 * x->nVertices);
-            x->unknVertices = static_cast<uint32_t *>(calloc(4, x->nVertices));
+            x->unknVertices = new uint32_t[x->nVertices];
             SAFE_READ(ar, x->unknVertices, 4 * x->nVertices);
             SAFE_READ(ar, &(x->nPolygons), 4);
-            x->polyData = static_cast<POLYGONDATA *>(calloc(x->nPolygons, 14));
+            x->polyData = new POLYGONDATA[x->nPolygons];
             SAFE_READ(ar, x->polyData, 14 * x->nPolygons);
         }
     }
 
     // TEXTUREBLOCKs
     SAFE_READ(ar, &track->nTextures, 4);
-    track->texture = static_cast<TEXTUREBLOCK *>(calloc(track->nTextures, sizeof(TEXTUREBLOCK)));
+    track->texture = new TEXTUREBLOCK[track->nTextures];
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
         SAFE_READ(ar, &(track->texture[tex_Idx]), 47);
         track->textures[track->texture[tex_Idx].texture] = LoadTexture(track->texture[tex_Idx], track_name);
@@ -306,24 +314,23 @@ bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
     SAFE_READ(coll, &track->col.textureHead, 8);
     if (track->col.textureHead.xbid != XBID_TEXTUREINFO) return false;
 
-    track->col.texture = static_cast<COLTEXTUREINFO *>(calloc(track->col.textureHead.nrec, sizeof(COLTEXTUREINFO)));
+    track->col.texture = new COLTEXTUREINFO[track->col.textureHead.nrec];
     SAFE_READ(coll, track->col.texture, 8 * track->col.textureHead.nrec);
 
     // struct3D XB
     if (track->col.nBlocks >= 4) {
         SAFE_READ(coll, &track->col.struct3DHead, 8);
         if (track->col.struct3DHead.xbid != XBID_STRUCT3D) return false;
-        COLSTRUCT3D *s = track->col.struct3D = static_cast<COLSTRUCT3D *>(calloc(track->col.struct3DHead.nrec,
-                                                                                 sizeof(COLSTRUCT3D)));
+        COLSTRUCT3D *s = track->col.struct3D = new COLSTRUCT3D[track->col.struct3DHead.nrec];
         int delta;
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.struct3DHead.nrec; colRec_Idx++, s++) {
             SAFE_READ(coll, s, 8);
             delta = (8 + 16 * s->nVert + 6 * s->nPoly) % 4;
             delta = (4 - delta) % 4;
             if (s->size != 8 + 16 * s->nVert + 6 * s->nPoly + delta) return false;
-            s->vertex = static_cast<COLVERTEX *>(calloc(16, s->nVert));
+            s->vertex = new COLVERTEX[s->nVert];
             SAFE_READ(coll, s->vertex, 16 * s->nVert);
-            s->polygon = static_cast<COLPOLYGON *>(calloc(6, s->nPoly));
+            s->polygon = new COLPOLYGON[s->nPoly];
             SAFE_READ(coll, s->polygon, 6 * s->nPoly);
             int dummy;
             if (delta > 0) SAFE_READ(coll, &dummy, delta);
@@ -333,7 +340,7 @@ bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
         SAFE_READ(coll, &track->col.objectHead, 8);
         if ((track->col.objectHead.xbid != XBID_OBJECT) && (track->col.objectHead.xbid != XBID_OBJECT2))
             return false;
-        o = track->col.object = static_cast<COLOBJECT *>(calloc(track->col.objectHead.nrec, sizeof(COLOBJECT)));
+        o = track->col.object = new COLOBJECT[track->col.objectHead.nrec];
 
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.objectHead.nrec; colRec_Idx++, o++) {
             SAFE_READ(coll, o, 4);
@@ -343,7 +350,7 @@ bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
             } else if (o->type == 3) {
                 SAFE_READ(coll, &(o->animLength), 4);
                 if (o->size != 8 + 20 * o->animLength) return false;
-                o->animData = static_cast<ANIMDATA *>(calloc(20, o->animLength));
+                o->animData = new ANIMDATA[o->animLength];
                 SAFE_READ(coll, o->animData, 20 * o->animLength);
                 o->ptRef.x = o->animData->pt.x;
                 o->ptRef.z = o->animData->pt.z;
@@ -357,7 +364,7 @@ bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
         SAFE_READ(coll, &track->col.object2Head, 8);
         if ((track->col.object2Head.xbid != XBID_OBJECT) && (track->col.object2Head.xbid != XBID_OBJECT2))
             return false;
-        o = track->col.object2 = static_cast<COLOBJECT *>(calloc(track->col.object2Head.nrec, sizeof(COLOBJECT)));
+        o = track->col.object2 = new COLOBJECT[track->col.object2Head.nrec];
 
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.object2Head.nrec; colRec_Idx++, o++) {
             SAFE_READ(coll, o, 4);
@@ -367,7 +374,7 @@ bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
             } else if (o->type == 3) {
                 SAFE_READ(coll, &(o->animLength), 4);
                 if (o->size != 8 + 20 * o->animLength) return false;
-                o->animData = static_cast<ANIMDATA *>(calloc(20, o->animLength));
+                o->animData = new ANIMDATA[o->animLength];
                 SAFE_READ(coll, o->animData, 20 * o->animLength);
                 o->ptRef.x = o->animData->pt.x;
                 o->ptRef.z = o->animData->pt.z;
@@ -380,14 +387,14 @@ bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
     SAFE_READ(coll, &track->col.vroadHead, 8);
     if (track->col.vroadHead.xbid != XBID_VROAD) return false;
     if (track->col.vroadHead.size != 8 + 36 * track->col.vroadHead.nrec) return false;
-    track->col.vroad = static_cast<COLVROAD *>(calloc(track->col.vroadHead.nrec, sizeof(COLVROAD)));
+    track->col.vroad = new COLVROAD[track->col.vroadHead.nrec];
     SAFE_READ(coll, track->col.vroad, 36 * track->col.vroadHead.nrec);
 
     uint32_t pad;
     return coll.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
 }
 
-std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK>track) {
+std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (int i = 0; i < track->nBlocks; i++) {
@@ -480,7 +487,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK>track) {
                     }
                     // Get ordered list of unique texture id's present in block
                     std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set,
-                                                                     texture_indices);
+                                                                                 texture_indices);
                     Track current_track_model = Track("ObjBlock", (j + 1) * (k + 1), obj_verts, uvs,
                                                       texture_indices, vertex_indices, texture_ids,
                                                       obj_shading_verts, trk_block_center);
@@ -719,11 +726,115 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
                   << std::endl;
         // If the texture is missing, load a "MISSING" texture of identical size.
         ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width,
-                                height), "Even the 'missing' texture is missing!");
+                                       height), "Even the 'missing' texture is missing!");
         return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
                        static_cast<unsigned int>(track_texture.height));
     }
 
     return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
                    static_cast<unsigned int>(track_texture.height));
+}
+
+void NFS3::FreeFRD(std::shared_ptr<TRACK> track) {
+    // Free FRD data
+    // TRKBLOCKs
+    for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
+        TRKBLOCK *trackBlock = &(track->trk[block_Idx]);
+        delete[]trackBlock->vert;
+        delete[]trackBlock->unknVertices;
+        delete[]trackBlock->posData;
+        delete[] trackBlock->polyData;
+        delete[] trackBlock->vroadData;
+        if (trackBlock->nXobj > 0) {
+            delete[]trackBlock->xobj;
+        }
+        if (trackBlock->nSoundsrc > 0) {
+            delete[]trackBlock->soundsrc;
+        }
+        if (trackBlock->nLightsrc > 0) {
+            delete[]trackBlock->lightsrc;
+        }
+        //delete trackBlock;
+    }
+    //delete []track->trk;
+
+    // POLYGONBLOCKs
+    for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
+        POLYGONBLOCK *p = &(track->poly[block_Idx]);
+        for (int j = 0; j < 7; j++) {
+            if (p->sz[j] != 0) {
+                free(p->poly[j]);
+            }
+        }
+        for (int obj_Idx = 0; obj_Idx < 4; obj_Idx++) {
+            OBJPOLYBLOCK *o = &(p->obj[obj_Idx]);
+            if (o->n1 > 0) {
+                delete[]o->types;
+                delete[]o->numpoly;
+                for (int k = 0; k < o->n2; k++) {
+                    if (o->types[k] == 1) {
+                        // free(o->poly[o->nobj]);
+                    }
+                }
+            }
+        }
+    }
+
+    // XOBJBLOCKs
+    for (uint32_t xblock_Idx = 0; xblock_Idx <= 4 * track->nBlocks; xblock_Idx++) {
+        if (track->xobj[xblock_Idx].nobj > 0) {
+            delete[]track->xobj[xblock_Idx].obj;
+        }
+        for (int xobj_Idx = 0; xobj_Idx < track->xobj[xblock_Idx].nobj; xobj_Idx++) {
+            XOBJDATA *x = &(track->xobj[xblock_Idx].obj[xobj_Idx]);
+            if (x->crosstype == 3) { // animated objects
+                delete[]x->animData;
+            }
+            //delete[]x->vert;
+            delete[]x->unknVertices;
+            delete[]x->polyData;
+            //delete x;
+        }
+    }
+
+    // TEXTUREBLOCKs
+    delete []track->texture;
+    delete []track->trk;
+    delete []track->poly;
+    delete []track->xobj;
+}
+
+void NFS3::FreeCOL(std::shared_ptr<TRACK> track) {
+    // Free COL Data
+    delete []track->col.texture;
+    // struct3D XB
+    if (track->col.nBlocks >= 4) {
+        COLSTRUCT3D *s = track->col.struct3D;
+        for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.struct3DHead.nrec; colRec_Idx++, s++) {
+            delete []s->vertex;
+            delete []s->polygon;
+        }
+        delete [] track->col.struct3D;
+
+        // Object XB
+        COLOBJECT *o = track->col.object;
+        for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.objectHead.nrec; colRec_Idx++, o++) {
+            if (o->type == 3) {
+                delete []o->animData;
+            }
+        }
+        delete []track->col.object;
+    }
+
+    // object2 XB
+    if (track->col.nBlocks == 5) {
+        COLOBJECT *o = track->col.object2;
+        for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.object2Head.nrec; colRec_Idx++, o++) {
+            if (o->type == 3) {
+                delete []o->animData;
+            }
+        }
+        delete []track->col.object2;
+    }
+    delete track->col.vroad;
 }
