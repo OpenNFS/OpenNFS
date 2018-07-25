@@ -21,6 +21,7 @@ public:
     void render() override;
     bool genBuffers()override;
 
+    glm::vec3 attenuation = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 position{};
     glm::vec4 colour;
     long type;

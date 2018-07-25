@@ -45,6 +45,8 @@ set(SOURCE_FILES
         src/Shaders/BaseShader.h
         src/Util/Utils.cpp
         src/Util/Utils.h
+        src/Util/Raytracer.cpp
+        src/Util/Raytracer.h
         tools/fshtool.c
         tools/fshtool.h
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h

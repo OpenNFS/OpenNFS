@@ -25,11 +25,11 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     m_texture_indices = texture_indices;
     shadingData = shading_data;
     texture_ids = tex_ids;
-    m_normals.clear();
+   // m_normals.clear();
     // Index Shading data
     for(unsigned int m_vertex_index : indices) {
         m_shading_data.push_back(shading_data[m_vertex_index]);
-        m_normals.push_back(norms[m_vertex_index]);
+       // m_normals.push_back(norms[m_vertex_index]);
     }
 
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model " << name);

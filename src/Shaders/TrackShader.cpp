@@ -25,10 +25,14 @@ void TrackShader::getAllUniformLocations() {
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
     TrackTexturesID = getUniformLocation("texture_array");
-    lightPositionLocation = getUniformLocation("lightPosition");
-    lightColourLocation = getUniformLocation("lightColour");
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
+
+    for(int i = 0; i < MAX_LIGHTS; ++i){
+        lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
+        lightColourLocation[i] =  getUniformLocation("lightColour[" + std::to_string(i) + "]");
+        attenuationLocation[i] = getUniformLocation("attenuation[" + std::to_string(i) + "]");
+    }
 }
 
 void TrackShader::customCleanup(){
@@ -48,8 +52,17 @@ void TrackShader::bindTrackTextures(Track track_block, std::map<short, GLuint> g
 }
 
 void TrackShader::loadLights(std::vector<Light> lights) {
-    loadVec3(lightPositionLocation, lights[0].position);
-    loadVec3(lightColourLocation, lights[0].colour);
+    for(int i = 0; i < MAX_LIGHTS; ++i){
+        if(i < lights.size()){
+            loadVec3(lightPositionLocation[i], lights[i].position);
+            loadVec4(lightColourLocation[i], lights[i].colour);
+            loadVec3(attenuationLocation[i], lights[i].attenuation);
+        } else {
+            loadVec3(lightPositionLocation[i], glm::vec3(0,0,0));
+            loadVec4(lightColourLocation[i], glm::vec4(0,0,0,0));
+            loadVec3(attenuationLocation[i], glm::vec3(1,0,0));
+        }
+    }
 }
 
 void TrackShader::loadSpecular(float damper, float reflectivity){

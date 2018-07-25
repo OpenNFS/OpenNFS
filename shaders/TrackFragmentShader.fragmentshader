@@ -7,7 +7,7 @@ in vec4 nfsDataOut;
 
 // Diffuse and Specular
 in vec3 surfaceNormal;
-in vec3 toLightVector;
+in vec3 toLightVector[8];
 in vec3 toCameraVector;
 
 // Fog
@@ -18,7 +18,8 @@ in vec4 viewSpace;
 out vec4 color;
 
 uniform sampler2D texture_array[32];
-uniform vec3 lightColour;
+uniform vec4 lightColour[8];
+uniform vec3 attenuation[8];
 uniform float shineDamper;
 uniform float reflectivity;
 
@@ -42,7 +43,7 @@ void main(){
                case 13: tempColor = texture(texture_array[13], UV).rgba; break;
                case 14: tempColor = texture(texture_array[14], UV).rgba; break;
                case 15: tempColor = texture(texture_array[15], UV).rgba; break;
-                case 16: tempColor = texture(texture_array[16], UV).rgba; break;
+               case 16: tempColor = texture(texture_array[16], UV).rgba; break;
                case 17: tempColor = texture(texture_array[17], UV).rgba; break;
                case 18: tempColor = texture(texture_array[18], UV).rgba; break;
                case 19: tempColor = texture(texture_array[19], UV).rgba; break;
@@ -75,36 +76,38 @@ void main(){
      fogFactor = (80 - dist)/(80 - 1);
      fogFactor = clamp( fogFactor, 0.0, 1.0 );
 
-     //vec4 nfsColor = 0.7 *(tempColor + vec4(nfsDataOut.xyz, 1.0f));
-     //color = mix(fogColor, nfsColor, fogFactor);
-     color = (tempColor);
-     color.r +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
-     color.g +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;
-     color.b +=  0.3*(nfsDataOut.r+nfsDataOut.g+nfsDataOut.b)/3;*/
+     vec4 nfsColor = 0.7 *(tempColor + vec4(nfsDataOut.xyz, 1.0f));
+     color = mix(fogColor, nfsColor, fogFactor);*/
 
-    /* vec3 unitNormal = normalize(surfaceNormal);
-     vec3 unitLightVector = normalize(toLightVector);
-
-     // Diffuse
-     float nDot1 = dot(unitNormal, unitLightVector);
-     float brightness = max(nDot1, 0.2);
-     vec3 diffuse = brightness * lightColour;
-
+     vec3 unitNormal = normalize(surfaceNormal);
      vec3 unitVectorToCamera = normalize(toCameraVector);
-     vec3 lightDirection = -unitLightVector;
-     vec3 reflectedLightDirection = reflect(lightDirection, unitNormal);
 
-     // Specular
-     float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
-     specularFactor = max(specularFactor, 0.0);
-     float dampedFactor = pow(specularFactor, shineDamper);
-     vec3 finalSpecular = dampedFactor * reflectivity * lightColour;
+     vec3 totalDiffuse = vec3(0.0f);
+     vec3 totalSpecular = vec3(0.0f);
 
-     color = vec4(diffuse, 1.0) * (tempColor);// + vec4(finalSpecular, 1.0) ;
-     color.a = 1.0;*/
+     for(int i = 0; i < 8; ++i){
+        float distance = length(toLightVector[i]);
+        float attenFactor = attenuation[i].x + (attenuation[i].y * distance) + (attenuation[i].z * distance * distance);
+        vec3 unitLightVector = normalize(toLightVector[i]);
+        // Diffuse
+        float nDot1 = dot(unitNormal, unitLightVector);
+        float brightness = max(nDot1, 0.0);
+        vec3 lightDirection = -unitLightVector;
+        vec3 reflectedLightDirection = reflect(lightDirection, unitNormal);
+        // Specular
+        float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
+        specularFactor = max(specularFactor, 0.0);
+        float dampedFactor = pow(specularFactor, shineDamper);
+        totalDiffuse += (brightness * lightColour[i].xyz)/attenFactor;
+        totalSpecular += (dampedFactor * reflectivity * lightColour[i].xyz)/attenFactor;
+     }
+     totalDiffuse = max(totalDiffuse, 0.35); // Min brightness
+
+     color = vec4(totalDiffuse, 1.0) * (tempColor) + vec4(totalSpecular, 1.0);
+     color.a = 1.0;
 
      // NFS PS2.0 Port
-     vec4 v0 = nfsDataOut; // Something done to this? (Add diffuse and specular components)
+    /* vec4 v0 = nfsDataOut; // Something done to this? (Add diffuse and specular components)
      vec4 v1 = vec4(0.08f); // Fog factor (read from HRZ?)
      vec4 c5 = vec4(0.0f);
      vec4 c6 = vec4(1.0f);
@@ -139,5 +142,5 @@ void main(){
      r9.w = r8.w;
      r10 = mix(r9, c7, v1.w);
      r10.w = r9.w;
-     color = r10;
+     color = r10;*/
 }

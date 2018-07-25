@@ -59,5 +59,5 @@ ONFSTrack::ONFSTrack(const std::string &track_path) {
 }
 
 shared_ptr<ONFSTrack> TrackLoader::LoadTrack(const std::string &track_path){
-    return std::shared_ptr<ONFSTrack>(new ONFSTrack("../resources/NFS3/gamedata/tracks/trk006/tr06"));
+    return std::shared_ptr<ONFSTrack>(new ONFSTrack(track_path));
 }

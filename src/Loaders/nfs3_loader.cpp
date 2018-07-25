@@ -3,6 +3,7 @@
 //
 
 #include "nfs3_loader.h"
+#include "../Util/Raytracer.h"
 
 // CAR
 std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
@@ -454,18 +455,24 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
                     for (int p = 0; p < obj_polygon_block.numpoly[k]; p++) {
                         TEXTUREBLOCK texture_for_block = track->texture[object_polys[p].texture];
                         minimal_texture_ids_set.insert(texture_for_block.texture);
-                        //norm_floatpt = VertexNormal(i, object_polys[p].vertex[0], track->trk, track->poly);
+                        /*norm_floatpt = VertexNormal(i, object_polys[p].vertex[0], track->trk, track->poly);
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        //norm_floatpt = VertexNormal(i, object_polys[p].vertex[1], track->trk, track->poly);
+                        norm_floatpt = VertexNormal(i, object_polys[p].vertex[1], track->trk, track->poly);
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        //norm_floatpt = VertexNormal(i, object_polys[p].vertex[2], track->trk, track->poly);
+                        norm_floatpt = VertexNormal(i, object_polys[p].vertex[2], track->trk, track->poly);
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        //norm_floatpt = VertexNormal(i, object_polys[p].vertex[0], track->trk, track->poly);
+                        norm_floatpt = VertexNormal(i, object_polys[p].vertex[0], track->trk, track->poly);
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        //norm_floatpt = VertexNormal(i, object_polys[p].vertex[2], track->trk, track->poly);
+                        norm_floatpt = VertexNormal(i, object_polys[p].vertex[2], track->trk, track->poly);
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        //norm_floatpt = VertexNormal(i, object_polys[p].vertex[3], track->trk, track->poly);
-                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                        norm_floatpt = VertexNormal(i, object_polys[p].vertex[3], track->trk, track->poly);
+                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));*/
+                        norms.emplace_back(glm::vec3(1,1,1));
+                        norms.emplace_back(glm::vec3(1,1,1));
+                        norms.emplace_back(glm::vec3(1,1,1));
+                        norms.emplace_back(glm::vec3(1,1,1));
+                        norms.emplace_back(glm::vec3(1,1,1));
+                        norms.emplace_back(glm::vec3(1,1,1));
                         vertex_indices.emplace_back(object_polys[p].vertex[0]);
                         vertex_indices.emplace_back(object_polys[p].vertex[1]);
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
@@ -489,7 +496,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
                     // Get ordered list of unique texture id's present in block
                     std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set,
                                                                                  texture_indices);
-                    Track current_track_model = Track("ObjBlock", (j + 1) * (k + 1), obj_verts, uvs,
+                    Track current_track_model = Track("ObjBlock", (j + 1) * (k + 1), obj_verts, norms, uvs,
                                                       texture_indices, vertex_indices, texture_ids,
                                                       obj_shading_verts, trk_block_center);
                     current_track_model.enable();
@@ -527,17 +534,17 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
                 for (int k = 0; k < x->nPolygons; k++, x->polyData++) {
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
                     minimal_texture_ids_set.insert(texture_for_block.texture);
-                    //norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    //norm_floatpt = VertexNormal(i, x->polyData->vertex[1], track->trk, track->poly);
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[1], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    //norm_floatpt = VertexNormal(i, x->polyData->vertex[2], track->trk, track->poly);
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[2], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    //norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    //norm_floatpt = VertexNormal(i, x->polyData->vertex[2], track->trk, track->poly);
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[2], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    //norm_floatpt = VertexNormal(i, x->polyData->vertex[3], track->trk, track->poly);
+                    norm_floatpt = VertexNormal(i, x->polyData->vertex[3], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                     vertex_indices.emplace_back(x->polyData->vertex[0]);
                     vertex_indices.emplace_back(x->polyData->vertex[1]);
@@ -560,8 +567,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
                 }
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids,
-                                         xobj_shading_verts, trk_block_center);
+                Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids, xobj_shading_verts, trk_block_center);
                 xobj_model.enable();
                 current_track_block.objects.emplace_back(xobj_model);
             }
@@ -595,18 +601,18 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
             for (int k = 0; k < polygon_block.sz[chnk]; k++) {
                 TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
                 minimal_texture_ids_set.insert(texture_for_block.texture);
-                //norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0]);
-                //norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                //norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[1]);
-                //norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                //norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2]);
-                //norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                //norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0]);
-                //norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                //norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2]);
-                //norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                //norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[3]);
-                //norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0], track->trk, track->poly);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[1], track->trk, track->poly);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2], track->trk, track->poly);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0], track->trk, track->poly);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2], track->trk, track->poly);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[3], track->trk, track->poly);
+                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                 vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[1]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
@@ -628,7 +634,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
             }
             // Get ordered list of unique texture id's present in block
             std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            Track current_trk_block_model = Track("TrkBlock", i, verts, uvs, texture_indices, vertex_indices,
+            Track current_trk_block_model = Track("TrkBlock", i, verts, norms, uvs, texture_indices, vertex_indices,
                                                   texture_ids,
                                                   trk_block_shading_verts,
                                                   trk_block_center);
@@ -655,6 +661,7 @@ std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
         std::vector<unsigned int> texture_indices;
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> shading_data;
+        std::vector<glm::vec3> norms;
         for (int j = 0; j < s.nVert; j++, s.vertex++) {
             verts.emplace_back(glm::vec3(s.vertex->pt.x / 10,
                                          s.vertex->pt.y / 10,
@@ -678,6 +685,12 @@ std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
             indices.emplace_back(s.polygon->v[0]);
             indices.emplace_back(s.polygon->v[2]);
             indices.emplace_back(s.polygon->v[3]);
+            norms.emplace_back(glm::vec3(1,1,1));
+            norms.emplace_back(glm::vec3(1,1,1));
+            norms.emplace_back(glm::vec3(1,1,1));
+            norms.emplace_back(glm::vec3(1,1,1));
+            norms.emplace_back(glm::vec3(1,1,1));
+            norms.emplace_back(glm::vec3(1,1,1));
             uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
             uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
             uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
@@ -696,7 +709,7 @@ std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
         glm::vec3 position = glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10,
                                        static_cast<float>(o->ptRef.y / 65536.0) / 10,
                                        static_cast<float>(o->ptRef.z / 65536.0) / 10);
-        Track col_model = Track("ColBlock", i, verts, uvs, texture_indices, indices, texture_ids, shading_data,
+        Track col_model = Track("ColBlock", i, verts, norms, uvs, texture_indices, indices, texture_ids, shading_data,
                                 glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
         col_model.enable();
         col_models.emplace_back(col_model);

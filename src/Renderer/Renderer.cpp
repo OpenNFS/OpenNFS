@@ -49,6 +49,10 @@ void Renderer::render() {
     float totalTime = 1;
     glm::vec3 oldWorldPosition(0, 0, 0);
 
+    // Shit
+    std::vector<Light> camlights;
+    camlights.push_back(cameraLight);
+
     while (!glfwWindowShouldClose(window)) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         newFrame(window_active);
@@ -84,18 +88,16 @@ void Renderer::render() {
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
 
-        carShader.use();
+       /* carShader.use();
         for (auto &car_model : car->car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
-            carShader.loadCarColor(
-                    car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1,
-                                                                                                                   1));
+            carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1, 1));
             carShader.loadLight(cameraLight);
             carShader.loadCarTexture();
             car_model.render();
         }
-        carShader.unbind();
+        carShader.unbind();*/
 
         for (auto &active_track_Block : CullTrackBlocks(oldWorldPosition, worldPosition, blockDrawDistance)) {
             trackShader.use();
@@ -105,6 +107,8 @@ void Renderer::render() {
                 trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
                 if (active_track_Block.lights.size() > 0) {
                     trackShader.loadLights(active_track_Block.lights);
+                } else {
+                    trackShader.loadLights(camlights);
                 }
                 trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
                 track_block_model.render();

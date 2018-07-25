@@ -2,9 +2,7 @@
 // Created by Amrik on 01/03/2018.
 //
 
-#ifndef OPENNFS3_TRACKSHADER_H
-#define OPENNFS3_TRACKSHADER_H
-
+#pragma once
 
 #include "BaseShader.h"
 #include "../Scene/Track.h"
@@ -12,6 +10,8 @@
 #include <glm/detail/type_mat.hpp>
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
+
+#define MAX_LIGHTS 8
 
 class TrackShader : public BaseShader {
 public:
@@ -28,14 +28,12 @@ protected:
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
     GLint viewMatrixLocation;
-    GLint lightPositionLocation;
-    GLint lightColourLocation;
+    GLint lightPositionLocation[MAX_LIGHTS];
+    GLint lightColourLocation[MAX_LIGHTS];
+    GLint attenuationLocation[MAX_LIGHTS];
     GLint shineDamperLocation;
     GLint reflectivityLocation;
     GLint TrackTexturesID;
 
     typedef BaseShader super;
 };
-
-
-#endif //OPENNFS3_TRACKSHADER_H
