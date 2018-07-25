@@ -14,6 +14,7 @@
 
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
+#include "../nfs_data.h"
 
 class Car {
 public:

@@ -4,7 +4,6 @@
 
 
 #include "Light.h"
-#include "../Util/Utils.h"
 
 Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
     // TODO: Redo all of this to make sense
@@ -30,48 +29,49 @@ Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 
     }
     position= light_position;
     type = 1;
-    colour = light_colour;
+    colour = glm::vec4(light_colour, 1.0f);
+
+    // TODO: Move ASSERT to a class that doesn't depend on nfs_data
+    genBuffers();
+    //ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
+}
+
+
+Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, int unknown_1, int unknown_2, int unknown_3, float unknown_4): super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
+    // TODO: Redo all of this to make sense
+    std::vector<glm::vec3> verts;
+    float lightSize = 3.0;
+    verts.push_back(glm::vec3(-lightSize, -lightSize, 0)); // bottom left corner
+    verts.push_back(glm::vec3(-lightSize,  lightSize, 0)); // top left corner
+    verts.push_back(glm::vec3( lightSize,  lightSize, 0)); // top right corner
+    verts.push_back(glm::vec3( lightSize, -lightSize, 0)); // bottom right corner
+    unsigned int indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
+                              0,2,3}; // second triangle (bottom left - top right - bottom right)
+    m_uvs.clear();
+    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
+    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
+    m_uvs.push_back(glm::vec2(1.0f, 0.0f));
+
+    m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
+    m_vertices.clear();
+    for (unsigned int m_vertex_index : m_vertex_indices) {
+        m_vertices.push_back(verts[m_vertex_index]);
+    }
+    position= light_position;
+    type = light_type;
+    colour = glm::vec4(light_colour.y/255.0f, light_colour.z/255.0f, light_colour.w/255.0f, light_colour.x/255.0f);
+
+    unknown1 = unknown_1;
+    unknown2 = unknown_2;
+    unknown3 = unknown_3;
+    unknown4 = unknown_4;
 
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
 }
 
-Light::Light(INTPT light_position, uint32_t light_type) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
-    // TODO: Redo all of this to make sense
-    std::vector<glm::vec3> verts;
-    verts.push_back(glm::vec3(0, -0.5, -0.5)); // bottom left corner
-    verts.push_back(glm::vec3(0,  0.5, -0.5)); // top left corner
-    verts.push_back(glm::vec3(0,  0.5,  0.5)); // top right corner
-    verts.push_back(glm::vec3(0, -0.5,  0.5)); // bottom right corner
-    unsigned int indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
-                              0,2,3}; // second triangle (bottom left - top right - bottom right)
-
-    m_uvs.clear();
-
-    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
-    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
-
-    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 0.0f));
-
-
-    m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
-    m_vertices.clear();
-
-    position.x = static_cast<float>(light_position.x / 65536.0)/10;
-    position.y = static_cast<float>(light_position.y / 65536.0)/10;
-    position.z = static_cast<float>(light_position.z / 65536.0)/10;
-
-    for (unsigned int m_vertex_index : m_vertex_indices) {
-        m_vertices.push_back(verts[m_vertex_index]);
-    }
-
-    type = light_type;
-    colour = glm::vec3(0.8, 0.7,0.5);
-
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
-};
 
 void Light::update() {
     orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
@@ -80,12 +80,6 @@ void Light::update() {
     //Rotate around center
     TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0,0,0));
     ModelMatrix = TranslationMatrix * RotationMatrix;
-
-    orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
-    orientation = glm::normalize(glm::quat(orientation_vec));
-    RotationMatrix = glm::toMat4(orientation);
-    // Move back to original position
-    ModelMatrix *= glm::translate(glm::mat4(1.0), position) * RotationMatrix;
 }
 
 void Light::destroy() {
@@ -131,7 +125,7 @@ bool Light::genBuffers() {
             0,                                // stride
             (void *) 0                          // array buffer offset
     );
-    // 2nd attribute buffer : UVs
+    // 2nd attribute buffer : normals
     glEnableVertexAttribArray(1);
     // Normals
     glGenBuffers(1, &normalBuffer);
@@ -145,8 +139,6 @@ bool Light::genBuffers() {
             0,                  // stride
             (void *) 0            // array buffer offset
     );
-    // 2nd attribute buffer : Board Normals
-    glEnableVertexAttribArray(2);
     glBindVertexArray(0);
     return true;
 }

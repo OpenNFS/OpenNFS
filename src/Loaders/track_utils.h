@@ -19,6 +19,8 @@ namespace TrackUtils {
 
     std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) ;
 
+    Light MakeLight(glm::vec3 light_position, uint32_t light_type);
+
     bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version);
 };
 

@@ -38,7 +38,7 @@ namespace NFS3_4_DATA {
     };
 
     struct INTPT {
-        uint32_t x, z, y;
+        int32_t x, z, y;
     };
 
     struct NEIGHBORDATA  // info on neighbouring block numbers

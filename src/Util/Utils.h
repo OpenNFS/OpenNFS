@@ -23,7 +23,6 @@
 #include <cstdio>
 #include <sstream>
 #include <iomanip>
-#include "../nfs_data.h"
 #include "../Scene/CarModel.h"
 extern "C" {
     #include "../../tools/fshtool.h"
@@ -72,6 +71,7 @@ typedef struct tagBITMAPINFO {
     RGBQUAD          bmiColors[1];
 } BITMAPINFO, *PBITMAPINFO;
 
+
 #define SAFE_READ(file, structure, size)  if((file).read((char *) (structure), (size)).gcount() != (size)) return false
 #define MAKEWORD(a,b)	((WORD)(((BYTE)(a))|(((WORD)((BYTE)(b)))<<8)))
 #define ASSERT(condition, message) \
@@ -111,7 +111,7 @@ namespace Utils {
 
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir);
 
-    bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
+    bool SaveImage(const char *szPathName, void *lpBits, uint16_t w, uint16_t h);
 
     bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
 

@@ -47,9 +47,9 @@ void TrackShader::bindTrackTextures(Track track_block, std::map<short, GLuint> g
     glUniform1iv(TrackTexturesID, 32, samplers);
 }
 
-void TrackShader::loadLight(Light light){
-    loadVec3(lightPositionLocation, light.position);
-    loadVec3(lightColourLocation, light.colour);
+void TrackShader::loadLights(std::vector<Light> lights) {
+    loadVec3(lightPositionLocation, lights[0].position);
+    loadVec3(lightColourLocation, lights[0].colour);
 }
 
 void TrackShader::loadSpecular(float damper, float reflectivity){

@@ -19,9 +19,10 @@ Renderer::Renderer(GLFWwindow *gl_window, shared_ptr<ONFSTrack> current_track, s
     physicsEngine.registerVehicle(car);
 
     std::vector<glm::vec3> cameraPoints;
-    for(auto &track_block : track->track_blocks){
+    for (auto &track_block : track->track_blocks) {
         glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-        glm::vec3 position = orientation * glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
+        glm::vec3 position = orientation *
+                             glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
         cameraPoints.emplace_back(position);
     }
     cameraSpline = HermiteCurve(cameraPoints, 0.5, 0.0f);
@@ -46,6 +47,8 @@ void Renderer::render() {
     bool window_active = true;
     bool physics_debug_view = false;
     float totalTime = 1;
+    glm::vec3 oldWorldPosition(0, 0, 0);
+
     while (!glfwWindowShouldClose(window)) {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         newFrame(window_active);
@@ -56,10 +59,9 @@ void Renderer::render() {
             //carCam.z -= 1;
             //mainCamera.position = carCam;
             // Camera position along the spline
-            float tmod = mainCamera.deltaTime > 0 ? ((int) mainCamera.deltaTime % loopTime ) / loopTime : 1;
-            totalTime+=mainCamera.deltaTime;
-            tmod = (totalTime) / (loopTime/200);
-            mainCamera.position = cameraSpline.getPointAt( tmod );
+            totalTime += mainCamera.deltaTime;
+            float tmod = (totalTime) / (loopTime / 200);
+            mainCamera.position = cameraSpline.getPointAt(tmod);
         }
         mainCamera.computeMatricesFromInputs(window_active, ImGui::GetIO());
 
@@ -79,28 +81,6 @@ void Renderer::render() {
             }
         }
 
-        // Basic Geometry Cull
-        if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
-            cameraLight.position = worldPosition;
-            float lowestDistanceSqr = FLT_MAX;
-            //Primitive Draw distance
-            for (auto &track_block :  track->track_blocks) {
-                glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-                glm::vec3 position = orientation * glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
-                float distanceSqr = glm::length2(glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
-                if (distanceSqr < lowestDistanceSqr) {
-                    closestBlockID = track_block.block_id;
-                    lowestDistanceSqr = distanceSqr;
-                }
-            }
-            int frontBlock = closestBlockID <  track->track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance :  track->track_blocks.size();
-            int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID - blockDrawDistance : 0;
-            std::vector<TrackBlock>::const_iterator first =  track->track_blocks.begin() + backBlock;
-            std::vector<TrackBlock>::const_iterator last =  track->track_blocks.begin() + frontBlock;
-            activeTrackBlocks = std::vector<TrackBlock>(first, last);
-            oldWorldPosition = worldPosition;
-        }
-
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
 
@@ -108,44 +88,45 @@ void Renderer::render() {
         for (auto &car_model : car->car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
-            carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1, 1));
+            carShader.loadCarColor(
+                    car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1,
+                                                                                                                   1));
             carShader.loadLight(cameraLight);
             carShader.loadCarTexture();
             car_model.render();
         }
         carShader.unbind();
 
-        for (auto &active_track_Block : activeTrackBlocks) {
+        for (auto &active_track_Block : CullTrackBlocks(oldWorldPosition, worldPosition, blockDrawDistance)) {
             trackShader.use();
             for (auto &track_block_model : active_track_Block.objects) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
                 trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
-                //if (active_track_Block.lights.size() > 0) {
-                //    trackShader.loadLight(active_track_Block.lights[0]);
-                //}
+                if (active_track_Block.lights.size() > 0) {
+                    trackShader.loadLights(active_track_Block.lights);
+                }
                 trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
                 track_block_model.render();
             }
             trackShader.unbind();
 
-            // billboardShader.use();
-            // for (auto &light : active_track_Block.lights) {
-            //     light.update();
-            //     billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
-            //     billboardShader.loadLight(light);
-            //     light.render();
-            // }
-            // billboardShader.unbind();
+            billboardShader.use();
+            // Render the lights far to near
+            for (auto &light : std::vector<Light>(active_track_Block.lights.rbegin(), active_track_Block.lights.rend())) {
+                light.update();
+                billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
+                billboardShader.loadLight(light);
+                light.render();
+            }
+            billboardShader.unbind();
         }
 
         if (physics_debug_view)
-            //physicsEngine.getDynamicsWorld()->debugDrawWorld();
+            physicsEngine.getDynamicsWorld()->debugDrawWorld();
 
-            // Draw UI (Tactically)
-            static float f = 0.0f;
-
-
+        // Draw UI (Tactically)
+        static float f = 0.0f;
         DrawMenuBar();
         ImGui::Text("OpenNFS Engine");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
@@ -180,6 +161,7 @@ void Renderer::render() {
             ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(),
                             &mesh.enabled);      // Edit bools storing model draw state
         }
+        // TODO: Use trackblock number and light number to make every single ID in this list unique
         if (ImGui::TreeNode("Track Blocks")) {
             for (auto &track_block :  track->track_blocks) {
                 if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
@@ -187,6 +169,14 @@ void Renderer::render() {
                         if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(),
                                             block_model.id)) {
                             ImGui::Checkbox("Enabled", &block_model.enabled);
+                            ImGui::TreePop();
+                        }
+                    }
+                    for (auto &block_light : track_block.lights) {
+                        if (ImGui::TreeNode((void *) block_light.type, "%s %d", block_light.m_name.c_str(),
+                                            block_light.type)) {
+                            ImGui::Checkbox("Enabled", &block_light.enabled);
+                            ImGui::Text("%f %f %f", block_light.position.x,  block_light.position.y,  block_light.position.z);
                             ImGui::TreePop();
                         }
                     }
@@ -206,58 +196,94 @@ void Renderer::render() {
     }
 }
 
-void Renderer::DrawMenuBar(){
-        if (ImGui::BeginMainMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("Open", "Ctrl+O")) {}
-                if (ImGui::BeginMenu("Open Recent"))
-                {
-                    ImGui::MenuItem("fish_hat.c");
-                    ImGui::MenuItem("fish_hat.inl");
-                    ImGui::MenuItem("fish_hat.h");
-                    if (ImGui::BeginMenu("More.."))
-                    {
-                        ImGui::MenuItem("Hello");
-                        ImGui::MenuItem("Sailor");
-                        ImGui::EndMenu();
-                    }
-                    ImGui::EndMenu();
-                }
-                ImGui::Separator();
-                if (ImGui::BeginMenu("Options"))
-                {
-                    static bool enabled = true;
-                    ImGui::MenuItem("Enabled", "", &enabled);
-                    ImGui::BeginChild("child", ImVec2(0, 60), true);
-                    for (int i = 0; i < 10; i++)
-                        ImGui::Text("Scrolling Text %d", i);
-                    ImGui::EndChild();
-                    static float f = 0.5f;
-                    static int n = 0;
-                    static bool b = true;
-                    ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
-                    ImGui::InputFloat("Input", &f, 0.1f);
-                    ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
-                    ImGui::Checkbox("Check", &b);
-                    ImGui::EndMenu();
-                }
-                if (ImGui::MenuItem("Quit", "Alt+F4")) {}
-                ImGui::EndMenu();
+void Renderer::DrawDebugCube(glm::vec3 position) {
+    float lightSize = 0.5;
+    glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0)));
+    glm::vec3 position_min = orientation*glm::vec3(position.x-lightSize,position.y-lightSize,position.z-lightSize);
+    glm::vec3 position_max = orientation*glm::vec3(position.x+lightSize,position.y+lightSize,position.z+lightSize);
+    btVector3 colour = btVector3(0, 0, 0);
+    physicsEngine.mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z), btVector3(position_max.x, position_max.y, position_max.z),colour);
+}
+
+std::vector<TrackBlock>
+Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance) {
+    std::vector<TrackBlock> activeTrackBlocks;
+
+    // Basic Geometry Cull
+    if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
+        cameraLight.position = worldPosition;
+        float lowestDistanceSqr = FLT_MAX;
+        //Primitive Draw distance
+        for (auto &track_block :  track->track_blocks) {
+            glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+            glm::vec3 position = orientation * glm::vec3(track_block.center.x / 10, track_block.center.y / 10,
+                                                         track_block.center.z / 10);
+            float distanceSqr = glm::length2(
+                    glm::distance(worldPosition, glm::vec3(position.x, position.y, position.z)));
+            if (distanceSqr < lowestDistanceSqr) {
+                closestBlockID = track_block.block_id;
+                lowestDistanceSqr = distanceSqr;
             }
-            if (ImGui::BeginMenu("Edit"))
-            {
-                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-                ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-                ImGui::EndMenu();
-            }
-            ImGui::EndMainMenuBar();
         }
+        int frontBlock =
+                closestBlockID < track->track_blocks.size() - blockDrawDistance ? closestBlockID + blockDrawDistance
+                                                                                : track->track_blocks.size();
+        int backBlock = closestBlockID - blockDrawDistance > 0 ? closestBlockID - blockDrawDistance : 0;
+        std::vector<TrackBlock>::const_iterator first = track->track_blocks.begin() + backBlock;
+        std::vector<TrackBlock>::const_iterator last = track->track_blocks.begin() + frontBlock;
+        activeTrackBlocks = std::vector<TrackBlock>(first, last);
+        oldWorldPosition = worldPosition;
+    }
+    // Render far to near
+    return std::vector<TrackBlock>(activeTrackBlocks.rbegin(), activeTrackBlocks.rend());
+}
+
+void Renderer::DrawMenuBar() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Open", "Ctrl+O")) {}
+            if (ImGui::BeginMenu("Open Recent")) {
+                ImGui::MenuItem("fish_hat.c");
+                ImGui::MenuItem("fish_hat.inl");
+                ImGui::MenuItem("fish_hat.h");
+                if (ImGui::BeginMenu("More..")) {
+                    ImGui::MenuItem("Hello");
+                    ImGui::MenuItem("Sailor");
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::Separator();
+            if (ImGui::BeginMenu("Options")) {
+                static bool enabled = true;
+                ImGui::MenuItem("Enabled", "", &enabled);
+                ImGui::BeginChild("child", ImVec2(0, 60), true);
+                for (int i = 0; i < 10; i++)
+                    ImGui::Text("Scrolling Text %d", i);
+                ImGui::EndChild();
+                static float f = 0.5f;
+                static int n = 0;
+                static bool b = true;
+                ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
+                ImGui::InputFloat("Input", &f, 0.1f);
+                ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
+                ImGui::Checkbox("Check", &b);
+                ImGui::EndMenu();
+            }
+            if (ImGui::MenuItem("Quit", "Alt+F4")) {}
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit")) {
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
 }
 
 Renderer::~Renderer() {
@@ -270,15 +296,15 @@ Renderer::~Renderer() {
 }
 
 void Renderer::newFrame(bool &window_active) {
-        glfwPollEvents();
-        // Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        window_active = window_active ? window_active : (
-                (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
-                (!ImGui::GetIO().WantCaptureMouse));
-        if (!window_active) {
-            ImGui::GetIO().MouseDrawCursor = false;
-        }
-        ImGui_ImplGlfwGL3_NewFrame();
+    glfwPollEvents();
+    // Clear the screen
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Detect a click on the 3D Window by detecting a click that isn't on ImGui
+    window_active = window_active ? window_active : (
+            (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
+            (!ImGui::GetIO().WantCaptureMouse));
+    if (!window_active) {
+        ImGui::GetIO().MouseDrawCursor = false;
+    }
+    ImGui_ImplGlfwGL3_NewFrame();
 }

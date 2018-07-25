@@ -90,10 +90,13 @@ void BaseShader::loadFloat(GLint location, float value){
     glUniform1f(location, value);
 }
 
+void BaseShader::loadVec4(GLint location, glm::vec4 value){
+    glUniform4f(location, value.x, value.y, value.z, value.w);
+}
+
 void BaseShader::loadVec3(GLint location, glm::vec3 value){
     glUniform3f(location, value.x, value.y, value.z);
 }
-
 
 void BaseShader::loadVec2(GLint location, glm::vec2 value){
     glUniform2f(location, value.x, value.y);

@@ -13,6 +13,7 @@
 #include "../Scene/Model.h"
 #include "../../include/TGALoader/TGALoader.h"
 #include "../Scene/Light.h"
+#include "../Physics/Car.h"
 
 
 class CarShader : public BaseShader {

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Track.h"
+#include "Light.h"
 
 class TrackBlock {
 public:
@@ -13,6 +14,7 @@ public:
     int block_id;
     std::vector<Track> track;
     std::vector<Track> objects;
+    std::vector<Light> lights;
 
     /* Iterators to allow for ranged for loops with class*/
     class iterator {

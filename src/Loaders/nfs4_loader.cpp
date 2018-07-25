@@ -801,9 +801,11 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(std::shared_ptr<TRACK> track) {
 
         // Light sources
         for (int j = 0; j < trk_block.nLightsrc; j++) {
-            // Light temp_light = Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type);
-            //temp_light.enable();
-            //current_track_block.lights.emplace_back(temp_light);
+            glm::vec3 light_center((trk_block.lightsrc[j].refpoint.x/ 65536.0)/10, (trk_block.lightsrc[j].refpoint.y/ 65536.0)/10, (trk_block.lightsrc[j].refpoint.z/ 65536.0)/10);
+            // TODO: Utilise the TR.ini 'GLOWS'
+            Light temp_light = TrackUtils::MakeLight(light_center, trk_block.lightsrc[j].type);
+            temp_light.enable();
+            current_track_block.lights.emplace_back(temp_light);
         }
 
         for (int s = 0; s < trk_block.nSoundsrc; s++) {

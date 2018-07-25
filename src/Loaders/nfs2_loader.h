@@ -19,12 +19,15 @@
 
 using namespace NFS2_DATA;
 
+void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons);
+
 template <typename Platform>  class NFS2 {
 public:
     static std::shared_ptr<typename Platform::TRACK> LoadTrack(const std::string &track_base_path);
     static std::shared_ptr<Car> LoadCar(const std::string &track_base_path);
 
     static void dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track);
+    static bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
 private:
     // Car
     static std::vector<CarModel> LoadGEO(const std::string &geo_path);

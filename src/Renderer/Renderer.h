@@ -10,13 +10,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
+
 #include "../Shaders/TrackShader.h"
 #include "../Shaders/CarShader.h"
 #include "../Shaders/BillboardShader.h"
 #include "../Scene/Camera.h"
-#include "HermiteCurve.h"
 #include "../Loaders/trk_loader.h"
 #include "../Physics/Physics.h"
+#include "HermiteCurve.h"
 
 class Renderer {
 public:
@@ -45,10 +46,11 @@ private:
     int loopTime;
     // Data used for culling
     int closestBlockID = 0;
-    std::vector<TrackBlock> activeTrackBlocks;
-    glm::vec3 oldWorldPosition;
+
 
     // ------- Helper Functions ------
+    void DrawDebugCube(glm::vec3 position);
     void DrawMenuBar();
     void newFrame(bool &window_active);
+    std::vector<TrackBlock> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance);
 };

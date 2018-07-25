@@ -33,7 +33,7 @@ class OpenNFS {
 public:
     void run() {
         std::cout << "----------- OpenNFS3 v0.1 -----------" << std::endl;
-        ASSERT(init_opengl(), "OpenGL init failed.");
+        ASSERT(initOpenGL(), "OpenGL init failed.");
         /*------ ASSET LOAD ------*/
         initDirectories();
         //Load Track Data`
@@ -48,15 +48,15 @@ public:
         Renderer renderer(window, track, car);
         renderer.render();
     }
+
 private:
     GLFWwindow *window;
 
-    static void glfwError(int id, const char* description)
-    {
+    static void glfwError(int id, const char *description) {
         std::cout << description << std::endl;
     }
 
-    bool init_opengl() {
+    bool initOpenGL() {
         // Initialise GLFW
         ASSERT(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&glfwError);
@@ -65,7 +65,7 @@ private:
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
         window = glfwCreateWindow(1024, 768, "OpenNFS3", nullptr, nullptr);
 
@@ -110,28 +110,27 @@ private:
         return true;
     }
 
-    void initDirectories(){
-        if(!(boost::filesystem::exists(CAR_PATH))){
+    void initDirectories() {
+        if (!(boost::filesystem::exists(CAR_PATH))) {
             boost::filesystem::create_directories(CAR_PATH);
         }
-        if(!(boost::filesystem::exists(TRACK_PATH))){
+        if (!(boost::filesystem::exists(TRACK_PATH))) {
             boost::filesystem::create_directories(TRACK_PATH);
         }
     }
 
-/*int launchVK(){
-    vkRenderer renderer;
+    int launchVK() {
+        /*vkRenderer renderer;
 
-    try {
-        renderer.run();
-    } catch (const std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
+        try {
+            renderer.run();
+        } catch (const std::runtime_error &e) {
+            std::cerr << e.what() << std::endl;
+            return EXIT_FAILURE;
+        }*/
+
+        return EXIT_SUCCESS;
     }
-
-    return EXIT_SUCCESS;
-}*/
-
 };
 
 int main(int argc, char **argv) {
@@ -139,7 +138,7 @@ int main(int argc, char **argv) {
 
     try {
         game.run();
-    } catch (const std::runtime_error& e) {
+    } catch (const std::runtime_error &e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }

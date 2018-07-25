@@ -35,8 +35,8 @@ void BillboardShader::loadBillboardTexture(){
 }
 
 void BillboardShader::loadLight(Light board_light) {
-    loadVec3(lightColourLocation, board_light.colour);
-    loadVec3(billboardPosLocation, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * board_light.position);
+    loadVec4(lightColourLocation, board_light.colour);
+    loadVec3(billboardPosLocation, board_light.position);
     loadBillboardTexture();
 }
 

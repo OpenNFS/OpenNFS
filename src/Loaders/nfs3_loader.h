@@ -13,6 +13,7 @@
 #include "../Config.h"
 #include "../Util/Utils.h"
 #include "../Scene/TrackBlock.h"
+#include "../Scene/Light.h"
 #include "../nfs_data.h"
 
 using namespace NFS3_4_DATA;

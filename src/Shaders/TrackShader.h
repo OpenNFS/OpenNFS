@@ -19,7 +19,7 @@ public:
     void bindTrackTextures(Track track_block, map<short, GLuint> gl_id_map);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
     void loadSpecular(float damper, float reflectivity);
-    void loadLight(Light light);
+    void loadLights(std::vector<Light> lights);
 
 protected:
     void bindAttributes() override;

@@ -401,22 +401,23 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = track->trk[i];
         POLYGONBLOCK polygon_block = track->poly[i];
-        TrackBlock current_track_block(i,
-                                       glm::vec3(trk_block.ptCentre.x, trk_block.ptCentre.y, trk_block.ptCentre.z));
+        TrackBlock current_track_block(i, glm::vec3(trk_block.ptCentre.x, trk_block.ptCentre.y, trk_block.ptCentre.z));
         glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         glm::vec3 trk_block_center = orientation * glm::vec3(0, 0, 0);
 
         // Light sources
         for (int j = 0; j < trk_block.nLightsrc; j++) {
-            // Light temp_light = Light(trk_block.lightsrc[j].refpoint, trk_block.lightsrc[j].type);
-            //temp_light.enable();
-            //current_track_block.lights.emplace_back(temp_light);
+            glm::vec3 light_center((trk_block.lightsrc[j].refpoint.x/ 65536.0)/10, (trk_block.lightsrc[j].refpoint.y/ 65536.0)/10, (trk_block.lightsrc[j].refpoint.z/ 65536.0)/10);
+            Light temp_light = TrackUtils::MakeLight(light_center, trk_block.lightsrc[j].type);
+            temp_light.enable();
+            current_track_block.lights.emplace_back(temp_light);
         }
 
         for (int s = 0; s < trk_block.nSoundsrc; s++) {
-            //Light temp_light = Light(trk_block.soundsrc[s].refpoint, trk_block.soundsrc[s].type);
-            //temp_light.enable();
-            //current_track_block.lights.emplace_back(temp_light);
+            glm::vec3 light_center((trk_block.soundsrc[s].refpoint.x/ 65536.0)/10, (trk_block.soundsrc[s].refpoint.y/ 65536.0)/10, (trk_block.soundsrc[s].refpoint.z/ 65536.0)/10);
+            Light temp_light = TrackUtils::MakeLight(light_center, trk_block.soundsrc[s].type);
+            temp_light.enable();
+            current_track_block.lights.emplace_back(temp_light);
         }
 
         // Get Object vertices
