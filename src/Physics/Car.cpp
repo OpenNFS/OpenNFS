@@ -62,6 +62,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     ));
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass,vehicleMotionState,compound,localInertia);
     m_carChassis = new btRigidBody(cInfo);
+    m_carChassis->setUserPointer(this);
     //m_carChassis->setDamping(0.2,0.2);
 
     m_carChassis -> setLinearVelocity(btVector3(0,0,0));

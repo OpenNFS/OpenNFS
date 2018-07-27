@@ -6,12 +6,14 @@
 #include "Renderer.h"
 
 
-Renderer::Renderer(GLFWwindow *gl_window, shared_ptr<ONFSTrack> current_track, shared_ptr<Car> current_car) : carShader(current_car) {
+Renderer::Renderer(GLFWwindow *gl_window, shared_ptr<ONFSTrack> current_track, shared_ptr<Car> current_car) : carShader(
+        current_car) {
     window = gl_window;
     track = current_track;
     car = current_car;
 
-    mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
+    mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10,
+                                  track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
 
     cameraLight = Light(mainCamera.position, glm::vec3(1, 1, 1));
@@ -55,7 +57,7 @@ void Renderer::render() {
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         newFrame(window_active);
 
-        if(attach_cam_to_hermite){
+        if (attach_cam_to_hermite) {
             mainCamera.useSpline();
         }
 
@@ -88,10 +90,11 @@ void Renderer::render() {
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
 
-        std::vector<int> activeTrackBlockIDs =  CullTrackBlocks(oldWorldPosition, worldPosition, blockDrawDistance, use_nb_data);
+        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, worldPosition, blockDrawDistance,
+                                                               use_nb_data);
 
-        //SetCulling(true);
-        for(int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx){
+        // Render the per-trackblock data
+        for (int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx) {
             TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
             std::vector<Light> contributingLights = active_track_Block.lights;
             // TODO: Merge lighting contributions across track block, must use a smarter Track structure
@@ -112,13 +115,28 @@ void Renderer::render() {
             }
             trackShader.unbind();
         }
-        //SetCulling(false);
 
+        // Render the global data, animations go here.
+        trackShader.use();
+        for (auto &global_object : track->global_objects) {
+            global_object.update();
+            trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, global_object.ModelMatrix);
+            trackShader.loadSpecular(trackSpecDamper, trackSpecReflectivity);
+            trackShader.loadLights(camlights);
+            trackShader.bindTrackTextures(global_object, track->texture_gl_mappings);
+            trackShader.setClassic(use_classic_graphics);
+            global_object.render();
+        }
+        trackShader.unbind();
+
+        // Render the Car
         carShader.use();
         for (auto &car_model : car->car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
-            carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1, 1));
+            carShader.loadCarColor(
+                    car_model.envReflectivity > 0.4 ? glm::vec3(car_color.x, car_color.y, car_color.z) : glm::vec3(1, 1,
+                                                                                                                   1));
             carShader.loadLight(cameraLight);
             carShader.loadCarTexture();
             car_model.render();
@@ -126,16 +144,46 @@ void Renderer::render() {
         carShader.unbind();
 
 
-        for(auto &track_block_id : activeTrackBlockIDs){
+        for (auto &track_block_id : activeTrackBlockIDs) {
             billboardShader.use();
             // Render the lights far to near
-            for (auto &light : std::vector<Light>( track->track_blocks[track_block_id].lights.rbegin(),  track->track_blocks[track_block_id].lights.rend())) {
+            for (auto &light : std::vector<Light>(track->track_blocks[track_block_id].lights.rbegin(),
+                                                  track->track_blocks[track_block_id].lights.rend())) {
                 light.update();
                 billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, light.ModelMatrix);
                 billboardShader.loadLight(light);
                 light.render();
             }
             billboardShader.unbind();
+        }
+
+        // PICKING IS DONE HERE
+        // (Instead of picking each frame if the mouse button is down,
+        // you should probably only check if the mouse button was just released)
+        if (ImGui::GetIO().MouseReleased[0]) {
+            glm::vec3 out_origin;
+            glm::vec3 out_direction;
+            ScreenPosToWorldRay(
+                    1024 / 2, 768 / 2,
+                    1024, 768,
+                    ViewMatrix,
+                    ProjectionMatrix,
+                    out_origin,
+                    out_direction
+            );
+            glm::vec3 out_end = out_origin + out_direction * 1000.0f;
+            btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
+                                                                   btVector3(out_end.x, out_end.y, out_end.z));
+            physicsEngine.getDynamicsWorld()->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z),
+                                                      btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
+            if (RayCallback.hasHit()) {
+                std::ostringstream oss;
+                // This callback is only going to work on the Car, which sucks ass
+                //oss << "mesh " << static_cast<Car*>(RayCallback.m_collisionObject->getUserPointer())->name;
+                std::cout << oss.str() << std::endl;
+            } else {
+
+            }
         }
 
         if (physics_debug_view)
@@ -145,7 +193,8 @@ void Renderer::render() {
         static float f = 0.0f;
         DrawMenuBar();
         ImGui::Text("OpenNFS Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
         ImGui::Checkbox("Bullet Debug View", &physics_debug_view);
         ImGui::Checkbox("Classic Graphics", &use_classic_graphics);
         ImGui::Checkbox("Hermite Curve Cam", &attach_cam_to_hermite);
@@ -177,31 +226,53 @@ void Renderer::render() {
         ImGui::SliderFloat("Track Specular Damper", &trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &trackSpecReflectivity, 0, 10);
 
-        for (auto &mesh : car->car_models) {
-            ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);
-        }
-        // TODO: Use trackblock number and light number to make every single ID in this list unique
-        if (ImGui::TreeNode("Track Blocks")) {
-            for (auto &track_block :  track->track_blocks) {
-                if (ImGui::TreeNode((void *) track_block.block_id, "Track Block %d", track_block.block_id)) {
-                    for (auto &block_model : track_block.objects) {
-                        if (ImGui::TreeNode((void *) block_model.id, "%s %d", block_model.m_name.c_str(), block_model.id)) {
-                            ImGui::Checkbox("Enabled", &block_model.enabled);
-                            ImGui::TreePop();
-                        }
-                    }
-                    for (auto &block_light : track_block.lights) {
-                        if (ImGui::TreeNode((void *) block_light.type, "%s %d", block_light.m_name.c_str(), block_light.type)) {
-                            ImGui::Checkbox("Enabled", &block_light.enabled);
-                            ImGui::Text("%f %f %f", block_light.position.x,  block_light.position.y,  block_light.position.z);
-                            ImGui::TreePop();
-                        }
-                    }
-                    ImGui::TreePop();
-                }
+        if (ImGui::TreeNode("Car Models")) {
+            for (auto &mesh : car->car_models) {
+                ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);
             }
             ImGui::TreePop();
         }
+
+        if (ImGui::TreeNode("Track Blocks")) {
+            for (auto &track_block :  track->track_blocks) {
+                char label[32];
+                sprintf(label, "Track Block %d", track_block.block_id);
+
+                ImGui::PushID(label);
+                if (ImGui::TreeNode(label)) {
+                    if (ImGui::TreeNode("Objects")) {
+                        for (auto &block_model : track_block.objects) {
+                            ImGui::PushID(block_model.id);
+                            if (ImGui::TreeNode(block_model.m_name.c_str())) {
+                                ImGui::Checkbox("Enabled", &block_model.enabled);
+                                ImGui::TreePop();
+                            }
+                            ImGui::PopID();
+
+                        }
+                        ImGui::TreePop();
+                    }
+
+                    if (ImGui::TreeNode("Lights")) {
+                        for (auto &block_light : track_block.lights) {
+                            char label[32];
+                            sprintf(label, "Light %s %d", block_light.m_name.c_str(), block_light.type);
+                            if (ImGui::TreeNode(label)) {
+                                ImGui::Checkbox("Enabled", &block_light.enabled);
+                                ImGui::Text("%f %f %f", block_light.position.x, block_light.position.y,
+                                            block_light.position.z);
+                                ImGui::TreePop();
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+                    ImGui::TreePop();
+                }
+                ImGui::PopID();
+            }
+            ImGui::TreePop();
+        }
+
 
         // Rendering
         int display_w, display_h;
@@ -223,14 +294,18 @@ void Renderer::SetCulling(bool toCull) {
 
 void Renderer::DrawDebugCube(glm::vec3 position) {
     float lightSize = 0.5;
-    glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0)));
-    glm::vec3 position_min = orientation*glm::vec3(position.x-lightSize,position.y-lightSize,position.z-lightSize);
-    glm::vec3 position_max = orientation*glm::vec3(position.x+lightSize,position.y+lightSize,position.z+lightSize);
+    glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+    glm::vec3 position_min =
+            orientation * glm::vec3(position.x - lightSize, position.y - lightSize, position.z - lightSize);
+    glm::vec3 position_max =
+            orientation * glm::vec3(position.x + lightSize, position.y + lightSize, position.z + lightSize);
     btVector3 colour = btVector3(0, 0, 0);
-    physicsEngine.mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z), btVector3(position_max.x, position_max.y, position_max.z),colour);
+    physicsEngine.mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z),
+                                        btVector3(position_max.x, position_max.y, position_max.z), colour);
 }
 
-std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData) {
+std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance,
+                                           bool useNeighbourData) {
     std::vector<int> activeTrackBlockIds;
 
     // Basic Geometry Cull
@@ -239,7 +314,8 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         float lowestDistanceSqr = FLT_MAX;
         //Primitive Draw distance
         for (auto &track_block :  track->track_blocks) {
-            glm::vec3 position = glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
+            glm::vec3 position = glm::vec3(track_block.center.x / 10, track_block.center.y / 10,
+                                           track_block.center.z / 10);
             float distanceSqr = glm::length2(glm::distance(worldPosition, position));
             if (distanceSqr < lowestDistanceSqr) {
                 closestBlockID = track_block.block_id;
@@ -248,20 +324,24 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         }
 
         // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
-        if(track->tag == NFS_3 && useNeighbourData){
-            for(int i = 0; i < 300; ++i){
-                if(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk == -1){
+        if (track->tag == NFS_3 && useNeighbourData) {
+            for (int i = 0; i < 300; ++i) {
+                if (boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk ==
+                    -1) {
                     break;
                 } else {
-                    activeTrackBlockIds.emplace_back(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk);
+                    activeTrackBlockIds.emplace_back(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(
+                            track->trackData)->trk[closestBlockID].nbdData[i].blk);
                 }
             }
         } else {
             // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
             int wrapBlocks = 0;
-            for(int block_Idx = closestBlockID - blockDrawDistance; block_Idx < closestBlockID + blockDrawDistance; ++block_Idx){
-                if (block_Idx < 0){
-                    int activeBlock = ((int) track->track_blocks.size() + (closestBlockID - blockDrawDistance))+ wrapBlocks++;
+            for (int block_Idx = closestBlockID - blockDrawDistance;
+                 block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
+                if (block_Idx < 0) {
+                    int activeBlock =
+                            ((int) track->track_blocks.size() + (closestBlockID - blockDrawDistance)) + wrapBlocks++;
                     activeTrackBlockIds.emplace_back(activeBlock);
                 } else {
                     activeTrackBlockIds.emplace_back(block_Idx % track->track_blocks.size());

@@ -28,7 +28,7 @@ uniform float shineDamper;
 uniform float reflectivity;
 
 void main(){
-    vec4 tempColor;
+    vec4 tempColor = vec4(0.0);
     // Hack: Texture atlas implementation ASAP
     switch(int(texIndex)){
               case 0: tempColor = texture(texture_array[0], UV).rgba; break;

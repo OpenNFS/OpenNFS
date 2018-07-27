@@ -38,6 +38,7 @@ ONFSTrack::ONFSTrack(const std::string &track_path) {
             nBlocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
+            global_objects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
             break;
         case NFS_3_PS1:
             trackData = NFS2<PS1>::LoadTrack(track_path);

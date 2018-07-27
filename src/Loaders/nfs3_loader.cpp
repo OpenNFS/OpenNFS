@@ -125,9 +125,22 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
 
     track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
     track->track_blocks = ParseTRKModels(track);
-    std::vector<Track> col_models = ParseCOLModels(track);
-    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(),
-                                          col_models.end()); // Insert the COL models into track block 0 for now
+    track->global_objects = ParseCOLModels(track);
+
+    // Insert each Col Model into it's nearest trackblock
+    /*for(auto &col_model : ParseCOLModels(track)){
+        float lowestDistanceSqr = FLT_MAX;
+        int closestTrackBlockID;
+        for (auto &track_block :  track->track_blocks) {
+            glm::vec3 position = glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
+            float distanceSqr = glm::length2(glm::distance(col_model.position, position));
+            if (distanceSqr < lowestDistanceSqr) {
+                closestTrackBlockID = track_block.block_id;
+                lowestDistanceSqr = distanceSqr;
+            }
+        }
+        track->track_blocks[closestTrackBlockID].objects.emplace_back(col_model);
+    }*/
 
     std::cout << "Successful track load!" << std::endl;
     return track;

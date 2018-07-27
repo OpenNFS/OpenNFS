@@ -44,6 +44,7 @@ public:
     track trackData;
 
     std::vector<TrackBlock> track_blocks;
+    std::vector<Track> global_objects;
     uint32_t nBlocks;
     map<short, GLuint> texture_gl_mappings;
 };
