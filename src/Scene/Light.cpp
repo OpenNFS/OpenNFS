@@ -74,7 +74,7 @@ Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, i
 
 
 void Light::update() {
-    orientation_vec = glm::vec3(-SIMD_PI/2,0,0);
+    orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
     RotationMatrix = glm::toMat4(orientation);
     //Rotate around center

@@ -18,6 +18,7 @@
 
 using namespace NFS3_4_DATA;
 
+
 class NFS3 {
 public:
     static std::shared_ptr<Car> LoadCar(const string &car_base_path);

@@ -14,7 +14,7 @@ out vec4 color;
 // Values that stay constant for the whole mesh.
 uniform sampler2D envMapTextureSampler;
 uniform sampler2D carTextureSampler;
-uniform vec3 lightColour;
+uniform vec4 lightColour;
 uniform float shineDamper;
 uniform float reflectivity;
 uniform float envReflectivity;
@@ -29,7 +29,7 @@ void main(){
     // Diffuse
     float nDot1 = dot(unitNormal, unitLightVector);
     float brightness = max(nDot1, 0.2);
-    vec3 diffuse = brightness * lightColour;
+    vec3 diffuse = brightness * lightColour.xyz;
 
     vec3 unitVectorToCamera = normalize(toCameraVector);
     vec3 lightDirection = -unitLightVector;
@@ -39,7 +39,7 @@ void main(){
     float specularFactor = dot(reflectedLightDirection, unitVectorToCamera);
     specularFactor = max(specularFactor, 0.0);
     float dampedFactor = pow(specularFactor, shineDamper);
-    vec3 finalSpecular = dampedFactor * reflectivity * lightColour;
+    vec3 finalSpecular = dampedFactor * reflectivity * lightColour.xyz;
 
 	// Output color = color of the texture at the specified UV
 	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0) ;

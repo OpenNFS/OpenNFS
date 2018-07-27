@@ -1,5 +1,7 @@
 #version 330 core
 
+#define MAX_LIGHTS 20
+
 // Input vertex data, different for all executions of this shader.
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec2 vertexUV;
@@ -13,7 +15,7 @@ flat out uint texIndex;
 out vec4 nfsDataOut;
 
 // Diffuse and Specular
-out vec3 toLightVector[8];
+out vec3 toLightVector[MAX_LIGHTS];
 out vec3 toCameraVector;
 out vec3 surfaceNormal;
 // Fog
@@ -22,7 +24,7 @@ out vec4 viewSpace;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix ,transformationMatrix;
-uniform vec3 lightPosition[8];
+uniform vec3 lightPosition[MAX_LIGHTS];
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
@@ -36,7 +38,7 @@ void main(){
     surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
 
     // Diffuse and Specular passout
-    for(int i = 0; i < 8; ++i){
+    for(int i = 0; i < MAX_LIGHTS; ++i){
         toLightVector[i] = lightPosition[i] - worldPosition.xyz;
     }
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;

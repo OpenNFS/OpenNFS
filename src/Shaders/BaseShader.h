@@ -33,6 +33,7 @@ public:
     GLuint ProgramID;
 protected:
     void loadMat4(GLint location, const GLfloat *value);
+    void loadBool(GLint location, bool value);
     void loadVec4(GLint location, glm::vec4 value);
     void loadVec2(GLint location, glm::vec2 value);
     void loadVec3(GLint location, glm::vec3 value);

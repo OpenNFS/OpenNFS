@@ -11,7 +11,7 @@
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
 
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 20
 
 class TrackShader : public BaseShader {
 public:
@@ -20,6 +20,7 @@ public:
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
     void loadSpecular(float damper, float reflectivity);
     void loadLights(std::vector<Light> lights);
+    void setClassic(bool useClassic);
 
 protected:
     void bindAttributes() override;
@@ -33,6 +34,7 @@ protected:
     GLint attenuationLocation[MAX_LIGHTS];
     GLint shineDamperLocation;
     GLint reflectivityLocation;
+    GLint useClassicLocation;
     GLint TrackTexturesID;
 
     typedef BaseShader super;

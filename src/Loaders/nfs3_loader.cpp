@@ -134,8 +134,8 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
 }
 
 void NFS3::FreeTrack(std::shared_ptr<TRACK> track) {
-  FreeFRD(track);
-  FreeCOL(track);
+    FreeFRD(track);
+    FreeCOL(track);
 }
 
 bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, std::shared_ptr<TRACK> track) {
@@ -397,37 +397,41 @@ bool NFS3::LoadCOL(std::string col_path, std::shared_ptr<TRACK> track) {
 
 std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (int i = 0; i < track->nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = track->trk[i];
         POLYGONBLOCK polygon_block = track->poly[i];
-        TrackBlock current_track_block(i, glm::vec3(trk_block.ptCentre.x, trk_block.ptCentre.y, trk_block.ptCentre.z));
-        glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-        glm::vec3 trk_block_center = orientation * glm::vec3(0, 0, 0);
+        TrackBlock current_track_block(i,  rotationMatrix * glm::vec3(trk_block.ptCentre.x, trk_block.ptCentre.y, trk_block.ptCentre.z));
+        glm::vec3 trk_block_center = rotationMatrix * glm::vec3(0, 0, 0);
 
         // Light sources
         for (int j = 0; j < trk_block.nLightsrc; j++) {
-            glm::vec3 light_center((trk_block.lightsrc[j].refpoint.x/ 65536.0)/10, (trk_block.lightsrc[j].refpoint.y/ 65536.0)/10, (trk_block.lightsrc[j].refpoint.z/ 65536.0)/10);
+            glm::vec3 light_center = rotationMatrix * glm::vec3((trk_block.lightsrc[j].refpoint.x / 65536.0) / 10,
+                                                                (trk_block.lightsrc[j].refpoint.y / 65536.0) / 10,
+                                                                (trk_block.lightsrc[j].refpoint.z / 65536.0) / 10);
             Light temp_light = TrackUtils::MakeLight(light_center, trk_block.lightsrc[j].type);
             temp_light.enable();
             current_track_block.lights.emplace_back(temp_light);
         }
 
         for (int s = 0; s < trk_block.nSoundsrc; s++) {
-            glm::vec3 light_center((trk_block.soundsrc[s].refpoint.x/ 65536.0)/10, (trk_block.soundsrc[s].refpoint.y/ 65536.0)/10, (trk_block.soundsrc[s].refpoint.z/ 65536.0)/10);
-            Light temp_light = TrackUtils::MakeLight(light_center, trk_block.soundsrc[s].type);
+            glm::vec3 sound_center = rotationMatrix * glm::vec3((trk_block.soundsrc[s].refpoint.x / 65536.0) / 10,
+                                                                (trk_block.soundsrc[s].refpoint.y / 65536.0) / 10,
+                                                                (trk_block.soundsrc[s].refpoint.z / 65536.0) / 10);
+            Light temp_light = TrackUtils::MakeLight(sound_center, trk_block.soundsrc[s].type);
             temp_light.enable();
-            current_track_block.lights.emplace_back(temp_light);
+            current_track_block.lights.emplace_back(temp_light); // Move this to a Sounds array TODO: TODAY
         }
 
         // Get Object vertices
         std::vector<glm::vec3> obj_verts;
         std::vector<glm::vec4> obj_shading_verts;
         for (int v = 0; v < trk_block.nObjectVert; v++) {
-            obj_verts.emplace_back(glm::vec3(trk_block.vert[v].x / 10,
-                                             trk_block.vert[v].y / 10,
-                                             trk_block.vert[v].z / 10));
+            obj_verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[v].x / 10, trk_block.vert[v].y / 10,
+                                                              trk_block.vert[v].z / 10));
             uint32_t shading_data = trk_block.unknVertices[v];
             obj_shading_verts.emplace_back(
                     glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f,
@@ -467,12 +471,12 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                         norm_floatpt = VertexNormal(i, object_polys[p].vertex[3], track->trk, track->poly);
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));*/
-                        norms.emplace_back(glm::vec3(1,1,1));
-                        norms.emplace_back(glm::vec3(1,1,1));
-                        norms.emplace_back(glm::vec3(1,1,1));
-                        norms.emplace_back(glm::vec3(1,1,1));
-                        norms.emplace_back(glm::vec3(1,1,1));
-                        norms.emplace_back(glm::vec3(1,1,1));
+                        norms.emplace_back(glm::vec3(1, 1, 1));
+                        norms.emplace_back(glm::vec3(1, 1, 1));
+                        norms.emplace_back(glm::vec3(1, 1, 1));
+                        norms.emplace_back(glm::vec3(1, 1, 1));
+                        norms.emplace_back(glm::vec3(1, 1, 1));
+                        norms.emplace_back(glm::vec3(1, 1, 1));
                         vertex_indices.emplace_back(object_polys[p].vertex[0]);
                         vertex_indices.emplace_back(object_polys[p].vertex[1]);
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
@@ -516,9 +520,9 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
                 std::vector<glm::vec3> verts;
                 std::vector<glm::vec4> xobj_shading_verts;
                 for (int k = 0; k < x->nVertices; k++, x->vert++) {
-                    verts.emplace_back(glm::vec3(x->ptRef.x / 10 + x->vert->x / 10,
-                                                 x->ptRef.y / 10 + x->vert->y / 10,
-                                                 x->ptRef.z / 10 + x->vert->z / 10));
+                    verts.emplace_back(rotationMatrix * glm::vec3(x->ptRef.x / 10 + x->vert->x / 10,
+                                                                  x->ptRef.y / 10 + x->vert->y / 10,
+                                                                  x->ptRef.z / 10 + x->vert->z / 10));
                     uint32_t shading_data = x->unknVertices[k];
                     //RGBA
                     xobj_shading_verts.emplace_back(
@@ -567,7 +571,8 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
                 }
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids, xobj_shading_verts, trk_block_center);
+                Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids,
+                                         xobj_shading_verts, trk_block_center);
                 xobj_model.enable();
                 current_track_block.objects.emplace_back(xobj_model);
             }
@@ -585,6 +590,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
         std::vector<glm::vec3> norms;
         for (int j = 0; j < trk_block.nVertices; j++) {
             verts.emplace_back(
+                    rotationMatrix *
                     glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
             // Break uint32_t of RGB into 4 normalised floats and store into vec4
             uint32_t shading_data = trk_block.unknVertices[j];
@@ -650,6 +656,8 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(std::shared_ptr<TRACK> track) {
 
 std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
     std::vector<Track> col_models;
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+
     COLOBJECT *o = track->col.object;
     /* COL DATA - TODO: Come back for VROAD AI/Collision data */
     for (int i = 0; i < track->col.objectHead.nrec; i++, o++) {
@@ -663,9 +671,9 @@ std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
         std::vector<glm::vec4> shading_data;
         std::vector<glm::vec3> norms;
         for (int j = 0; j < s.nVert; j++, s.vertex++) {
-            verts.emplace_back(glm::vec3(s.vertex->pt.x / 10,
-                                         s.vertex->pt.y / 10,
-                                         s.vertex->pt.z / 10));
+            verts.emplace_back(rotationMatrix * glm::vec3(s.vertex->pt.x / 10,
+                                                          s.vertex->pt.y / 10,
+                                                          s.vertex->pt.z / 10));
             shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
         }
         for (int k = 0; k < s.nPoly; k++, s.polygon++) {
@@ -685,12 +693,12 @@ std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
             indices.emplace_back(s.polygon->v[0]);
             indices.emplace_back(s.polygon->v[2]);
             indices.emplace_back(s.polygon->v[3]);
-            norms.emplace_back(glm::vec3(1,1,1));
-            norms.emplace_back(glm::vec3(1,1,1));
-            norms.emplace_back(glm::vec3(1,1,1));
-            norms.emplace_back(glm::vec3(1,1,1));
-            norms.emplace_back(glm::vec3(1,1,1));
-            norms.emplace_back(glm::vec3(1,1,1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
             uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
             uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
             uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
@@ -706,11 +714,10 @@ std::vector<Track> NFS3::ParseCOLModels(std::shared_ptr<TRACK> track) {
         }
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-        glm::vec3 position = glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10,
+        glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10,
                                        static_cast<float>(o->ptRef.y / 65536.0) / 10,
                                        static_cast<float>(o->ptRef.z / 65536.0) / 10);
-        Track col_model = Track("ColBlock", i, verts, norms, uvs, texture_indices, indices, texture_ids, shading_data,
-                                glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
+        Track col_model = Track("ColBlock", i, verts, norms, uvs, texture_indices, indices, texture_ids, shading_data, position);
         col_model.enable();
         col_models.emplace_back(col_model);
     }
@@ -812,32 +819,32 @@ void NFS3::FreeFRD(std::shared_ptr<TRACK> track) {
     }
 
     // TEXTUREBLOCKs
-    delete []track->texture;
-    delete []track->trk;
-    delete []track->poly;
-    delete []track->xobj;
+    delete[]track->texture;
+    delete[]track->trk;
+    delete[]track->poly;
+    delete[]track->xobj;
 }
 
 void NFS3::FreeCOL(std::shared_ptr<TRACK> track) {
     // Free COL Data
-    delete []track->col.texture;
+    delete[]track->col.texture;
     // struct3D XB
     if (track->col.nBlocks >= 4) {
         COLSTRUCT3D *s = track->col.struct3D;
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.struct3DHead.nrec; colRec_Idx++, s++) {
-            delete []s->vertex;
-            delete []s->polygon;
+            delete[]s->vertex;
+            delete[]s->polygon;
         }
-        delete [] track->col.struct3D;
+        delete[] track->col.struct3D;
 
         // Object XB
         COLOBJECT *o = track->col.object;
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.objectHead.nrec; colRec_Idx++, o++) {
             if (o->type == 3) {
-                delete []o->animData;
+                delete[]o->animData;
             }
         }
-        delete []track->col.object;
+        delete[]track->col.object;
     }
 
     // object2 XB
@@ -845,10 +852,10 @@ void NFS3::FreeCOL(std::shared_ptr<TRACK> track) {
         COLOBJECT *o = track->col.object2;
         for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.object2Head.nrec; colRec_Idx++, o++) {
             if (o->type == 3) {
-                delete []o->animData;
+                delete[]o->animData;
             }
         }
-        delete []track->col.object2;
+        delete[]track->col.object2;
     }
     delete track->col.vroad;
 }

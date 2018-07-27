@@ -27,6 +27,7 @@ void TrackShader::getAllUniformLocations() {
     TrackTexturesID = getUniformLocation("texture_array");
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
+    useClassicLocation = getUniformLocation("useClassic");
 
     for(int i = 0; i < MAX_LIGHTS; ++i){
         lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
@@ -63,6 +64,10 @@ void TrackShader::loadLights(std::vector<Light> lights) {
             loadVec3(attenuationLocation[i], glm::vec3(1,0,0));
         }
     }
+}
+
+void TrackShader::setClassic(bool useClassic){
+    loadBool(useClassicLocation, useClassic);
 }
 
 void TrackShader::loadSpecular(float damper, float reflectivity){

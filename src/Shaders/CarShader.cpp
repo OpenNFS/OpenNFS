@@ -125,15 +125,12 @@ void CarShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view,
 
 void CarShader::loadLight(Light light){
     loadVec3(lightPositionLocation, light.position);
-    loadVec3(lightColourLocation, light.colour);
+    loadVec4(lightColourLocation, light.colour);
 }
 
 void CarShader::loadCarColor(glm::vec3 color){
     loadVec3(colourLocation, color);
 }
 
-CarShader::CarShader() : super(vertexSrc, fragSrc) {
-
-}
 
 

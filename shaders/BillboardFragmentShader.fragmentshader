@@ -13,8 +13,8 @@ uniform vec4 lightColour;
 void main(){
     vec4 lightTexColour = texture( boardTextureSampler, UV ).rgba;
 
-    //if (lightTexColour.a == 0.0)
-    //    discard;
+    if (lightTexColour.a == 0.0)
+        discard;
 
 	// Output color = color of the texture at the specified UV
 	color = lightTexColour * lightColour;

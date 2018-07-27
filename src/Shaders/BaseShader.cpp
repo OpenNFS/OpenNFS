@@ -86,6 +86,10 @@ void BaseShader::loadSampler2D(GLint location, GLint textureUnit){
     glUniform1i(location, textureUnit);
 }
 
+void BaseShader::loadBool(GLint location, bool value){
+    glUniform1i(location, value);
+}
+
 void BaseShader::loadFloat(GLint location, float value){
     glUniform1f(location, value);
 }

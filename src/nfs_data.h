@@ -43,7 +43,7 @@ namespace NFS3_4_DATA {
 
     struct NEIGHBORDATA  // info on neighbouring block numbers
     {
-        uint16_t blk, unknown;
+        int16_t blk, unknown;
     };
 
     struct POSITIONDATA  // enumerate polygons which lie at center

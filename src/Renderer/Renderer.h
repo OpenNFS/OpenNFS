@@ -41,16 +41,14 @@ private:
     Light cameraLight;
 
     // ------ Renderer State ------
-    // Cam Spline
-    HermiteCurve cameraSpline;
-    int loopTime;
     // Data used for culling
     int closestBlockID = 0;
 
 
     // ------- Helper Functions ------
+    void SetCulling(bool toCull);
     void DrawDebugCube(glm::vec3 position);
     void DrawMenuBar();
     void newFrame(bool &window_active);
-    std::vector<TrackBlock> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance);
+    std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
 };

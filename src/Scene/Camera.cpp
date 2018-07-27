@@ -1,11 +1,10 @@
 #include "Camera.h"
 
-using namespace glm;
-
 Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window){
     window = gl_window;
     // Initial position : on +Z
     position = initial_position;
+    initialPosition = initial_position;
     // Initial Field of View
     initialFoV = FoV;
     horizontalAngle = horizontal_angle;
@@ -13,7 +12,7 @@ Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, fl
 }
 
 void Camera::resetView(){
-    position = glm::vec3(0, 0, 5);
+    position = initialPosition;
     horizontalAngle = 3.14f;
     verticalAngle = 0.0f;
     glm::vec3 direction(
@@ -32,6 +31,23 @@ void Camera::resetView(){
             position + direction,
             glm::cross(right, direction)
     );
+}
+
+void Camera::generateSpline(std::vector<TrackBlock> trackBlock){
+    std::vector<glm::vec3> cameraPoints;
+    for (auto &track_block : trackBlock) {
+        cameraPoints.emplace_back( glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10));
+    }
+    cameraSpline = HermiteCurve(cameraPoints, 0.5, 0.0f);
+    loopTime = cameraSpline.points.size() * 100;
+    hasSpline = true;
+}
+
+void Camera::useSpline(){
+    ASSERT(hasSpline, "Attempted to use Camera spline without generating one first with \'generateSpline\'");
+    totalTime += deltaTime;
+    float tmod = (totalTime) / (loopTime / 200);
+    position = cameraSpline.getPointAt(tmod);
 }
 
 void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {

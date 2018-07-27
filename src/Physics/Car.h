@@ -20,6 +20,7 @@ class Car {
 public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
     ~Car();
+    void setPosition(glm::vec3 position);
     void update();
     void resetCar();
     void writeObj(const std::string &path);

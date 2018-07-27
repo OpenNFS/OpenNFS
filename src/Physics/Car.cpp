@@ -68,6 +68,12 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     m_carChassis -> setAngularVelocity(btVector3(0,0,0));
 }
 
+void Car::setPosition(glm::vec3 position){
+    btTransform initialTransform;
+    initialTransform.setOrigin(Utils::glmToBullet(position));
+    vehicleMotionState->setWorldTransform(initialTransform);
+}
+
 Car::~Car() {
     for (auto &car_model : car_models) {
         car_model.destroy();
