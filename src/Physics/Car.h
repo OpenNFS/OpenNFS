@@ -22,7 +22,7 @@ public:
     ~Car();
     void setPosition(glm::vec3 position);
     void update();
-    void resetCar();
+    void resetCar(glm::vec3 reset_position);
     void writeObj(const std::string &path);
 
     NFSVer tag;

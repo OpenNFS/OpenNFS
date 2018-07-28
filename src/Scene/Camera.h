@@ -11,7 +11,7 @@
 #include <imgui.h>
 
 #include "../Renderer/HermiteCurve.h"
-
+#include "../Physics/Car.h"
 
 class Camera {
 private:
@@ -21,6 +21,8 @@ private:
     float mouseSpeed = 0.005f;
     GLFWwindow* window;
     bool hasSpline = false;
+
+    shared_ptr<Car> target_car;
 public:
     Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window);
     Camera();
@@ -31,7 +33,17 @@ public:
     void computeMatricesFromInputs(bool &window_active, ImGuiIO& io);
     glm::mat4 ViewMatrix;
     glm::mat4 ProjectionMatrix;
+
+    bool carAttached = false;
+
     glm::vec3 position;
+    float distanceFromPlayer = 1;
+    float angleAroundPlayer = 0;
+    float pitch = 20;
+    float yaw = 0;
+    float roll;
+
+
     glm::vec3 initialPosition;
     // Initial horizontal angle : toward -Z
     float horizontalAngle;
@@ -42,5 +54,17 @@ public:
     HermiteCurve cameraSpline;
     float totalTime = 1;
     int loopTime;
+
+    void attachCar(shared_ptr<Car> car);
+    void move();
+    void calculateZoom();
+    void calculatePitch();
+    void calculateAngleAroundPlayer();
+
+    float calculateHorizontalDistance();
+
+    float calculateVerticalDistance();
+
+    void calculateCameraPosition(float horizDistance, float vertDistance);
 };
 

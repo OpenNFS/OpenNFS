@@ -147,7 +147,7 @@ namespace NFS3_4_DATA {
 
     struct ANIMDATA {
         INTPT pt;
-        float costheta, sintheta;
+        short od1,od2,od3,od4;
     };
 
     struct XOBJDATA {
@@ -161,7 +161,7 @@ namespace NFS3_4_DATA {
         uint16_t unknown3[9]; // 6 first are all alike; [6]==[8]=?; [7]=0
         // in HS, only 6 are used ; 6 = expected 4
         char type3, objno;  // type3==3; objno==index among all block's objects?
-        uint16_t nAnimLength, unknown4;
+        uint16_t nAnimLength, AnimDelay; //JimDiabolo : The bigger the AnimDelay, that slower is the movement
         ANIMDATA *animData;
 // common section
         uint32_t nVertices;

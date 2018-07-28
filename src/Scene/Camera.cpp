@@ -1,6 +1,8 @@
 #include "Camera.h"
 
-Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window){
+#include <glm/gtx/quaternion.hpp>
+Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle,
+               GLFWwindow *gl_window) {
     window = gl_window;
     // Initial position : on +Z
     position = initial_position;
@@ -11,7 +13,7 @@ Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, fl
     verticalAngle = vertical_angle;
 }
 
-void Camera::resetView(){
+void Camera::resetView() {
     position = initialPosition;
     horizontalAngle = 3.14f;
     verticalAngle = 0.0f;
@@ -33,24 +35,76 @@ void Camera::resetView(){
     );
 }
 
-void Camera::generateSpline(std::vector<TrackBlock> trackBlock){
+void Camera::generateSpline(std::vector<TrackBlock> trackBlock) {
     std::vector<glm::vec3> cameraPoints;
     for (auto &track_block : trackBlock) {
-        cameraPoints.emplace_back( glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10));
+        cameraPoints.emplace_back(
+                glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10));
     }
     cameraSpline = HermiteCurve(cameraPoints, 0.5, 0.0f);
     loopTime = cameraSpline.points.size() * 100;
     hasSpline = true;
 }
 
-void Camera::useSpline(){
+void Camera::useSpline() {
     ASSERT(hasSpline, "Attempted to use Camera spline without generating one first with \'generateSpline\'");
     totalTime += deltaTime;
     float tmod = (totalTime) / (loopTime / 200);
     position = cameraSpline.getPointAt(tmod);
 }
 
-void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
+void Camera::attachCar(shared_ptr<Car> car) {
+    carAttached = true;
+    target_car = car;
+}
+
+void Camera::calculateCameraPosition(float horizDistance, float vertDistance) {
+    glm::vec3 euler = glm::eulerAngles(target_car->car_models[0].orientation);
+    float theta =  euler.y + angleAroundPlayer;
+    float offsetX = horizDistance * sin(theta * (SIMD_PI / 180.0f));
+    float offsetZ = horizDistance * cos(theta * (SIMD_PI / 180.0f));
+    position.x = target_car->car_models[0].position.x + offsetX;
+    position.z = target_car->car_models[0].position.z + offsetZ;
+    position.y = target_car->car_models[0].position.y + vertDistance;
+}
+
+void Camera::move() {
+    calculateZoom();
+    calculatePitch();
+    calculateAngleAroundPlayer();
+    float horizontalDistance = calculateHorizontalDistance();
+    float verticalDistance = calculateVerticalDistance();
+    calculateCameraPosition(horizontalDistance, verticalDistance);
+}
+
+void Camera::calculateZoom() {
+    float zoomLevel = ImGui::GetIO().MouseWheel * 0.1f;
+    distanceFromPlayer -= zoomLevel;
+}
+
+void Camera::calculatePitch() {
+    if (ImGui::GetIO().MouseDown[1]) {
+        float pitchChange = ImGui::GetIO().MouseDelta.y * 0.1f;
+        pitch -= pitchChange;
+    }
+}
+
+void Camera::calculateAngleAroundPlayer() {
+    if (ImGui::GetIO().MouseDown[0]) {
+        float angleChange = ImGui::GetIO().MouseDelta.x * 0.3f;
+        angleAroundPlayer -= angleChange;
+    }
+}
+
+float Camera::calculateVerticalDistance() {
+    return distanceFromPlayer * sin(pitch * (SIMD_PI / 180.0f));
+}
+
+float Camera::calculateHorizontalDistance() {
+    return distanceFromPlayer * cos(pitch * (SIMD_PI / 180));
+}
+
+void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key
@@ -76,16 +130,16 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
     glm::vec3 direction(
-            cos(verticalAngle) * sin(horizontalAngle),
+            cos(verticalAngle) * sin(angleAroundPlayer),
             sin(verticalAngle),
-            cos(verticalAngle) * cos(horizontalAngle)
+            cos(verticalAngle) * cos(angleAroundPlayer)
     );
 
     // Right vector
     glm::vec3 right = glm::vec3(
-            sin(horizontalAngle - 3.14f / 2.0f),
+            sin(angleAroundPlayer - 3.14f / 2.0f),
             0,
-            cos(horizontalAngle - 3.14f / 2.0f)
+            cos(angleAroundPlayer - 3.14f / 2.0f)
     );
 
     // Up vector
@@ -98,24 +152,26 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO& io) {
         speed = 3.0f;
     }
 
-    if(ImGui::GetIO().MouseDown[1]){
-    // Move forward
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        position += direction * deltaTime * speed;
+    if (ImGui::GetIO().MouseDown[1]) {
+        // Move forward
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            position += direction * deltaTime * speed;
+        }
+        // Move backward
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            position -= direction * deltaTime * speed;
+        }
+        // Strafe right
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            position += right * deltaTime * speed;
+        }
+        // Strafe left
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            position -= right * deltaTime * speed;
+        }
     }
-    // Move backward
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        position -= direction * deltaTime * speed;
-    }
-    // Strafe right
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        position += right * deltaTime * speed;
-    }
-    // Strafe left
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        position -= right * deltaTime * speed;
-    }
-    }
+
+    move();
 
     float FoV = initialFoV;
 

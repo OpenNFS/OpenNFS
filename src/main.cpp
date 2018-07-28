@@ -46,7 +46,7 @@ public:
 
         /*------- Render --------*/
         Renderer renderer(window, track, car);
-        renderer.render();
+        renderer.Render();
     }
 
 private:

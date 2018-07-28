@@ -70,7 +70,7 @@ void Physics::initSimulation() {
     solver = new btSequentialImpulseConstraintSolver;
     // The world.
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, 0, 0));
+    dynamicsWorld->setGravity(btVector3(0, -9.81, 0));
     dynamicsWorld->setDebugDrawer(&mydebugdrawer);
 }
 
@@ -84,7 +84,7 @@ void Physics::stepSimulation(float time) {
 void Physics::cleanSimulation() {
     // TODO: Only cleanup if have loaded these guys
     for(auto &car : cars){
-        //dynamicsWorld->removeRigidBody(car->m);
+        //dynamicsWorld->removeRigidBody(car->);
     }
     dynamicsWorld->removeRigidBody(groundRigidBody);
     delete groundRigidBody->getMotionState();
@@ -115,9 +115,6 @@ void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
     groundRigidBody->setFriction(btScalar(1.f));
     groundRigidBody->setUserPointer(track_blocks[0].val);
     dynamicsWorld->addRigidBody(groundRigidBody);
-
-
-
 }
 
 void Physics::registerVehicle(std::shared_ptr<Car> car) {

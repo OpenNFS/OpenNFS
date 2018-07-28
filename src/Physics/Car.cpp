@@ -25,13 +25,12 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     steeringClamp = 0.2f;
     steerRight = steerLeft = isReverse = false;
 
-    glm::vec3 debug_offset(0, 0, 0);
     car_models = car_meshes;
 
     // Enable High Res wheels and body
     for(int i = 0; i < 5; i++){
         car_models[i].enable();
-        car_models[i].position += debug_offset;
+        car_models[i].position;
     }
 
     glm::vec3 wheelDimensions = Utils::genDimensions(car_models[1].m_vertices);
@@ -70,9 +69,15 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
 }
 
 void Car::setPosition(glm::vec3 position){
+    btTransform currentTrans;
+    vehicleMotionState->getWorldTransform(currentTrans);
+
     btTransform initialTransform;
     initialTransform.setOrigin(Utils::glmToBullet(position));
-    vehicleMotionState->setWorldTransform(initialTransform);
+    initialTransform.setRotation(currentTrans.getRotation());
+
+    m_carChassis->setWorldTransform(initialTransform);
+    update();
 }
 
 Car::~Car() {
@@ -168,8 +173,9 @@ void Car::toggleReverse()
     isReverse = (isReverse? false : true);
 }
 
-void Car::resetCar()
+void Car::resetCar(glm::vec3 reset_position)
 {
+    setPosition(reset_position);
     if (m_vehicle)
     {
         m_vehicle -> resetSuspension();

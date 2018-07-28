@@ -28,6 +28,8 @@ void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_pa
 
 std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+
     std::vector<CarModel> meshes;
 
     ifstream fce(fce_path, ios::in | ios::binary);
@@ -46,9 +48,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         std::vector<glm::vec2> uvs;
 
         std::string part_name(fceHeader->partNames[part_Idx]);
-        glm::vec3 center(fceHeader->partCoords[part_Idx].x, fceHeader->partCoords[part_Idx].y,
-                         fceHeader->partCoords[part_Idx].z);
-        center /= 10;
+        glm::vec3 center = rotationMatrix * glm::vec3(fceHeader->partCoords[part_Idx].x/10, fceHeader->partCoords[part_Idx].y/10, fceHeader->partCoords[part_Idx].z/10);
 
         auto *partVertices = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
@@ -58,8 +58,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
                   (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (int vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
-            vertices.emplace_back(
-                    glm::vec3(partVertices[vert_Idx].x, partVertices[vert_Idx].y, partVertices[vert_Idx].z));
+            vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x /10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
         }
 
         fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->normTblOffset +
@@ -82,8 +81,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, part_Idx, vertices, uvs, normals, indices, center, specularDamper,
-                                     specularReflectivity, envReflectivity));
+        meshes.emplace_back(CarModel(part_name, part_Idx, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
         std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: "
                   << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
                   << " Normals: "

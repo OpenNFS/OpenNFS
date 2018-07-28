@@ -12,14 +12,33 @@ out vec2 UV;
 uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
 uniform vec3 billboardPos; // Position of the center of the billboard
 
+// TODO: Doing this per vertex makes this quite expensive. I should bind as a uniform from CPU.
+mat4 rotationMatrix(vec3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(billboardPos, 1.0f);
 
     // Output position of the vertex
     gl_Position = projectionMatrix * viewMatrix * worldPosition; // Screen-space position of bb center
+    mat4 rot = rotationMatrix(gl_Position.xyz, gl_Position.x/gl_Position.w); // Rotate using the X component
+
     gl_Position /= gl_Position.w; // Perspective division
     gl_Position.xy += vertexPosition_modelspace.xy * vec2(0.05, 0.05); // Move the vertex in directly screen space
+
+    //gl_Position *= rot; // Introduces artifacts
 
 	// UV of the vertex
 	UV = vertexUV;
 }
+
