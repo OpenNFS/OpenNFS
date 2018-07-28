@@ -48,8 +48,8 @@ btCollisionShape* Track::GenCollisionData(){
 
 
 void Track::update() {
-    orientation_vec = glm::vec3(0,0,0);
-    orientation = glm::normalize(glm::quat(orientation_vec));
+    //orientation_vec = glm::vec3(0,0,0);
+    //orientation = glm::normalize(glm::quat(orientation_vec));
     RotationMatrix = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix = TranslationMatrix * RotationMatrix;

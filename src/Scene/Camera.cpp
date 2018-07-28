@@ -130,16 +130,16 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
     glm::vec3 direction(
-            cos(verticalAngle) * sin(angleAroundPlayer),
+            cos(verticalAngle) * sin(horizontalAngle),
             sin(verticalAngle),
-            cos(verticalAngle) * cos(angleAroundPlayer)
+            cos(verticalAngle) * cos(horizontalAngle)
     );
 
     // Right vector
     glm::vec3 right = glm::vec3(
-            sin(angleAroundPlayer - 3.14f / 2.0f),
+            sin(horizontalAngle - 3.14f / 2.0f),
             0,
-            cos(angleAroundPlayer - 3.14f / 2.0f)
+            cos(horizontalAngle - 3.14f / 2.0f)
     );
 
     // Up vector
@@ -171,7 +171,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
         }
     }
 
-    move();
+    //move();
 
     float FoV = initialFoV;
 

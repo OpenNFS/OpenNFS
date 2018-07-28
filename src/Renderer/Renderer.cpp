@@ -40,6 +40,18 @@ void Renderer::Render() {
 
     mainCamera.attachCar(car);
 
+    // Initialise the map of animated object to anim keyframe
+    std::map<int, int> animMap;
+/*    for (auto &global_object : track->global_objects) {
+        if (track->tag == NFS_3) {
+            shared_ptr<TRACK> trackData = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData);
+            if (trackData->col.object[global_object.id].type == 3) {
+                animMap[global_object.id] = 0;
+            }
+        }
+    }*/
+
+
     car->resetCar(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10));
 
     while (!glfwWindowShouldClose(window)) {
@@ -101,17 +113,14 @@ void Renderer::Render() {
         trackShader.use();
         for (auto &global_object : track->global_objects) {
             if (track->tag == NFS_3) {
-                shared_ptr<TRACK> trackData =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData);
-                if(trackData->col.object[global_object.id].type == 3){
-                    for(int i = 0; i < trackData->col.object[global_object.id].animLength; ++i){
-                        glm::vec3 animPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3(( trackData->col.object[global_object.id].animData[i].pt.x / 65536.0) / 10, ( trackData->col.object[global_object.id].animData[i].pt.y / 65536.0) / 10, ( trackData->col.object[global_object.id].animData[i].pt.z / 65536.0) / 10);
-                        global_object.position = animPoint;
-                        /*// TODO: REMOVE ASAP, WHY THE FUCK AM I DUMPING DURING THE RENDER LOOP lol
-                        // Use these to set a rotation Matrix
-                        std::cout << i <<  ", " << animPoint.x << ", " << animPoint.y << ", " << animPoint.z << ", " << (int) trackData->col.object[global_object.id].animData[i].od1 << ", "
-                        << (int) trackData->col.object[global_object.id].animData[i].od2 << ", "
-                         << (int) trackData->col.object[global_object.id].animData[i].od3 << ", "
-                         << (int) trackData->col.object[global_object.id].animData[i].od4 << std::endl;*/
+                COLFILE col =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
+                if(col.object[global_object.id].type == 3){
+                    if(animMap[global_object.id] < col.object[global_object.id].animLength){
+                        global_object.position =glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3((col.object[global_object.id].animData[animMap[global_object.id]].pt.x / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.y / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.z / 65536.0) / 10);
+                        global_object.orientation = glm::normalize(glm::quat(col.object[global_object.id].animData[animMap[global_object.id]].od1, col.object[global_object.id].animData[animMap[global_object.id]].od2, col.object[global_object.id].animData[animMap[global_object.id]].od3, col.object[global_object.id].animData[animMap[global_object.id]].od4));
+                        animMap[global_object.id]++;
+                    } else {
+                        animMap[global_object.id] = 0;
                     }
                 }
             }

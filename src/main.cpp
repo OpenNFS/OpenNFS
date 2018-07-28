@@ -37,7 +37,7 @@ public:
         /*------ ASSET LOAD ------*/
         initDirectories();
         //Load Track Data`
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk006/tr06");
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk005/tr05");
         //Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar("../resources/NFS3/gamedata/carmodel/diab");
 
