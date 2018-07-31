@@ -15,9 +15,8 @@
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
 #include "../nfs_data.h"
-#include "../Scene/BulletPtr.h"
 
-class Car : public BulletPtr {
+class Car {
 public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
     ~Car();
@@ -27,6 +26,7 @@ public:
     void writeObj(const std::string &path);
 
     std::string name;
+    NFSVer tag;
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }

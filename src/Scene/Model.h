@@ -18,8 +18,7 @@
 
 class Model {
 public:
-    Model(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms,
-          std::vector<unsigned int> indices, bool removeVertexIndexing, glm::vec3 center_position);
+    Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, bool removeVertexIndexing, glm::vec3 center_position);
     std::string m_name;
     std::vector<glm::vec3> m_vertices;
     std::vector<glm::vec3> m_normals;
@@ -36,7 +35,6 @@ public:
 
     virtual void render()= 0;
 
-    int id;
     /*--------- Model State --------*/
     //UI
     bool enabled = false;
@@ -47,27 +45,6 @@ public:
     glm::vec3 position;
     glm::vec3 orientation_vec;
     glm::quat orientation;
-
-
-    /* Iterators to allow for ranged for loops with class*/
-    class iterator {
-    public:
-        explicit iterator(Model *ptr) : ptr(ptr) { }
-        iterator operator++() {
-            ++ptr;
-            return *this;
-        }
-        bool operator!=(const iterator &other) { return ptr != other.ptr; }
-        const Model &operator*() const { return *ptr; }
-    private:
-        Model *ptr;
-    };
-    iterator begin() const { return iterator(val); }
-    iterator end() const { return iterator(val + len); }
-    Model *val;
 protected:
     GLuint VertexArrayID;
-private:
-    /* Iterator vars */
-    unsigned len;
 };

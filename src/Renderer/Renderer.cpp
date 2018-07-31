@@ -14,7 +14,7 @@ Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_t
     mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
 
-    cameraLight = Light(mainCamera.position, glm::vec3(1, 1, 1));
+    cameraLight = Light(mainCamera.position, glm::vec4(1,1,1,1), 1, 0, 0, 0, 0.f);
 
     // Generate the collision meshes
     physicsEngine.registerTrack(track);
@@ -79,59 +79,59 @@ void Renderer::Render() {
         // Render the per-trackblock data
         for (int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx) {
             TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
-            std::vector<Light> contributingLights = active_track_Block.lights;
+            //std::vector<Light> contributingLights = active_track_Block.lights;
             // TODO: Merge lighting contributions across track block, must use a smarter Track structure
             trackShader.use();
-            for (auto &track_block_model : active_track_Block.objects) {
-                track_block_model.update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
+            for (auto &track_block_entity : active_track_Block.objects) {
+                boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->update();
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->ModelMatrix);
                 trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
-                if (contributingLights.size() > 0) {
+                /*if (contributingLights.size() > 0) {
                     trackShader.loadLights(contributingLights);
-                } else {
+                } else {*/
                     trackShader.loadLights(camlights);
-                }
-                trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
+                //}
+                trackShader.bindTrackTextures(boost::get<shared_ptr<Track>>(track_block_entity.glMesh), track->texture_gl_mappings);
                 trackShader.setClassic(userParams.use_classic_graphics);
-                track_block_model.render();
+                boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->render();
             }
-            for (auto &track_block_model : active_track_Block.track) {
-                track_block_model.update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
+            for (auto &track_block_entity : active_track_Block.track) {
+                boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->update();
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->ModelMatrix);
                 trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
-                if (contributingLights.size() > 0) {
+                /*if (contributingLights.size() > 0) {
                     trackShader.loadLights(contributingLights);
-                } else {
+                } else {*/
                     trackShader.loadLights(camlights);
-                }
-                trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
+                //}
+                trackShader.bindTrackTextures(boost::get<shared_ptr<Track>>(track_block_entity.glMesh), track->texture_gl_mappings);
                 trackShader.setClassic(userParams.use_classic_graphics);
-                track_block_model.render();
+                boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->render();
             }
             // TODO: Render Lanes with a simpler shader set
-            for (auto &track_block_model : active_track_Block.lanes) {
-                track_block_model.update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
+            for (auto &track_block_entity : active_track_Block.lanes) {
+                boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->update();
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->ModelMatrix);
                 trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
-                if (contributingLights.size() > 0) {
+                /*if (contributingLights.size() > 0) {
                     trackShader.loadLights(contributingLights);
-                } else {
+                } else {*/
                     trackShader.loadLights(camlights);
-                }
-                trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
+                //}
+                trackShader.bindTrackTextures(boost::get<shared_ptr<Track>>(track_block_entity.glMesh), track->texture_gl_mappings);
                 trackShader.setClassic(userParams.use_classic_graphics);
-                track_block_model.render();
+                boost::get<shared_ptr<Track>>(track_block_entity.glMesh)->render();
             }
             trackShader.unbind();
         }
 
         // Render the global data, animations go here.
-        trackShader.use();
+       /* trackShader.use();
         for (auto &global_object : track->global_objects) {
             if (track->tag == NFS_3) {
                 // TODO (MUSTFIX): This crashes in debug mode
                 COLFILE col =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
-                if(col.object[global_object.id].type == 3){
+                *//*if(col.object[global_object.id].type == 3){
                     if(animMap[global_object.id] < col.object[global_object.id].animLength){
                         global_object.position = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3((col.object[global_object.id].animData[animMap[global_object.id]].pt.x / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.y / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.z / 65536.0) / 10);
                         global_object.orientation = glm::normalize(glm::quat(col.object[global_object.id].animData[animMap[global_object.id]].od1, col.object[global_object.id].animData[animMap[global_object.id]].od2, col.object[global_object.id].animData[animMap[global_object.id]].od3, col.object[global_object.id].animData[animMap[global_object.id]].od4));
@@ -139,7 +139,7 @@ void Renderer::Render() {
                     } else {
                         animMap[global_object.id] = 0;
                     }
-                }
+                }*//*
             }
             global_object.update();
             trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, global_object.ModelMatrix);
@@ -149,7 +149,7 @@ void Renderer::Render() {
             trackShader.setClassic(userParams.use_classic_graphics);
             global_object.render();
         }
-        trackShader.unbind();
+        trackShader.unbind();*/
 
         SetCulling(true);
         // Render the Car
@@ -165,7 +165,7 @@ void Renderer::Render() {
         carShader.unbind();
         SetCulling(false);
 
-        for (auto &track_block_id : activeTrackBlockIDs) {
+        /*for (auto &track_block_id : activeTrackBlockIDs) {
             billboardShader.use();
             // Render the lights far to near
             for (auto &light : std::vector<Light>(track->track_blocks[track_block_id].lights.rbegin(), track->track_blocks[track_block_id].lights.rend())) {
@@ -175,7 +175,7 @@ void Renderer::Render() {
                 light.render();
             }
             billboardShader.unbind();
-        }
+        }*/
 
         CheckForPicking(ViewMatrix, ProjectionMatrix);
 
@@ -199,7 +199,7 @@ void Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix)
         if (RayCallback.hasHit()) {
             std::ostringstream oss;
             // This callback is only going to work on the Car, which sucks ass
-            oss << "Clicked: " << static_cast<BulletPtr*>(RayCallback.m_collisionObject->getUserPointer())->engineID;
+            oss << "Clicked: " << static_cast<Entity*>(RayCallback.m_collisionObject->getUserPointer())->type;
             std::cout << oss.str() << std::endl;
         } else {
 
@@ -255,7 +255,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition){
 
     if (ImGui::TreeNode("Car Models")) {
         for (auto &mesh : car->car_models) {
-            ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);
+            /*ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);*/
         }
         ImGui::TreePop();
     }
@@ -269,27 +269,26 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition){
             if (ImGui::TreeNode(label)) {
                 if (ImGui::TreeNode("Objects")) {
                     for (auto &block_model : track_block.objects) {
-                        ImGui::PushID(block_model.id);
+                        /*ImGui::PushID(block_model.id);
                         if (ImGui::TreeNode(block_model.m_name.c_str())) {
                             ImGui::Checkbox("Enabled", &block_model.enabled);
                             ImGui::TreePop();
                         }
-                        ImGui::PopID();
-
+                        ImGui::PopID();*/
                     }
                     ImGui::TreePop();
                 }
 
                 if (ImGui::TreeNode("Lights")) {
                     for (auto &block_light : track_block.lights) {
-                        char label[32];
+                        /*char label[32];
                         sprintf(label, "Light %s %d", block_light.m_name.c_str(), block_light.type);
                         if (ImGui::TreeNode(label)) {
                             ImGui::Checkbox("Enabled", &block_light.enabled);
                             ImGui::Text("%f %f %f", block_light.position.x, block_light.position.y,
                                         block_light.position.z);
                             ImGui::TreePop();
-                        }
+                        }*/
                     }
                     ImGui::TreePop();
                 }

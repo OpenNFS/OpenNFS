@@ -42,75 +42,75 @@ namespace TrackUtils {
         return texture_ids;
     }
 
-    Light MakeLight(glm::vec3 light_position, uint32_t light_type){
+    shared_ptr<Light> MakeLight(glm::vec3 light_position, uint32_t light_type){
         // Use Data from NFSHS NFS3 Tracks TR.INI
         switch(light_type){
             case 0:
-                return Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00));
             case 1:
-                return Light(light_position, glm::vec4(185,255,255,255), light_type, 0, 0, 0, 4.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(185,255,255,255), light_type, 0, 0, 0, 4.50));
             case 2:
-                return Light(light_position, glm::vec4(255,255,255,210), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,255,255,210), light_type, 0, 0, 0, 5.00));
             case 3:
-                return Light(light_position, glm::vec4(255,128,229,240), light_type, 0, 0, 0, 4.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,128,229,240), light_type, 0, 0, 0, 4.50));
             case 4:
-                return Light(light_position, glm::vec4(255,217,196,94), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,217,196,94), light_type, 0, 0, 0, 5.00));
             case 5:
-                return Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 6, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 6, 0, 5.00));
             case 6:
-                return Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 5, 27, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 5, 27, 5.00));
             case 7:
-                return Light(light_position, glm::vec4(255,255,0,0), light_type, 1, 6, 0, 3.13);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,255,0,0), light_type, 1, 6, 0, 3.13));
             case 8:
-                return Light(light_position, glm::vec4(255,163,177,190), light_type, 0, 0, 0, 3.75);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,163,177,190), light_type, 0, 0, 0, 3.75));
             case 9:
-                return Light(light_position, glm::vec4(255,223,22,22), light_type, 0, 0, 0, 3.13);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,223,22,22), light_type, 0, 0, 0, 3.13));
             case 10:
-                return Light(light_position, glm::vec4(186,223,22,22), light_type, 0, 0, 0, 2.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(186,223,22,22), light_type, 0, 0, 0, 2.50));
             case 11:
-                return Light(light_position, glm::vec4(255,30,149,227), light_type, 0, 0, 0, 2.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,30,149,227), light_type, 0, 0, 0, 2.50));
             case 12:
-                return Light(light_position, glm::vec4(255,30,149,227), light_type, 1, 6, 0, 3.13);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,30,149,227), light_type, 1, 6, 0, 3.13));
             case 13:
-                return Light(light_position, glm::vec4(255,224,224,39), light_type, 0, 0, 0, 3.75);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,224,224,39), light_type, 0, 0, 0, 3.75));
             case 14:
-                return Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00));
             case 15:
-                return Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00));
             case 16:
-                return Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00));
             case 17:
-                return Light(light_position, glm::vec4(185,255,255,255), light_type, 0, 0, 0, 4.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(185,255,255,255), light_type, 0, 0, 0, 4.50));
             case 18:
-                return Light(light_position, glm::vec4(255,255,255,210), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,255,255,210), light_type, 0, 0, 0, 5.00));
             case 19:
-                return Light(light_position, glm::vec4(255,128,229,240), light_type, 0, 0, 0, 4.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,128,229,240), light_type, 0, 0, 0, 4.50));
             case 20:
-                return Light(light_position, glm::vec4(255,217,196,94), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,217,196,94), light_type, 0, 0, 0, 5.00));
             case 21:
-                return Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 6, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 6, 0, 5.00));
             case 22:
-                return Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 5, 27, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,223,22,22), light_type, 1, 5, 27, 5.00));
             case 23:
-                return Light(light_position, glm::vec4(255,255,0,0), light_type, 1, 6, 0, 3.13);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,255,0,0), light_type, 1, 6, 0, 3.13));
             case 24:
-                return Light(light_position, glm::vec4(255,163,177,190), light_type, 0, 0, 0, 3.75);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,163,177,190), light_type, 0, 0, 0, 3.75));
             case 25:
-                return Light(light_position, glm::vec4(255,223,22,22), light_type, 0, 0, 0, 3.13);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,223,22,22), light_type, 0, 0, 0, 3.13));
             case 26:
-                return Light(light_position, glm::vec4(186,223,22,22), light_type, 0, 0, 0, 2.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(186,223,22,22), light_type, 0, 0, 0, 2.50));
             case 27:
-                return Light(light_position, glm::vec4(255,30,149,227), light_type, 0, 0, 0, 2.50);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,30,149,227), light_type, 0, 0, 0, 2.50));
             case 28:
-                return Light(light_position, glm::vec4(255,30,149,227), light_type, 1, 6, 0, 3.13);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,30,149,227), light_type, 1, 6, 0, 3.13));
             case 29:
-                return Light(light_position, glm::vec4(255,224,224,39), light_type, 0, 0, 0, 3.75);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,224,224,39), light_type, 0, 0, 0, 3.75));
             case 30:
-                return Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00));
             case 31:
-                return Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,222,234,235), light_type, 0, 0, 0, 5.00));
             default:
-                return Light(light_position, glm::vec4(255,255,255,255), light_type, 0, 0, 0, 5.00);
+                return shared_ptr<Light>(new Light(light_position, glm::vec4(255,255,255,255), light_type, 0, 0, 0, 5.00));
         }
     }
 

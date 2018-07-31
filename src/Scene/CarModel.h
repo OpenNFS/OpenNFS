@@ -11,8 +11,7 @@ using namespace std;
 
 class CarModel : public Model {
 public:
-    CarModel(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
-             std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity);
+    CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity);
     void update() override;
     void destroy() override;
     void render() override;

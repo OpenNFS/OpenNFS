@@ -1032,11 +1032,9 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                Track xobj_model = Track(xobj_name.str(), trkBlock.header->blockSerial * structure_Idx, verts, norms,
-                                         uvs, texture_indices, vertex_indices, texture_ids, shading_verts,
-                                         trk_block_center);
-                xobj_model.enable();
-                current_track_block.objects.emplace_back(xobj_model);
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx,  trkBlock.header->blockSerial *structure_Idx, NFS_2, XOBJ, std::shared_ptr<Track>(new Track(verts, norms,
+                                                                                                                                              uvs, texture_indices, vertex_indices, texture_ids, shading_verts,
+                                                                                                                                              trk_block_center))));
             }
 
             // Keep track of unique textures in trackblock for later OpenGL bind
@@ -1111,14 +1109,11 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
             }
             // Get ordered list of unique texture id's present in block
             std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            Track current_trk_block_model = Track("TrkBlock", trkBlock.header->blockSerial, verts, uvs, texture_indices,
-                                                  vertex_indices,
-                                                  texture_ids,
-                                                  trk_block_shading_verts,
-                                                  trk_block_center);
-            current_trk_block_model.enable();
-            //current_track_block.track.emplace_back(current_trk_block_model);
-            current_track_block.objects.emplace_back(current_trk_block_model);
+            current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, std::shared_ptr<Track>(new  Track(verts, uvs, texture_indices,
+                                                                                                                                                         vertex_indices,
+                                                                                                                                                         texture_ids,
+                                                                                                                                                         trk_block_shading_verts,
+                                                                                                                                                         trk_block_center))));
 
             track->track_blocks.emplace_back(current_track_block);
         }
@@ -1200,10 +1195,10 @@ std::vector<Track> NFS2<Platform>::ParseCOLModels(shared_ptr<typename Platform::
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = glm::vec3(0, 0, 0);
-        Track col_model = Track("ColBlock", structure_Idx, verts, uvs, texture_indices, indices, texture_ids,
+        // TODO: Port to Entity system
+        /*Track col_model = Track("ColBlock", structure_Idx, verts, uvs, texture_indices, indices, texture_ids,
                                 shading_data, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
-        col_model.enable();
-        col_models.emplace_back(col_model);
+        col_models.emplace_back(col_model);*/
         free(structureReferenceCoordinates);
     }
     return col_models;

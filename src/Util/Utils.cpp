@@ -142,7 +142,7 @@ namespace Utils {
                 // per-face material
                 shapes[s].mesh.material_ids[f];
             }
-            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", s, verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
+            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
             meshes.emplace_back(obj_mesh);
         }
         return meshes;

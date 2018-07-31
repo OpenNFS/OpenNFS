@@ -7,8 +7,8 @@
 #include "Track.h"
 #include "../Util/Utils.h"
 
-Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
-             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super(name, model_id, verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
+Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
+             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
     texture_ids = tex_ids;
@@ -16,36 +16,23 @@ Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::
     for(unsigned int m_vertex_index : indices) {
         m_shading_data.push_back(shading_data[m_vertex_index]);
     }
-
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model " << name);
+    enable();
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model");
 }
 
-Track::Track(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
-             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super(name, model_id, verts, uvs, norms, indices, true, center_position){
+Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<short> tex_ids,
+             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
     texture_ids = tex_ids;
-   // m_normals.clear();
+
     // Index Shading data
     for(unsigned int m_vertex_index : indices) {
         m_shading_data.push_back(shading_data[m_vertex_index]);
-       // m_normals.push_back(norms[m_vertex_index]);
     }
-
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model " << name);
+    enable();
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model");
 }
-
-btCollisionShape* Track::GenCollisionData(){
-    // Build this from the track blocks
-    btTriangleMesh trackMesh;
-
-    for(int i = 0; i < m_vertices.size()-3; i+=3){
-        trackMesh.addTriangle(btVector3(m_vertices[i].x, m_vertices[i].y, m_vertices[i].z), btVector3(m_vertices[i+1].x, m_vertices[i+1].y, m_vertices[i+1].z), btVector3( m_vertices[i+2].x, m_vertices[i+2].y, m_vertices[i+2].z), false);
-    }
-
-    return new btBvhTriangleMeshShape(&trackMesh, false);
-}
-
 
 void Track::update() {
     //orientation_vec = glm::vec3(0,0,0);

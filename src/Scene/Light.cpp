@@ -5,40 +5,8 @@
 
 #include "Light.h"
 
-Light::Light(glm::vec3 light_position, glm::vec3 light_colour) : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
-    // TODO: Redo all of this to make sense
-    std::vector<glm::vec3> verts;
-    verts.push_back(glm::vec3(-0.5, -0.5, 0)); // bottom left corner
-    verts.push_back(glm::vec3(-0.5,  0.5, 0)); // top left corner
-    verts.push_back(glm::vec3( 0.5,  0.5, 0)); // top right corner
-    verts.push_back(glm::vec3( 0.5, -0.5, 0)); // bottom right corner
-    unsigned int indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
-                              0,2,3}; // second triangle (bottom left - top right - bottom right)
-    m_uvs.clear();
-    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 0.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
 
-    m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
-    m_vertices.clear();
-    for (unsigned int m_vertex_index : m_vertex_indices) {
-        m_vertices.push_back(verts[m_vertex_index]);
-    }
-    position= light_position;
-    type = 1;
-    colour = glm::vec4(light_colour, 1.0f);
-
-    // TODO: Move ASSERT to a class that doesn't depend on nfs_data
-    genBuffers();
-    //ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
-}
-
-
-Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, int unknown_1, int unknown_2, int unknown_3, float unknown_4): super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
-    // TODO: Redo all of this to make sense
+Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, int unknown_1, int unknown_2, int unknown_3, float unknown_4): super("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
     std::vector<glm::vec3> verts;
     float lightSize = 3.0;
     verts.push_back(glm::vec3(-lightSize, -lightSize, 0)); // bottom left corner
@@ -69,7 +37,9 @@ Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, i
     unknown3 = unknown_3;
     unknown4 = unknown_4;
 
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
+    enable();
+    genBuffers();
+    //ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
 }
 
 
@@ -143,5 +113,5 @@ bool Light::genBuffers() {
     return true;
 }
 
-Light::Light() : super("Light", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0,0,0)){}
+Light::Light() : super("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0,0,0)){}
 

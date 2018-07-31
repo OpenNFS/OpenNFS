@@ -6,10 +6,7 @@
 #include "CarModel.h"
 #include "../Util/Utils.h"
 
-CarModel::CarModel(std::string name, int model_id, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
-                   std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(
-        name, model_id, verts, uvs, norms, indices, true, center_position) {
-
+CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(name, verts, uvs, norms, indices, true, center_position) {
     specularDamper = specular_damper;
     specularReflectivity = specular_reflectivity;
     envReflectivity = env_reflectivity;
@@ -19,7 +16,7 @@ CarModel::CarModel(std::string name, int model_id, std::vector<glm::vec3> verts,
     }
 
     // Gen VBOs, add to Bullet Physics
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model " << name);
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model ");
 }
 
 void CarModel::update() {

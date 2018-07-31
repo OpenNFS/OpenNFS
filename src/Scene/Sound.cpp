@@ -5,7 +5,7 @@
 
 #include "Sound.h"
 
-Sound::Sound(glm::vec3 sound_position, uint32_t sound_type) : super("Sound", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, sound_position) {
+Sound::Sound(glm::vec3 sound_position, uint32_t sound_type) : super("Sound", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, sound_position) {
     // TODO: Redo all of this to make sense
     std::vector<glm::vec3> verts;
     verts.push_back(glm::vec3(-0.5, -0.5, 0)); // bottom left corner
@@ -30,6 +30,7 @@ Sound::Sound(glm::vec3 sound_position, uint32_t sound_type) : super("Sound", 0, 
     position= sound_position;
     type = sound_type;
 
+    enable();
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Sound");
 }
 
@@ -103,5 +104,5 @@ bool Sound::genBuffers() {
     return true;
 }
 
-Sound::Sound() : super("Sound", 0, std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0,0,0)){}
+Sound::Sound() : super("Sound", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0,0,0)){}
 

@@ -8,7 +8,6 @@
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
     tag = nfs_version;
     name = car_name;
-    engineID = name;
 
     // Load these from Carp.txt
     gEngineForce = 0.f;
@@ -194,7 +193,8 @@ void Car::writeObj(const std::string &path) {
 
     for (Model &mesh : car_models) {
         /* Print Part name*/
-        obj_dump << "o " << mesh.m_name << std::endl;
+        // TODO: Maybe restore mesh names, or make sure every usage of a Mesh falls under an Entity
+        //obj_dump << "o " << mesh.m_name << std::endl;
         //Dump Vertices
         for (auto vertex : mesh.m_vertices) {
             obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;

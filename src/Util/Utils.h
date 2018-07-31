@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iomanip>
 #include "../Scene/CarModel.h"
+
 extern "C" {
     #include "../../tools/fshtool.h"
 }
@@ -84,10 +85,6 @@ typedef struct tagBITMAPINFO {
     } while (false)
 
 #define nyop "nop"
-
-enum NFSVer {
-    UNKNOWN, NFS_1, NFS_2, NFS_2_PS1, NFS_2_SE, NFS_3, NFS_3_PS1, NFS_4, NFS_5
-};
 
 namespace Utils {
     glm::vec3 bulletToGlm(const btVector3 &v);

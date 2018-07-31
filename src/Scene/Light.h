@@ -5,15 +5,12 @@
 #pragma once
 
 #include <glm/vec3.hpp>
-#include "../Util/Utils.h"
 #include "Model.h"
 
 
 class Light : public Model {
 public:
-    Light(glm::vec3 light_position, glm::vec3 light_colour);
     Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, int unknown_1, int unknown_2, int unknown_3, float unknown_4);
-
     Light();
 
     void update() override;

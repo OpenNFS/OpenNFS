@@ -81,7 +81,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, part_Idx, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
+        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
         std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: "
                   << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
                   << " Normals: "
@@ -423,18 +423,14 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
             glm::vec3 light_center = rotationMatrix * glm::vec3((trk_block.lightsrc[j].refpoint.x / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.z / 65536.0) / 10);
-            Light temp_light = TrackUtils::MakeLight(light_center, trk_block.lightsrc[j].type);
-            temp_light.enable();
-            current_track_block.lights.emplace_back(temp_light);
+            current_track_block.lights.emplace_back(Entity(i, j, NFS_3, LIGHT, TrackUtils::MakeLight(light_center, trk_block.lightsrc[j].type)));
         }
 
         for (int s = 0; s < trk_block.nSoundsrc; s++) {
             glm::vec3 sound_center = rotationMatrix * glm::vec3((trk_block.soundsrc[s].refpoint.x / 65536.0) / 10,
                                                                 (trk_block.soundsrc[s].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.soundsrc[s].refpoint.z / 65536.0) / 10);
-            Sound temp_sound(sound_center, trk_block.soundsrc[s].type);
-            temp_sound.enable();
-            current_track_block.sounds.emplace_back(temp_sound);
+            current_track_block.sounds.emplace_back(Entity(i, s, NFS_3, SOUND, std::shared_ptr<Sound>(new Sound(sound_center, trk_block.soundsrc[s].type))));
         }
 
         // Get Object vertices
@@ -494,9 +490,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     }
                     // Get ordered list of unique texture id's present in block
                     std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                    Track current_track_model = Track("ObjBlock", (j + 1) * (k + 1), obj_verts, norms, uvs, texture_indices, vertex_indices, texture_ids, obj_shading_verts, trk_block_center);
-                    current_track_model.enable();
-                    current_track_block.objects.emplace_back(current_track_model);
+                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, shared_ptr<Track>(new Track(obj_verts, norms, uvs, texture_indices, vertex_indices, texture_ids, obj_shading_verts, trk_block_center))));
                 }
             }
         }
@@ -559,9 +553,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 }
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                Track xobj_model = Track("XOBJ", l, verts, norms, uvs, texture_indices, vertex_indices, texture_ids, xobj_shading_verts, trk_block_center);
-                xobj_model.enable();
-                current_track_block.objects.emplace_back(xobj_model);
+                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ, shared_ptr<Track>(new Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, xobj_shading_verts, trk_block_center))));
             }
         }
 
@@ -622,13 +614,11 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
             }
             // Get ordered list of unique texture id's present in block
             std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            Track current_trk_block_model = Track("TrkBlock", i, verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center);
-            current_trk_block_model.enable();
 
             if(chnk == 6){
-                current_track_block.lanes.emplace_back(current_trk_block_model);
+                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE, shared_ptr<Track>(new Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center))));
             } else {
-                current_track_block.track.emplace_back(current_trk_block_model);
+                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD, shared_ptr<Track>(new Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center))));
             }
         }
         track_blocks.emplace_back(current_track_block);
@@ -695,9 +685,9 @@ std::vector<Track> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10, static_cast<float>(o->ptRef.y / 65536.0) / 10, static_cast<float>(o->ptRef.z / 65536.0) / 10);
-        Track col_model = Track("ColBlock", i, verts, norms, uvs, texture_indices, indices, texture_ids, shading_data, position);
-        col_model.enable();
-        col_models.emplace_back(col_model);
+        // TODO: Make COL model loading work okay with changover to Entity and subsequent storage inside TRACK structure
+        /*Track col_model = Track("ColBlock", i, verts, norms, uvs, texture_indices, indices, texture_ids, shading_data, position);
+        col_models.emplace_back(col_model);*/
     }
     return col_models;
 }

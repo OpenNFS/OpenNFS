@@ -15,8 +15,10 @@
 #include "../Shaders/CarShader.h"
 #include "../Shaders/BillboardShader.h"
 #include "../Scene/Camera.h"
+#include "../Scene/Entity.h"
 #include "../Loaders/trk_loader.h"
 #include "../Physics/Physics.h"
+
 #include "HermiteCurve.h"
 
 struct ParamData {
@@ -60,7 +62,6 @@ private:
     // ------ Renderer State ------
     // Data used for culling
     int closestBlockID = 0;
-
 
     // ------- Helper Functions ------
     void SetCulling(bool toCull);

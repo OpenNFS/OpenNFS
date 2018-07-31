@@ -102,8 +102,8 @@ void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track){
     current_track = track;
     // TODO: Use passable flags (flags&0x80), refactor track block into nice data structure. One superset
     for (auto &track_block : track->track_blocks) {
-        track_block.generatePhysicsMesh();
-        dynamicsWorld->addRigidBody(track_block.trackRigidBody);
+        /*track_block.generatePhysicsMesh();
+        dynamicsWorld->addRigidBody(track_block.trackRigidBody);*/
     }
 }
 
