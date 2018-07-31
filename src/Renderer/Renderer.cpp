@@ -14,7 +14,7 @@ Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_t
     mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
 
-    cameraLight = Light(mainCamera.position, glm::vec4(1,1,1,1), 1, 0, 0, 0, 0.f);
+    cameraLight = Light(mainCamera.position, glm::vec4(255.0f, 255.0f, 255.0f, 255.0f), 1, 0, 0, 0, 0.f);
 
     // Generate the collision meshes
     physicsEngine.registerTrack(track);

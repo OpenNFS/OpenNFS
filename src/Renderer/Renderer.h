@@ -47,7 +47,6 @@ private:
     shared_ptr<ONFSTrack> track;
     shared_ptr<Car> car;
 
-
     /*------- BULLET --------*/
     Physics physicsEngine;
 

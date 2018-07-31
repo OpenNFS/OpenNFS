@@ -87,9 +87,21 @@ void Physics::cleanSimulation() {
         //dynamicsWorld->removeRigidBody(car->);
     }
     for (auto &track_block : current_track->track_blocks) {
-        dynamicsWorld->removeRigidBody(track_block.trackRigidBody);
-        delete track_block.trackRigidBody->getMotionState();
-        delete track_block.trackRigidBody;
+        for(auto &road : track_block.track){
+            dynamicsWorld->removeRigidBody(road.rigidBody);
+            delete road.rigidBody->getMotionState();
+            delete road.rigidBody;
+        }
+        for(auto &object : track_block.objects){
+            dynamicsWorld->removeRigidBody(object.rigidBody);
+            delete object.rigidBody->getMotionState();
+            delete object.rigidBody;
+        }
+        for(auto &light : track_block.lights){
+            dynamicsWorld->removeRigidBody(light.rigidBody);
+            delete light.rigidBody->getMotionState();
+            delete light.rigidBody;
+        }
     }
     delete dynamicsWorld;
     delete solver;
@@ -102,8 +114,18 @@ void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track){
     current_track = track;
     // TODO: Use passable flags (flags&0x80), refactor track block into nice data structure. One superset
     for (auto &track_block : track->track_blocks) {
-        /*track_block.generatePhysicsMesh();
-        dynamicsWorld->addRigidBody(track_block.trackRigidBody);*/
+        for(auto &road : track_block.track){
+            road.genPhysicsMesh();
+            dynamicsWorld->addRigidBody(road.rigidBody);
+        }
+        for(auto &object : track_block.objects){
+            object.genPhysicsMesh();
+            dynamicsWorld->addRigidBody(object.rigidBody);
+        }
+        for(auto &light : track_block.lights){
+            light.genPhysicsMesh();
+            dynamicsWorld->addRigidBody(light.rigidBody);
+        }
     }
 }
 

@@ -6,10 +6,10 @@
 
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <LinearMath/btDefaultMotionState.h>
+#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <boost/variant.hpp>
-#include "Model.h"
 #include "Light.h"
 #include "Sound.h"
 #include "Track.h"
@@ -31,10 +31,10 @@ public:
     NFSVer tag;
     EntityType type;
     EngineModel glMesh;
+    btRigidBody* rigidBody;
 
     private:
     btTriangleMesh physicsMesh;
-    btRigidBody* rigidBody;
     btCollisionShape* physicsShape;
     btDefaultMotionState* motionState;
 };

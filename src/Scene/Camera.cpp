@@ -172,7 +172,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
         }
     }
 
-    move();
+   // move();
 
     float FoV = initialFoV;
 
