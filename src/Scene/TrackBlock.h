@@ -4,42 +4,28 @@
 
 #pragma once
 
+#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include "Track.h"
 #include "Light.h"
+#include "Sound.h"
+#include "BulletPtr.h"
 
-class TrackBlock {
+class TrackBlock  : public BulletPtr {
 public:
     TrackBlock(int blockID, glm::vec3 center_pos);
+    void generatePhysicsMesh();
+
     glm::vec3 center;
     int block_id;
     std::vector<Track> track;
     std::vector<Track> objects;
+    std::vector<Track> lanes;
     std::vector<Light> lights;
+    std::vector<Sound> sounds;
 
-    /* Iterators to allow for ranged for loops with class*/
-    class iterator {
-    public:
-        explicit iterator(TrackBlock *ptr) : ptr(ptr) { }
-
-        iterator operator++() {
-            ++ptr;
-            return *this;
-        }
-
-        bool operator!=(const iterator &other) { return ptr != other.ptr; }
-
-        const TrackBlock &operator*() const { return *ptr; }
-
-    private:
-        TrackBlock *ptr;
-    };
-
-    iterator begin() const { return iterator(val); }
-
-    iterator end() const { return iterator(val + len); }
-
-    TrackBlock *val;
-private:
-    /* Iterator vars */
-    unsigned len;
+    // Physics
+    btTriangleMesh trackMesh;
+    btRigidBody* trackRigidBody;
+    btCollisionShape* trackShape;
+    btDefaultMotionState* groundMotionState;
 };

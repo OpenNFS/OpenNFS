@@ -63,19 +63,16 @@ FLOATPT SumVector(FLOATPT Vect1, FLOATPT Vect2) {
 }
 
 FLOATPT VertexNormal(int blk, int VertexIndex, TRKBLOCK *trk, POLYGONBLOCK *poly) {
-    struct FLOATPT a, b, c, d;
-    struct FLOATPT normal;
+    FLOATPT a, b, c, d;
+    FLOATPT normal;
     LPPOLYGONDATA p;
-    struct TRKBLOCK *t;
-    struct FLOATPT *v;
+    FLOATPT *v;
 
     normal.x = 0;
     normal.y = 0;
     normal.z = 0;
 
-    t = &trk[blk];
     v = trk[blk].vert;
-
     p = poly[blk].poly[4];
     int num = poly[blk].sz[4];
     for (int j = 0; j < num; j++, p++) {

@@ -6,19 +6,18 @@
 #include "Renderer.h"
 
 
-Renderer::Renderer(GLFWwindow *gl_window, shared_ptr<ONFSTrack> current_track, shared_ptr<Car> current_car) : carShader(current_car) {
+Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car) : carShader(current_car) {
     window = gl_window;
     track = current_track;
     car = current_car;
 
-    mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10,
-                                  track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
+    mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
 
     cameraLight = Light(mainCamera.position, glm::vec3(1, 1, 1));
 
     // Generate the collision meshes
-    physicsEngine.registerTrack(track->track_blocks);
+    physicsEngine.registerTrack(track);
     physicsEngine.registerVehicle(car);
 
 
@@ -40,17 +39,8 @@ void Renderer::Render() {
 
     mainCamera.attachCar(car);
 
-    // Initialise the map of animated object to anim keyframe
+    // Map of COL animated object to anim keyframe
     std::map<int, int> animMap;
-/*    for (auto &global_object : track->global_objects) {
-        if (track->tag == NFS_3) {
-            shared_ptr<TRACK> trackData = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData);
-            if (trackData->col.object[global_object.id].type == 3) {
-                animMap[global_object.id] = 0;
-            }
-        }
-    }*/
-
 
     car->resetCar(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10));
 
@@ -91,9 +81,35 @@ void Renderer::Render() {
             TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
             std::vector<Light> contributingLights = active_track_Block.lights;
             // TODO: Merge lighting contributions across track block, must use a smarter Track structure
-
             trackShader.use();
             for (auto &track_block_model : active_track_Block.objects) {
+                track_block_model.update();
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
+                trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
+                if (contributingLights.size() > 0) {
+                    trackShader.loadLights(contributingLights);
+                } else {
+                    trackShader.loadLights(camlights);
+                }
+                trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
+                trackShader.setClassic(userParams.use_classic_graphics);
+                track_block_model.render();
+            }
+            for (auto &track_block_model : active_track_Block.track) {
+                track_block_model.update();
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
+                trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
+                if (contributingLights.size() > 0) {
+                    trackShader.loadLights(contributingLights);
+                } else {
+                    trackShader.loadLights(camlights);
+                }
+                trackShader.bindTrackTextures(track_block_model, track->texture_gl_mappings);
+                trackShader.setClassic(userParams.use_classic_graphics);
+                track_block_model.render();
+            }
+            // TODO: Render Lanes with a simpler shader set
+            for (auto &track_block_model : active_track_Block.lanes) {
                 track_block_model.update();
                 trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, track_block_model.ModelMatrix);
                 trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
@@ -113,10 +129,11 @@ void Renderer::Render() {
         trackShader.use();
         for (auto &global_object : track->global_objects) {
             if (track->tag == NFS_3) {
+                // TODO (MUSTFIX): This crashes in debug mode
                 COLFILE col =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
                 if(col.object[global_object.id].type == 3){
                     if(animMap[global_object.id] < col.object[global_object.id].animLength){
-                        global_object.position =glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3((col.object[global_object.id].animData[animMap[global_object.id]].pt.x / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.y / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.z / 65536.0) / 10);
+                        global_object.position = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3((col.object[global_object.id].animData[animMap[global_object.id]].pt.x / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.y / 65536.0) / 10, ( col.object[global_object.id].animData[animMap[global_object.id]].pt.z / 65536.0) / 10);
                         global_object.orientation = glm::normalize(glm::quat(col.object[global_object.id].animData[animMap[global_object.id]].od1, col.object[global_object.id].animData[animMap[global_object.id]].od2, col.object[global_object.id].animData[animMap[global_object.id]].od3, col.object[global_object.id].animData[animMap[global_object.id]].od4));
                         animMap[global_object.id]++;
                     } else {
@@ -134,6 +151,7 @@ void Renderer::Render() {
         }
         trackShader.unbind();
 
+        SetCulling(true);
         // Render the Car
         carShader.use();
         for (auto &car_model : car->car_models) {
@@ -145,7 +163,7 @@ void Renderer::Render() {
             car_model.render();
         }
         carShader.unbind();
-
+        SetCulling(false);
 
         for (auto &track_block_id : activeTrackBlockIDs) {
             billboardShader.use();
@@ -181,7 +199,7 @@ void Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix)
         if (RayCallback.hasHit()) {
             std::ostringstream oss;
             // This callback is only going to work on the Car, which sucks ass
-            //oss << "mesh " << static_cast<Car*>(RayCallback.m_collisionObject->getUserPointer());
+            oss << "Clicked: " << static_cast<BulletPtr*>(RayCallback.m_collisionObject->getUserPointer())->engineID;
             std::cout << oss.str() << std::endl;
         } else {
 
@@ -414,9 +432,7 @@ void Renderer::NewFrame(bool &window_active) {
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-    window_active = window_active ? window_active : (
-            (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
-            (!ImGui::GetIO().WantCaptureMouse));
+    window_active = window_active ? window_active : ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse));
     if (!window_active) {
         ImGui::GetIO().MouseDrawCursor = false;
     }

@@ -37,7 +37,7 @@ public:
         /*------ ASSET LOAD ------*/
         initDirectories();
         //Load Track Data`
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk005/tr05");
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk006/tr06");
         //Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar("../resources/NFS3/gamedata/carmodel/diab");
 
@@ -102,7 +102,7 @@ private:
         glDepthFunc(GL_LESS);
 
         // Cull triangles which normal is not towards the camera (when culling is enabled)
-        glFrontFace(GL_CW);
+        glFrontFace(GL_CCW);
         glEnable(GL_BACK);
         //glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);

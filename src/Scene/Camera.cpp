@@ -75,6 +75,7 @@ void Camera::move() {
     float horizontalDistance = calculateHorizontalDistance();
     float verticalDistance = calculateVerticalDistance();
     calculateCameraPosition(horizontalDistance, verticalDistance);
+    yaw = 180 - (target_car->car_models[0].orientation.y + angleAroundPlayer);
 }
 
 void Camera::calculateZoom() {
@@ -171,7 +172,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
         }
     }
 
-    //move();
+    move();
 
     float FoV = initialFoV;
 
@@ -186,6 +187,12 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
 
     // For the next frame, the "last time" will be "now"
     lastTime = currentTime;
+
+   /* ViewMatrix = glm::mat4();
+    ViewMatrix = glm::rotate(ViewMatrix, (pitch * SIMD_PI/180), glm::vec3(1,0,0));
+    ViewMatrix = glm::rotate(ViewMatrix, (yaw * SIMD_PI/180), glm::vec3(0,1,0));
+    glm::vec3 negativeCameraPos(-position);
+    ViewMatrix = glm::translate(ViewMatrix, negativeCameraPos);*/
 }
 
 Camera::Camera() {}

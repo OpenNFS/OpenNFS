@@ -70,7 +70,7 @@ void Physics::initSimulation() {
     solver = new btSequentialImpulseConstraintSolver;
     // The world.
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, -9.81, 0));
+    dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
     dynamicsWorld->setDebugDrawer(&mydebugdrawer);
 }
 
@@ -86,9 +86,11 @@ void Physics::cleanSimulation() {
     for(auto &car : cars){
         //dynamicsWorld->removeRigidBody(car->);
     }
-    dynamicsWorld->removeRigidBody(groundRigidBody);
-    delete groundRigidBody->getMotionState();
-    delete groundRigidBody;
+    for (auto &track_block : current_track->track_blocks) {
+        dynamicsWorld->removeRigidBody(track_block.trackRigidBody);
+        delete track_block.trackRigidBody->getMotionState();
+        delete track_block.trackRigidBody;
+    }
     delete dynamicsWorld;
     delete solver;
     delete dispatcher;
@@ -96,25 +98,13 @@ void Physics::cleanSimulation() {
     delete broadphase;
 }
 
-void Physics::registerTrack(const std::vector<TrackBlock> &track_blocks){
+void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track){
+    current_track = track;
     // TODO: Use passable flags (flags&0x80), refactor track block into nice data structure. One superset
-    for (auto &track_block : track_blocks) {
-        for (auto &track_block_model : track_block.track) {
-            for(int i = 0; i < track_block_model.m_vertices.size()-2; i+=3){
-                glm::vec3 triangle = glm::vec3(track_block_model.m_vertices[i].x, track_block_model.m_vertices[i].y, track_block_model.m_vertices[i].z);
-                glm::vec3 triangle1= glm::vec3(track_block_model.m_vertices[i+1].x, track_block_model.m_vertices[i+1].y, track_block_model.m_vertices[i+1].z);
-                glm::vec3 triangle2= glm::vec3(track_block_model.m_vertices[i+2].x, track_block_model.m_vertices[i+2].y, track_block_model.m_vertices[i+2].z);
-                trackMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
-            }
-        }
+    for (auto &track_block : track->track_blocks) {
+        track_block.generatePhysicsMesh();
+        dynamicsWorld->addRigidBody(track_block.trackRigidBody);
     }
-    btCollisionShape* trackShape = new btBvhTriangleMeshShape(&trackMesh, true, true);
-    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0,0,0)));
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, trackShape, btVector3(0, 0, 0));
-    groundRigidBody = new btRigidBody(groundRigidBodyCI);
-    groundRigidBody->setFriction(btScalar(1.f));
-    groundRigidBody->setUserPointer(track_blocks[0].val);
-    dynamicsWorld->addRigidBody(groundRigidBody);
 }
 
 void Physics::registerVehicle(std::shared_ptr<Car> car) {

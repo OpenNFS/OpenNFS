@@ -37,7 +37,7 @@ struct ParamData {
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *gl_window, shared_ptr<ONFSTrack> current_track, shared_ptr<Car> current_car);
+    Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
     ~Renderer();
     void Render();
 private:

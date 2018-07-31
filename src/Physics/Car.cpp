@@ -8,6 +8,7 @@
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
     tag = nfs_version;
     name = car_name;
+    engineID = name;
 
     // Load these from Carp.txt
     gEngineForce = 0.f;
@@ -62,20 +63,16 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass,vehicleMotionState,compound,localInertia);
     m_carChassis = new btRigidBody(cInfo);
     m_carChassis->setUserPointer(this);
-    //m_carChassis->setDamping(0.2,0.2);
+    m_carChassis->setDamping(0.2,0.2);
 
     m_carChassis -> setLinearVelocity(btVector3(0,0,0));
     m_carChassis -> setAngularVelocity(btVector3(0,0,0));
 }
 
 void Car::setPosition(glm::vec3 position){
-    btTransform currentTrans;
-    vehicleMotionState->getWorldTransform(currentTrans);
-
     btTransform initialTransform;
     initialTransform.setOrigin(Utils::glmToBullet(position));
-    initialTransform.setRotation(currentTrans.getRotation());
-
+    initialTransform.setRotation(btQuaternion(0,0,0,1));
     m_carChassis->setWorldTransform(initialTransform);
     update();
 }
@@ -176,6 +173,7 @@ void Car::toggleReverse()
 void Car::resetCar(glm::vec3 reset_position)
 {
     setPosition(reset_position);
+    isReverse = false;
     if (m_vehicle)
     {
         m_vehicle -> resetSuspension();

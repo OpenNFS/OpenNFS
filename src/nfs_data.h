@@ -12,10 +12,6 @@
 #include <vector>
 #include "Scene/TrackBlock.h"
 
-enum NFSVer {
-    UNKNOWN, NFS_1, NFS_2, NFS_2_PS1, NFS_2_SE, NFS_3, NFS_3_PS1, NFS_4, NFS_5
-};
-
 // ---- NFS2/3 GL Structures -----
 class Texture {
 public:

@@ -4,25 +4,29 @@
 
 #pragma once
 
+#include <GL/glew.h>
+#include <glm/detail/type_mat.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/detail/type_mat4x4.hpp>
 #include <glm/vec3.hpp>
-#include <BulletCollision/CollisionShapes/btBoxShape.h>
-#include <vector>
+
 #include <btBulletDynamicsCommon.h>
-#include "../Scene/TrackBlock.h"
+#include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <BulletCollision/BroadphaseCollision/btBroadphaseInterface.h>
 #include <BulletCollision/BroadphaseCollision/btDbvtBroadphase.h>
 #include <BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h>
 #include <BulletCollision/CollisionDispatch/btCollisionDispatcher.h>
 #include <BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#include <GL/glew.h>
-#include <glm/detail/type_mat.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/detail/type_mat4x4.hpp>
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
+
+#include <vector>
+
 #include "../Util/Utils.h"
+#include "../Scene/TrackBlock.h"
+#include "../Loaders/trk_loader.h"
 #include "Car.h"
 
 class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw {
@@ -76,11 +80,12 @@ public:
     void cleanSimulation();
     btDynamicsWorld* getDynamicsWorld() { return dynamicsWorld; }
     void registerVehicle(std::shared_ptr<Car> car);
-    void registerTrack(const std::vector<TrackBlock> &track_blocks);
+    void registerTrack(const std::shared_ptr<ONFSTrack> &track);
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
 
 private:
+    shared_ptr<ONFSTrack> current_track;
     std::vector<std::shared_ptr<Car>> cars;
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase;
@@ -88,6 +93,4 @@ private:
     btCollisionDispatcher *dispatcher;
     btSequentialImpulseConstraintSolver *solver;
     btDiscreteDynamicsWorld *dynamicsWorld;
-    btRigidBody* groundRigidBody;
-    btTriangleMesh trackMesh;
 };
