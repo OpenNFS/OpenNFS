@@ -10,19 +10,16 @@
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <boost/variant.hpp>
+
+#include "../Util/Utils.h"
 #include "Light.h"
 #include "Sound.h"
 #include "Track.h"
 
-enum NFSVer {
-    UNKNOWN, NFS_1, NFS_2, NFS_2_PS1, NFS_2_SE, NFS_3, NFS_3_PS1, NFS_4, NFS_5
-};
-
-enum EntityType {
-    XOBJ, OBJ_POLY, LANE, SOUND, LIGHT, ROAD
-};
-
-typedef boost::variant<shared_ptr<Track>, shared_ptr<Light>, shared_ptr<Sound>> EngineModel;
+DEFINE_ENUM_WITH_STRING_CONVERSIONS(NFSVer, (UNKNOWN)(NFS_1)(NFS_2)(NFS_2_PS1)(NFS_2_SE)(NFS_3)(NFS_3_PS1)(NFS_4)(NFS_5));
+DEFINE_ENUM_WITH_STRING_CONVERSIONS(EntityType, (XOBJ)(OBJ_POLY)(LANE)(SOUND)(LIGHT)(ROAD)(GLOBAL))
+        
+typedef boost::variant<Track, Light, Sound> EngineModel;
 
 class Entity {
 public:
@@ -32,6 +29,7 @@ public:
     EntityType type;
     EngineModel glMesh;
     btRigidBody* rigidBody;
+    uint32_t parentTrackblockID, entityID;
 
     private:
     btTriangleMesh physicsMesh;

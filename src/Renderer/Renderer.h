@@ -65,9 +65,11 @@ private:
     // ------- Helper Functions ------
     void SetCulling(bool toCull);
     void DrawDebugCube(glm::vec3 position);
+    void DrawMetadata(Entity *targetEntity);
+    void DrawNFS3Metadata(Entity *targetEntity);
     void DrawMenuBar();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
     void NewFrame(bool &window_active);
     std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
-    void CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix);
+    Entity *CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted);
 };

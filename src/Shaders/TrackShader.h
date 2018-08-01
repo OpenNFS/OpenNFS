@@ -9,8 +9,6 @@
 #include "../Scene/Light.h"
 #include <glm/detail/type_mat.hpp>
 #include <glm/detail/type_mat4x4.hpp>
-#include <iostream>
-#include <memory>
 #include <map>
 
 #define MAX_LIGHTS 20
@@ -18,7 +16,7 @@
 class TrackShader : public BaseShader {
 public:
     TrackShader();
-    void bindTrackTextures(const shared_ptr<Track> &track_block, map<short, GLuint> gl_id_map);
+    void bindTrackTextures(const Track &track_block, map<short, GLuint> gl_id_map);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
     void loadSpecular(float damper, float reflectivity);
     void loadLights(std::vector<Light> lights);

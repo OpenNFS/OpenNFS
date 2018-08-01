@@ -35,7 +35,7 @@ private:
     static bool LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track);
     static void FreeCOL(const std::shared_ptr<TRACK> &track);
     static std::vector<TrackBlock> ParseTRKModels(const std::shared_ptr<TRACK> &track);
-    static std::vector<Track> ParseCOLModels(const std::shared_ptr<TRACK> &track);
+    static std::vector<Entity>  ParseCOLModels(const std::shared_ptr<TRACK> &track);
     static Texture LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name);
 };
 

@@ -1032,9 +1032,9 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                current_track_block.objects.emplace_back(Entity(superBlock_Idx,  trkBlock.header->blockSerial *structure_Idx, NFS_2, XOBJ, std::shared_ptr<Track>(new Track(verts, norms,
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx,  trkBlock.header->blockSerial *structure_Idx, NFS_2, XOBJ, Track(verts, norms,
                                                                                                                                               uvs, texture_indices, vertex_indices, texture_ids, shading_verts,
-                                                                                                                                              trk_block_center))));
+                                                                                                                                              trk_block_center)));
             }
 
             // Keep track of unique textures in trackblock for later OpenGL bind
@@ -1109,11 +1109,11 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
             }
             // Get ordered list of unique texture id's present in block
             std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, std::shared_ptr<Track>(new  Track(verts, uvs, texture_indices,
+            current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, uvs, texture_indices,
                                                                                                                                                          vertex_indices,
                                                                                                                                                          texture_ids,
                                                                                                                                                          trk_block_shading_verts,
-                                                                                                                                                         trk_block_center))));
+                                                                                                                                                         trk_block_center)));
 
             track->track_blocks.emplace_back(current_track_block);
         }

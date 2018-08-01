@@ -14,6 +14,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <boost/filesystem/path.hpp>
+#include <boost/preprocessor.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <GL/glew.h>
 #include <vector>
@@ -85,6 +86,27 @@ typedef struct tagBITMAPINFO {
     } while (false)
 
 #define nyop "nop"
+
+#define X_DEFINE_ENUM_WITH_STRING_CONVERSIONS_TOSTRING_CASE(r, data, elem)    \
+    case elem : return BOOST_PP_STRINGIZE(elem);
+
+#define DEFINE_ENUM_WITH_STRING_CONVERSIONS(name, enumerators)                \
+    enum name {                                                               \
+        BOOST_PP_SEQ_ENUM(enumerators)                                        \
+    };                                                                        \
+                                                                              \
+    inline const char* ToString(name v)                                       \
+    {                                                                         \
+        switch (v)                                                            \
+        {                                                                     \
+            BOOST_PP_SEQ_FOR_EACH(                                            \
+                X_DEFINE_ENUM_WITH_STRING_CONVERSIONS_TOSTRING_CASE,          \
+                name,                                                         \
+                enumerators                                                   \
+            )                                                                 \
+            default: return "[Unknown " BOOST_PP_STRINGIZE(name) "]";         \
+        }                                                                     \
+    }
 
 namespace Utils {
     glm::vec3 bulletToGlm(const btVector3 &v);

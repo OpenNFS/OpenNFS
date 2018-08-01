@@ -18,7 +18,7 @@ public:
     void render() override;
     bool genBuffers()override;
 
-    glm::vec3 attenuation = glm::vec3(2.0f, 0.0f, 0.0f);
+    glm::vec3 attenuation = glm::vec3(2.0f, 0.0f, 0.1f);
     glm::vec3 position{};
     glm::vec4 colour;
     long type;
@@ -26,7 +26,6 @@ public:
     // NFS3 and 4 light data stored in TR.ini [track glows]
     int unknown1, unknown2, unknown3;
     float unknown4;
-
 private:
     GLuint vertexbuffer;
     GLuint uvbuffer;

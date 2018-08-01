@@ -4,6 +4,7 @@
 
 
 #include "Light.h"
+#include "../Util/Utils.h"
 
 
 Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, int unknown_1, int unknown_2, int unknown_3, float unknown_4): super("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
@@ -38,8 +39,7 @@ Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, i
     unknown4 = unknown_4;
 
     enable();
-    genBuffers();
-    //ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
 }
 
 

@@ -291,7 +291,7 @@ namespace NFS3_4_DATA {
         COLFILE col;
         // GL 3D Render Data
         std::vector<TrackBlock> track_blocks;
-        std::vector<Track> global_objects;
+        std::vector<Entity> global_objects;
         std::map<short, Texture> textures;
         std::map<short, GLuint> texture_gl_mappings;
     };
