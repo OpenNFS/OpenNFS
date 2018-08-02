@@ -11,7 +11,6 @@
 #include "Sound.h"
 #include "Entity.h"
 
-
 class TrackBlock  {
 public:
     TrackBlock(int blockID, glm::vec3 center_pos);

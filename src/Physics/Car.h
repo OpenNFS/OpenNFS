@@ -14,7 +14,7 @@
 
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
-#include "../nfs_data.h"
+#include "../Enums.h"
 
 class Car {
 public:
@@ -55,12 +55,6 @@ public:
     btVehicleRaycaster* m_vehicleRayCaster;     // Wheel simulation
     btRaycastVehicle* m_vehicle;
 
-private:
-    // Base Physics objects for car
-    btDefaultMotionState* vehicleMotionState;   // Retrieving vehicle location in world
-    btRigidBody* m_carChassis;
-    btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
-
     // Vehicle Properties
     float	gVehicleSteering;
     float	steeringIncrement;   // Steering speed
@@ -82,6 +76,12 @@ private:
     float	wheelFriction;
     // Shifts CoM
     float	rollInfluence;
+private:
+    // Base Physics objects for car
+    btDefaultMotionState* vehicleMotionState;   // Retrieving vehicle location in world
+    btRigidBody* m_carChassis;
+    btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
+
     // Steering state
     bool steerRight;
     bool steerLeft;

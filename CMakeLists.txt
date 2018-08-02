@@ -50,7 +50,7 @@ set(SOURCE_FILES
         tools/fshtool.c
         tools/fshtool.h
         src/Scene/CarModel.cpp src/Scene/CarModel.h src/Scene/Track.cpp src/Scene/Track.h src/Shaders/BillboardShader.cpp src/Shaders/BillboardShader.h src/Physics/Car.cpp src/Physics/Car.h
-        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs2_loader.h src/Loaders/nfs3_loader.cpp src/Loaders/nfs3_loader.h src/Loaders/trk_loader.cpp src/Loaders/trk_loader.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs4_loader.cpp src/Loaders/nfs4_loader.h src/Renderer/Renderer.cpp src/Renderer/Renderer.h src/Loaders/track_utils.cpp src/Loaders/track_utils.h src/Loaders/car_loader.cpp src/Loaders/car_loader.h src/Renderer/HermiteCurve.cpp src/Renderer/HermiteCurve.h src/Scene/Sound.cpp src/Scene/Sound.h src/Scene/Entity.cpp src/Scene/Entity.h)
+        src/Loaders/music_loader.cpp src/Loaders/music_loader.h src/Config.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs2_loader.h src/Loaders/nfs3_loader.cpp src/Loaders/nfs3_loader.h src/Loaders/trk_loader.cpp src/Loaders/trk_loader.h src/Loaders/nfs2_loader.cpp src/Loaders/nfs4_loader.cpp src/Loaders/nfs4_loader.h src/Renderer/Renderer.cpp src/Renderer/Renderer.h src/Loaders/track_utils.cpp src/Loaders/track_utils.h src/Loaders/car_loader.cpp src/Loaders/car_loader.h src/Renderer/HermiteCurve.cpp src/Renderer/HermiteCurve.h src/Scene/Sound.cpp src/Scene/Sound.h src/Scene/Entity.cpp src/Scene/Entity.h src/Enums.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

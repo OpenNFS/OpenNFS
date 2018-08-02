@@ -19,7 +19,6 @@ void Entity::genPhysicsMesh(){
         std::vector<glm::vec3> vertices = boost::get<Light>(glMesh).m_vertices;
         glm::vec3 lightPosition =  boost::get<Light>(glMesh).position;
         float lightBoundScaleF = 10.f;
-        // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
         for(int i = 0; i < vertices.size()-2; i+=3){
             glm::vec3 triangle = glm::vec3((   vertices[i].x/lightBoundScaleF) + lightPosition.x, (  vertices[i].y/lightBoundScaleF) + lightPosition.y,(  vertices[i].z/lightBoundScaleF) + lightPosition.z);
             glm::vec3 triangle1= glm::vec3((vertices[i+1].x /lightBoundScaleF) + lightPosition.x, (vertices[i+1].y/lightBoundScaleF) + lightPosition.y,(vertices[i+1].z/lightBoundScaleF) + lightPosition.z);

@@ -21,8 +21,6 @@ private:
     float mouseSpeed = 0.005f;
     GLFWwindow* window;
     bool hasSpline = false;
-
-    shared_ptr<Car> target_car;
 public:
     Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window);
     Camera();
@@ -31,40 +29,37 @@ public:
     void generateSpline(std::vector<TrackBlock> trackBlocks);
     void useSpline();
     void computeMatricesFromInputs(bool &window_active, ImGuiIO& io);
+    void followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io);
+
     glm::mat4 ViewMatrix;
     glm::mat4 ProjectionMatrix;
+    glm::vec3 initialPosition;
+    float deltaTime;
 
-    bool carAttached = false;
-
+    // Car Camera
     glm::vec3 position;
-    float distanceFromPlayer = 1;
-    float angleAroundPlayer = 0;
+    float distanceFromCar = 1;
+    float angleAroundCar = 0;
     float pitch = 20;
     float yaw = 0;
     float roll;
 
-
-    glm::vec3 initialPosition;
+    // Free look
     // Initial horizontal angle : toward -Z
     float horizontalAngle;
     // Initial vertical angle : none
     float verticalAngle;
-    float deltaTime;
+
     // Cam Spline
     HermiteCurve cameraSpline;
     float totalTime = 1;
     int loopTime;
 
-    void attachCar(shared_ptr<Car> car);
-    void move();
     void calculateZoom();
     void calculatePitch();
-    void calculateAngleAroundPlayer();
-
+    void calculateAngleAroundCar();
     float calculateHorizontalDistance();
-
     float calculateVerticalDistance();
-
-    void calculateCameraPosition(float horizDistance, float vertDistance);
+    void calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance);
 };
 

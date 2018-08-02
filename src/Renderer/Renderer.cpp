@@ -37,8 +37,6 @@ void Renderer::Render() {
     std::vector<Light> camlights;
     camlights.push_back(cameraLight);
 
-    mainCamera.attachCar(car);
-
     // Map of COL animated object to anim keyframe
     std::map<int, int> animMap;
 
@@ -55,8 +53,13 @@ void Renderer::Render() {
             mainCamera.useSpline();
         }
 
-        // Compute the MVP matrix from keyboard and mouse input
-        mainCamera.computeMatricesFromInputs(userParams.window_active, ImGui::GetIO());
+        if(userParams.attach_cam_to_car){
+            // Compute MVP from keyboard and mouse, centered around a target car
+            mainCamera.followCar(car, userParams.window_active, ImGui::GetIO());
+        } else {
+            // Compute the MVP matrix from keyboard and mouse input
+            mainCamera.computeMatricesFromInputs(userParams.window_active, ImGui::GetIO());
+        }
 
         glm::mat4 ProjectionMatrix = mainCamera.ProjectionMatrix;
         glm::mat4 ViewMatrix = mainCamera.ViewMatrix;
@@ -136,7 +139,6 @@ void Renderer::Render() {
         trackShader.use();
         for (auto &global_object : track->global_objects) {
             if (track->tag == NFS_3) {
-                // TODO (MUSTFIX): This crashes in debug mode
                 COLFILE col =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
                 if(col.object[global_object.entityID].type == 3){
                     if(animMap[global_object.entityID] < col.object[global_object.entityID].animLength){
@@ -184,7 +186,7 @@ void Renderer::Render() {
             billboardShader.unbind();
         }
 
-        if (ImGui::GetIO().MouseReleased[0]) {
+        if (ImGui::GetIO().MouseReleased[0] & userParams.window_active) {
             targetedEntity = CheckForPicking(ViewMatrix, ProjectionMatrix, &entity_targeted);
         }
 
@@ -251,6 +253,12 @@ void Renderer::DrawNFS3Metadata(Entity *targetEntity){
             break;
         case EntityType::SOUND:
             break;
+        case EntityType::CAR:
+            Car *car = &boost::get<Car>(targetEntity->glMesh);
+            ImGui::Text("%s", car->name.c_str());
+            ImGui::SliderFloat("Max Engine Force", &car->maxEngineForce, 0, 10000.0f);
+            ImGui::SliderFloat("Max Engine Force", &car->gEngineForce, 0, 10000.0f);
+            break;
     }
 }
 
@@ -258,8 +266,13 @@ void Renderer::DrawMetadata(Entity *targetEntity){
     ImGui::Begin("Engine Entity");
     ImGui::Text("%s", ToString(targetEntity->tag));
     ImGui::Text("%s", ToString(targetEntity->type));
-    ImGui::Text("TrkBlk: %d",targetEntity->parentTrackblockID);
-    ImGui::Text("ID: %d",targetEntity->entityID);
+    // Only display these if they're relevant
+    if(targetEntity->parentTrackblockID != -1){
+        ImGui::Text("TrkBlk: %d",targetEntity->parentTrackblockID);
+    }
+    if(targetEntity->entityID != -1){
+        ImGui::Text("ID: %d",targetEntity->entityID);
+    }
     ImGui::Separator();
 
     // Traverse the loader structures and print pretty with IMGUI
@@ -313,6 +326,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition){
     ImGui::Checkbox("Bullet Debug View", &preferences->physics_debug_view);
     ImGui::Checkbox("Classic Graphics", &preferences->use_classic_graphics);
     ImGui::Checkbox("Hermite Curve Cam", &preferences->attach_cam_to_hermite);
+    ImGui::Checkbox("Car Cam", &preferences->attach_cam_to_car);
     std::stringstream world_position_string;
     world_position_string << "X " << std::to_string(worldPosition.x) << " Y " << std::to_string(worldPosition.y)
                           << " Z " << std::to_string(worldPosition.z) << " H: "
@@ -386,7 +400,6 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition){
         }
         ImGui::TreePop();
     }
-
 
     // Rendering
     int display_w, display_h;

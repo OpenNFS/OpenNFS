@@ -28,6 +28,7 @@ struct ParamData {
     float carSpecReflectivity = 1;
     float carSpecDamper = 10;
     float trackSpecReflectivity = 1;
+
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;
     bool window_active = true;
@@ -35,6 +36,7 @@ struct ParamData {
     bool use_classic_graphics = true;
     bool attach_cam_to_hermite = false;
     bool use_nb_data = true;
+    bool attach_cam_to_car = false;
 };
 
 class Renderer {

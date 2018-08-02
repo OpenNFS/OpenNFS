@@ -101,7 +101,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
 // TRACK
 std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     std::cout << "--- Loading NFS3 Track ---" << std::endl;
-    std::shared_ptr<TRACK> track(new TRACK());
+    auto track = make_shared<TRACK>(TRACK());
 
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
@@ -116,10 +116,8 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
 
     ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3),
            "Could not extract " << track_name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track_name, track),
-           "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
-            << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
 
     track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
     track->track_blocks = ParseTRKModels(track);

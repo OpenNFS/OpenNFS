@@ -11,6 +11,8 @@ Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, fl
     initialFoV = FoV;
     horizontalAngle = horizontal_angle;
     verticalAngle = vertical_angle;
+    // Projection matrix : 45deg Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    ProjectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, 0.1f, 1000.0f);
 }
 
 void Camera::resetView() {
@@ -53,34 +55,18 @@ void Camera::useSpline() {
     position = cameraSpline.getPointAt(tmod);
 }
 
-void Camera::attachCar(shared_ptr<Car> car) {
-    carAttached = true;
-    target_car = car;
-}
-
-void Camera::calculateCameraPosition(float horizDistance, float vertDistance) {
-    glm::vec3 euler = glm::eulerAngles(target_car->car_models[0].orientation);
-    float theta =  euler.y + angleAroundPlayer;
+void Camera::calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
+    float theta =  glm::eulerAngles(target_car->car_models[0].orientation).y + angleAroundCar;
     float offsetX = horizDistance * sin(theta * (SIMD_PI / 180.0f));
     float offsetZ = horizDistance * cos(theta * (SIMD_PI / 180.0f));
-    position.x = target_car->car_models[0].position.x + offsetX;
-    position.z = target_car->car_models[0].position.z + offsetZ;
+    position.x = target_car->car_models[0].position.x - offsetX;
+    position.z = target_car->car_models[0].position.z - offsetZ;
     position.y = target_car->car_models[0].position.y + vertDistance;
-}
-
-void Camera::move() {
-    calculateZoom();
-    calculatePitch();
-    calculateAngleAroundPlayer();
-    float horizontalDistance = calculateHorizontalDistance();
-    float verticalDistance = calculateVerticalDistance();
-    calculateCameraPosition(horizontalDistance, verticalDistance);
-    yaw = 180 - (target_car->car_models[0].orientation.y + angleAroundPlayer);
 }
 
 void Camera::calculateZoom() {
     float zoomLevel = ImGui::GetIO().MouseWheel * 0.1f;
-    distanceFromPlayer -= zoomLevel;
+    distanceFromCar -= zoomLevel;
 }
 
 void Camera::calculatePitch() {
@@ -90,19 +76,52 @@ void Camera::calculatePitch() {
     }
 }
 
-void Camera::calculateAngleAroundPlayer() {
+void Camera::calculateAngleAroundCar() {
     if (ImGui::GetIO().MouseDown[0]) {
         float angleChange = ImGui::GetIO().MouseDelta.x * 0.3f;
-        angleAroundPlayer -= angleChange;
+        angleAroundCar -= angleChange;
     }
 }
 
 float Camera::calculateVerticalDistance() {
-    return distanceFromPlayer * sin(pitch * (SIMD_PI / 180.0f));
+    return distanceFromCar * sin(pitch * (SIMD_PI / 180.0f));
 }
 
 float Camera::calculateHorizontalDistance() {
-    return distanceFromPlayer * cos(pitch * (SIMD_PI / 180));
+    return distanceFromCar * cos(pitch * (SIMD_PI / 180));
+}
+
+void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io){
+    if (!window_active)
+        return;
+    // Bail on the window active status if we hit the escape key
+    window_active = (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
+    io.MouseDrawCursor = true;
+
+    // glfwGetTime is called only once, the first time this function is called
+    static double lastTime = glfwGetTime();
+
+    // Compute time difference between current and last frame
+    double currentTime = glfwGetTime();
+    deltaTime = float(currentTime - lastTime);
+
+    // Blessed be ThinMatrix
+    calculateZoom();
+    calculatePitch();
+    calculateAngleAroundCar();
+    float horizontalDistance = calculateHorizontalDistance();
+    float verticalDistance = calculateVerticalDistance();
+    calculateCameraPosition(target_car, horizontalDistance, verticalDistance);
+    yaw = 180 - (glm::eulerAngles(target_car->car_models[0].orientation).y * (SIMD_PI/180) + angleAroundCar);
+
+    ViewMatrix = glm::mat4(1.0f);
+    ViewMatrix = glm::rotate(ViewMatrix, pitch * SIMD_PI/180, glm::vec3(1,0,0));
+    ViewMatrix = glm::rotate(ViewMatrix, yaw * SIMD_PI/180, glm::vec3(0,1,0));
+    glm::vec3 negativeCameraPos(-position);
+    ViewMatrix = glm::translate(ViewMatrix, negativeCameraPos);
+
+    // For the next frame, the "last time" will be "now"
+    lastTime = currentTime;
 }
 
 void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
@@ -172,12 +191,6 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
         }
     }
 
-   // move();
-
-    float FoV = initialFoV;
-
-    // Projection matrix : 45deg Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    ProjectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, 0.1f, 1000.0f);
     // Camera matrix
     ViewMatrix = glm::lookAt(
             position,           // Camera is here
@@ -187,12 +200,6 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
 
     // For the next frame, the "last time" will be "now"
     lastTime = currentTime;
-
-   /* ViewMatrix = glm::mat4();
-    ViewMatrix = glm::rotate(ViewMatrix, (pitch * SIMD_PI/180), glm::vec3(1,0,0));
-    ViewMatrix = glm::rotate(ViewMatrix, (yaw * SIMD_PI/180), glm::vec3(0,1,0));
-    glm::vec3 negativeCameraPos(-position);
-    ViewMatrix = glm::translate(ViewMatrix, negativeCameraPos);*/
 }
 
 Camera::Camera() {}

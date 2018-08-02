@@ -4,6 +4,7 @@
 
 
 #include "Car.h"
+#include "../Scene/Entity.h"
 
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
     tag = nfs_version;
@@ -12,13 +13,13 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
-    maxEngineForce = 2000.f;
+    maxEngineForce = 4000.f;
     maxBreakingForce = 1000.f;
     suspensionRestLength = btScalar(0.064);
     suspensionStiffness = 500.f;
     suspensionDamping = 200.f;
     suspensionCompression = 200.4f;
-    wheelFriction = 10000;
+    wheelFriction = 100000;
     rollInfluence = 0.04f;
     gVehicleSteering = 0.f;
     steeringIncrement = 0.01f;
@@ -50,7 +51,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     localTrans.setOrigin(btVector3(0.0,0.0,0));
     compound->addChildShape(localTrans,chassisShape);
 
-    float mass = 1000.0f;
+    float mass = 1500.0f;
     btVector3 localInertia(0,0,0);
     compound->calculateLocalInertia(mass,localInertia);
 
@@ -61,9 +62,9 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     ));
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass,vehicleMotionState,compound,localInertia);
     m_carChassis = new btRigidBody(cInfo);
-    m_carChassis->setUserPointer(this);
+    // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
+    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, *this));
     m_carChassis->setDamping(0.2,0.2);
-
     m_carChassis -> setLinearVelocity(btVector3(0,0,0));
     m_carChassis -> setAngularVelocity(btVector3(0,0,0));
 }
