@@ -33,11 +33,10 @@ public:
     btVehicleRaycaster* getRaycaster() { return m_vehicleRayCaster; }
     btRaycastVehicle*	getRaycast() { return m_vehicle; }
 
-    void applyAccelerationForce(bool apply);
+    void applyAccelerationForce(bool accelerate, bool reverse);
     void applyBrakingForce(bool apply);
     void applySteeringRight(bool apply);
     void applySteeringLeft(bool apply);
-    void toggleReverse();
 
     float getWheelRadius() { return wheelRadius; }
     float getWheelWidth() { return wheelWidth; }
@@ -47,6 +46,8 @@ public:
     float getSuspensionCompression() { return suspensionCompression; }
     float getWheelFriction() { return wheelFriction; }
     float getRollInfluence() { return rollInfluence; }
+
+    double getRotY();
 
     // Meshes
     std::vector<CarModel> car_models;
@@ -86,5 +87,4 @@ private:
     bool steerRight;
     bool steerLeft;
     bool isSteering;
-    bool isReverse;
 };

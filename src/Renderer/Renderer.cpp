@@ -30,6 +30,8 @@ Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_t
 void Renderer::Render() {
     ParamData userParams;
 
+    Light sun = Light(glm::vec3(10000, 150000, -10000), glm::vec4(255, 255, 255, 255), 0, 0,0,0,0);
+
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
 
@@ -68,12 +70,19 @@ void Renderer::Render() {
 
         //TODO: Refactor to controller class? AND USE SDL
         if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
-            car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
-            car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
+            car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+            car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
             car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
             car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
-            if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-                car->toggleReverse();
+        }
+
+        if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
+            // Go and find the Vroad Data to reset to
+            if (track->tag == NFS_3) {
+                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x / 10, track->track_blocks[closestBlockID].center.y / 10, track->track_blocks[closestBlockID].center.z / 10));
+                /*if (boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].nVRoad){
+                    boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
+                }*/
             }
         }
 
@@ -166,7 +175,7 @@ void Renderer::Render() {
         for (auto &car_model : car->car_models) {
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car_model.ModelMatrix);
             carShader.loadSpecular(car_model.specularDamper, car_model.specularReflectivity, car_model.envReflectivity);
-            carShader.loadCarColor(car_model.envReflectivity > 0.4 ? glm::vec3(userParams.car_color.x, userParams.car_color.y, userParams.car_color.z) : glm::vec3(1, 1, 1));
+            carShader.loadCarColor(glm::vec3(1, 1, 1));
             carShader.loadLight(cameraLight);
             carShader.loadCarTexture();
             car_model.render();
@@ -254,10 +263,51 @@ void Renderer::DrawNFS3Metadata(Entity *targetEntity){
         case EntityType::SOUND:
             break;
         case EntityType::CAR:
-            Car *car = &boost::get<Car>(targetEntity->glMesh);
-            ImGui::Text("%s", car->name.c_str());
-            ImGui::SliderFloat("Max Engine Force", &car->maxEngineForce, 0, 10000.0f);
-            ImGui::SliderFloat("Max Engine Force", &car->gEngineForce, 0, 10000.0f);
+            // TODO: Allow adjustment of shader parameters here as well, and car colour
+            Car *targetCar = boost::get<Car*>(targetEntity->glMesh);
+            ImGui::Text("%s", targetCar->name.c_str());
+            // Physics Parameters
+            ImGui::SliderFloat("Engine Force", &targetCar->gEngineForce, 0, 10000.0f);
+            ImGui::SliderFloat("Breaking Force", &targetCar->gBreakingForce, 0, 1000.0f);
+            ImGui::SliderFloat("Max Engine Force", &targetCar->maxEngineForce, 0, 10000.0f);
+            ImGui::SliderFloat("Max Breaking Force", &targetCar->maxBreakingForce, 0, 1000.0f);
+            ImGui::SliderFloat("Susp Rest.", &targetCar->suspensionRestLength, 0, 0.1f); // btScalar(0.030);
+            // TODO: When this is modified, the connection points of the wheels need changing
+            /*btVector3 connectionPointCS0(Utils::glmToBullet(car->car_models[2].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, true);
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[1].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, true);
+
+
+    // Fronties
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[4].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, false);
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->car_models[3].position));
+    car->getRaycast() -> addWheel(connectionPointCS0,wheelDirectionCS0,wheelAxleCS,sRestLength,wheelRadius,car -> m_tuning, false);*/
+            ImGui::SliderFloat("Susp Stiff.", &targetCar->suspensionStiffness, 0, 1000.f);
+            ImGui::SliderFloat("Susp Damp.", &targetCar->suspensionDamping, 0, 1000.f);
+            ImGui::SliderFloat("Susp Compr.", &targetCar->suspensionCompression, 0, 1000.f);
+            ImGui::SliderFloat("Friction.", &targetCar->wheelFriction, 0, 1000000);
+            ImGui::SliderFloat("Roll Infl.", &targetCar->rollInfluence, 0, 0.5);
+            ImGui::SliderFloat("Steer Incr.", &targetCar->steeringIncrement, 0, 0.1);
+            ImGui::SliderFloat("Steer Clamp", &targetCar->steeringClamp, 0, 0.5);
+            // Graphics Parameters
+            /*ImGui::ColorEdit3("Car Colour", (float *) &preferences->car_color);
+            ImGui::SliderFloat("Car Specular Damper", &preferences->carSpecDamper, 0, 100);
+            ImGui::SliderFloat("Car Specular Reflectivity", &preferences->carSpecReflectivity, 0, 10);*/
+            ImGui::Text("Roll (deg) x: %f y: %f z: %f",  glm::eulerAngles(targetCar->car_models[0].orientation).x * 180/SIMD_PI, glm::eulerAngles(targetCar->car_models[0].orientation).y * 180/SIMD_PI, glm::eulerAngles(targetCar->car_models[0].orientation).z * 180/SIMD_PI);
+
+            // TODO: Only do this on a change
+            for (int i = 0; i < car->getRaycast()->getNumWheels(); i++)
+            {
+                btWheelInfo& wheel = car -> getRaycast() -> getWheelInfo(i);
+                wheel.m_suspensionStiffness = car -> getSuspensionStiffness();
+                wheel.m_wheelsDampingRelaxation = car -> getSuspensionDamping();
+                wheel.m_wheelsDampingCompression = car -> getSuspensionCompression();
+                wheel.m_frictionSlip = car -> getWheelFriction();
+                wheel.m_rollInfluence = car -> getRollInfluence();
+            }
+
             break;
     }
 }
@@ -299,7 +349,7 @@ void Renderer::DrawMetadata(Entity *targetEntity){
             ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_4:
-            ASSERT(false, "Unimplemented");
+            //ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_5:
             ASSERT(false, "Unimplemented");
@@ -328,11 +378,8 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition){
     ImGui::Checkbox("Hermite Curve Cam", &preferences->attach_cam_to_hermite);
     ImGui::Checkbox("Car Cam", &preferences->attach_cam_to_car);
     std::stringstream world_position_string;
-    world_position_string << "X " << std::to_string(worldPosition.x) << " Y " << std::to_string(worldPosition.y)
-                          << " Z " << std::to_string(worldPosition.z) << " H: "
-                          << std::to_string(mainCamera.horizontalAngle) << " V: "
-                          << std::to_string(mainCamera.verticalAngle);
-    ImGui::Text(world_position_string.str().c_str());
+    ImGui::Text("X %f Y %f Z %f H: %f V: %f", worldPosition.x, worldPosition.y, worldPosition.z, mainCamera.horizontalAngle, mainCamera.verticalAngle);
+    ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", mainCamera.yaw, mainCamera.pitch, mainCamera.distanceFromCar, mainCamera.angleAroundCar);
     ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
 
     if (ImGui::Button("Reset View")) {
@@ -349,55 +396,13 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition){
     ImGui::NewLine();
     ImGui::ColorEdit3("Clear Colour", (float *) &preferences->clear_color); // Edit 3 floats representing a color
     ImGui::ColorEdit3("Testing Light Colour", (float *) &preferences->test_light_color);
-    ImGui::ColorEdit3("Car Colour", (float *) &preferences->car_color);
-    ImGui::SliderFloat("Car Specular Damper", &preferences->carSpecDamper, 0, 100);
-    ImGui::SliderFloat("Car Specular Reflectivity", &preferences->carSpecReflectivity, 0, 10);
     ImGui::SliderFloat("Track Specular Damper", &preferences->trackSpecDamper, 0, 100);
     ImGui::SliderFloat("Track Specular Reflectivity", &preferences->trackSpecReflectivity, 0, 10);
 
     if (ImGui::TreeNode("Car Models")) {
         for (auto &mesh : car->car_models) {
-            /*ImGui::Checkbox((mesh.m_name + std::to_string(mesh.id)).c_str(), &mesh.enabled);*/
-        }
-        ImGui::TreePop();
+            ImGui::Checkbox(mesh.m_name.c_str(), &mesh.enabled);
     }
-
-    if (ImGui::TreeNode("Track Blocks")) {
-        for (auto &track_block :  track->track_blocks) {
-            char label[32];
-            sprintf(label, "Track Block %d", track_block.block_id);
-
-            ImGui::PushID(label);
-            if (ImGui::TreeNode(label)) {
-                if (ImGui::TreeNode("Objects")) {
-                    for (auto &block_model : track_block.objects) {
-                        /*ImGui::PushID(block_model.id);
-                        if (ImGui::TreeNode(block_model.m_name.c_str())) {
-                            ImGui::Checkbox("Enabled", &block_model.enabled);
-                            ImGui::TreePop();
-                        }
-                        ImGui::PopID();*/
-                    }
-                    ImGui::TreePop();
-                }
-
-                if (ImGui::TreeNode("Lights")) {
-                    for (auto &block_light : track_block.lights) {
-                        /*char label[32];
-                        sprintf(label, "Light %s %d", block_light.m_name.c_str(), block_light.type);
-                        if (ImGui::TreeNode(label)) {
-                            ImGui::Checkbox("Enabled", &block_light.enabled);
-                            ImGui::Text("%f %f %f", block_light.position.x, block_light.position.y,
-                                        block_light.position.z);
-                            ImGui::TreePop();
-                        }*/
-                    }
-                    ImGui::TreePop();
-                }
-                ImGui::TreePop();
-            }
-            ImGui::PopID();
-        }
         ImGui::TreePop();
     }
 

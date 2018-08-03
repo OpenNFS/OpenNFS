@@ -1,8 +1,7 @@
 #include "Camera.h"
 
 #include <glm/gtx/quaternion.hpp>
-Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle,
-               GLFWwindow *gl_window) {
+Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window) {
     window = gl_window;
     // Initial position : on +Z
     position = initial_position;
@@ -56,7 +55,7 @@ void Camera::useSpline() {
 }
 
 void Camera::calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
-    float theta =  glm::eulerAngles(target_car->car_models[0].orientation).y + angleAroundCar;
+    float theta =  (target_car->getRotY() +  angleAroundCar) - 180;
     float offsetX = horizDistance * sin(theta * (SIMD_PI / 180.0f));
     float offsetZ = horizDistance * cos(theta * (SIMD_PI / 180.0f));
     position.x = target_car->car_models[0].position.x - offsetX;
@@ -112,7 +111,7 @@ void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, I
     float horizontalDistance = calculateHorizontalDistance();
     float verticalDistance = calculateVerticalDistance();
     calculateCameraPosition(target_car, horizontalDistance, verticalDistance);
-    yaw = 180 - (glm::eulerAngles(target_car->car_models[0].orientation).y * (SIMD_PI/180) + angleAroundCar);
+    yaw = 180 - ((target_car->getRotY() +  angleAroundCar)-180);
 
     ViewMatrix = glm::mat4(1.0f);
     ViewMatrix = glm::rotate(ViewMatrix, pitch * SIMD_PI/180, glm::vec3(1,0,0));

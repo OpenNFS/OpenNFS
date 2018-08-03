@@ -23,10 +23,7 @@
 
 struct ParamData {
     ImVec4 clear_color = ImVec4(119 / 255.0f, 197 / 255.0f, 252 / 255.0f, 1.0f);
-    ImVec4 car_color = ImVec4(247 / 255.0f, 203 / 255.0f, 32 / 255.0f, 1.0f);
     ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    float carSpecReflectivity = 1;
-    float carSpecDamper = 10;
     float trackSpecReflectivity = 1;
 
     float trackSpecDamper = 10;
@@ -36,7 +33,7 @@ struct ParamData {
     bool use_classic_graphics = true;
     bool attach_cam_to_hermite = false;
     bool use_nb_data = true;
-    bool attach_cam_to_car = false;
+    bool attach_cam_to_car = true;
 };
 
 class Renderer {

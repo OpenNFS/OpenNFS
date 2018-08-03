@@ -16,42 +16,21 @@ CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
 }
 
 void CarShader::LoadEnvMapTexture() {
-    int width, height;
-    unsigned char *data;
-    FILE *file;
     std::stringstream filename;
-    filename << "./assets/tracks/NFS3/tr03/sky_textures/" << "0010.BMP";
-    file = fopen(filename.str().c_str(), "rb");
-    if (file == nullptr) {
-        std::cout << "Couldn't open " << filename.str() << std::endl;
-        assert(file == nullptr);
-    }
+    filename << "./assets/tracks/NFS3/tr03/sky_textures/" << "0005.BMP";
 
-    width = 128;
-    height = 128;
+    int width, height;
+    GLubyte *data;
 
-    data = (unsigned char *) malloc(width * height * 3);
-    fseek(file, 54, SEEK_SET);
-    fread(data, width * height * 3, 1, file);
-    fclose(file);
-
-    for (int i = 0; i < width * height; ++i) {
-        int index = i * 3;
-        unsigned char B, R;
-        B = data[index];
-        R = data[index + 2];
-        data[index] = R;
-        data[index + 2] = B;
-    }
+    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, 0), "Environment map texture loading failed!");
 
     glGenTextures(1, &envMapTextureID);
     glBindTexture(GL_TEXTURE_2D, envMapTextureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, 128, 128, GL_RGB, GL_UNSIGNED_BYTE,
-                      data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 
 void CarShader::bindAttributes() {
@@ -88,8 +67,7 @@ void CarShader::load_tga_texture() {
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA,
-                 GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);

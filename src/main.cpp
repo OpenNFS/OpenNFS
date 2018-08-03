@@ -9,21 +9,14 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <imgui.h>
-#include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
-#include <set>
 /*#define GLFW_INCLUDE_VULKAN
 #include "vkRenderer.h"*/
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // Source
-#include "Util/Utils.h"
 #include "Loaders/trk_loader.h"
 #include "Loaders/car_loader.h"
 #include "Loaders/music_loader.h"
-#include "Physics/Physics.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
 
@@ -36,10 +29,11 @@ public:
         ASSERT(initOpenGL(), "OpenGL init failed.");
         /*------ ASSET LOAD ------*/
         initDirectories();
-        //Load Track Data`
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk006/tr06");
+        //Load Track Data
+        // "../resources/NFS2/GAMEDATA/TRACKS/PC/TR02"
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk003/tr03");
         //Load Car data from unpacked NFS files
-        std::shared_ptr<Car> car = CarLoader::LoadCar("../resources/NFS3/gamedata/carmodel/diab");
+        std::shared_ptr<Car> car = CarLoader::LoadCar("../resources/NFS3/gamedata/carmodel/merc");
 
         //Load Music
         //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
@@ -47,6 +41,15 @@ public:
         /*------- Render --------*/
         Renderer renderer(window, track, car);
         renderer.Render();
+
+        /*vkRenderer renderer;
+
+        try {
+            renderer.run();
+        } catch (const std::runtime_error &e) {
+            std::cerr << e.what() << std::endl;
+            return EXIT_FAILURE;
+        }*/
     }
 
 private:
@@ -117,19 +120,6 @@ private:
         if (!(boost::filesystem::exists(TRACK_PATH))) {
             boost::filesystem::create_directories(TRACK_PATH);
         }
-    }
-
-    int launchVK() {
-        /*vkRenderer renderer;
-
-        try {
-            renderer.run();
-        } catch (const std::runtime_error &e) {
-            std::cerr << e.what() << std::endl;
-            return EXIT_FAILURE;
-        }*/
-
-        return EXIT_SUCCESS;
     }
 };
 

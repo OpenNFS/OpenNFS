@@ -17,7 +17,7 @@
 #include "Track.h"
 #include "../Physics/Car.h"
 
-typedef boost::variant<Track, Light, Sound, Car> EngineModel;
+typedef boost::variant<Track, Light, Sound, Car*> EngineModel;
 
 class Entity {
 public:

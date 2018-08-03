@@ -45,6 +45,7 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
 
 std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
     std::vector<CarModel> meshes;
 
     ifstream fce(fce_path, ios::in | ios::binary);
@@ -63,8 +64,7 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
         std::vector<glm::vec2> uvs;
 
         std::string part_name(fceHeader->partNames[part_Idx]);
-        glm::vec3 center(fceHeader->partCoords[part_Idx].x, fceHeader->partCoords[part_Idx].y,
-                         fceHeader->partCoords[part_Idx].z);
+        glm::vec3 center = rotationMatrix * glm::vec3(fceHeader->partCoords[part_Idx].x /10, fceHeader->partCoords[part_Idx].y/10, fceHeader->partCoords[part_Idx].z/10);
         center /= 10;
 
         auto *partVertices = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
@@ -75,8 +75,7 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
                   (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (int vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
-            vertices.emplace_back(
-                    glm::vec3(partVertices[vert_Idx].x, partVertices[vert_Idx].y, partVertices[vert_Idx].z));
+            vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x/10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
         }
 
         fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->normTblOffset +

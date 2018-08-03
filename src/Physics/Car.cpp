@@ -15,16 +15,16 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     gBreakingForce = 100.f;
     maxEngineForce = 4000.f;
     maxBreakingForce = 1000.f;
-    suspensionRestLength = btScalar(0.064);
+    suspensionRestLength = btScalar(0.030);
     suspensionStiffness = 500.f;
     suspensionDamping = 200.f;
-    suspensionCompression = 200.4f;
+    suspensionCompression = 300.4f;
     wheelFriction = 100000;
     rollInfluence = 0.04f;
     gVehicleSteering = 0.f;
     steeringIncrement = 0.01f;
     steeringClamp = 0.2f;
-    steerRight = steerLeft = isReverse = false;
+    steerRight = steerLeft = false;
 
     car_models = car_meshes;
 
@@ -51,7 +51,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     localTrans.setOrigin(btVector3(0.0,0.0,0));
     compound->addChildShape(localTrans,chassisShape);
 
-    float mass = 1500.0f;
+    float mass = 1200.0f;
     btVector3 localInertia(0,0,0);
     compound->calculateLocalInertia(mass,localInertia);
 
@@ -63,7 +63,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass,vehicleMotionState,compound,localInertia);
     m_carChassis = new btRigidBody(cInfo);
     // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
-    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, *this));
+    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, this));
     m_carChassis->setDamping(0.2,0.2);
     m_carChassis -> setLinearVelocity(btVector3(0,0,0));
     m_carChassis -> setAngularVelocity(btVector3(0,0,0));
@@ -134,14 +134,16 @@ void Car::update() {
     m_vehicle->setSteeringValue(gVehicleSteering,wheelIndex);
 }
 
-void Car::applyAccelerationForce(bool apply)
+void Car::applyAccelerationForce(bool accelerate, bool reverse)
 {
-    if (apply) {
-        if (!isReverse) gEngineForce = maxEngineForce;
-        else gEngineForce = -maxEngineForce;
+    if (accelerate) {
+        gEngineForce = maxEngineForce;
+        gBreakingForce = 0.f;
+    } else if (reverse) {
+        gEngineForce = -maxEngineForce;
         gBreakingForce = 0.f;
     } else {
-        gEngineForce = 0.f;
+            gEngineForce = 0.f;
     }
 }
 
@@ -165,17 +167,13 @@ void Car::applyBrakingForce(bool apply)
     }
 }
 
-void Car::toggleReverse()
-{
-    isReverse = (isReverse? false : true);
-}
 
 void Car::resetCar(glm::vec3 reset_position)
 {
     setPosition(reset_position);
-    isReverse = false;
     if (m_vehicle)
     {
+        m_carChassis->clearForces();
         m_vehicle -> resetSuspension();
         for (int i = 0; i < m_vehicle->getNumWheels(); i++)
         {
@@ -194,8 +192,7 @@ void Car::writeObj(const std::string &path) {
 
     for (Model &mesh : car_models) {
         /* Print Part name*/
-        // TODO: Maybe restore mesh names, or make sure every usage of a Mesh falls under an Entity
-        //obj_dump << "o " << mesh.m_name << std::endl;
+        obj_dump << "o " << mesh.m_name << std::endl;
         //Dump Vertices
         for (auto vertex : mesh.m_vertices) {
             obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
@@ -210,4 +207,9 @@ void Car::writeObj(const std::string &path) {
         }
     }
     obj_dump.close();
+}
+
+double Car::getRotY() {
+    glm::quat orientation = car_models[0].orientation;
+    return atan2(2*orientation.y*orientation.w - 2*orientation.x*orientation.z, 1 - 2*orientation.y*orientation.y - 2*orientation.z*orientation.z)* (180 / M_PI);
 }

@@ -38,9 +38,10 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
     fce.read((char *) fceHeader, sizeof(FCE::NFS3::HEADER));
 
     for (int part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
+        // TODO: Detect body parts and set shader parameters appropriately
         float specularDamper = 0.2;
-        float specularReflectivity = 0.02;
-        float envReflectivity = 0.4;
+        float specularReflectivity = part_Idx == 0 ? 0.02 : 0;
+        float envReflectivity = part_Idx == 0 ? 0.4 : 0;
 
         std::vector<uint32_t> indices;
         std::vector<glm::vec3> vertices;
