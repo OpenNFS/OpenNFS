@@ -65,7 +65,6 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
 
         std::string part_name(fceHeader->partNames[part_Idx]);
         glm::vec3 center = rotationMatrix * glm::vec3(fceHeader->partCoords[part_Idx].x /10, fceHeader->partCoords[part_Idx].y/10, fceHeader->partCoords[part_Idx].z/10);
-        center /= 10;
 
         auto *partVertices = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];

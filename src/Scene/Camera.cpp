@@ -58,9 +58,9 @@ void Camera::calculateCameraPosition(const shared_ptr<Car> &target_car, float ho
     float theta =  (target_car->getRotY() +  angleAroundCar) - 180;
     float offsetX = horizDistance * sin(theta * (SIMD_PI / 180.0f));
     float offsetZ = horizDistance * cos(theta * (SIMD_PI / 180.0f));
-    position.x = target_car->car_models[0].position.x - offsetX;
-    position.z = target_car->car_models[0].position.z - offsetZ;
-    position.y = target_car->car_models[0].position.y + vertDistance;
+    position.x = target_car->car_body_model.position.x - offsetX;
+    position.z = target_car->car_body_model.position.z - offsetZ;
+    position.y = target_car->car_body_model.position.y + vertDistance;
 }
 
 void Camera::calculateZoom() {

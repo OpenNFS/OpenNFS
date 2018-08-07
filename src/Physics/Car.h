@@ -50,7 +50,13 @@ public:
     double getRotY();
 
     // Meshes
-    std::vector<CarModel> car_models;
+    std::vector<CarModel> misc_models;
+    CarModel left_front_wheel_model;
+    CarModel right_front_wheel_model;
+    CarModel left_rear_wheel_model;
+    CarModel right_rear_wheel_model;
+    CarModel car_body_model;
+
     // Physics
     btRaycastVehicle::btVehicleTuning m_tuning; // Wheel properties
     btVehicleRaycaster* m_vehicleRayCaster;     // Wheel simulation
@@ -78,6 +84,8 @@ public:
     // Shifts CoM
     float	rollInfluence;
 private:
+    void setModels(std::vector<CarModel> car_models);
+
     // Base Physics objects for car
     btDefaultMotionState* vehicleMotionState;   // Retrieving vehicle location in world
     btRigidBody* m_carChassis;

@@ -88,7 +88,7 @@ bool CarModel::genBuffers() {
     return true;
 }
 
-
+CarModel::CarModel() : super("CarModel", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0,0,0)){}
 
 
 

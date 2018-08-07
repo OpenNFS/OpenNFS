@@ -21,6 +21,7 @@ Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::ve
     }
 
     position = center_position;
+    initialPosition = center_position;
     orientation_vec = glm::vec3(0,0,0);
     orientation = glm::normalize(glm::quat(orientation_vec));
 }

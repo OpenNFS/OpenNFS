@@ -31,9 +31,12 @@ public:
         initDirectories();
         //Load Track Data
         // "../resources/NFS2/GAMEDATA/TRACKS/PC/TR02"
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk003/tr03");
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk005/tr05");
         //Load Car data from unpacked NFS files
-        std::shared_ptr<Car> car = CarLoader::LoadCar("../resources/NFS3/gamedata/carmodel/merc");
+
+        std::string merc("../resources/NFS3/gamedata/carmodel/merc");
+        std::string nfs4("../resources/NFS4/DATA/CARS/MCLK");
+        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs4);
 
         //Load Music
         //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
