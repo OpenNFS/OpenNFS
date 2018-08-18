@@ -43,7 +43,4 @@ void main(){
 
 	// Output color = color of the texture at the specified UV
 	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0) ;
-	if(carTexColor == vec4(0, 0, 0, 1)){
-	    color.a = 0.4;
-	}
 }

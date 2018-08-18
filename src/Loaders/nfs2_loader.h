@@ -26,16 +26,16 @@ public:
     static std::shared_ptr<typename Platform::TRACK> LoadTrack(const std::string &track_base_path);
     static std::shared_ptr<Car> LoadCar(const std::string &track_base_path);
 
-    static void dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track);
+    static void dbgPrintVerts(const std::string &path, const shared_ptr<typename Platform::TRACK> &track);
     static bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
 private:
     // Car
     static std::vector<CarModel> LoadGEO(const std::string &geo_path);
     // Track
-    static bool LoadTRK(std::string trk_path, shared_ptr<typename Platform::TRACK> track);
-    static bool LoadCOL(std::string col_path, shared_ptr<typename Platform::TRACK> track);
-    static void ParseTRKModels(shared_ptr<typename Platform::TRACK> track);
-    static std::vector<Track> ParseCOLModels(shared_ptr<typename Platform::TRACK> track);
+    static bool LoadTRK(std::string trk_path, const shared_ptr<typename Platform::TRACK> &track);
+    static bool LoadCOL(std::string col_path, const shared_ptr<typename Platform::TRACK> &track);
+    static void ParseTRKModels(const shared_ptr<typename Platform::TRACK> &track);
+    static std::vector<Entity> ParseCOLModels(const shared_ptr<typename Platform::TRACK> &track);
     static Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version);
 };
 

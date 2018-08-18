@@ -22,7 +22,6 @@ Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_t
     physicsEngine.registerTrack(track);
     physicsEngine.registerVehicle(car);
 
-
     /*------- ImGui -------*/
     ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(window, true);
@@ -96,8 +95,7 @@ void Renderer::Render() {
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
 
-        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, worldPosition,
-                                                               userParams.blockDrawDistance, userParams.use_nb_data);
+        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, worldPosition, userParams.blockDrawDistance, userParams.use_nb_data);
 
         // TODO: Urgently refactor these into Renderer classes
         // Render the per-trackblock data
@@ -110,10 +108,10 @@ void Renderer::Render() {
                 contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
             }
             trackShader.use();
-            for (auto &track_block_entity : active_track_Block.objects) {
+           for (auto &track_block_entity : active_track_Block.objects) {
+               //if (boost::get<Track>(track_block_entity.glMesh).m_normals.size() == 0) continue;
                 boost::get<Track>(track_block_entity.glMesh).update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix,
-                                         boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
                 trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
                 if (contributingLightEntities.size() > 0) {
                     trackShader.loadLights(contributingLights);
@@ -125,34 +123,34 @@ void Renderer::Render() {
                 boost::get<Track>(track_block_entity.glMesh).render();
             }
             for (auto &track_block_entity : active_track_Block.track) {
-                boost::get<Track>(track_block_entity.glMesh).update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix,
-                                         boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-                trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
-                if (contributingLightEntities.size() > 0) {
-                    trackShader.loadLights(contributingLights);
-                } else {
-                    trackShader.loadLights(camlights);
-                }
-                trackShader.bindTrackTextures(boost::get<Track>(track_block_entity.glMesh), track->texture_gl_mappings);
-                trackShader.setClassic(userParams.use_classic_graphics);
-                boost::get<Track>(track_block_entity.glMesh).render();
-            }
-            // TODO: Render Lanes with a simpler shader set
-            for (auto &track_block_entity : active_track_Block.lanes) {
-                boost::get<Track>(track_block_entity.glMesh).update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix,
-                                         boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-                trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
-                if (contributingLightEntities.size() > 0) {
-                    trackShader.loadLights(contributingLights);
-                } else {
-                    trackShader.loadLights(camlights);
-                }
-                trackShader.bindTrackTextures(boost::get<Track>(track_block_entity.glMesh), track->texture_gl_mappings);
-                trackShader.setClassic(userParams.use_classic_graphics);
-                boost::get<Track>(track_block_entity.glMesh).render();
-            }
+               boost::get<Track>(track_block_entity.glMesh).update();
+               trackShader.loadMatrices(ProjectionMatrix, ViewMatrix,
+                                        boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+               trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
+               if (contributingLightEntities.size() > 0) {
+                   trackShader.loadLights(contributingLights);
+               } else {
+                   trackShader.loadLights(camlights);
+               }
+               trackShader.bindTrackTextures(boost::get<Track>(track_block_entity.glMesh), track->texture_gl_mappings);
+               trackShader.setClassic(userParams.use_classic_graphics);
+               boost::get<Track>(track_block_entity.glMesh).render();
+           }
+           // TODO: Render Lanes with a simpler shader set
+           for (auto &track_block_entity : active_track_Block.lanes) {
+               boost::get<Track>(track_block_entity.glMesh).update();
+               trackShader.loadMatrices(ProjectionMatrix, ViewMatrix,
+                                        boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+               trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
+               if (contributingLightEntities.size() > 0) {
+                   trackShader.loadLights(contributingLights);
+               } else {
+                   trackShader.loadLights(camlights);
+               }
+               trackShader.bindTrackTextures(boost::get<Track>(track_block_entity.glMesh), track->texture_gl_mappings);
+               trackShader.setClassic(userParams.use_classic_graphics);
+               boost::get<Track>(track_block_entity.glMesh).render();
+           }
             trackShader.unbind();
         }
 
@@ -194,7 +192,7 @@ void Renderer::Render() {
         }
         trackShader.unbind();
 
-        //SetCulling(true);
+        SetCulling(true);
         // Render the Car
         carShader.use();
         carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car->car_body_model.ModelMatrix);
@@ -242,7 +240,7 @@ void Renderer::Render() {
             misc_model.render();
         }
         carShader.unbind();
-        //SetCulling(false);
+        SetCulling(false);
 
         for (auto &track_block_id : activeTrackBlockIDs) {
             billboardShader.use();
@@ -292,7 +290,7 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
     }
 }
 
-void Renderer::DrawNFS3Metadata(Entity *targetEntity) {
+void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
     switch (targetEntity->type) {
         case EntityType::OBJ_POLY:
             break;
@@ -386,7 +384,7 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
     // Traverse the loader structures and print pretty with IMGUI
     switch (targetEntity->tag) {
         case NFSVer::NFS_3:
-            DrawNFS3Metadata(targetEntity);
+            DrawNFS34Metadata(targetEntity);
             break;
         case NFSVer::UNKNOWN:
             ASSERT(false, "Unimplemented");
@@ -395,7 +393,6 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
             ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_2:
-            ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_2_PS1:
             ASSERT(false, "Unimplemented");
@@ -407,7 +404,7 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
             ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_4:
-            //ASSERT(false, "Unimplemented");
+            DrawNFS34Metadata(targetEntity);
             break;
         case NFSVer::NFS_5:
             ASSERT(false, "Unimplemented");

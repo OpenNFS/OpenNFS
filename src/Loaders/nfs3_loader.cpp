@@ -105,7 +105,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
 
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
-    stringstream frd_path, col_path;
+    stringstream frd_path, col_path, can_path;
     string strip = "K0";
     unsigned int pos = track_name.find(strip);
     if (pos != string::npos)
@@ -113,11 +113,13 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
 
     frd_path << track_base_path << ".frd";
     col_path << track_base_path << ".col";
+    can_path << track_base_path << ".can";
 
     ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3),
            "Could not extract " << track_name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(LoadCAN(can_path.str(), track), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
 
     track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
     track->track_blocks = ParseTRKModels(track);
@@ -387,6 +389,21 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
 
     uint32_t pad;
     return coll.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
+}
+
+bool NFS3::LoadCAN(std::string can_path, const std::shared_ptr<TRACK> &track) {
+    return true;
+    // TODO: Reverse engineer .CAN file
+    ifstream can(can_path, ios::in | ios::binary);
+    ofstream dump("./assets/can_dump.txt");
+
+    while(!can.eof()){
+        uint16_t *test = new uint16_t[1];
+        can.read((char*) test, sizeof(uint16_t));
+        dump << test[0] << ", " << std::endl;
+    }
+
+    dump.close();
 }
 
 std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track) {

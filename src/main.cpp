@@ -26,16 +26,19 @@ class OpenNFS {
 public:
     void run() {
         std::cout << "----------- OpenNFS3 v0.1 -----------" << std::endl;
+        // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
-        /*------ ASSET LOAD ------*/
         initDirectories();
-        //Load Track Data
-        // "../resources/NFS2/GAMEDATA/TRACKS/PC/TR02"
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack("../resources/NFS3/gamedata/tracks/trk005/tr05");
-        //Load Car data from unpacked NFS files
 
+        /*------ ASSET LOAD ------*/
+        //Load Track Data
+        std::string nfs3ps1track("../resources/NFS3_PS1/ZZZTR00A");
+        std::string nfs2track("../resources/NFS2/GAMEDATA/TRACKS/PC/TR02");
+        std::string nfs3track("../resources/NFS3/gamedata/tracks/trk005/tr05");
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs2track);
+        //Load Car data from unpacked NFS files
         std::string merc("../resources/NFS3/gamedata/carmodel/merc");
-        std::string nfs4("../resources/NFS4/DATA/CARS/MCLK");
+        std::string nfs4("../resources/NFS4/DATA/CARS/B911");
         std::shared_ptr<Car> car = CarLoader::LoadCar(nfs4);
 
         //Load Music
@@ -61,6 +64,7 @@ private:
     static void glfwError(int id, const char *description) {
         std::cout << description << std::endl;
     }
+
 
     bool initOpenGL() {
         // Initialise GLFW

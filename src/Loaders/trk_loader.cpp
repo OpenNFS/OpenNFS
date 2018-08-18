@@ -10,10 +10,10 @@ ONFSTrack::ONFSTrack(const std::string &track_path) {
         tag = NFS_2_SE;
     } else if (track_path.find("NFS2") != std::string::npos) {
         tag = NFS_2;
-    } else if (track_path.find("NFS3") != std::string::npos) {
-        tag = NFS_3;
     } else if (track_path.find("NFS3_PS1") != std::string::npos) {
         tag = NFS_3_PS1;
+    } else if (track_path.find("NFS3") != std::string::npos) {
+        tag = NFS_3;
     } else if (track_path.find("NFS4") != std::string::npos) {
         tag = NFS_4;
     } else {

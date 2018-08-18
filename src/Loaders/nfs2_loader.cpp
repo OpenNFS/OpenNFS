@@ -53,7 +53,7 @@ uint32_t abgr1555ToARGB8888(uint16_t abgr1555) {
 // TODO: Use template specialization/overload to avoid this
 template<typename Platform>
 std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
-    if(std::is_same<Platform,PS1>::value){
+    if (std::is_same<Platform, PS1>::value) {
         std::cout << "- Parsing GEO File " << std::endl;
         std::vector<CarModel> car_meshes;
 
@@ -244,6 +244,7 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     ASSERT(false, "Unimplemented! No UVs or Normals.");
     return std::make_shared<Car>(LoadGEO(car_base_path), NFS_2, car_name);
 }
+
 // TRACK
 template<typename Platform>
 shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string &track_base_path) {
@@ -273,30 +274,27 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
         col_path << ps1_col_path;
     }
 
-    ASSERT(LoadTRK(trk_path.str(), track),
-           "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
-    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
-            << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
+    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, nfs_version),
            "Could not extract " << track_name << " texture pack.");
 
     // Load up the textures
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
-        track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx],
-                                                                                   track_name, nfs_version);
+        track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track_name, nfs_version);
     }
     track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
 
     ParseTRKModels(track);
-    //std::vector<Track> col_models = ParseCOLModels(track);
-    //track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_models.begin(), col_models.end()); // Insert the COL models into track block 0 for now
+    std::vector<Entity> col_entities = ParseCOLModels(track);
+    //track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_entities.begin(), col_entities.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Track loaded successfully" << std::endl;
     return track;
 }
 
 template<typename Platform>
-bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform::TRACK> track) {
+bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Platform::TRACK> &track) {
     std::cout << "- Parsing TRK File " << std::endl;
     ifstream trk(trk_path, ios::in | ios::binary);
     // TRK file header data
@@ -320,21 +318,18 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
     // Basic Track data
     trk.read((char *) &track->nSuperBlocks, sizeof(uint32_t));
     trk.read((char *) &track->nBlocks, sizeof(uint32_t));
-    track->superblocks = static_cast<typename Platform::SUPERBLOCK *>(calloc(track->nBlocks,
-                                                                             sizeof(typename Platform::SUPERBLOCK)));
+    track->superblocks = static_cast<typename Platform::SUPERBLOCK *>(calloc(track->nBlocks, sizeof(typename Platform::SUPERBLOCK)));
 
     // Offsets of Superblocks in TRK file
     uint32_t *superblockOffsets = static_cast<uint32_t *>(calloc(track->nSuperBlocks, sizeof(uint32_t)));
-    if (trk.read(((char *) superblockOffsets), track->nSuperBlocks * sizeof(uint32_t)).gcount() !=
-        track->nSuperBlocks * sizeof(uint32_t)) {
+    if (trk.read(((char *) superblockOffsets), track->nSuperBlocks * sizeof(uint32_t)).gcount() != track->nSuperBlocks * sizeof(uint32_t)) {
         free(superblockOffsets);
         return false;
     }
 
     // Reference coordinates for each block
     track->blockReferenceCoords = static_cast<VERT_HIGHP *>(calloc(track->nBlocks, sizeof(VERT_HIGHP)));
-    if (trk.read((char *) track->blockReferenceCoords, track->nBlocks * sizeof(VERT_HIGHP)).gcount() !=
-        track->nBlocks * sizeof(VERT_HIGHP)) {
+    if (trk.read((char *) track->blockReferenceCoords, track->nBlocks * sizeof(VERT_HIGHP)).gcount() != track->nBlocks * sizeof(VERT_HIGHP)) {
         free(superblockOffsets);
         return false;
     }
@@ -352,8 +347,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
             // Get the offsets of the child blocks within superblock
             uint32_t *blockOffsets = (uint32_t *) calloc(static_cast<size_t>(superblock->nBlocks), sizeof(uint32_t));
             trk.read((char *) blockOffsets, superblock->nBlocks * sizeof(uint32_t));
-            superblock->trackBlocks = static_cast<typename Platform::TRKBLOCK *>(calloc(
-                    static_cast<size_t>(superblock->nBlocks), sizeof(typename Platform::TRKBLOCK)));
+            superblock->trackBlocks = static_cast<typename Platform::TRKBLOCK *>(calloc(static_cast<size_t>(superblock->nBlocks), sizeof(typename Platform::TRKBLOCK)));
 
             for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
                 std::cout << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << std::endl;
@@ -363,53 +357,40 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
                 trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx], ios_base::beg);
                 trk.read((char *) trackblock->header, sizeof(TRKBLOCK_HEADER));
 
-                std::cout << trackblock->header->unknownPad[0] << " " << trackblock->header->unknownPad[1] << " "
-                          << trackblock->header->unknownPad[2] << std::endl;
+                std::cout << trackblock->header->unknownPad[0] << " " << trackblock->header->unknownPad[1] << " " << trackblock->header->unknownPad[2] << std::endl;
 
                 // Sanity Checks
-                if ((trackblock->header->blockSize != trackblock->header->blockSizeDup) ||
-                    (trackblock->header->blockSerial > track->nBlocks)) {
+                if ((trackblock->header->blockSize != trackblock->header->blockSizeDup) || (trackblock->header->blockSerial > track->nBlocks)) {
                     std::cout << "   --- Bad Block" << std::endl;
                     free(superblockOffsets);
                     return false;
                 }
 
                 // Read 3D Data
-                trackblock->vertexTable = static_cast<typename Platform::VERT *>(calloc(
-                        static_cast<size_t>(trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert),
-                        sizeof(typename Platform::VERT)));
-                for (unsigned int vert_Idx = 0;
-                     vert_Idx < trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert; ++vert_Idx) {
+                trackblock->vertexTable = static_cast<typename Platform::VERT *>(calloc(static_cast<size_t>(trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert), sizeof(typename Platform::VERT)));
+                for (unsigned int vert_Idx = 0; vert_Idx < trackblock->header->nStickToNextVerts + trackblock->header->nHighResVert; ++vert_Idx) {
                     trk.read((char *) &trackblock->vertexTable[vert_Idx], sizeof(typename Platform::VERT));
                 }
 
-                trackblock->polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(
-                        static_cast<size_t>(trackblock->header->nLowResPoly + trackblock->header->nMedResPoly +
-                                            trackblock->header->nHighResPoly), sizeof(typename Platform::POLYGONDATA)));
-                for (unsigned int poly_Idx = 0; poly_Idx <
-                                                (trackblock->header->nLowResPoly + trackblock->header->nMedResPoly +
-                                                 trackblock->header->nHighResPoly); ++poly_Idx) {
+                trackblock->polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(static_cast<size_t>(trackblock->header->nLowResPoly + trackblock->header->nMedResPoly + trackblock->header->nHighResPoly), sizeof(typename Platform::POLYGONDATA)));
+                for (unsigned int poly_Idx = 0; poly_Idx < (trackblock->header->nLowResPoly + trackblock->header->nMedResPoly + trackblock->header->nHighResPoly); ++poly_Idx) {
                     trk.read((char *) &trackblock->polygonTable[poly_Idx], sizeof(typename Platform::POLYGONDATA));
                 }
 
                 // Read Extrablock data
-                trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + 64u +
-                          trackblock->header->extraBlockTblOffset, ios_base::beg);
+                trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + 64u + trackblock->header->extraBlockTblOffset, ios_base::beg);
                 // Get extrablock offsets (relative to beginning of TrackBlock)
                 uint32_t *extrablockOffsets = (uint32_t *) calloc(trackblock->header->nExtraBlocks, sizeof(uint32_t));
                 trk.read((char *) extrablockOffsets, trackblock->header->nExtraBlocks * sizeof(uint32_t));
 
                 for (int xblock_Idx = 0; xblock_Idx < trackblock->header->nExtraBlocks; ++xblock_Idx) {
-                    trk.seekg(
-                            superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + extrablockOffsets[xblock_Idx],
-                            ios_base::beg);
+                    trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + extrablockOffsets[xblock_Idx], ios_base::beg);
                     auto *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
                     trk.read((char *) xblockHeader, sizeof(EXTRABLOCK_HEADER));
 
                     switch (xblockHeader->XBID) {
                         case 5:
-                            trackblock->polyTypes = static_cast<POLY_TYPE *>(calloc(xblockHeader->nRecords,
-                                                                                    sizeof(POLY_TYPE)));
+                            trackblock->polyTypes = static_cast<POLY_TYPE *>(calloc(xblockHeader->nRecords, sizeof(POLY_TYPE)));
                             trk.read((char *) trackblock->polyTypes, xblockHeader->nRecords * sizeof(POLY_TYPE));
                             break;
                         case 4:
@@ -434,16 +415,11 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
                                     trk.read((char *) &trackblock->structures[structure_Idx].vertexTable[vert_Idx],
                                              sizeof(typename Platform::VERT));
                                 }
-                                trackblock->structures[structure_Idx].polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(
-                                        trackblock->structures[structure_Idx].nPoly,
-                                        sizeof(typename Platform::POLYGONDATA)));
-                                for (int poly_Idx = 0;
-                                     poly_Idx < trackblock->structures[structure_Idx].nPoly; ++poly_Idx) {
-                                    trk.read((char *) &trackblock->structures[structure_Idx].polygonTable[poly_Idx],
-                                             sizeof(typename Platform::POLYGONDATA));
+                                trackblock->structures[structure_Idx].polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(trackblock->structures[structure_Idx].nPoly, sizeof(typename Platform::POLYGONDATA)));
+                                for (int poly_Idx = 0; poly_Idx < trackblock->structures[structure_Idx].nPoly; ++poly_Idx) {
+                                    trk.read((char *) &trackblock->structures[structure_Idx].polygonTable[poly_Idx], sizeof(typename Platform::POLYGONDATA));
                                 }
-                                trk.seekg(trackblock->structures[structure_Idx].recSize - (trk.tellg() - padCheck),
-                                          ios_base::cur); // Eat possible padding
+                                trk.seekg(trackblock->structures[structure_Idx].recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
                             }
                             break;
                         case 7:
@@ -473,16 +449,12 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
                                     trackblock->structureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(
                                             trackblock->structureRefData[structureRef_Idx].animLength,
                                             sizeof(ANIM_POS)));
-                                    for (int animation_Idx = 0; animation_Idx <
-                                                                trackblock->structureRefData[structureRef_Idx].animLength; ++animation_Idx) {
-                                        trk.read(
-                                                (char *) &trackblock->structureRefData[structureRef_Idx].animationData[animation_Idx],
-                                                sizeof(ANIM_POS));
+                                    for (int animation_Idx = 0; animation_Idx < trackblock->structureRefData[structureRef_Idx].animLength; ++animation_Idx) {
+                                        trk.read((char *) &trackblock->structureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
                                     }
                                 } else if (trackblock->structureRefData[structureRef_Idx].recType == 4) {
                                     // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].refCoordinates,
-                                             sizeof(VERT_HIGHP));
+                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
                                 } else {
                                     std::cout << "Unknown Structure Reference type: "
                                               << (int) trackblock->structureRefData[structureRef_Idx].recType
@@ -492,8 +464,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
                                               << (int) trackblock->structureRefData[structureRef_Idx].structureRef
                                               << std::endl;
                                 }
-                                trk.seekg(trackblock->structureRefData[structureRef_Idx].recSize -
-                                          (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                                trk.seekg(trackblock->structureRefData[structureRef_Idx].recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
                             }
                             break;
                         case 6:
@@ -503,20 +474,16 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
                             break;
                         case 13:
                             trackblock->nVroad = xblockHeader->nRecords;
-                            trackblock->vroadData = static_cast<typename Platform::VROAD *>(calloc(
-                                    xblockHeader->nRecords, sizeof(typename Platform::VROAD)));
-                            trk.read((char *) trackblock->vroadData,
-                                     trackblock->nVroad * sizeof(typename Platform::VROAD));
+                            trackblock->vroadData = static_cast<typename Platform::VROAD *>(calloc(xblockHeader->nRecords, sizeof(typename Platform::VROAD)));
+                            trk.read((char *) trackblock->vroadData, trackblock->nVroad * sizeof(typename Platform::VROAD));
                             break;
                         case 9:
                             trackblock->nLanes = xblockHeader->nRecords;
-                            trackblock->laneData = static_cast<LANE_BLOCK *>(calloc(xblockHeader->nRecords,
-                                                                                    sizeof(LANE_BLOCK)));
+                            trackblock->laneData = static_cast<LANE_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(LANE_BLOCK)));
                             trk.read((char *) trackblock->laneData, trackblock->nLanes * sizeof(LANE_BLOCK));
                             break;
                         default:
-                            std::cout << "Unknown XBID: " << xblockHeader->XBID << " nRecords: "
-                                      << xblockHeader->nRecords << " RecSize: " << xblockHeader->recSize << std::endl;
+                            std::cout << "Unknown XBID: " << xblockHeader->XBID << " nRecords: " << xblockHeader->nRecords << " RecSize: " << xblockHeader->recSize << std::endl;
                             break;
                     }
                     free(xblockHeader);
@@ -532,7 +499,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, shared_ptr<typename Platform:
 }
 
 template<typename Platform>
-bool NFS2<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Platform::TRACK> track) {
+bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Platform::TRACK> &track) {
     std::cout << "- Parsing COL File " << std::endl;
     ifstream col(col_path, ios::in | ios::binary);
     // Check we're in a valid TRK file
@@ -568,8 +535,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Platform:
         switch (xblockHeader->XBID) {
             case 2: // First xbock always texture table
                 track->nTextures = xblockHeader->nRecords;
-                track->polyToQFStexTable = static_cast<TEXTURE_BLOCK *>(calloc(track->nTextures,
-                                                                               sizeof(TEXTURE_BLOCK)));
+                track->polyToQFStexTable = static_cast<TEXTURE_BLOCK *>(calloc(track->nTextures, sizeof(TEXTURE_BLOCK)));
                 col.read((char *) track->polyToQFStexTable, track->nTextures * sizeof(TEXTURE_BLOCK));
                 break;
             case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2
@@ -593,8 +559,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Platform:
                         col.read((char *) &track->colStructures[structure_Idx].polygonTable[poly_Idx],
                                  sizeof(typename Platform::POLYGONDATA));
                     }
-                    col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck),
-                              ios_base::cur); // Eat possible padding
+                    col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
                 }
                 break;
             case 7: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
@@ -649,7 +614,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, shared_ptr<typename Platform:
 }
 
 template<typename Platform>
-void NFS2<Platform>::dbgPrintVerts(const std::string &path, shared_ptr<typename Platform::TRACK> track) {
+void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typename Platform::TRACK> &track) {
     std::ofstream obj_dump;
 
     if (!(boost::filesystem::exists(path))) {
@@ -893,7 +858,7 @@ bool NFS2<Platform>::ExtractPSH(const std::string &psh_path, const std::string &
             if (paletteHeader->paletteHeight != 1) {
                 // There is padding, search for a '1' in the paletteHeader as this is constant as the height of all paletteHeaders,
                 // then jump backwards by how offset 'height' is into paletteHeader to get proper
-                psh.seekg(-(signed)sizeof(PS1::PSH::PALETTE_HEADER), ios_base::cur);
+                psh.seekg(-(signed) sizeof(PS1::PSH::PALETTE_HEADER), ios_base::cur);
                 if (paletteHeader->unknown == 1) { //8 bytes early
                     psh.seekg(-8, ios_base::cur);
                 } else if (paletteHeader->paletteWidth == 1) { // 4 bytes early
@@ -940,7 +905,9 @@ bool NFS2<Platform>::ExtractPSH(const std::string &psh_path, const std::string &
 }
 
 template<typename Platform>
-void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) {
+void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &track) {
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+
     // Parse out TRKBlock data
     for (int superBlock_Idx = 0; superBlock_Idx < track->nSuperBlocks; ++superBlock_Idx) {
         auto *superblock = &track->superblocks[superBlock_Idx];
@@ -949,13 +916,10 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
             auto trkBlock = superblock->trackBlocks[block_Idx];
             VERT_HIGHP blockReferenceCoord;
 
-            TrackBlock current_track_block(superBlock_Idx, glm::vec3(trkBlock.header->clippingRect->x / scaleFactor,
-                                                                     trkBlock.header->clippingRect->y / scaleFactor,
-                                                                     trkBlock.header->clippingRect->z / scaleFactor));
+            TrackBlock current_track_block(superBlock_Idx, glm::vec3(trkBlock.header->clippingRect->x / scaleFactor, trkBlock.header->clippingRect->y / scaleFactor, trkBlock.header->clippingRect->z / scaleFactor));
             glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
             glm::vec3 trk_block_center = orientation * glm::vec3(0, 0, 0);
-            std::cout << "Trk block " << (int) trkBlock.header->blockSerial << " NStruct: " << trkBlock.nStructures
-                      << std::endl;
+            std::cout << "Trk block " << (int) trkBlock.header->blockSerial << " NStruct: " << trkBlock.nStructures << std::endl;
             // Structures
             for (int structure_Idx = 0; structure_Idx < trkBlock.nStructures; ++structure_Idx) {
                 // Keep track of unique textures in trackblock for later OpenGL bind
@@ -973,8 +937,7 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
                 for (int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx) {
                     // Only check fixed type structure references
                     if (trkBlock.structureRefData[structRef_Idx].structureRef == structure_Idx) {
-                        if (trkBlock.structureRefData[structRef_Idx].recType == 1 ||
-                            trkBlock.structureRefData[structRef_Idx].recType == 4) {
+                        if (trkBlock.structureRefData[structRef_Idx].recType == 1 || trkBlock.structureRefData[structRef_Idx].recType == 4) {
                             structureReferenceCoordinates = &trkBlock.structureRefData[structure_Idx].refCoordinates;
                             break;
                         } else if (trkBlock.structureRefData[structRef_Idx].recType == 3) {
@@ -989,13 +952,10 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
                     //    std::cout << "Couldn't find a reference coordinate for Structure " << structRef_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
                 }
                 for (uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx) {
-                    int32_t x = (structureReferenceCoordinates->x +
-                                 (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x));
-                    int32_t y = (structureReferenceCoordinates->y +
-                                 (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].y));
-                    int32_t z = (structureReferenceCoordinates->z +
-                                 (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].z));
-                    verts.emplace_back(glm::vec3(x / scaleFactor, y / scaleFactor, z / scaleFactor));
+                    int32_t x = (structureReferenceCoordinates->x + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x));
+                    int32_t y = (structureReferenceCoordinates->y + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].y));
+                    int32_t z = (structureReferenceCoordinates->z + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].z));
+                    verts.emplace_back(rotationMatrix * glm::vec3(x / scaleFactor, y / scaleFactor, z / scaleFactor));
                     shading_verts.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
                 }
                 for (int poly_Idx = 0; poly_Idx < trkBlock.structures[structure_Idx].nPoly; ++poly_Idx) {
@@ -1033,9 +993,7 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
                 // Get ordered list of unique texture id's present in block
                 std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                current_track_block.objects.emplace_back(Entity(superBlock_Idx,  trkBlock.header->blockSerial *structure_Idx, NFS_2, XOBJ, Track(verts, norms,
-                                                                                                                                              uvs, texture_indices, vertex_indices, texture_ids, shading_verts,
-                                                                                                                                              trk_block_center)));
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial * structure_Idx, NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, shading_verts, trk_block_center)));
             }
 
             // Keep track of unique textures in trackblock for later OpenGL bind
@@ -1051,23 +1009,18 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
             for (int i = 0; i < trkBlock.header->nStickToNextVerts + trkBlock.header->nHighResVert; i++) {
                 if (i < trkBlock.header->nStickToNextVerts) {
                     // If in last block go get ref coord of first block, else get ref of next block
-                    blockReferenceCoord = (trkBlock.header->blockSerial == track->nBlocks - 1)
-                                          ? track->blockReferenceCoords[0] : track->blockReferenceCoords[
-                                                  trkBlock.header->blockSerial + 1];
+                    blockReferenceCoord = (trkBlock.header->blockSerial == track->nBlocks - 1) ? track->blockReferenceCoords[0] : track->blockReferenceCoords[trkBlock.header->blockSerial + 1];
                 } else {
                     blockReferenceCoord = track->blockReferenceCoords[trkBlock.header->blockSerial];
                 }
                 int32_t x = (blockReferenceCoord.x + (256 * trkBlock.vertexTable[i].x));
                 int32_t y = (blockReferenceCoord.y + (256 * trkBlock.vertexTable[i].y));
                 int32_t z = (blockReferenceCoord.z + (256 * trkBlock.vertexTable[i].z));
-                verts.emplace_back(glm::vec3(x / scaleFactor, y / scaleFactor, z / scaleFactor));
+                verts.emplace_back(rotationMatrix * glm::vec3(x / scaleFactor, y / scaleFactor, z / scaleFactor));
                 trk_block_shading_verts.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
 
             }
-            for (int poly_Idx = (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly); poly_Idx <
-                                                                                               (trkBlock.header->nLowResPoly +
-                                                                                                trkBlock.header->nMedResPoly +
-                                                                                                trkBlock.header->nHighResPoly); ++poly_Idx) {
+            for (int poly_Idx = (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly); poly_Idx < (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly + trkBlock.header->nHighResPoly); ++poly_Idx) {
                 // Remap the COL TextureID's using the COL texture block (XBID2)
                 TEXTURE_BLOCK texture_for_block = track->polyToQFStexTable[trkBlock.polygonTable[poly_Idx].texture];
                 minimal_texture_ids_set.insert(texture_for_block.texNumber);
@@ -1093,7 +1046,6 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
                 uvs.emplace_back(0.0f, 0.0f); //2
                 uvs.emplace_back(1.0f, 0.0f); //3
 
-
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1110,11 +1062,7 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
             }
             // Get ordered list of unique texture id's present in block
             std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, uvs, texture_indices,
-                                                                                                                                                         vertex_indices,
-                                                                                                                                                         texture_ids,
-                                                                                                                                                         trk_block_shading_verts,
-                                                                                                                                                         trk_block_center)));
+            current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center)));
 
             track->track_blocks.emplace_back(current_track_block);
         }
@@ -1123,8 +1071,10 @@ void NFS2<Platform>::ParseTRKModels(shared_ptr<typename Platform::TRACK> track) 
 }
 
 template<typename Platform>
-std::vector<Track> NFS2<Platform>::ParseCOLModels(shared_ptr<typename Platform::TRACK> track) {
-    std::vector<Track> col_models;
+std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Platform::TRACK> &track) {
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+
+    std::vector<Entity> col_entities;
 
     // Parse out COL data
     for (int structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx) {
@@ -1157,15 +1107,10 @@ std::vector<Track> NFS2<Platform>::ParseCOLModels(shared_ptr<typename Platform::
             //std::cout << "Couldn't find a reference coordinate for COL Structure " << structRef_Idx << std::endl;
         }
         for (uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx) {
-            int32_t x = (structureReferenceCoordinates->x +
-                         (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
-            int32_t y = (structureReferenceCoordinates->y +
-                         (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
-            int32_t z = (structureReferenceCoordinates->z +
-                         (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
-            verts.emplace_back(glm::vec3(x / scaleFactor,
-                                         z / scaleFactor,
-                                         y / scaleFactor));
+            int32_t x = (structureReferenceCoordinates->x + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
+            int32_t y = (structureReferenceCoordinates->y + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
+            int32_t z = (structureReferenceCoordinates->z + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
+            verts.emplace_back(rotationMatrix * glm::vec3(x / scaleFactor, z / scaleFactor, y / scaleFactor));
             shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
         }
 
@@ -1196,13 +1141,10 @@ std::vector<Track> NFS2<Platform>::ParseCOLModels(shared_ptr<typename Platform::
         // Get ordered list of unique texture id's present in block
         std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = glm::vec3(0, 0, 0);
-        // TODO: Port to Entity system
-        /*Track col_model = Track("ColBlock", structure_Idx, verts, uvs, texture_indices, indices, texture_ids,
-                                shading_data, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position);
-        col_models.emplace_back(col_model);*/
+        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, texture_ids, shading_data, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position)));
         free(structureReferenceCoordinates);
     }
-    return col_models;
+    return col_entities;
 }
 
 template<typename Platform>

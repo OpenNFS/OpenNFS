@@ -65,7 +65,7 @@ private:
     void SetCulling(bool toCull);
     void DrawDebugCube(glm::vec3 position);
     void DrawMetadata(Entity *targetEntity);
-    void DrawNFS3Metadata(Entity *targetEntity);
+    void DrawNFS34Metadata(Entity *targetEntity);
     void DrawMenuBar();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
     void NewFrame(bool &window_active);
