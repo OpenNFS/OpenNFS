@@ -61,8 +61,7 @@ std::map<unsigned int, GLuint> GenCarTextures(std::map<unsigned int, Texture> te
         // TODO: Use Filtering for Textures with no alpha component
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE,
-                          (const GLvoid *) texture.texture_data);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
     }
 
     return gl_id_map;
@@ -327,7 +326,6 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
         }
 
         uint32_t part_Idx = -1;
-        std::set<unsigned int> minimal_texture_ids_set; // TODO: Switch to Texture Atlas
 
         while(true) {
             auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
@@ -347,6 +345,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             std::vector<glm::vec3> norms;
             std::vector<glm::vec2> uvs;
             std::vector<unsigned int> texture_indices;
+            std::set<unsigned int> minimal_texture_ids_set; // TODO: Switch to Texture Atlas
 
             indices.reserve(geoBlockHeader->nPolygons * 6);
             verts.reserve(geoBlockHeader->nVerts);
@@ -369,7 +368,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 std::string textureName(polygons[poly_Idx].texName);
                 // Store a minimal subset of texture ID's used on car part for later OpenGL bind
                 minimal_texture_ids_set.insert(remapTextureName(textureName));
-
+                std::cout << polygons[poly_Idx].texName << " " << polygons[poly_Idx].texMapType << std::endl;
                 indices.emplace_back(polygons[poly_Idx].vertex[0]);
                 indices.emplace_back(polygons[poly_Idx].vertex[1]);
                 indices.emplace_back(polygons[poly_Idx].vertex[2]);
@@ -377,13 +376,13 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 indices.emplace_back(polygons[poly_Idx].vertex[2]);
                 indices.emplace_back(polygons[poly_Idx].vertex[3]);
 
-                uvs.emplace_back(1.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 0.0f);
-
-                uvs.emplace_back(1.0f, 1.0f);
                 uvs.emplace_back(0.0f, 0.0f);
                 uvs.emplace_back(1.0f, 0.0f);
+                uvs.emplace_back(1.0f, 1.0f);
+
+                uvs.emplace_back(0.0f, 0.0f);
+                uvs.emplace_back(1.0f, 1.0f);
+                uvs.emplace_back(0.0f, 1.0f);
 
                 // TODO: Long overdue normal calculation
                 norms.emplace_back(glm::vec3(1, 1, 1));

@@ -20,8 +20,7 @@ namespace TrackUtils {
             // TODO: Use Filtering for Textures with no alpha component
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE,
-                              (const GLvoid *) texture.texture_data);
+            gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
         }
 
         return gl_id_map;

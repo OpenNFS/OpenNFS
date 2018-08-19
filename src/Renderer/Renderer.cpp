@@ -6,14 +6,12 @@
 #include "Renderer.h"
 
 
-Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car)
-        : carShader(current_car) {
+Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car) : carShader(current_car) {
     window = gl_window;
     track = current_track;
     car = current_car;
 
-    mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10,
-                                  track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
+    mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
 
     cameraLight = Light(mainCamera.position, glm::vec4(255.0f, 255.0f, 255.0f, 255.0f), 1, 0, 0, 0, 0.f);
@@ -94,7 +92,7 @@ void Renderer::Render() {
         }
 
         // Step the physics simulation
-        physicsEngine.stepSimulation(mainCamera.deltaTime);
+        //physicsEngine.stepSimulation(mainCamera.deltaTime);
 
         std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, worldPosition, userParams.blockDrawDistance, userParams.use_nb_data);
 
@@ -124,8 +122,7 @@ void Renderer::Render() {
             }
             for (auto &track_block_entity : active_track_Block.track) {
                 boost::get<Track>(track_block_entity.glMesh).update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix,
-                                         boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
                 trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
                 if (contributingLightEntities.size() > 0) {
                     trackShader.loadLights(contributingLights);
@@ -139,8 +136,7 @@ void Renderer::Render() {
             // TODO: Render Lanes with a simpler shader set
             for (auto &track_block_entity : active_track_Block.lanes) {
                 boost::get<Track>(track_block_entity.glMesh).update();
-                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix,
-                                         boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+                trackShader.loadMatrices(ProjectionMatrix, ViewMatrix, boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
                 trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
                 if (contributingLightEntities.size() > 0) {
                     trackShader.loadLights(contributingLights);
@@ -161,18 +157,8 @@ void Renderer::Render() {
                 COLFILE col = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
                 if (col.object[global_object.entityID].type == 3) {
                     if (animMap[global_object.entityID] < col.object[global_object.entityID].animLength) {
-                        boost::get<Track>(global_object.glMesh).position =
-                                glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3(
-                                        (col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.x / 65536.0) / 10,
-                                        (col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.y / 65536.0) / 10,
-                                        (col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.z / 65536.0) / 10);
-                        boost::get<Track>(global_object.glMesh).orientation =
-                                glm::normalize(glm::quat(glm::vec3(-M_PI, -M_PI, 0))) * glm::normalize(glm::quat(
-                                        -col.object[global_object.entityID].animData[animMap[global_object.entityID]].od1,
-                                        col.object[global_object.entityID].animData[animMap[global_object.entityID]].od2,
-                                        col.object[global_object.entityID].animData[animMap[global_object.entityID]].od3,
-                                        col.object[global_object.entityID].animData[animMap[global_object.entityID]].od4));
-
+                        boost::get<Track>(global_object.glMesh).position = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3((col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.x / 65536.0) / 10, (col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.y / 65536.0) / 10, (col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.z / 65536.0) / 10);
+                        boost::get<Track>(global_object.glMesh).orientation = glm::normalize(glm::quat(glm::vec3(-M_PI, -M_PI, 0))) * glm::normalize(glm::quat(-col.object[global_object.entityID].animData[animMap[global_object.entityID]].od1, col.object[global_object.entityID].animData[animMap[global_object.entityID]].od2, col.object[global_object.entityID].animData[animMap[global_object.entityID]].od3, col.object[global_object.entityID].animData[animMap[global_object.entityID]].od4));
                         animMap[global_object.entityID]++;
                     } else {
                         animMap[global_object.entityID] = 0;
@@ -273,11 +259,9 @@ void Renderer::Render() {
         for (auto &track_block_id : activeTrackBlockIDs) {
             billboardShader.use();
             // Render the lights far to near
-            for (auto &light_entity : std::vector<Entity>(track->track_blocks[track_block_id].lights.rbegin(),
-                                                          track->track_blocks[track_block_id].lights.rend())) {
+            for (auto &light_entity : std::vector<Entity>(track->track_blocks[track_block_id].lights.rbegin(), track->track_blocks[track_block_id].lights.rend())) {
                 boost::get<Light>(light_entity.glMesh).update();
-                billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix,
-                                             boost::get<Light>(light_entity.glMesh).ModelMatrix);
+                billboardShader.loadMatrices(ProjectionMatrix, ViewMatrix, boost::get<Light>(light_entity.glMesh).ModelMatrix);
                 billboardShader.loadLight(boost::get<Light>(light_entity.glMesh));
                 boost::get<Light>(light_entity.glMesh).render();
             }
@@ -305,10 +289,8 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
     glm::vec3 out_direction;
     ScreenPosToWorldRay(1024 / 2, 768 / 2, 1024, 768, ViewMatrix, ProjectionMatrix, out_origin, out_direction);
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
-    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
-                                                           btVector3(out_end.x, out_end.y, out_end.z));
-    physicsEngine.getDynamicsWorld()->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z),
-                                              btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
+    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z), btVector3(out_end.x, out_end.y, out_end.z));
+    physicsEngine.getDynamicsWorld()->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z), btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
     if (RayCallback.hasHit()) {
         *entity_targeted = true;
         return static_cast<Entity *>(RayCallback.m_collisionObject->getUserPointer());
@@ -328,17 +310,14 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             break;
         case EntityType::LIGHT: {
             Light *targetLight = &boost::get<Light>(targetEntity->glMesh);
-            ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z,
-                               targetLight->colour.w);
-            ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z,
-                                    0.0f);
+            ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z, targetLight->colour.w);
+            ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z, 0.0f);
             // Colour, type, attenuation, position and NFS unknowns
             ImGui::ColorEdit4("Light Colour", (float *) &lightColour); // Edit 3 floats representing a color
             targetLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
             ImGui::SliderFloat3("Attenuation (A, B, C)", (float *) &lightAttenuation, 0, 10.0f);
             targetLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
-            ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y,
-                        targetLight->position.z);
+            ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y, targetLight->position.z);
             ImGui::Separator();
             ImGui::Text("NFS Data");
             ImGui::Text("Type: %d", targetLight->type);
@@ -454,17 +433,14 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     static float f = 0.0f;
     DrawMenuBar();
     ImGui::Text("OpenNFS Engine");
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                ImGui::GetIO().Framerate);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Checkbox("Bullet Debug View", &preferences->physics_debug_view);
     ImGui::Checkbox("Classic Graphics", &preferences->use_classic_graphics);
     ImGui::Checkbox("Hermite Curve Cam", &preferences->attach_cam_to_hermite);
     ImGui::Checkbox("Car Cam", &preferences->attach_cam_to_car);
     std::stringstream world_position_string;
-    ImGui::Text("X %f Y %f Z %f H: %f V: %f", worldPosition.x, worldPosition.y, worldPosition.z,
-                mainCamera.horizontalAngle, mainCamera.verticalAngle);
-    ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", mainCamera.yaw, mainCamera.pitch,
-                mainCamera.distanceFromCar, mainCamera.angleAroundCar);
+    ImGui::Text("X %f Y %f Z %f H: %f V: %f", worldPosition.x, worldPosition.y, worldPosition.z, mainCamera.horizontalAngle, mainCamera.verticalAngle);
+    ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", mainCamera.yaw, mainCamera.pitch, mainCamera.distanceFromCar, mainCamera.angleAroundCar);
     ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
 
     if (ImGui::Button("Reset View")) {
@@ -472,8 +448,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     };
     ImGui::SameLine(0, -1.0f);
     if (ImGui::Button("Reset Car")) {
-        car->resetCar(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10,
-                                track->track_blocks[0].center.z / 10));
+        car->resetCar(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10));
     };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);
@@ -517,8 +492,7 @@ void Renderer::DrawDebugCube(glm::vec3 position) {
     glm::vec3 position_max =
             orientation * glm::vec3(position.x + lightSize, position.y + lightSize, position.z + lightSize);
     btVector3 colour = btVector3(0, 0, 0);
-    physicsEngine.mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z),
-                                        btVector3(position_max.x, position_max.y, position_max.z), colour);
+    physicsEngine.mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z), btVector3(position_max.x, position_max.y, position_max.z), colour);
 }
 
 std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance,
@@ -531,8 +505,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         float lowestDistanceSqr = FLT_MAX;
         //Primitive Draw distance
         for (auto &track_block :  track->track_blocks) {
-            glm::vec3 position = glm::vec3(track_block.center.x / 10, track_block.center.y / 10,
-                                           track_block.center.z / 10);
+            glm::vec3 position = glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
             float distanceSqr = glm::length2(glm::distance(worldPosition, position));
             if (distanceSqr < lowestDistanceSqr) {
                 closestBlockID = track_block.block_id;
@@ -543,12 +516,10 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
         if (track->tag == NFS_3 && useNeighbourData) {
             for (int i = 0; i < 300; ++i) {
-                if (boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk ==
-                    -1) {
+                if (boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk == -1) {
                     break;
                 } else {
-                    activeTrackBlockIds.emplace_back(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(
-                            track->trackData)->trk[closestBlockID].nbdData[i].blk);
+                    activeTrackBlockIds.emplace_back(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk);
                 }
             }
         } else {
@@ -557,8 +528,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
             for (int block_Idx = closestBlockID - blockDrawDistance;
                  block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
                 if (block_Idx < 0) {
-                    int activeBlock =
-                            ((int) track->track_blocks.size() + (closestBlockID - blockDrawDistance)) + wrapBlocks++;
+                    int activeBlock = ((int) track->track_blocks.size() + (closestBlockID - blockDrawDistance)) + wrapBlocks++;
                     activeTrackBlockIds.emplace_back(activeBlock);
                 } else {
                     activeTrackBlockIds.emplace_back(block_Idx % track->track_blocks.size());
