@@ -28,6 +28,9 @@ public:
     }
 };
 
+/* HEREIN LIES THE HOLY GRAIL OF OLD SCHOOL NEED FOR SPEED MODDING.
+ * Every raw data structure from every interesting file in NFS 2, 3, 4 is documented here.
+ * Big up to Denis Auroux, Jesper Juul Mortensen, JimDiabolo, Lasse (Nappe1), Hoo, Valery V. Anisimovsky */
 namespace NFS3_4_DATA {
     struct FLOATPT {
         float x, z, y;
@@ -598,8 +601,10 @@ namespace NFS2_DATA {
                 uint32_t nVerts; // If nVert = 0x00, jump sizeof(GEO_BLOCK_HEADER) forwards, if odd, add 1
                 uint32_t nPolygons;
                 int32_t position[3]; // Absolute XYZ of the block
-                uint32_t unknown;  // ? similar to the value in the list above
-                uint32_t unknown1; // ? similar to the value in the list above
+                uint16_t unknown;  // ? similar to the value in the list above
+                uint16_t unknown1; // ? similar to the value in the list above
+                uint16_t unknown2; // ? similar to the value in the list above
+                uint16_t unknown3; // ? similar to the value in the list above
                 uint64_t pad0; // always 0x00
                 uint64_t pad1; // always 0x01
                 uint64_t pad2; // always 0x01

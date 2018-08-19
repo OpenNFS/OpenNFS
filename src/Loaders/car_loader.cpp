@@ -11,10 +11,10 @@ shared_ptr<Car> CarLoader::LoadCar(const std::string &car_path) {
         nfs_version = NFS_2_SE;
     } else if (car_path.find("NFS2") != std::string::npos) {
         nfs_version = NFS_2;
-    } else if (car_path.find("NFS3") != std::string::npos) {
-        nfs_version = NFS_3;
     } else if (car_path.find("NFS3_PS1") != std::string::npos) {
         nfs_version = NFS_3_PS1;
+    } else if (car_path.find("NFS3") != std::string::npos) {
+        nfs_version = NFS_3;
     } else if (car_path.find("NFS4") != std::string::npos) {
         nfs_version = NFS_4;
     } else {

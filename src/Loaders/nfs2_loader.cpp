@@ -4,6 +4,36 @@
 
 #include "nfs2_loader.h"
 
+// Mike Thompson CarEd disasm parts table for NFS2 Cars
+std::string PART_NAMES[32]  {
+        "High Additional Body Part",
+        "High Main Body Part",
+        "High Ground Part",
+        "High Front Part",
+        "High Back Part",
+        "High Left Side Part",
+        "High Right Side Part",
+        "High Additional Left Side Part",
+        "High Additional Right Side Part",
+        "High Spoiler Part",
+        "High Additional Part",
+        "High Backlights",
+        "High Front Right Wheel",
+        "High Front Right Wheel Part",
+        "High Front Left Wheel",
+        "High Front Left Wheel Part",
+        "High Rear Right Wheel",
+        "High Rear Right Wheel Part",
+        "High Rear Left Wheel",
+        "High Rear Left Wheel Part",
+        "Medium Additional Body Part",
+        "Medium Main Body Part",
+        "Medium Ground Part",
+        "Low Wheel Part",
+        "Low Main Part",
+        "Low Side Part",
+};
+
 void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices,
                PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
     std::ofstream obj_dump;
@@ -53,16 +83,14 @@ uint32_t abgr1555ToARGB8888(uint16_t abgr1555) {
 // TODO: Use template specialization/overload to avoid this
 template<typename Platform>
 std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
+    float carScaleFactor = 1000;
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+
     if (std::is_same<Platform, PS1>::value) {
         std::cout << "- Parsing GEO File " << std::endl;
         std::vector<CarModel> car_meshes;
 
         ifstream geo(geo_path, ios::in | ios::binary);
-
-        std::string psh_path = geo_path;
-        psh_path.replace(psh_path.find("GEO"), 3, "PSH");
-
-        ExtractPSH(psh_path, "./assets/car/psx_test/");
 
         auto *geoFileHeader = new PS1::GEO::HEADER();
         if (geo.read((char *) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
@@ -70,29 +98,41 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             delete geoFileHeader;
             return car_meshes;
         }
-        bool eof = false;
 
-        for (int block_Idx = 0;; ++block_Idx) {
+        uint32_t part_Idx = -1;
+
+        while(true) {
             streamoff start = geo.tellg();
-            std::cout << block_Idx << " BlockStartOffset: " << start << std::endl;
-
+            std::cout << part_Idx + 1 << " BlockStartOffset: " << start << std::endl;
             auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
             while (geoBlockHeader->nVerts == 0) {
+                ++part_Idx;
                 geo.read((char *) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
                 if (geo.eof()) {
-                    eof = true;
-                    break;
+                    delete geoBlockHeader;
+                    delete geoFileHeader;
+                    return car_meshes;
                 }
             }
-            if (eof) break;
 
-            if ((geoBlockHeader->unknown[0] != 0) || (geoBlockHeader->unknown[1] != 1) ||
-                (geoBlockHeader->unknown[2] != 1)) {
+            if ((geoBlockHeader->unknown[0] != 0) || (geoBlockHeader->unknown[1] != 1) || (geoBlockHeader->unknown[2] != 1)) {
                 std::cout << "Invalid geometry header. This file is special (or corrupt)" << std::endl;
                 delete geoBlockHeader;
                 delete geoFileHeader;
                 return car_meshes;
             }
+
+            std::vector<uint32_t> indices;
+            std::vector<glm::vec3> verts;
+            std::vector<glm::vec3> norms;
+            std::vector<glm::vec2> uvs;
+
+            indices.reserve(geoBlockHeader->nPolygons * 6);
+            verts.reserve(geoBlockHeader->nVerts);
+
+            float specularDamper = 0.2;
+            float specularReflectivity = 0.02;
+            float envReflectivity = 0.4;
 
             auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
             geo.read((char *) vertices, (geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
@@ -143,14 +183,56 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             }
 
             // TODO: This skip is only applicable to DIAB/CORV/others, not F355 or F550 or ARMY. Debug before commit.
-            if (block_Idx == 5 || block_Idx == 6) {
+            /*if (block_Idx == 5 || block_Idx == 6) {
                 std::cout << "Skipping 12 Bytes - BUT WHY" << std::endl;
                 geo.seekg(0xC, ios_base::cur);
-            }
+            }*/
 
             auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
             geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
-            DumpToObj(block_Idx, geoBlockHeader, vertices, normals, polygons);
+            //DumpToObj(block_Idx, geoBlockHeader, vertices, normals, polygons);
+
+            for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
+                verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x/ carScaleFactor, vertices[vert_Idx].y/ carScaleFactor, vertices[vert_Idx].z/ carScaleFactor));
+            }
+
+            for (int poly_Idx = 0; poly_Idx <  geoBlockHeader->nPolygons; ++poly_Idx) {
+                if ((polygons[poly_Idx].vertex[1][0] == 0) && (polygons[poly_Idx].vertex[1][1] == 0)) {
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][1] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][3] + 1);
+                } else if ((polygons[poly_Idx].vertex[1][0] == 1) && (polygons[poly_Idx].vertex[1][1] == 1)) {
+                    // Transparent ?
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][1] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
+                    indices.emplace_back( polygons[poly_Idx].vertex[0][3] + 1);
+                } else {
+                    continue;
+                }
+
+                uvs.emplace_back(1.0f, 1.0f);
+                uvs.emplace_back(0.0f, 1.0f);
+                uvs.emplace_back(0.0f, 0.0f);
+                uvs.emplace_back(1.0f, 1.0f);
+                uvs.emplace_back(0.0f, 0.0f);
+                uvs.emplace_back(1.0f, 0.0f);
+
+                // TODO: Long overdue normal calculation
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+            }
+
+            car_meshes.emplace_back(CarModel(PART_NAMES[part_Idx], verts, uvs, norms, indices, glm::vec3(0,0,0), specularDamper, specularReflectivity, envReflectivity));
 
             std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
@@ -204,8 +286,8 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
     } else {
         std::cout << "- Parsing GEO File " << std::endl;
         std::vector<CarModel> car_meshes;
-
         ifstream geo(geo_path, ios::in | ios::binary);
+
 
         auto *geoFileHeader = new PC::GEO::HEADER();
         if (geo.read((char *) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
@@ -214,11 +296,32 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             return car_meshes;
         }
 
-        while (geo.tellg() != -1) {
+        uint32_t part_Idx = -1;
+
+        while(true) {
             auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
             while (geoBlockHeader->nVerts == 0) {
+                ++part_Idx;
                 geo.read((char *) geoBlockHeader, sizeof(PC::GEO::BLOCK_HEADER));
+                if (geo.eof()) {
+                    delete geoBlockHeader;
+                    delete geoFileHeader;
+                    return car_meshes;
+                }
             }
+            ASSERT(geoBlockHeader->pad0 == 0 && geoBlockHeader->pad1 == 1 && geoBlockHeader->pad2 == 1, "Corrupt GEO block header");
+
+            std::vector<uint32_t> indices;
+            std::vector<glm::vec3> verts;
+            std::vector<glm::vec3> norms;
+            std::vector<glm::vec2> uvs;
+
+            indices.reserve(geoBlockHeader->nPolygons * 6);
+            verts.reserve(geoBlockHeader->nVerts);
+
+            float specularDamper = 0.2;
+            float specularReflectivity = 0.02;
+            float envReflectivity = 0.4;
 
             auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
             geo.read((char *) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
@@ -226,11 +329,43 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
             geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
 
+            for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
+                verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x/ carScaleFactor, vertices[vert_Idx].y/ carScaleFactor, vertices[vert_Idx].z/ carScaleFactor));
+            }
+
+            for (int poly_Idx = 0; poly_Idx <  geoBlockHeader->nPolygons; ++poly_Idx) {
+                std::cout << polygons[poly_Idx].texName << std::endl;
+                indices.emplace_back(polygons[poly_Idx].vertex[0]);
+                indices.emplace_back(polygons[poly_Idx].vertex[1]);
+                indices.emplace_back(polygons[poly_Idx].vertex[2]);
+                indices.emplace_back(polygons[poly_Idx].vertex[0]);
+                indices.emplace_back(polygons[poly_Idx].vertex[2]);
+                indices.emplace_back(polygons[poly_Idx].vertex[3]);
+
+                uvs.emplace_back(1.0f, 1.0f);
+                uvs.emplace_back(0.0f, 1.0f);
+                uvs.emplace_back(0.0f, 0.0f);
+                uvs.emplace_back(1.0f, 1.0f);
+                uvs.emplace_back(0.0f, 0.0f);
+                uvs.emplace_back(1.0f, 0.0f);
+
+                // TODO: Long overdue normal calculation
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+                norms.emplace_back(glm::vec3(1, 1, 1));
+            }
+
+
+            car_meshes.emplace_back(CarModel(PART_NAMES[part_Idx], verts, uvs, norms, indices, glm::vec3(0,0,0), specularDamper, specularReflectivity, envReflectivity));
 
             delete geoBlockHeader;
             delete[] vertices;
             delete[] polygons;
         }
+
         delete geoFileHeader;
 
         return car_meshes;
@@ -241,8 +376,28 @@ template<typename Platform>
 std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     boost::filesystem::path p(car_base_path);
     std::string car_name = p.filename().string();
-    ASSERT(false, "Unimplemented! No UVs or Normals.");
-    return std::make_shared<Car>(LoadGEO(car_base_path), NFS_2, car_name);
+
+    stringstream geo_path, psh_path, qfs_path, car_out_path;
+    geo_path << car_base_path << ".GEO";
+    psh_path << car_base_path << ".PSH";
+    qfs_path << car_base_path << ".QFS";
+    car_out_path << CAR_PATH << car_name << "/";
+
+
+
+    if (std::is_same<Platform, PS1>::value) {
+        if (!boost::filesystem::exists(car_out_path.str())) {
+            boost::filesystem::create_directories(car_out_path.str());
+            ExtractPSH(psh_path.str(), car_out_path.str());
+        }
+        return std::make_shared<Car>(LoadGEO(geo_path.str()), NFS_3_PS1, car_name);
+    } else {
+        if (!boost::filesystem::exists(car_out_path.str())) {
+            boost::filesystem::create_directories(car_out_path.str());
+            Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
+        }
+        return std::make_shared<Car>(LoadGEO(geo_path.str()), NFS_2, car_name);
+    }
 }
 
 // TRACK

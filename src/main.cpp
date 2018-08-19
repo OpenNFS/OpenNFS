@@ -25,7 +25,7 @@ using namespace ImGui;
 class OpenNFS {
 public:
     void run() {
-        std::cout << "----------- OpenNFS3 v0.1 -----------" << std::endl;
+        std::cout << "----------- OpenNFS v0.1 -----------" << std::endl;
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
         initDirectories();
@@ -35,11 +35,13 @@ public:
         std::string nfs3ps1track("../resources/NFS3_PS1/ZZZTR00A");
         std::string nfs2track("../resources/NFS2/GAMEDATA/TRACKS/PC/TR02");
         std::string nfs3track("../resources/NFS3/gamedata/tracks/trk005/tr05");
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs2track);
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs3track);
         //Load Car data from unpacked NFS files
         std::string merc("../resources/NFS3/gamedata/carmodel/merc");
         std::string nfs4("../resources/NFS4/DATA/CARS/B911");
-        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs4);
+        std::string nfs3ps1car("../resources/NFS3_PS1/ZF355");
+        std::string nfs2car("../resources/NFS2/GAMEDATA/CARMODEL/PC/GT90");
+        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs2car);
 
         //Load Music
         //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
@@ -77,7 +79,7 @@ private:
         //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
-        window = glfwCreateWindow(1024, 768, "OpenNFS3", nullptr, nullptr);
+        window = glfwCreateWindow(1024, 768, "OpenNFS", nullptr, nullptr);
 
         if (window == nullptr) {
             fprintf(stderr, "Failed to create a GLFW window.\n");

@@ -15,8 +15,7 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
     car_out_path << CAR_PATH << car_name << "/";
     fce_path << CAR_PATH << car_name << "/car.fce";
 
-    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()),
-           "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
     return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_3, car_name);
 }
@@ -39,8 +38,8 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
 
     for (int part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
         float specularDamper = 0.2;
-        float specularReflectivity = part_Idx == 0.02;
-        float envReflectivity = part_Idx == 0.4;
+        float specularReflectivity = 0.02;
+        float envReflectivity = 0.4;
 
         std::vector<uint32_t> indices;
         std::vector<glm::vec3> vertices;
@@ -82,10 +81,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         }
 
         meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
-        std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: "
-                  << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
-                  << " Normals: "
-                  << meshes[part_Idx].m_normals.size() << std::endl;
+        std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size() << std::endl;
 
         delete[] partNormals;
         delete[] partVertices;
@@ -709,8 +705,7 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     GLsizei height = track_texture.height;
 
     if (!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)) {
-        std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!"
-                  << std::endl;
+        std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!" << std::endl;
         // If the texture is missing, load a "MISSING" texture of identical size.
         ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width,
                                        height), "Even the 'missing' texture is missing!");
