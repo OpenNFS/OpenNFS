@@ -48,6 +48,10 @@ void Renderer::Render() {
     bool entity_targeted = false;
     Entity *targetedEntity;
 
+    if(!car->car_body_model.texture_ids.size()){
+        carShader.load_tga_texture();
+    }
+
     while (!glfwWindowShouldClose(window)) {
         glClearColor(userParams.clear_color.x, userParams.clear_color.y, userParams.clear_color.z,
                      userParams.clear_color.w);
@@ -188,52 +192,83 @@ void Renderer::Render() {
         //SetCulling(true);
         // Render the Car
         carShader.use();
+        // Clean this up
+        if(car->car_body_model.texture_ids.size()){
+            carShader.setMultiTextured();
+            carShader.bindCarTextures(car->car_body_model, car->car_texture_gl_mappings);
+        } else {
+            carShader.loadCarTexture();
+        }
         carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car->car_body_model.ModelMatrix);
-        carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity,
-                               car->car_body_model.envReflectivity);
+        carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity, car->car_body_model.envReflectivity);
         carShader.loadCarColor(glm::vec3(1, 1, 1));
         carShader.loadLight(cameraLight);
-        carShader.loadCarTexture();
         car->car_body_model.render();
 
+        if(car->left_front_wheel_model.texture_ids.size()){
+            carShader.setMultiTextured();
+            carShader.bindCarTextures(car->left_front_wheel_model, car->car_texture_gl_mappings);
+        } else {
+            carShader.loadCarTexture();
+        }
         carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car->left_front_wheel_model.ModelMatrix);
         carShader.loadSpecular(car->left_front_wheel_model.specularDamper, 0, 0);
         carShader.loadCarColor(glm::vec3(1, 1, 1));
         carShader.loadLight(cameraLight);
-        carShader.loadCarTexture();
         car->left_front_wheel_model.render();
 
+        if(car->left_rear_wheel_model.texture_ids.size()){
+            carShader.setMultiTextured();
+            carShader.bindCarTextures(car->left_rear_wheel_model, car->car_texture_gl_mappings);
+        } else {
+            carShader.loadCarTexture();
+        }
         carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car->left_rear_wheel_model.ModelMatrix);
         carShader.loadSpecular(car->left_rear_wheel_model.specularDamper, 0, 0);
         carShader.loadCarColor(glm::vec3(1, 1, 1));
         carShader.loadLight(cameraLight);
-        carShader.loadCarTexture();
         car->left_rear_wheel_model.render();
 
+        if(car->right_front_wheel_model.texture_ids.size()){
+            carShader.setMultiTextured();
+            carShader.bindCarTextures(car->right_front_wheel_model, car->car_texture_gl_mappings);
+        } else {
+            carShader.loadCarTexture();
+        }
         carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car->right_front_wheel_model.ModelMatrix);
         carShader.loadSpecular(car->right_front_wheel_model.specularDamper, 0, 0);
         carShader.loadCarColor(glm::vec3(1, 1, 1));
         carShader.loadLight(cameraLight);
-        carShader.loadCarTexture();
         car->right_front_wheel_model.render();
 
+        if(car->right_rear_wheel_model.texture_ids.size()){
+            carShader.setMultiTextured();
+            carShader.bindCarTextures(car->right_rear_wheel_model, car->car_texture_gl_mappings);
+        } else {
+            carShader.loadCarTexture();
+        }
         carShader.loadMatrices(ProjectionMatrix, ViewMatrix, car->right_rear_wheel_model.ModelMatrix);
         carShader.loadSpecular(car->right_rear_wheel_model.specularDamper, 0, 0);
         carShader.loadCarColor(glm::vec3(1, 1, 1));
         carShader.loadLight(cameraLight);
-        carShader.loadCarTexture();
         car->right_rear_wheel_model.render();
 
         for (auto &misc_model : car->misc_models) {
+            // Clean this up
+            if(misc_model.texture_ids.size()){
+                carShader.setMultiTextured();
+                carShader.bindCarTextures(misc_model, car->car_texture_gl_mappings);
+            } else {
+                carShader.loadCarTexture();
+            }
             carShader.loadMatrices(ProjectionMatrix, ViewMatrix, misc_model.ModelMatrix);
             carShader.loadSpecular(misc_model.specularDamper, 0, 0);
             carShader.loadCarColor(glm::vec3(1, 1, 1));
             carShader.loadLight(cameraLight);
-            carShader.loadCarTexture();
             misc_model.render();
         }
         carShader.unbind();
-        SetCulling(false);
+        //SetCulling(false);
 
         for (auto &track_block_id : activeTrackBlockIDs) {
             billboardShader.use();

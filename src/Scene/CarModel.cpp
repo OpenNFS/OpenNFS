@@ -6,6 +6,21 @@
 #include "CarModel.h"
 #include "../Util/Utils.h"
 
+CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids,  glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(name, verts, uvs, norms, indices, true, center_position) {
+    specularDamper = specular_damper;
+    specularReflectivity = specular_reflectivity;
+    envReflectivity = env_reflectivity;
+    m_texture_indices = texture_indices;
+    texture_ids = tex_ids;
+    m_normals.clear();
+    for (unsigned int m_vertex_index : m_vertex_indices) {
+        m_normals.push_back(norms[m_vertex_index]);
+    }
+
+    // Gen VBOs, add to Bullet Physics
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model ");
+}
+
 CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(name, verts, uvs, norms, indices, true, center_position) {
     specularDamper = specular_damper;
     specularReflectivity = specular_reflectivity;
@@ -29,6 +44,9 @@ void CarModel::destroy() {
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &uvbuffer);
     glDeleteBuffers(1, &normalbuffer);
+    if(m_texture_indices.size()){
+        glDeleteBuffers(1, &textureIndexBuffer);
+    }
 }
 
 void CarModel::render() {
@@ -84,6 +102,21 @@ bool CarModel::genBuffers() {
     );
     // 3rd attribute buffer : Normals
     glEnableVertexAttribArray(2);
+    if(m_texture_indices.size()){
+        // Texture Indices
+        glGenBuffers(1, &textureIndexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, textureIndexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, m_texture_indices.size() * sizeof(unsigned int), &m_texture_indices[0], GL_STATIC_DRAW);
+        glVertexAttribIPointer(
+                3,
+                1,
+                GL_UNSIGNED_INT,
+                0,
+                (void *) 0
+        );
+        // 4th attribute buffer : Texture Indices
+        glEnableVertexAttribArray(3);
+    }
     glBindVertexArray(0);
     return true;
 }

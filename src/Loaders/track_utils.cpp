@@ -27,9 +27,9 @@ namespace TrackUtils {
         return gl_id_map;
     }
 
-    std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) {
+    std::vector<unsigned int> RemapTextureIDs(const std::set<unsigned int> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) {
         // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids;
+        std::vector<unsigned int> texture_ids;
         texture_ids.assign(minimal_texture_ids_set.begin(), minimal_texture_ids_set.end());
         // Remap Normals to correspond to ordered texture ID's
         std::map<int, int> ordered_mapping;

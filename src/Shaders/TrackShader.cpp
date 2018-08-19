@@ -52,8 +52,7 @@ void TrackShader::bindTrackTextures(const Track &track_block, std::map<short, GL
            //std::cerr << "Too many textures in Trackblock for number of GPU samplers" << std::endl;
        }
     }
-    const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-                                24, 25, 26, 27, 28, 29, 30, 31};
+    const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
     glUniform1iv(TrackTexturesID, 32, samplers);
 }
 

@@ -18,7 +18,7 @@
 namespace TrackUtils {
     std::map<short, GLuint> GenTrackTextures(std::map<short, Texture> textures);
 
-    std::vector<short> RemapTextureIDs(const std::set<short> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) ;
+    std::vector<unsigned int> RemapTextureIDs(const std::set<unsigned int> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) ;
 
     Light MakeLight(glm::vec3 light_position, uint32_t light_type);
 

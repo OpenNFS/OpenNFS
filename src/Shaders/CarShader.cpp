@@ -11,7 +11,7 @@ CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
     car = current_car;
     bindAttributes();
     getAllUniformLocations();
-    load_tga_texture();
+    //load_tga_texture();
     LoadEnvMapTexture();
 }
 
@@ -37,6 +37,7 @@ void CarShader::bindAttributes() {
     bindAttribute(0 ,"vertexPosition_modelspace");
     bindAttribute(1 ,"vertexUV");
     bindAttribute(2 ,"normal");
+    bindAttribute(3 ,"textureIndex");
 }
 
 void CarShader::getAllUniformLocations() {
@@ -52,11 +53,28 @@ void CarShader::getAllUniformLocations() {
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
     envReflectivityLocation  =  getUniformLocation("envReflectivity");
+    CarTexturesID = getUniformLocation("texture_array");
+    isMultiTexturedLocation = getUniformLocation("multiTextured");
+}
+
+void CarShader::setMultiTextured(){
+    loadBool(isMultiTexturedLocation, true);
 }
 
 void CarShader::customCleanup(){
     glDeleteTextures(1, &textureID);
 }
+
+void CarShader::bindCarTextures(const CarModel &car_model, std::map<unsigned int, GLuint> gl_id_map) {
+    GLenum texNum = GL_TEXTURE0;
+    for (unsigned int texture_id : car_model.texture_ids) {
+        glActiveTexture(texNum++);
+        glBindTexture(GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
+    }
+    const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+    glUniform1iv(CarTexturesID, 32, samplers);
+}
+
 
 void CarShader::load_tga_texture() {
     std::stringstream car_texture_path;

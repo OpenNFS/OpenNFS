@@ -25,9 +25,10 @@ public:
     void loadLight(Light light);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
-
-protected:
+    void bindCarTextures(const CarModel &car_model, std::map<unsigned int, GLuint> gl_id_map);
+    void setMultiTextured();
     void load_tga_texture();
+protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
@@ -43,8 +44,12 @@ protected:
     GLint shineDamperLocation;
     GLint reflectivityLocation;
     GLint envReflectivityLocation;
+    GLint isMultiTexturedLocation;
     GLuint textureID;
     GLuint envMapTextureID;
+    // Multitextured
+    GLint CarTexturesID;
+    bool multiTextured;
 
     typedef BaseShader super;
 

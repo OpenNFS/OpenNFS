@@ -445,7 +445,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 for (int k = 0; k < obj_polygon_block.nobj; k++) {
                     //TODO: Animated objects here, obj_polygon_block.types
                     // Keep track of unique textures in trackblock for later OpenGL bind
-                    std::set<short> minimal_texture_ids_set;
+                    std::set<unsigned int> minimal_texture_ids_set;
                     // Mesh Data
                     std::vector<unsigned int> vertex_indices;
                     std::vector<glm::vec2> uvs;
@@ -485,7 +485,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         texture_indices.emplace_back(texture_for_block.texture);
                     }
                     // Get ordered list of unique texture id's present in block
-                    std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+                    std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
                     current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, texture_ids, obj_shading_verts, trk_block_center)));
                 }
             }
@@ -507,7 +507,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     //RGBA
                     xobj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
                 }
-                std::set<short> minimal_texture_ids_set;
+                std::set<unsigned int> minimal_texture_ids_set;
                 std::vector<unsigned int> vertex_indices;
                 std::vector<glm::vec2> uvs;
                 std::vector<unsigned int> texture_indices;
@@ -548,13 +548,13 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     texture_indices.emplace_back(texture_for_block.texture);
                 }
                 // Get ordered list of unique texture id's present in block
-                std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+                std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
                 current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, xobj_shading_verts, trk_block_center)));
             }
         }
 
         // Keep track of unique textures in trackblock for later OpenGL bind
-        std::set<short> minimal_texture_ids_set;
+        std::set<unsigned int> minimal_texture_ids_set;
         // Mesh Data
         std::vector<unsigned int> vertex_indices;
         std::vector<glm::vec2> uvs;
@@ -609,7 +609,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 texture_indices.emplace_back(texture_for_block.texture);
             }
             // Get ordered list of unique texture id's present in block
-            std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+            std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
 
             if(chnk == 6){
                 current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center)));
@@ -631,7 +631,7 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
     for (int i = 0; i < track->col.objectHead.nrec; i++, o++) {
         COLSTRUCT3D s = track->col.struct3D[o->struct3D];
         // Keep track of unique textures in trackblock for later OpenGL bind
-        std::set<short> minimal_texture_ids_set;
+        std::set<unsigned int> minimal_texture_ids_set;
         std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
@@ -679,7 +679,7 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
             texture_indices.emplace_back(texture_for_block.texture);
         }
         // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+        std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10, static_cast<float>(o->ptRef.y / 65536.0) / 10, static_cast<float>(o->ptRef.z / 65536.0) / 10);
         col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL, Track(verts, norms, uvs, texture_indices, indices, texture_ids, shading_data, position)));
     }

@@ -7,20 +7,64 @@ in vec3 carColour;
 in vec3 surfaceNormal;
 in vec3 toLightVector;
 in vec3 toCameraVector;
+flat in uint texIndex;
 
 // Ouput data
 out vec4 color;
 
 // Values that stay constant for the whole mesh.
+uniform sampler2D texture_array[32];
 uniform sampler2D envMapTextureSampler;
 uniform sampler2D carTextureSampler;
 uniform vec4 lightColour;
 uniform float shineDamper;
 uniform float reflectivity;
 uniform float envReflectivity;
+uniform bool multiTextured;
 
 void main(){
-    vec4 carTexColor = texture( carTextureSampler, UV ).rgba;
+    vec4 carTexColor;
+    if(multiTextured) {
+        switch(int(texIndex)){
+            case 0: carTexColor  = texture(texture_array[0],  UV).rgba; break;
+            case 1: carTexColor  = texture(texture_array[1],  UV).rgba; break;
+            case 2: carTexColor  = texture(texture_array[2],  UV).rgba; break;
+            case 3: carTexColor  = texture(texture_array[3],  UV).rgba; break;
+            case 4: carTexColor  = texture(texture_array[4],  UV).rgba; break;
+            case 5: carTexColor  = texture(texture_array[5],  UV).rgba; break;
+            case 6: carTexColor  = texture(texture_array[6],  UV).rgba; break;
+            case 7: carTexColor  = texture(texture_array[7],  UV).rgba; break;
+            case 8: carTexColor  = texture(texture_array[8],  UV).rgba; break;
+            case 9: carTexColor  = texture(texture_array[9],  UV).rgba; break;
+            case 10: carTexColor = texture(texture_array[10], UV).rgba; break;
+            case 11: carTexColor = texture(texture_array[11], UV).rgba; break;
+            case 12: carTexColor = texture(texture_array[12], UV).rgba; break;
+            case 13: carTexColor = texture(texture_array[13], UV).rgba; break;
+            case 14: carTexColor = texture(texture_array[14], UV).rgba; break;
+            case 15: carTexColor = texture(texture_array[15], UV).rgba; break;
+            case 16: carTexColor = texture(texture_array[16], UV).rgba; break;
+            case 17: carTexColor = texture(texture_array[17], UV).rgba; break;
+            case 18: carTexColor = texture(texture_array[18], UV).rgba; break;
+            case 19: carTexColor = texture(texture_array[19], UV).rgba; break;
+            case 20: carTexColor = texture(texture_array[20], UV).rgba; break;
+            case 21: carTexColor = texture(texture_array[21], UV).rgba; break;
+            case 22: carTexColor = texture(texture_array[22], UV).rgba; break;
+            case 23: carTexColor = texture(texture_array[23], UV).rgba; break;
+            case 24: carTexColor = texture(texture_array[24], UV).rgba; break;
+            case 25: carTexColor = texture(texture_array[25], UV).rgba; break;
+            case 26: carTexColor = texture(texture_array[26], UV).rgba; break;
+            case 27: carTexColor = texture(texture_array[27], UV).rgba; break;
+            case 28: carTexColor = texture(texture_array[28], UV).rgba; break;
+            case 29: carTexColor = texture(texture_array[29], UV).rgba; break;
+            case 30: carTexColor = texture(texture_array[30], UV).rgba; break;
+            case 31: carTexColor = texture(texture_array[31], UV).rgba; break;
+            default: carTexColor = texture(texture_array[0],  UV).rgba; break;
+        }
+    }
+    else {
+        carTexColor = texture( carTextureSampler, UV ).rgba;
+    }
+
     vec4 envTexColor = texture( envMapTextureSampler, envUV ).rgba;
 
     vec3 unitNormal = normalize(surfaceNormal);

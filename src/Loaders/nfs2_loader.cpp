@@ -34,6 +34,40 @@ std::string PART_NAMES[32]  {
         "Low Side Part",
 };
 
+// Map the texture name from the Raw GEO file from a string into an unsigned int representation, so it's cheaper to use during binding.
+unsigned int remapTextureName(std::string texName){
+    std::stringstream remappedNameString;
+    for(int char_Idx = 0; char_Idx < texName.length(); ++char_Idx){
+        if (isalpha(texName[char_Idx])){
+            remappedNameString << (int) texName[char_Idx] - 96; // Just change the letter into an alphabet number 1-26
+        } else {
+            remappedNameString << texName[char_Idx];
+        }
+    }
+    return (unsigned int) stoi(remappedNameString.str());
+}
+
+std::map<unsigned int, GLuint> GenCarTextures(std::map<unsigned int, Texture> textures) {
+    std::map<unsigned int, GLuint> gl_id_map;
+
+    for (auto it = textures.begin(); it != textures.end(); ++it) {
+        Texture texture = it->second;
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        gl_id_map[it->first] = textureID;
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        // TODO: Use Filtering for Textures with no alpha component
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE,
+                          (const GLvoid *) texture.texture_data);
+    }
+
+    return gl_id_map;
+}
+
 void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices,
                PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
     std::ofstream obj_dump;
@@ -280,14 +314,10 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             delete xblock_4;
             delete xblock_5;
         }
-        delete geoFileHeader;
-
-        return car_meshes;
     } else {
         std::cout << "- Parsing GEO File " << std::endl;
         std::vector<CarModel> car_meshes;
         ifstream geo(geo_path, ios::in | ios::binary);
-
 
         auto *geoFileHeader = new PC::GEO::HEADER();
         if (geo.read((char *) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
@@ -297,6 +327,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
         }
 
         uint32_t part_Idx = -1;
+        std::set<unsigned int> minimal_texture_ids_set; // TODO: Switch to Texture Atlas
 
         while(true) {
             auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
@@ -315,6 +346,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             std::vector<glm::vec3> verts;
             std::vector<glm::vec3> norms;
             std::vector<glm::vec2> uvs;
+            std::vector<unsigned int> texture_indices;
 
             indices.reserve(geoBlockHeader->nPolygons * 6);
             verts.reserve(geoBlockHeader->nVerts);
@@ -334,7 +366,10 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             }
 
             for (int poly_Idx = 0; poly_Idx <  geoBlockHeader->nPolygons; ++poly_Idx) {
-                std::cout << polygons[poly_Idx].texName << std::endl;
+                std::string textureName(polygons[poly_Idx].texName);
+                // Store a minimal subset of texture ID's used on car part for later OpenGL bind
+                minimal_texture_ids_set.insert(remapTextureName(textureName));
+
                 indices.emplace_back(polygons[poly_Idx].vertex[0]);
                 indices.emplace_back(polygons[poly_Idx].vertex[1]);
                 indices.emplace_back(polygons[poly_Idx].vertex[2]);
@@ -345,6 +380,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 uvs.emplace_back(1.0f, 1.0f);
                 uvs.emplace_back(0.0f, 1.0f);
                 uvs.emplace_back(0.0f, 0.0f);
+
                 uvs.emplace_back(1.0f, 1.0f);
                 uvs.emplace_back(0.0f, 0.0f);
                 uvs.emplace_back(1.0f, 0.0f);
@@ -356,19 +392,22 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
+
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
             }
-
-
-            car_meshes.emplace_back(CarModel(PART_NAMES[part_Idx], verts, uvs, norms, indices, glm::vec3(0,0,0), specularDamper, specularReflectivity, envReflectivity));
+            // Get ordered list of unique texture id's present in car part
+            std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+            car_meshes.emplace_back(CarModel(PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, texture_ids, glm::vec3(0,0,0), specularDamper, specularReflectivity, envReflectivity));
 
             delete geoBlockHeader;
             delete[] vertices;
             delete[] polygons;
         }
-
-        delete geoFileHeader;
-
-        return car_meshes;
     }
 }
 
@@ -383,8 +422,6 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     qfs_path << car_base_path << ".QFS";
     car_out_path << CAR_PATH << car_name << "/";
 
-
-
     if (std::is_same<Platform, PS1>::value) {
         if (!boost::filesystem::exists(car_out_path.str())) {
             boost::filesystem::create_directories(car_out_path.str());
@@ -396,7 +433,19 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
             boost::filesystem::create_directories(car_out_path.str());
             Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
         }
-        return std::make_shared<Car>(LoadGEO(geo_path.str()), NFS_2, car_name);
+        // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
+        std::map<unsigned int, Texture> car_textures;
+        for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr!=boost::filesystem::directory_iterator(); ++itr)
+        {
+            if(itr->path().filename().string().find("BMP") != std::string::npos){
+                GLubyte *data;
+                GLsizei width;
+                GLsizei height;
+                ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 248u), "Texture " << itr->path().string() << " did not load succesfully!");
+                car_textures[remapTextureName(itr->path().filename().string())] =  Texture(remapTextureName(itr->path().filename().string()), data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+            }
+        }
+        return std::make_shared<Car>(LoadGEO(geo_path.str()), NFS_2, car_name, GenCarTextures(car_textures));
     }
 }
 
@@ -702,17 +751,14 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                     col.read((char *) &track->colStructures[structure_Idx].recSize, sizeof(uint32_t));
                     col.read((char *) &track->colStructures[structure_Idx].nVerts, sizeof(uint16_t));
                     col.read((char *) &track->colStructures[structure_Idx].nPoly, sizeof(uint16_t));
-                    track->colStructures[structure_Idx].vertexTable = static_cast<typename Platform::VERT *>(calloc(
-                            track->colStructures[structure_Idx].nVerts, sizeof(typename Platform::VERT)));
+                    track->colStructures[structure_Idx].vertexTable = static_cast<typename Platform::VERT *>(calloc(track->colStructures[structure_Idx].nVerts, sizeof(typename Platform::VERT)));
                     for (int vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx) {
                         col.read((char *) &track->colStructures[structure_Idx].vertexTable[vert_Idx],
                                  sizeof(typename Platform::VERT));
                     }
-                    track->colStructures[structure_Idx].polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(
-                            track->colStructures[structure_Idx].nPoly, sizeof(typename Platform::POLYGONDATA)));
+                    track->colStructures[structure_Idx].polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(track->colStructures[structure_Idx].nPoly, sizeof(typename Platform::POLYGONDATA)));
                     for (int poly_Idx = 0; poly_Idx < track->colStructures[structure_Idx].nPoly; ++poly_Idx) {
-                        col.read((char *) &track->colStructures[structure_Idx].polygonTable[poly_Idx],
-                                 sizeof(typename Platform::POLYGONDATA));
+                        col.read((char *) &track->colStructures[structure_Idx].polygonTable[poly_Idx], sizeof(typename Platform::POLYGONDATA));
                     }
                     col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
                 }
@@ -728,35 +774,27 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                     col.read((char *) &track->colStructureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
                     // Fixed type
                     if (track->colStructureRefData[structureRef_Idx].recType == 1) {
-                        col.read((char *) &track->colStructureRefData[structureRef_Idx].refCoordinates,
-                                 sizeof(VERT_HIGHP));
+                        col.read((char *) &track->colStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
                     } else if (track->colStructureRefData[structureRef_Idx].recType == 3) { // Animated type
                         col.read((char *) &track->colStructureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
                         col.read((char *) &track->colStructureRefData[structureRef_Idx].unknown, sizeof(uint16_t));
-                        track->colStructureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(
-                                track->colStructureRefData[structureRef_Idx].animLength, sizeof(ANIM_POS)));
+                        track->colStructureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(track->colStructureRefData[structureRef_Idx].animLength, sizeof(ANIM_POS)));
                         for (int animation_Idx = 0;
                              animation_Idx < track->colStructureRefData[structureRef_Idx].animLength; ++animation_Idx) {
-                            col.read(
-                                    (char *) &track->colStructureRefData[structureRef_Idx].animationData[animation_Idx],
-                                    sizeof(ANIM_POS));
+                            col.read((char *) &track->colStructureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
                         }
                     } else if (track->colStructureRefData[structureRef_Idx].recType == 4) {
                         // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
-                        col.read((char *) &track->colStructureRefData[structureRef_Idx].refCoordinates,
-                                 sizeof(VERT_HIGHP));
+                        col.read((char *) &track->colStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
                     } else {
-                        std::cout << "Unknown Structure Reference type: "
-                                  << (int) track->colStructureRefData[structureRef_Idx].recType << std::endl;
+                        std::cout << "Unknown Structure Reference type: " << (int) track->colStructureRefData[structureRef_Idx].recType << std::endl;
                     }
-                    col.seekg(track->colStructureRefData[structureRef_Idx].recSize - (col.tellg() - padCheck),
-                              ios_base::cur); // Eat possible padding
+                    col.seekg(track->colStructureRefData[structureRef_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
                 }
                 break;
             case 15:
                 track->nCollisionData = xblockHeader->nRecords;
-                track->collisionData = static_cast<COLLISION_BLOCK *>(calloc(track->nCollisionData,
-                                                                             sizeof(COLLISION_BLOCK)));
+                track->collisionData = static_cast<COLLISION_BLOCK *>(calloc(track->nCollisionData, sizeof(COLLISION_BLOCK)));
                 col.read((char *) track->collisionData, track->nCollisionData * sizeof(COLLISION_BLOCK));
                 break;
             default:
@@ -1078,7 +1116,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
             // Structures
             for (int structure_Idx = 0; structure_Idx < trkBlock.nStructures; ++structure_Idx) {
                 // Keep track of unique textures in trackblock for later OpenGL bind
-                std::set<short> minimal_texture_ids_set;
+                std::set<unsigned int> minimal_texture_ids_set;
                 // Mesh Data
                 std::vector<unsigned int> vertex_indices;
                 std::vector<glm::vec2> uvs;
@@ -1147,12 +1185,12 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 std::stringstream xobj_name;
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
                 // Get ordered list of unique texture id's present in block
-                std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+                std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
                 current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial * structure_Idx, NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, shading_verts, trk_block_center)));
             }
 
             // Keep track of unique textures in trackblock for later OpenGL bind
-            std::set<short> minimal_texture_ids_set;
+            std::set<unsigned int> minimal_texture_ids_set;
             // Mesh Data
             std::vector<unsigned int> vertex_indices;
             std::vector<glm::vec2> uvs;
@@ -1216,7 +1254,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 norms.emplace_back(glm::vec3(1, 1, 1));
             }
             // Get ordered list of unique texture id's present in block
-            std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+            std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
             current_track_block.objects.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center)));
 
             track->track_blocks.emplace_back(current_track_block);
@@ -1235,7 +1273,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
     for (int structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx) {
         VERT_HIGHP *structureReferenceCoordinates = static_cast<VERT_HIGHP *>(calloc(1, sizeof(VERT_HIGHP)));
 
-        std::set<short> minimal_texture_ids_set;
+        std::set<unsigned int> minimal_texture_ids_set;
         std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
@@ -1294,7 +1332,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
             texture_indices.emplace_back(texture_for_block.texNumber);
         }
         // Get ordered list of unique texture id's present in block
-        std::vector<short> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
+        std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = glm::vec3(0, 0, 0);
         col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, texture_ids, shading_data, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position)));
         free(structureReferenceCoordinates);
@@ -1332,12 +1370,11 @@ NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &trac
     GLsizei width;
     GLsizei height;
 
-    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour),
-           "Texture " << filename.str() << " did not load succesfully!");
+    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture " << filename.str() << " did not load succesfully!");
 
-    return Texture((unsigned int) track_texture.texNumber, data, static_cast<unsigned int>(width),
-                   static_cast<unsigned int>(height));
+    return Texture((unsigned int) track_texture.texNumber, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
 }
+
 
 
 template
