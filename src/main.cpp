@@ -33,15 +33,15 @@ public:
         /*------ ASSET LOAD ------*/
         //Load Track Data
         std::string nfs3ps1track("../resources/NFS3_PS1/ZZZTR00A");
-        std::string nfs2track("../resources/NFS2/GAMEDATA/TRACKS/PC/TR02");
+        std::string nfs2track("../resources/NFS2/GAMEDATA/TRACKS/PC/TR03");
         std::string nfs3track("../resources/NFS3/gamedata/tracks/trk006/tr06");
         std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs3track);
         //Load Car data from unpacked NFS files
         std::string merc("../resources/NFS3/gamedata/carmodel/merc");
-        std::string nfs4("../resources/NFS4/DATA/CARS/B911");
-        std::string nfs3ps1car("../resources/NFS3_PS1/ZF355");
-        std::string nfs2car("../resources/NFS2/GAMEDATA/CARMODEL/PC/GT90");
-        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs2car);
+        std::string nfs4("../resources/NFS4/DATA/CARS/AJ");
+        std::string nfs3ps1car("../resources/NFS3_PS1/ZMCLK");
+        std::string nfs2car("../resources/NFS2/GAMEDATA/CARMODEL/PC/MCF1");
+        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs4);
 
         //Load Music
         //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");

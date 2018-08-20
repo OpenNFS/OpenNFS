@@ -157,7 +157,7 @@ namespace TrackUtils {
 
         if (nfs_version == NFS_3_PS1) {
             output_dir << "/textures/";
-            return NFS2<PS1>::ExtractPSH(tex_archive_path.str(), output_dir.str());
+            return Utils::ExtractPSH(tex_archive_path.str(), output_dir.str());
         } else if (nfs_version == NFS_3) {
             std::stringstream sky_fsh_path;
             sky_fsh_path << track_path.substr(0, track_path.find_last_of('/')) << "/sky.fsh";

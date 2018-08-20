@@ -5,7 +5,7 @@
 #include "nfs2_loader.h"
 
 // Mike Thompson CarEd disasm parts table for NFS2 Cars
-std::string PART_NAMES[32]  {
+std::string PC_PART_NAMES[32]{
         "High Additional Body Part",
         "High Main Body Part",
         "High Ground Part",
@@ -32,13 +32,54 @@ std::string PART_NAMES[32]  {
         "Low Wheel Part",
         "Low Main Part",
         "Low Side Part",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+};
+
+std::string PS1_PART_NAMES[32]{
+        "High Additional Body Part",
+        "High Main Body Part",
+        "High Ground Part",
+        "High Front Part",
+        "High Rear Part",
+        "High Left Side Part",
+        "High Right Side Part",
+        "High Additional Left Side Part",
+        "High Additional Right Side Part",
+        "High Front Rear Grilles",
+        "High Extra Side Parts",
+        "High Spoiler Part",
+        "High Additional Part",
+        "High Backlights",
+        "High Front Right Wheel",
+        "High Front Right Wheel Part",
+        "High Front Left Wheel",
+        "High Front Left Wheel Part",
+        "High Rear Right Wheel",
+        "High Rear Right Wheel Part",
+        "High Rear Left Wheel",
+        "High Rear Left Wheel Part",
+        "Medium Additional Body Part",
+        "Medium Main Body Part",
+        "Medium Ground Part",
+        "Wheel Positions",
+        "Medium/Low Side Parts",
+        "Low Main Part",
+        "Low Side Part",
+        "Headlight Positions",
+        "Backlight Positions",
+        "Reserved"
 };
 
 // Map the texture name from the Raw GEO file from a string into an unsigned int representation, so it's cheaper to use during binding.
-unsigned int remapTextureName(std::string texName){
+unsigned int remapTextureName(std::string texName) {
     std::stringstream remappedNameString;
-    for(int char_Idx = 0; char_Idx < texName.length(); ++char_Idx){
-        if (isalpha(texName[char_Idx])){
+    for (int char_Idx = 0; char_Idx < texName.length(); ++char_Idx) {
+        if (!isdigit(texName[char_Idx])) {
             remappedNameString << (int) texName[char_Idx] - 96; // Just change the letter into an alphabet number 1-26
         } else {
             remappedNameString << texName[char_Idx];
@@ -67,11 +108,10 @@ std::map<unsigned int, GLuint> GenCarTextures(std::map<unsigned int, Texture> te
     return gl_id_map;
 }
 
-void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices,
-               PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
+void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
     std::ofstream obj_dump;
     std::stringstream obj_name;
-    obj_name << "./assets/ps1_geo_" << block_Idx << ".obj";
+    obj_name << "./assets/psx_test/ps1_geo_" << block_Idx << ".obj";
     obj_dump.open(obj_name.str());
 
     /* Print Part name*/
@@ -81,37 +121,13 @@ void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::
     }
 
     // TODO: How can these be normals if there aren't enough for Per vertex? On PSX they're likely per polygon
-    //for(int i = 0; i <  geoBlockHeader->nNormals; ++i ){
-    //    obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
-    //}
-
-    for (int i = 0; i < geoBlockHeader->nPolygons; ++i) {
-        if ((polygons[i].vertex[1][0] == 0) && (polygons[i].vertex[1][1] == 0)) {
-            obj_dump << "f " << polygons[i].vertex[0][0] + 1 << " " << polygons[i].vertex[0][1] + 1 << " "
-                     << polygons[i].vertex[0][2] + 1 << " " << polygons[i].vertex[0][3] + 1 << std::endl;
-        } else if ((polygons[i].vertex[1][0] == 1) && (polygons[i].vertex[1][1] == 1)) {
-            // Transparent ?
-            obj_dump << "f " << polygons[i].vertex[0][0] + 1 << " " << polygons[i].vertex[0][1] + 1 << " "
-                     << polygons[i].vertex[0][2] + 1 << " " << polygons[i].vertex[0][3] + 1 << std::endl;
-        } else {
-            asm(nyop);
-        }
+    for(int i = 0; i <  geoBlockHeader->nNormals; ++i ){
+        obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
     }
+
     obj_dump.close();
 }
 
-uint32_t abgr1555ToARGB8888(uint16_t abgr1555) {
-    uint8_t red = static_cast<int>(round((abgr1555 & 0x1F) / 31.0F * 255.0F));
-    uint8_t green = static_cast<int>(round(((abgr1555 & 0x3E0) >> 5) / 31.0F * 255.0F));
-    uint8_t blue = static_cast<int>(round(((abgr1555 & 0x7C00) >> 10) / 31.0F * 255.0F));
-
-    uint32_t alpha = 255;
-    if (((abgr1555 & 0x8000) == 0 ? 1 : 0) == ((red == 0) && (green == 0) && (blue == 0) ? 1 : 0)) {
-        alpha = 0;
-    }
-
-    return alpha << 24 | red << 16 | green << 8 | blue;
-}
 
 // TODO: Use template specialization/overload to avoid this
 template<typename Platform>
@@ -134,7 +150,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
 
         uint32_t part_Idx = -1;
 
-        while(true) {
+        while (true) {
             streamoff start = geo.tellg();
             std::cout << part_Idx + 1 << " BlockStartOffset: " << start << std::endl;
             auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
@@ -159,6 +175,8 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             std::vector<glm::vec3> verts;
             std::vector<glm::vec3> norms;
             std::vector<glm::vec2> uvs;
+            std::vector<unsigned int> texture_indices;
+            std::set<unsigned int> minimal_texture_ids_set;
 
             indices.reserve(geoBlockHeader->nPolygons * 6);
             verts.reserve(geoBlockHeader->nVerts);
@@ -169,12 +187,16 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
 
             auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
             geo.read((char *) vertices, (geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
-
             std::cout << "VertTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+
+            // If NVerts is ODD, we need to pad. TODO: Pad here or pad Normals?
+            // This skip happens when the VertexTable doesn't end on a 4 Byte boundary. It must therefore not have started on one?
+            if(geoBlockHeader->nVerts % 2){
+                geo.seekg(0xC, ios_base::cur);
+            }
 
             auto *normals = new PS1::GEO::BLOCK_3D[geoBlockHeader->nNormals];
             geo.read((char *) normals, (geoBlockHeader->nNormals) * sizeof(PS1::GEO::BLOCK_3D));
-
             std::cout << "NormTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
             auto *xblock_1 = new PS1::GEO::XBLOCK_1();
@@ -206,7 +228,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             std::cout << "PolyTblStartOffset: " << end << " Size: " << end - start << std::endl;
             // Polygon Table start is aligned on 4 Byte boundary
             if (((end - start) % 4)) {
-                std::cout << "Pad Contents: " << std::endl;
+                std::cout << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: " << std::endl;
                 uint16_t *pad = new uint16_t[3];
                 geo.read((char *) pad, sizeof(uint16_t) * 3);
                 for (int i = 0; i < 3; ++i) {
@@ -215,40 +237,28 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 delete[] pad;
             }
 
-            // TODO: This skip is only applicable to DIAB/CORV/others, not F355 or F550 or ARMY. Debug before commit.
-            /*if (block_Idx == 5 || block_Idx == 6) {
-                std::cout << "Skipping 12 Bytes - BUT WHY" << std::endl;
-                geo.seekg(0xC, ios_base::cur);
-            }*/
-
             auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
             geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
-            //DumpToObj(block_Idx, geoBlockHeader, vertices, normals, polygons);
+            DumpToObj(part_Idx, geoBlockHeader, vertices, normals, polygons);
 
             for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
-                verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x/ carScaleFactor, vertices[vert_Idx].y/ carScaleFactor, vertices[vert_Idx].z/ carScaleFactor));
+                verts.emplace_back(glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
             }
 
-            for (int poly_Idx = 0; poly_Idx <  geoBlockHeader->nPolygons; ++poly_Idx) {
-                if ((polygons[poly_Idx].vertex[1][0] == 0) && (polygons[poly_Idx].vertex[1][1] == 0)) {
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][1] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][3] + 1);
-                } else if ((polygons[poly_Idx].vertex[1][0] == 1) && (polygons[poly_Idx].vertex[1][1] == 1)) {
-                    // Transparent ?
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][1] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][0] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][2] + 1);
-                    indices.emplace_back( polygons[poly_Idx].vertex[0][3] + 1);
-                } else {
-                    continue;
-                }
+            for (int poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
+                std::string textureName(polygons[poly_Idx].texName);
+                // Store a minimal subset of texture ID's used on car part for later OpenGL bind
+                minimal_texture_ids_set.insert(remapTextureName(textureName));
+                //std::cout << polygons[poly_Idx].texName << " " << polygons[poly_Idx].texMapType[0] << " " << polygons[poly_Idx].texMapType[1] << std::endl;
+                // TODO: There's another set of indices at index [2], that form barely valid polygons. Middle set [1] are always numbers that match, 0000, 1111, 2222, 3333.
+                indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
+                indices.emplace_back(polygons[poly_Idx].vertex[0][1]);
+                indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
+                indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
+                indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
+                indices.emplace_back(polygons[poly_Idx].vertex[0][3]);
 
+                // TODO: Use Polygon TexMap type to fix texture mapping
                 uvs.emplace_back(1.0f, 1.0f);
                 uvs.emplace_back(0.0f, 1.0f);
                 uvs.emplace_back(0.0f, 0.0f);
@@ -263,9 +273,17 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
-            }
 
-            car_meshes.emplace_back(CarModel(PART_NAMES[part_Idx], verts, uvs, norms, indices, glm::vec3(0,0,0), specularDamper, specularReflectivity, envReflectivity));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+                texture_indices.emplace_back(remapTextureName(textureName));
+            }
+            glm::vec3 center =glm::vec3((geoBlockHeader->position[0]/100)/carScaleFactor, (geoBlockHeader->position[1]/100)/carScaleFactor, (geoBlockHeader->position[2]/100)/carScaleFactor);
+            // Get ordered list of unique texture id's present in car part
+            car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
 
             std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
@@ -327,7 +345,9 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
 
         uint32_t part_Idx = -1;
 
-        while(true) {
+        while (true) {
+            streamoff start = geo.tellg();
+
             auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
             while (geoBlockHeader->nVerts == 0) {
                 ++part_Idx;
@@ -357,18 +377,29 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
             geo.read((char *) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
 
+            streamoff end = geo.tellg();
+            // Polygon Table start is aligned on 4 Byte boundary
+            if (((end - start) % 4)) {
+                std::cout << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: " << std::endl;
+                uint16_t *pad = new uint16_t[3];
+                geo.read((char *) pad, sizeof(uint16_t) * 3);
+                for (int i = 0; i < 3; ++i) {
+                    std::cout << pad[i] << std::endl;
+                }
+                delete[] pad;
+            }
+
             auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
             geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
 
             for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
-                verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x/ carScaleFactor, vertices[vert_Idx].y/ carScaleFactor, vertices[vert_Idx].z/ carScaleFactor));
+                verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
             }
 
-            for (int poly_Idx = 0; poly_Idx <  geoBlockHeader->nPolygons; ++poly_Idx) {
+            for (int poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
                 std::string textureName(polygons[poly_Idx].texName);
                 // Store a minimal subset of texture ID's used on car part for later OpenGL bind
                 minimal_texture_ids_set.insert(remapTextureName(textureName));
-                std::cout << polygons[poly_Idx].texName << " " << polygons[poly_Idx].texMapType << std::endl;
                 indices.emplace_back(polygons[poly_Idx].vertex[0]);
                 indices.emplace_back(polygons[poly_Idx].vertex[1]);
                 indices.emplace_back(polygons[poly_Idx].vertex[2]);
@@ -379,7 +410,6 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 uvs.emplace_back(0.0f, 0.0f);
                 uvs.emplace_back(1.0f, 0.0f);
                 uvs.emplace_back(1.0f, 1.0f);
-
                 uvs.emplace_back(0.0f, 0.0f);
                 uvs.emplace_back(1.0f, 1.0f);
                 uvs.emplace_back(0.0f, 1.0f);
@@ -399,9 +429,9 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
                 texture_indices.emplace_back(remapTextureName(textureName));
                 texture_indices.emplace_back(remapTextureName(textureName));
             }
+            glm::vec3 center =glm::vec3((geoBlockHeader->position[0]/100)/carScaleFactor, (geoBlockHeader->position[1]/100)/carScaleFactor, (geoBlockHeader->position[2]/100)/carScaleFactor);
             // Get ordered list of unique texture id's present in car part
-            std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            car_meshes.emplace_back(CarModel(PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, texture_ids, glm::vec3(0,0,0), specularDamper, specularReflectivity, envReflectivity));
+            car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices),  center, specularDamper, specularReflectivity, envReflectivity));
 
             delete geoBlockHeader;
             delete[] vertices;
@@ -421,31 +451,28 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     qfs_path << car_base_path << ".QFS";
     car_out_path << CAR_PATH << car_name << "/";
 
-    if (std::is_same<Platform, PS1>::value) {
-        if (!boost::filesystem::exists(car_out_path.str())) {
-            boost::filesystem::create_directories(car_out_path.str());
-            ExtractPSH(psh_path.str(), car_out_path.str());
-        }
-        return std::make_shared<Car>(LoadGEO(geo_path.str()), NFS_3_PS1, car_name);
-    } else {
-        if (!boost::filesystem::exists(car_out_path.str())) {
-            boost::filesystem::create_directories(car_out_path.str());
+    if (!boost::filesystem::exists(car_out_path.str())) {
+        boost::filesystem::create_directories(car_out_path.str());
+        if (std::is_same<Platform, PS1>::value) {
+            Utils::ExtractPSH(psh_path.str(), car_out_path.str());
+        } else {
             Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
         }
-        // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
-        std::map<unsigned int, Texture> car_textures;
-        for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr!=boost::filesystem::directory_iterator(); ++itr)
-        {
-            if(itr->path().filename().string().find("BMP") != std::string::npos){
-                GLubyte *data;
-                GLsizei width;
-                GLsizei height;
-                ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 248u), "Texture " << itr->path().string() << " did not load succesfully!");
-                car_textures[remapTextureName(itr->path().filename().string())] =  Texture(remapTextureName(itr->path().filename().string()), data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
-            }
-        }
-        return std::make_shared<Car>(LoadGEO(geo_path.str()), NFS_2, car_name, GenCarTextures(car_textures));
     }
+
+    // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
+    std::map<unsigned int, Texture> car_textures;
+    for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
+        if (itr->path().filename().string().find("BMP") != std::string::npos) {
+            GLubyte *data;
+            GLsizei width;
+            GLsizei height;
+            ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 248u), "Texture " << itr->path().string() << " did not load succesfully!");
+            car_textures[remapTextureName(itr->path().filename().string())] = Texture(remapTextureName(itr->path().filename().string()), data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+        }
+    }
+
+    return std::make_shared<Car>(LoadGEO(geo_path.str()), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, GenCarTextures(car_textures));
 }
 
 // TRACK
@@ -952,149 +979,6 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
     }
 }
 
-template<typename Platform>
-bool NFS2<Platform>::ExtractPSH(const std::string &psh_path, const std::string &output_path) {
-    using namespace NFS2_DATA;
-    boost::filesystem::create_directories(output_path);
-    std::cout << "Extracting PSH File " << std::endl;
-    ifstream psh(psh_path, ios::in | ios::binary);
-
-    PS1::PSH::HEADER *pshHeader = new PS1::PSH::HEADER();
-
-    // Check we're in a valid TRK file
-    if (psh.read(((char *) pshHeader), sizeof(PS1::PSH::HEADER)).gcount() != sizeof(PS1::PSH::HEADER)) {
-        std::cout << "Couldn't open file/truncated." << std::endl;
-        delete pshHeader;
-        return false;
-    }
-
-    std::cout << pshHeader->nDirectories << " images inside PSH" << std::endl;
-
-    // Header should contain TRAC
-    if (memcmp(pshHeader->header, "SHPP", sizeof(pshHeader->header)) != 0 &&
-        memcmp(pshHeader->chk, "GIMX", sizeof(pshHeader->chk)) != 0) {
-        std::cout << "Invalid PSH Header(s)." << std::endl;
-        delete pshHeader;
-        return false;
-    }
-
-    // Get the offsets to each image in the PSH
-    auto *directoryEntries = new PS1::PSH::DIR_ENTRY[pshHeader->nDirectories];
-    psh.read(((char *) directoryEntries), pshHeader->nDirectories * sizeof(PS1::PSH::DIR_ENTRY));
-
-    for (int image_Idx = 0; image_Idx < pshHeader->nDirectories; ++image_Idx) {
-        std::cout << "Extracting GIMX " << image_Idx << std::endl;
-        psh.seekg(directoryEntries[image_Idx].imageOffset, ios_base::beg);
-        auto *imageHeader = new PS1::PSH::IMAGE_HEADER();
-        psh.read(((char *) imageHeader), sizeof(PS1::PSH::IMAGE_HEADER));
-
-        uint8_t bitDepth = static_cast<uint8_t>(imageHeader->imageType & 0x3);
-        uint32_t pixels[imageHeader->width * imageHeader->height];
-        uint8_t *indexPair = new uint8_t();
-        uint8_t *indexes = new uint8_t[imageHeader->width * imageHeader->height]; // Only used if indexed
-        bool hasAlpha = false;
-        bool isPadded = false;
-        if (bitDepth == 0) {
-            isPadded = (imageHeader->width % 4 == 1) || (imageHeader->width % 4 == 2);
-        } else if (bitDepth == 1 || bitDepth == 3) {
-            isPadded = imageHeader->width % 2 == 1;
-        }
-
-        for (int y = 0; y < imageHeader->height; y++) {
-            for (int x = 0; x < imageHeader->width; x++) {
-                switch (bitDepth) {
-                    case 0: { // 4-bit indexed colour
-                        uint8_t index;
-                        if (x % 2 == 0) {
-                            psh.read((char *) indexPair, sizeof(uint8_t));
-                            index = static_cast<uint8_t>(*indexPair & 0xF);
-                        } else {
-                            index = *indexPair >> 4;
-                        }
-                        indexes[(x + y * imageHeader->width)] = index;
-                        break;
-                    }
-                    case 1: { // 8-bit indexed colour
-                        psh.read((char *) &indexes[(x + y * imageHeader->width)], sizeof(uint8_t));
-                        break;
-                    }
-                    case 2: { // 16-bit direct colour
-                        uint16_t *input = new uint16_t;
-                        psh.read((char *) input, sizeof(uint16_t));
-                        uint32_t pixel = abgr1555ToARGB8888(*input);
-                        hasAlpha = (pixel & 0xFF000000) != -16777216;
-                        pixels[(x + y * imageHeader->width)] = pixel;
-                        break;
-                    }
-                    case 3: { // 24-bit direct colour
-                        uint8_t alpha = 255u;
-                        uint8_t rgb[3];
-                        psh.read((char *) rgb, 3 * sizeof(uint8_t));
-                        if ((rgb[0] == 0) && (rgb[1] == 0) && (rgb[2] == 0)) {
-                            hasAlpha = true;
-                            alpha = 0;
-                        }
-                        pixels[(x + y * imageHeader->width)] = (alpha << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]);
-                    }
-                }
-                if ((x == imageHeader->width - 1) && (isPadded)) {
-                    psh.seekg(1, ios_base::cur); // Skip a byte of padding
-                }
-            }
-        }
-
-        // We only have to look up a Palette if an indexed type
-        if (bitDepth == 0 or bitDepth == 1) {
-            auto *paletteHeader = new PS1::PSH::PALETTE_HEADER();
-            psh.read((char *) paletteHeader, sizeof(PS1::PSH::PALETTE_HEADER));
-            if (paletteHeader->paletteHeight != 1) {
-                // There is padding, search for a '1' in the paletteHeader as this is constant as the height of all paletteHeaders,
-                // then jump backwards by how offset 'height' is into paletteHeader to get proper
-                psh.seekg(-(signed) sizeof(PS1::PSH::PALETTE_HEADER), ios_base::cur);
-                if (paletteHeader->unknown == 1) { //8 bytes early
-                    psh.seekg(-8, ios_base::cur);
-                } else if (paletteHeader->paletteWidth == 1) { // 4 bytes early
-                    psh.seekg(-4, ios_base::cur);
-                } else if (paletteHeader->nPaletteEntries == 1) { // 2 bytes late
-                    psh.seekg(2, ios_base::cur);
-                } else if (paletteHeader->unknown2[0] == 1) { // 4 bytes late
-                    psh.seekg(4, ios_base::cur);
-                } else if (paletteHeader->unknown2[1] == 1) { // 6 bytes late
-                    psh.seekg(6, ios_base::cur);
-                } else if (paletteHeader->unknown2[2] == 1) { //8 bytes late
-                    psh.seekg(8, ios_base::cur);
-                } else {
-                    // TODO: Well damn. It's padded a lot further out. Do a uint16 '1' search, then for a '16' or '256' imm following
-                }
-                psh.read((char *) paletteHeader, sizeof(PS1::PSH::PALETTE_HEADER));
-            }
-
-            // Read Palette
-            if (paletteHeader->nPaletteEntries == 0) {
-                return false;
-            }
-
-            uint16_t *paletteColours = new uint16_t[paletteHeader->nPaletteEntries];
-            psh.read((char *) paletteColours, paletteHeader->nPaletteEntries * sizeof(uint16_t));
-
-            // Rewrite the pixels using the palette data
-            if ((bitDepth == 0) || (bitDepth == 1)) {
-                for (int y = 0; y < imageHeader->height; y++) {
-                    for (int x = 0; x < imageHeader->width; x++) {
-                        uint32_t pixel = abgr1555ToARGB8888(paletteColours[indexes[(x + y * imageHeader->width)]]);
-                        pixels[(x + y * imageHeader->width)] = pixel;
-                    }
-                }
-            }
-        }
-        std::stringstream output_bmp;
-        output_bmp << output_path << setfill('0') << setw(4) << image_Idx << ".BMP";;
-        Utils::SaveImage(output_bmp.str().c_str(), &pixels, imageHeader->width, imageHeader->height);
-    }
-
-    delete pshHeader;
-    return true;
-}
 
 template<typename Platform>
 void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &track) {
@@ -1373,7 +1257,6 @@ NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &trac
 
     return Texture((unsigned int) track_texture.texNumber, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
 }
-
 
 
 template

@@ -73,8 +73,9 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
     switch(tag){
         case NFS_1:break;
         case NFS_2_PS1:break;
-        case NFS_2_SE:break;
+        case NFS_2_SE:
         case NFS_2:
+        case NFS_3_PS1:
             // TODO: Add logic for cars that don't contain "High" detail parts
             for(auto& car_model : loaded_car_models){
                 if(car_model.m_name == "High Main Body Part"){
@@ -115,28 +116,6 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
                     car_model.enable();
                     left_rear_wheel_model = car_model;
                 } else if(car_model.m_name.find("right rear wheel") != std::string::npos){
-                    car_model.enable();
-                    right_rear_wheel_model = car_model;
-                } else {
-                    misc_models.emplace_back(car_model);
-                }
-            }
-            break;
-        case NFS_3_PS1:
-            for(auto& car_model : loaded_car_models){
-                if(car_model.m_name == "High Main Body Part"){
-                    car_model.enable();
-                    car_body_model = car_model;
-                } else if(car_model.m_name.find("High Front Left Wheel Part") != std::string::npos){
-                    car_model.enable();
-                    left_front_wheel_model = car_model;
-                } else if(car_model.m_name.find("High Front Right Wheel Part") != std::string::npos){
-                    car_model.enable();
-                    right_front_wheel_model = car_model;
-                } else if(car_model.m_name.find("High Rear Left Wheel Part") != std::string::npos){
-                    car_model.enable();
-                    left_rear_wheel_model = car_model;
-                } else if(car_model.m_name.find("High Rear Right Wheel Part") != std::string::npos){
                     car_model.enable();
                     right_rear_wheel_model = car_model;
                 } else {

@@ -71,7 +71,8 @@ void CarShader::bindCarTextures(const CarModel &car_model, std::map<unsigned int
         glActiveTexture(texNum++);
         glBindTexture(GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
         if(texNum - GL_TEXTURE0 > 32){
-            std::cerr << "Too many textures in Car for number of GPU samplers" << std::endl;
+            break;
+            //std::cerr << "Too many textures in Car for number of GPU samplers" << std::endl;
         }
     }
     const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};

@@ -27,7 +27,6 @@ public:
     static std::shared_ptr<Car> LoadCar(const std::string &track_base_path);
 
     static void dbgPrintVerts(const std::string &path, const shared_ptr<typename Platform::TRACK> &track);
-    static bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
 private:
     // Car
     static std::vector<CarModel> LoadGEO(const std::string &geo_path);

@@ -53,8 +53,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partTriangles = new FCE::TRIANGLE[fceHeader->partNumTriangles[part_Idx]];
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->vertTblOffset +
-                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->vertTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (int vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
             vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x /10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
@@ -64,8 +63,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
                   (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (int normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
-            normals.emplace_back(
-                    glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
+            normals.emplace_back(glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
         }
 
         fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset +

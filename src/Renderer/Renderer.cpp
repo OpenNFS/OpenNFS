@@ -92,7 +92,7 @@ void Renderer::Render() {
         }
 
         // Step the physics simulation
-        //physicsEngine.stepSimulation(mainCamera.deltaTime);
+        physicsEngine.stepSimulation(mainCamera.deltaTime);
 
         std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, worldPosition, userParams.blockDrawDistance, userParams.use_nb_data);
 

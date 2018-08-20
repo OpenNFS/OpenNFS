@@ -138,6 +138,8 @@ namespace Utils {
 
     bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
 
+    bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
+
     bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
 
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height);
