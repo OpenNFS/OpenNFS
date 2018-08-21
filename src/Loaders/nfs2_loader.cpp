@@ -4,77 +4,6 @@
 
 #include "nfs2_loader.h"
 
-// Mike Thompson CarEd disasm parts table for NFS2 Cars
-std::string PC_PART_NAMES[32]{
-        "High Additional Body Part",
-        "High Main Body Part",
-        "High Ground Part",
-        "High Front Part",
-        "High Back Part",
-        "High Left Side Part",
-        "High Right Side Part",
-        "High Additional Left Side Part",
-        "High Additional Right Side Part",
-        "High Spoiler Part",
-        "High Additional Part",
-        "High Backlights",
-        "High Front Right Wheel",
-        "High Front Right Wheel Part",
-        "High Front Left Wheel",
-        "High Front Left Wheel Part",
-        "High Rear Right Wheel",
-        "High Rear Right Wheel Part",
-        "High Rear Left Wheel",
-        "High Rear Left Wheel Part",
-        "Medium Additional Body Part",
-        "Medium Main Body Part",
-        "Medium Ground Part",
-        "Low Wheel Part",
-        "Low Main Part",
-        "Low Side Part",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-        "Reserved",
-};
-
-std::string PS1_PART_NAMES[32]{
-        "High Additional Body Part",
-        "High Main Body Part",
-        "High Ground Part",
-        "High Front Part",
-        "High Rear Part",
-        "High Left Side Part",
-        "High Right Side Part",
-        "High Additional Left Side Part",
-        "High Additional Right Side Part",
-        "High Front Rear Grilles",
-        "High Extra Side Parts",
-        "High Spoiler Part",
-        "High Additional Part",
-        "High Backlights",
-        "High Front Right Wheel",
-        "High Front Right Wheel Part",
-        "High Front Left Wheel",
-        "High Front Left Wheel Part",
-        "High Rear Right Wheel",
-        "High Rear Right Wheel Part",
-        "High Rear Left Wheel",
-        "High Rear Left Wheel Part",
-        "Medium Additional Body Part",
-        "Medium Main Body Part",
-        "Medium Ground Part",
-        "Wheel Positions",
-        "Medium/Low Side Parts",
-        "Low Main Part",
-        "Low Side Part",
-        "Headlight Positions",
-        "Backlight Positions",
-        "Reserved"
-};
-
 // Map the texture name from the Raw GEO file from a string into an unsigned int representation, so it's cheaper to use during binding.
 unsigned int remapTextureName(std::string texName) {
     std::stringstream remappedNameString;
@@ -86,26 +15,6 @@ unsigned int remapTextureName(std::string texName) {
         }
     }
     return (unsigned int) stoi(remappedNameString.str());
-}
-
-std::map<unsigned int, GLuint> GenCarTextures(std::map<unsigned int, Texture> textures) {
-    std::map<unsigned int, GLuint> gl_id_map;
-
-    for (auto it = textures.begin(); it != textures.end(); ++it) {
-        Texture texture = it->second;
-        GLuint textureID;
-        glGenTextures(1, &textureID);
-        gl_id_map[it->first] = textureID;
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        // TODO: Use Filtering for Textures with no alpha component
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
-    }
-
-    return gl_id_map;
 }
 
 void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
@@ -121,324 +30,396 @@ void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::
     }
 
     // TODO: How can these be normals if there aren't enough for Per vertex? On PSX they're likely per polygon
-    for(int i = 0; i <  geoBlockHeader->nNormals; ++i ){
+    for (int i = 0; i < geoBlockHeader->nNormals; ++i) {
         obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
     }
 
     obj_dump.close();
 }
 
+template<>
+std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
+    // Mike Thompson CarEd disasm parts table for NFS2 Cars
+    std::string PC_PART_NAMES[32]{
+            "High Additional Body Part",
+            "High Main Body Part",
+            "High Ground Part",
+            "High Front Part",
+            "High Back Part",
+            "High Left Side Part",
+            "High Right Side Part",
+            "High Additional Left Side Part",
+            "High Additional Right Side Part",
+            "High Spoiler Part",
+            "High Additional Part",
+            "High Backlights",
+            "High Front Right Wheel",
+            "High Front Right Wheel Part",
+            "High Front Left Wheel",
+            "High Front Left Wheel Part",
+            "High Rear Right Wheel",
+            "High Rear Right Wheel Part",
+            "High Rear Left Wheel",
+            "High Rear Left Wheel Part",
+            "Medium Additional Body Part",
+            "Medium Main Body Part",
+            "Medium Ground Part",
+            "Low Wheel Part",
+            "Low Main Part",
+            "Low Side Part",
+            "Reserved",
+            "Reserved",
+            "Reserved",
+            "Reserved",
+            "Reserved",
+            "Reserved",
+    };
 
-// TODO: Use template specialization/overload to avoid this
-template<typename Platform>
-std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
     float carScaleFactor = 1000;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
-    if (std::is_same<Platform, PS1>::value) {
-        std::cout << "- Parsing GEO File " << std::endl;
-        std::vector<CarModel> car_meshes;
+    std::cout << "- Parsing GEO File " << std::endl;
+    std::vector<CarModel> car_meshes;
+    ifstream geo(geo_path, ios::in | ios::binary);
 
-        ifstream geo(geo_path, ios::in | ios::binary);
+    auto *geoFileHeader = new PC::GEO::HEADER();
+    if (geo.read((char *) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
+        std::cout << "Couldn't open file/truncated." << std::endl;
+        delete geoFileHeader;
+        return car_meshes;
+    }
 
-        auto *geoFileHeader = new PS1::GEO::HEADER();
-        if (geo.read((char *) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
-            std::cout << "Couldn't open file/truncated." << std::endl;
-            delete geoFileHeader;
-            return car_meshes;
-        }
+    uint32_t part_Idx = -1;
 
-        uint32_t part_Idx = -1;
+    while (true) {
+        streamoff start = geo.tellg();
 
-        while (true) {
-            streamoff start = geo.tellg();
-            std::cout << part_Idx + 1 << " BlockStartOffset: " << start << std::endl;
-            auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
-            while (geoBlockHeader->nVerts == 0) {
-                ++part_Idx;
-                geo.read((char *) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
-                if (geo.eof()) {
-                    delete geoBlockHeader;
-                    delete geoFileHeader;
-                    return car_meshes;
-                }
-            }
-
-            if ((geoBlockHeader->unknown[0] != 0) || (geoBlockHeader->unknown[1] != 1) || (geoBlockHeader->unknown[2] != 1)) {
-                std::cout << "Invalid geometry header. This file is special (or corrupt)" << std::endl;
+        auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
+        while (geoBlockHeader->nVerts == 0) {
+            ++part_Idx;
+            geo.read((char *) geoBlockHeader, sizeof(PC::GEO::BLOCK_HEADER));
+            if (geo.eof()) {
                 delete geoBlockHeader;
                 delete geoFileHeader;
                 return car_meshes;
             }
-
-            std::vector<uint32_t> indices;
-            std::vector<glm::vec3> verts;
-            std::vector<glm::vec3> norms;
-            std::vector<glm::vec2> uvs;
-            std::vector<unsigned int> texture_indices;
-            std::set<unsigned int> minimal_texture_ids_set;
-
-            indices.reserve(geoBlockHeader->nPolygons * 6);
-            verts.reserve(geoBlockHeader->nVerts);
-
-            float specularDamper = 0.2;
-            float specularReflectivity = 0.02;
-            float envReflectivity = 0.4;
-
-            auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
-            geo.read((char *) vertices, (geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
-            std::cout << "VertTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
-
-            // If NVerts is ODD, we need to pad. TODO: Pad here or pad Normals?
-            // This skip happens when the VertexTable doesn't end on a 4 Byte boundary.
-            if(geoBlockHeader->nVerts % 2){
-                geo.seekg(0xC, ios_base::cur);
-            }
-
-            auto *normals = new PS1::GEO::BLOCK_3D[geoBlockHeader->nNormals];
-            geo.read((char *) normals, (geoBlockHeader->nNormals) * sizeof(PS1::GEO::BLOCK_3D));
-            std::cout << "NormTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
-
-            auto *xblock_1 = new PS1::GEO::XBLOCK_1();
-            auto *xblock_2 = new PS1::GEO::XBLOCK_2();
-            auto *xblock_3 = new PS1::GEO::XBLOCK_3();
-            auto *xblock_4 = new PS1::GEO::XBLOCK_4();
-            auto *xblock_5 = new PS1::GEO::XBLOCK_5();
-            switch (geoBlockHeader->unknown1) {
-                case 1:
-                    geo.read((char *) xblock_1, sizeof(PS1::GEO::XBLOCK_1));
-                    break;
-                case 2:
-                    geo.read((char *) xblock_2, sizeof(PS1::GEO::XBLOCK_2));
-                    break;
-                case 3:
-                    geo.read((char *) xblock_3, sizeof(PS1::GEO::XBLOCK_3));
-                    break;
-                case 4:
-                    geo.read((char *) xblock_4, sizeof(PS1::GEO::XBLOCK_4));
-                    break;
-                case 5:
-                    geo.read((char *) xblock_5, sizeof(PS1::GEO::XBLOCK_5));
-                    break;
-                default:
-                    std::cout << "Unknown block type:  " << geoBlockHeader->unknown1 << std::endl;
-            }
-
-            streamoff end = geo.tellg();
-            std::cout << "PolyTblStartOffset: " << end << " Size: " << end - start << std::endl;
-            // Polygon Table start is aligned on 4 Byte boundary
-            if (((end - start) % 4)) {
-                std::cout << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: " << std::endl;
-                uint16_t *pad = new uint16_t[3];
-                geo.read((char *) pad, sizeof(uint16_t) * 3);
-                for (int i = 0; i < 3; ++i) {
-                    std::cout << pad[i] << std::endl;
-                }
-                delete[] pad;
-            }
-
-            auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
-            geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
-            DumpToObj(part_Idx, geoBlockHeader, vertices, normals, polygons);
-
-            for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
-                verts.emplace_back(glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
-            }
-
-            for (int poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
-                std::string textureName(polygons[poly_Idx].texName);
-                // Store a minimal subset of texture ID's used on car part for later OpenGL bind
-                minimal_texture_ids_set.insert(remapTextureName(textureName));
-                //std::cout << polygons[poly_Idx].texName << " " << polygons[poly_Idx].texMapType[0] << " " << polygons[poly_Idx].texMapType[1] << std::endl;
-                // TODO: There's another set of indices at index [2], that form barely valid polygons. Middle set [1] are always numbers that match, 0000, 1111, 2222, 3333.
-                indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
-                indices.emplace_back(polygons[poly_Idx].vertex[0][1]);
-                indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
-                indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
-                indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
-                indices.emplace_back(polygons[poly_Idx].vertex[0][3]);
-
-                // TODO: Use Polygon TexMap type to fix texture mapping
-                uvs.emplace_back(1.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-                uvs.emplace_back(0.0f, 0.0f);
-                uvs.emplace_back(1.0f, 1.0f);
-                uvs.emplace_back(0.0f, 0.0f);
-                uvs.emplace_back(1.0f, 0.0f);
-
-                // TODO: Long overdue normal calculation
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-            }
-            glm::vec3 center =glm::vec3((geoBlockHeader->position[0]/100)/carScaleFactor, (geoBlockHeader->position[1]/100)/carScaleFactor, (geoBlockHeader->position[2]/100)/carScaleFactor);
-            // Get ordered list of unique texture id's present in car part
-            car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
-
-            std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
-
-            // Dump GeoBlock data for correlating with geometry/LOD's/Special Cases
-            std::cout << "nVerts: " << geoBlockHeader->nVerts << std::endl;
-            std::cout << "unknown1: " << geoBlockHeader->unknown1 << std::endl;
-            std::cout << "nNormals: " << geoBlockHeader->nNormals << std::endl;
-            std::cout << "nPolygons: " << geoBlockHeader->nPolygons << std::endl;
-            for (int o = 0; o < 4; ++o) {
-                std::cout << geoBlockHeader->unknown2[o][0] << std::endl;
-                std::cout << geoBlockHeader->unknown2[o][1] << std::endl;
-            }
-            for (int j = 0; j < 4; ++j) {
-                std::cout << geoBlockHeader->unknown[j] << std::endl;
-            }
-            switch (geoBlockHeader->unknown1) {
-                case 3:
-                    std::cout << "XBlock 3: " << std::endl;
-                    for (int i = 0; i < sizeof(xblock_3->unknown) / sizeof(xblock_3->unknown[0]); ++i) {
-                        std::cout << (int) xblock_3->unknown[i] << std::endl;
-                    }
-                    break;
-                case 1:
-                    std::cout << "XBlock 1: " << std::endl;
-                    for (int i = 0; i < sizeof(xblock_1->unknown) / sizeof(xblock_1->unknown[0]); ++i) {
-                        std::cout << (int) xblock_1->unknown[i] << std::endl;
-                    }
-                    break;
-                case 2:
-                    std::cout << "XBlock 2: " << std::endl;
-                    for (int i = 0; i < sizeof(xblock_2->unknown) / sizeof(xblock_2->unknown[0]); ++i) {
-                        std::cout << (int) xblock_2->unknown[i] << std::endl;
-                    }
-                    break;
-            }
-            std::cout << "--------------------------" << std::endl;
-
-            delete geoBlockHeader;
-            delete[] normals;
-            delete[] vertices;
-            delete[] polygons;
-            delete xblock_1;
-            delete xblock_2;
-            delete xblock_3;
-            delete xblock_4;
-            delete xblock_5;
         }
-    } else {
-        std::cout << "- Parsing GEO File " << std::endl;
-        std::vector<CarModel> car_meshes;
-        ifstream geo(geo_path, ios::in | ios::binary);
+        ASSERT(geoBlockHeader->pad0 == 0 && geoBlockHeader->pad1 == 1 && geoBlockHeader->pad2 == 1, "Corrupt GEO block header");
 
-        auto *geoFileHeader = new PC::GEO::HEADER();
-        if (geo.read((char *) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
-            std::cout << "Couldn't open file/truncated." << std::endl;
+        std::vector<uint32_t> indices;
+        std::vector<glm::vec3> verts;
+        std::vector<glm::vec3> norms;
+        std::vector<glm::vec2> uvs;
+        std::vector<unsigned int> texture_indices;
+        std::set<unsigned int> minimal_texture_ids_set; // TODO: Switch to Texture Atlas
+
+        indices.reserve(geoBlockHeader->nPolygons * 6);
+        verts.reserve(geoBlockHeader->nVerts);
+
+        float specularDamper = 0.2;
+        float specularReflectivity = 0.02;
+        float envReflectivity = 0.4;
+
+        auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
+        geo.read((char *) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
+
+        streamoff end = geo.tellg();
+        // Polygon Table start is aligned on 4 Byte boundary
+        if (((end - start) % 4)) {
+            std::cout << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: " << std::endl;
+            uint16_t *pad = new uint16_t[3];
+            geo.read((char *) pad, sizeof(uint16_t) * 3);
+            for (int i = 0; i < 3; ++i) {
+                std::cout << pad[i] << std::endl;
+            }
+            delete[] pad;
+        }
+
+        auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
+        geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
+
+        for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
+            verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
+        }
+
+        for (int poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
+            std::string textureName(polygons[poly_Idx].texName);
+// Store a minimal subset of texture ID's used on car part for later OpenGL bind
+            minimal_texture_ids_set.insert(remapTextureName(textureName));
+            indices.emplace_back(polygons[poly_Idx].vertex[0]);
+            indices.emplace_back(polygons[poly_Idx].vertex[1]);
+            indices.emplace_back(polygons[poly_Idx].vertex[2]);
+            indices.emplace_back(polygons[poly_Idx].vertex[0]);
+            indices.emplace_back(polygons[poly_Idx].vertex[2]);
+            indices.emplace_back(polygons[poly_Idx].vertex[3]);
+
+            uvs.emplace_back(0.0f, 0.0f);
+            uvs.emplace_back(1.0f, 0.0f);
+            uvs.emplace_back(1.0f, 1.0f);
+            uvs.emplace_back(0.0f, 0.0f);
+            uvs.emplace_back(1.0f, 1.0f);
+            uvs.emplace_back(0.0f, 1.0f);
+
+            // TODO: Long overdue normal calculation
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+        }
+        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256) / carScaleFactor, (geoBlockHeader->position[1] / 256) / carScaleFactor, (geoBlockHeader->position[2] / 256) / carScaleFactor);
+        car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
+
+        delete geoBlockHeader;
+        delete[] vertices;
+        delete[] polygons;
+    }
+}
+
+template<>
+std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
+    std::string PS1_PART_NAMES[32]{
+            "High Additional Body Part",
+            "High Main Body Part",
+            "High Ground Part",
+            "High Front Part",
+            "High Rear Part",
+            "High Left Side Part",
+            "High Right Side Part",
+            "High Additional Left Side Part",
+            "High Additional Right Side Part",
+            "High Front Rear Grilles",
+            "High Extra Side Parts",
+            "High Spoiler Part",
+            "High Additional Part",
+            "High Backlights",
+            "High Front Right Wheel",
+            "High Front Right Wheel Part",
+            "High Front Left Wheel",
+            "High Front Left Wheel Part",
+            "High Rear Right Wheel",
+            "High Rear Right Wheel Part",
+            "High Rear Left Wheel",
+            "High Rear Left Wheel Part",
+            "Medium Additional Body Part",
+            "Medium Main Body Part",
+            "Medium Ground Part",
+            "Wheel Positions",
+            "Medium/Low Side Parts",
+            "Low Main Part",
+            "Low Side Part",
+            "Headlight Positions",
+            "Backlight Positions",
+            "Reserved"
+    };
+
+    float carScaleFactor = 1000;
+
+    std::cout << "- Parsing GEO File " << std::endl;
+    std::vector<CarModel> car_meshes;
+
+    ifstream geo(geo_path, ios::in | ios::binary);
+
+    auto *geoFileHeader = new PS1::GEO::HEADER();
+    if (geo.read((char *) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
+        std::cout << "Couldn't open file/truncated." << std::endl;
+        delete geoFileHeader;
+        return car_meshes;
+    }
+
+    uint32_t part_Idx = -1;
+
+    while (true) {
+        streamoff start = geo.tellg();
+        std::cout << part_Idx + 1 << " BlockStartOffset: " << start << std::endl;
+        auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
+        while (geoBlockHeader->nVerts == 0) {
+            ++part_Idx;
+            geo.read((char *) geoBlockHeader, sizeof(PS1::GEO::BLOCK_HEADER));
+            if (geo.eof()) {
+                delete geoBlockHeader;
+                delete geoFileHeader;
+                return car_meshes;
+            }
+        }
+
+        if ((geoBlockHeader->unknown[0] != 0) || (geoBlockHeader->unknown[1] != 1) || (geoBlockHeader->unknown[2] != 1)) {
+            std::cout << "Invalid geometry header. This file is special (or corrupt)" << std::endl;
+            delete geoBlockHeader;
             delete geoFileHeader;
             return car_meshes;
         }
 
-        uint32_t part_Idx = -1;
+        std::vector<uint32_t> indices;
+        std::vector<glm::vec3> verts;
+        std::vector<glm::vec3> norms;
+        std::vector<glm::vec2> uvs;
+        std::vector<unsigned int> texture_indices;
+        std::set<unsigned int> minimal_texture_ids_set;
 
-        while (true) {
-            streamoff start = geo.tellg();
+        indices.reserve(geoBlockHeader->nPolygons * 6);
+        verts.reserve(geoBlockHeader->nVerts);
 
-            auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
-            while (geoBlockHeader->nVerts == 0) {
-                ++part_Idx;
-                geo.read((char *) geoBlockHeader, sizeof(PC::GEO::BLOCK_HEADER));
-                if (geo.eof()) {
-                    delete geoBlockHeader;
-                    delete geoFileHeader;
-                    return car_meshes;
-                }
-            }
-            ASSERT(geoBlockHeader->pad0 == 0 && geoBlockHeader->pad1 == 1 && geoBlockHeader->pad2 == 1, "Corrupt GEO block header");
+        float specularDamper = 0.2;
+        float specularReflectivity = 0.02;
+        float envReflectivity = 0.4;
 
-            std::vector<uint32_t> indices;
-            std::vector<glm::vec3> verts;
-            std::vector<glm::vec3> norms;
-            std::vector<glm::vec2> uvs;
-            std::vector<unsigned int> texture_indices;
-            std::set<unsigned int> minimal_texture_ids_set; // TODO: Switch to Texture Atlas
+        auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
+        geo.read((char *) vertices, (geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
+        std::cout << "VertTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
-            indices.reserve(geoBlockHeader->nPolygons * 6);
-            verts.reserve(geoBlockHeader->nVerts);
-
-            float specularDamper = 0.2;
-            float specularReflectivity = 0.02;
-            float envReflectivity = 0.4;
-
-            auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
-            geo.read((char *) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
-
-            streamoff end = geo.tellg();
-            // Polygon Table start is aligned on 4 Byte boundary
-            if (((end - start) % 4)) {
-                std::cout << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: " << std::endl;
-                uint16_t *pad = new uint16_t[3];
-                geo.read((char *) pad, sizeof(uint16_t) * 3);
-                for (int i = 0; i < 3; ++i) {
-                    std::cout << pad[i] << std::endl;
-                }
-                delete[] pad;
-            }
-
-            auto *polygons = new PC::GEO::POLY_3D[geoBlockHeader->nPolygons];
-            geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PC::GEO::POLY_3D));
-
-            for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
-                verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
-            }
-
-            for (int poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
-                std::string textureName(polygons[poly_Idx].texName);
-                // Store a minimal subset of texture ID's used on car part for later OpenGL bind
-                minimal_texture_ids_set.insert(remapTextureName(textureName));
-                indices.emplace_back(polygons[poly_Idx].vertex[0]);
-                indices.emplace_back(polygons[poly_Idx].vertex[1]);
-                indices.emplace_back(polygons[poly_Idx].vertex[2]);
-                indices.emplace_back(polygons[poly_Idx].vertex[0]);
-                indices.emplace_back(polygons[poly_Idx].vertex[2]);
-                indices.emplace_back(polygons[poly_Idx].vertex[3]);
-
-                uvs.emplace_back(0.0f, 0.0f);
-                uvs.emplace_back(1.0f, 0.0f);
-                uvs.emplace_back(1.0f, 1.0f);
-                uvs.emplace_back(0.0f, 0.0f);
-                uvs.emplace_back(1.0f, 1.0f);
-                uvs.emplace_back(0.0f, 1.0f);
-
-                // TODO: Long overdue normal calculation
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-                norms.emplace_back(glm::vec3(1, 1, 1));
-
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-                texture_indices.emplace_back(remapTextureName(textureName));
-            }
-            glm::vec3 center =glm::vec3((geoBlockHeader->position[0]/100)/carScaleFactor, (geoBlockHeader->position[1]/100)/carScaleFactor, (geoBlockHeader->position[2]/100)/carScaleFactor);
-            // Get ordered list of unique texture id's present in car part
-            car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices),  center, specularDamper, specularReflectivity, envReflectivity));
-
-            delete geoBlockHeader;
-            delete[] vertices;
-            delete[] polygons;
+        // If NVerts is ODD, we need to pad. TODO: Pad here or pad Normals?
+        // This skip happens when the VertexTable doesn't end on a 4 Byte boundary.
+        if (geoBlockHeader->nVerts % 2) {
+            geo.seekg(0xC, ios_base::cur);
         }
+
+        auto *normals = new PS1::GEO::BLOCK_3D[geoBlockHeader->nNormals];
+        geo.read((char *) normals, (geoBlockHeader->nNormals) * sizeof(PS1::GEO::BLOCK_3D));
+        std::cout << "NormTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+
+        auto *xblock_1 = new PS1::GEO::XBLOCK_1();
+        auto *xblock_2 = new PS1::GEO::XBLOCK_2();
+        auto *xblock_3 = new PS1::GEO::XBLOCK_3();
+        auto *xblock_4 = new PS1::GEO::XBLOCK_4();
+        auto *xblock_5 = new PS1::GEO::XBLOCK_5();
+        switch (geoBlockHeader->unknown1) {
+            case 1:
+                geo.read((char *) xblock_1, sizeof(PS1::GEO::XBLOCK_1));
+                break;
+            case 2:
+                geo.read((char *) xblock_2, sizeof(PS1::GEO::XBLOCK_2));
+                break;
+            case 3:
+                geo.read((char *) xblock_3, sizeof(PS1::GEO::XBLOCK_3));
+                break;
+            case 4:
+                geo.read((char *) xblock_4, sizeof(PS1::GEO::XBLOCK_4));
+                break;
+            case 5:
+                geo.read((char *) xblock_5, sizeof(PS1::GEO::XBLOCK_5));
+                break;
+            default:
+                std::cout << "Unknown block type:  " << geoBlockHeader->unknown1 << std::endl;
+        }
+
+        streamoff end = geo.tellg();
+        std::cout << "PolyTblStartOffset: " << end << " Size: " << end - start << std::endl;
+        // Polygon Table start is aligned on 4 Byte boundary
+        if (((end - start) % 4)) {
+            std::cout << "Part " << part_Idx << " [" << PS1_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: " << std::endl;
+            uint16_t *pad = new uint16_t[3];
+            geo.read((char *) pad, sizeof(uint16_t) * 3);
+            for (int i = 0; i < 3; ++i) {
+                std::cout << pad[i] << std::endl;
+            }
+            delete[] pad;
+        }
+
+        auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
+        geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
+        DumpToObj(part_Idx, geoBlockHeader, vertices, normals, polygons);
+
+        for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
+            verts.emplace_back(glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
+        }
+
+        for (int poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
+            std::string textureName(polygons[poly_Idx].texName);
+            // Store a minimal subset of texture ID's used on car part for later OpenGL bind
+            minimal_texture_ids_set.insert(remapTextureName(textureName));
+            //std::cout << polygons[poly_Idx].texName << " " << polygons[poly_Idx].texMapType[0] << " " << polygons[poly_Idx].texMapType[1] << std::endl;
+            // TODO: There's another set of indices at index [2], that form barely valid polygons. Middle set [1] are always numbers that match, 0000, 1111, 2222, 3333.
+            indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
+            indices.emplace_back(polygons[poly_Idx].vertex[0][1]);
+            indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
+            indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
+            indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
+            indices.emplace_back(polygons[poly_Idx].vertex[0][3]);
+
+            // TODO: Use Polygon TexMap type to fix texture mapping
+            uvs.emplace_back(1.0f, 1.0f);
+            uvs.emplace_back(0.0f, 1.0f);
+            uvs.emplace_back(0.0f, 0.0f);
+            uvs.emplace_back(1.0f, 1.0f);
+            uvs.emplace_back(0.0f, 0.0f);
+            uvs.emplace_back(1.0f, 0.0f);
+
+            // TODO: Long overdue normal calculation
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+            norms.emplace_back(glm::vec3(1, 1, 1));
+
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapTextureName(textureName));
+        }
+        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256) / carScaleFactor, (geoBlockHeader->position[1] / 256) / carScaleFactor, (geoBlockHeader->position[2] / 256) / carScaleFactor);
+        // Get ordered list of unique texture id's present in car part
+        car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
+
+        std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+
+        // Dump GeoBlock data for correlating with geometry/LOD's/Special Cases
+        std::cout << "nVerts: " << geoBlockHeader->nVerts << std::endl;
+        std::cout << "unknown1: " << geoBlockHeader->unknown1 << std::endl;
+        std::cout << "nNormals: " << geoBlockHeader->nNormals << std::endl;
+        std::cout << "nPolygons: " << geoBlockHeader->nPolygons << std::endl;
+        for (int o = 0; o < 4; ++o) {
+            std::cout << geoBlockHeader->unknown2[o][0] << std::endl;
+            std::cout << geoBlockHeader->unknown2[o][1] << std::endl;
+        }
+        for (int j = 0; j < 4; ++j) {
+            std::cout << geoBlockHeader->unknown[j] << std::endl;
+        }
+        switch (geoBlockHeader->unknown1) {
+            case 3:
+                std::cout << "XBlock 3: " << std::endl;
+                for (int i = 0; i < sizeof(xblock_3->unknown) / sizeof(xblock_3->unknown[0]); ++i) {
+                    std::cout << (int) xblock_3->unknown[i] << std::endl;
+                }
+                break;
+            case 1:
+                std::cout << "XBlock 1: " << std::endl;
+                for (int i = 0; i < sizeof(xblock_1->unknown) / sizeof(xblock_1->unknown[0]); ++i) {
+                    std::cout << (int) xblock_1->unknown[i] << std::endl;
+                }
+                break;
+            case 2:
+                std::cout << "XBlock 2: " << std::endl;
+                for (int i = 0; i < sizeof(xblock_2->unknown) / sizeof(xblock_2->unknown[0]); ++i) {
+                    std::cout << (int) xblock_2->unknown[i] << std::endl;
+                }
+                break;
+        }
+        std::cout << "--------------------------" << std::endl;
+
+        delete geoBlockHeader;
+        delete[] normals;
+        delete[] vertices;
+        delete[] polygons;
+        delete xblock_1;
+        delete xblock_2;
+        delete xblock_3;
+        delete xblock_4;
+        delete xblock_5;
     }
 }
+
 
 template<typename Platform>
 std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
@@ -449,15 +430,13 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     geo_path << car_base_path << ".GEO";
     psh_path << car_base_path << ".PSH";
     qfs_path << car_base_path << ".QFS";
-    car_out_path << CAR_PATH << car_name << "/";
 
-    if (!boost::filesystem::exists(car_out_path.str())) {
-        boost::filesystem::create_directories(car_out_path.str());
-        if (std::is_same<Platform, PS1>::value) {
-           Utils::ExtractPSH(psh_path.str(), car_out_path.str());
-        } else {
-            Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
-        }
+    if (std::is_same<Platform, PS1>::value) {
+        car_out_path << CAR_PATH << ToString(NFS_3_PS1) << "/" << car_name << "/";
+        Utils::ExtractPSH(psh_path.str(), car_out_path.str());
+    } else {
+        car_out_path << CAR_PATH << ToString(NFS_2) << "/" << car_name << "/";
+        Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
     }
 
     // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
@@ -472,7 +451,7 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
         }
     }
 
-    return std::make_shared<Car>(LoadGEO(geo_path.str()), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, GenCarTextures(car_textures));
+    return std::make_shared<Car>(LoadGEO(geo_path.str()), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, TrackUtils::GenTextures(car_textures));
 }
 
 // TRACK
@@ -512,7 +491,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
         track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track_name, nfs_version);
     }
-    track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
+    track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
 
     ParseTRKModels(track);
     std::vector<Entity> col_entities = ParseCOLModels(track);

@@ -8,6 +8,7 @@
 
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, std::map<unsigned int, GLuint> texture_gl_mappings) : Car(car_meshes, nfs_version, car_name) {
     car_texture_gl_mappings = texture_gl_mappings;
+    multitexturedCarModel = true;
 }
 
 
@@ -55,10 +56,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     compound->calculateLocalInertia(mass,localInertia);
 
     // set initial location of vehicle in the world
-    vehicleMotionState = new btDefaultMotionState(btTransform(
-            btQuaternion(Utils::glmToBullet(car_body_model.orientation)),
-            btVector3(Utils::glmToBullet(car_body_model.position))
-    ));
+    vehicleMotionState = new btDefaultMotionState(btTransform(btQuaternion(Utils::glmToBullet(car_body_model.orientation)), btVector3(Utils::glmToBullet(car_body_model.position))));
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass,vehicleMotionState,compound,localInertia);
     m_carChassis = new btRigidBody(cInfo);
     // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
@@ -140,7 +138,10 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
                 } else if (car_model.m_name == ":HRFW"){
                     car_model.enable();
                     right_front_wheel_model = car_model;
-                } else {
+                } else if(car_model.m_name.find("O") != std::string::npos) {
+                    car_model.enable();
+                    misc_models.emplace_back(car_model);
+                } else{
                     misc_models.emplace_back(car_model);
                 }
             }
@@ -172,13 +173,13 @@ Car::~Car() {
 void Car::update() {
     btTransform trans;
     vehicleMotionState->getWorldTransform(trans);
-    car_body_model.position = Utils::bulletToGlm(trans.getOrigin());
+    car_body_model.position = Utils::bulletToGlm(trans.getOrigin()) + (car_body_model.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
     car_body_model.orientation = Utils::bulletToGlm(trans.getRotation());
     car_body_model.update();
 
     // Might as well apply the body transform to the Miscellaneous models
     for(auto &misc_model : misc_models){
-        misc_model.position = Utils::bulletToGlm(trans.getOrigin());
+        misc_model.position = Utils::bulletToGlm(trans.getOrigin()) + (misc_model.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
         misc_model.orientation = Utils::bulletToGlm(trans.getRotation());
         misc_model.update();
     }

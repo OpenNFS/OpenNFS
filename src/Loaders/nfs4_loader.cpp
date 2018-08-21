@@ -10,8 +10,8 @@ std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path) {
 
     std::stringstream viv_path, car_out_path, fce_path;
     viv_path << car_base_path << "/car.viv";
-    car_out_path << CAR_PATH << car_name << "/";
-    fce_path << CAR_PATH << car_name << "/car.fce";
+    car_out_path << CAR_PATH << ToString(NFS_4) << "/" << car_name << "/";
+    fce_path << CAR_PATH << ToString(NFS_4) << "/" << car_name << "/car.fce";
 
     ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()),
            "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
@@ -33,11 +33,10 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
 
     frd_path << track_base_path << "/TR.frd";
 
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_4),
-           "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_4), "Could not extract " << track_name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
 
-    track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
+    track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
     track->track_blocks = ParseTRKModels(track);
 
     std::cout << "Successful track load!" << std::endl;
@@ -97,8 +96,7 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], 1.0f - partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, center, specularDamper,
-                                     specularReflectivity, envReflectivity));
+        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
         std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: "
                   << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
                   << " Normals: "

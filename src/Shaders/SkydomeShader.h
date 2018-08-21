@@ -1,5 +1,5 @@
 //
-// Created by Amrik Sadhra on 11/03/2018.
+// Created by Amrik Sadhra on 21/08/2018.
 //
 
 #pragma once
@@ -8,9 +8,9 @@
 #include "../Util/Utils.h"
 #include "../Scene/Light.h"
 
-class BillboardShader : public BaseShader {
+class SkydomeShader : public BaseShader {
 public:
-    BillboardShader();
+    SkydomeShader();
     void loadLight(Light board_light);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
 
@@ -21,16 +21,8 @@ protected:
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
     GLint viewMatrixLocation;
-    GLint boardTextureLocation;
     GLint lightColourLocation;
     GLint billboardPosLocation;
 
-    GLuint textureID;
-
     typedef BaseShader super;
-
-    void loadBillboardTexture();
-
-    void load_bmp_texture();
 };
-

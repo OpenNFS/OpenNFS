@@ -292,6 +292,13 @@ namespace Utils {
     }
 
     bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir) {
+        if (boost::filesystem::exists(output_dir)) {
+            std::cout << "Textures already exist at " << output_dir << " so returning." << std::endl;
+            return true;
+        }
+
+        boost::filesystem::create_directories(output_dir);
+
         // Fshtool molests the current working directory, save and restore
         char cwd[1024];
         getcwd(cwd, sizeof(cwd));
@@ -319,6 +326,11 @@ namespace Utils {
 
     bool ExtractPSH(const std::string &psh_path, const std::string &output_path) {
         using namespace NFS2_DATA;
+
+        if (boost::filesystem::exists(output_path)) {
+            std::cout << "Textures already exist at " << output_path << " so returning." << std::endl;
+            return true;
+        }
 
         boost::filesystem::create_directories(output_path);
         std::cout << "Extracting PSH File " << std::endl;

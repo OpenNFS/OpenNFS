@@ -8,7 +8,7 @@ TrackRenderer::TrackRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
     track = activeTrack;
 }
 
-void TrackRenderer::renderTrack(Camera mainCamera, Light cameraLight, std::vector<int> activeTrackBlockIDs, ParamData userParams) {
+void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, ParamData userParams) {
     std::vector<Light> camlights;
     camlights.push_back(cameraLight);
 
@@ -97,7 +97,7 @@ TrackRenderer::~TrackRenderer() {
     trackShader.cleanup();
 }
 
-void TrackRenderer::renderLights(Camera mainCamera, std::vector<int> activeTrackBlockIDs) {
+void TrackRenderer::renderLights(const Camera &mainCamera, std::vector<int> activeTrackBlockIDs) {
     for (auto &track_block_id : activeTrackBlockIDs) {
         billboardShader.use();
         // Render the lights far to near

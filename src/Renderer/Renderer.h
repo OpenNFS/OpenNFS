@@ -34,7 +34,6 @@ private:
     /*------- BULLET --------*/
     Physics physicsEngine;
 
-    // Create and compile our GLSL programs from the shaders
     TrackRenderer trackRenderer;
     CarRenderer carRenderer;
 

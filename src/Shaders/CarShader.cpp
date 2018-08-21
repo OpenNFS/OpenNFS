@@ -81,7 +81,7 @@ void CarShader::bindCarTextures(const CarModel &car_model, std::map<unsigned int
 
 void CarShader::load_tga_texture() {
     std::stringstream car_texture_path;
-    car_texture_path << CAR_PATH << car->name << "/car00.tga";
+    car_texture_path << CAR_PATH << ToString(car->tag) << "/" <<car->name << "/car00.tga";
 
     NS_TGALOADER::IMAGE texture_loader;
     ASSERT(texture_loader.LoadTGA(car_texture_path.str().c_str()), "Car Texture loading failed!");

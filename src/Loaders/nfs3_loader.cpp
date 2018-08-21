@@ -12,8 +12,8 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
 
     std::stringstream viv_path, car_out_path, fce_path;
     viv_path << car_base_path << "/car.viv";
-    car_out_path << CAR_PATH << car_name << "/";
-    fce_path << CAR_PATH << car_name << "/car.fce";
+    car_out_path << CAR_PATH << ToString(NFS_3) << "/" << car_name << "/";
+    fce_path << CAR_PATH << ToString(NFS_3) << "/" << car_name << "/car.fce";
 
     ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
@@ -59,15 +59,13 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
             vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x /10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
         }
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->normTblOffset +
-                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->normTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (int normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
             normals.emplace_back(glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
         }
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset +
-                  (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
         for (int tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
             indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
@@ -99,7 +97,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
 
     boost::filesystem::path p(track_base_path);
     std::string track_name = p.filename().string();
-    stringstream frd_path, col_path, can_path;
+    stringstream frd_path, col_path, can_path, hrz_path;
     string strip = "K0";
     unsigned int pos = track_name.find(strip);
     if (pos != string::npos)
@@ -108,14 +106,17 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     frd_path << track_base_path << ".frd";
     col_path << track_base_path << ".col";
     can_path << track_base_path << ".can";
+    std::string hrz_path_inter(track_base_path);
+    hrz_path_inter.replace(track_base_path.find(track_name), track_name.length(), "");
+    hrz_path << hrz_path_inter << 3 << track_name << ".hrz";
 
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3),
-           "Could not extract " << track_name << " QFS texture pack.");
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(LoadCAN(can_path.str(), track), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
+    ASSERT(LoadHRZ(hrz_path.str(), track), "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
 
-    track->texture_gl_mappings = TrackUtils::GenTrackTextures(track->textures);
+    track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
     track->track_blocks = ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 
@@ -398,6 +399,30 @@ bool NFS3::LoadCAN(std::string can_path, const std::shared_ptr<TRACK> &track) {
     }
 
     dump.close();
+}
+
+bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track) {
+    ifstream hrz(hrz_path, ios::in | ios::binary);
+    if(!hrz.is_open()) return false;
+
+    std::string str, skyTopColour, skyBottomColour;
+
+    while (std::getline(hrz, str))
+    {
+        if(str.find("/* r,g,b value at top of Gourad shaded SKY area */") != std::string::npos){
+            std::getline(hrz, skyTopColour);
+        }
+        if(str.find("/* r,g,b values for base of Gourad shaded SKY area */") != std::string::npos){
+            std::getline(hrz, skyBottomColour);
+        }
+    }
+
+    track->sky_top_colour = TrackUtils::parseRGBString(skyTopColour);
+    track->sky_bottom_colour = TrackUtils::parseRGBString(skyBottomColour);
+
+    hrz.close();
+
+    return true;
 }
 
 std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track) {

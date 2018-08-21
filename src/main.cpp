@@ -38,10 +38,10 @@ public:
         std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs3track);
         //Load Car data from unpacked NFS files
         std::string merc("../resources/NFS3/gamedata/carmodel/merc");
-        std::string nfs4("../resources/NFS4/DATA/CARS/AJ");
+        std::string nfs4("../resources/NFS4/DATA/CARS/PDIA");
         std::string nfs3ps1car("../resources/NFS3_PS1/ZDIAB");
-        std::string nfs2car("../resources/NFS2/GAMEDATA/CARMODEL/PC/MCLK");
-        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs3ps1car);
+        std::string nfs2car("../resources/NFS2/GAMEDATA/CARMODEL/PC/GT90");
+        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs4);
 
         //Load Music
         //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");

@@ -12,7 +12,7 @@ CarRenderer::CarRenderer(const shared_ptr<Car> &activeCar) : carShader(activeCar
     }
 }
 
-void CarRenderer::render(Camera mainCamera, Light cameraLight) {
+void CarRenderer::render(const Camera &mainCamera, const Light &cameraLight) {
     // Render the Car
     carShader.use();
     // Clean this up

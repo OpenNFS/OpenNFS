@@ -28,6 +28,7 @@ public:
 
     std::string name;
     NFSVer tag;
+    bool multitexturedCarModel = false;
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }
@@ -47,7 +48,7 @@ public:
     float getSuspensionCompression() { return suspensionCompression; }
     float getWheelFriction() { return wheelFriction; }
     float getRollInfluence() { return rollInfluence; }
-    bool isMultitextured() {return (bool) car_body_model.texture_ids.size(); }
+    bool isMultitextured() {return multitexturedCarModel; }
 
     double getRotY();
 

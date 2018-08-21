@@ -295,8 +295,9 @@ namespace NFS3_4_DATA {
         // GL 3D Render Data
         std::vector<TrackBlock> track_blocks;
         std::vector<Entity> global_objects;
-        std::map<short, Texture> textures;
-        std::map<short, GLuint> texture_gl_mappings;
+        std::map<unsigned int, Texture> textures;
+        std::map<unsigned int, GLuint> texture_gl_mappings;
+        glm::vec3 sky_top_colour, sky_bottom_colour;
     };
 
     struct FCE {
@@ -584,8 +585,8 @@ namespace NFS2_DATA {
             COLLISION_BLOCK *collisionData;
             // GL 3D Render Data
             std::vector<TrackBlock> track_blocks;
-            std::map<short, Texture> textures;
-            std::map<short, GLuint> texture_gl_mappings;
+            std::map<unsigned int, Texture> textures;
+            std::map<unsigned int, GLuint> texture_gl_mappings;
         };
 
         struct GEO {
@@ -696,8 +697,8 @@ namespace NFS2_DATA {
             COLLISION_BLOCK *collisionData;
             // GL 3D Render Data
             std::vector<TrackBlock> track_blocks;
-            std::map<short, Texture> textures;
-            std::map<short, GLuint> texture_gl_mappings;
+            std::map<unsigned int, Texture> textures;
+            std::map<unsigned int, GLuint> texture_gl_mappings;
         };
 
         struct PSH {

@@ -42,7 +42,7 @@ void TrackShader::customCleanup(){
 
 }
 
-void TrackShader::bindTrackTextures(const Track &track_block, std::map<short, GLuint> gl_id_map) {
+void TrackShader::bindTrackTextures(const Track &track_block, std::map<unsigned int, GLuint> gl_id_map) {
     // TODO: Somehow breaking the CORE profile here?
     GLenum texNum = GL_TEXTURE0;
     for (short texture_id : track_block.texture_ids) {
