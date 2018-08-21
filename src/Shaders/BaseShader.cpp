@@ -1,5 +1,5 @@
 //
-// Created by Amrik on 01/03/2018.
+// Created by Amrik Sadhra on 01/03/2018.
 //
 
 #include <glm/vec3.hpp>

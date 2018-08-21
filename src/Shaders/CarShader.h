@@ -1,5 +1,5 @@
 //
-// Created by Amrik on 01/03/2018.
+// Created by Amrik Sadhra on 01/03/2018.
 //
 
 #pragma once
@@ -18,8 +18,7 @@
 
 class CarShader : public BaseShader {
 public:
-    CarShader();
-    CarShader(shared_ptr<Car> current_car);
+    explicit CarShader(shared_ptr<Car> current_car);
     void loadCarColor(glm::vec3 color);
     void loadCarTexture();
     void loadLight(Light light);

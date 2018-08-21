@@ -1,5 +1,5 @@
 //
-// Created by Amrik on 22/05/2018.
+// Created by Amrik Sadhra on 22/05/2018.
 //
 
 #include "Raytracer.h"

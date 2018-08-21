@@ -1,5 +1,5 @@
 //
-// Created by Amrik on 18/03/2018.
+// Created by Amrik Sadhra on 18/03/2018.
 //
 
 #pragma once
@@ -47,6 +47,7 @@ public:
     float getSuspensionCompression() { return suspensionCompression; }
     float getWheelFriction() { return wheelFriction; }
     float getRollInfluence() { return rollInfluence; }
+    bool isMultitextured() {return (bool) car_body_model.texture_ids.size(); }
 
     double getRotY();
 

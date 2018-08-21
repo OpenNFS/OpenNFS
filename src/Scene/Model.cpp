@@ -1,5 +1,5 @@
 //
-// Created by Amrik on 25/10/2017.
+// Created by Amrik Sadhra on 25/10/2017.
 //
 
 #include "Model.h"

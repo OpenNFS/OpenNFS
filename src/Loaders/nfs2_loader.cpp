@@ -190,7 +190,7 @@ std::vector<CarModel> NFS2<Platform>::LoadGEO(const std::string &geo_path) {
             std::cout << "VertTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
             // If NVerts is ODD, we need to pad. TODO: Pad here or pad Normals?
-            // This skip happens when the VertexTable doesn't end on a 4 Byte boundary. It must therefore not have started on one?
+            // This skip happens when the VertexTable doesn't end on a 4 Byte boundary.
             if(geoBlockHeader->nVerts % 2){
                 geo.seekg(0xC, ios_base::cur);
             }
@@ -454,7 +454,7 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     if (!boost::filesystem::exists(car_out_path.str())) {
         boost::filesystem::create_directories(car_out_path.str());
         if (std::is_same<Platform, PS1>::value) {
-            Utils::ExtractPSH(psh_path.str(), car_out_path.str());
+           Utils::ExtractPSH(psh_path.str(), car_out_path.str());
         } else {
             Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
         }
@@ -506,8 +506,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
 
     ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, nfs_version),
-           "Could not extract " << track_name << " texture pack.");
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, nfs_version), "Could not extract " << track_name << " texture pack.");
 
     // Load up the textures
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
@@ -629,8 +628,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                             trk.read((char *) trackblock->blockNeighbours, xblockHeader->nRecords * sizeof(uint16_t));
                             break;
                         case 8:
-                            trackblock->structures = static_cast<typename Platform::GEOM_BLOCK *>(calloc(
-                                    xblockHeader->nRecords, sizeof(typename Platform::GEOM_BLOCK)));
+                            trackblock->structures = static_cast<typename Platform::GEOM_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(typename Platform::GEOM_BLOCK)));
                             trackblock->nStructures = xblockHeader->nRecords;
                             for (int structure_Idx = 0; structure_Idx < trackblock->nStructures; ++structure_Idx) {
                                 streamoff padCheck = trk.tellg();
@@ -638,12 +636,9 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                                 trk.read((char *) &trackblock->structures[structure_Idx].nVerts, sizeof(uint16_t));
                                 trk.read((char *) &trackblock->structures[structure_Idx].nPoly, sizeof(uint16_t));
 
-                                trackblock->structures[structure_Idx].vertexTable = static_cast<typename Platform::VERT *>(calloc(
-                                        trackblock->structures[structure_Idx].nVerts, sizeof(typename Platform::VERT)));
-                                for (int vert_Idx = 0;
-                                     vert_Idx < trackblock->structures[structure_Idx].nVerts; ++vert_Idx) {
-                                    trk.read((char *) &trackblock->structures[structure_Idx].vertexTable[vert_Idx],
-                                             sizeof(typename Platform::VERT));
+                                trackblock->structures[structure_Idx].vertexTable = static_cast<typename Platform::VERT *>(calloc(trackblock->structures[structure_Idx].nVerts, sizeof(typename Platform::VERT)));
+                                for (int vert_Idx = 0; vert_Idx < trackblock->structures[structure_Idx].nVerts; ++vert_Idx) {
+                                    trk.read((char *) &trackblock->structures[structure_Idx].vertexTable[vert_Idx], sizeof(typename Platform::VERT));
                                 }
                                 trackblock->structures[structure_Idx].polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(trackblock->structures[structure_Idx].nPoly, sizeof(typename Platform::POLYGONDATA)));
                                 for (int poly_Idx = 0; poly_Idx < trackblock->structures[structure_Idx].nPoly; ++poly_Idx) {
@@ -654,31 +649,20 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                             break;
                         case 7:
                         case 18:
-                            trackblock->structureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(xblockHeader->nRecords,
-                                                                                                sizeof(GEOM_REF_BLOCK)));
+                            trackblock->structureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(GEOM_REF_BLOCK)));
                             trackblock->nStructureReferences = xblockHeader->nRecords;
-                            for (int structureRef_Idx = 0;
-                                 structureRef_Idx < trackblock->nStructureReferences; ++structureRef_Idx) {
+                            for (int structureRef_Idx = 0; structureRef_Idx < trackblock->nStructureReferences; ++structureRef_Idx) {
                                 streamoff padCheck = trk.tellg();
-                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].recSize,
-                                         sizeof(uint16_t));
-                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].recType,
-                                         sizeof(uint8_t));
-                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].structureRef,
-                                         sizeof(uint8_t));
+                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].recSize, sizeof(uint16_t));
+                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].recType, sizeof(uint8_t));
+                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
                                 // Fixed type
                                 if (trackblock->structureRefData[structureRef_Idx].recType == 1) {
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].refCoordinates,
-                                             sizeof(VERT_HIGHP));
-                                } else if (trackblock->structureRefData[structureRef_Idx].recType ==
-                                           3) { // Animated type
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].animLength,
-                                             sizeof(uint16_t));
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].unknown,
-                                             sizeof(uint16_t));
-                                    trackblock->structureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(
-                                            trackblock->structureRefData[structureRef_Idx].animLength,
-                                            sizeof(ANIM_POS)));
+                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
+                                } else if (trackblock->structureRefData[structureRef_Idx].recType == 3) { // Animated type
+                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
+                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].unknown, sizeof(uint16_t));
+                                    trackblock->structureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(trackblock->structureRefData[structureRef_Idx].animLength, sizeof(ANIM_POS)));
                                     for (int animation_Idx = 0; animation_Idx < trackblock->structureRefData[structureRef_Idx].animLength; ++animation_Idx) {
                                         trk.read((char *) &trackblock->structureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
                                     }
@@ -698,8 +682,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                             }
                             break;
                         case 6:
-                            trackblock->medianData = static_cast<MEDIAN_BLOCK *>(calloc(xblockHeader->nRecords,
-                                                                                        sizeof(MEDIAN_BLOCK)));
+                            trackblock->medianData = static_cast<MEDIAN_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(MEDIAN_BLOCK)));
                             trk.read((char *) trackblock->medianData, xblockHeader->nRecords * sizeof(MEDIAN_BLOCK));
                             break;
                         case 13:
@@ -750,8 +733,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
     uint32_t *extraBlockOffsets = (uint32_t *) calloc(nExtraBlocks, sizeof(uint32_t));
     col.read((char *) extraBlockOffsets, nExtraBlocks * sizeof(uint32_t));
 
-    std::cout << "  Version: " << version << "\n  nExtraBlocks: " << nExtraBlocks << "\nParsing COL Extrablocks"
-              << std::endl;
+    std::cout << "  Version: " << version << "\n  nExtraBlocks: " << nExtraBlocks << "\nParsing COL Extrablocks" << std::endl;
 
     for (int xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx) {
         col.seekg(16 + extraBlockOffsets[xBlock_Idx], ios_base::beg);
@@ -759,8 +741,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
         auto *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
         col.read((char *) xblockHeader, sizeof(EXTRABLOCK_HEADER));
 
-        std::cout << "  XBID " << (int) xblockHeader->XBID << " (XBlock " << xBlock_Idx + 1 << " of " << nExtraBlocks
-                  << ")" << std::endl;
+        std::cout << "  XBID " << (int) xblockHeader->XBID << " (XBlock " << xBlock_Idx + 1 << " of " << nExtraBlocks << ")" << std::endl;
 
         switch (xblockHeader->XBID) {
             case 2: // First xbock always texture table
@@ -779,8 +760,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                     col.read((char *) &track->colStructures[structure_Idx].nPoly, sizeof(uint16_t));
                     track->colStructures[structure_Idx].vertexTable = static_cast<typename Platform::VERT *>(calloc(track->colStructures[structure_Idx].nVerts, sizeof(typename Platform::VERT)));
                     for (int vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx) {
-                        col.read((char *) &track->colStructures[structure_Idx].vertexTable[vert_Idx],
-                                 sizeof(typename Platform::VERT));
+                        col.read((char *) &track->colStructures[structure_Idx].vertexTable[vert_Idx], sizeof(typename Platform::VERT));
                     }
                     track->colStructures[structure_Idx].polygonTable = static_cast<typename Platform::POLYGONDATA *>(calloc(track->colStructures[structure_Idx].nPoly, sizeof(typename Platform::POLYGONDATA)));
                     for (int poly_Idx = 0; poly_Idx < track->colStructures[structure_Idx].nPoly; ++poly_Idx) {
@@ -859,9 +839,7 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
             for (int i = 0; i < trkBlock.header->nStickToNextVerts + trkBlock.header->nHighResVert; i++) {
                 if (i < trkBlock.header->nStickToNextVerts) {
                     // If in last block go get ref coord of first block, else get ref of next block
-                    blockReferenceCoord = (trkBlock.header->blockSerial == track->nBlocks - 1)
-                                          ? track->blockReferenceCoords[0] : track->blockReferenceCoords[
-                                                  trkBlock.header->blockSerial + 1];
+                    blockReferenceCoord = (trkBlock.header->blockSerial == track->nBlocks - 1) ? track->blockReferenceCoords[0] : track->blockReferenceCoords[trkBlock.header->blockSerial + 1];
                 } else {
                     blockReferenceCoord = track->blockReferenceCoords[trkBlock.header->blockSerial];
                 }
@@ -870,10 +848,7 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
                 int32_t z = (blockReferenceCoord.z + (256 * trkBlock.vertexTable[i].z));
                 obj_dump << "v " << x / scaleFactor << " " << z / scaleFactor << " " << y / scaleFactor << std::endl;
             }
-            for (int poly_Idx = (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly); poly_Idx <
-                                                                                               (trkBlock.header->nLowResPoly +
-                                                                                                trkBlock.header->nMedResPoly +
-                                                                                                trkBlock.header->nHighResPoly); ++poly_Idx) {
+            for (int poly_Idx = (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly); poly_Idx < (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly + trkBlock.header->nHighResPoly); ++poly_Idx) {
                 obj_dump << "f " << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[0] + 1 << " "
                          << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[1] + 1 << " "
                          << (unsigned int) trkBlock.polygonTable[poly_Idx].vertex[2] + 1 << " "
@@ -907,25 +882,16 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
                 }
                 obj_dump << "o Struct" << &trkBlock.structures[structure_Idx] << std::endl;
                 for (uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx) {
-                    int32_t x = (structureReferenceCoordinates->x +
-                                 (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x));
-                    int32_t y = (structureReferenceCoordinates->y +
-                                 (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].y));
-                    int32_t z = (structureReferenceCoordinates->z +
-                                 (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].z));
-                    obj_dump << "v " << x / scaleFactor << " " << z / scaleFactor << " " << y / scaleFactor
-                             << std::endl;
+                    int32_t x = (structureReferenceCoordinates->x + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x));
+                    int32_t y = (structureReferenceCoordinates->y + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].y));
+                    int32_t z = (structureReferenceCoordinates->z + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].z));
+                    obj_dump << "v " << x / scaleFactor << " " << z / scaleFactor << " " << y / scaleFactor << std::endl;
                 }
                 for (int poly_Idx = 0; poly_Idx < trkBlock.structures[structure_Idx].nPoly; ++poly_Idx) {
-                    obj_dump << "f "
-                             << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[0] + 1
-                             << " "
-                             << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[1] + 1
-                             << " "
-                             << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[2] + 1
-                             << " "
-                             << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[3] + 1
-                             << std::endl;
+                    obj_dump << "f " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[0] + 1
+                             << " " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[1] + 1
+                             << " " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[2] + 1
+                             << " " << (unsigned int) trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[3] + 1 << std::endl;
                 }
                 obj_dump.close();
             }
@@ -942,8 +908,7 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
         for (int structRef_Idx = 0; structRef_Idx < track->nColStructureReferences; ++structRef_Idx) {
             // Only check fixed type structure references
             if (track->colStructureRefData[structRef_Idx].structureRef == structure_Idx) {
-                if (track->colStructureRefData[structRef_Idx].recType == 1 ||
-                    track->colStructureRefData[structRef_Idx].recType == 4) {
+                if (track->colStructureRefData[structRef_Idx].recType == 1 || track->colStructureRefData[structRef_Idx].recType == 4) {
                     structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].refCoordinates;
                     break;
                 } else if (track->colStructureRefData[structRef_Idx].recType == 3) {
@@ -959,12 +924,9 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
         }
         obj_dump << "o ColStruct" << &track->colStructures[structure_Idx] << std::endl;
         for (uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx) {
-            int32_t x = (structureReferenceCoordinates->x +
-                         (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
-            int32_t y = (structureReferenceCoordinates->y +
-                         (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
-            int32_t z = (structureReferenceCoordinates->z +
-                         (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
+            int32_t x = (structureReferenceCoordinates->x + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
+            int32_t y = (structureReferenceCoordinates->y + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
+            int32_t z = (structureReferenceCoordinates->z + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
             obj_dump << "v " << x / scaleFactor << " " << z / scaleFactor << " " << y / scaleFactor << std::endl;
         }
         for (int poly_Idx = 0; poly_Idx < track->colStructures[structure_Idx].nPoly; ++poly_Idx) {
@@ -1259,8 +1221,6 @@ NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &trac
 }
 
 
-template
-class NFS2<PS1>;
+template class NFS2<PS1>;
 
-template
-class NFS2<PC>;
+template class NFS2<PC>;

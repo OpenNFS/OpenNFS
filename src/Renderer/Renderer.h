@@ -1,5 +1,5 @@
 //
-// Created by SYSTEM on 19/07/2018.
+// Created by Amrik Sadhra on 19/07/2018.
 //
 
 #pragma once
@@ -11,30 +11,15 @@
 #include <imgui.h>
 #include <examples/opengl3_example/imgui_impl_glfw_gl3.h>
 
-#include "../Shaders/TrackShader.h"
-#include "../Shaders/CarShader.h"
-#include "../Shaders/BillboardShader.h"
 #include "../Scene/Camera.h"
 #include "../Scene/Entity.h"
 #include "../Loaders/trk_loader.h"
 #include "../Physics/Physics.h"
+#include "../Config.h"
 
 #include "HermiteCurve.h"
-
-struct ParamData {
-    ImVec4 clear_color = ImVec4(119 / 255.0f, 197 / 255.0f, 252 / 255.0f, 1.0f);
-    ImVec4 test_light_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    float trackSpecReflectivity = 1;
-
-    float trackSpecDamper = 10;
-    int blockDrawDistance = 15;
-    bool window_active = true;
-    bool physics_debug_view = false;
-    bool use_classic_graphics = true;
-    bool attach_cam_to_hermite = false;
-    bool use_nb_data = true;
-    bool attach_cam_to_car = true;
-};
+#include "CarRenderer.h"
+#include "TrackRenderer.h"
 
 class Renderer {
 public:
@@ -50,9 +35,8 @@ private:
     Physics physicsEngine;
 
     // Create and compile our GLSL programs from the shaders
-    TrackShader trackShader;
-    CarShader carShader;
-    BillboardShader billboardShader;
+    TrackRenderer trackRenderer;
+    CarRenderer carRenderer;
 
     Camera mainCamera;
     Light cameraLight;
@@ -68,7 +52,7 @@ private:
     void DrawNFS34Metadata(Entity *targetEntity);
     void DrawMenuBar();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
-    void NewFrame(bool &window_active);
+    void NewFrame(ParamData *userParams);
     std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
     Entity *CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted);
 };

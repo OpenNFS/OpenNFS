@@ -1,5 +1,5 @@
 //
-// Created by Amrik on 01/03/2018.
+// Created by Amrik Sadhra on 01/03/2018.
 //
 
 #include "CarShader.h"
@@ -78,7 +78,6 @@ void CarShader::bindCarTextures(const CarModel &car_model, std::map<unsigned int
     const GLint samplers[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
     glUniform1iv(CarTexturesID, 32, samplers);
 }
-
 
 void CarShader::load_tga_texture() {
     std::stringstream car_texture_path;

@@ -1,5 +1,5 @@
 //
-// Created by Amrik on 02/06/2018.
+// Created by Amrik Sadhra on 02/06/2018.
 //
 // Valery V. Anisimovsky (son_of_the_north@mail.ru)
 // http://bim.km.ru/gap/
