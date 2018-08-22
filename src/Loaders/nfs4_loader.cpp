@@ -13,8 +13,7 @@ std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path) {
     car_out_path << CAR_PATH << ToString(NFS_4) << "/" << car_name << "/";
     fce_path << CAR_PATH << ToString(NFS_4) << "/" << car_name << "/car.fce";
 
-    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()),
-           "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
     return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_4, car_name);
 }
@@ -40,6 +39,16 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     track->track_blocks = ParseTRKModels(track);
 
     std::cout << "Successful track load!" << std::endl;
+}
+
+void parsePolygonFlags(int triangle, uint32_t polygonFlags){
+    std::bitset<32> bits(polygonFlags);
+
+    if ((polygonFlags >> 24) & 0x1){
+        std::cout << triangle << " " << bits << " Semi Transparent!" << std::endl;
+    } else {
+        std::cout << triangle << " " << bits << std::endl;
+    }
 }
 
 std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
@@ -69,25 +78,22 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partTriangles = new FCE::TRIANGLE[fceHeader->partNumTriangles[part_Idx]];
 
-        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->vertTblOffset +
-                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->vertTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (int vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
             vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x/10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
         }
 
-        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->normTblOffset +
-                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->normTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (int normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
-            normals.emplace_back(
-                    glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
+            normals.emplace_back(glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
         }
 
-        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->triTblOffset +
-                  (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
         for (int tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
+            parsePolygonFlags(tri_Idx, partTriangles[tri_Idx].polygonFlags);
             indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[1]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[2]);
@@ -97,10 +103,10 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
         }
 
         meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
-        std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: "
-                  << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
-                  << " Normals: "
-                  << meshes[part_Idx].m_normals.size() << std::endl;
+        std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size()
+                  << " Verts: " << meshes[part_Idx].m_vertices.size()
+                  << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
+                  << " Normals: " << meshes[part_Idx].m_normals.size() << std::endl;
 
         delete[] partNormals;
         delete[] partVertices;

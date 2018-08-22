@@ -6,6 +6,7 @@
 
 #include <sstream>
 #include <string>
+#include <bitset>
 #include <boost/filesystem.hpp>
 #include <boost/lambda/bind.hpp>
 #include "track_utils.h"

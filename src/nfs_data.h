@@ -305,7 +305,7 @@ namespace NFS3_4_DATA {
             uint32_t texPage;
             uint32_t vertex[3]; // Local indexes, add part first Vert index from "partFirstVertIndices"
             uint16_t padding[6]; // 00FF
-            uint32_t smoothingBits;
+            uint32_t polygonFlags;
             float uvTable[6]; // U1 U2 U3, V1 V2 V3
         };
 
