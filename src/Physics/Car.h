@@ -49,6 +49,7 @@ public:
     float getWheelFriction() { return wheelFriction; }
     float getRollInfluence() { return rollInfluence; }
     bool isMultitextured() {return multitexturedCarModel; }
+    bool hasPolyFlags() {return car_body_model.hasPolyFlags; }
 
     double getRotY();
 

@@ -44,11 +44,164 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
 void parsePolygonFlags(int triangle, uint32_t polygonFlags){
     std::bitset<32> bits(polygonFlags);
 
-    if ((polygonFlags >> 24) & 0x1){
-        std::cout << triangle << " " << bits << " Semi Transparent!" << std::endl;
+    if ((polygonFlags & 0xF) == 0xA){
+        // Transparent
+        //std::cout << triangle << " " << bits << " Semi Transparent: " << polygonFlags << std::endl;
     } else {
-        std::cout << triangle << " " << bits << std::endl;
+        //std::cout << triangle << " " << bits << std::endl;
     }
+}
+
+std::vector<glm::vec2> highStakesToGLUV(POLYGONDATA poly) {
+    std::vector<glm::vec2> converted_uvs;
+    int map[4], hold;
+    //(flags>>2)&3 indicates the multiple of 90° by which the
+    //texture should be rotated (0 for no rotation, 1 for 90°,
+    //2 for 180°, 3 for 270°) ; a non-zero value of flags&0x10
+    //indicates that the texture is horizontally flipped ; a
+    //non-zero value of flags&0x20 indicates that the texture
+    //is vertically flipped. The value of (flags>>6)&7 indicates
+    //the scaling factor : 0 is no scaling ; 1 means that the
+    //texture is tiled twice horizontally ; 2 that the texture
+    //is tile twice vertically ; 3 indicates 4x horizontal
+    //tiling, 4 indicates 4x vertical tiling. Finally, a non-zero
+    //value of flags&0x8000 indicates that the polygon is one-sided.
+    //ox, oy, and oz :: Origin of the wrap.
+    //dx, dy, and dz :: The z-axis of the wrap.
+    //ux, uy, and uz ::	The y-axis of the wrap.
+    //ou and ov :: Origin in the texture.
+    //su and sv :: Scale factor in the texture
+    float oi[2], oo[2], ii[2], io[2];
+    switch ((poly.hs_texflags >> 2) & 3) {
+        case 0:
+            map[0] = 0;
+            map[1] = 1;
+            map[2] = 2;
+            map[3] = 3;
+            break;
+        case 1:
+            map[0] = 3;
+            map[1] = 0;
+            map[2] = 1;
+            map[3] = 2;
+            break;
+        case 2:
+            map[0] = 2;
+            map[1] = 3;
+            map[2] = 0;
+            map[3] = 1;
+            break;
+        case 3:
+            map[0] = 1;
+            map[1] = 2;
+            map[2] = 3;
+            map[3] = 0;
+            break;
+    }
+    switch ((poly.hs_texflags >> 4) & 3) {
+        case 1:
+            hold = map[0];
+            map[0] = map[1];
+            map[1] = hold;
+            hold = map[2];
+            map[2] = map[3];
+            map[3] = hold;
+            break;
+        case 2:
+            hold = map[0];
+            map[0] = map[3];
+            map[3] = hold;
+            hold = map[2];
+            map[2] = map[1];
+            map[1] = hold;
+            break;
+        case 3:
+            hold = map[1];
+            map[1] = map[3];
+            map[3] = hold;
+            hold = map[2];
+            map[2] = map[0];
+            map[0] = hold;
+            break;
+    }
+    // Scale Factor
+    switch ((poly.hs_texflags >> 6) & 7) {
+        /* case 0:
+             oi[1] = 1.0f;
+             ii[0] = 1.0f;
+             ii[1] = 1.0f;
+             io[0] = 1.0f;
+             break;
+         case 1:
+             oi[1] = 1.0f;
+             ii[0] = 0.5f;
+             ii[1] = 1.0f;
+             io[0] = 0.5f;
+             break;
+         case 2:
+             oi[1] = 0.5f;
+             ii[0] = 1.0f;
+             ii[1] = 0.5f;
+             io[0] = 1.0f;
+             break;
+         case 3:
+             oi[1] = 1.0f;
+             ii[0] = 0.25f;
+             ii[1] = 1.0f;
+             io[0] = 0.25f;
+             break;
+         case 4:
+             oi[1] = 0.25f;
+             ii[0] = 1.0f;
+             ii[1] = 0.25f;
+             io[0] = 1.0f;
+             break;*/
+        {
+            case 0:
+                oi[1] = 1.0f;
+            ii[0] = 1.0f;
+            ii[1] = 1.0f;
+            io[0] = 1.0f;
+            break;
+            case 1:
+                oi[1] = 1.0f;
+            ii[0] = 2.0f;
+            ii[1] = 1.0f;
+            io[0] = 2.0f;
+            break;
+            case 2:
+                oi[1] = 2.0f;
+            ii[0] = 1.0f;
+            ii[1] = 2.0f;
+            io[0] = 1.0f;
+            break;
+            case 3:
+                oi[1] = 1.0f;
+            ii[0] = 4.0f;
+            ii[1] = 1.0f;
+            io[0] = 4.0f;
+            break;
+            case 4:
+                oi[1] = 4.0f;
+            ii[0] = 1.0f;
+            ii[1] = 4.0f;
+            io[0] = 1.0f;
+            break;
+        }
+    }
+    oi[0] = 0.0f;
+    io[1] = 0.0f;
+    oo[0] = 0.0f;
+    oo[1] = 0.0f;
+
+    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
+    converted_uvs.push_back(glm::vec2(ii[0], ii[1]));
+    converted_uvs.push_back(glm::vec2(io[0], io[1]));
+    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
+    converted_uvs.push_back(glm::vec2(io[0], io[1]));
+    converted_uvs.push_back(glm::vec2(oo[0], oo[1]));
+
+    return converted_uvs;//std::vector<glm::vec2>(converted_uvs, converted_uvs + 6);
 }
 
 std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
@@ -67,6 +220,7 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
         float envReflectivity = 0.4;
 
         std::vector<uint32_t> indices;
+        std::vector<uint32_t> polygonFlags;
         std::vector<glm::vec3> vertices;
         std::vector<glm::vec3> normals;
         std::vector<glm::vec2> uvs;
@@ -93,6 +247,9 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
         fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
         for (int tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
+            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
+            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
+            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
             parsePolygonFlags(tri_Idx, partTriangles[tri_Idx].polygonFlags);
             indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[1]);
@@ -102,11 +259,13 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], 1.0f - partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
-        std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size()
-                  << " Verts: " << meshes[part_Idx].m_vertices.size()
-                  << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
-                  << " Normals: " << meshes[part_Idx].m_normals.size() << std::endl;
+        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
+        std::cout << "Mesh: "       << meshes[part_Idx].m_name
+                  << " UVs: "       << meshes[part_Idx].m_uvs.size()
+                  << " Verts: "     << meshes[part_Idx].m_vertices.size()
+                  << " Indices: "   << meshes[part_Idx].m_vertex_indices.size()
+                  << " Normals: "   << meshes[part_Idx].m_normals.size()
+                  << " PolyFlags: " << meshes[part_Idx].m_polygon_flags.size() << std::endl;
 
         delete[] partNormals;
         delete[] partVertices;
@@ -636,158 +795,6 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, s
     }
     //CorrectVirtualRoad();
     return true;
-}
-
-std::vector<glm::vec2> highStakesToGLUV(POLYGONDATA poly) {
-    std::vector<glm::vec2> converted_uvs;
-    int map[4], hold;
-    //(flags>>2)&3 indicates the multiple of 90° by which the
-    //texture should be rotated (0 for no rotation, 1 for 90°,
-    //2 for 180°, 3 for 270°) ; a non-zero value of flags&0x10
-    //indicates that the texture is horizontally flipped ; a
-    //non-zero value of flags&0x20 indicates that the texture
-    //is vertically flipped. The value of (flags>>6)&7 indicates
-    //the scaling factor : 0 is no scaling ; 1 means that the
-    //texture is tiled twice horizontally ; 2 that the texture
-    //is tile twice vertically ; 3 indicates 4x horizontal
-    //tiling, 4 indicates 4x vertical tiling. Finally, a non-zero
-    //value of flags&0x8000 indicates that the polygon is one-sided.
-    //ox, oy, and oz :: Origin of the wrap.
-    //dx, dy, and dz :: The z-axis of the wrap.
-    //ux, uy, and uz ::	The y-axis of the wrap.
-    //ou and ov :: Origin in the texture.
-    //su and sv :: Scale factor in the texture
-    float oi[2], oo[2], ii[2], io[2];
-    switch ((poly.hs_texflags >> 2) & 3) {
-        case 0:
-            map[0] = 0;
-            map[1] = 1;
-            map[2] = 2;
-            map[3] = 3;
-            break;
-        case 1:
-            map[0] = 3;
-            map[1] = 0;
-            map[2] = 1;
-            map[3] = 2;
-            break;
-        case 2:
-            map[0] = 2;
-            map[1] = 3;
-            map[2] = 0;
-            map[3] = 1;
-            break;
-        case 3:
-            map[0] = 1;
-            map[1] = 2;
-            map[2] = 3;
-            map[3] = 0;
-            break;
-    }
-    switch ((poly.hs_texflags >> 4) & 3) {
-        case 1:
-            hold = map[0];
-            map[0] = map[1];
-            map[1] = hold;
-            hold = map[2];
-            map[2] = map[3];
-            map[3] = hold;
-            break;
-        case 2:
-            hold = map[0];
-            map[0] = map[3];
-            map[3] = hold;
-            hold = map[2];
-            map[2] = map[1];
-            map[1] = hold;
-            break;
-        case 3:
-            hold = map[1];
-            map[1] = map[3];
-            map[3] = hold;
-            hold = map[2];
-            map[2] = map[0];
-            map[0] = hold;
-            break;
-    }
-    // Scale Factor
-    switch ((poly.hs_texflags >> 6) & 7) {
-       /* case 0:
-            oi[1] = 1.0f;
-            ii[0] = 1.0f;
-            ii[1] = 1.0f;
-            io[0] = 1.0f;
-            break;
-        case 1:
-            oi[1] = 1.0f;
-            ii[0] = 0.5f;
-            ii[1] = 1.0f;
-            io[0] = 0.5f;
-            break;
-        case 2:
-            oi[1] = 0.5f;
-            ii[0] = 1.0f;
-            ii[1] = 0.5f;
-            io[0] = 1.0f;
-            break;
-        case 3:
-            oi[1] = 1.0f;
-            ii[0] = 0.25f;
-            ii[1] = 1.0f;
-            io[0] = 0.25f;
-            break;
-        case 4:
-            oi[1] = 0.25f;
-            ii[0] = 1.0f;
-            ii[1] = 0.25f;
-            io[0] = 1.0f;
-            break;*/
-        {
-            case 0:
-            oi[1] = 1.0f;
-            ii[0] = 1.0f;
-            ii[1] = 1.0f;
-            io[0] = 1.0f;
-            break;
-            case 1:
-            oi[1] = 1.0f;
-            ii[0] = 2.0f;
-            ii[1] = 1.0f;
-            io[0] = 2.0f;
-            break;
-            case 2:
-            oi[1] = 2.0f;
-            ii[0] = 1.0f;
-            ii[1] = 2.0f;
-            io[0] = 1.0f;
-            break;
-            case 3:
-            oi[1] = 1.0f;
-            ii[0] = 4.0f;
-            ii[1] = 1.0f;
-            io[0] = 4.0f;
-            break;
-            case 4:
-            oi[1] = 4.0f;
-            ii[0] = 1.0f;
-            ii[1] = 4.0f;
-            io[0] = 1.0f;
-            break;
-        }
-    }
-    oi[0] = 0.0f;
-    io[1] = 0.0f;
-    oo[0] = 0.0f;
-    oo[1] = 0.0f;
-
-    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
-    converted_uvs.push_back(glm::vec2(ii[0], ii[1]));
-    converted_uvs.push_back(glm::vec2(io[0], io[1]));
-    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
-    converted_uvs.push_back(glm::vec2(io[0], io[1]));
-    converted_uvs.push_back(glm::vec2(oo[0], oo[1]));
-
-    return converted_uvs;//std::vector<glm::vec2>(converted_uvs, converted_uvs + 6);
 }
 
 std::vector<TrackBlock> NFS4::ParseTRKModels(std::shared_ptr<TRACK> track) {

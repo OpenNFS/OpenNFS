@@ -5,6 +5,7 @@ layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in vec3 normal;
 layout(location = 3) in uint textureIndex;
+layout(location = 4) in uint polygonFlag;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
@@ -14,6 +15,7 @@ out vec3 surfaceNormal;
 out vec3 toLightVector;
 out vec3 toCameraVector;
 flat out uint texIndex;
+flat out uint polyFlag;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
@@ -25,6 +27,8 @@ void main(){
 
     // Pass through texture Index (Used for NFS2 car multitex)
     texIndex = textureIndex;
+    // Pass through polygon Flag (Used for NFS4)
+    polyFlag = polygonFlag;
 
 	// Output position of the vertex, in clip space : MVP * position
 	gl_Position =  projectionMatrix * viewMatrix * worldPosition;

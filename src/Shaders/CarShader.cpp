@@ -38,6 +38,7 @@ void CarShader::bindAttributes() {
     bindAttribute(1 ,"vertexUV");
     bindAttribute(2 ,"normal");
     bindAttribute(3 ,"textureIndex");
+    bindAttribute(4 ,"polygonFlag");
 }
 
 void CarShader::getAllUniformLocations() {
@@ -55,10 +56,15 @@ void CarShader::getAllUniformLocations() {
     envReflectivityLocation  =  getUniformLocation("envReflectivity");
     CarTexturesID = getUniformLocation("texture_array");
     isMultiTexturedLocation = getUniformLocation("multiTextured");
+    hasPolyFlagsLocation = getUniformLocation("polyFlagged");
 }
 
-void CarShader::setMultiTextured(){
-    loadBool(isMultiTexturedLocation, true);
+void CarShader::setMultiTextured(bool multiTextured){
+    loadBool(isMultiTexturedLocation, multiTextured);
+}
+
+void CarShader::setPolyFlagged(bool polyFlagged){
+    loadBool(hasPolyFlagsLocation, polyFlagged);
 }
 
 void CarShader::customCleanup(){

@@ -8,6 +8,7 @@ in vec3 surfaceNormal;
 in vec3 toLightVector;
 in vec3 toCameraVector;
 flat in uint texIndex;
+flat in uint polyFlag;
 
 // Ouput data
 out vec4 color;
@@ -21,6 +22,7 @@ uniform float shineDamper;
 uniform float reflectivity;
 uniform float envReflectivity;
 uniform bool multiTextured;
+uniform bool polyFlagged;
 
 void main(){
     vec4 carTexColor;
@@ -86,5 +88,12 @@ void main(){
     vec3 finalSpecular = dampedFactor * reflectivity * lightColour.xyz;
 
 	// Output color = color of the texture at the specified UV
-	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0) ;
+	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0);
+
+	// Apply NFS4 Polygon Flags
+	if(!polyFlagged) {
+	    if(((polyFlag << 28) >> 28) == 0xA){
+	        color.a = 0.5f;
+	    }
+    }
 }
