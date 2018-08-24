@@ -15,7 +15,7 @@
 #include "../Scene/TrackBlock.h"
 #include "../nfs_data.h"
 
-#define scaleFactor 100000
+#define scaleFactor 1000000.0f
 
 using namespace NFS2_DATA;
 

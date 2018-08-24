@@ -553,6 +553,8 @@ namespace NFS2_DATA {
             GEOM_BLOCK *structures;
             uint16_t nStructureReferences;
             GEOM_REF_BLOCK *structureRefData;
+            uint16_t nExtraStructureReferences;
+            GEOM_REF_BLOCK *extraStructureRefData;
             MEDIAN_BLOCK *medianData;
             uint16_t nVroad;
             VROAD *vroadData; // Reference using XBID 5
@@ -665,6 +667,8 @@ namespace NFS2_DATA {
             GEOM_BLOCK *structures;
             uint16_t nStructureReferences;
             GEOM_REF_BLOCK *structureRefData;
+            uint16_t nExtraStructureReferences;
+            GEOM_REF_BLOCK *extraStructureRefData;
             MEDIAN_BLOCK *medianData;
             uint16_t nVroad;
             VROAD *vroadData; // Reference using XBID 5
@@ -764,23 +768,23 @@ namespace NFS2_DATA {
             };
 
             struct XBLOCK_1 {
-                uint8_t unknown[8];
+                int16_t unknown[4];
             };
 
             struct XBLOCK_2 {
-                uint8_t unknown[8];
+                int16_t unknown[4];
             };
 
             struct XBLOCK_3 {
-                uint8_t unknown[16];
+                int16_t unknown[8];
             };
 
             struct XBLOCK_4 {
-                uint8_t unknown[10];
+                int16_t unknown[5];
             };
 
             struct XBLOCK_5 {
-                uint8_t unknown[18];
+                int16_t unknown[9];
             };
 #pragma pack(pop)
         };

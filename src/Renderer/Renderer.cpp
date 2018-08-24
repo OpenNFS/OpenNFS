@@ -34,7 +34,7 @@ void Renderer::Render() {
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
 
-    car->resetCar(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10));
+    car->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z));
 
     bool entity_targeted = false;
     Entity *targetedEntity;

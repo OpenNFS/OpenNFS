@@ -81,6 +81,12 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
                     if (car_model.m_name == "Medium Main Body Part") {
                         car_model.enable();
                         car_body_model = car_model;
+                    } else if(car_model.m_name.find("Medium/Low Side Parts") != std::string::npos){
+                        car_model.enable();
+                        left_front_wheel_model = car_model;
+                        right_front_wheel_model = car_model;
+                        left_rear_wheel_model = car_model;
+                        right_rear_wheel_model = car_model;
                     } else if (car_model.m_name.find("Medium") != std::string::npos && car_model.m_name.find("Wheel") == std::string::npos) {
                         car_model.enable();
                         misc_models.emplace_back(car_model);
@@ -105,7 +111,7 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
                     } else if(car_model.m_name.find("High Rear Right Wheel Part") != std::string::npos){
                         car_model.enable();
                         right_rear_wheel_model = car_model;
-                    } else if(car_model.m_name.find("High") != std::string::npos && car_model.m_name.find("Wheel") == std::string::npos){ // Everything with "High" in the name (thats not a wheel) is an extra body part, enable it
+                    } else if(car_model.m_name.find("High") != std::string::npos){ // Everything with "High" in the name is an extra body part, enable it
                         car_model.enable();
                         misc_models.emplace_back(car_model);
                     } else {
