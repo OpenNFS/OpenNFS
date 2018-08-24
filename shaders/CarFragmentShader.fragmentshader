@@ -26,7 +26,7 @@ uniform bool polyFlagged;
 
 void main(){
     vec4 carTexColor;
-    if(multiTextured) {
+    if(!multiTextured) {
         switch(int(texIndex)){
             case 0: carTexColor  = texture(texture_array[0],  UV).rgba; break;
             case 1: carTexColor  = texture(texture_array[1],  UV).rgba; break;
@@ -88,8 +88,7 @@ void main(){
     vec3 finalSpecular = dampedFactor * reflectivity * lightColour.xyz;
 
 	// Output color = color of the texture at the specified UV
-	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0);
-
+	color = carTexColor;// vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0);
 	// Apply NFS4 Polygon Flags
 	if(!polyFlagged) {
 	    if(((polyFlag << 28) >> 28) == 0xA){

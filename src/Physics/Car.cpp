@@ -21,7 +21,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     gBreakingForce = 100.f;
     maxEngineForce = 4000.f;
     maxBreakingForce = 1000.f;
-    suspensionRestLength = btScalar(0.02);
+    suspensionRestLength = btScalar(0.026);
     suspensionStiffness = 500.f;
     suspensionDamping = 200.f;
     suspensionCompression = 500.4f;
@@ -68,34 +68,49 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
 
 // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
 void Car::setModels(std::vector<CarModel> loaded_car_models){
+    uint8_t usedModelCount = 0;
+
     switch(tag){
         case NFS_1:break;
         case NFS_2_PS1:break;
         case NFS_2_SE:
         case NFS_2:
         case NFS_3_PS1:
-            // TODO: Add logic for cars that don't contain "High" detail parts
-            for(auto& car_model : loaded_car_models){
-                if(car_model.m_name == "High Main Body Part"){
-                    car_model.enable();
-                    car_body_model = car_model;
-                } else if(car_model.m_name.find("High Front Left Wheel Part") != std::string::npos){
-                    car_model.enable();
-                    left_front_wheel_model = car_model;
-                } else if(car_model.m_name.find("High Front Right Wheel Part") != std::string::npos){
-                    car_model.enable();
-                    right_front_wheel_model = car_model;
-                } else if(car_model.m_name.find("High Rear Left Wheel Part") != std::string::npos){
-                    car_model.enable();
-                    left_rear_wheel_model = car_model;
-                } else if(car_model.m_name.find("High Rear Right Wheel Part") != std::string::npos){
-                    car_model.enable();
-                    right_rear_wheel_model = car_model;
-                } else if(car_model.m_name.find("High") != std::string::npos && car_model.m_name.find("Wheel") == std::string::npos){ // Everything with "High" in the name (thats not a wheel) is an extra body part, enable it
-                    car_model.enable();
-                    misc_models.emplace_back(car_model);
-                } else {
-                    misc_models.emplace_back(car_model);
+            if(loaded_car_models.size() < 20){
+                for(auto& car_model : loaded_car_models) {
+                    if (car_model.m_name == "Medium Main Body Part") {
+                        car_model.enable();
+                        car_body_model = car_model;
+                    } else if (car_model.m_name.find("Medium") != std::string::npos && car_model.m_name.find("Wheel") == std::string::npos) {
+                        car_model.enable();
+                        misc_models.emplace_back(car_model);
+                    } else {
+                        misc_models.emplace_back(car_model);
+                    }
+                }
+            } else {
+                for(auto& car_model : loaded_car_models){
+                    if(car_model.m_name == "High Main Body Part"){
+                        car_model.enable();
+                        car_body_model = car_model;
+                    } else if(car_model.m_name.find("High Front Left Wheel Part") != std::string::npos){
+                        car_model.enable();
+                        left_front_wheel_model = car_model;
+                    } else if(car_model.m_name.find("High Front Right Wheel Part") != std::string::npos){
+                        car_model.enable();
+                        right_front_wheel_model = car_model;
+                    } else if(car_model.m_name.find("High Rear Left Wheel Part") != std::string::npos){
+                        car_model.enable();
+                        left_rear_wheel_model = car_model;
+                    } else if(car_model.m_name.find("High Rear Right Wheel Part") != std::string::npos){
+                        car_model.enable();
+                        right_rear_wheel_model = car_model;
+                    } else if(car_model.m_name.find("High") != std::string::npos && car_model.m_name.find("Wheel") == std::string::npos){ // Everything with "High" in the name (thats not a wheel) is an extra body part, enable it
+                        car_model.enable();
+                        misc_models.emplace_back(car_model);
+                    } else {
+                        misc_models.emplace_back(car_model);
+                    }
                 }
             }
             break;

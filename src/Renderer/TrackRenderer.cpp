@@ -8,7 +8,7 @@ TrackRenderer::TrackRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
     track = activeTrack;
 }
 
-void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, ParamData userParams) {
+void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, const ParamData &userParams) {
     std::vector<Light> camlights;
     camlights.push_back(cameraLight);
 

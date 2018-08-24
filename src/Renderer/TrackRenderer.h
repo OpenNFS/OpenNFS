@@ -14,7 +14,7 @@ class TrackRenderer {
 public:
     explicit TrackRenderer(const shared_ptr<ONFSTrack> &activeTrack);
     ~TrackRenderer();
-    void renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, ParamData userParams);
+    void renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, const ParamData &userParams);
     void renderLights(const Camera &mainCamera, std::vector<int> activeTrackBlockIDs);
 private:
     // Create and compile our GLSL programs from the shaders

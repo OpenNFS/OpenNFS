@@ -6,12 +6,31 @@
 #include "CarModel.h"
 #include "../Util/Utils.h"
 
+CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<uint32_t> test, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids,  glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(name, verts, uvs, norms, indices, true, center_position)  {
+    m_texture_indices = texture_indices;
+    texture_ids = tex_ids;
+    isMultiTextured = true;
+    // Fill the unused buffer with data
+    m_polygon_flags = test;
+    // Can't call basic constructor as genBuffers() call would run before m_texture_indices was available
+    specularDamper = specular_damper;
+    specularReflectivity = specular_reflectivity;
+    envReflectivity = env_reflectivity;
+    m_normals.clear();
+    for (unsigned int m_vertex_index : m_vertex_indices) {
+        m_normals.push_back(norms[m_vertex_index]);
+    }
+
+    // Gen VBOs, add to Bullet Physics
+    ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model ");
+}
+
 CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids,  glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(name, verts, uvs, norms, indices, true, center_position)  {
     m_texture_indices = texture_indices;
     texture_ids = tex_ids;
     isMultiTextured = true;
     // Fill the unused buffer with data
-    for(int i = 0; i < m_polygon_flags.size(); ++i){
+    for(int i = 0; i < m_texture_indices.size(); ++i){
         m_polygon_flags.emplace_back(0);
     }
     // Can't call basic constructor as genBuffers() call would run before m_texture_indices was available

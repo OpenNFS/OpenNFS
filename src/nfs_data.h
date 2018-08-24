@@ -758,11 +758,10 @@ namespace NFS2_DATA {
             };
 
             struct POLY_3D {
-                uint16_t texMapType[2];
+                uint16_t texMap[2]; // [1] seems to be useless. Value of 102 in bottom right of some meshes, small triangle.
                 uint16_t vertex[3][4]; // Literally wtf, 3 groups of 4 numbers that look like the vert indexes. One set [1] is usually 0,0,0,0 or 1,1,1,1
                 char texName[4];
             };
-
 
             struct XBLOCK_1 {
                 uint8_t unknown[8];

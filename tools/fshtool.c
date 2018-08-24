@@ -1481,7 +1481,7 @@ int fsh_main(int argc, char **argv) {
         inbuf = tmpbuf;
     }
 
-    if (!strncmp(inbuf, "SHPI", 4)) {
+    if (!strncmp(inbuf, "SHPI", 4)||!strncmp(inbuf, "SHPP", 4)) {
         /* this is a FSH file */
         printf("FSH data (%d bytes).\n", inlen);
 

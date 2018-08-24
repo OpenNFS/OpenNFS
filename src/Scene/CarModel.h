@@ -10,6 +10,8 @@ using namespace std;
 
 class CarModel : public Model {
 public:
+    // Test
+    CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<uint32_t> test, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids,  glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity);
     // TODO: Alter all these constructors to const reference
     // Multitextured Cars (NFS2)
     CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity);

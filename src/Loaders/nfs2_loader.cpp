@@ -2,6 +2,7 @@
 // Created by Amrik.Sadhra on 20/06/2018.
 //
 
+#include <bitset>
 #include "nfs2_loader.h"
 
 // Map the texture name from the Raw GEO file from a string into an unsigned int representation, so it's cheaper to use during binding.
@@ -25,9 +26,9 @@ void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::
 
     /* Print Part name*/
     obj_dump << "o " << "PS1_Test" << std::endl;
-    for (int i = 0; i < geoBlockHeader->nVerts; ++i) {
-        obj_dump << "v " << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
-    }
+   for (int i = 0; i < geoBlockHeader->nVerts; ++i) {
+       obj_dump << "v " << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
+   }
 
     // TODO: How can these be normals if there aren't enough for Per vertex? On PSX they're likely per polygon
     for (int i = 0; i < geoBlockHeader->nNormals; ++i) {
@@ -186,7 +187,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
 
 template<>
 std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
-    std::string PS1_PART_NAMES[32]{
+    std::string PS1_PART_NAMES[33]{
             "High Additional Body Part",
             "High Main Body Part",
             "High Ground Part",
@@ -218,6 +219,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
             "Low Side Part",
             "Headlight Positions",
             "Backlight Positions",
+            "Reserved",
             "Reserved"
     };
 
@@ -235,11 +237,12 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
         return car_meshes;
     }
 
-    uint32_t part_Idx = -1;
+    int32_t part_Idx = -1;
 
     while (true) {
         streamoff start = geo.tellg();
-        std::cout << part_Idx + 1 << " BlockStartOffset: " << start << std::endl;
+        std::cout << "Part " << part_Idx + 1 << " [" << PS1_PART_NAMES[part_Idx + 1] << "]" << std::endl;
+        std::cout << "BlockStartOffset:   " << start << std::endl;
         auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
         while (geoBlockHeader->nVerts == 0) {
             ++part_Idx;
@@ -259,6 +262,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
         }
 
         std::vector<uint32_t> indices;
+        std::vector<uint32_t> texMapStuff;
         std::vector<glm::vec3> verts;
         std::vector<glm::vec3> norms;
         std::vector<glm::vec2> uvs;
@@ -274,23 +278,31 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
 
         auto *vertices = new PS1::GEO::BLOCK_3D[geoBlockHeader->nVerts];
         geo.read((char *) vertices, (geoBlockHeader->nVerts) * sizeof(PS1::GEO::BLOCK_3D));
-        std::cout << "VertTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+        std::cout << "VertTblEndOffset:   " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
-        // If NVerts is ODD, we need to pad. TODO: Pad here or pad Normals?
-        // This skip happens when the VertexTable doesn't end on a 4 Byte boundary.
+        // If nVerts is ODD, we need to pad. Let's dump the contents of the pad though, in case there's data here
         if (geoBlockHeader->nVerts % 2) {
-            geo.seekg(0xC, ios_base::cur);
+            auto *pad = new uint16_t[3];
+            geo.read((char *) pad, sizeof(uint16_t) * 3);
+            if(pad[0] || pad[1] || pad[2]){
+                std::cout << "Normal Table Pre-Pad Contents: " << std::endl;
+                for (int i = 0; i < 3; ++i) {
+                    std::cout << pad[i] << std::endl;
+                }
+            }
+            delete[] pad;
         }
 
         auto *normals = new PS1::GEO::BLOCK_3D[geoBlockHeader->nNormals];
         geo.read((char *) normals, (geoBlockHeader->nNormals) * sizeof(PS1::GEO::BLOCK_3D));
-        std::cout << "NormTblEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+        std::cout << "NormTblEndOffset:   " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
         auto *xblock_1 = new PS1::GEO::XBLOCK_1();
         auto *xblock_2 = new PS1::GEO::XBLOCK_2();
         auto *xblock_3 = new PS1::GEO::XBLOCK_3();
         auto *xblock_4 = new PS1::GEO::XBLOCK_4();
         auto *xblock_5 = new PS1::GEO::XBLOCK_5();
+        // Is this really a block type?
         switch (geoBlockHeader->unknown1) {
             case 1:
                 geo.read((char *) xblock_1, sizeof(PS1::GEO::XBLOCK_1));
@@ -315,18 +327,21 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
         std::cout << "PolyTblStartOffset: " << end << " Size: " << end - start << std::endl;
         // Polygon Table start is aligned on 4 Byte boundary
         if (((end - start) % 4)) {
-            std::cout << "Part " << part_Idx << " [" << PS1_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: " << std::endl;
             uint16_t *pad = new uint16_t[3];
             geo.read((char *) pad, sizeof(uint16_t) * 3);
-            for (int i = 0; i < 3; ++i) {
-                std::cout << pad[i] << std::endl;
+            if(pad[0] || pad[1] || pad[2]){
+                std::cout << "Polygon Table Pre-Pad Contents: " << std::endl;
+                for (int i = 0; i < 3; ++i) {
+                    std::cout << pad[i] << std::endl;
+                }
             }
             delete[] pad;
         }
 
         auto *polygons = new PS1::GEO::POLY_3D[geoBlockHeader->nPolygons];
         geo.read((char *) polygons, geoBlockHeader->nPolygons * sizeof(PS1::GEO::POLY_3D));
-        DumpToObj(part_Idx, geoBlockHeader, vertices, normals, polygons);
+
+        std::cout << "BlockEndOffset:     " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
         for (int vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
             verts.emplace_back(glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
@@ -336,7 +351,14 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
             std::string textureName(polygons[poly_Idx].texName);
             // Store a minimal subset of texture ID's used on car part for later OpenGL bind
             minimal_texture_ids_set.insert(remapTextureName(textureName));
-            //std::cout << polygons[poly_Idx].texName << " " << polygons[poly_Idx].texMapType[0] << " " << polygons[poly_Idx].texMapType[1] << std::endl;
+            std::bitset<8> texMapBits(polygons[poly_Idx].texMap[0]);
+            texMapStuff.emplace_back(polygons[poly_Idx].texMap[0]);
+            texMapStuff.emplace_back(polygons[poly_Idx].texMap[0]);
+            texMapStuff.emplace_back(polygons[poly_Idx].texMap[0]);
+            texMapStuff.emplace_back(polygons[poly_Idx].texMap[0]);
+            texMapStuff.emplace_back(polygons[poly_Idx].texMap[0]);
+            texMapStuff.emplace_back(polygons[poly_Idx].texMap[0]);
+
             // TODO: There's another set of indices at index [2], that form barely valid polygons. Middle set [1] are always numbers that match, 0000, 1111, 2222, 3333.
             indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
             indices.emplace_back(polygons[poly_Idx].vertex[0][1]);
@@ -345,13 +367,20 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
             indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
             indices.emplace_back(polygons[poly_Idx].vertex[0][3]);
 
+            glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+            glm::mat2 uvRotationTransform = glm::mat2(cos(0 * M_PI/180), sin(0* M_PI/180), -sin(0* M_PI/180), cos(0* M_PI/180));
+            glm::vec2 flip(1.0f, 1.0f);
+
+            if(texMapBits[5]){
+                flip = glm::vec2(-1.0f, 1.0f);
+            }
             // TODO: Use Polygon TexMap type to fix texture mapping
-            uvs.emplace_back(1.0f, 1.0f);
-            uvs.emplace_back(0.0f, 1.0f);
-            uvs.emplace_back(0.0f, 0.0f);
-            uvs.emplace_back(1.0f, 1.0f);
-            uvs.emplace_back(0.0f, 0.0f);
-            uvs.emplace_back(1.0f, 0.0f);
+            uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+            uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+            uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+            uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+            uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+            uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
 
             // TODO: Long overdue normal calculation
             norms.emplace_back(glm::vec3(1, 1, 1));
@@ -368,31 +397,17 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
             texture_indices.emplace_back(remapTextureName(textureName));
             texture_indices.emplace_back(remapTextureName(textureName));
         }
-        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256) / carScaleFactor, (geoBlockHeader->position[1] / 256) / carScaleFactor, (geoBlockHeader->position[2] / 256) / carScaleFactor);
+        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.0f) / carScaleFactor, (geoBlockHeader->position[1] / 256.0f) / carScaleFactor, (geoBlockHeader->position[2] / 256.0f) / carScaleFactor);
         // Get ordered list of unique texture id's present in car part
-        car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
-
-        std::cout << "BlockEndOffset: " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
+        car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
 
         // Dump GeoBlock data for correlating with geometry/LOD's/Special Cases
-        std::cout << "nVerts: " << geoBlockHeader->nVerts << std::endl;
-        std::cout << "unknown1: " << geoBlockHeader->unknown1 << std::endl;
-        std::cout << "nNormals: " << geoBlockHeader->nNormals << std::endl;
+        std::cout << "nVerts:    " << geoBlockHeader->nVerts << std::endl;
+        std::cout << "unknown1:  " << geoBlockHeader->unknown1 << std::endl;
+        std::cout << "nNormals:  " << geoBlockHeader->nNormals << std::endl;
         std::cout << "nPolygons: " << geoBlockHeader->nPolygons << std::endl;
-        for (int o = 0; o < 4; ++o) {
-            std::cout << geoBlockHeader->unknown2[o][0] << std::endl;
-            std::cout << geoBlockHeader->unknown2[o][1] << std::endl;
-        }
-        for (int j = 0; j < 4; ++j) {
-            std::cout << geoBlockHeader->unknown[j] << std::endl;
-        }
+
         switch (geoBlockHeader->unknown1) {
-            case 3:
-                std::cout << "XBlock 3: " << std::endl;
-                for (int i = 0; i < sizeof(xblock_3->unknown) / sizeof(xblock_3->unknown[0]); ++i) {
-                    std::cout << (int) xblock_3->unknown[i] << std::endl;
-                }
-                break;
             case 1:
                 std::cout << "XBlock 1: " << std::endl;
                 for (int i = 0; i < sizeof(xblock_1->unknown) / sizeof(xblock_1->unknown[0]); ++i) {
@@ -403,6 +418,24 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
                 std::cout << "XBlock 2: " << std::endl;
                 for (int i = 0; i < sizeof(xblock_2->unknown) / sizeof(xblock_2->unknown[0]); ++i) {
                     std::cout << (int) xblock_2->unknown[i] << std::endl;
+                }
+                break;
+            case 3:
+                std::cout << "XBlock 3: " << std::endl;
+                for (int i = 0; i < sizeof(xblock_3->unknown) / sizeof(xblock_3->unknown[0]); ++i) {
+                    std::cout << (int) xblock_3->unknown[i] << std::endl;
+                }
+                break;
+            case 4:
+                std::cout << "XBlock 4: " << std::endl;
+                for (int i = 0; i < sizeof(xblock_4->unknown) / sizeof(xblock_4->unknown[0]); ++i) {
+                    std::cout << (int) xblock_4->unknown[i] << std::endl;
+                }
+                break;
+            case 5:
+                std::cout << "XBlock 5: " << std::endl;
+                for (int i = 0; i < sizeof(xblock_5->unknown) / sizeof(xblock_5->unknown[0]); ++i) {
+                    std::cout << (int) xblock_5->unknown[i] << std::endl;
                 }
                 break;
         }
@@ -494,7 +527,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
     track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
 
     ParseTRKModels(track);
-    std::vector<Entity> col_entities = ParseCOLModels(track);
+    //std::vector<Entity> col_entities = ParseCOLModels(track);
     //track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_entities.begin(), col_entities.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Track loaded successfully" << std::endl;
@@ -730,8 +763,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                 break;
             case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2
                 track->nColStructures = xblockHeader->nRecords;
-                track->colStructures = static_cast<typename Platform::GEOM_BLOCK *>(calloc(track->nColStructures,
-                                                                                           sizeof(typename Platform::GEOM_BLOCK)));
+                track->colStructures = static_cast<typename Platform::GEOM_BLOCK *>(calloc(track->nColStructures, sizeof(typename Platform::GEOM_BLOCK)));
                 for (int structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx) {
                     streamoff padCheck = col.tellg();
                     col.read((char *) &track->colStructures[structure_Idx].recSize, sizeof(uint32_t));
@@ -750,8 +782,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                 break;
             case 7: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
                 track->nColStructureReferences = xblockHeader->nRecords;
-                track->colStructureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(track->nColStructureReferences,
-                                                                                  sizeof(GEOM_REF_BLOCK)));
+                track->colStructureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(track->nColStructureReferences, sizeof(GEOM_REF_BLOCK)));
                 for (int structureRef_Idx = 0; structureRef_Idx < track->nColStructures; ++structureRef_Idx) {
                     streamoff padCheck = col.tellg();
                     col.read((char *) &track->colStructureRefData[structureRef_Idx].recSize, sizeof(uint16_t));
@@ -764,8 +795,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                         col.read((char *) &track->colStructureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
                         col.read((char *) &track->colStructureRefData[structureRef_Idx].unknown, sizeof(uint16_t));
                         track->colStructureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(track->colStructureRefData[structureRef_Idx].animLength, sizeof(ANIM_POS)));
-                        for (int animation_Idx = 0;
-                             animation_Idx < track->colStructureRefData[structureRef_Idx].animLength; ++animation_Idx) {
+                        for (int animation_Idx = 0; animation_Idx < track->colStructureRefData[structureRef_Idx].animLength; ++animation_Idx) {
                             col.read((char *) &track->colStructureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
                         }
                     } else if (track->colStructureRefData[structureRef_Idx].recType == 4) {
@@ -787,6 +817,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
         }
         free(xblockHeader);
     }
+    ASSERT(col.tellg() == colSize, "Missing Data from the COL file! Read bytes: " << col.tellg() << " Col Reported bytes: " << colSize);
     col.close();
     return true;
 }
@@ -933,9 +964,10 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
             auto trkBlock = superblock->trackBlocks[block_Idx];
             VERT_HIGHP blockReferenceCoord;
 
-            TrackBlock current_track_block(superBlock_Idx, glm::vec3(trkBlock.header->clippingRect->x / scaleFactor, trkBlock.header->clippingRect->y / scaleFactor, trkBlock.header->clippingRect->z / scaleFactor));
             glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+            TrackBlock current_track_block(superBlock_Idx, orientation*glm::vec3(trkBlock.header->clippingRect[0].x / scaleFactor, trkBlock.header->clippingRect[0].y / scaleFactor, trkBlock.header->clippingRect[0].z / scaleFactor));
             glm::vec3 trk_block_center = orientation * glm::vec3(0, 0, 0);
+
             std::cout << "Trk block " << (int) trkBlock.header->blockSerial << " NStruct: " << trkBlock.nStructures << std::endl;
             // Structures
             for (int structure_Idx = 0; structure_Idx < trkBlock.nStructures; ++structure_Idx) {
@@ -1055,13 +1087,17 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                 // TODO: Use textures alignment data to modify these UV's
 
-                //FLIP SHIT HERE
-                uvs.emplace_back(1.0f, 1.0f); //0
-                uvs.emplace_back(0.0f, 1.0f); //1
-                uvs.emplace_back(0.0f, 0.0f); //2
-                uvs.emplace_back(1.0f, 1.0f); //0
-                uvs.emplace_back(0.0f, 0.0f); //2
-                uvs.emplace_back(1.0f, 0.0f); //3
+                glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                glm::mat2 uvRotationTransform = glm::mat2(cos(0 * M_PI/180), sin(0* M_PI/180), -sin(0* M_PI/180), cos(0* M_PI/180));
+                glm::vec2 flip(-1.0f, -1.0f);
+
+                // TODO: Use Polygon TexMap type to fix texture mapping
+                uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
 
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1108,8 +1144,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
         for (int structRef_Idx = 0; structRef_Idx < track->nColStructureReferences; ++structRef_Idx) {
             // Only check fixed type structure references
             if (track->colStructureRefData[structRef_Idx].structureRef == structure_Idx) {
-                if (track->colStructureRefData[structRef_Idx].recType == 1 ||
-                    track->colStructureRefData[structRef_Idx].recType == 4) {
+                if (track->colStructureRefData[structRef_Idx].recType == 1 || track->colStructureRefData[structRef_Idx].recType == 4) {
                     structureReferenceCoordinates = &track->colStructureRefData[structure_Idx].refCoordinates;
                     break;
                 } else if (track->colStructureRefData[structRef_Idx].recType == 3) {
@@ -1158,7 +1193,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
         // Get ordered list of unique texture id's present in block
         std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = glm::vec3(0, 0, 0);
-        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, texture_ids, shading_data, glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * position)));
+        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, texture_ids, shading_data, rotationMatrix * position)));
         free(structureReferenceCoordinates);
     }
     return col_entities;

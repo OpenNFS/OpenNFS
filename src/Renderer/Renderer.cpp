@@ -308,7 +308,7 @@ void Renderer::DrawDebugCube(glm::vec3 position) {
     glm::vec3 position_min = orientation * glm::vec3(position.x - lightSize, position.y - lightSize, position.z - lightSize);
     glm::vec3 position_max = orientation * glm::vec3(position.x + lightSize, position.y + lightSize, position.z + lightSize);
     btVector3 colour = btVector3(0, 0, 0);
-    physicsEngine.mydebugdrawer.drawBox(btVector3(position_min.x, position_min.y, position_min.z), btVector3(position_max.x, position_max.y, position_max.z), colour);
+    physicsEngine.mydebugdrawer.drawBox(Utils::glmToBullet(position_min), Utils::glmToBullet(position_max), colour);
 }
 
 std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData) {
@@ -320,7 +320,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         float lowestDistanceSqr = FLT_MAX;
         //Primitive Draw distance
         for (auto &track_block :  track->track_blocks) {
-            glm::vec3 position = glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10);
+            glm::vec3 position = glm::vec3(track_block.center.x, track_block.center.y, track_block.center.z);
             float distanceSqr = glm::length2(glm::distance(worldPosition, position));
             if (distanceSqr < lowestDistanceSqr) {
                 closestBlockID = track_block.block_id;
