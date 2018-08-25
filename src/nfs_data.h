@@ -551,10 +551,10 @@ namespace NFS2_DATA {
             uint16_t *blockNeighbours;
             uint16_t nStructures;
             GEOM_BLOCK *structures;
+
             uint16_t nStructureReferences;
-            GEOM_REF_BLOCK *structureRefData;
-            uint16_t nExtraStructureReferences;
-            GEOM_REF_BLOCK *extraStructureRefData;
+            std::vector<GEOM_REF_BLOCK> structureRefData;
+
             MEDIAN_BLOCK *medianData;
             uint16_t nVroad;
             VROAD *vroadData; // Reference using XBID 5
@@ -582,7 +582,7 @@ namespace NFS2_DATA {
             uint32_t nColStructures;
             GEOM_BLOCK *colStructures;
             uint32_t nColStructureReferences;
-            GEOM_REF_BLOCK *colStructureRefData;
+            std::vector<GEOM_REF_BLOCK> colStructureRefData;
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
             // GL 3D Render Data
@@ -665,10 +665,10 @@ namespace NFS2_DATA {
             uint16_t *blockNeighbours;
             uint16_t nStructures;
             GEOM_BLOCK *structures;
+
             uint16_t nStructureReferences;
-            GEOM_REF_BLOCK *structureRefData;
-            uint16_t nExtraStructureReferences;
-            GEOM_REF_BLOCK *extraStructureRefData;
+            std::vector<GEOM_REF_BLOCK> structureRefData;
+
             MEDIAN_BLOCK *medianData;
             uint16_t nVroad;
             VROAD *vroadData; // Reference using XBID 5
@@ -695,8 +695,10 @@ namespace NFS2_DATA {
             TEXTURE_BLOCK *polyToQFStexTable;
             uint32_t nColStructures;
             GEOM_BLOCK *colStructures;
+
             uint32_t nColStructureReferences;
-            GEOM_REF_BLOCK *colStructureRefData;
+            std::vector<GEOM_REF_BLOCK> colStructureRefData;
+
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
             // GL 3D Render Data

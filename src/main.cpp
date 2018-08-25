@@ -35,7 +35,8 @@ public:
         std::string nfs3ps1track("../resources/NFS3_PS1/ZZZTR02B");
         std::string nfs2track("../resources/NFS2/GAMEDATA/TRACKS/PC/TR00");
         std::string nfs3track("../resources/NFS3/gamedata/tracks/trk002/tr02");
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs3ps1track);
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs2track);
+
         //Load Car data from unpacked NFS files
         std::string merc("../resources/NFS3/gamedata/carmodel/merc");
         std::string nfs4("../resources/NFS4/DATA/CARS/MCDIAB");

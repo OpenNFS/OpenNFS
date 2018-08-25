@@ -533,7 +533,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
 
     ParseTRKModels(track);
     std::vector<Entity> col_entities = ParseCOLModels(track);
-    //track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_entities.begin(), col_entities.end()); // Insert the COL models into track block 0 for now
+    track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_entities.begin(), col_entities.end()); // Insert the COL models into track block 0 for now
 
     std::cout << "Track loaded successfully" << std::endl;
     return track;
@@ -650,7 +650,6 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                                 trk.read((char *) &trackblock->structures[structure_Idx].recSize, sizeof(uint32_t));
                                 trk.read((char *) &trackblock->structures[structure_Idx].nVerts, sizeof(uint16_t));
                                 trk.read((char *) &trackblock->structures[structure_Idx].nPoly, sizeof(uint16_t));
-
                                 trackblock->structures[structure_Idx].vertexTable = static_cast<typename Platform::VERT *>(calloc(trackblock->structures[structure_Idx].nVerts, sizeof(typename Platform::VERT)));
                                 for (int vert_Idx = 0; vert_Idx < trackblock->structures[structure_Idx].nVerts; ++vert_Idx) {
                                     trk.read((char *) &trackblock->structures[structure_Idx].vertexTable[vert_Idx], sizeof(typename Platform::VERT));
@@ -663,57 +662,34 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                             }
                             break;
                         case 7:
-                            trackblock->structureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(GEOM_REF_BLOCK)));
-                            trackblock->nStructureReferences = xblockHeader->nRecords;
+                        case 18:
+                        case 19:
+                            trackblock->nStructureReferences += xblockHeader->nRecords;
                             for (int structureRef_Idx = 0; structureRef_Idx < trackblock->nStructureReferences; ++structureRef_Idx) {
                                 streamoff padCheck = trk.tellg();
-                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].recSize, sizeof(uint16_t));
-                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].recType, sizeof(uint8_t));
-                                trk.read((char *) &trackblock->structureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
+                                GEOM_REF_BLOCK structure;
+                                trk.read((char *) &structure.recSize, sizeof(uint16_t));
+                                trk.read((char *) &structure.recType, sizeof(uint8_t));
+                                trk.read((char *) &structure.structureRef, sizeof(uint8_t));
                                 // Fixed type
-                                if (trackblock->structureRefData[structureRef_Idx].recType == 1) {
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
-                                } else if (trackblock->structureRefData[structureRef_Idx].recType == 3) { // Animated type
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].unknown, sizeof(uint16_t));
-                                    trackblock->structureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(trackblock->structureRefData[structureRef_Idx].animLength, sizeof(ANIM_POS)));
-                                    for (int animation_Idx = 0; animation_Idx < trackblock->structureRefData[structureRef_Idx].animLength; ++animation_Idx) {
-                                        trk.read((char *) &trackblock->structureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
+                                if (structure.recType == 1) {
+                                    trk.read((char *) &structure.refCoordinates, sizeof(VERT_HIGHP));
+                                } else if (structure.recType == 3) { // Animated type
+                                    trk.read((char *) &structure.animLength, sizeof(uint16_t));
+                                    trk.read((char *) &structure.unknown, sizeof(uint16_t));
+                                    structure.animationData = static_cast<ANIM_POS *>(calloc(structure.animLength, sizeof(ANIM_POS)));
+                                    for (int animation_Idx = 0; animation_Idx < structure.animLength; ++animation_Idx) {
+                                        trk.read((char *) &structure.animationData[animation_Idx], sizeof(ANIM_POS));
                                     }
-                                } else if (trackblock->structureRefData[structureRef_Idx].recType == 4) {
+                                } else if (structure.recType == 4) {
                                     // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
-                                    trk.read((char *) &trackblock->structureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
+                                    trk.read((char *) &structure.refCoordinates, sizeof(VERT_HIGHP));
                                 } else {
-                                    std::cout << "Unknown Structure Reference type: " << (int) trackblock->structureRefData[structureRef_Idx].recType << " Size: " << (int) trackblock->structureRefData[structureRef_Idx].recSize << " StructRef: " << (int) trackblock->structureRefData[structureRef_Idx].structureRef << std::endl;
+                                    std::cout << "XBID " << xblockHeader->XBID << " Unknown Structure Reference type: " << (int) structure.recType << " Size: " << (int) structure.recSize << " StructRef: " << (int) structure.structureRef << std::endl;
+                                    continue;
                                 }
-                                trk.seekg(trackblock->structureRefData[structureRef_Idx].recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
-                            }
-                            break;
-                        case 18:
-                            trackblock->extraStructureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(GEOM_REF_BLOCK)));
-                            trackblock->nExtraStructureReferences = xblockHeader->nRecords;
-                            for (int structureRef_Idx = 0; structureRef_Idx < trackblock->nExtraStructureReferences; ++structureRef_Idx) {
-                                streamoff padCheck = trk.tellg();
-                                trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].recSize, sizeof(uint16_t));
-                                trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].recType, sizeof(uint8_t));
-                                trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
-                                // Fixed type
-                                if (trackblock->extraStructureRefData[structureRef_Idx].recType == 1) {
-                                    trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
-                                } else if (trackblock->extraStructureRefData[structureRef_Idx].recType == 3) { // Animated type
-                                    trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
-                                    trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].unknown, sizeof(uint16_t));
-                                    trackblock->extraStructureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(trackblock->extraStructureRefData[structureRef_Idx].animLength, sizeof(ANIM_POS)));
-                                    for (int animation_Idx = 0; animation_Idx < trackblock->extraStructureRefData[structureRef_Idx].animLength; ++animation_Idx) {
-                                        trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
-                                    }
-                                } else if (trackblock->extraStructureRefData[structureRef_Idx].recType == 4) {
-                                    // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
-                                    trk.read((char *) &trackblock->extraStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
-                                } else {
-                                    std::cout << "Unknown Structure Reference type: " << (int) trackblock->extraStructureRefData[structureRef_Idx].recType << " Size: " << (int) trackblock->extraStructureRefData[structureRef_Idx].recSize << " StructRef: " << (int) trackblock->extraStructureRefData[structureRef_Idx].structureRef << std::endl;
-                                }
-                                trk.seekg(trackblock->extraStructureRefData[structureRef_Idx].recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                                trackblock->structureRefData.emplace_back(structure);
+                                trk.seekg(structure.recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
                             }
                             break;
                         case 6:
@@ -805,29 +781,30 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                 break;
             case 7: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
                 track->nColStructureReferences = xblockHeader->nRecords;
-                track->colStructureRefData = static_cast<GEOM_REF_BLOCK *>(calloc(track->nColStructureReferences, sizeof(GEOM_REF_BLOCK)));
                 for (int structureRef_Idx = 0; structureRef_Idx < track->nColStructures; ++structureRef_Idx) {
                     streamoff padCheck = col.tellg();
-                    col.read((char *) &track->colStructureRefData[structureRef_Idx].recSize, sizeof(uint16_t));
-                    col.read((char *) &track->colStructureRefData[structureRef_Idx].recType, sizeof(uint8_t));
-                    col.read((char *) &track->colStructureRefData[structureRef_Idx].structureRef, sizeof(uint8_t));
+                    GEOM_REF_BLOCK structure;
+                    col.read((char *) &structure.recSize, sizeof(uint16_t));
+                    col.read((char *) &structure.recType, sizeof(uint8_t));
+                    col.read((char *) &structure.structureRef, sizeof(uint8_t));
                     // Fixed type
-                    if (track->colStructureRefData[structureRef_Idx].recType == 1) {
-                        col.read((char *) &track->colStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
-                    } else if (track->colStructureRefData[structureRef_Idx].recType == 3) { // Animated type
-                        col.read((char *) &track->colStructureRefData[structureRef_Idx].animLength, sizeof(uint16_t));
-                        col.read((char *) &track->colStructureRefData[structureRef_Idx].unknown, sizeof(uint16_t));
-                        track->colStructureRefData[structureRef_Idx].animationData = static_cast<ANIM_POS *>(calloc(track->colStructureRefData[structureRef_Idx].animLength, sizeof(ANIM_POS)));
-                        for (int animation_Idx = 0; animation_Idx < track->colStructureRefData[structureRef_Idx].animLength; ++animation_Idx) {
-                            col.read((char *) &track->colStructureRefData[structureRef_Idx].animationData[animation_Idx], sizeof(ANIM_POS));
+                    if (structure.recType == 1) {
+                        col.read((char *) &structure.refCoordinates, sizeof(VERT_HIGHP));
+                    } else if (structure.recType == 3) { // Animated type
+                        col.read((char *) &structure.animLength, sizeof(uint16_t));
+                        col.read((char *) &structure.unknown, sizeof(uint16_t));
+                        structure.animationData = static_cast<ANIM_POS *>(calloc(structure.animLength, sizeof(ANIM_POS)));
+                        for (int animation_Idx = 0; animation_Idx < structure.animLength; ++animation_Idx) {
+                            col.read((char *) &structure.animationData[animation_Idx], sizeof(ANIM_POS));
                         }
-                    } else if (track->colStructureRefData[structureRef_Idx].recType == 4) {
+                    } else if (structure.recType == 4) {
                         // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
-                        col.read((char *) &track->colStructureRefData[structureRef_Idx].refCoordinates, sizeof(VERT_HIGHP));
+                        col.read((char *) &structure.refCoordinates, sizeof(VERT_HIGHP));
                     } else {
-                        std::cout << "Unknown Structure Reference type: " << (int) track->colStructureRefData[structureRef_Idx].recType << std::endl;
+                        std::cout << "XBID " << xblockHeader->XBID << " Unknown COL Structure Reference type: " << (int) structure.recType << " Size: " << (int) structure.recSize << " StructRef: " << (int) structure.structureRef << std::endl;
                     }
-                    col.seekg(track->colStructureRefData[structureRef_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                    track->colStructureRefData.emplace_back(structure);
+                    col.seekg(structure.recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
                 }
                 break;
             case 15:
@@ -894,30 +871,21 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
                 obj_dump.open(stringStream1.str());
                 VERT_HIGHP *structureReferenceCoordinates = &track->blockReferenceCoords[trkBlock.header->blockSerial];
                 // Find the structure reference that matches this structure, else use block default
-                for (int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx) {
+                for (auto& structure : trkBlock.structureRefData) {
                     // Only check fixed type structure references
-                    if (trkBlock.structureRefData[structRef_Idx].structureRef == structure_Idx) {
-                        if (trkBlock.structureRefData[structRef_Idx].recType == 1 || trkBlock.structureRefData[structRef_Idx].recType == 4) {
-                            structureReferenceCoordinates = &trkBlock.structureRefData[structRef_Idx].refCoordinates;
+                    if (structure.structureRef == structure_Idx) {
+                        if (structure.recType == 1 || structure.recType == 4) {
+                            structureReferenceCoordinates = &structure.refCoordinates;
                             break;
-                        } else if (trkBlock.structureRefData[structRef_Idx].recType == 3) {
+                        } else if (structure.recType == 3) {
                             // For now, if animated, use position 0 of animation sequence
-                            structureReferenceCoordinates = &trkBlock.structureRefData[structRef_Idx].animationData[0].position;
+                            structureReferenceCoordinates = &structure.animationData[0].position;
                             break;
                         }
                     }
                 }
-                // If couldn't find the reference in the XBID 7 data, search XBID 18
-                for (int extraStructRef_Idx = 0; extraStructRef_Idx < trkBlock.nExtraStructureReferences; ++extraStructRef_Idx) {
-                    if (trkBlock.extraStructureRefData[extraStructRef_Idx].structureRef == structure_Idx) {
-                        if (trkBlock.extraStructureRefData[extraStructRef_Idx].recType == 1 || trkBlock.extraStructureRefData[extraStructRef_Idx].recType == 4) {
-                            structureReferenceCoordinates = &trkBlock.extraStructureRefData[extraStructRef_Idx].refCoordinates;
-                            break;
-                        } else if (trkBlock.extraStructureRefData[extraStructRef_Idx].recType == 3) {
-                            structureReferenceCoordinates = &trkBlock.extraStructureRefData[extraStructRef_Idx].animationData[0].position;
-                            break;
-                        }
-                    }
+                if (structureReferenceCoordinates == &track->blockReferenceCoords[trkBlock.header->blockSerial]) {
+                    std::cout << "Couldn't find a reference coordinate for Structure " << structure_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
                 }
                 obj_dump << "o Struct" << &trkBlock.structures[structure_Idx] << std::endl;
                 for (uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx) {
@@ -1012,30 +980,21 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                 VERT_HIGHP *structureReferenceCoordinates = &track->blockReferenceCoords[trkBlock.header->blockSerial];
                 // Find the structure reference that matches this structure, else use block default
-                for (int structRef_Idx = 0; structRef_Idx < trkBlock.nStructureReferences; ++structRef_Idx) {
+                for (auto& structure : trkBlock.structureRefData) {
                     // Only check fixed type structure references
-                    if (trkBlock.structureRefData[structRef_Idx].structureRef == structure_Idx) {
-                        if (trkBlock.structureRefData[structRef_Idx].recType == 1 || trkBlock.structureRefData[structRef_Idx].recType == 4) {
-                            structureReferenceCoordinates = &trkBlock.structureRefData[structRef_Idx].refCoordinates;
+                    if (structure.structureRef == structure_Idx) {
+                        if (structure.recType == 1 || structure.recType == 4) {
+                            structureReferenceCoordinates = &structure.refCoordinates;
                             break;
-                        } else if (trkBlock.structureRefData[structRef_Idx].recType == 3) {
-                                // For now, if animated, use position 0 of animation sequence
-                                structureReferenceCoordinates = &trkBlock.structureRefData[structRef_Idx].animationData[0].position;
-                                break;
+                        } else if (structure.recType == 3) {
+                            // For now, if animated, use position 0 of animation sequence
+                            structureReferenceCoordinates = &structure.animationData[0].position;
+                            break;
                         }
                     }
                 }
-                // If couldn't find the reference in the XBID 7 data, search XBID 18
-                for (int extraStructRef_Idx = 0; extraStructRef_Idx < trkBlock.nExtraStructureReferences; ++extraStructRef_Idx) {
-                    if (trkBlock.extraStructureRefData[extraStructRef_Idx].structureRef == structure_Idx) {
-                        if (trkBlock.extraStructureRefData[extraStructRef_Idx].recType == 1 || trkBlock.extraStructureRefData[extraStructRef_Idx].recType == 4) {
-                            structureReferenceCoordinates = &trkBlock.extraStructureRefData[extraStructRef_Idx].refCoordinates;
-                            break;
-                        } else if (trkBlock.extraStructureRefData[extraStructRef_Idx].recType == 3) {
-                            structureReferenceCoordinates = &trkBlock.extraStructureRefData[extraStructRef_Idx].animationData[0].position;
-                            break;
-                        }
-                    }
+                if (structureReferenceCoordinates == &track->blockReferenceCoords[trkBlock.header->blockSerial]) {
+                    std::cout << "Couldn't find a reference coordinate for Structure " << structure_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
                 }
                 for (uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx) {
                     int32_t x = (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x);
@@ -1055,12 +1014,19 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                     vertex_indices.emplace_back(trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
                     vertex_indices.emplace_back(trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[3]);
                     // TODO: Use textures alignment data to modify these UV's
-                    uvs.emplace_back(1.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 0.0f);
-                    uvs.emplace_back(1.0f, 1.0f);
-                    uvs.emplace_back(0.0f, 0.0f);
-                    uvs.emplace_back(1.0f, 0.0f);
+
+                    glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                    glm::mat2 uvRotationTransform = glm::mat2(cos(0 * M_PI / 180), sin(0 * M_PI / 180), -sin(0 * M_PI / 180), cos(0 * M_PI / 180));
+                    glm::vec2 flip(1.0f, 1.0f);
+
+                    // TODO: Use Polygon TexMap type to fix texture mapping
+                    uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                    uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                    uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                    uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                    uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                    uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+
                     texture_indices.emplace_back(texture_for_block.texNumber);
                     texture_indices.emplace_back(texture_for_block.texNumber);
                     texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1125,8 +1091,8 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 // TODO: Use textures alignment data to modify these UV's
 
                 glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                glm::mat2 uvRotationTransform = glm::mat2(cos(0 * M_PI / 180), sin(0 * M_PI / 180), -sin(0 * M_PI / 180), cos(0 * M_PI / 180));
-                glm::vec2 flip(-1.0f, -1.0f);
+                glm::mat2 uvRotationTransform = glm::mat2(cos(90 * M_PI / 180), sin(90 * M_PI / 180), -sin(90 * M_PI / 180), cos(90 * M_PI / 180));
+                glm::vec2 flip(1.0f, 1.0f);
 
                 // TODO: Use Polygon TexMap type to fix texture mapping
                 uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
@@ -1168,8 +1134,6 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
 
     // Parse out COL data
     for (int structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx) {
-        VERT_HIGHP *structureReferenceCoordinates = static_cast<VERT_HIGHP *>(calloc(1, sizeof(VERT_HIGHP)));
-
         std::set<unsigned int> minimal_texture_ids_set;
         std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
@@ -1177,24 +1141,23 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> shading_data;
 
+        VERT_HIGHP *structureReferenceCoordinates = static_cast<VERT_HIGHP *>(calloc(1, sizeof(VERT_HIGHP)));
         // Find the structure reference that matches this structure, else use block default
-        for (int structRef_Idx = 0; structRef_Idx < track->nColStructureReferences; ++structRef_Idx) {
+        for (auto& structure : track->colStructureRefData) {
             // Only check fixed type structure references
-            if (track->colStructureRefData[structRef_Idx].structureRef == structure_Idx) {
-                if (track->colStructureRefData[structRef_Idx].recType == 1 || track->colStructureRefData[structRef_Idx].recType == 4) {
-                    structureReferenceCoordinates = &track->colStructureRefData[structRef_Idx].refCoordinates;
+            if (structure.structureRef == structure_Idx) {
+                if (structure.recType == 1 || structure.recType == 4) {
+                    structureReferenceCoordinates = &structure.refCoordinates;
                     break;
-                } else if (track->colStructureRefData[structRef_Idx].recType == 3) {
-                    if (track->colStructureRefData[structRef_Idx].animLength != 0) {
-                        // For now, if animated, use position 0 of animation sequence
-                        structureReferenceCoordinates = &track->colStructureRefData[structRef_Idx].animationData[0].position;
-                        break;
-                    }
+                } else if (structure.recType == 3) {
+                    // For now, if animated, use position 0 of animation sequence
+                    structureReferenceCoordinates = &structure.animationData[0].position;
+                    break;
                 }
             }
-            if (structRef_Idx == track->nColStructureReferences - 1){
-                std::cout << "Couldn't find a reference coordinate for COL Structure " << structRef_Idx << std::endl;
-            }
+        }
+        if (!structureReferenceCoordinates->x || !structureReferenceCoordinates->y || !structureReferenceCoordinates->z) {
+            std::cerr << "Couldn't find a reference coordinate for Structure " << structure_Idx << " in COL file" << std::endl;
         }
         for (uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx) {
             int32_t x = (structureReferenceCoordinates->x + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
