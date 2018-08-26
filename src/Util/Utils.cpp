@@ -441,6 +441,7 @@ namespace Utils {
                     } else if (paletteHeader->unknown2[2] == 1) { //8 bytes late
                         psh.seekg(8, ios_base::cur);
                     } else {
+                        ASSERT(false, "Couldn't find palette header for file " << psh_path);
                         // TODO: Well damn. It's padded a lot further out. Do a uint16 '1' search, then for a '16' or '256' imm following
                     }
                     psh.read((char *) paletteHeader, sizeof(PS1::PSH::PALETTE_HEADER));

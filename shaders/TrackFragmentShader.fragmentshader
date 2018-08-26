@@ -6,6 +6,7 @@
 in vec2 UV;
 flat in uint texIndex;
 in vec4 nfsDataOut;
+flat in uint debugDataOut;
 
 // Diffuse and Specular
 in vec3 surfaceNormal;
@@ -150,8 +151,11 @@ void main(){
         }
         totalDiffuse = max(totalDiffuse, 0.5); // Min brightness
 
-        color = vec4(totalDiffuse, 1.0) * (nfsColor) + vec4(totalSpecular, 1.0);
-        //color = vec4(unitNormal, 1.0f);
+        //color = vec4(totalDiffuse, 1.0) * (nfsColor) + vec4(totalSpecular, 1.0);
+        color = vec4(unitNormal, 1.0f);
         color.a = 1.0;
+        if(debugDataOut == 32u){
+            color.a = 0.0;
+        }
     }
 }

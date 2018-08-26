@@ -19,6 +19,7 @@ void TrackShader::bindAttributes() {
     bindAttribute(2 ,"textureIndex");
     bindAttribute(3 ,"nfsData");
     bindAttribute(4 ,"normal");
+    bindAttribute(5 ,"debugData");
 }
 
 void TrackShader::getAllUniformLocations() {

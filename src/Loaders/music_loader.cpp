@@ -365,12 +365,11 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
 		}
 	}
 
-    /*
-     * // Out of spec: Track number of times played section, use to set next section
+      // Out of spec: Track number of times played section, use to set next section
 	auto playedSections = std::map<uint8_t, int8_t>();
-     *
-     *
-     * while (sectionDefTable[section_Idx].bNumRecords > 0 && section_Idx < mapHeader->bNumSections) {
+
+
+      while (sectionDefTable[section_Idx].bNumRecords > 0 && section_Idx < mapHeader->bNumSections) {
         // Starting positions are raw offsets into MUS file
         // Read the SCH1 header and further blocks in MUS to play the section
         if (!ReadSCHl(mus_file, startingPositions[section_Idx], pcm_file)) { //
@@ -388,7 +387,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
 		}
 		
 		section_Idx = sectionDefTable[section_Idx].msdRecords[playedSections[section_Idx]].bNextSection;
-    }*/
+    }
 
     free(startingPositions);
     free(sectionDefTable);

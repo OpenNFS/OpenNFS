@@ -8,11 +8,13 @@ layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in uint textureIndex;
 layout(location = 3) in vec4 nfsData;
 layout(location = 4) in vec3 normal;
+layout(location = 5) in uint debugData;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
 flat out uint texIndex;
 out vec4 nfsDataOut;
+flat out uint debugDataOut;
 
 // Diffuse and Specular
 out vec3 toLightVector[MAX_LIGHTS];
@@ -34,6 +36,9 @@ void main(){
 
     // Pass through nfs shading data
     nfsDataOut = nfsData;
+
+    // Pass through debug data
+    debugDataOut = debugData;
 
     surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
 

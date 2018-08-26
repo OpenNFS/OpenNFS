@@ -71,13 +71,15 @@ void Renderer::Render() {
                 /*if (boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].nVRoad){
                     boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
                 }*/
+            } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
+                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y), track->track_blocks[closestBlockID].center.z));
             }
         }
 
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
 
-        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
+        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, car->car_body_model.position, userParams.blockDrawDistance, userParams.use_nb_data);
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
 
         //SetCulling(true);
@@ -304,9 +306,8 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
 
 void Renderer::DrawDebugCube(glm::vec3 position) {
     float lightSize = 0.5;
-    glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-    glm::vec3 position_min = orientation * glm::vec3(position.x - lightSize, position.y - lightSize, position.z - lightSize);
-    glm::vec3 position_max = orientation * glm::vec3(position.x + lightSize, position.y + lightSize, position.z + lightSize);
+    glm::vec3 position_min = glm::vec3(position.x - lightSize, position.y - lightSize, position.z - lightSize);
+    glm::vec3 position_max = glm::vec3(position.x + lightSize, position.y + lightSize, position.z + lightSize);
     btVector3 colour = btVector3(0, 0, 0);
     physicsEngine.mydebugdrawer.drawBox(Utils::glmToBullet(position_min), Utils::glmToBullet(position_max), colour);
 }
@@ -320,8 +321,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         float lowestDistanceSqr = FLT_MAX;
         //Primitive Draw distance
         for (auto &track_block :  track->track_blocks) {
-            glm::vec3 position = glm::vec3(track_block.center.x, track_block.center.y, track_block.center.z);
-            float distanceSqr = glm::length2(glm::distance(worldPosition, position));
+            float distanceSqr = glm::length2(glm::distance(worldPosition, track_block.center));
             if (distanceSqr < lowestDistanceSqr) {
                 closestBlockID = track_block.block_id;
                 lowestDistanceSqr = distanceSqr;
