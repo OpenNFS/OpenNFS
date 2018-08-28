@@ -669,6 +669,9 @@ namespace NFS2_DATA {
             uint16_t nStructureReferences;
             std::vector<GEOM_REF_BLOCK> structureRefData;
 
+            uint16_t nUnknownVerts;
+            VERT *unknownVerts;
+            
             MEDIAN_BLOCK *medianData;
             uint16_t nVroad;
             VROAD *vroadData; // Reference using XBID 5

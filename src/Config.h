@@ -16,7 +16,7 @@ struct ParamData {
     float trackSpecReflectivity = 1;
 
     float trackSpecDamper = 10;
-    int blockDrawDistance = 1;
+    int blockDrawDistance = 15;
     bool window_active = true;
     bool physics_debug_view = false;
     bool use_classic_graphics = true;

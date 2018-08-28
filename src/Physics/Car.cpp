@@ -210,24 +210,24 @@ void Car::update() {
         trans = m_vehicle->getWheelInfo(i).m_worldTransform;
         switch(i){
             case 0:
-                right_front_wheel_model.position = Utils::bulletToGlm(trans.getOrigin());
-                right_front_wheel_model.orientation = Utils::bulletToGlm(trans.getRotation());
-                right_front_wheel_model.update();
-                break;
-            case 1:
                 left_front_wheel_model.position = Utils::bulletToGlm(trans.getOrigin());
                 left_front_wheel_model.orientation = Utils::bulletToGlm(trans.getRotation());
                 left_front_wheel_model.update();
                 break;
-            case 2:
-                right_rear_wheel_model.position = Utils::bulletToGlm(trans.getOrigin());
-                right_rear_wheel_model.orientation = Utils::bulletToGlm(trans.getRotation());
-                right_rear_wheel_model.update();
+            case 1:
+                right_front_wheel_model.position = Utils::bulletToGlm(trans.getOrigin());
+                right_front_wheel_model.orientation = Utils::bulletToGlm(trans.getRotation());
+                right_front_wheel_model.update();
                 break;
-            case 3:
+            case 2:
                 left_rear_wheel_model.position = Utils::bulletToGlm(trans.getOrigin());
                 left_rear_wheel_model.orientation = Utils::bulletToGlm(trans.getRotation());
                 left_rear_wheel_model.update();
+                break;
+            case 3:
+                right_rear_wheel_model.position = Utils::bulletToGlm(trans.getOrigin());
+                right_rear_wheel_model.orientation = Utils::bulletToGlm(trans.getRotation());
+                right_rear_wheel_model.update();
                 break;
             default:
                 ASSERT(false, "More than 4 wheels currently unsupported");

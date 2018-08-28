@@ -22,7 +22,8 @@ Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_t
 
     /*------- ImGui -------*/
     ImGui::CreateContext();
-    ImGui_ImplGlfwGL3_Init(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
     ImGui::StyleColorsDark();
 }
 
@@ -72,14 +73,14 @@ void Renderer::Render() {
                     boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
                 }*/
             } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
-                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y), track->track_blocks[closestBlockID].center.z));
+                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y+0.5), track->track_blocks[closestBlockID].center.z));
             }
         }
 
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
 
-        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, car->car_body_model.position, userParams.blockDrawDistance, userParams.use_nb_data);
+        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, userParams.attach_cam_to_car ? car->car_body_model.position : mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
 
         //SetCulling(true);
@@ -301,7 +302,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     ImGui::Render();
-    ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Renderer::DrawDebugCube(glm::vec3 position) {
@@ -405,7 +406,10 @@ void Renderer::DrawMenuBar() {
 }
 
 Renderer::~Renderer() {
-    ImGui_ImplGlfwGL3_Shutdown();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
 }
@@ -420,5 +424,7 @@ void Renderer::NewFrame(ParamData *userParams) {
     if (!userParams->window_active) {
         ImGui::GetIO().MouseDrawCursor = false;
     }
-    ImGui_ImplGlfwGL3_NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 }

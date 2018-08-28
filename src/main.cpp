@@ -19,13 +19,12 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
-
-using namespace ImGui;
+//#include <boost/log/trivial.hpp>
 
 class OpenNFS {
 public:
     void run() {
-        std::cout << "----------- OpenNFS v0.1 -----------" << std::endl;
+        //BOOST_LOG_TRIVIAL(info) << "----------- OpenNFS v0.1 -----------" << std::endl;
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
         initDirectories();
@@ -33,13 +32,13 @@ public:
         /*------ ASSET LOAD ------*/
         //Load Track Data
         std::string nfs3ps1track("../resources/NFS3_PS1/ZZZTR02B");
-        std::string nfs2setrack("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR00");
+        std::string nfs2setrack("../resources/NFS2_SE/GAMEDATA/TRACKS/SE/TR04");
         std::string nfs2track("../resources/NFS2/GAMEDATA/TRACKS/PC/TR00");
         std::string nfs3track("../resources/NFS3/gamedata/tracks/trk002/tr02");
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs2setrack);
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs3ps1track);
 
         //Load Car data from unpacked NFS files
-        std::string merc("../resources/NFS3/gamedata/carmodel/merc");
+        std::string merc("../resources/NFS3/gamedata/carmodel/diab");
         std::string nfs4("../resources/NFS4/DATA/CARS/LDIA");
         std::string nfs3ps1car("../resources/NFS3_PS1/ZDIAB");
         std::string nfs2car("../resources/NFS2/GAMEDATA/CARMODEL/PC/GT90");

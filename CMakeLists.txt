@@ -22,7 +22,10 @@ set(SOURCE_FILES
         include/imgui/stb_rect_pack.h
         include/imgui/stb_textedit.h
         include/imgui/stb_truetype.h
-        include/imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp
+        include/imgui/examples/imgui_impl_glfw.cpp
+        include/imgui/examples/imgui_impl_glfw.h
+        include/imgui/examples/imgui_impl_opengl3.cpp
+        include/imgui/examples/imgui_impl_opengl3.h
         resources/asset/icon.rc
         # Source
         src/main.cpp
@@ -61,7 +64,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/)
-target_link_libraries(OpenNFS Boost::filesystem Boost::boost)
+target_link_libraries(OpenNFS Boost::log_setup Boost::filesystem Boost::boost)
 #[[Bullet Configuration]]
 #[[set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)]]
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)

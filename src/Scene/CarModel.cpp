@@ -70,6 +70,13 @@ CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<g
 
 
 CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, glm::vec3 center_position, float specular_damper, float specular_reflectivity, float env_reflectivity) : super(name, verts, uvs, norms, indices, true, center_position) {
+    // Fill the unused buffer with data
+    for(int i = 0; i < m_normals.size(); ++i){
+        m_texture_indices.emplace_back(0);
+    }
+    for(int i = 0; i < m_texture_indices.size(); ++i){
+        m_polygon_flags.emplace_back(0);
+    }
     specularDamper = specular_damper;
     specularReflectivity = specular_reflectivity;
     envReflectivity = env_reflectivity;

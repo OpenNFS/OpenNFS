@@ -6,7 +6,6 @@
 
 #include "BaseShader.h"
 #include <sstream>
-#include <glm/detail/type_mat.hpp>
 #include <glm/detail/type_mat4x4.hpp>
 #include "../Config.h"
 #include "../Util/Utils.h"

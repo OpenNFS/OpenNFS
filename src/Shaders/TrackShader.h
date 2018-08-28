@@ -7,7 +7,6 @@
 #include "BaseShader.h"
 #include "../Scene/Track.h"
 #include "../Scene/Light.h"
-#include <glm/detail/type_mat.hpp>
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
 

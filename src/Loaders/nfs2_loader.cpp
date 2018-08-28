@@ -692,6 +692,19 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                                 trk.seekg(structure.recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
                             }
                             break;
+                        // PS1 Specific XBID, Misc purpose
+                        case 10: {
+                            PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) trackblock);
+                            ps1TrackBlock->nUnknownVerts =  xblockHeader->nRecords;
+                            uint8_t xbidHeader[8];
+                            trk.read((char *) xbidHeader, 8);
+                            ps1TrackBlock->unknownVerts = new PS1::VERT[xblockHeader->nRecords];
+                            for (int record_Idx = 0; record_Idx < xblockHeader->nRecords; ++record_Idx) {
+                                trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx], sizeof(PS1::VERT));
+                            }
+                            std::cout << "nana";
+                        }
+                            break;
                         case 6:
                             trackblock->medianData = static_cast<MEDIAN_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(MEDIAN_BLOCK)));
                             trk.read((char *) trackblock->medianData, xblockHeader->nRecords * sizeof(MEDIAN_BLOCK));
@@ -871,7 +884,7 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
                 obj_dump.open(stringStream1.str());
                 VERT_HIGHP *structureReferenceCoordinates = &track->blockReferenceCoords[trkBlock.header->blockSerial];
                 // Find the structure reference that matches this structure, else use block default
-                for (auto& structure : trkBlock.structureRefData) {
+                for (auto &structure : trkBlock.structureRefData) {
                     // Only check fixed type structure references
                     if (structure.structureRef == structure_Idx) {
                         if (structure.recType == 1 || structure.recType == 4) {
@@ -963,9 +976,21 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
             glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
             TrackBlock current_track_block(trkBlock.header->blockSerial, orientation * glm::vec3(track->blockReferenceCoords[trkBlock.header->blockSerial].x / scaleFactor, track->blockReferenceCoords[trkBlock.header->blockSerial].y / scaleFactor, track->blockReferenceCoords[trkBlock.header->blockSerial].z / scaleFactor));
-            glm::vec3 trk_block_center = orientation * glm::vec3(0, 0, 0);
 
-            std::cout << "Trk block " << (int) trkBlock.header->blockSerial << " NStruct: " << trkBlock.nStructures << " NStructRef: " << trkBlock.nStructureReferences << std::endl;
+            if (trkBlock.nStructures != trkBlock.nStructureReferences) {
+                std::cerr << "Trk block " << (int) trkBlock.header->blockSerial << " is missing " << trkBlock.nStructures - trkBlock.nStructureReferences << " structure locations!" << std::endl;
+            }
+
+
+            if(std::is_same<Platform,PS1>::value) {
+                // PS1 Specific Misc XBID 10 Vert debug
+                PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK*) &superblock->trackBlocks[block_Idx]);
+                for (int j = 0; j < ps1TrackBlock->nUnknownVerts; j++) {
+                    glm::vec3 light_center = rotationMatrix * glm::vec3((256 * ps1TrackBlock->unknownVerts[j].x)/scaleFactor, (256 * ps1TrackBlock->unknownVerts[j].y)/scaleFactor, (256 * ps1TrackBlock->unknownVerts[j].y)/scaleFactor);
+                    current_track_block.lights.emplace_back(Entity(0, j, NFS_2, LIGHT, TrackUtils::MakeLight(light_center, 0)));
+                }
+            }
+
             // Structures
             for (int structure_Idx = 0; structure_Idx < trkBlock.nStructures; ++structure_Idx) {
                 // Keep track of unique textures in trackblock for later OpenGL bind
@@ -981,7 +1006,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                 VERT_HIGHP *structureReferenceCoordinates = &track->blockReferenceCoords[trkBlock.header->blockSerial];
                 // Find the structure reference that matches this structure, else use block default
-                for (auto& structure : trkBlock.structureRefData) {
+                for (auto &structure : trkBlock.structureRefData) {
                     // Only check fixed type structure references
                     if (structure.structureRef == structure_Idx) {
                         if (structure.recType == 1 || structure.recType == 4) {
@@ -998,9 +1023,9 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                     std::cout << "Couldn't find a reference coordinate for Structure " << structure_Idx << " in SB" << superBlock_Idx << "TB" << block_Idx << std::endl;
                 }
                 for (uint16_t vert_Idx = 0; vert_Idx < trkBlock.structures[structure_Idx].nVerts; ++vert_Idx) {
-                    int32_t x = (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x);
-                    int32_t y = (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].y);
-                    int32_t z = (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].z);
+                    int32_t x = structureReferenceCoordinates->x + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].x);
+                    int32_t y = structureReferenceCoordinates->y + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].y);
+                    int32_t z = structureReferenceCoordinates->z + (256 * trkBlock.structures[structure_Idx].vertexTable[vert_Idx].z);
                     verts.emplace_back(rotationMatrix * glm::vec3(x / scaleFactor, y / scaleFactor, z / scaleFactor));
                     shading_verts.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
                 }
@@ -1024,17 +1049,19 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                     std::bitset<16> textureAlignment(texture_for_block.alignmentData);
                     glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                    glm::mat2 uvRotationTransform = glm::mat2(cos(0 * M_PI / 180), sin(0 * M_PI / 180), -sin(0 * M_PI / 180), cos(0 * M_PI / 180));
-                    glm::vec2 flip(1.0f, 1.0f);
+                    glm::vec2 flip(-1.0f, 1.0f);
+                    float angle = 0;
 
                     // Horizontal Flip
-                    if(textureAlignment[8]){
+                    if (textureAlignment[8]) {
                         flip.x = -flip.x;
                     }
                     // Vertical Flip
-                    if(textureAlignment[9]){
+                    if (textureAlignment[9]) {
                         flip.y = -flip.y;
                     }
+
+                    glm::mat2 uvRotationTransform = glm::mat2(cos(angle * M_PI / 180), sin(angle * M_PI / 180), -sin(angle * M_PI / 180), cos(angle * M_PI / 180));
 
                     // TODO: Use Polygon TexMap type to fix texture mapping
                     uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
@@ -1062,7 +1089,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
                 // Get ordered list of unique texture id's present in block
                 std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, shading_verts, debug_data, rotationMatrix * glm::vec3(structureReferenceCoordinates->x / scaleFactor, structureReferenceCoordinates->y / scaleFactor, structureReferenceCoordinates->z / scaleFactor))));
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, shading_verts, debug_data, glm::vec3(0, 0, 0))));
             }
 
             // Keep track of unique textures in trackblock for later OpenGL bind
@@ -1117,17 +1144,19 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                 std::bitset<16> textureAlignment(texture_for_block.alignmentData);
                 glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                glm::mat2 uvRotationTransform = glm::mat2(cos(90 * M_PI / 180), sin(90 * M_PI / 180), -sin(90 * M_PI / 180), cos(90 * M_PI / 180));
                 glm::vec2 flip(1.0f, 1.0f);
+                float angle = 90;
 
                 // Horizontal Flip
-                if(textureAlignment[8]){
+                if (textureAlignment[8]) {
                     flip.x = -flip.x;
                 }
                 // Vertical Flip
-                if(textureAlignment[9]){
+                if (textureAlignment[9]) {
                     flip.y = -flip.y;
                 }
+
+                glm::mat2 uvRotationTransform = glm::mat2(cos(angle * M_PI / 180), sin(angle * M_PI / 180), -sin(angle * M_PI / 180), cos(angle * M_PI / 180));
 
                 // TODO: Use Polygon TexMap type to fix texture mapping
                 uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
@@ -1153,7 +1182,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
             }
             // Get ordered list of unique texture id's present in block
             std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, debug_data, trk_block_center)));
+            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0))));
 
             track->track_blocks.emplace_back(current_track_block);
         }
@@ -1178,7 +1207,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
 
         auto *structureReferenceCoordinates = static_cast<VERT_HIGHP *>(calloc(1, sizeof(VERT_HIGHP)));
         // Find the structure reference that matches this structure, else use block default
-        for (auto& structure : track->colStructureRefData) {
+        for (auto &structure : track->colStructureRefData) {
             // Only check fixed type structure references
             if (structure.structureRef == structure_Idx) {
                 if (structure.recType == 1 || structure.recType == 4) {
