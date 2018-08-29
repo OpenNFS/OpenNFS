@@ -112,7 +112,7 @@ void Physics::cleanSimulation() {
 
 void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track){
     current_track = track;
-    // TODO: Use passable flags (flags&0x80), refactor track block into nice data structure. One superset
+    // TODO: NFS3, Use passable flags (flags&0x80)
     for (auto &track_block : track->track_blocks) {
         for(auto &road : track_block.track){
             road.genPhysicsMesh();

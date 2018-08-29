@@ -96,22 +96,20 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     auto track = make_shared<TRACK>(TRACK());
 
     boost::filesystem::path p(track_base_path);
-    std::string track_name = p.filename().string();
+    track->name = p.filename().string();
     stringstream frd_path, col_path, can_path, hrz_path;
-    string strip = "K0";
-    size_t pos = track_name.find(strip);
+    string strip = "k0";
+    size_t pos = track->name.find(strip);
     if (pos != string::npos)
-        track_name.replace(pos, strip.size(), "");
+        track->name.replace(pos, strip.size(), "");
 
-    frd_path << track_base_path << ".frd";
-    col_path << track_base_path << ".col";
-    can_path << track_base_path << ".can";
-    std::string hrz_path_inter(track_base_path);
-    hrz_path_inter.replace(track_base_path.find(track_name), track_name.length(), "");
-    hrz_path << hrz_path_inter << 3 << track_name << ".hrz";
+    frd_path << track_base_path << "/"  << track->name << ".frd";
+    col_path << track_base_path << "/"  << track->name << ".col";
+    can_path << track_base_path << "/"  << track->name << ".can";
+    hrz_path << track_base_path << "/3" << track->name << ".hrz";
 
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, NFSVer::NFS_3), "Could not extract " << track_name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track_name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack.");
+    ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(LoadCAN(can_path.str(), track), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     ASSERT(LoadHRZ(hrz_path.str(), track), "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data

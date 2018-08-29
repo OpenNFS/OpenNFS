@@ -40,6 +40,7 @@ public:
     }
 
     NFSVer tag;
+    std::string name;
     typedef boost::variant<shared_ptr<NFS3_4_DATA::TRACK>, shared_ptr<NFS2_DATA::PS1::TRACK>, shared_ptr<NFS2_DATA::PC::TRACK>> track;
     track trackData;
 

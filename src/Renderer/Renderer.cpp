@@ -6,14 +6,19 @@
 #include "Renderer.h"
 
 
-Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track) {
+Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track) {
     window = gl_window;
+    installedNFSGames = installedNFS;
     track = current_track;
     car = current_car;
 
+    loadedAssets.carTag = car->tag;
+    loadedAssets.car = car->name;
+    loadedAssets.trackTag = track->tag;
+    loadedAssets.track = track->name;
+
     mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
-
     cameraLight = Light(mainCamera.position, glm::vec4(255.0f, 255.0f, 255.0f, 255.0f), 1, 0, 0, 0, 0.f);
 
     // Generate the collision meshes
@@ -27,8 +32,11 @@ Renderer::Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_t
     ImGui::StyleColorsDark();
 }
 
-void Renderer::Render() {
+AssetData Renderer::Render() {
     ParamData userParams;
+    if((track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1)){
+        userParams.use_nb_data = false;
+    }
 
     Light sun = Light(glm::vec3(10000, 150000, -10000), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
 
@@ -39,6 +47,8 @@ void Renderer::Render() {
 
     bool entity_targeted = false;
     Entity *targetedEntity;
+
+    bool newAssetSelected = false;
 
     while (!glfwWindowShouldClose(window)) {
         NewFrame(&userParams);
@@ -68,12 +78,12 @@ void Renderer::Render() {
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
             // Go and find the Vroad Data to reset to
             if (track->tag == NFS_3) {
-                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x / 10, track->track_blocks[closestBlockID].center.y / 10, track->track_blocks[closestBlockID].center.z / 10));
+                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y)+0.2, track->track_blocks[closestBlockID].center.z));
                 /*if (boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].nVRoad){
                     boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
                 }*/
             } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
-                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y+0.5), track->track_blocks[closestBlockID].center.z));
+                car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y+0.2), track->track_blocks[closestBlockID].center.z));
             }
         }
 
@@ -100,8 +110,20 @@ void Renderer::Render() {
         if (userParams.physics_debug_view)
             physicsEngine.getDynamicsWorld()->debugDrawWorld();
 
+        if(DrawMenuBar()){
+            newAssetSelected = true;
+        };
         DrawUI(&userParams, mainCamera.position);
         glfwSwapBuffers(window);
+
+        if(newAssetSelected) break;
+    }
+    if(newAssetSelected){
+        return loadedAssets;
+    } else {
+        // Just set a flag temporarily to let main know that we outta here
+        loadedAssets.trackTag = UNKNOWN;
+        return loadedAssets;
     }
 }
 
@@ -252,7 +274,6 @@ void Renderer::SetCulling(bool toCull) {
 void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     // Draw UI (Tactically)
     static float f = 0.0f;
-    DrawMenuBar();
     ImGui::Text("OpenNFS Engine");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Checkbox("Bullet Debug View", &preferences->physics_debug_view);
@@ -277,8 +298,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
         ImGui::SliderInt("Draw Dist", &preferences->blockDrawDistance, 0, track->nBlocks);
     ImGui::Checkbox("NBData", &preferences->use_nb_data);
     ImGui::NewLine();
-    ImGui::ColorEdit3("Clear Colour", (float *) &preferences->clear_color); // Edit 3 floats representing a color
-    ImGui::ColorEdit3("Testing Light Colour", (float *) &preferences->test_light_color);
+    ImGui::ColorEdit3("Sky Colour", (float *) &preferences->clear_color); // Edit 3 floats representing a color
     ImGui::SliderFloat("Track Specular Damper", &preferences->trackSpecDamper, 0, 100);
     ImGui::SliderFloat("Track Specular Reflectivity", &preferences->trackSpecReflectivity, 0, 10);
 
@@ -357,8 +377,43 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
     return std::vector<int>(activeTrackBlockIds.rbegin(), activeTrackBlockIds.rend());
 }
 
-void Renderer::DrawMenuBar() {
+bool Renderer::DrawMenuBar() {
+    bool assetChange = false;
     if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("Track")) {
+            for(auto &installedNFS : installedNFSGames){
+                if (ImGui::BeginMenu(ToString(installedNFS.tag))) {
+                    for(auto &track : installedNFS.tracks){
+                        if(ImGui::MenuItem(track.c_str())){
+                            loadedAssets.trackTag = installedNFS.tag;
+                            loadedAssets.track = track;
+                            assetChange = true;
+                        }
+                    }
+                    ImGui::EndMenu();
+                }
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Car")) {
+            for(auto &installedNFS : installedNFSGames){
+                if (ImGui::BeginMenu(ToString(installedNFS.tag))) {
+                    for(auto &car : installedNFS.cars){
+                        if(ImGui::MenuItem(car.c_str())){
+                            loadedAssets.carTag = installedNFS.tag;
+                            loadedAssets.car = car;
+                            assetChange = true;
+                        }
+                    }
+                    ImGui::EndMenu();
+                }
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+    return assetChange;
+    /*if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open", "Ctrl+O")) {}
             if (ImGui::BeginMenu("Open Recent")) {
@@ -402,7 +457,7 @@ void Renderer::DrawMenuBar() {
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
-    }
+    }*/
 }
 
 Renderer::~Renderer() {

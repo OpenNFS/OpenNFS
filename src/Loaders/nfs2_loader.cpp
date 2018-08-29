@@ -499,7 +499,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
     shared_ptr<typename Platform::TRACK> track(new typename Platform::TRACK());
 
     boost::filesystem::path p(track_base_path);
-    std::string track_name = p.filename().string();
+    track->name = p.filename().string();
     stringstream trk_path, col_path;
 
     trk_path << track_base_path << ".TRK";
@@ -523,11 +523,11 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
 
     ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track_name, nfs_version), "Could not extract " << track_name << " texture pack.");
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name , nfs_version), "Could not extract " << track->name  << " texture pack.");
 
     // Load up the textures
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
-        track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track_name, nfs_version);
+        track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track->name, nfs_version);
     }
     track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
 
@@ -596,12 +596,12 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
             superblock->trackBlocks = static_cast<typename Platform::TRKBLOCK *>(calloc(static_cast<size_t>(superblock->nBlocks), sizeof(typename Platform::TRKBLOCK)));
 
             for (int block_Idx = 0; block_Idx < superblock->nBlocks; ++block_Idx) {
-                std::cout << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << std::endl;
                 auto *trackblock = &superblock->trackBlocks[block_Idx];
                 // Read Header
                 trackblock->header = static_cast<TRKBLOCK_HEADER *>(calloc(1, sizeof(TRKBLOCK_HEADER)));
                 trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx], ios_base::beg);
                 trk.read((char *) trackblock->header, sizeof(TRKBLOCK_HEADER));
+                std::cout << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->blockSerial << "]" << std::endl;
 
                 // Sanity Checks
                 if ((trackblock->header->blockSize != trackblock->header->blockSizeDup) || (trackblock->header->blockSerial > track->nBlocks)) {
@@ -694,15 +694,19 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                             break;
                         // PS1 Specific XBID, Misc purpose
                         case 10: {
+                            std::cout << "XBID 10 NStruct: " << xblockHeader->nRecords << std::endl;
                             PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) trackblock);
                             ps1TrackBlock->nUnknownVerts =  xblockHeader->nRecords;
                             uint8_t xbidHeader[8];
                             trk.read((char *) xbidHeader, 8);
+                            for(int i = 0; i < 8; ++i){
+                                std::cout << (int) xbidHeader[i] << std::endl;
+                            }
+                            // TODO: Likely these are not VERTS, and the act of adding the parent block center gives meaning where none is present.
                             ps1TrackBlock->unknownVerts = new PS1::VERT[xblockHeader->nRecords];
                             for (int record_Idx = 0; record_Idx < xblockHeader->nRecords; ++record_Idx) {
                                 trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx], sizeof(PS1::VERT));
                             }
-                            std::cout << "nana";
                         }
                             break;
                         case 6:
@@ -983,10 +987,11 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
 
             if(std::is_same<Platform,PS1>::value) {
+                VERT_HIGHP *refCoord = &track->blockReferenceCoords[trkBlock.header->blockSerial];
                 // PS1 Specific Misc XBID 10 Vert debug
                 PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK*) &superblock->trackBlocks[block_Idx]);
                 for (int j = 0; j < ps1TrackBlock->nUnknownVerts; j++) {
-                    glm::vec3 light_center = rotationMatrix * glm::vec3((256 * ps1TrackBlock->unknownVerts[j].x)/scaleFactor, (256 * ps1TrackBlock->unknownVerts[j].y)/scaleFactor, (256 * ps1TrackBlock->unknownVerts[j].y)/scaleFactor);
+                    glm::vec3 light_center = rotationMatrix * glm::vec3((refCoord->x +(256 * ps1TrackBlock->unknownVerts[j].x))/scaleFactor, (refCoord->y +(256 * ps1TrackBlock->unknownVerts[j].y))/scaleFactor, (refCoord->z +(256 * ps1TrackBlock->unknownVerts[j].y))/scaleFactor);
                     current_track_block.lights.emplace_back(Entity(0, j, NFS_2, LIGHT, TrackUtils::MakeLight(light_center, 0)));
                 }
             }
@@ -1049,7 +1054,14 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                     std::bitset<16> textureAlignment(texture_for_block.alignmentData);
                     glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                    glm::vec2 flip(-1.0f, 1.0f);
+                    glm::vec2 flip(-1.0f, -1.0f);
+                    if (std::is_same<Platform, PS1>::value) {
+                       flip.x = -1.0f;
+                       flip.y = -1.0f;
+                    } else {
+                        flip.x = -1.0f;
+                        flip.y = 1.0f;
+                    }
                     float angle = 0;
 
                     // Horizontal Flip
@@ -1128,12 +1140,6 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[2]);
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[3]);
 
-                float scrollA = ((texture_for_block.alignmentData >> 12) & 0xF) / 16.0f;
-                float scrollB = ((texture_for_block.alignmentData >> 8) & 0xF) / 16.0f;
-                float scrollC = ((texture_for_block.alignmentData >> 4) & 0xF) / 16.0f;
-                float scrollD = (texture_for_block.alignmentData & 0xF) / 16.0f;
-
-                // TODO: Use textures alignment data to modify these UV's
                 // TODO: Use textures alignment data to modify these UV's
                 debug_data.emplace_back(texture_for_block.alignmentData);
                 debug_data.emplace_back(texture_for_block.alignmentData);
@@ -1144,8 +1150,16 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                 std::bitset<16> textureAlignment(texture_for_block.alignmentData);
                 glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                glm::vec2 flip(1.0f, 1.0f);
-                float angle = 90;
+                glm::vec2 flip(-1.0f, -1.0f);
+                if (std::is_same<Platform, PS1>::value) {
+                    flip.x = -1.0f;
+                    flip.y = -1.0f;
+                } else {
+                    flip.x = 1.0f;
+                    flip.y = -1.0f;
+                }
+
+                float angle = 0;
 
                 // Horizontal Flip
                 if (textureAlignment[8]) {

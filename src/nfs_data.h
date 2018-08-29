@@ -282,7 +282,7 @@ namespace NFS3_4_DATA {
         // Attributes
         bool bEmpty;
         bool bHSMode;
-
+        std::string name;
         uint32_t nBlocks;
         TRKBLOCK *trk;
         POLYGONBLOCK *poly;
@@ -571,6 +571,7 @@ namespace NFS2_DATA {
 
         // ---- MASTER TRACK STRUCT ----
         struct TRACK {
+            std::string name;
             // TRK data
             uint32_t nSuperBlocks;
             uint32_t nBlocks;
@@ -688,6 +689,7 @@ namespace NFS2_DATA {
 
         // ---- MASTER TRACK STRUCT ----
         struct TRACK {
+            std::string name;
             // TRK data
             uint32_t nSuperBlocks;
             uint32_t nBlocks;

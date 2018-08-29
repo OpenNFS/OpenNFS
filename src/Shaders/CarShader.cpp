@@ -17,7 +17,7 @@ CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
 
 void CarShader::LoadEnvMapTexture() {
     std::stringstream filename;
-    filename << "./assets/tracks/NFS3/tr03/sky_textures/" << "0005.BMP";
+    filename << "../resources/misc/sky_textures/CHRD.BMP";
 
     int width, height;
     GLubyte *data;

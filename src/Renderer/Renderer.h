@@ -24,11 +24,13 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *gl_window, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
+    Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
     ~Renderer();
-    void Render();
+    AssetData Render();
 private:
     GLFWwindow *window;
+    std::vector<NeedForSpeed> installedNFSGames;
+    AssetData loadedAssets;
     shared_ptr<ONFSTrack> track;
     shared_ptr<Car> car;
 
@@ -50,7 +52,7 @@ private:
     void DrawDebugCube(glm::vec3 position);
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
-    void DrawMenuBar();
+    bool DrawMenuBar();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
     void NewFrame(ParamData *userParams);
     std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);

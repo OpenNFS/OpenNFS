@@ -116,20 +116,21 @@ namespace TrackUtils {
     bool ExtractTrackTextures(const std::string &track_path, const ::std::string track_name, NFSVer nfs_version) {
         std::stringstream output_dir, tex_archive_path;
         std::string psh_path = track_path;
+        std::string full_track_path = track_path + "/" + track_name;
         output_dir << TRACK_PATH;
 
         switch (nfs_version) {
             case NFS_2:
                 output_dir << "NFS2/";
-                tex_archive_path << track_path << "0.qfs";
+                tex_archive_path << full_track_path << "0.qfs";
                 break;
             case NFS_2_SE:
                 output_dir << "NFS2_SE/";
-                tex_archive_path << track_path << "0M.qfs";
+                tex_archive_path << full_track_path << "0M.qfs";
                 break;
             case NFS_3:
                 output_dir << "NFS3/";
-                tex_archive_path << track_path << "0.qfs";
+                tex_archive_path << full_track_path << "0.qfs";
                 break;
             case NFS_3_PS1:
                 psh_path.replace(psh_path.find("ZZ"), 2, "");
@@ -138,7 +139,7 @@ namespace TrackUtils {
                 break;
             case NFS_4:
                 output_dir << "NFS4/";
-                tex_archive_path << track_path << "/TR0.qfs";
+                tex_archive_path << full_track_path << "/TR0.qfs";
                 break;
             case UNKNOWN:
             default:
@@ -160,13 +161,12 @@ namespace TrackUtils {
             return Utils::ExtractPSH(tex_archive_path.str(), output_dir.str());
         } else if (nfs_version == NFS_3) {
             std::stringstream sky_fsh_path;
-            sky_fsh_path << track_path.substr(0, track_path.find_last_of('/')) << "/sky.fsh";
+            sky_fsh_path << full_track_path.substr(0, full_track_path.find_last_of('/')) << "/sky.fsh";
             if (boost::filesystem::exists(sky_fsh_path.str())) {
                 std::stringstream sky_textures_path;
                 sky_textures_path << output_dir.str() << "/sky_textures/";
                 std::cout << sky_fsh_path.str() << std::endl;
-                ASSERT(Utils::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()),
-                       "Unable to extract sky textures from sky.fsh");
+                ASSERT(Utils::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from sky.fsh");
             }
         }
 
