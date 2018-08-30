@@ -76,22 +76,33 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
         case NFS_2_SE:
         case NFS_2:
         case NFS_3_PS1:
-            if(loaded_car_models.size() < 20){
+            if(loaded_car_models.size() < 3){
+                loaded_car_models[0].enable();
+                left_front_wheel_model = loaded_car_models[0];
+                right_front_wheel_model = loaded_car_models[0];
+                left_rear_wheel_model = loaded_car_models[0];
+                right_rear_wheel_model = loaded_car_models[0];
+                loaded_car_models[1].enable();
+                car_body_model = loaded_car_models[1];
+            }else if(loaded_car_models.size() < 20){
+                loaded_car_models[2].enable();
+                left_front_wheel_model = loaded_car_models[2];
+                right_front_wheel_model = loaded_car_models[2];
+                left_rear_wheel_model = loaded_car_models[2];
+                right_rear_wheel_model = loaded_car_models[2];
                 for(auto& car_model : loaded_car_models) {
                     if (car_model.m_name == "Medium Main Body Part") {
                         car_model.enable();
                         car_body_model = car_model;
-                    } else if(car_model.m_name.find("Medium/Low Side Parts") != std::string::npos){
-                        car_model.enable();
-                        left_front_wheel_model = car_model;
-                        right_front_wheel_model = car_model;
-                        left_rear_wheel_model = car_model;
-                        right_rear_wheel_model = car_model;
                     } else if (car_model.m_name.find("Medium") != std::string::npos && car_model.m_name.find("Wheel") == std::string::npos) {
-                        car_model.enable();
-                        misc_models.emplace_back(car_model);
+                        if(car_model.m_name != loaded_car_models[2].m_name){
+                            car_model.enable();
+                            misc_models.emplace_back(car_model);
+                        }
                     } else {
-                        misc_models.emplace_back(car_model);
+                        if(car_model.m_name != loaded_car_models[2].m_name){
+                            misc_models.emplace_back(car_model);
+                        }
                     }
                 }
             } else {
@@ -121,24 +132,48 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
             }
             break;
         case NFS_3:
-            for(auto& car_model : loaded_car_models){
-                if(car_model.m_name == "high body"){
-                    car_model.enable();
-                    car_body_model = car_model;
-                } else if(car_model.m_name.find("left front wheel") != std::string::npos){
-                    car_model.enable();
-                    left_front_wheel_model = car_model;
-                } else if(car_model.m_name.find("right front wheel") != std::string::npos){
-                    car_model.enable();
-                    right_front_wheel_model = car_model;
-                } else if(car_model.m_name.find("left rear wheel") != std::string::npos){
-                    car_model.enable();
-                    left_rear_wheel_model = car_model;
-                } else if(car_model.m_name.find("right rear wheel") != std::string::npos){
-                    car_model.enable();
-                    right_rear_wheel_model = car_model;
-                } else {
-                    misc_models.emplace_back(car_model);
+            if(loaded_car_models.size() < 5) {
+                car_body_model = loaded_car_models[0];
+                car_body_model.enable();
+                for(auto& car_model : loaded_car_models){
+                    if(car_model.m_name.find("medium l front wheel") != std::string::npos){
+                        car_model.enable();
+                        left_front_wheel_model = car_model;
+                    } else if(car_model.m_name.find("medium r front wheel") != std::string::npos){
+                        car_model.enable();
+                        right_front_wheel_model = car_model;
+                    } else if(car_model.m_name.find("medium l rear wheel") != std::string::npos){
+                        car_model.enable();
+                        left_rear_wheel_model = car_model;
+                    } else if(car_model.m_name.find("medium r rear wheel") != std::string::npos){
+                        car_model.enable();
+                        right_rear_wheel_model = car_model;
+                    } else {
+                        if(car_model.m_name != loaded_car_models[0].m_name){
+                            misc_models.emplace_back(car_model);
+                        }
+                    }
+                }
+            } else {
+                for(auto& car_model : loaded_car_models){
+                    if(car_model.m_name == "high body"){
+                        car_model.enable();
+                        car_body_model = car_model;
+                    } else if(car_model.m_name.find("left front wheel") != std::string::npos){
+                        car_model.enable();
+                        left_front_wheel_model = car_model;
+                    } else if(car_model.m_name.find("right front wheel") != std::string::npos){
+                        car_model.enable();
+                        right_front_wheel_model = car_model;
+                    } else if(car_model.m_name.find("left rear wheel") != std::string::npos){
+                        car_model.enable();
+                        left_rear_wheel_model = car_model;
+                    } else if(car_model.m_name.find("right rear wheel") != std::string::npos){
+                        car_model.enable();
+                        right_rear_wheel_model = car_model;
+                    } else {
+                        misc_models.emplace_back(car_model);
+                    }
                 }
             }
             break;
@@ -311,6 +346,8 @@ void Car::resetCar(glm::vec3 reset_position)
     if (m_vehicle)
     {
         m_carChassis->clearForces();
+        m_carChassis->setLinearVelocity(btVector3(0,0,0));
+        m_carChassis->setAngularVelocity(btVector3(0,0,0));
         m_vehicle -> resetSuspension();
         for (int i = 0; i < m_vehicle->getNumWheels(); i++)
         {

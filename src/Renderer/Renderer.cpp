@@ -55,9 +55,7 @@ AssetData Renderer::Render() {
 
         if (userParams.attach_cam_to_hermite) {
             mainCamera.useSpline();
-        }
-
-        if (userParams.attach_cam_to_car) {
+        } else if (userParams.attach_cam_to_car) {
             // Compute MVP from keyboard and mouse, centered around a target car
             mainCamera.followCar(car, userParams.window_active, ImGui::GetIO());
         } else {
@@ -77,7 +75,7 @@ AssetData Renderer::Render() {
 
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
             // Go and find the Vroad Data to reset to
-            if (track->tag == NFS_3) {
+            if (track->tag == NFS_3 || track->tag == NFS_4) {
                 car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y)+0.2, track->track_blocks[closestBlockID].center.z));
                 /*if (boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].nVRoad){
                     boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
@@ -234,6 +232,7 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
     // Traverse the loader structures and print pretty with IMGUI
     switch (targetEntity->tag) {
         case NFSVer::NFS_3:
+        case NFSVer::NFS_4:
             DrawNFS34Metadata(targetEntity);
             break;
         case NFSVer::UNKNOWN:
@@ -251,10 +250,6 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
             ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_3_PS1:
-
-            break;
-        case NFSVer::NFS_4:
-            DrawNFS34Metadata(targetEntity);
             break;
         case NFSVer::NFS_5:
             ASSERT(false, "Unimplemented");
@@ -283,6 +278,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     std::stringstream world_position_string;
     ImGui::Text("X %f Y %f Z %f H: %f V: %f", worldPosition.x, worldPosition.y, worldPosition.z, mainCamera.horizontalAngle, mainCamera.verticalAngle);
     ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", mainCamera.yaw, mainCamera.pitch, mainCamera.distanceFromCar, mainCamera.angleAroundCar);
+    ImGui::Text("Hermite Roll: %f Time: %f", mainCamera.roll, fmod(mainCamera.totalTime, (mainCamera.loopTime/200)));
     ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
 
     if (ImGui::Button("Reset View")) {
@@ -299,6 +295,8 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Checkbox("NBData", &preferences->use_nb_data);
     ImGui::NewLine();
     ImGui::ColorEdit3("Sky Colour", (float *) &preferences->clear_color); // Edit 3 floats representing a color
+    //ImGui::SliderFloat3("NFS2 Rot Dbg", (float *) &preferences->nfs2_rotate, -M_PI, M_PI);
+
     ImGui::SliderFloat("Track Specular Damper", &preferences->trackSpecDamper, 0, 100);
     ImGui::SliderFloat("Track Specular Reflectivity", &preferences->trackSpecReflectivity, 0, 10);
 
@@ -350,7 +348,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         }
 
         // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
-        if (track->tag == NFS_3 && useNeighbourData) {
+        if ((track->tag == NFS_3 || track->tag == NFS_4) && useNeighbourData) {
             for (int i = 0; i < 300; ++i) {
                 if (boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk == -1) {
                     break;

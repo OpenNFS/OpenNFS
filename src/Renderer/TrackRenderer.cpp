@@ -80,6 +80,38 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
                     animMap[global_object.entityID] = 0;
                 }
             }
+        } else if (track->tag == NFS_2 || track->tag == NFS_2_SE) {
+            // Find the structure reference that matches this structure, else use block default
+            for (auto &structure : boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(track->trackData)->colStructureRefData) {
+                // Only check fixed type structure references
+                if (structure.structureRef == global_object.entityID) {
+                    if (structure.recType == 3) {
+                        if (animMap[global_object.entityID] < structure.animLength) {
+                            boost::get<Track>(global_object.glMesh).position = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3(structure.animationData[animMap[global_object.entityID]].position.x/1000000.0f, structure.animationData[animMap[global_object.entityID]].position.y/1000000.0f, structure.animationData[animMap[global_object.entityID]].position.z/1000000.0f);
+                            boost::get<Track>(global_object.glMesh).orientation = glm::normalize(glm::quat(glm::vec3(-M_PI, 0, 0))) * glm::normalize(glm::quat(-structure.animationData[animMap[global_object.entityID]].unknown[0],structure.animationData[animMap[global_object.entityID]].unknown[1], structure.animationData[animMap[global_object.entityID]].unknown[2], structure.animationData[animMap[global_object.entityID]].unknown[3]));
+                            animMap[global_object.entityID]++;
+                        } else {
+                            animMap[global_object.entityID] = 0;
+                        }
+                    }
+                }
+            }
+        } else if (track->tag == NFS_3_PS1) {
+            // Find the structure reference that matches this structure, else use block default
+            for (auto &structure : boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(track->trackData)->colStructureRefData) {
+                // Only check fixed type structure references
+                if (structure.structureRef == global_object.entityID) {
+                    if (structure.recType == 3) {
+                        if (animMap[global_object.entityID] < structure.animLength) {
+                            boost::get<Track>(global_object.glMesh).position = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * glm::vec3(structure.animationData[animMap[global_object.entityID]].position.x/1000000.0f, structure.animationData[animMap[global_object.entityID]].position.y/1000000.0f, structure.animationData[animMap[global_object.entityID]].position.z/1000000.0f);
+                            boost::get<Track>(global_object.glMesh).orientation = glm::normalize(glm::quat(glm::vec3(-M_PI, 0, 0))) * glm::normalize(glm::quat(-structure.animationData[animMap[global_object.entityID]].unknown[0],structure.animationData[animMap[global_object.entityID]].unknown[1], structure.animationData[animMap[global_object.entityID]].unknown[2], structure.animationData[animMap[global_object.entityID]].unknown[3]));
+                            animMap[global_object.entityID]++;
+                        } else {
+                            animMap[global_object.entityID] = 0;
+                        }
+                    }
+                }
+            }
         }
         boost::get<Track>(global_object.glMesh).update();
         trackShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, boost::get<Track>(global_object.glMesh).ModelMatrix);

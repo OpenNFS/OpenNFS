@@ -117,33 +117,28 @@ namespace TrackUtils {
         std::stringstream output_dir, tex_archive_path;
         std::string psh_path = track_path;
         std::string full_track_path = track_path + "/" + track_name;
-        output_dir << TRACK_PATH;
+        output_dir << TRACK_PATH << ToString(nfs_version) << "/";
 
         switch (nfs_version) {
             case NFS_2:
-                output_dir << "NFS2/";
                 tex_archive_path << track_path << "0.qfs";
                 break;
             case NFS_2_SE:
-                output_dir << "NFS2_SE/";
                 tex_archive_path << track_path << "0M.qfs";
                 break;
             case NFS_3:
-                output_dir << "NFS3/";
                 tex_archive_path << full_track_path << "0.qfs";
                 break;
             case NFS_3_PS1:
                 psh_path.replace(psh_path.find("ZZ"), 2, "");
-                output_dir << "NFS3_PS1/";
                 tex_archive_path << psh_path << "0.PSH";
                 break;
             case NFS_4:
-                output_dir << "NFS4/";
-                tex_archive_path << full_track_path << "/TR0.qfs";
+                tex_archive_path << track_path << "/TR0.qfs";
                 break;
             case UNKNOWN:
             default:
-                output_dir << "UNKNOWN/";
+                ASSERT(false, "Trying to extract track textures from unknown NFS version");
                 break;
         }
         output_dir << track_name;

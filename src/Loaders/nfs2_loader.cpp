@@ -508,7 +508,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
     NFSVer nfs_version = UNKNOWN;
 
     if (std::is_same<Platform, PC>::value) {
-        if (track_base_path.find("NFS2_SE") != std::string::npos) {
+        if (track_base_path.find(ToString(NFS_2_SE)) != std::string::npos) {
             nfs_version = NFS_2_SE;
         } else {
             nfs_version = NFS_2;
@@ -532,8 +532,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
     track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
 
     ParseTRKModels(track);
-    std::vector<Entity> col_entities = ParseCOLModels(track);
-    //track->track_blocks[0].objects.insert(track->track_blocks[0].objects.end(), col_entities.begin(), col_entities.end()); // Insert the COL models into track block 0 for now
+    track->global_objects = ParseCOLModels(track);
 
     std::cout << "Track loaded successfully" << std::endl;
     return track;
@@ -693,7 +692,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                             }
                             break;
                         // PS1 Specific XBID, Misc purpose
-                        case 10: {
+                        /*case 10: {
                             std::cout << "XBID 10 NStruct: " << xblockHeader->nRecords << std::endl;
                             PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) trackblock);
                             ps1TrackBlock->nUnknownVerts =  xblockHeader->nRecords;
@@ -708,7 +707,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                                 trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx], sizeof(PS1::VERT));
                             }
                         }
-                            break;
+                            break;*/
                         case 6:
                             trackblock->medianData = static_cast<MEDIAN_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(MEDIAN_BLOCK)));
                             trk.read((char *) trackblock->medianData, xblockHeader->nRecords * sizeof(MEDIAN_BLOCK));
@@ -1238,9 +1237,9 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
             std::cerr << "Couldn't find a reference coordinate for Structure " << structure_Idx << " in COL file" << std::endl;
         }
         for (uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx) {
-            int32_t x = (structureReferenceCoordinates->x + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
-            int32_t y = (structureReferenceCoordinates->y + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
-            int32_t z = (structureReferenceCoordinates->z + (256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
+            int32_t x = ((256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
+            int32_t y = ((256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
+            int32_t z = ((256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
             verts.emplace_back(rotationMatrix * glm::vec3(x / scaleFactor, z / scaleFactor, y / scaleFactor));
             shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
         }
@@ -1271,8 +1270,8 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
         }
         // Get ordered list of unique texture id's present in block
         std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-        glm::vec3 position = glm::vec3(0, 0, 0);
-        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, texture_ids, shading_data, rotationMatrix * position)));
+        glm::vec3 position = rotationMatrix * glm::vec3(structureReferenceCoordinates->x/scaleFactor, structureReferenceCoordinates->y/scaleFactor, structureReferenceCoordinates->z/scaleFactor);
+        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, texture_ids, shading_data, position)));
         //free(structureReferenceCoordinates);
     }
     return col_entities;
@@ -1283,23 +1282,20 @@ Texture
 NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version) {
     std::stringstream filename;
     uint8_t alphaColour = 0;
-    filename << TRACK_PATH;
+    filename << TRACK_PATH << ToString(nfs_version) << "/";
 
     switch (nfs_version) {
         case NFS_2:
             alphaColour = 0u;
-            filename << "NFS2/";
             break;
         case NFS_2_SE:
             alphaColour = 248u;
-            filename << "NFS2_SE/";
             break;
         case NFS_3_PS1:
-            filename << "NFS3_PS1/";
             break;
         case UNKNOWN:
         default:
-            filename << "UNKNOWN/";
+            ASSERT(false, "Trying to load texture from unknown NFS version");
             break;
     }
     filename << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";;

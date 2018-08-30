@@ -18,6 +18,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             nBlocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
+            global_objects = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
             break;
         case NFS_2_SE:
             track_path << NFS_2_SE_TRACK_PATH << track_name;
@@ -25,6 +26,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             nBlocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
+            global_objects = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
             break;
         case NFS_3:
             track_path << NFS_3_TRACK_PATH << track_name;
@@ -40,6 +42,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             nBlocks = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->track_blocks;
+            global_objects = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->global_objects;
             break;
         case NFS_4:
             track_path << NFS_4_TRACK_PATH << track_name;

@@ -715,10 +715,8 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
         filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
         filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4)
-                 << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << "NFS3/" << track_name << "/textures/" << setfill('0') << setw(4)
-                       << track_texture.texture << "-a.BMP";
+        filename << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
     }
 
     GLubyte *data;
@@ -728,14 +726,11 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     if (!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)) {
         std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!" << std::endl;
         // If the texture is missing, load a "MISSING" texture of identical size.
-        ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width,
-                                       height), "Even the 'missing' texture is missing!");
-        return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
-                       static_cast<unsigned int>(track_texture.height));
+        ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width, height), "Even the 'missing' texture is missing!");
+        return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width), static_cast<unsigned int>(track_texture.height));
     }
 
-    return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
-                   static_cast<unsigned int>(track_texture.height));
+    return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width), static_cast<unsigned int>(track_texture.height));
 }
 
 void NFS3::FreeFRD(const std::shared_ptr<TRACK> &track) {

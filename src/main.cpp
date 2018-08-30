@@ -24,14 +24,14 @@
 class OpenNFS {
 public:
     void run() {
-        std::cout << "----------- OpenNFS v0.1 -----------" << std::endl;
+        std::cout << "----------- OpenNFS v0.2 -----------" << std::endl;
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
         initDirectories();
         std::vector<NeedForSpeed> installedNFS = populateAssets();
 
         AssetData loadedAssets = {
-                NFS_4, "LDIA",
+                NFS_3, "merc",
                 NFS_3, "trk000"
         };
 
@@ -221,7 +221,21 @@ private:
                 ASSERT(boost::filesystem::exists(carBasePath), "NFS 3 Hot Pursuit car folder: " << carBasePath << " is missing.");
 
                 for (boost::filesystem::directory_iterator carItr(carBasePath); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                    if (carItr->path().filename().string().find("traffic") == std::string::npos) {
                         currentNFS.cars.emplace_back(carItr->path().filename().string());
+                    }
+                }
+
+                carBasePathStream << "traffic/";
+                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                    currentNFS.cars.emplace_back("traffic/" + carItr->path().filename().string());
+                }
+
+                carBasePathStream << "pursuit/";
+                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                    if (carItr->path().filename().string().find("PURSUIT") == std::string::npos) {
+                        currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
+                    }
                 }
             } else if (itr->path().filename().string().find(ToString(NFS_4)) != std::string::npos) {
                 currentNFS.tag = NFS_4;
@@ -242,7 +256,27 @@ private:
                 ASSERT(boost::filesystem::exists(carBasePath), "NFS 4 High Stakes car folder: " << carBasePath << " is missing.");
 
                 for (boost::filesystem::directory_iterator carItr(carBasePath); carItr != boost::filesystem::directory_iterator(); ++carItr) {
-                    currentNFS.cars.emplace_back(carItr->path().filename().string());
+                    if (carItr->path().filename().string().find("TRAFFIC") == std::string::npos) {
+                        currentNFS.cars.emplace_back(carItr->path().filename().string());
+                    }
+                }
+
+                carBasePathStream << "TRAFFIC/";
+                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                    if ((carItr->path().filename().string().find("CHOPPERS") == std::string::npos)&&(carItr->path().filename().string().find("PURSUIT") == std::string::npos)) {
+                        currentNFS.cars.emplace_back("TRAFFIC/" + carItr->path().filename().string());
+                    }
+                }
+
+                carBasePathStream << "CHOPPERS/";
+                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                        currentNFS.cars.emplace_back("TRAFFIC/CHOPPERS/" + carItr->path().filename().string());
+                }
+
+                carBasePathStream = std::stringstream();
+                carBasePathStream  << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/" << "PURSUIT/";
+                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                    currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
                 }
             } else if (itr->path().filename().string().find("lanes") != std::string::npos) {
                 hasLanes = true;

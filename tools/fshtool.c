@@ -519,13 +519,13 @@ void fsh_to_bmp(char *fshname) {
 
             if (!numscales) {
                 // Amrik: If the directory name starts with a letter, don't rename the file, use directory name directly  (NFS2 Car texture references)
-               /* if (isalpha(dir[i].name[0])) {
+                if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])) {
                     sprintf(pad,"%c%c%c%c.BMP", dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3]);
                     printf("'(Skipping Rename) %s' (%dx%d) ", pad, hdr->width, hdr->height);
-                } else {*/
+                } else {
                     sprintf(pad, "%04d.BIN", i);
                     printf("'%s' (%dx%d) ", pad, hdr->width, hdr->height);
-                //}
+                }
                 if (compressed) printf("(compressed) ");
                 fprintf(log, "%s\n", pad);
                 fprintf(log, "BMP %02X +%d %d %d {%d %d %d %d}\n",
@@ -542,13 +542,13 @@ void fsh_to_bmp(char *fshname) {
 
             while (l >= 0) {
                 // Amrik: If the directory name starts with a letter, don't rename the file, use directory name directly  (NFS2 Car texture references)
-                /*if (isalpha(dir[i].name[0])) {
+                if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])) {
                     if (numscales) sprintf(pad,"%c%c%c%c-%d.BMP", dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3],l);
                     else sprintf(pad,"%c%c%c%c.BMP",dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3]);
-                } else {*/
+                } else {
                     if (numscales) sprintf(pad, "%04d-%d.BMP", i, l);
                     else sprintf(pad, "%04d.BMP", i);
-                //}
+                }
                 bmp = fopen(pad, "wb");
                 if (bmp == NULL) {
                     printf("Unable to create file.\n");
@@ -818,11 +818,11 @@ void fsh_to_bmp(char *fshname) {
             /* not a bitmap */
             j = hdr->code & 0xff;
             // Amrik: If the directory name starts with a letter, don't rename the file, use directory name directly  (NFS2 Car texture references)
-            /*if (isalpha(dir[i].name[0])) {
+            if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])) {
                 sprintf(pad,"%c%c%c%c.BMP", dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3]);
-            } else {*/
+            } else {
                 sprintf(pad, "%04d.BIN", i);
-            //}
+            }
             printf("'%s'", pad);
 
             if (j == 0x24) printf(" (24-bit palette)");

@@ -431,7 +431,7 @@ namespace NFS2_DATA {
 
     struct ANIM_POS {
         VERT_HIGHP position;
-        uint16_t unknown[4];
+        int16_t unknown[4];
     };
 
     // ----------------- EXTRA BLOCKS -----------------
@@ -587,6 +587,7 @@ namespace NFS2_DATA {
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
             // GL 3D Render Data
+            std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
             std::map<unsigned int, Texture> textures;
             std::map<unsigned int, GLuint> texture_gl_mappings;
@@ -707,6 +708,7 @@ namespace NFS2_DATA {
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
             // GL 3D Render Data
+            std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
             std::map<unsigned int, Texture> textures;
             std::map<unsigned int, GLuint> texture_gl_mappings;

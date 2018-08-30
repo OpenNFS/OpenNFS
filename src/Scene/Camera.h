@@ -42,7 +42,7 @@ public:
     float angleAroundCar = 0;
     float pitch = 10;
     float yaw = 0;
-    float roll;
+    float roll = 0;
 
     // Free look
     // Initial horizontal angle : toward -Z

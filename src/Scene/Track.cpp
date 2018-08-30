@@ -29,6 +29,9 @@ Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vect
     for(int i = 0; i < m_texture_indices.size(); ++i){
         m_debug_data.emplace_back(0);
     }
+    for(int i = 0; i < m_texture_indices.size(); ++i){
+        m_normals.emplace_back(glm::vec3(1,1,1));
+    }
     // Index Shading data
     for(unsigned int m_vertex_index : indices) {
         m_shading_data.push_back(shading_data[m_vertex_index]);

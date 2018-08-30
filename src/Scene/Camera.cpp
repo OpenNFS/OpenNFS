@@ -39,10 +39,9 @@ void Camera::resetView() {
 void Camera::generateSpline(std::vector<TrackBlock> trackBlock) {
     std::vector<glm::vec3> cameraPoints;
     for (auto &track_block : trackBlock) {
-        cameraPoints.emplace_back(
-                glm::vec3(track_block.center.x / 10, track_block.center.y / 10, track_block.center.z / 10));
+        cameraPoints.emplace_back(glm::vec3(track_block.center.x, track_block.center.y + 0.2, track_block.center.z));
     }
-    cameraSpline = HermiteCurve(cameraPoints, 0.5, 0.0f);
+    cameraSpline = HermiteCurve(cameraPoints, 0.1f, 0.0f);
     loopTime = cameraSpline.points.size() * 100;
     hasSpline = true;
 }
@@ -50,8 +49,34 @@ void Camera::generateSpline(std::vector<TrackBlock> trackBlock) {
 void Camera::useSpline() {
     ASSERT(hasSpline, "Attempted to use Camera spline without generating one first with \'generateSpline\'");
     totalTime += deltaTime;
-    float tmod = (totalTime) / (loopTime / 200);
+    // Ensure we're never sampling the hermite curve outside of points arr size.
+    float tmod = fmod(totalTime, (loopTime/203.f))/(loopTime / 200.f);
     position = cameraSpline.getPointAt(tmod);
+
+    // Look towards the position that is a few ms away
+    float tmodLookAt = tmod + 0.01;
+    glm::vec3 lookAtPos  = cameraSpline.getPointAt(tmodLookAt);
+    glm::vec3 direction = glm::normalize(lookAtPos  - position);
+
+    // https://github.com/phoboslab/wipeout/blob/master/wipeout.js [Wipeout.prototype.updateSplineCamera]
+    // Roll into corners - there's probably an easier way to do this. This
+    // takes the angle between the current camera position and the current
+    // lookAt, applies some damping and rolls the camera along its view vector
+    glm::vec3 cn = position - lookAtPos;
+    glm::vec3 tn = position;
+    float newRoll = (atan2(cn.z, cn.x) - atan2(tn.z, tn.x));
+    newRoll += (newRoll > M_PI) ? - M_PI*2 : (newRoll < - M_PI) ? M_PI * 2 : 0;
+    roll = roll  * 0.95f + (newRoll)*0.1f;
+
+    // Create a new 'up' vector, based on the roll value
+    glm::vec3 up = glm::rotate(glm::mat4(1), (roll * 0.25f) + 0.75f, direction) * glm::vec4(glm::vec3(0,1,0), 1.0);
+
+    // Camera matrix
+    ViewMatrix = glm::lookAt(
+            position,             // Camera is here
+            position + direction, // and looks here : at the same position, plus "direction"
+            up
+    );
 }
 
 void Camera::calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
