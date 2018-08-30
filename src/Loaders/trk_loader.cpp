@@ -4,55 +4,46 @@
 
 #include "trk_loader.h"
 
-ONFSTrack::ONFSTrack(const std::string &track_path) {
-    // Do some custom NFS detection logic (realistically just check the path for the enums)
-    if (track_path.find(ToString(NFS_2_SE)) != std::string::npos) {
-        tag = NFS_2_SE;
-    } else if (track_path.find(ToString(NFS_2)) != std::string::npos) {
-        tag = NFS_2;
-    } else if (track_path.find(ToString(NFS_3_PS1)) != std::string::npos) {
-        tag = NFS_3_PS1;
-    } else if (track_path.find(ToString(NFS_3)) != std::string::npos) {
-        tag = NFS_3;
-    } else if (track_path.find(ToString(NFS_4)) != std::string::npos) {
-        tag = NFS_4;
-    } else {
-        tag = UNKNOWN;
-    }
+ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
+    tag = nfs_version;
+    name = track_name;
+
+    std::stringstream track_path;
+    track_path << RESOURCE_PATH << ToString(tag);
 
     switch (tag) {
         case NFS_2:
-            trackData = NFS2<PC>::LoadTrack(track_path);
-            name = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->name;
+            track_path << NFS_2_TRACK_PATH << track_name;
+            trackData = NFS2<PC>::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
             break;
         case NFS_2_SE:
-            trackData = NFS2<PC>::LoadTrack(track_path);
-            name = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->name;
+            track_path << NFS_2_SE_TRACK_PATH << track_name;
+            trackData = NFS2<PC>::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
             break;
         case NFS_3:
-            trackData = NFS3::LoadTrack(track_path);
-            name = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->name;
+            track_path << NFS_3_TRACK_PATH << track_name;
+            trackData = NFS3::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
             global_objects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
             break;
         case NFS_3_PS1:
-            trackData = NFS2<PS1>::LoadTrack(track_path);
-            name = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->name;
+            track_path << "/" << track_name;
+            trackData = NFS2<PS1>::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->track_blocks;
             break;
         case NFS_4:
-            trackData = NFS4::LoadTrack(track_path);
-            name = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->name;
+            track_path << NFS_4_TRACK_PATH << track_name;
+            trackData = NFS4::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
             texture_gl_mappings = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->texture_gl_mappings;
             track_blocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
@@ -64,6 +55,6 @@ ONFSTrack::ONFSTrack(const std::string &track_path) {
     }
 }
 
-shared_ptr<ONFSTrack> TrackLoader::LoadTrack(const std::string &track_path){
-    return std::shared_ptr<ONFSTrack>(new ONFSTrack(track_path));
+shared_ptr<ONFSTrack> TrackLoader::LoadTrack(NFSVer nfs_version, const std::string &track_name) {
+    return std::shared_ptr<ONFSTrack>(new ONFSTrack(nfs_version, track_name));
 }

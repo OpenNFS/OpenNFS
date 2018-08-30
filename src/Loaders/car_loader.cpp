@@ -4,34 +4,43 @@
 
 #include "car_loader.h"
 
-shared_ptr<Car> CarLoader::LoadCar(const std::string &car_path) {
-    NFSVer nfs_version;
+shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_name) {
+    std::stringstream car_path;
+    car_path << RESOURCE_PATH << ToString(nfs_version);
 
-    if (car_path.find(ToString(NFS_2_SE)) != std::string::npos) {
-        nfs_version = NFS_2_SE;
-    } else if (car_path.find(ToString(NFS_2)) != std::string::npos) {
-        nfs_version = NFS_2;
-    } else if (car_path.find(ToString(NFS_3_PS1)) != std::string::npos) {
-        nfs_version = NFS_3_PS1;
-    } else if (car_path.find(ToString(NFS_3)) != std::string::npos) {
-        nfs_version = NFS_3;
-    } else if (car_path.find(ToString(NFS_4)) != std::string::npos) {
-        nfs_version = NFS_4;
-    } else {
-        nfs_version = UNKNOWN;
+    switch (nfs_version) {
+        case NFS_2:
+            car_path << NFS_2_CAR_PATH << car_name;
+            break;
+        case NFS_2_SE:
+            car_path << NFS_2_SE_CAR_PATH << car_name;
+            break;
+        case NFS_3:
+            car_path << NFS_3_CAR_PATH << car_name;
+            break;
+        case NFS_3_PS1:
+            car_path << "/" << car_name;
+            break;
+        case NFS_4:
+            car_path << NFS_4_CAR_PATH << car_name;
+            break;
+        case UNKNOWN:
+            ASSERT(false, "Unknown car type!");
+        default:
+            break;
     }
 
     switch (nfs_version) {
         case NFS_2:
-            return NFS2<PC>::LoadCar(car_path);
+            return NFS2<PC>::LoadCar(car_path.str());
         case NFS_2_SE:
-            return NFS2<PC>::LoadCar(car_path);
+            return NFS2<PC>::LoadCar(car_path.str());
         case NFS_3:
-           return NFS3::LoadCar(car_path);
+           return NFS3::LoadCar(car_path.str());
         case NFS_3_PS1:
-            return NFS2<PS1>::LoadCar(car_path);
+            return NFS2<PS1>::LoadCar(car_path.str());
         case NFS_4:
-            return NFS4::LoadCar(car_path);
+            return NFS4::LoadCar(car_path.str());
         case UNKNOWN:
             ASSERT(false, "Unknown car type!");
         default:

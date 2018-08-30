@@ -13,7 +13,7 @@
 
 class ONFSTrack {
 public:
-    explicit ONFSTrack(const std::string &track_path);
+    explicit ONFSTrack(NFSVer nfs_version, const std::string &track_name);
 
     ~ONFSTrack() {
         switch (tag) {
@@ -52,5 +52,5 @@ public:
 
 class TrackLoader {
 public:
-    static shared_ptr<ONFSTrack> LoadTrack(const std::string &track_path);
+    static shared_ptr<ONFSTrack> LoadTrack(NFSVer nfs_version, const std::string &track_name);
 };

@@ -30,31 +30,22 @@ public:
         initDirectories();
         std::vector<NeedForSpeed> installedNFS = populateAssets();
 
-        /*------ ASSET LOAD ------*/
-        //Load Track Data
-        std::string nfs3ps1track("../resources/NFS_3_PS1/ZZZTR02B");
-        std::string nfs2setrack("../resources/NFS_2_SE/GAMEDATA/TRACKS/SE/TR04");
-        std::string nfs2track("../resources/NFS_2/GAMEDATA/TRACKS/PC/TR05");
-        std::string nfs3track("../resources/NFS_3/gamedata/tracks/trk000");
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(nfs3track);
-
-        //Load Car data from unpacked NFS files
-        std::string merc("../resources/NFS_3/gamedata/carmodel/diab");
-        std::string nfs4("../resources/NFS_4/DATA/CARS/LDIA");
-        std::string nfs3ps1car("../resources/NFS_3_PS1/ZDIAB");
-        std::string nfs2car("../resources/NFS_2/GAMEDATA/CARMODEL/PC/GT90");
-        std::shared_ptr<Car> car = CarLoader::LoadCar(nfs4);
-
-        //Load Music
-        //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
-
         AssetData loadedAssets = {
-                NFS_4, "LDIAB",
+                NFS_2, "GT90",
                 NFS_3, "trk000"
         };
 
         /*------- Render --------*/
         while(loadedAssets.trackTag != UNKNOWN){
+            /*------ ASSET LOAD ------*/
+            //Load Track Data
+            std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+            //Load Car data from unpacked NFS files
+            std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+
+            //Load Music
+            //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
+
             Renderer renderer(window, installedNFS, track, car);
             loadedAssets = renderer.Render();
         }
@@ -140,7 +131,7 @@ private:
     }
 
     std::vector<NeedForSpeed> populateAssets(){
-        boost::filesystem::path basePath("../resources/");
+        boost::filesystem::path basePath(RESOURCE_PATH);
         std::vector<NeedForSpeed> installedNFS;
         bool hasLanes = false;
         bool hasMisc = false;

@@ -12,6 +12,6 @@
 
 class CarLoader {
 public:
-    static shared_ptr<Car> LoadCar(const std::string &car_path);
+    static shared_ptr<Car> LoadCar(NFSVer nfs_version, const std::string &car_name);
 };
 
