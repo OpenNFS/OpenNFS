@@ -31,7 +31,7 @@ public:
         std::vector<NeedForSpeed> installedNFS = populateAssets();
 
         AssetData loadedAssets = {
-                NFS_2, "GT90",
+                NFS_4, "LDIA",
                 NFS_3, "trk000"
         };
 
@@ -49,6 +49,9 @@ public:
             Renderer renderer(window, installedNFS, track, car);
             loadedAssets = renderer.Render();
         }
+
+        // Close OpenGL window and terminate GLFW
+        glfwTerminate();
 
         /*vkRenderer renderer;
 
@@ -149,9 +152,9 @@ private:
                 std::string trackBasePath(trackBasePathStream.str());
                 ASSERT(boost::filesystem::exists(trackBasePath), "NFS 2 Special Edition track folder: " << trackBasePath << " is missing.");
 
-                for (boost::filesystem::directory_iterator itr(trackBasePath); itr != boost::filesystem::directory_iterator(); ++itr) {
-                    if (itr->path().filename().string().find(".TRK") != std::string::npos) {
-                        currentNFS.tracks.emplace_back(itr->path().filename().replace_extension("").string());
+                for (boost::filesystem::directory_iterator trackItr(trackBasePath); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
+                    if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
+                        currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
                     }
                 }
 
@@ -161,7 +164,6 @@ private:
                 ASSERT(boost::filesystem::exists(carBasePath), "NFS 2 Special Edition car folder: " << carBasePath << " is missing.");
 
                 // TODO: Work out where NFS2 SE Cars are stored
-                continue;
             } else if (itr->path().filename().string().find(ToString(NFS_2)) != std::string::npos) {
                 currentNFS.tag = NFS_2;
 

@@ -122,11 +122,11 @@ namespace TrackUtils {
         switch (nfs_version) {
             case NFS_2:
                 output_dir << "NFS2/";
-                tex_archive_path << full_track_path << "0.qfs";
+                tex_archive_path << track_path << "0.qfs";
                 break;
             case NFS_2_SE:
                 output_dir << "NFS2_SE/";
-                tex_archive_path << full_track_path << "0M.qfs";
+                tex_archive_path << track_path << "0M.qfs";
                 break;
             case NFS_3:
                 output_dir << "NFS3/";

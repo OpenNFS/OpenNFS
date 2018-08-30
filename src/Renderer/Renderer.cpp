@@ -464,9 +464,6 @@ Renderer::~Renderer() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-
-    // Close OpenGL window and terminate GLFW
-    glfwTerminate();
 }
 
 void Renderer::NewFrame(ParamData *userParams) {
