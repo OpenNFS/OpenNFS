@@ -21,10 +21,11 @@ public:
             case NFS_2_SE:
             case NFS_3_PS1:
             case NFS_4:
-                break;
+            case NFS_3:
+                break;/*
             case NFS_3:
                 NFS3::FreeTrack(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData));
-                break;
+                break;*/
             case UNKNOWN:
                 ASSERT(false, "Unknown track type!");
             default:
