@@ -121,6 +121,12 @@ private:
         //glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        GLint texture_units;
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
+        std::cout << "Max Texture Units: " << texture_units << std::endl;
+        std::cout << "OpenGL Initialisation successful" << std::endl;
+
         return true;
     }
 

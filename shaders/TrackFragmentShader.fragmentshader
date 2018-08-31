@@ -1,6 +1,6 @@
 #version 330 core
 
-#define MAX_LIGHTS 20
+#define MAX_LIGHTS 6
 
 // Interpolated values from the vertex shaders
 in vec2 UV;

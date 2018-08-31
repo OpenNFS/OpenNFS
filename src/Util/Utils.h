@@ -5,6 +5,7 @@
 #pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
+
 #include <LinearMath/btVector3.h>
 #include <LinearMath/btQuaternion.h>
 #include <LinearMath/btMatrix3x3.h>
@@ -19,6 +20,7 @@
 #include <GL/glew.h>
 #include <vector>
 #include <iostream>
+#include <conio.h>
 #include <string>
 #include <cassert>
 #include <cstdio>
@@ -27,7 +29,7 @@
 #include "../Scene/CarModel.h"
 
 extern "C" {
-    #include "../../tools/fshtool.h"
+#include "../../tools/fshtool.h"
 }
 
 #define BI_RGB 0x0000
@@ -37,26 +39,26 @@ typedef unsigned short WORD;
 typedef unsigned char BYTE;
 typedef long LONG;
 
-#pragma pack(push,2)
+#pragma pack(push, 2)
 typedef struct tagBITMAPFILEHEADER {
-    WORD	bfType;
-    DWORD	bfSize;
-    WORD	bfReserved1;
-    WORD	bfReserved2;
-    DWORD	bfOffBits;
-} BITMAPFILEHEADER,*LPBITMAPFILEHEADER,*PBITMAPFILEHEADER;
+    WORD bfType;
+    DWORD bfSize;
+    WORD bfReserved1;
+    WORD bfReserved2;
+    DWORD bfOffBits;
+} BITMAPFILEHEADER, *LPBITMAPFILEHEADER, *PBITMAPFILEHEADER;
 #pragma pack(pop)
 
 typedef struct tagBITMAPINFOHEADER {
     DWORD biSize;
-    LONG  biWidth;
-    LONG  biHeight;
-    WORD  biPlanes;
-    WORD  biBitCount;
+    LONG biWidth;
+    LONG biHeight;
+    WORD biPlanes;
+    WORD biBitCount;
     DWORD biCompression;
     DWORD biSizeImage;
-    LONG  biXPelsPerMeter;
-    LONG  biYPelsPerMeter;
+    LONG biXPelsPerMeter;
+    LONG biYPelsPerMeter;
     DWORD biClrUsed;
     DWORD biClrImportant;
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
@@ -70,17 +72,23 @@ typedef struct tagRGBQUAD {
 
 typedef struct tagBITMAPINFO {
     BITMAPINFOHEADER bmiHeader;
-    RGBQUAD          bmiColors[1];
+    RGBQUAD bmiColors[1];
 } BITMAPINFO, *PBITMAPINFO;
 
 
 #define SAFE_READ(file, structure, size)  if((file).read((char *) (structure), (size)).gcount() != (size)) return false
-#define MAKEWORD(a,b)	((WORD)(((BYTE)(a))|(((WORD)((BYTE)(b)))<<8)))
+#define MAKEWORD(a, b)    ((WORD)(((BYTE)(a))|(((WORD)((BYTE)(b)))<<8)))
 #define ASSERT(condition, message) \
     do { \
         if (! (condition)) { \
             std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
                       << " line " << __LINE__ << ": " << message << std::endl; \
+            std::cerr << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)" << std::endl; \
+            char c;  \
+            while(true) { \
+                c=getch(); \
+                if (c==27) break; \
+            } \
             std::terminate(); \
         } \
     } while (false)
