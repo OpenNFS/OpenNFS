@@ -133,6 +133,10 @@ namespace TrackUtils {
                 psh_path.replace(psh_path.find("ZZ"), 2, "");
                 tex_archive_path << psh_path << "0.PSH";
                 break;
+            case NFS_4_PS1:
+                psh_path.replace(psh_path.find("ZZ"), 2, "");
+                tex_archive_path << psh_path << "0.PSH";
+                break;
             case NFS_4:
                 tex_archive_path << track_path << "/TR0.qfs";
                 break;

@@ -243,6 +243,14 @@ private:
                         currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                     }
                 }
+            } else if (itr->path().filename().string().find(ToString(NFS_4_PS1)) != std::string::npos) {
+                currentNFS.tag = NFS_4_PS1;
+
+                for (boost::filesystem::directory_iterator trackItr(itr->path().string()); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
+                    if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
+                        currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
+                    }
+                }
             } else if (itr->path().filename().string().find(ToString(NFS_4)) != std::string::npos) {
                 currentNFS.tag = NFS_4;
 

@@ -129,6 +129,10 @@ namespace Utils {
 
     btMatrix3x3 glmToBullet(const glm::mat3 &m);
 
+    btTransform glmToBullet(const glm::mat4& m);
+
+    glm::mat4 bulletToGlm(const btTransform& t);
+
     btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices);
 
     glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices);

@@ -34,7 +34,7 @@ Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &insta
 
 AssetData Renderer::Render() {
     ParamData userParams;
-    if((track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1)){
+    if((track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1 || track->tag == NFS_4_PS1)){
         userParams.use_nb_data = false;
     }
 
@@ -80,16 +80,26 @@ AssetData Renderer::Render() {
                 /*if (boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].nVRoad){
                     boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
                 }*/
-            } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
+            } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1 || track->tag == NFS_4_PS1){
                 car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y+0.2), track->track_blocks[closestBlockID].center.z));
             }
         }
 
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
+        physicsEngine.updateFrustrum(mainCamera.ViewMatrix);
 
-        std::vector<int> activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, userParams.attach_cam_to_car ? car->car_body_model.position : mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
+
+        std::vector<int> activeTrackBlockIDs; // = CullTrackBlocks(oldWorldPosition, userParams.attach_cam_to_car ? car->car_body_model.position : mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
+        // Iterate through visible entity list, based on frustum intersection
+        for(int i = 0; i < physicsEngine.m_objectsInFrustum.size(); ++i){
+            Entity *visibleEntity = static_cast<Entity *>(physicsEngine.m_objectsInFrustum[i]->getUserPointer());
+            if(visibleEntity->type == ROAD){
+                activeTrackBlockIDs.emplace_back(visibleEntity->parentTrackblockID);
+            }
+        }
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
+
 
         //SetCulling(true);
         carRenderer.render(mainCamera, cameraLight);
@@ -132,6 +142,7 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z), btVector3(out_end.x, out_end.y, out_end.z));
     physicsEngine.getDynamicsWorld()->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z), btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
+    //physicsEngine.getDynamicsWorld()->convexSweepTest()
     if (RayCallback.hasHit()) {
         *entity_targeted = true;
         return static_cast<Entity *>(RayCallback.m_collisionObject->getUserPointer());
@@ -251,6 +262,8 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
             break;
         case NFSVer::NFS_3_PS1:
             break;
+        case NFSVer::NFS_4_PS1:
+            break;
         case NFSVer::NFS_5:
             ASSERT(false, "Unimplemented");
             break;
@@ -280,6 +293,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", mainCamera.yaw, mainCamera.pitch, mainCamera.distanceFromCar, mainCamera.angleAroundCar);
     ImGui::Text("Hermite Roll: %f Time: %f", mainCamera.roll, fmod(mainCamera.totalTime, (mainCamera.loopTime/200)));
     ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
+    ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
 
     if (ImGui::Button("Reset View")) {
         mainCamera.resetView();

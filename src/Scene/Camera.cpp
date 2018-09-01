@@ -50,7 +50,7 @@ void Camera::useSpline() {
     ASSERT(hasSpline, "Attempted to use Camera spline without generating one first with \'generateSpline\'");
     totalTime += deltaTime;
     // Ensure we're never sampling the hermite curve outside of points arr size.
-    float tmod = fmod(totalTime, (loopTime/203.f))/(loopTime / 200.f);
+    float tmod = fmod(totalTime, (loopTime/202.5f))/(loopTime / 200.f);
     position = cameraSpline.getPointAt(tmod);
 
     // Look towards the position that is a few ms away

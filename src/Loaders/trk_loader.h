@@ -20,6 +20,7 @@ public:
             case NFS_2:
             case NFS_2_SE:
             case NFS_3_PS1:
+            case NFS_4_PS1:
             case NFS_4:
             case NFS_3:
                 break;/*

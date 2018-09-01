@@ -20,6 +20,7 @@
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
 #include <vector>
 
@@ -83,6 +84,11 @@ public:
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
 
+    void checkForFrustumIntersect();
+    void updateFrustrum(glm::mat4 viewMatrix);
+    int numObjects = 0;
+    btAlignedObjectArray<btCollisionObject*> m_objectsInFrustum;	// Frustum cull results
+
 private:
     shared_ptr<ONFSTrack> current_track;
     std::vector<std::shared_ptr<Car>> cars;
@@ -92,4 +98,11 @@ private:
     btCollisionDispatcher *dispatcher;
     btSequentialImpulseConstraintSolver *solver;
     btDiscreteDynamicsWorld *dynamicsWorld;
+
+    btCollisionShape* buildFrustumShape();
+    void buildGhostObject();
+    void destroyGhostObject();
+
+    btPairCachingGhostObject* m_ghostObject = nullptr;
+    btOverlappingPairCallback*	m_ghostPairCallback = nullptr;
 };

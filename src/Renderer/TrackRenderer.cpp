@@ -96,7 +96,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
                     }
                 }
             }
-        } else if (track->tag == NFS_3_PS1) {
+        } else if ((track->tag == NFS_3_PS1)||(track->tag == NFS_4_PS1)) {
             // Find the structure reference that matches this structure, else use block default
             for (auto &structure : boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(track->trackData)->colStructureRefData) {
                 // Only check fixed type structure references
