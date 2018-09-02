@@ -87,17 +87,21 @@ AssetData Renderer::Render() {
 
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
-        physicsEngine.updateFrustrum(mainCamera.ViewMatrix);
-
-
-        std::vector<int> activeTrackBlockIDs; // = CullTrackBlocks(oldWorldPosition, userParams.attach_cam_to_car ? car->car_body_model.position : mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
-        // Iterate through visible entity list, based on frustum intersection
-        for(int i = 0; i < physicsEngine.m_objectsInFrustum.size(); ++i){
-            Entity *visibleEntity = static_cast<Entity *>(physicsEngine.m_objectsInFrustum[i]->getUserPointer());
-            if(visibleEntity->type == ROAD){
-                activeTrackBlockIDs.emplace_back(visibleEntity->parentTrackblockID);
+        std::vector<int> activeTrackBlockIDs;
+        if(userParams.frustum_cull)
+        {
+            physicsEngine.updateFrustrum(mainCamera.ViewMatrix);
+            // Iterate through visible entity list, based on frustum intersection
+            for(int i = 0; i < physicsEngine.m_objectsInFrustum.size(); ++i){
+                Entity *visibleEntity = static_cast<Entity *>(physicsEngine.m_objectsInFrustum[i]->getUserPointer());
+                if(visibleEntity->type == ROAD){
+                    activeTrackBlockIDs.emplace_back(visibleEntity->parentTrackblockID);
+                }
             }
+        } else {
+            activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, userParams.attach_cam_to_car ? car->car_body_model.position : mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
         }
+
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
 
 
@@ -292,6 +296,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Text("Hermite Roll: %f Time: %f", mainCamera.roll, fmod(mainCamera.totalTime, (mainCamera.loopTime/200)));
     ImGui::Text("Block ID: %d", closestBlockID);
     ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
+    ImGui::Checkbox("Frustum Cull", &preferences->frustum_cull);
 
     if (ImGui::Button("Reset View")) {
         mainCamera.resetView();

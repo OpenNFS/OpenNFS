@@ -37,6 +37,7 @@ struct ParamData {
     bool attach_cam_to_hermite = false;
     bool use_nb_data = true;
     bool attach_cam_to_car = true;
+    bool frustum_cull = false;
 };
 
 struct AssetData {
