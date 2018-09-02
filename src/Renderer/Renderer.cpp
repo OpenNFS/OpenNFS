@@ -28,13 +28,13 @@ Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &insta
     /*------- ImGui -------*/
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplOpenGL3_Init("#version 330");
     ImGui::StyleColorsDark();
 }
 
 AssetData Renderer::Render() {
     ParamData userParams;
-    if((track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1 || track->tag == NFS_4_PS1)){
+    if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
         userParams.use_nb_data = false;
     }
 
@@ -80,7 +80,7 @@ AssetData Renderer::Render() {
                 /*if (boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].nVRoad){
                     boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
                 }*/
-            } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1 || track->tag == NFS_4_PS1){
+            } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
                 car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y+0.2), track->track_blocks[closestBlockID].center.z));
             }
         }
@@ -172,12 +172,12 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y, targetLight->position.z);
             ImGui::Separator();
             ImGui::Text("NFS Data");
-            ImGui::Text("Type: %d", targetLight->type);
+            ImGui::Text("Type: %ld", targetLight->type);
             ImGui::Text("Unknowns: ");
             ImGui::Text("[1]: %d", targetLight->unknown1);
             ImGui::Text("[2]: %d", targetLight->unknown2);
             ImGui::Text("[3]: %d", targetLight->unknown3);
-            ImGui::Text("[4]: %d", targetLight->unknown4);
+            ImGui::Text("[4]: %f", targetLight->unknown4);
         }
             break;
         case EntityType::ROAD:
@@ -262,8 +262,6 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
             break;
         case NFSVer::NFS_3_PS1:
             break;
-        case NFSVer::NFS_4_PS1:
-            break;
         case NFSVer::NFS_5:
             ASSERT(false, "Unimplemented");
             break;
@@ -292,7 +290,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Text("X %f Y %f Z %f H: %f V: %f", worldPosition.x, worldPosition.y, worldPosition.z, mainCamera.horizontalAngle, mainCamera.verticalAngle);
     ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", mainCamera.yaw, mainCamera.pitch, mainCamera.distanceFromCar, mainCamera.angleAroundCar);
     ImGui::Text("Hermite Roll: %f Time: %f", mainCamera.roll, fmod(mainCamera.totalTime, (mainCamera.loopTime/200)));
-    ImGui::Text(("Block ID: " + std::to_string(closestBlockID)).c_str());
+    ImGui::Text("Block ID: %d", closestBlockID);
     ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
 
     if (ImGui::Button("Reset View")) {

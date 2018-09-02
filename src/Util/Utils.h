@@ -20,7 +20,7 @@
 #include <GL/glew.h>
 #include <vector>
 #include <iostream>
-#include <conio.h>
+#include <fstream>
 #include <string>
 #include <cassert>
 #include <cstdio>
@@ -34,10 +34,10 @@ extern "C" {
 
 #define BI_RGB 0x0000
 
-typedef unsigned long DWORD;
-typedef unsigned short WORD;
-typedef unsigned char BYTE;
-typedef long LONG;
+typedef uint32_t DWORD;
+typedef uint16_t WORD;
+typedef uint8_t BYTE;
+typedef int32_t LONG;
 
 #pragma pack(push, 2)
 typedef struct tagBITMAPFILEHEADER {
@@ -86,7 +86,7 @@ typedef struct tagBITMAPINFO {
             std::cerr << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)" << std::endl; \
             char c;  \
             while(true) { \
-                c=getch(); \
+                c = std::getchar(); \
                 if (c==27) break; \
             } \
             std::terminate(); \

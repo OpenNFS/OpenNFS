@@ -24,8 +24,6 @@ shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_na
         case NFS_4:
             car_path << NFS_4_CAR_PATH << car_name;
             break;
-        case NFS_4_PS1:
-            ASSERT(false, "NFS 4 PS1 Car load is not implemented");
         case UNKNOWN:
             ASSERT(false, "Unknown car type!");
         default:
@@ -46,6 +44,7 @@ shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_na
         case UNKNOWN:
             ASSERT(false, "Unknown car type!");
         default:
+            ASSERT(false, "Unknown car type!");
             break;
     }
 }

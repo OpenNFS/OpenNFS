@@ -202,8 +202,10 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
                 }
             }
             break;
-        case UNKNOWN:break;
-        case NFS_5:break;
+        case UNKNOWN:
+            break;
+        case NFS_5:
+            break;
     }
 }
 

@@ -78,8 +78,12 @@ private:
         // TODO: If we fail to create a GL context, fall back to not requesting any (Keiiko Bug #1)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#else
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#endif
 
         window = glfwCreateWindow(1024, 768, "OpenNFS", nullptr, nullptr);
 
@@ -243,14 +247,6 @@ private:
                         currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                     }
                 }
-            } else if (itr->path().filename().string().find(ToString(NFS_4_PS1)) != std::string::npos) {
-                currentNFS.tag = NFS_4_PS1;
-
-                for (boost::filesystem::directory_iterator trackItr(itr->path().string()); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
-                    if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
-                        currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
-                    }
-                }
             } else if (itr->path().filename().string().find(ToString(NFS_4)) != std::string::npos) {
                 currentNFS.tag = NFS_4;
 
@@ -308,9 +304,9 @@ private:
             installedNFS.emplace_back(currentNFS);
         }
 
-        ASSERT(hasLanes, "Missin \'lanes\' folder in resources directory");
-        ASSERT(hasMisc, "Missin \'misc\' folder in resources directory");
-        ASSERT(hasSfx, "Missin \'sfx\' folder in resources directory");
+        ASSERT(hasLanes, "Missing \'lanes\' folder in resources directory");
+        ASSERT(hasMisc, "Missing \'misc\' folder in resources directory");
+        ASSERT(hasSfx, "Missing \'sfx\' folder in resources directory");
 
         return installedNFS;
     }

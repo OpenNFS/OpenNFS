@@ -6,8 +6,11 @@ set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
+#[[Static linking broken under Mac OSX]]
+if(WIN32)
+    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
+endif()
 
-set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 #[[set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})]]
 
@@ -64,7 +67,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/)
-target_link_libraries(OpenNFS Boost::log_setup Boost::filesystem Boost::boost)
+target_link_libraries(OpenNFS Boost::filesystem Boost::boost)
 #[[Bullet Configuration]]
 #[[set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)]]
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)

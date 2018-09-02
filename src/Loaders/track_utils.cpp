@@ -20,7 +20,7 @@ namespace TrackUtils {
             // TODO: Use Filtering for Textures with no alpha component
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, texture.width, texture.height, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
         }
 
         return gl_id_map;
@@ -130,10 +130,6 @@ namespace TrackUtils {
                 tex_archive_path << full_track_path << "0.qfs";
                 break;
             case NFS_3_PS1:
-                psh_path.replace(psh_path.find("ZZ"), 2, "");
-                tex_archive_path << psh_path << "0.PSH";
-                break;
-            case NFS_4_PS1:
                 psh_path.replace(psh_path.find("ZZ"), 2, "");
                 tex_archive_path << psh_path << "0.PSH";
                 break;

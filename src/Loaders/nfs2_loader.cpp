@@ -1293,8 +1293,6 @@ NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &trac
             break;
         case NFS_3_PS1:
             break;
-        case NFS_4_PS1:
-            break;
         case UNKNOWN:
         default:
             ASSERT(false, "Trying to load texture from unknown NFS version");

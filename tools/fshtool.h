@@ -29,8 +29,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
 #include <string.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <sys/stat.h>
 
 /* Windows compatibility */
 #ifdef _WIN32

@@ -25,8 +25,10 @@
  
  ************************************************************************/
 
-#include <ctype.h>
 #include "fshtool.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpointer-sign"
 
 int inlen;
 unsigned char *inbuf;
@@ -1448,8 +1450,7 @@ int fsh_main(int argc, char **argv) {
     /* try to open the given file and determine its type from the first few bytes */
     f = fopen(argv[1], "rb");
     if (f == NULL) {
-        printf("Could not open: %s. %s\n", argv[1], strerror(errno));
-        //printf("Input file %s not found.\n",argv[1]);
+        printf("Could not open: %s. \n", argv[1]);
         abort();
     }
 
@@ -1611,3 +1612,5 @@ int fsh_main(int argc, char **argv) {
     printf("Conversion performed successfully.\n");
     return 1;
 }
+
+#pragma clang diagnostic pop

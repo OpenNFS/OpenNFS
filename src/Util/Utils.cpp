@@ -656,10 +656,8 @@ namespace Utils {
                     BITMAPFILEHEADER *file_header_a = (BITMAPFILEHEADER *) data_a;
                     if (file_header->bfType == MAKEWORD('B', 'M')) {
                         if (file_header->bfSize == (DWORD) size) {
-                            BITMAPINFO *info = (BITMAPINFO *) (data +
-                                                               sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
-                            BITMAPINFO *info_a = (BITMAPINFO *) (data_a +
-                                                                 sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
+                            BITMAPINFO *info = (BITMAPINFO *) (data + sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
+                            BITMAPINFO *info_a = (BITMAPINFO *) (data_a + sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
                             if (info->bmiHeader.biCompression == BI_RGB) {
                                 width = info->bmiHeader.biWidth;
                                 if (width > 0) {

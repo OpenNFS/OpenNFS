@@ -1,4 +1,4 @@
-#version 400 core
+#version 330 core
 
 // Interpolated values from the vertex shaders
 in vec2 envUV;
@@ -14,7 +14,7 @@ flat in uint polyFlag;
 out vec4 color;
 
 // Values that stay constant for the whole mesh.
-uniform sampler2D texture_array[32];
+uniform sampler2D texture_array[14];
 uniform sampler2D envMapTextureSampler;
 uniform sampler2D carTextureSampler;
 uniform vec4 lightColour;
@@ -42,24 +42,6 @@ void main(){
             case 11: carTexColor = texture(texture_array[11], UV).rgba; break;
             case 12: carTexColor = texture(texture_array[12], UV).rgba; break;
             case 13: carTexColor = texture(texture_array[13], UV).rgba; break;
-            case 14: carTexColor = texture(texture_array[14], UV).rgba; break;
-            case 15: carTexColor = texture(texture_array[15], UV).rgba; break;
-            case 16: carTexColor = texture(texture_array[16], UV).rgba; break;
-            case 17: carTexColor = texture(texture_array[17], UV).rgba; break;
-            case 18: carTexColor = texture(texture_array[18], UV).rgba; break;
-            case 19: carTexColor = texture(texture_array[19], UV).rgba; break;
-            case 20: carTexColor = texture(texture_array[20], UV).rgba; break;
-            case 21: carTexColor = texture(texture_array[21], UV).rgba; break;
-            case 22: carTexColor = texture(texture_array[22], UV).rgba; break;
-            case 23: carTexColor = texture(texture_array[23], UV).rgba; break;
-            case 24: carTexColor = texture(texture_array[24], UV).rgba; break;
-            case 25: carTexColor = texture(texture_array[25], UV).rgba; break;
-            case 26: carTexColor = texture(texture_array[26], UV).rgba; break;
-            case 27: carTexColor = texture(texture_array[27], UV).rgba; break;
-            case 28: carTexColor = texture(texture_array[28], UV).rgba; break;
-            case 29: carTexColor = texture(texture_array[29], UV).rgba; break;
-            case 30: carTexColor = texture(texture_array[30], UV).rgba; break;
-            case 31: carTexColor = texture(texture_array[31], UV).rgba; break;
             default: carTexColor = texture(texture_array[0],  UV).rgba; break;
         }
     }
@@ -93,7 +75,7 @@ void main(){
 	// RELEASE: Comment for LowSpec
 	// Apply NFS4 Polygon Flags
 	if(!polyFlagged) {
-	    if(((polyFlag << 28) >> 28) == 0xA){
+	    if(((polyFlag << 28) >> 28) == 0xAu){
 	        color.a = 0.5f;
 	    }
     }

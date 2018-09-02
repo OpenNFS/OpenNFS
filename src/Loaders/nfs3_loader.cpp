@@ -154,7 +154,7 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, const st
         TRKBLOCK *trackBlock = &(track->trk[block_Idx]);
         // ptCentre, ptBounding, 6 nVertices == 84 bytes
         if (block_Idx != 0) { SAFE_READ(ar, trackBlock, 84); }
-        if ((trackBlock->nVertices == 0)) return false;
+        if (trackBlock->nVertices == 0) return false;
         trackBlock->vert = new FLOATPT[trackBlock->nVertices];;
 
         SAFE_READ(ar, trackBlock->vert, 12 * trackBlock->nVertices);
