@@ -6,7 +6,7 @@ jobs:
       - image: ubuntu:14.04
     steps:
         # Ensure image has git
-      - run: apt-get -qq update; apt-get -y install git; apt-get install wget; apt-get -y install build-essential
+      - run: apt-get -qq update; apt-get -y install git; apt-get install wget; apt-get -y install build-essential; apt-get install openssl libssl-dev; apt-get install sed
       - checkout
       - run:
           name: "Pull Submodules"
@@ -21,7 +21,7 @@ jobs:
           command: 'apt-get update && apt-get install -y gcc g++'
       - run:
           name: Install CMAKE
-          command: 'wget http://www.cmake.org/files/v3.4/cmake-3.4.1.tar.gz && tar -xvzf cmake-3.4.1.tar.gz && cd cmake-3.4.1/ && ./configure && make && sudo make install && update-alternatives --install /usr/bin/cmake cmake /usr/local/bin/cmake 1 --force'
+          command: 'wget http://www.cmake.org/files/v3.4/cmake-3.4.1.tar.gz && tar -xvzf cmake-3.4.1.tar.gz && cd cmake-3.4.1/ && sed -i ''s/cmake_options=\"-DCMAKE_BOOTSTRAP=1\"/cmake_options=\"-DCMAKE_BOOTSTRAP=1 -DCMAKE_USE_OPENSSL=ON\"/g'' bootstrap && ./configure && make && sudo make install && update-alternatives --install /usr/bin/cmake cmake /usr/local/bin/cmake 1 --force'
       - run:
           name: Creating Build Files
           command:
@@ -29,3 +29,5 @@ jobs:
       - run:
           name: Creating Binary Files
           command: 'cd cmake-build-debug && cmake --build ./ --target OpenNFS -- -j 4'
+
+
