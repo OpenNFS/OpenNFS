@@ -11,11 +11,8 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif()
 
-#[[set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})]]
 
 set(SOURCE_FILES
-        #[[IMGUI]]
         include/imgui/imgui.cpp
         include/imgui/imgui.h
         include/imgui/imgui_demo.cpp
@@ -30,7 +27,6 @@ set(SOURCE_FILES
         include/imgui/examples/imgui_impl_opengl3.cpp
         include/imgui/examples/imgui_impl_opengl3.h
         resources/asset/icon.rc
-        # Source
         src/main.cpp
         src/Scene/Camera.cpp
         src/Scene/Model.cpp
