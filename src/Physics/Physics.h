@@ -86,9 +86,9 @@ public:
 
     void checkForFrustumIntersect();
     void updateFrustrum(glm::mat4 viewMatrix);
+    void destroyGhostObject();
     int numObjects = 0;
     btAlignedObjectArray<btCollisionObject*> m_objectsInFrustum;	// Frustum cull results
-
 private:
     shared_ptr<ONFSTrack> current_track;
     std::vector<std::shared_ptr<Car>> cars;
@@ -98,11 +98,9 @@ private:
     btCollisionDispatcher *dispatcher;
     btSequentialImpulseConstraintSolver *solver;
     btDiscreteDynamicsWorld *dynamicsWorld;
-
-    btCollisionShape* buildFrustumShape();
-    void buildGhostObject();
-    void destroyGhostObject();
-
+    // Frustum Culling
     btPairCachingGhostObject* m_ghostObject = nullptr;
     btOverlappingPairCallback*	m_ghostPairCallback = nullptr;
+    btCollisionShape* buildFrustumShape();
+    void buildGhostObject();
 };

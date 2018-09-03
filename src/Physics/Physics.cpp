@@ -151,6 +151,7 @@ void Physics::buildGhostObject() {
 
 void Physics::updateFrustrum(glm::mat4 viewMatrix) {
     if (m_ghostObject) m_ghostObject->setWorldTransform(Utils::glmToBullet(viewMatrix).inverse());
+    else buildGhostObject();
     checkForFrustumIntersect();
 }
 
@@ -188,7 +189,6 @@ void Physics::initSimulation() {
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
     dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
     dynamicsWorld->setDebugDrawer(&mydebugdrawer);
-    buildGhostObject();
 }
 
 void Physics::stepSimulation(float time) {

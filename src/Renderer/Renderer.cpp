@@ -99,6 +99,7 @@ AssetData Renderer::Render() {
                 }
             }
         } else {
+            physicsEngine.destroyGhostObject();
             activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, userParams.attach_cam_to_car ? car->car_body_model.position : mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
         }
 
