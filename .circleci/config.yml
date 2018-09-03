@@ -6,7 +6,7 @@ jobs:
       - image: ubuntu:14.04
     steps:
         # Ensure image has git
-      - run: apt-get -qq update; apt-get -y install git; apt-get install wget; apt-get -y install build-essential; apt-get -y install openssl libssl-dev; apt-get install sed; apt-get -y install freeglut3 freeglut3-dev
+      - run: apt-get -qq update; apt-get -y install git; apt-get install wget; apt-get -y install build-essential; apt-get -y install openssl libssl-dev; apt-get install sed; apt-get -y install freeglut3 freeglut3-dev; apt-get -y install xorg-dev libglu1-mesa-dev
       - checkout
       - run:
           name: "Pull Submodules"
