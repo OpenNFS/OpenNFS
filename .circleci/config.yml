@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: ubuntu:14.04
     steps:
-      # Ensure image has git
+        # Ensure image has git
       - run: apt-get -qq update; apt-get -y install git
       - checkout
       - run:
@@ -24,10 +24,8 @@ jobs:
           command: 'apt-get update && sudo apt-get install -y cmake'
       - run:
           name: Creating Build Files
-          command: |
-            mkdir cmake-build-debug
-            cd cmake-build-debug
-            cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" ../
+          command:
+            'mkdir cmake-build-debug && cd cmake-build-debug && cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" ../'
       - run:
           name: Creating Binary Files
-          command: 'cmake --build ./ --target OpenNFS -- -j 4'
+          command: 'cd cmake-build-debug && cmake --build ./ --target OpenNFS -- -j 4'
