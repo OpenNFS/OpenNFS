@@ -29,5 +29,7 @@ jobs:
       - run:
           name: Creating Binary Files
           command: 'cd cmake-build-debug && cmake --build ./ --target OpenNFS -- -j 4'
+      - store_artifacts:
+        path: /cmake-build-debug/
 
 
