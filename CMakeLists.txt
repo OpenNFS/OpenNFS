@@ -11,11 +11,14 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif()
 
+add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
+
 set(SOURCE_FILES
         include/imgui/imgui.cpp
         include/imgui/imgui.h
         include/imgui/imgui_demo.cpp
         include/imgui/imgui_draw.cpp
+        include/imgui/imgui_widgets.cpp
         include/imgui/imgui_internal.h
         include/imgui/imconfig.h
         include/imgui/stb_rect_pack.h
