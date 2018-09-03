@@ -5,6 +5,8 @@ jobs:
     docker:
       - image: ubuntu:14.04
     steps:
+      # Ensure image has git
+      - run: apt-get -qq update; apt-get -y install git
       - checkout
       - run:
           name: "Pull Submodules"
