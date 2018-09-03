@@ -11,7 +11,6 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif()
 
-
 set(SOURCE_FILES
         include/imgui/imgui.cpp
         include/imgui/imgui.h
@@ -78,6 +77,11 @@ add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3")
 TARGET_LINK_LIBRARIES(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
 #[[SDL Configuration]]
+# Support both 32 and 64 bit builds
+#[[set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sdl")
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+target_link_libraries(OpenNFS ${SDL2_LIBRARIES})]]
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")
@@ -88,6 +92,9 @@ find_package(OpenGL REQUIRED)
 include_directories( ${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[VULKAN]]
+#[[set(VULKAN_INCLUDE_DIR "C:/VulkanSDK/1.1.70.1/Include")
+include_directories(${VULKAN_INCLUDE_DIR})
+target_link_libraries(OpenNFS C:/VulkanSDK/1.1.70.1/Lib32/vulkan-1.lib)]]
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
