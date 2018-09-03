@@ -283,7 +283,7 @@ private:
                         currentNFS.cars.emplace_back("TRAFFIC/CHOPPERS/" + carItr->path().filename().string());
                 }
 
-                carBasePathStream = std::stringstream();
+                carBasePathStream.str(std::string());
                 carBasePathStream  << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/" << "PURSUIT/";
                 for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
