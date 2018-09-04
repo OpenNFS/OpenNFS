@@ -1,6 +1,8 @@
-# OpenNFS Linux
+# OpenNFS 
 
-Linux [![CircleCI](https://circleci.com/gh/AmrikSadhra/OpenNFS.svg?style=svg)](https://circleci.com/gh/AmrikSadhra/OpenNFS) Windows [![Build status](https://ci.appveyor.com/api/projects/status/87px0nmkxcfpatkd?svg=true)](https://ci.appveyor.com/project/AmrikSadhra/opennfs)
+#### Linux [![CircleCI](https://circleci.com/gh/AmrikSadhra/OpenNFS.svg?style=svg)](https://circleci.com/gh/AmrikSadhra/OpenNFS) 
+
+#### Windows [![Build status](https://ci.appveyor.com/api/projects/status/87px0nmkxcfpatkd?svg=true)](https://ci.appveyor.com/project/AmrikSadhra/opennfs)
 
 An attempt to recreate the classic Need for Speed Games (1-5), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
  
@@ -43,13 +45,17 @@ OpenNFS does not bundle any EA intellectual property. A copy of the original gam
 
 [View the latest stable feature releases Here](https://github.com/AmrikSadhra/OpenNFS/releases)
 
-For development builds on CI:
+### For development builds on CI:
 
-[Windows](https://ci.appveyor.com/project/AmrikSadhra/opennfs/build/artifacts)
+####[Windows](https://ci.appveyor.com/project/AmrikSadhra/opennfs/build/artifacts)
 
-[Linux](https://circleci.com/gh/AmrikSadhra/OpenNFS/tree/master) Visit the Latest Build -> Artifacts -> "project/cmake-build-debug/OpenNFS.exe"
+####[Linux](https://circleci.com/gh/AmrikSadhra/OpenNFS/tree/master) 
 
-Mac - No CI support currently as all Mac CI providers cost money :( Hold tight for official releases on the [Github Releases page](https://github.com/AmrikSadhra/OpenNFS/releases)
+Visit the Latest Build -> Artifacts -> "project/cmake-build-debug/OpenNFS.exe"
+
+####Mac 
+
+No CI support currently as all Mac CI providers cost money :( Hold tight for official releases on the [Github Releases page](https://github.com/AmrikSadhra/OpenNFS/releases)
 
 ## Trello Development Board
 
