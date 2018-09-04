@@ -54,7 +54,7 @@ void Camera::useSpline() {
     position = cameraSpline.getPointAt(tmod);
 
     // Look towards the position that is a few ms away
-    float tmodLookAt = tmod + 0.01;
+    float tmodLookAt = tmod + 0.01f;
     glm::vec3 lookAtPos  = cameraSpline.getPointAt(tmodLookAt);
     glm::vec3 direction = glm::normalize(lookAtPos  - position);
 
@@ -65,7 +65,7 @@ void Camera::useSpline() {
     glm::vec3 cn = position - lookAtPos;
     glm::vec3 tn = position;
     float newRoll = (atan2(cn.z, cn.x) - atan2(tn.z, tn.x));
-    newRoll += (newRoll > M_PI) ? - M_PI*2 : (newRoll < - M_PI) ? M_PI * 2 : 0;
+    newRoll += (newRoll > SIMD_PI) ? -SIMD_PI *2 : (newRoll < -SIMD_PI) ? SIMD_PI * 2 : 0;
     roll = roll  * 0.95f + (newRoll)*0.1f;
 
     // Create a new 'up' vector, based on the roll value
@@ -81,8 +81,8 @@ void Camera::useSpline() {
 
 void Camera::calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
     float theta =  (target_car->getRotY() +  angleAroundCar) - 180;
-    float offsetX = horizDistance * sin(theta * (SIMD_PI / 180.0f));
-    float offsetZ = horizDistance * cos(theta * (SIMD_PI / 180.0f));
+    float offsetX = horizDistance * sin(glm::radians(theta));
+    float offsetZ = horizDistance * cos(glm::radians(theta));
     position.x = target_car->car_body_model.position.x - offsetX;
     position.z = target_car->car_body_model.position.z - offsetZ;
     position.y = target_car->car_body_model.position.y + vertDistance;
@@ -161,9 +161,6 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
     // Compute time difference between current and last frame
     double currentTime = glfwGetTime();
     deltaTime = float(currentTime - lastTime);
-
-    // Get mouse position
-    double xpos, ypos;
 
     // Get mouse position and compute new orientation with it
     horizontalAngle += mouseSpeed * (1024 / 2 - io.MousePos.x);

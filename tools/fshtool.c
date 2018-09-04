@@ -48,7 +48,7 @@ void usage() {
     printf("SEE THE FILE README.TXT FOR MORE DETAILED INSTRUCTIONS\n\n");
 }
 
-void abort() {
+void abandon_ship() {
     printf("\nUnsuccessful termination. See README.TXT for more details.\n");
     exit(0);
 }
@@ -59,22 +59,22 @@ void sanity_check() /* make sure we haven't used a braindead compiler */
 
     if (sizeof(int) != 4) {
         printf("Problem: int is not 32-bit\n");
-        abort();
+        abandon_ship();
     }
     if (sizeof(short) != 2) {
         printf("Problem: short is not 16-bit\n");
-        abort();
+        abandon_ship();
     }
     if ((sizeof(struct BMPHEAD) != 52) || (sizeof(struct FSH_HDR) != 16) ||
         (sizeof(struct BMPDIR) != 8) || (sizeof(struct ENTRYHDR) != 16)) {
         printf("Problem: structs are not correctly packed\n");
-        abort();
+        abandon_ship();
     }
     x = 0;
     *((char *) (&x)) = 1;
     if (x != 1) {
         printf("Problem: incorrect endianness on this architecture\n");
-        abort();
+        abandon_ship();
     }
 }
 
@@ -146,7 +146,7 @@ unsigned char *uncompress_data(unsigned char *inbuf, int *buflen) {
     outbuf = malloc(outlen);
     if (outbuf == NULL) {
         printf("Insufficient memory.\n");
-        abort();
+        abandon_ship();
     }
 
     /* position in file */
@@ -231,7 +231,7 @@ void compress_data(unsigned char *inbuf, int *buflen, unsigned char *outbuf) {
     if ((outbuf == NULL) || (rev_similar == NULL) ||
         (rev_last == NULL) || (rev_last[0] == NULL)) {
         printf("Insufficient memory.\n");
-        abort();
+        abandon_ship();
     }
     for (i = 1; i < 256; i++) rev_last[i] = rev_last[i - 1] + 256;
     memset(rev_last[0], 0xff, 65536 * 4);
@@ -331,7 +331,7 @@ void compress_data(unsigned char *inbuf, int *buflen, unsigned char *outbuf) {
 
     if (lastwrot != inlen) {
         printf("Something strange happened at the end of compression!\n");
-        abort();
+        abandon_ship();
     }
     *buflen = outpos;
 }
@@ -370,7 +370,7 @@ void makepal(unsigned char *pos, int *len, int *pal) {
         memcpy(pal, ptr, 4 * (*len));
     } else {
         printf("Unknown palette format.\n");
-        abort();
+        abandon_ship();
     }
 }
 
@@ -394,7 +394,7 @@ void fsh_to_bmp(char *fshname) {
     log = fopen("index.fsh", "wt");
     if (log == NULL) {
         printf("Unable to create index.fsh\n");
-        abort();
+        abandon_ship();
     }
     fprintf(log, "FSHTool generated file -- be very careful when editing\n");
     fprintf(log, "%s\n", fshname);
@@ -471,7 +471,7 @@ void fsh_to_bmp(char *fshname) {
                 auxoffs += (auxhdr->code >> 8);
                 if (auxoffs > nxoffs) {
                     printf("ERROR: incorrect attachment structure !\n");
-                    abort();
+                    abandon_ship();
                 }
                 if (auxoffs == nxoffs) break;
                 auxhdr = (struct ENTRYHDR *) (inbuf + auxoffs);
@@ -554,7 +554,7 @@ void fsh_to_bmp(char *fshname) {
                 bmp = fopen(pad, "wb");
                 if (bmp == NULL) {
                     printf("Unable to create file.\n");
-                    abort();
+                    abandon_ship();
                 }
 
                 /* prepare a BMP header */
@@ -580,7 +580,7 @@ void fsh_to_bmp(char *fshname) {
                     alpha = fopen(pad, "wb");
                     if (alpha == NULL) {
                         printf("Unable to create file.\n");
-                        abort();
+                        abandon_ship();
                     }
                     fputc('B', alpha);
                     fputc('M', alpha);
@@ -796,7 +796,7 @@ void fsh_to_bmp(char *fshname) {
                     if (j == 0) j = nxoffs - auxoffs;
                     if (j > 16384) {
                         printf("Attached data too large !\n");
-                        abort();
+                        abandon_ship();
                     }
                     fprintf(log, "BIN %02X %d\n", auxhdr->code & 0xff, j);
                     hexify(inbuf + auxoffs, j, pad);
@@ -837,7 +837,7 @@ void fsh_to_bmp(char *fshname) {
             bmp = fopen(pad, "wb");
             if (bmp == NULL) {
                 printf("Unable to create file.\n");
-                abort();
+                abandon_ship();
             }
             fwrite(inbuf + curoffs, 1, nxoffs - curoffs, bmp);
             fclose(bmp);
@@ -856,7 +856,7 @@ char *next_lf(char *p) {
     }
     if (*p == 0) {
         printf("Truncated INDEX.FSH\n");
-        abort();
+        abandon_ship();
     }
     *p = 0;
     p++;
@@ -866,12 +866,12 @@ char *next_lf(char *p) {
 
 void idxerr() {
     printf("Format error in INDEX.FSH near line %d\n", linecount);
-    abort();
+    abandon_ship();
 }
 
 void outmem() {
     printf("FSH data buffer full. Increase BUFSZ parameter in INDEX.FSH\n");
-    abort();
+    abandon_ship();
 }
 
 void map_file(char *name, unsigned char **ptr, int *size) {
@@ -879,7 +879,7 @@ void map_file(char *name, unsigned char **ptr, int *size) {
     f = fopen(name, "rb");
     if (f == NULL) {
         printf("Cannot open file '%s'\n", name);
-        abort();
+        abandon_ship();
     }
     fseek(f, 0, SEEK_END);
     *size = ftell(f);
@@ -887,11 +887,11 @@ void map_file(char *name, unsigned char **ptr, int *size) {
     *ptr = malloc(*size);
     if (*ptr == NULL) {
         printf("Out of memory.\n");
-        abort();
+        abandon_ship();
     }
     if (fread(*ptr, 1, *size, f) != (size_t) *size) {
         printf("File read error.\n");
-        abort();
+        abandon_ship();
     }
     fclose(f);
 }
@@ -909,17 +909,17 @@ void bmp_get_file(char *bmpname, unsigned char code, int width, int height,
     map_file(bmpname, &bmp, &bmpsz);
     if ((bmp[0] != 'B') || (bmp[1] != 'M')) {
         printf("Not a BMP file !\n");
-        abort();
+        abandon_ship();
     }
     bmphdr = (struct BMPHEAD *) (bmp + 2);
     if ((bmphdr->planes != 1) || (bmphdr->compr)) {
         printf("Unsupported BMP format !\n");
-        abort();
+        abandon_ship();
     }
     if ((bmphdr->wid != width) || (bmphdr->hei != height)) {
         printf("Incorrect geometry (%dx%d instead of %dx%d)\n",
                bmphdr->wid, bmphdr->hei, width, height);
-        abort();
+        abandon_ship();
     }
     pix = bmp + bmphdr->ofsbmp;
 
@@ -929,7 +929,7 @@ void bmp_get_file(char *bmpname, unsigned char code, int width, int height,
         *datalen = width * height;
         if (bmphdr->bpp != 8) {
             printf("Not a 8-bit BMP !\n");
-            abort();
+            abandon_ship();
         }
         bmpw = width;
         while (bmpw & 3) bmpw++;
@@ -939,7 +939,7 @@ void bmp_get_file(char *bmpname, unsigned char code, int width, int height,
     } else {
         if (bmphdr->bpp != 24) {
             printf("Not a 24-bit BMP !\n");
-            abort();
+            abandon_ship();
         }
         bmpw = 3 * width;
         while (bmpw & 3) bmpw++;
@@ -992,7 +992,7 @@ void bmp_get_file(char *bmpname, unsigned char code, int width, int height,
             }
         } else {
             printf("Unknown FSH bitmap code !\n");
-            abort();
+            abandon_ship();
         }
     }
     free(bmp);
@@ -1009,21 +1009,21 @@ void bmp_get_alpha(char *bmpname, unsigned char code, int width, int height,
     map_file(bmpname, &bmp, &bmpsz);
     if ((bmp[0] != 'B') || (bmp[1] != 'M')) {
         printf("Not a BMP file !\n");
-        abort();
+        abandon_ship();
     }
     bmphdr = (struct BMPHEAD *) (bmp + 2);
     if ((bmphdr->planes != 1) || (bmphdr->compr)) {
         printf("Unsupported BMP format !\n");
-        abort();
+        abandon_ship();
     }
     if ((bmphdr->wid != width) || (bmphdr->hei != height)) {
         printf("Incorrect geometry (%dx%d instead of %dx%d)\n",
                bmphdr->wid, bmphdr->hei, width, height);
-        abort();
+        abandon_ship();
     }
     if (bmphdr->bpp != 8) {
         printf("Alpha channel is not a 8-bit BMP !\n");
-        abort();
+        abandon_ship();
     }
 
     pix = bmp + bmphdr->ofsbmp;
@@ -1063,7 +1063,7 @@ void bmp_get_alpha(char *bmpname, unsigned char code, int width, int height,
         }
     } else {
         printf("Unknown FSH data type.\n");
-        abort();
+        abandon_ship();
     }
 
     free(bmp);
@@ -1116,7 +1116,7 @@ int make_nfs_pal(int code, int len, unsigned char *dest, unsigned int *src) {
         return 4 * len;
     }
     printf("Unknown palette type.\n");
-    abort();
+    abandon_ship();
 }
 
 
@@ -1167,7 +1167,7 @@ unsigned char *bmp_to_fsh() {
     outbuf = (unsigned char *) malloc(allocsz);
     if (outbuf == NULL) {
         printf("Out of memory.\n");
-        abort();
+        abandon_ship();
     }
     fshhdr = (struct FSH_HDR *) outbuf;
     memcpy(fshhdr, &tmphdr, 16);
@@ -1436,7 +1436,9 @@ int fsh_main(int argc, char **argv) {
     FILE *f;
     char *outfn, *p;
     unsigned char *tmpbuf;
-    int i, j, choice;
+	int i = 0;
+	int j = 0; 
+	int choice = 0;
 
     printf("===========================================================================\n");
     printf("FSHTOOL version 1.00 - (c) Denis Auroux 2000 - auroux@math.polytechnique.fr\n");
@@ -1444,14 +1446,14 @@ int fsh_main(int argc, char **argv) {
     sanity_check();
     if (argc == 1) {
         usage();
-        abort();
+        abandon_ship();
     }
 
     /* try to open the given file and determine its type from the first few bytes */
     f = fopen(argv[1], "rb");
     if (f == NULL) {
         printf("Could not open: %s. \n", argv[1]);
-        abort();
+        abandon_ship();
     }
 
     fseek(f, 0, SEEK_END);
@@ -1459,16 +1461,16 @@ int fsh_main(int argc, char **argv) {
     rewind(f);
     if (inlen < 4) {
         printf("Truncated file ?\n");
-        abort();
+        abandon_ship();
     }
     inbuf = malloc(inlen + 2048); /* safety margin */
     if (inbuf == NULL) {
         printf("Insufficient memory.\n");
-        abort();
+        abandon_ship();
     }
     if (fread(inbuf, 1, inlen, f) != (size_t) inlen) {
         printf("File read error.\n");
-        abort();
+        abandon_ship();
     }
     fclose(f);
 
@@ -1495,7 +1497,7 @@ int fsh_main(int argc, char **argv) {
             if (outfn[i] != '.') {
                 printf("Don't know how to derive a directory name from '%s'\n", outfn);
                 printf("Please specify a second command-line argument.\n");
-                abort();
+                abandon_ship();
             }
             outfn[i] = 0;
         }
@@ -1513,7 +1515,7 @@ int fsh_main(int argc, char **argv) {
             choice = getchar();
             if ((choice != '1') && (choice != '2')) {
                 printf("Aborting.\n");
-                abort();
+                abandon_ship();
             }
             if (choice == '2') {
                 printf("Deriving alternate directory names...\n");
@@ -1532,12 +1534,12 @@ int fsh_main(int argc, char **argv) {
             printf("\nCould not create any of the derived directories.\n");
             printf("Target path might be located on a read-only disk.\n");
             if (argv[2] == NULL) printf("Please specify a second command-line argument.\n");
-            abort();
+            abandon_ship();
         }
         printf("Unpacking to directory %s\n", outfn);
         if (chdir(outfn) != 0) {
             printf("Unable to access directory.\n");
-            abort();
+            abandon_ship();
         }
 
         fsh_to_bmp(argv[1]);
@@ -1550,7 +1552,7 @@ int fsh_main(int argc, char **argv) {
             f = fopen(argv[2], "wb");
             if (f == NULL) {
                 printf("Unable to create file.\n");
-                abort();
+                abandon_ship();
             }
         }
 
@@ -1561,7 +1563,7 @@ int fsh_main(int argc, char **argv) {
         if (*outfn)
             if (chdir(outfn) != 0) {
                 printf("Unable to access directory.\n");
-                abort();
+                abandon_ship();
             }
         free(outfn);
 
@@ -1593,19 +1595,19 @@ int fsh_main(int argc, char **argv) {
                 f = fopen(p, "wb");
                 if (f == NULL) {
                     printf("Cannot create output file.\n");
-                    abort();
+                    abandon_ship();
                 }
             }
         }
 
         if (fwrite(inbuf, 1, fshlen, f) != (size_t) fshlen) {
             printf("File write error ?\n");
-            abort();
+            abandon_ship();
         }
         fclose(f);
     } else {
         printf("Unknown file format.\n");
-        abort();
+        abandon_ship();
     }
 
     fclose(f);

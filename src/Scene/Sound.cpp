@@ -24,9 +24,12 @@ Sound::Sound(glm::vec3 sound_position, uint32_t sound_type) : super("Sound", std
 
     m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
     m_vertices.clear();
+	// Unindex data and Fill unused normal buffer
     for (unsigned int m_vertex_index : m_vertex_indices) {
         m_vertices.push_back(verts[m_vertex_index]);
+		m_normals.push_back(glm::vec3(0, 0, 0));
     }
+
     position= sound_position;
     type = sound_type;
 
@@ -52,7 +55,7 @@ void Sound::destroy() {
 void Sound::render() {
     if (enabled){
         glBindVertexArray(VertexArrayID);
-        glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+        glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
         glBindVertexArray(0);
     }
 }

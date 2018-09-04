@@ -36,7 +36,14 @@ namespace TrackUtils {
             ordered_mapping[texture_ids[t]] = t;
         }
         for (auto &texture_index : texture_indices) {
-            texture_index = static_cast<unsigned int>(ordered_mapping.find(texture_index)->second);
+			auto temp = ordered_mapping.find(texture_index);
+			if (temp != ordered_mapping.end()) {
+				texture_index = temp->second;
+			} else
+			{
+				// TODO: This should _never_ happen, and MSVC says it does, throwing map/set not derefencable.
+				texture_index = ordered_mapping.begin()->second;
+			}
         }
         return texture_ids;
     }
@@ -45,71 +52,71 @@ namespace TrackUtils {
         // Use Data from NFSHS NFS3 Tracks TR.INI
         switch (light_type) {
             case 0:
-                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00f);
             case 1:
-                return Light(light_position, glm::vec4(185, 255, 255, 255), light_type, 0, 0, 0, 4.50);
+                return Light(light_position, glm::vec4(185, 255, 255, 255), light_type, 0, 0, 0, 4.50f);
             case 2:
-                return Light(light_position, glm::vec4(255, 255, 255, 210), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 255, 255, 210), light_type, 0, 0, 0, 5.00f);
             case 3:
-                return Light(light_position, glm::vec4(255, 128, 229, 240), light_type, 0, 0, 0, 4.50);
+                return Light(light_position, glm::vec4(255, 128, 229, 240), light_type, 0, 0, 0, 4.50f);
             case 4:
-                return Light(light_position, glm::vec4(255, 217, 196, 94), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 217, 196, 94), light_type, 0, 0, 0, 5.00f);
             case 5:
-                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 6, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 6, 0, 5.00f);
             case 6:
-                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 5, 27, 5.00);
+                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 5, 27, 5.00f);
             case 7:
-                return Light(light_position, glm::vec4(255, 255, 0, 0), light_type, 1, 6, 0, 3.13);
+                return Light(light_position, glm::vec4(255, 255, 0, 0), light_type, 1, 6, 0, 3.13f);
             case 8:
-                return Light(light_position, glm::vec4(255, 163, 177, 190), light_type, 0, 0, 0, 3.75);
+                return Light(light_position, glm::vec4(255, 163, 177, 190), light_type, 0, 0, 0, 3.75f);
             case 9:
-                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 0, 0, 0, 3.13);
+                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 0, 0, 0, 3.13f);
             case 10:
-                return Light(light_position, glm::vec4(186, 223, 22, 22), light_type, 0, 0, 0, 2.50);
+                return Light(light_position, glm::vec4(186, 223, 22, 22), light_type, 0, 0, 0, 2.50f);
             case 11:
-                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 0, 0, 0, 2.50);
+                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 0, 0, 0, 2.50f);
             case 12:
-                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 1, 6, 0, 3.13);
+                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 1, 6, 0, 3.13f);
             case 13:
-                return Light(light_position, glm::vec4(255, 224, 224, 39), light_type, 0, 0, 0, 3.75);
+                return Light(light_position, glm::vec4(255, 224, 224, 39), light_type, 0, 0, 0, 3.75f);
             case 14:
-                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00f);
             case 15:
-                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00f);
             case 16:
-                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00f);
             case 17:
-                return Light(light_position, glm::vec4(185, 255, 255, 255), light_type, 0, 0, 0, 4.50);
+                return Light(light_position, glm::vec4(185, 255, 255, 255), light_type, 0, 0, 0, 4.50f);
             case 18:
-                return Light(light_position, glm::vec4(255, 255, 255, 210), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 255, 255, 210), light_type, 0, 0, 0, 5.00f);
             case 19:
-                return Light(light_position, glm::vec4(255, 128, 229, 240), light_type, 0, 0, 0, 4.50);
+                return Light(light_position, glm::vec4(255, 128, 229, 240), light_type, 0, 0, 0, 4.50f);
             case 20:
-                return Light(light_position, glm::vec4(255, 217, 196, 94), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 217, 196, 94), light_type, 0, 0, 0, 5.00f);
             case 21:
-                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 6, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 6, 0, 5.00f);
             case 22:
-                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 5, 27, 5.00);
+                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 1, 5, 27, 5.00f);
             case 23:
-                return Light(light_position, glm::vec4(255, 255, 0, 0), light_type, 1, 6, 0, 3.13);
+                return Light(light_position, glm::vec4(255, 255, 0, 0), light_type, 1, 6, 0, 3.13f);
             case 24:
-                return Light(light_position, glm::vec4(255, 163, 177, 190), light_type, 0, 0, 0, 3.75);
+                return Light(light_position, glm::vec4(255, 163, 177, 190), light_type, 0, 0, 0, 3.75f);
             case 25:
-                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 0, 0, 0, 3.13);
+                return Light(light_position, glm::vec4(255, 223, 22, 22), light_type, 0, 0, 0, 3.13f);
             case 26:
-                return Light(light_position, glm::vec4(186, 223, 22, 22), light_type, 0, 0, 0, 2.50);
+                return Light(light_position, glm::vec4(186, 223, 22, 22), light_type, 0, 0, 0, 2.50f);
             case 27:
-                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 0, 0, 0, 2.50);
+                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 0, 0, 0, 2.50f);
             case 28:
-                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 1, 6, 0, 3.13);
+                return Light(light_position, glm::vec4(255, 30, 149, 227), light_type, 1, 6, 0, 3.13f);
             case 29:
-                return Light(light_position, glm::vec4(255, 224, 224, 39), light_type, 0, 0, 0, 3.75);
+                return Light(light_position, glm::vec4(255, 224, 224, 39), light_type, 0, 0, 0, 3.75f);
             case 30:
-                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00f);
             case 31:
-                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 222, 234, 235), light_type, 0, 0, 0, 5.00f);
             default:
-                return Light(light_position, glm::vec4(255, 255, 255, 255), light_type, 0, 0, 0, 5.00);
+                return Light(light_position, glm::vec4(255, 255, 255, 255), light_type, 0, 0, 0, 5.00f);
         }
     }
 
@@ -178,13 +185,13 @@ namespace TrackUtils {
             if (rgb_string[char_Idx] == ',') {
                 switch (commaCount) {
                     case 0:
-                        rgbValue.x = stoi(tempComponent.str());
+                        rgbValue.x = (float) stoi(tempComponent.str());
                         break;
                     case 1:
-                        rgbValue.y = stoi(tempComponent.str());
+                        rgbValue.y = (float) stoi(tempComponent.str());
                         break;
                     case 2:
-                        rgbValue.z = stoi(tempComponent.str());
+                        rgbValue.z = (float) stoi(tempComponent.str());
                         break;
                 }
                 tempComponent.str("");

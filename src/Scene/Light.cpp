@@ -26,9 +26,12 @@ Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, i
 
     m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
     m_vertices.clear();
+	// Unindex data and Fill unused normal buffer
     for (unsigned int m_vertex_index : m_vertex_indices) {
         m_vertices.push_back(verts[m_vertex_index]);
+		m_normals.push_back(glm::vec3(0, 0, 0));
     }
+	
     position= light_position;
     type = light_type;
     colour = glm::vec4(light_colour.y/255.0f, light_colour.z/255.0f, light_colour.w/255.0f, light_colour.x/255.0f);
@@ -61,7 +64,7 @@ void Light::destroy() {
 void Light::render() {
     if (enabled){
         glBindVertexArray(VertexArrayID);
-        glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+        glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
         glBindVertexArray(0);
     }
 }

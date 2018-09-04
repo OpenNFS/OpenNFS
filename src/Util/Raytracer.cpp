@@ -9,7 +9,7 @@ Raytracer::Raytracer(float rho, float theta, int nBlocks, TRKBLOCK *trk, POLYGON
     int startbl = 0;
     int endbl = nBlocks;
 
-    for (int curBlock = startbl; curBlock < endbl; curBlock++) //Shadow raytracing for selected Blocks
+    for (int32_t curBlock = startbl; curBlock < endbl; curBlock++) //Shadow raytracing for selected Blocks
     {
         std::cout << "RayTracing Shadows (Block  " << curBlock << ")" << "... (" << curBlock - startbl << " of " << endbl - startbl << " Blocks)" << std::endl;
         BlockShadingFixer(curBlock, theta, rho, trk, poly, xobj);
@@ -75,8 +75,8 @@ FLOATPT VertexNormal(int blk, int VertexIndex, TRKBLOCK *trk, POLYGONBLOCK *poly
     v = trk[blk].vert;
     p = poly[blk].poly[4];
     int num = poly[blk].sz[4];
-    for (int j = 0; j < num; j++, p++) {
-        for (int k = 0; k < 4; k++) {
+    for (int32_t j = 0; j < num; j++, p++) {
+        for (uint32_t k = 0; k < 4; k++) {
             if (p->vertex[k] == VertexIndex) {
                 a = v[p->vertex[0]];
                 b = v[p->vertex[1]];
@@ -197,7 +197,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
         for (k = 0; k < 4; k++) {
 
             //bool tested = new bool[t->nVertices];
-            /*for (int temp=0; temp>trk[blk].nVertices; temp++)
+            /*for (uint32_t temp=0; temp>trk[blk].nVertices; temp++)
                 tested[temp]=false;*/
 
             assert (p2->vertex[k] >= 0 && p2->vertex[k] < t->nVertices);
@@ -505,10 +505,10 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                 //Blue Polygons End.
                 //Xtra Object Start
 
-                for (int XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
+                for (uint32_t XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
                     FLOATPT *vert_array = xobj[blk2].obj[XObjCounter].vert;
                     if (xobj[blk2].obj[XObjCounter].crosstype != 6) {
-                        for (int XObjPoly = 0; XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++) {
+                        for (uint32_t XObjPoly = 0; XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++) {
 
                             POLYGONDATA &quad = xobj[blk2].obj[XObjCounter].polyData[XObjPoly];
                             FLOATPT &ref_point = xobj[blk2].obj[XObjCounter].ptRef;
@@ -748,7 +748,7 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                 for (k = 0; k < 4; k++) {
 
                     //bool tested = new bool[t->nVertices];
-                    /*for (int temp=0; temp>trk[blk].nVertices; temp++)
+                    /*for (uint32_t temp=0; temp>trk[blk].nVertices; temp++)
                         tested[temp]=false;*/
 
                     assert (p2->vertex[k] >= 0 && p2->vertex[k] < t->nVertices);
@@ -1076,10 +1076,10 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                         //Blue Polygons End.
                         //Xtra Object Start
                         //if (result=!1) {
-                        for (int XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
+                        for (uint32_t XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
                             FLOATPT *vert_array = xobj[blk2].obj[XObjCounter].vert;
                             if (xobj[blk2].obj[XObjCounter].crosstype != 6) {
-                                for (int XObjPoly = 0;
+                                for (uint32_t XObjPoly = 0;
                                      XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++) {
 
                                     POLYGONDATA &quad = xobj[blk2].obj[XObjCounter].polyData[XObjPoly];

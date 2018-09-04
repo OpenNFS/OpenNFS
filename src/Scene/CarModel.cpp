@@ -110,7 +110,7 @@ void CarModel::destroy() {
 void CarModel::render() {
     if (enabled){
         glBindVertexArray(VertexArrayID);
-        glDrawArrays(GL_TRIANGLES, 0, m_vertices.size());
+        glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
         glBindVertexArray(0);
     }
 }

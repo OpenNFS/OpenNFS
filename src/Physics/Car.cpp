@@ -386,7 +386,7 @@ void Car::writeObj(const std::string &path) {
     obj_dump.close();
 }
 
-double Car::getRotY() {
+float Car::getRotY() {
     glm::quat orientation = car_body_model.orientation;
-    return atan2(2*orientation.y*orientation.w - 2*orientation.x*orientation.z, 1 - 2*orientation.y*orientation.y - 2*orientation.z*orientation.z)* (180 / M_PI);
+    return glm::degrees(atan2(2*orientation.y*orientation.w - 2*orientation.x*orientation.z, 1 - 2*orientation.y*orientation.y - 2*orientation.z*orientation.z));
 }

@@ -51,7 +51,7 @@ public:
     bool isMultitextured() {return multitexturedCarModel; }
     bool hasPolyFlags() {return car_body_model.hasPolyFlags; }
 
-    double getRotY();
+    float getRotY();
 
     // Meshes
     std::vector<CarModel> misc_models;

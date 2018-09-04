@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <direct.h>
 #include <ctype.h>
 #include <sys/stat.h>
 
@@ -73,7 +73,7 @@ typedef struct ENTRYHDR {
 
 void usage();
 
-void abort();
+void abandon_ship();
 void sanity_check() ;
 
 void mmemcpy(char *dest,char *src,int len);

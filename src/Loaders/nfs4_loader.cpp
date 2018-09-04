@@ -214,10 +214,10 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
     fce.read((char *) fceHeader, sizeof(FCE::NFS4::HEADER));
 
 
-    for (int part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
-        float specularDamper = 0.2;
-        float specularReflectivity = 0.02;
-        float envReflectivity = 0.4;
+    for (uint32_t part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
+        float specularDamper = 0.2f;
+        float specularReflectivity = 0.02f;
+        float envReflectivity = 0.4f;
 
         std::vector<uint32_t> indices;
         std::vector<uint32_t> polygonFlags;
@@ -234,19 +234,19 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
 
         fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->vertTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
-        for (int vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
+        for (uint32_t vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
             vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x/10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
         }
 
         fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->normTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
-        for (int normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
+        for (uint32_t normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
             normals.emplace_back(glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
         }
 
         fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
-        for (int tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
+        for (uint32_t tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
             polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
             polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
             polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
@@ -323,7 +323,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     track->col.vroad = new COLVROAD[track->nBlocks * 8]();
     track->col.hs_extra = new uint32_t[7 * nPos];
 
-    for (int i = 0; i < nPos; i++) {
+    for (uint32_t i = 0; i < nPos; i++) {
         COLVROAD vr = track->col.vroad[i];
         HS_VROADBLOCK vroadblk;
         ar.read((char *) &vroadblk, 84);
@@ -358,14 +358,14 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     }
 
     // TRKBLOCKs
-    for (int block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
+    for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
         TRKBLOCK *b = &(track->trk[block_Idx]);
         POLYGONBLOCK *p = &(track->poly[block_Idx]);
         // 7 track polygon numbers
         ar.read((char *) p->sz, 28);
         memcpy(p->szdup, p->sz, 28);
         // 4 object polygon numbers
-        for (int j = 0; j < 4; j++) {
+        for (uint32_t j = 0; j < 4; j++) {
             ar.read((char *) &(p->obj[j].n1), 4);
         }
         // pointer space
@@ -384,7 +384,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         // nbdData
         ar.read((char *) b->nbdData, 4 * 0x12C);
         // xobj numbers
-        for (int j = 4 * block_Idx; j < 4 * block_Idx + 4; j++) {
+        for (uint32_t j = 4 * block_Idx; j < 4 * block_Idx + 4; j++) {
             ar.read((char *) &(track->xobj[j].nobj), 4);
             ar.read((char *) ptrspace, 4);
         }
@@ -412,7 +412,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     }
 
     // TRKBLOCKDATA
-    for (int block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
+    for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++) {
         TRKBLOCK *b = &(track->trk[block_Idx]);
         POLYGONBLOCK *p = &(track->poly[block_Idx]);
         // vertices
@@ -424,11 +424,11 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         b->polyData = new POLYVROADDATA[b->nPolygons]();
         b->vroadData = new VROADDATA[b->nPolygons]();
 
-        for (int j = 0; j < b->nPolygons; j++) {
+        for (uint32_t j = 0; j < b->nPolygons; j++) {
             b->polyData[j].vroadEntry = j;
             b->polyData[j].flags = 0xE; // not passable
         }
-        for (int j = 0; j < b->nVRoad; j++) {
+        for (uint32_t j = 0; j < b->nVRoad; j++) {
             ar.read((char *) ptrspace, 10);
             int k = 0;
             ar.read((char *) &k, 2);
@@ -466,13 +466,13 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         }
 
         // track polygons
-        for (int j = 0; j < 7; j++)
+        for (uint32_t j = 0; j < 7; j++)
             if (p->sz[j] != 0) {
                 p->poly[j] = new POLYGONDATA[p->sz[j]]();
-                for (int k = 0; k < p->sz[j]; k++) {
+                for (uint32_t k = 0; k < p->sz[j]; k++) {
                     POLYGONDATA tmppoly;
                     ar.read((char *) &tmppoly, 13);
-                    for (int m = 0; m < 4; m++) p->poly[j][k].vertex[m] = tmppoly.vertex[m ^ 1];
+                    for (uint32_t m = 0; m < 4; m++) p->poly[j][k].vertex[m] = tmppoly.vertex[m ^ 1];
                     memcpy(&(p->poly[j][k].texture), &(tmppoly.texture), 5);
                     p->poly[j][k].unknown2 = 0xF9; //Nappe1: fixed for correct animation reading... (originally 0xF9)
                 }
@@ -482,7 +482,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         b->posData = new POSITIONDATA[b->nPositions]();
         uint32_t k = 0;
         LPPOLYGONDATA pp = p->poly[4];
-        for (int j = 0; j < b->nPositions; j++) {
+        for (uint32_t j = 0; j < b->nPositions; j++) {
             b->posData[j].polygon = k;
             b->posData[j].unknown = 0;
             b->posData[j].extraNeighbor1 = -1;
@@ -504,7 +504,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         }
 
         // still vroadData is missing for unpassable polygons
-        for (int j = 0; j < b->nPolygons; j++) {
+        for (uint32_t j = 0; j < b->nPolygons; j++) {
             if (b->polyData[j].flags == 0xE) {
                 FLOATPT v1, v2, norm;
                 VROADDATA *v = b->vroadData + j;
@@ -534,14 +534,14 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         // POLYGONBLOCK OBJECTS
         OBJPOLYBLOCK *o = p->obj;
         unsigned char *belong = (unsigned char *) malloc(b->nObjectVert);
-        for (int j = 0; j < 4; j++, o++) {
+        for (uint32_t j = 0; j < 4; j++, o++) {
             if (o->n1 > 0) {
                 memset(belong, 0xFF, b->nObjectVert);
                 pp = (LPPOLYGONDATA) malloc(14 * o->n1);
                 for (k = 0; k < o->n1; k++) {
                     POLYGONDATA tmppoly;
                     ar.read((char *) &tmppoly, 13);
-                    for (int m = 0; m < 4; m++) pp[k].vertex[m] = tmppoly.vertex[m ^ 1];
+                    for (uint32_t m = 0; m < 4; m++) pp[k].vertex[m] = tmppoly.vertex[m ^ 1];
                     memcpy(&(pp[k].texture), &(tmppoly.texture), 5);
                     pp[k].unknown2 = 0xFF; // will temporarily store object's #
                     //Nappe1: Destroys AnimData??! ah... it sets it to 0xF9 later... fixing There...
@@ -553,7 +553,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
                     while (pp[k].unknown2 != 0xFF) k++;
                     pp[k].unknown2 = (unsigned char) o->nobj;
                     remn--;
-                    for (int l = 0; l < 4; l++) belong[pp[k].vertex[l]] = (unsigned char) o->nobj;
+                    for (uint32_t l = 0; l < 4; l++) belong[pp[k].vertex[l]] = (unsigned char) o->nobj;
                     int m;
                     int l;
                     do {
@@ -577,7 +577,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
                 o->types = new uint32_t[o->n2];
                 o->numpoly = new uint32_t[o->nobj];
                 o->poly = new LPPOLYGONDATA[4 * o->nobj];
-                for (int l = 0; l < o->nobj; l++) {
+                for (uint32_t l = 0; l < o->nobj; l++) {
                     remn = 0;
                     for (k = 0; k < o->n1; k++) if (pp[k].unknown2 == l) remn++;
                     o->numpoly[l] = remn;
@@ -602,7 +602,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         }
         free(belong);
         // XOBJs
-        for (int j = 4 * block_Idx; j < 4 * block_Idx + 4; j++) {
+        for (uint32_t j = 4 * block_Idx; j < 4 * block_Idx + 4; j++) {
             if (track->xobj[j].nobj > 0) {
                 track->xobj[j].obj = new XOBJDATA[track->xobj[j].nobj]();
                 for (k = 0; k < track->xobj[j].nobj; k++) {
@@ -660,10 +660,10 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
 				}
 */                ar.read((char *) x->vert, 12 * x->nVertices);
                     ar.read((char *) x->unknVertices, 4 * x->nVertices);
-                    for (int l = 0; l < x->nPolygons; l++) {
+                    for (uint32_t l = 0; l < x->nPolygons; l++) {
                         POLYGONDATA tmppoly;
                         ar.read((char *) &tmppoly, 13);
-                        for (int m = 0; m < 4; m++) x->polyData[l].vertex[m] = tmppoly.vertex[m ^ 1];
+                        for (uint32_t m = 0; m < 4; m++) x->polyData[l].vertex[m] = tmppoly.vertex[m ^ 1];
                         memcpy(&(x->polyData[l].texture), &(tmppoly.texture), 5);
                         x->polyData[l].unknown2 = 0xF9; //Nappe1: Fixed AnimData load. Didn't work??
                         // what on earth for these Unknown2 definitions are used for internal checkings?
@@ -674,11 +674,11 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         }
     }
 
-    int j = 4 * track->nBlocks; //Global Objects
+	uint32_t j = 4 * track->nBlocks; //Global Objects
     ar.read((char *) &track->xobj[j], 4);
     if (track->xobj[j].nobj > 0) {
         track->xobj[j].obj = new XOBJDATA[track->xobj[j].nobj]();
-        for (int k = 0; k < track->xobj[j].nobj; k++) {
+        for (uint32_t k = 0; k < track->xobj[j].nobj; k++) {
             XOBJDATA *x = &(track->xobj[j].obj[k]);
             // 3 headers == 12 bytes
             ar.read((char *) x, 12);
@@ -703,7 +703,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
             if (x->polyData == NULL) return false;
         }
         // now the xobjdata
-        for (int k = 0; k < track->xobj[j].nobj; k++) {
+        for (uint32_t k = 0; k < track->xobj[j].nobj; k++) {
             XOBJDATA *x = &(track->xobj[j].obj[k]);
             if (x->crosstype == 3) { // animated-specific header
                 ar.read((char *) x->unknown3 + 6, 2);
@@ -725,10 +725,10 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
 				}
 */               ar.read((char *) x->vert, 12 * x->nVertices);
             ar.read((char *) x->unknVertices, 4 * x->nVertices);
-            for (int l = 0; l < x->nPolygons; l++) {
+            for (uint32_t l = 0; l < x->nPolygons; l++) {
                 POLYGONDATA tmppoly;
                 ar.read((char *) &tmppoly, 13);
-                for (int m = 0; m < 4; m++) x->polyData[l].vertex[m] = tmppoly.vertex[m ^ 1];
+                for (uint32_t m = 0; m < 4; m++) x->polyData[l].vertex[m] = tmppoly.vertex[m ^ 1];
                 memcpy(&(x->polyData[l].texture), &(tmppoly.texture), 5);
                 x->polyData[l].unknown2 = 0xF9; //Nappe1: Fixed AnimData load. Didn't work??
                 // what on earth for these Unknown2 definitions are used for internal checkings?
@@ -746,26 +746,26 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
 
     // TEXTUREBLOCKs
     int m = 0;
-    for (int i = 0; i < track->nBlocks; i++) {
+    for (uint32_t i = 0; i < track->nBlocks; i++) {
         for (j = 0; j < 7; j++) {
             LPPOLYGONDATA pp;
-            int k;
+            uint32_t k;
             for (k = 0, pp = track->poly[i].poly[j]; k < track->poly[i].sz[j]; k++, pp++)
                 if (pp->texture > m) m = pp->texture;
         }
         for (j = 0; j < 4; j++) {
-            for (int k = 0; k < track->poly[i].obj[j].nobj; k++) {
+            for (uint32_t k = 0; k < track->poly[i].obj[j].nobj; k++) {
                 LPPOLYGONDATA pp;
-                int l;
+				uint32_t l;
                 for (l = 0, pp = track->poly[i].obj[j].poly[k]; l < track->poly[i].obj[j].numpoly[k]; l++, pp++)
                     if (pp->texture > m) m = pp->texture;
             }
         }
     }
-    for (int i = 0; i < 4 * track->nBlocks; i++) {
+    for (uint32_t i = 0; i < 4 * track->nBlocks; i++) {
         for (j = 0; j < track->xobj[i].nobj; j++) {
             LPPOLYGONDATA pp;
-            int k;
+			uint32_t k;
             for (k = 0, pp = track->xobj[i].obj[j].polyData; k < track->xobj[i].obj[j].nPolygons; k++, pp++)
                 if (pp->texture > m) m = pp->texture;
         }
@@ -780,13 +780,13 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     tex_dir << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/";
     path tex_path(tex_dir.str());
 
-    int nData = std::count_if(directory_iterator(tex_path), directory_iterator(), static_cast<bool(*)(const path&)>(is_regular_file) );
+	uint64_t nData = std::count_if(directory_iterator(tex_path), directory_iterator(), static_cast<bool(*)(const path&)>(is_regular_file) );
 
     //HOO: This is changed because some pStockBitmap can not be seen (3)
     track->nTextures = m += 15;
     //HOO: (3)
     track->texture = new TEXTUREBLOCK[m]();
-    for (int i = 0; i < m; i++) {
+    for (int32_t i = 0; i < m; i++) {
         track->texture[i].width=16;
         track->texture[i].height=16; // WHY ?????
         track->texture[i].corners[2]=1.0; // (1,0)
@@ -808,7 +808,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
-    for (int i = 0; i < track->nBlocks; i++) {
+    for (uint32_t i = 0; i < track->nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = track->trk[i];
         POLYGONBLOCK polygon_block = track->poly[i];
@@ -816,14 +816,14 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         glm::vec3 trk_block_center = rotationMatrix * glm::vec3(0, 0, 0);
 
         // Light sources
-        for (int j = 0; j < trk_block.nLightsrc; j++) {
+        for (uint32_t j = 0; j < trk_block.nLightsrc; j++) {
             glm::vec3 light_center = rotationMatrix * glm::vec3((trk_block.lightsrc[j].refpoint.x / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.z / 65536.0) / 10);
             current_track_block.lights.emplace_back(Entity(i, j, NFS_4, LIGHT, TrackUtils::MakeLight(light_center, trk_block.lightsrc[j].type)));
         }
 
-        for (int s = 0; s < trk_block.nSoundsrc; s++) {
+        for (uint32_t s = 0; s < trk_block.nSoundsrc; s++) {
             glm::vec3 sound_center = rotationMatrix * glm::vec3((trk_block.soundsrc[s].refpoint.x / 65536.0) / 10,
                                                                 (trk_block.soundsrc[s].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.soundsrc[s].refpoint.z / 65536.0) / 10);
@@ -833,17 +833,17 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         // Get Object vertices
         std::vector<glm::vec3> obj_verts;
         std::vector<glm::vec4> obj_shading_verts;
-        for (int v = 0; v < trk_block.nObjectVert; v++) {
+        for (uint32_t v = 0; v < trk_block.nObjectVert; v++) {
             obj_verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[v].x / 10, trk_block.vert[v].y / 10, trk_block.vert[v].z / 10));
             uint32_t shading_data = trk_block.unknVertices[v];
             obj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
         // 4 OBJ Poly blocks
-        for (int j = 0; j < 4; j++) {
+        for (uint32_t j = 0; j < 4; j++) {
             OBJPOLYBLOCK obj_polygon_block = polygon_block.obj[j];
             if (obj_polygon_block.n1 > 0) {
                 // Iterate through objects in objpoly block up to num objects
-                for (int k = 0; k < obj_polygon_block.nobj; k++) {
+                for (uint32_t k = 0; k < obj_polygon_block.nobj; k++) {
                     //TODO: Animated objects here, obj_polygon_block.types
                     // Keep track of unique textures in trackblock for later OpenGL bind
                     std::set<unsigned int> minimal_texture_ids_set;
@@ -852,10 +852,10 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     std::vector<glm::vec2> uvs;
                     std::vector<unsigned int> texture_indices;
                     std::vector<glm::vec3> norms;
-                    FLOATPT norm_floatpt;
+					FLOATPT norm_floatpt = { 0.f, 0.f, 0.f };
                     // Get Polygons in object
                     LPPOLYGONDATA object_polys = obj_polygon_block.poly[k];
-                    for (int p = 0; p < obj_polygon_block.numpoly[k]; p++) {
+                    for (uint32_t p = 0; p < obj_polygon_block.numpoly[k]; p++) {
                         TEXTUREBLOCK texture_for_block = track->texture[object_polys[p].texture];
                         minimal_texture_ids_set.insert(object_polys[p].texture);
                         //norm_floatpt = VertexNormal(i, object_polys[p].vertex[0], track->trk, track->poly);
@@ -903,8 +903,8 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         }
 
         /* XOBJS - EXTRA OBJECTS */
-        for (int l = (i * 4); l < (i * 4) + 4; l++) {
-            for (int j = 0; j < track->xobj[l].nobj; j++) {
+        for (uint32_t l = (i * 4); l < (i * 4) + 4; l++) {
+            for (uint32_t j = 0; j < track->xobj[l].nobj; j++) {
                 XOBJDATA *x = &(track->xobj[l].obj[j]);
                 if (x->crosstype == 4) { // basic objects
                 } else if (x->crosstype == 3) { // animated objects
@@ -912,7 +912,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 // common part : vertices & polygons
                 std::vector<glm::vec3> verts;
                 std::vector<glm::vec4> xobj_shading_verts;
-                for (int k = 0; k < x->nVertices; k++, x->vert++) {
+                for (uint32_t k = 0; k < x->nVertices; k++, x->vert++) {
                     verts.emplace_back(rotationMatrix * glm::vec3(x->ptRef.x / 10 + x->vert->x / 10, x->ptRef.y / 10 + x->vert->y / 10, x->ptRef.z / 10 + x->vert->z / 10));
                     uint32_t shading_data = x->unknVertices[k];
                     //RGBA
@@ -924,7 +924,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 std::vector<unsigned int> texture_indices;
                 std::vector<glm::vec3> norms;
                 FLOATPT norm_floatpt;
-                for (int k = 0; k < x->nPolygons; k++) {
+                for (uint32_t k = 0; k < x->nPolygons; k++) {
                     POLYGONDATA poly = x->polyData[k];
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
                     minimal_texture_ids_set.insert(poly.texture);
@@ -978,7 +978,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> trk_block_shading_verts;
         std::vector<glm::vec3> norms;
-        for (int j = 0; j < trk_block.nVertices; j++) {
+        for (int32_t j = 0; j < trk_block.nVertices; j++) {
             verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
             // Break uint32_t of RGB into 4 normalised floats and store into vec4
             uint32_t shading_data = trk_block.unknVertices[j];
@@ -986,11 +986,11 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         }
         FLOATPT norm_floatpt;
         // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
-        for (int chnk = 4; chnk <= 6; chnk++) {
+        for (uint32_t chnk = 4; chnk <= 6; chnk++) {
             if ((chnk == 6) && (trk_block.nVertices <= trk_block.nHiResVert))
                 continue;
             LPPOLYGONDATA poly_chunk = polygon_block.poly[chnk];
-            for (int k = 0; k < polygon_block.sz[chnk]; k++) {
+            for (uint32_t k = 0; k < polygon_block.sz[chnk]; k++) {
                 TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
                 minimal_texture_ids_set.insert(poly_chunk[k].texture);
                 norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0], track->trk, track->poly);

@@ -176,7 +176,7 @@ namespace Utils {
                 // per-face material
                 shapes[s].mesh.material_ids[f];
             }
-            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01, 0.0f, 0.5);
+            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01f, 0.0f, 0.5f);
             meshes.emplace_back(obj_mesh);
         }
         return meshes;
@@ -310,14 +310,14 @@ namespace Utils {
         bmfh.bfReserved1 = bmfh.bfReserved2 = 0;
 
         // Write the bitmap file header               // Saving the first header to file
-        uint32_t nWrittenFileHeaderSize = fwrite(&bmfh, 1, sizeof(BITMAPFILEHEADER), pFile);
+		size_t nWrittenFileHeaderSize = fwrite(&bmfh, 1, sizeof(BITMAPFILEHEADER), pFile);
 
         // And then the bitmap info header            // Saving the second header to file
-        uint32_t nWrittenInfoHeaderSize = fwrite(&BMIH, 1, sizeof(BITMAPINFOHEADER), pFile);
+		size_t nWrittenInfoHeaderSize = fwrite(&BMIH, 1, sizeof(BITMAPINFOHEADER), pFile);
 
         // Finally, write the image data itself
         //-- the data represents our drawing          // Saving the file content in lpBits to file
-        uint32_t nWrittenDIBDataSize = fwrite(lpBits, 1, lImageSize, pFile);
+        size_t nWrittenDIBDataSize = fwrite(lpBits, 1, lImageSize, pFile);
         fclose(pFile); // closing the file.
 
 
@@ -392,14 +392,14 @@ namespace Utils {
         auto *directoryEntries = new PS1::PSH::DIR_ENTRY[pshHeader->nDirectories];
         psh.read(((char *) directoryEntries), pshHeader->nDirectories * sizeof(PS1::PSH::DIR_ENTRY));
 
-        for (int image_Idx = 0; image_Idx < pshHeader->nDirectories; ++image_Idx) {
+        for (uint32_t image_Idx = 0; image_Idx < pshHeader->nDirectories; ++image_Idx) {
             std::cout << "Extracting GIMX " << image_Idx << ": " << directoryEntries[image_Idx].imageName[0] << directoryEntries[image_Idx].imageName[1] << directoryEntries[image_Idx].imageName[2] << directoryEntries[image_Idx].imageName[3] << ".BMP" << std::endl;
             psh.seekg(directoryEntries[image_Idx].imageOffset, ios_base::beg);
             auto *imageHeader = new PS1::PSH::IMAGE_HEADER();
             psh.read(((char *) imageHeader), sizeof(PS1::PSH::IMAGE_HEADER));
 
             uint8_t bitDepth = static_cast<uint8_t>(imageHeader->imageType & 0x3);
-            uint32_t pixels[imageHeader->width * imageHeader->height];
+            uint32_t *pixels = new uint32_t[imageHeader->width * imageHeader->height];
             uint8_t *indexPair = new uint8_t();
             uint8_t *indexes = new uint8_t[imageHeader->width * imageHeader->height]; // Only used if indexed
             bool hasAlpha = false;
@@ -454,7 +454,7 @@ namespace Utils {
             }
 
             // We only have to look up a Palette if an indexed type
-            if (bitDepth == 0 or bitDepth == 1) {
+            if (bitDepth == 0 || bitDepth == 1) {
                 auto *paletteHeader = new PS1::PSH::PALETTE_HEADER();
                 psh.read((char *) paletteHeader, sizeof(PS1::PSH::PALETTE_HEADER));
                 if (paletteHeader->paletteHeight != 1) {
@@ -502,6 +502,7 @@ namespace Utils {
             //output_bmp << output_path << setfill('0') << setw(4) << image_Idx << ".BMP";
             output_bmp << output_path << directoryEntries[image_Idx].imageName[0] << directoryEntries[image_Idx].imageName[1] << directoryEntries[image_Idx].imageName[2] << directoryEntries[image_Idx].imageName[3] << ".BMP";
             SaveImage(output_bmp.str().c_str(), &pixels, imageHeader->width, imageHeader->height);
+			delete []pixels;
         }
 
         delete pshHeader;

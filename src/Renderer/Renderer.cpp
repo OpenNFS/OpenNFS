@@ -207,8 +207,8 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             ImGui::SliderFloat("Susp Compr.", &targetCar->suspensionCompression, 0, 1000.f);
             ImGui::SliderFloat("Friction.", &targetCar->wheelFriction, 0, 1000000);
             ImGui::SliderFloat("Roll Infl.", &targetCar->rollInfluence, 0, 0.5);
-            ImGui::SliderFloat("Steer Incr.", &targetCar->steeringIncrement, 0, 0.1);
-            ImGui::SliderFloat("Steer Clamp", &targetCar->steeringClamp, 0, 0.5);
+            ImGui::SliderFloat("Steer Incr.", &targetCar->steeringIncrement, 0.f, 0.1f);
+            ImGui::SliderFloat("Steer Clamp", &targetCar->steeringClamp, 0.f, 0.5f);
             // Graphics Parameters
             /*ImGui::ColorEdit3("Car Colour", (float *) &preferences->car_color);
             ImGui::SliderFloat("Car Specular Damper", &preferences->carSpecDamper, 0, 100);
