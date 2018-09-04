@@ -9,27 +9,27 @@
 
 Light::Light(glm::vec3 light_position, glm::vec4 light_colour, int light_type, int unknown_1, int unknown_2, int unknown_3, float unknown_4): super("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, light_position) {
     std::vector<glm::vec3> verts;
-    float lightSize = 3.0;
-    verts.push_back(glm::vec3(-lightSize, -lightSize, 0)); // bottom left corner
-    verts.push_back(glm::vec3(-lightSize,  lightSize, 0)); // top left corner
-    verts.push_back(glm::vec3( lightSize,  lightSize, 0)); // top right corner
-    verts.push_back(glm::vec3( lightSize, -lightSize, 0)); // bottom right corner
+    float lightSize = 3.0f;
+    verts.emplace_back(glm::vec3(-lightSize, -lightSize, 0)); // bottom left corner
+    verts.emplace_back(glm::vec3(-lightSize,  lightSize, 0)); // top left corner
+    verts.emplace_back(glm::vec3( lightSize,  lightSize, 0)); // top right corner
+    verts.emplace_back(glm::vec3( lightSize, -lightSize, 0)); // bottom right corner
     unsigned int indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
                               0,2,3}; // second triangle (bottom left - top right - bottom right)
     m_uvs.clear();
-    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(0.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 1.0f));
-    m_uvs.push_back(glm::vec2(0.0f, 0.0f));
-    m_uvs.push_back(glm::vec2(1.0f, 0.0f));
+    m_uvs.emplace_back(glm::vec2(1.0f, 1.0f));
+    m_uvs.emplace_back(glm::vec2(0.0f, 1.0f));
+    m_uvs.emplace_back(glm::vec2(0.0f, 0.0f));
+    m_uvs.emplace_back(glm::vec2(1.0f, 1.0f));
+    m_uvs.emplace_back(glm::vec2(0.0f, 0.0f));
+    m_uvs.emplace_back(glm::vec2(1.0f, 0.0f));
 
     m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices)/sizeof(indices[0]));;
     m_vertices.clear();
 	// Unindex data and Fill unused normal buffer
     for (unsigned int m_vertex_index : m_vertex_indices) {
         m_vertices.push_back(verts[m_vertex_index]);
-		m_normals.push_back(glm::vec3(0, 0, 0));
+		m_normals.emplace_back(glm::vec3(0, 0, 0));
     }
 	
     position= light_position;

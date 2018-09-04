@@ -65,7 +65,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 #[[TINYOBJLOADER]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BOOST]]
-add_subdirectory(lib/boost-cmake/)
+add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS Boost::filesystem Boost::boost)
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
@@ -77,7 +77,7 @@ set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
 set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)
-add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3")
+add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3" EXCLUDE_FROM_ALL)
 TARGET_LINK_LIBRARIES(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
 #[[SDL Configuration]]
