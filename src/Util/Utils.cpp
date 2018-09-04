@@ -501,7 +501,7 @@ namespace Utils {
             std::stringstream output_bmp;
             //output_bmp << output_path << setfill('0') << setw(4) << image_Idx << ".BMP";
             output_bmp << output_path << directoryEntries[image_Idx].imageName[0] << directoryEntries[image_Idx].imageName[1] << directoryEntries[image_Idx].imageName[2] << directoryEntries[image_Idx].imageName[3] << ".BMP";
-            SaveImage(output_bmp.str().c_str(), &pixels, imageHeader->width, imageHeader->height);
+            SaveImage(output_bmp.str().c_str(), pixels, imageHeader->width, imageHeader->height);
 			delete []pixels;
         }
 

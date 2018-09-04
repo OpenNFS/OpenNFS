@@ -205,7 +205,7 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             ImGui::SliderFloat("Susp Stiff.", &targetCar->suspensionStiffness, 0, 1000.f);
             ImGui::SliderFloat("Susp Damp.", &targetCar->suspensionDamping, 0, 1000.f);
             ImGui::SliderFloat("Susp Compr.", &targetCar->suspensionCompression, 0, 1000.f);
-            ImGui::SliderFloat("Friction.", &targetCar->wheelFriction, 0, 1000000);
+            ImGui::SliderFloat("Friction.", &targetCar->wheelFriction, 0, 1.f);
             ImGui::SliderFloat("Roll Infl.", &targetCar->rollInfluence, 0, 0.5);
             ImGui::SliderFloat("Steer Incr.", &targetCar->steeringIncrement, 0.f, 0.1f);
             ImGui::SliderFloat("Steer Clamp", &targetCar->steeringClamp, 0.f, 0.5f);

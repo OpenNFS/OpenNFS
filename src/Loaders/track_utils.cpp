@@ -41,6 +41,7 @@ namespace TrackUtils {
 				texture_index = temp->second;
 			} else
 			{
+			    //std::cerr << "Unable to find the referenced polygon texture ID: " << texture_index << "in the minimal set of texture ID's identified in this Mesh. Substituting tex 0, expect visual bug." << std::endl;
 				// TODO: This should _never_ happen, and MSVC says it does, throwing map/set not derefencable.
 				texture_index = ordered_mapping.begin()->second;
 			}

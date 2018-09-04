@@ -19,17 +19,17 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
-    maxEngineForce = 4000.f;
+    maxEngineForce = 3000.f;
     maxBreakingForce = 1000.f;
     suspensionRestLength = btScalar(0.026);
     suspensionStiffness = 500.f;
     suspensionDamping = 200.f;
     suspensionCompression = 500.4f;
-    wheelFriction = 100000;
+    wheelFriction = 0.45f;
     rollInfluence = 0.04f;
     gVehicleSteering = 0.f;
-    steeringIncrement = 0.01f;
-    steeringClamp = 0.2f;
+    steeringIncrement = 0.005f;
+    steeringClamp = 0.15f;
     steerRight = steerLeft = false;
 
     setModels(car_meshes);
