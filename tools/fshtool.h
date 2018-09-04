@@ -30,12 +30,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <direct.h>
 #include <ctype.h>
 #include <sys/stat.h>
 
 /* Windows compatibility */
-#ifdef _WIN32
+#if defined(__linux__) || defined(__APPLE__)
+#include <unistd.h>
+#elif _WIN32
 #include <direct.h>
 #define rmdir _rmdir
 #define mkdir(a,b) _mkdir(a)
