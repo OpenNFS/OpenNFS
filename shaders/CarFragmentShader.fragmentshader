@@ -78,5 +78,9 @@ void main(){
 	    if(((polyFlag << 28) >> 28) == 0xAu){
 	        color.a = 0.5f;
 	    }
+        // NFS3 Remove
+	    /*if (polyFlag == 0x1u && carTexColor.a < .1f){
+	        color.a = 0.0;
+	    }*/
     }
 }

@@ -48,7 +48,7 @@ void main(){
               case 13: tempColor = texture(texture_array[13], UV).rgba; break;
               case 14: tempColor = texture(texture_array[14], UV).rgba; break;
               case 15: tempColor = texture(texture_array[15], UV).rgba; break;
-              default: texture(texture_array[0], UV).rgba; break;
+              default:  tempColor = texture(texture_array[0], UV).rgba; break;
 
     }
 

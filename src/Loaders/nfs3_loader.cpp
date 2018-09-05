@@ -42,6 +42,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         float envReflectivity = 0.4f;
 
         std::vector<uint32_t> indices;
+        std::vector<uint32_t> polygonFlags;
         std::vector<glm::vec3> vertices;
         std::vector<glm::vec3> normals;
         std::vector<glm::vec2> uvs;
@@ -68,6 +69,9 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
         for (uint32_t tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
+            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
+            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
+            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
             indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[1]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[2]);
@@ -76,7 +80,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
+        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
         std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size() << std::endl;
 
         delete[] partNormals;

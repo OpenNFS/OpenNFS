@@ -28,7 +28,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     wheelFriction = 0.45f;
     rollInfluence = 0.04f;
     gVehicleSteering = 0.f;
-    steeringIncrement = 0.005f;
+    steeringIncrement = 0.01f;
     steeringClamp = 0.15f;
     steerRight = steerLeft = false;
 

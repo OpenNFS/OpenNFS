@@ -192,7 +192,7 @@ void Physics::initSimulation() {
 }
 
 void Physics::stepSimulation(float time) {
-    dynamicsWorld->stepSimulation(time, 15);
+    dynamicsWorld->stepSimulation(time, 100);
     for (auto &car : cars) {
         car->update();
     }

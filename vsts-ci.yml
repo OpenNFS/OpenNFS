@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 pool:
   vmImage: 'Ubuntu 16.04'
 
@@ -11,6 +6,10 @@ steps:
     git submodule init
     git submodule update --remote
   displayName: 'Git Checkout'
+- script: |
+    apt-get -y install freeglut3 freeglut3-dev
+    apt-get -y install xorg-dev libglu1-mesa-dev
+  displayName: 'Get GL Dependencies'
 - script: 'mkdir cmake-build-debug && cd cmake-build-debug && cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" ../'
   displayName: 'Generate Build Files'
 - script: 'cd cmake-build-debug && cmake --build ./ --target OpenNFS -- -j 4'

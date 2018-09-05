@@ -33,17 +33,6 @@ void CarRenderer::render(const Camera &mainCamera, const Light &cameraLight) {
         misc_model.render();
     }
 
-    if(car->car_body_model.isMultiTextured){
-        carShader.bindCarTextures(car->car_body_model, car->car_texture_gl_mappings);
-    } else {
-        carShader.loadCarTexture();
-    }
-    carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, car->car_body_model.ModelMatrix);
-    carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity, car->car_body_model.envReflectivity);
-    carShader.loadCarColor(glm::vec3(1, 1, 1));
-    carShader.loadLight(cameraLight);
-    car->car_body_model.render();
-
     if(car->left_front_wheel_model.isMultiTextured){
         carShader.bindCarTextures(car->left_front_wheel_model, car->car_texture_gl_mappings);
     } else {
@@ -88,6 +77,16 @@ void CarRenderer::render(const Camera &mainCamera, const Light &cameraLight) {
     carShader.loadLight(cameraLight);
     car->right_rear_wheel_model.render();
 
+    if(car->car_body_model.isMultiTextured){
+        carShader.bindCarTextures(car->car_body_model, car->car_texture_gl_mappings);
+    } else {
+        carShader.loadCarTexture();
+    }
+    carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, car->car_body_model.ModelMatrix);
+    carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity, car->car_body_model.envReflectivity);
+    carShader.loadCarColor(glm::vec3(1, 1, 1));
+    carShader.loadLight(cameraLight);
+    car->car_body_model.render();
 
     carShader.unbind();
 }

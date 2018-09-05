@@ -51,7 +51,7 @@ CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<g
     m_polygon_flags = poly_flags;
     hasPolyFlags = true;
     // Fill the unused buffer with data
-    for(int i = 0; i < m_polygon_flags.size(); ++i){
+    for(int i = 0; i < m_vertex_indices.size(); ++i){
         m_texture_indices.emplace_back(0);
     }
     // TODO: Refactor to allow an inline constructor call
