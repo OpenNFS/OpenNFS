@@ -51,7 +51,7 @@ OpenNFS does not bundle any EA intellectual property. A copy of the original gam
 
 Visit the Latest Build -> Artifacts -> "project/cmake-build-debug/OpenNFS.exe"
 
-####Mac 
+#### Mac 
 
 No CI support currently as all Mac CI providers cost money :( Hold tight for official releases on the [Github Releases page](https://github.com/AmrikSadhra/OpenNFS/releases)
 
