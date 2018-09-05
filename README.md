@@ -1,6 +1,6 @@
 # OpenNFS 
 
-#### Linux [![CircleCI](https://circleci.com/gh/AmrikSadhra/OpenNFS.svg?style=svg)](https://circleci.com/gh/AmrikSadhra/OpenNFS) Windows [![Build status](https://ci.appveyor.com/api/projects/status/87px0nmkxcfpatkd?svg=true)](https://ci.appveyor.com/project/AmrikSadhra/opennfs)
+#### Linux [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/GCC%20Linux%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=4) [![CircleCI](https://circleci.com/gh/AmrikSadhra/OpenNFS.svg?style=svg)](https://circleci.com/gh/AmrikSadhra/OpenNFS) Windows [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MSVC%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=2) [![Build status](https://ci.appveyor.com/api/projects/status/87px0nmkxcfpatkd?svg=true)](https://ci.appveyor.com/project/AmrikSadhra/opennfs) Mac [![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/Clang%20Mac%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=3)
 
 An attempt to recreate the classic Need for Speed Games (1-5), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
  
@@ -45,6 +45,16 @@ OpenNFS does not bundle any EA intellectual property. A copy of the original gam
 
 ### For development builds on CI:
 
+Right now I use a mix of CI providers to achieve all builds for free. All versions (Windows/Mac/Linux) are built on VSTS, but I may hit the free tier limit of 240 build minutes in a given month. I will create a 'Release' branch that allows me to target building on VSTS only, and this will become the central source of stable OpenNFS releases:
+
+#### VSTS Windows [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MSVC%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=2)
+
+#### VSTS Linux [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/GCC%20Linux%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=4)
+
+#### VSTS Mac [![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/Clang%20Mac%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=3)
+
+Alternative CI providers:
+
 #### [Windows](https://ci.appveyor.com/project/AmrikSadhra/opennfs/build/artifacts)
 
 #### [Linux](https://circleci.com/gh/AmrikSadhra/OpenNFS/tree/master) 
@@ -53,7 +63,7 @@ Visit the Latest Build -> Artifacts -> "project/cmake-build-debug/OpenNFS.exe"
 
 #### Mac 
 
-No CI support currently as all Mac CI providers cost money :( Hold tight for official releases on the [Github Releases page](https://github.com/AmrikSadhra/OpenNFS/releases)
+No CI support currently as all Mac CI providers cost money (Except Travis CI, will set this up soon) :( Hold tight for official releases on the [Github Releases page](https://github.com/AmrikSadhra/OpenNFS/releases) or use the latest VSTS Mac build.
 
 ## Trello Development Board
 
