@@ -43,19 +43,10 @@ void TrackShader::customCleanup(){
 
 }
 
-void TrackShader::bindTrackTextures(const Track &track_block, std::map<unsigned int, GLuint> gl_id_map) {
-    // TODO: Somehow breaking the CORE profile here?
-    GLenum texNum = GL_TEXTURE0;
-    for (short texture_id : track_block.texture_ids) {
-        glActiveTexture(texNum++);
-        glBindTexture(GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
-       if(texNum - GL_TEXTURE0 > 16){
-           //std::cerr << "Too many textures in Trackblock for number of GPU samplers" << std::endl;
-           break;
-       }
-    }
-    const GLint samplers[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-    glUniform1iv(TrackTexturesID, 16, samplers);
+void TrackShader::bindTextureArray(GLuint texture_array) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
+    glUniform1i(TrackTexturesID, 0);
 }
 
 void TrackShader::loadLights(std::vector<Light> lights) {

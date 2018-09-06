@@ -16,8 +16,8 @@ void ScreenPosToWorldRay(
 
     // The ray Start and End positions, in Normalized Device Coordinates (Have you read Tutorial 4 ?)
     glm::vec4 lRayStart_NDC(
-            ((float) mouseX / (float) screenWidth - 0.5f) * 2.0f, // [0,1024] -> [-1,1]
-            ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f, // [0, 768] -> [-1,1]
+            ((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
+            ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f,
             -1.0, // The near plane maps to Z=-1 in Normalized Device Coordinates
             1.0f
     );

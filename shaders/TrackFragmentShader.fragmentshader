@@ -22,35 +22,14 @@ out vec4 color;
 
 uniform bool useClassic;
 
-uniform sampler2D texture_array[16];
+uniform sampler2DArray texture_array;
 uniform vec4 lightColour[MAX_LIGHTS];
 uniform vec3 attenuation[MAX_LIGHTS];
 uniform float shineDamper;
 uniform float reflectivity;
 
 void main(){
-    vec4 tempColor = vec4(0.0);
-    // Hack: Texture atlas implementation ASAP
-    switch(int(texIndex)){
-              case 0: tempColor = texture(texture_array[0], UV).rgba; break;
-              case 1: tempColor = texture(texture_array[1], UV).rgba; break;
-              case 2: tempColor = texture(texture_array[2], UV).rgba; break;
-              case 3: tempColor = texture(texture_array[3], UV).rgba; break;
-              case 4: tempColor = texture(texture_array[4], UV).rgba; break;
-              case 5: tempColor = texture(texture_array[5], UV).rgba; break;
-              case 6: tempColor = texture(texture_array[6], UV).rgba; break;
-              case 7: tempColor = texture(texture_array[7], UV).rgba; break;
-              case 8: tempColor = texture(texture_array[8], UV).rgba; break;
-              case 9: tempColor = texture(texture_array[9], UV).rgba; break;
-              case 10: tempColor = texture(texture_array[10], UV).rgba; break;
-              case 11: tempColor = texture(texture_array[11], UV).rgba; break;
-              case 12: tempColor = texture(texture_array[12], UV).rgba; break;
-              case 13: tempColor = texture(texture_array[13], UV).rgba; break;
-              case 14: tempColor = texture(texture_array[14], UV).rgba; break;
-              case 15: tempColor = texture(texture_array[15], UV).rgba; break;
-              default:  tempColor = texture(texture_array[0], UV).rgba; break;
-
-    }
+    vec4 tempColor = texture(texture_array, vec3(UV, texIndex)).rgba;
 
     if (tempColor.a <= 0.5)
        discard;

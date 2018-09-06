@@ -10,7 +10,6 @@ layout(location = 4) in uint polygonFlag;
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
 out vec2 envUV;
-out vec3 carColour;
 out vec3 surfaceNormal;
 out vec3 toLightVector;
 out vec3 toCameraVector;
@@ -19,7 +18,6 @@ flat out uint polyFlag;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
-uniform vec3 colour;
 uniform vec3 lightPosition;
 
 void main(){
@@ -45,8 +43,6 @@ void main(){
       );
     envUV = envReflectVector.xy / m + .5;
 
-    // Pass through slider Colour
-    carColour = colour;
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
 }

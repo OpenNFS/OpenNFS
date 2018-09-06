@@ -39,7 +39,7 @@ void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::
 }
 
 template<>
-std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
+std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures) {
     // Mike Thompson CarEd disasm parts table for NFS2 Cars
     std::string PC_PART_NAMES[32]{
             "High Additional Body Part",
@@ -112,7 +112,6 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
         std::vector<glm::vec3> norms;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
-        std::set<unsigned int> minimal_texture_ids_set; // TODO: Switch to Texture Atlas
 
         indices.reserve(geoBlockHeader->nPolygons * 6);
         verts.reserve(geoBlockHeader->nVerts);
@@ -145,8 +144,8 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
 
         for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
             std::string textureName(polygons[poly_Idx].texName);
-// Store a minimal subset of texture ID's used on car part for later OpenGL bind
-            minimal_texture_ids_set.insert(remapTextureName(textureName));
+            Texture gl_texture = car_textures[remapTextureName(textureName)];
+
             indices.emplace_back(polygons[poly_Idx].vertex[0]);
             indices.emplace_back(polygons[poly_Idx].vertex[1]);
             indices.emplace_back(polygons[poly_Idx].vertex[2]);
@@ -154,12 +153,12 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
             indices.emplace_back(polygons[poly_Idx].vertex[2]);
             indices.emplace_back(polygons[poly_Idx].vertex[3]);
 
-            uvs.emplace_back(0.0f, 0.0f);
-            uvs.emplace_back(1.0f, 0.0f);
-            uvs.emplace_back(1.0f, 1.0f);
-            uvs.emplace_back(0.0f, 0.0f);
-            uvs.emplace_back(1.0f, 1.0f);
-            uvs.emplace_back(0.0f, 1.0f);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
 
             // TODO: Long overdue normal calculation
             norms.emplace_back(glm::vec3(1, 1, 1));
@@ -177,7 +176,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
             texture_indices.emplace_back(remapTextureName(textureName));
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256) / carScaleFactor, (geoBlockHeader->position[1] / 256) / carScaleFactor, (geoBlockHeader->position[2] / 256) / carScaleFactor);
-        car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
+        car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         delete geoBlockHeader;
         delete[] vertices;
@@ -186,7 +185,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path) {
 }
 
 template<>
-std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
+std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures) {
     std::string PS1_PART_NAMES[33]{
             "High Additional Body Part",
             "High Main Body Part",
@@ -267,7 +266,6 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
         std::vector<glm::vec3> norms;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
-        std::set<unsigned int> minimal_texture_ids_set;
 
         indices.reserve(geoBlockHeader->nPolygons * 6);
         verts.reserve(geoBlockHeader->nVerts);
@@ -349,8 +347,8 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
 
         for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
             std::string textureName(polygons[poly_Idx].texName);
-            // Store a minimal subset of texture ID's used on car part for later OpenGL bind
-            minimal_texture_ids_set.insert(remapTextureName(textureName));
+            Texture gl_texture = car_textures[remapTextureName(textureName)];
+
             std::bitset<8> texMapBits(polygons[poly_Idx].texMap[0]);
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
@@ -385,8 +383,6 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
             uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
             uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
 
-
-
             // TODO: Long overdue normal calculation
             norms.emplace_back(glm::vec3(1, 1, 1));
             norms.emplace_back(glm::vec3(1, 1, 1));
@@ -403,8 +399,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path) {
             texture_indices.emplace_back(remapTextureName(textureName));
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.0f) / carScaleFactor, (geoBlockHeader->position[1] / 256.0f) / carScaleFactor, (geoBlockHeader->position[2] / 256.0f) / carScaleFactor);
-        // Get ordered list of unique texture id's present in car part
-        car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices), center, specularDamper, specularReflectivity, envReflectivity));
+        car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         // Dump GeoBlock data for correlating with geometry/LOD's/Special Cases
         std::cout << "nVerts:    " << geoBlockHeader->nVerts << std::endl;
@@ -489,7 +484,7 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
         }
     }
 
-    return std::make_shared<Car>(LoadGEO(geo_path.str()), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, TrackUtils::GenTextures(car_textures));
+    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, TrackUtils::MakeTextureArray(car_textures, 256, 256, false));
 }
 
 // TRACK
@@ -529,8 +524,8 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
         track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track->name, nfs_version);
     }
-    track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
 
+    track->texture_array = TrackUtils::MakeTextureArray(track->textures, 256, 256, false);
     ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 
@@ -997,8 +992,6 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
             // Structures
             for (uint32_t structure_Idx = 0; structure_Idx < trkBlock.nStructures; ++structure_Idx) {
-                // Keep track of unique textures in trackblock for later OpenGL bind
-                std::set<unsigned int> minimal_texture_ids_set;
                 // Mesh Data
                 std::vector<unsigned int> vertex_indices;
                 std::vector<glm::vec2> uvs;
@@ -1036,7 +1029,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 for (uint32_t poly_Idx = 0; poly_Idx < trkBlock.structures[structure_Idx].nPoly; ++poly_Idx) {
                     // Remap the COL TextureID's using the COL texture block (XBID2)
                     TEXTURE_BLOCK texture_for_block = track->polyToQFStexTable[trkBlock.structures[structure_Idx].polygonTable[poly_Idx].texture];
-                    minimal_texture_ids_set.insert(texture_for_block.texNumber);
+                    Texture gl_texture = track->textures[texture_for_block.texNumber];
                     vertex_indices.emplace_back(trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[0]);
                     vertex_indices.emplace_back(trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[1]);
                     vertex_indices.emplace_back(trkBlock.structures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
@@ -1053,13 +1046,13 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                     std::bitset<16> textureAlignment(texture_for_block.alignmentData);
                     glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                    glm::vec2 flip(-1.0f, -1.0f);
+                    glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
                     if (std::is_same<Platform, PS1>::value) {
-                       flip.x = -1.0f;
-                       flip.y = -1.0f;
+                       flip.x = -1.0f * gl_texture.max_u;
+                       flip.y = -1.0f * gl_texture.max_v;
                     } else {
-                        flip.x = -1.0f;
-                        flip.y = 1.0f;
+                        flip.x = -1.0f * gl_texture.max_u;
+                        flip.y = 1.0f * gl_texture.max_v;
                     }
                     float angle = 0;
 
@@ -1082,6 +1075,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                     uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
                     uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
 
+
                     texture_indices.emplace_back(texture_for_block.texNumber);
                     texture_indices.emplace_back(texture_for_block.texNumber);
                     texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1098,13 +1092,9 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 }
                 std::stringstream xobj_name;
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
-                // Get ordered list of unique texture id's present in block
-                std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, shading_verts, debug_data, glm::vec3(0, 0, 0))));
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, shading_verts, debug_data, glm::vec3(0, 0, 0))));
             }
 
-            // Keep track of unique textures in trackblock for later OpenGL bind
-            std::set<unsigned int> minimal_texture_ids_set;
             // Mesh Data
             std::vector<unsigned int> vertex_indices;
             std::vector<glm::vec2> uvs;
@@ -1131,7 +1121,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
             for (int32_t poly_Idx = (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly); poly_Idx < (trkBlock.header->nLowResPoly + trkBlock.header->nMedResPoly + trkBlock.header->nHighResPoly); ++poly_Idx) {
                 // Remap the COL TextureID's using the COL texture block (XBID2)
                 TEXTURE_BLOCK texture_for_block = track->polyToQFStexTable[trkBlock.polygonTable[poly_Idx].texture];
-                minimal_texture_ids_set.insert(texture_for_block.texNumber);
+                Texture gl_texture = track->textures[texture_for_block.texNumber];
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[0]);
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[1]);
                 vertex_indices.emplace_back(trkBlock.polygonTable[poly_Idx].vertex[2]);
@@ -1149,13 +1139,13 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 
                 std::bitset<16> textureAlignment(texture_for_block.alignmentData);
                 glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                glm::vec2 flip(-1.0f, -1.0f);
+                glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
                 if (std::is_same<Platform, PS1>::value) {
-                    flip.x = -1.0f;
-                    flip.y = -1.0f;
+                    flip.x = -1.0f * gl_texture.max_u;
+                    flip.y = -1.0f * gl_texture.max_v;
                 } else {
-                    flip.x = 1.0f;
-                    flip.y = -1.0f;
+                    flip.x = 1.0f * gl_texture.max_u;
+                    flip.y = -1.0f * gl_texture.max_v;
                 }
 
                 float angle = 0;
@@ -1193,9 +1183,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
             }
-            // Get ordered list of unique texture id's present in block
-            std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0))));
+            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0))));
 
             track->track_blocks.emplace_back(current_track_block);
         }
@@ -1211,7 +1199,6 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
 
     // Parse out COL data
     for (uint32_t structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx) {
-        std::set<unsigned int> minimal_texture_ids_set;
         std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
@@ -1247,7 +1234,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
         for (uint32_t poly_Idx = 0; poly_Idx < track->colStructures[structure_Idx].nPoly; ++poly_Idx) {
             // Remap the COL TextureID's using the COL texture block (XBID2)
             TEXTURE_BLOCK texture_for_block = track->polyToQFStexTable[track->colStructures[structure_Idx].polygonTable[poly_Idx].texture];
-            minimal_texture_ids_set.insert(texture_for_block.texNumber);
+            Texture gl_texture = track->textures[texture_for_block.texNumber];
             indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[0]);
             indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[1]);
             indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
@@ -1255,12 +1242,12 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
             indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
             indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[3]);
             // TODO: Use textures alignment data to modify these UV's
-            uvs.emplace_back(1.0f, 1.0f);
-            uvs.emplace_back(0.0f, 1.0f);
-            uvs.emplace_back(0.0f, 0.0f);
-            uvs.emplace_back(1.0f, 1.0f);
-            uvs.emplace_back(0.0f, 0.0f);
-            uvs.emplace_back(1.0f, 0.0f);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
             texture_indices.emplace_back(texture_for_block.texNumber);
             texture_indices.emplace_back(texture_for_block.texNumber);
             texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1268,10 +1255,8 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
             texture_indices.emplace_back(texture_for_block.texNumber);
             texture_indices.emplace_back(texture_for_block.texNumber);
         }
-        // Get ordered list of unique texture id's present in block
-        std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = rotationMatrix * glm::vec3(structureReferenceCoordinates->x/scaleFactor, structureReferenceCoordinates->y/scaleFactor, structureReferenceCoordinates->z/scaleFactor);
-        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, texture_ids, shading_data, position)));
+        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, shading_data, position)));
         //free(structureReferenceCoordinates);
     }
     return col_entities;

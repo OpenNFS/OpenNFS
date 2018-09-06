@@ -163,11 +163,11 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
     deltaTime = float(currentTime - lastTime);
 
     // Get mouse position and compute new orientation with it
-    horizontalAngle += mouseSpeed * (1024 / 2 - io.MousePos.x);
-    verticalAngle += mouseSpeed * (768 / 2 - io.MousePos.y);
+    horizontalAngle += mouseSpeed * (1920 / 2 - io.MousePos.x);
+    verticalAngle += mouseSpeed * (1080 / 2 - io.MousePos.y);
 
     // Reset mouse position for next frame
-    glfwSetCursorPos(window, 1024 / 2, 768 / 2);
+    glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
     glm::vec3 direction(

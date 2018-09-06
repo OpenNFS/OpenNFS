@@ -15,7 +15,7 @@
 class TrackShader : public BaseShader {
 public:
     TrackShader();
-    void bindTrackTextures(const Track &track_block, map<unsigned int, GLuint> gl_id_map);
+    void bindTextureArray(GLuint texture_array);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
     void loadSpecular(float damper, float reflectivity);
     void loadLights(std::vector<Light> lights);

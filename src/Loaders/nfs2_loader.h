@@ -29,7 +29,7 @@ public:
     static void dbgPrintVerts(const std::string &path, const shared_ptr<typename Platform::TRACK> &track);
 private:
     // Car
-    static std::vector<CarModel> LoadGEO(const std::string &geo_path);
+    static std::vector<CarModel> LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures);
     // Track
     static bool LoadTRK(std::string trk_path, const shared_ptr<typename Platform::TRACK> &track);
     static bool LoadCOL(std::string col_path, const shared_ptr<typename Platform::TRACK> &track);

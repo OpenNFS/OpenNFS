@@ -637,7 +637,8 @@ namespace Utils {
         return retval;
     }
 
-    bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei width, GLsizei height) {
+    bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei *width_, GLsizei *height_) {
+        GLsizei width, height;
         bool retval = false;
         // load file and check if it looks reasonable
         FILE *fp = fopen(fname, "rb");
@@ -661,8 +662,10 @@ namespace Utils {
                             BITMAPINFO *info_a = (BITMAPINFO *) (data_a + sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
                             if (info->bmiHeader.biCompression == BI_RGB) {
                                 width = info->bmiHeader.biWidth;
+                                *width_ = width;
                                 if (width > 0) {
                                     height = info->bmiHeader.biHeight;
+                                    *height_ = height;
                                     if (height) {
                                         if (height < 0)
                                             height = (-height);// we want RGBA. let's alloc enough space

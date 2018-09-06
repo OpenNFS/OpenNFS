@@ -15,7 +15,9 @@
 // ---- NFS2/3 GL Structures -----
 class Texture {
 public:
-    unsigned int texture_id, width, height;
+    unsigned int texture_id, width, height, layer;
+    float min_u, min_v, max_u, max_v;
+
     GLubyte *texture_data;
 
     Texture() = default;
@@ -25,6 +27,10 @@ public:
         texture_data = data;
         width = w;
         height = h;
+        min_u = 0.f;
+        min_v = 0.f;
+        max_u = 0.f;
+        max_v = 0.f;
     }
 };
 
@@ -296,7 +302,7 @@ namespace NFS3_4_DATA {
         std::vector<TrackBlock> track_blocks;
         std::vector<Entity> global_objects;
         std::map<unsigned int, Texture> textures;
-        std::map<unsigned int, GLuint> texture_gl_mappings;
+        GLuint texture_array;
         glm::vec3 sky_top_colour, sky_bottom_colour;
     };
 
@@ -590,7 +596,7 @@ namespace NFS2_DATA {
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
             std::map<unsigned int, Texture> textures;
-            std::map<unsigned int, GLuint> texture_gl_mappings;
+            GLuint texture_array;
         };
 
         struct GEO {
@@ -711,7 +717,7 @@ namespace NFS2_DATA {
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
             std::map<unsigned int, Texture> textures;
-            std::map<unsigned int, GLuint> texture_gl_mappings;
+            GLuint texture_array;
         };
 
         struct PSH {

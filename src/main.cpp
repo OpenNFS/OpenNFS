@@ -85,7 +85,7 @@ private:
         //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 #endif
 
-        window = glfwCreateWindow(1024, 768, "OpenNFS", nullptr, nullptr);
+        window = glfwCreateWindow(1920, 1080, "OpenNFS", nullptr, nullptr);
 
         if (window == nullptr) {
             fprintf(stderr, "Failed to create a GLFW window.\n");
@@ -109,7 +109,6 @@ private:
         glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
         // Set the mouse at the center of the screen
         glfwPollEvents();
-        glfwSetCursorPos(window, 1024 / 2, 768 / 2);
 
         // Dark blue background
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -126,9 +125,11 @@ private:
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        GLint texture_units;
+        GLint texture_units, max_array_texture_layers;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
+        glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_array_texture_layers);
         std::cout << "Max Texture Units: " << texture_units << std::endl;
+        std::cout << "Max Array Texture Layers: " << max_array_texture_layers << std::endl;
         std::cout << "OpenGL Initialisation successful" << std::endl;
 
         return true;

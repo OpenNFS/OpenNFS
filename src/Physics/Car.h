@@ -19,7 +19,7 @@
 class Car {
 public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
-    Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, std::map<unsigned int, GLuint> texture_gl_mappings); // Multitextured car
+    Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_texture_array); // Multitextured car
     ~Car();
     void setPosition(glm::vec3 position);
     void update();
@@ -61,7 +61,7 @@ public:
     CarModel right_rear_wheel_model;
     CarModel car_body_model;
     // Multitextured Car
-    std::map<unsigned int, GLuint> car_texture_gl_mappings;
+    GLuint texture_array;
 
     // Physics
     btRaycastVehicle::btVehicleTuning m_tuning; // Wheel properties

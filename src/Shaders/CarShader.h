@@ -23,7 +23,7 @@ public:
     void loadLight(Light light);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
-    void bindCarTextures(const CarModel &car_model, std::map<unsigned int, GLuint> gl_id_map);
+    void bindTextureArray(GLuint texture_array);
     void setMultiTextured(bool multiTextured);
     void setPolyFlagged(bool polyFlagged);
     void load_tga_texture();

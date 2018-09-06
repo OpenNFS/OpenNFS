@@ -3,52 +3,8 @@
 //
 
 #include "track_utils.h"
-#include "nfs2_loader.h"
 
 namespace TrackUtils {
-    std::map<unsigned int, GLuint> GenTextures(std::map<unsigned int, Texture> textures) {
-        std::map<unsigned int, GLuint> gl_id_map;
-
-        for (auto it = textures.begin(); it != textures.end(); ++it) {
-            Texture texture = it->second;
-            GLuint textureID;
-            glGenTextures(1, &textureID);
-            gl_id_map[it->first] = textureID;
-            glBindTexture(GL_TEXTURE_2D, textureID);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            // TODO: Use Filtering for Textures with no alpha component
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
-        }
-
-        return gl_id_map;
-    }
-
-    std::vector<unsigned int> RemapTextureIDs(const std::set<unsigned int> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) {
-        // Get ordered list of unique texture id's present in block
-        std::vector<unsigned int> texture_ids;
-        texture_ids.assign(minimal_texture_ids_set.begin(), minimal_texture_ids_set.end());
-        // Remap polygon texture ID's to correspond to ordered texture ID's
-        std::map<int, int> ordered_mapping;
-        for (int t = 0; t < texture_ids.size(); ++t) {
-            ordered_mapping[texture_ids[t]] = t;
-        }
-        for (auto &texture_index : texture_indices) {
-			auto temp = ordered_mapping.find(texture_index);
-			if (temp != ordered_mapping.end()) {
-				texture_index = temp->second;
-			} else
-			{
-			    //std::cerr << "Unable to find the referenced polygon texture ID: " << texture_index << "in the minimal set of texture ID's identified in this Mesh. Substituting tex 0, expect visual bug." << std::endl;
-				// TODO: This should _never_ happen, and MSVC says it does, throwing map/set not derefencable.
-				texture_index = ordered_mapping.begin()->second;
-			}
-        }
-        return texture_ids;
-    }
-
     Light MakeLight(glm::vec3 light_position, uint32_t light_type) {
         // Use Data from NFSHS NFS3 Tracks TR.INI
         switch (light_type) {
@@ -175,6 +131,48 @@ namespace TrackUtils {
 
         output_dir << "/textures/";
         return (Utils::ExtractQFS(tex_archive_path.str(), output_dir.str()));
+    }
+
+    GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, size_t max_width, size_t max_height, bool repeatable) {
+        GLuint texture_name;
+        glGenTextures(1, &texture_name);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texture_name);
+        std::vector<uint32_t> clear_data(max_width * max_height, 0);
+
+        std::cout << "Creating texture array with " <<  (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height << std::endl;
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, textures.size());
+
+        for (uint32_t i = 0; i < textures.size(); i++) {
+            auto & texture = textures[i];
+            assert(texture.width <= max_width);
+            assert(texture.height <= max_height);
+            // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *)  texture.texture_data);
+
+            texture.min_u = 0;
+            texture.min_v = 0;
+            texture.layer = i;
+            texture.max_u = texture.width / static_cast<float>(max_width);
+            texture.max_v = texture.height / static_cast<float>(max_height);
+            texture.texture_id = texture_name;
+        }
+        if (repeatable) {
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
+
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+
+        //Unbind texture
+        glBindTexture( GL_TEXTURE_2D_ARRAY, 0);
+
+        return texture_name;
     }
 
     glm::vec3 parseRGBString(const std::string &rgb_string) {

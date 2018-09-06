@@ -41,8 +41,6 @@ shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_na
             return NFS2<PS1>::LoadCar(car_path.str());
         case NFS_4:
             return NFS4::LoadCar(car_path.str());
-        case UNKNOWN:
-            ASSERT(false, "Unknown car type!");
         default:
             ASSERT(false, "Unknown car type!");
             break;

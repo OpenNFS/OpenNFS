@@ -7,10 +7,9 @@
 #include "Track.h"
 #include "../Util/Utils.h"
 
-Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids, std::vector<glm::vec4> shading_data, std::vector<uint32_t> debug_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position) {
+Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<glm::vec4> shading_data, std::vector<uint32_t> debug_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position) {
     m_texture_indices = texture_indices;
     shadingData = shading_data;
-    texture_ids = tex_ids;
     m_debug_data = debug_data;
     // Index Shading data
     for(unsigned int m_vertex_index : indices) {
@@ -20,11 +19,11 @@ Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::ve
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model");
 }
 
-Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids,
+Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
              std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
-    texture_ids = tex_ids;
+
     // Fill the unused buffer with data
     for(int i = 0; i < m_texture_indices.size(); ++i){
         m_debug_data.emplace_back(0);
@@ -40,11 +39,10 @@ Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vect
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Track Model");
 }
 
-Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<unsigned int> tex_ids,
+Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
              std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
-    texture_ids = tex_ids;
     // Fill the unused buffer with data
     for(int i = 0; i < m_texture_indices.size(); ++i){
         m_debug_data.emplace_back(0);

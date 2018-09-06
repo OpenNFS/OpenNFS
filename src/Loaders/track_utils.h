@@ -16,13 +16,11 @@
 #include "../Util/Utils.h"
 
 namespace TrackUtils {
-    std::map<unsigned int, GLuint> GenTextures(std::map<unsigned int, Texture> textures);
-
-    std::vector<unsigned int> RemapTextureIDs(const std::set<unsigned int> &minimal_texture_ids_set, std::vector<unsigned int> &texture_indices) ;
-
     Light MakeLight(glm::vec3 light_position, uint32_t light_type);
 
     bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version);
+
+    GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, size_t max_width, size_t max_height, bool repeatable);
 
     glm::vec3 parseRGBString(const std::string &rgb_string);
 };

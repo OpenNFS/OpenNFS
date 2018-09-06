@@ -14,6 +14,8 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
 
     // TODO: Urgently refactor these into Renderer classes
     // Render the per-trackblock data
+    trackShader.use();
+    trackShader.bindTextureArray(track->texture_array);
     for (int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx) {
         TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
         std::vector<Entity> contributingLightEntities = active_track_Block.lights;
@@ -22,7 +24,6 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
         for (auto &light_entity : contributingLightEntities) {
             contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
         }
-        trackShader.use();
         for (auto &track_block_entity : active_track_Block.objects) {
             boost::get<Track>(track_block_entity.glMesh).update();
             trackShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
@@ -32,7 +33,6 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
             } else {
                 trackShader.loadLights(camlights);
             }
-            trackShader.bindTrackTextures(boost::get<Track>(track_block_entity.glMesh), track->texture_gl_mappings);
             trackShader.setClassic(userParams.use_classic_graphics);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
@@ -45,7 +45,6 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
             } else {
                 trackShader.loadLights(camlights);
             }
-            trackShader.bindTrackTextures(boost::get<Track>(track_block_entity.glMesh), track->texture_gl_mappings);
             trackShader.setClassic(userParams.use_classic_graphics);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
@@ -59,15 +58,12 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
             } else {
                 trackShader.loadLights(camlights);
             }
-            trackShader.bindTrackTextures(boost::get<Track>(track_block_entity.glMesh), track->texture_gl_mappings);
             trackShader.setClassic(userParams.use_classic_graphics);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
-        trackShader.unbind();
     }
 
     // Render the global data, animations go here.
-    trackShader.use();
     for (auto &global_object : track->global_objects) {
         if (track->tag == NFS_3) {
             COLFILE col = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
@@ -117,7 +113,6 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
         trackShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, boost::get<Track>(global_object.glMesh).ModelMatrix);
         trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
         trackShader.loadLights(camlights);
-        trackShader.bindTrackTextures(boost::get<Track>(global_object.glMesh), track->texture_gl_mappings);
         trackShader.setClassic(userParams.use_classic_graphics);
         boost::get<Track>(global_object.glMesh).render();
     }

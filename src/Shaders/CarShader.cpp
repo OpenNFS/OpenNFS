@@ -11,7 +11,6 @@ CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
     car = current_car;
     bindAttributes();
     getAllUniformLocations();
-    //load_tga_texture();
     LoadEnvMapTexture();
 }
 
@@ -48,7 +47,7 @@ void CarShader::getAllUniformLocations() {
     viewMatrixLocation = getUniformLocation("viewMatrix");
     envMapTextureLocation = getUniformLocation("envMapTextureSampler");
     carTextureLocation = getUniformLocation("carTextureSampler");
-    colourLocation = getUniformLocation("colour");
+    colourLocation = getUniformLocation("carColour");
     lightPositionLocation = getUniformLocation("lightPosition");
     lightColourLocation = getUniformLocation("lightColour");
     shineDamperLocation=  getUniformLocation("shineDamper");
@@ -67,22 +66,14 @@ void CarShader::setPolyFlagged(bool polyFlagged){
     loadBool(hasPolyFlagsLocation, polyFlagged);
 }
 
-void CarShader::customCleanup(){
+void CarShader::customCleanup() {
     glDeleteTextures(1, &textureID);
 }
 
-void CarShader::bindCarTextures(const CarModel &car_model, std::map<unsigned int, GLuint> gl_id_map) {
-    GLenum texNum = GL_TEXTURE0;
-    for (unsigned int texture_id : car_model.texture_ids) {
-        glActiveTexture(texNum++);
-        glBindTexture(GL_TEXTURE_2D, gl_id_map.find(texture_id)->second);
-        if(texNum - GL_TEXTURE0 > 14){
-            break;
-            //std::cerr << "Too many textures in Car for number of GPU samplers" << std::endl;
-        }
-    }
-    const GLint samplers[14] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
-    glUniform1iv(CarTexturesID, 14, samplers);
+void CarShader::bindTextureArray(GLuint texture_array) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
+    glUniform1i(CarTexturesID, 0);
 }
 
 void CarShader::load_tga_texture() {
@@ -104,15 +95,15 @@ void CarShader::load_tga_texture() {
 }
 
 void CarShader::loadCarTexture(){
-    loadSampler2D(carTextureLocation, 0);
-    glActiveTexture(GL_TEXTURE0);
+    loadSampler2D(carTextureLocation, 1);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textureID);
     loadEnvironmentMapTexture();
 }
 
 void CarShader::loadEnvironmentMapTexture(){
-    loadSampler2D(envMapTextureLocation, 1);
-    glActiveTexture(GL_TEXTURE1);
+    loadSampler2D(envMapTextureLocation, 2);
+    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, envMapTextureID);
 }
 

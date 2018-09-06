@@ -6,8 +6,8 @@
 #include "Car.h"
 #include "../Scene/Entity.h"
 
-Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, std::map<unsigned int, GLuint> texture_gl_mappings) : Car(car_meshes, nfs_version, car_name) {
-    car_texture_gl_mappings = texture_gl_mappings;
+Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_texture_array) : Car(car_meshes, nfs_version, car_name) {
+    texture_array = car_texture_array;
     multitexturedCarModel = true;
 }
 

@@ -118,7 +118,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     ASSERT(LoadCAN(can_path.str(), track), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     ASSERT(LoadHRZ(hrz_path.str(), track), "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
 
-    track->texture_gl_mappings = TrackUtils::GenTextures(track->textures);
+    track->texture_array = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
     track->track_blocks = ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 
@@ -469,8 +469,6 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 // Iterate through objects in objpoly block up to num objects
                 for (uint32_t k = 0; k < obj_polygon_block.nobj; k++) {
                     //TODO: Animated objects here, obj_polygon_block.types
-                    // Keep track of unique textures in trackblock for later OpenGL bind
-                    std::set<unsigned int> minimal_texture_ids_set;
                     // Mesh Data
                     std::vector<unsigned int> vertex_indices;
                     std::vector<glm::vec2> uvs;
@@ -481,7 +479,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     LPPOLYGONDATA object_polys = obj_polygon_block.poly[k];
                     for (uint32_t p = 0; p < obj_polygon_block.numpoly[k]; p++) {
                         TEXTUREBLOCK texture_for_block = track->texture[object_polys[p].texture];
-                        minimal_texture_ids_set.insert(texture_for_block.texture);
+                        Texture gl_texture = track->textures[texture_for_block.texture];
                         norm_floatpt = SumVector(norm_floatpt, QuadNormalVectorCalc(trk_block.vert[object_polys[p].vertex[0]], trk_block.vert[object_polys[p].vertex[1]], trk_block.vert[object_polys[p].vertex[2]], trk_block.vert[object_polys[p].vertex[3]]));
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
@@ -495,12 +493,12 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         vertex_indices.emplace_back(object_polys[p].vertex[0]);
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
                         vertex_indices.emplace_back(object_polys[p].vertex[3]);
-                        uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                        uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
-                        uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                        uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                        uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                        uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+                        uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
                         // Use TextureID in place of normal
                         texture_indices.emplace_back(texture_for_block.texture);
                         texture_indices.emplace_back(texture_for_block.texture);
@@ -509,9 +507,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         texture_indices.emplace_back(texture_for_block.texture);
                         texture_indices.emplace_back(texture_for_block.texture);
                     }
-                    // Get ordered list of unique texture id's present in block
-                    std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, texture_ids, obj_shading_verts, trk_block_center)));
+                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center)));
                 }
             }
         }
@@ -532,7 +528,6 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     //RGBA
                     xobj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
                 }
-                std::set<unsigned int> minimal_texture_ids_set;
                 std::vector<unsigned int> vertex_indices;
                 std::vector<glm::vec2> uvs;
                 std::vector<unsigned int> texture_indices;
@@ -540,7 +535,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 FLOATPT norm_floatpt;
                 for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
-                    minimal_texture_ids_set.insert(texture_for_block.texture);
+                    Texture gl_texture = track->textures[texture_for_block.texture];
                     norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                     norm_floatpt = VertexNormal(i, x->polyData->vertex[1], track->trk, track->poly);
@@ -559,12 +554,12 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     vertex_indices.emplace_back(x->polyData->vertex[0]);
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
                     vertex_indices.emplace_back(x->polyData->vertex[3]);
-                    uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                    uvs.emplace_back(1.0f - texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
-                    uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                    uvs.emplace_back(1.0f - texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                    uvs.emplace_back(1.0f - texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                    uvs.emplace_back(1.0f - texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+                    uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                    uvs.emplace_back((1.0f - texture_for_block.corners[2]) * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
+                    uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                    uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                    uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                    uvs.emplace_back((1.0f - texture_for_block.corners[6]) * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);
@@ -572,14 +567,10 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);
                 }
-                // Get ordered list of unique texture id's present in block
-                std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
-                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, xobj_shading_verts, trk_block_center)));
+                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, trk_block_center)));
             }
         }
 
-        // Keep track of unique textures in trackblock for later OpenGL bind
-        std::set<unsigned int> minimal_texture_ids_set;
         // Mesh Data
         std::vector<unsigned int> vertex_indices;
         std::vector<glm::vec2> uvs;
@@ -601,7 +592,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
             LPPOLYGONDATA poly_chunk = polygon_block.poly[chnk];
             for (uint32_t k = 0; k < polygon_block.sz[chnk]; k++) {
                 TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
-                minimal_texture_ids_set.insert(texture_for_block.texture);
+                Texture gl_texture = track->textures[texture_for_block.texture];
                 norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0], track->trk, track->poly);
                 norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                 norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[1], track->trk, track->poly);
@@ -620,12 +611,12 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[3]);
-                uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
-                uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-                uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-                uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+                uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
+                uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);
@@ -633,13 +624,11 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);
             }
-            // Get ordered list of unique texture id's present in block
-            std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
 
             if(chnk == 6){
-                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center)));
+                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center)));
             } else {
-                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, texture_ids, trk_block_shading_verts, trk_block_center)));
+                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center)));
             }
         }
         track_blocks.emplace_back(current_track_block);
@@ -655,8 +644,6 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
     /* COL DATA - TODO: Come back for VROAD AI/Collision data */
     for (uint32_t i = 0; i < track->col.objectHead.nrec; i++, o++) {
         COLSTRUCT3D s = track->col.struct3D[o->struct3D];
-        // Keep track of unique textures in trackblock for later OpenGL bind
-        std::set<unsigned int> minimal_texture_ids_set;
         std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
@@ -677,7 +664,6 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
                     texture_for_block = track->texture[t];
                 }
             }
-            minimal_texture_ids_set.insert(texture_for_block.texture);
             indices.emplace_back(s.polygon->v[0]);
             indices.emplace_back(s.polygon->v[1]);
             indices.emplace_back(s.polygon->v[2]);
@@ -703,10 +689,8 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
             texture_indices.emplace_back(texture_for_block.texture);
             texture_indices.emplace_back(texture_for_block.texture);
         }
-        // Get ordered list of unique texture id's present in block
-        std::vector<unsigned int> texture_ids = TrackUtils::RemapTextureIDs(minimal_texture_ids_set, texture_indices);
         glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10, static_cast<float>(o->ptRef.y / 65536.0) / 10, static_cast<float>(o->ptRef.z / 65536.0) / 10);
-        col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL, Track(verts, norms, uvs, texture_indices, indices, texture_ids, shading_data, position)));
+        col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL, Track(verts, norms, uvs, texture_indices, indices, shading_data, position)));
     }
     return col_entities;
 }
@@ -727,11 +711,11 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     GLsizei width = track_texture.width;
     GLsizei height = track_texture.height;
 
-    if (!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, width, height)) {
+    if (!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height)) {
         std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!" << std::endl;
         // If the texture is missing, load a "MISSING" texture of identical size.
-        ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, width, height), "Even the 'missing' texture is missing!");
-        return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width), static_cast<unsigned int>(track_texture.height));
+        ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height), "Even the 'missing' texture is missing!");
+        return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
     }
 
     return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width), static_cast<unsigned int>(track_texture.height));

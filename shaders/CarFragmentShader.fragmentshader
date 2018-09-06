@@ -3,7 +3,6 @@
 // Interpolated values from the vertex shaders
 in vec2 envUV;
 in vec2 UV;
-in vec3 carColour;
 in vec3 surfaceNormal;
 in vec3 toLightVector;
 in vec3 toCameraVector;
@@ -14,41 +13,21 @@ flat in uint polyFlag;
 out vec4 color;
 
 // Values that stay constant for the whole mesh.
-uniform sampler2D texture_array[14];
+uniform sampler2DArray texture_array;
 uniform sampler2D envMapTextureSampler;
 uniform sampler2D carTextureSampler;
+
 uniform vec4 lightColour;
+uniform vec3 carColour;
 uniform float shineDamper;
 uniform float reflectivity;
 uniform float envReflectivity;
+
 uniform bool multiTextured;
 uniform bool polyFlagged;
 
 void main(){
-    vec4 carTexColor;
-    if(!multiTextured) {
-        switch(int(texIndex)){
-            case 0: carTexColor  = texture(texture_array[0],  UV).rgba; break;
-            case 1: carTexColor  = texture(texture_array[1],  UV).rgba; break;
-            case 2: carTexColor  = texture(texture_array[2],  UV).rgba; break;
-            case 3: carTexColor  = texture(texture_array[3],  UV).rgba; break;
-            case 4: carTexColor  = texture(texture_array[4],  UV).rgba; break;
-            case 5: carTexColor  = texture(texture_array[5],  UV).rgba; break;
-            case 6: carTexColor  = texture(texture_array[6],  UV).rgba; break;
-            case 7: carTexColor  = texture(texture_array[7],  UV).rgba; break;
-            case 8: carTexColor  = texture(texture_array[8],  UV).rgba; break;
-            case 9: carTexColor  = texture(texture_array[9],  UV).rgba; break;
-            case 10: carTexColor = texture(texture_array[10], UV).rgba; break;
-            case 11: carTexColor = texture(texture_array[11], UV).rgba; break;
-            case 12: carTexColor = texture(texture_array[12], UV).rgba; break;
-            case 13: carTexColor = texture(texture_array[13], UV).rgba; break;
-            default: carTexColor = texture(texture_array[0],  UV).rgba; break;
-        }
-    }
-    else {
-        carTexColor = texture( carTextureSampler, UV ).rgba;
-    }
-
+    vec4 carTexColor = multiTextured ? texture(texture_array, vec3(UV, texIndex)).rgba : texture(carTextureSampler, UV ).rgba;
     vec4 envTexColor = texture( envMapTextureSampler, envUV ).rgba;
 
     vec3 unitNormal = normalize(surfaceNormal);
@@ -72,7 +51,6 @@ void main(){
 	// Output color = color of the texture at the specified UV
 	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0);
 
-	// RELEASE: Comment for LowSpec
 	// Apply NFS4 Polygon Flags
 	if(!polyFlagged) {
 	    if(((polyFlag << 28) >> 28) == 0xAu){
