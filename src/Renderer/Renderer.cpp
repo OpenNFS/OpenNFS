@@ -105,7 +105,6 @@ AssetData Renderer::Render() {
 
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
 
-
         //SetCulling(true);
         carRenderer.render(mainCamera, cameraLight);
         //SetCulling(false);

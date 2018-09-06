@@ -13,55 +13,47 @@ CarRenderer::CarRenderer(const shared_ptr<Car> &activeCar) : carShader(activeCar
 }
 
 void CarRenderer::render(const Camera &mainCamera, const Light &cameraLight) {
-    // Render the Car
     carShader.use();
-    carShader.setPolyFlagged(car->hasPolyFlags());
 
+    // This shader state doesnt change during a car renderpass
+    carShader.loadProjectionViewMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix);
+    carShader.setPolyFlagged(car->hasPolyFlags());
+    carShader.loadCarColor(glm::vec3(1, 1, 1));
+    carShader.loadLight(cameraLight);
+    carShader.loadEnvironmentMapTexture();
     // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
+    carShader.setMultiTextured(car->isMultitextured());
     if(car->isMultitextured()){
-        carShader.setMultiTextured(true);
-        carShader.bindTextureArray(car->texture_array);
+        carShader.bindTextureArray(car->textureArrayID);
     } else {
-        carShader.setMultiTextured(false);
         carShader.loadCarTexture();
     }
 
+    // Render the Car models
     for (auto &misc_model : car->misc_models) {
-        carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, misc_model.ModelMatrix);
+        carShader.loadTransformationMatrix(misc_model.ModelMatrix);
         carShader.loadSpecular(misc_model.specularDamper, 0, 0);
-        carShader.loadCarColor(glm::vec3(1, 1, 1));
-        carShader.loadLight(cameraLight);
         misc_model.render();
     }
 
-    carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, car->left_front_wheel_model.ModelMatrix);
+    carShader.loadTransformationMatrix(car->left_front_wheel_model.ModelMatrix);
     carShader.loadSpecular(car->left_front_wheel_model.specularDamper, 0, 0);
-    carShader.loadCarColor(glm::vec3(1, 1, 1));
-    carShader.loadLight(cameraLight);
     car->left_front_wheel_model.render();
 
-    carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, car->left_rear_wheel_model.ModelMatrix);
+    carShader.loadTransformationMatrix(car->left_rear_wheel_model.ModelMatrix);
     carShader.loadSpecular(car->left_rear_wheel_model.specularDamper, 0, 0);
-    carShader.loadCarColor(glm::vec3(1, 1, 1));
-    carShader.loadLight(cameraLight);
     car->left_rear_wheel_model.render();
 
-    carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, car->right_front_wheel_model.ModelMatrix);
+    carShader.loadTransformationMatrix(car->right_front_wheel_model.ModelMatrix);
     carShader.loadSpecular(car->right_front_wheel_model.specularDamper, 0, 0);
-    carShader.loadCarColor(glm::vec3(1, 1, 1));
-    carShader.loadLight(cameraLight);
     car->right_front_wheel_model.render();
 
-    carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, car->right_rear_wheel_model.ModelMatrix);
+    carShader.loadTransformationMatrix(car->right_rear_wheel_model.ModelMatrix);
     carShader.loadSpecular(car->right_rear_wheel_model.specularDamper, 0, 0);
-    carShader.loadCarColor(glm::vec3(1, 1, 1));
-    carShader.loadLight(cameraLight);
     car->right_rear_wheel_model.render();
 
-    carShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, car->car_body_model.ModelMatrix);
+    carShader.loadTransformationMatrix(car->car_body_model.ModelMatrix);
     carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity, car->car_body_model.envReflectivity);
-    carShader.loadCarColor(glm::vec3(1, 1, 1));
-    carShader.loadLight(cameraLight);
     car->car_body_model.render();
 
     carShader.unbind();

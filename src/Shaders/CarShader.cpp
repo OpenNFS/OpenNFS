@@ -11,10 +11,10 @@ CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
     car = current_car;
     bindAttributes();
     getAllUniformLocations();
-    LoadEnvMapTexture();
+    loadEnvMapTextureData();
 }
 
-void CarShader::LoadEnvMapTexture() {
+void CarShader::loadEnvMapTextureData() {
     std::stringstream filename;
     filename << "../resources/misc/sky_textures/CHRD.BMP";
 
@@ -53,7 +53,7 @@ void CarShader::getAllUniformLocations() {
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
     envReflectivityLocation  =  getUniformLocation("envReflectivity");
-    CarTexturesID = getUniformLocation("texture_array");
+    carTextureArrayLocation = getUniformLocation("textureArray");
     isMultiTexturedLocation = getUniformLocation("multiTextured");
     hasPolyFlagsLocation = getUniformLocation("polyFlagged");
 }
@@ -70,10 +70,11 @@ void CarShader::customCleanup() {
     glDeleteTextures(1, &textureID);
 }
 
-void CarShader::bindTextureArray(GLuint texture_array) {
+void CarShader::bindTextureArray(GLuint textureArrayID) {
+    loadSampler2D(carTextureArrayLocation, 0);
+    loadSampler2D(carTextureLocation, 1);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
-    glUniform1i(CarTexturesID, 0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
 }
 
 void CarShader::load_tga_texture() {
@@ -98,7 +99,6 @@ void CarShader::loadCarTexture(){
     loadSampler2D(carTextureLocation, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    loadEnvironmentMapTexture();
 }
 
 void CarShader::loadEnvironmentMapTexture(){
@@ -113,9 +113,12 @@ void CarShader::loadSpecular(float damper, float reflectivity, float env_reflect
     loadFloat(envReflectivityLocation, env_reflectivity);
 }
 
-void CarShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation){
+void CarShader::loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view){
     loadMat4(viewMatrixLocation, &view[0][0]);
     loadMat4(projectionMatrixLocation, &projection[0][0]);
+}
+
+void CarShader::loadTransformationMatrix(const glm::mat4 &transformation){
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 

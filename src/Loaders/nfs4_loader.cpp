@@ -32,7 +32,7 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
 
-    track->texture_array = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
+    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
     track->track_blocks = ParseTRKModels(track);
 
     std::cout << "Successful track load!" << std::endl;
@@ -803,7 +803,6 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     return true;
 }
 
-
 std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track) {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
@@ -1012,7 +1011,6 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
     }
     return track_blocks;
 }
-
 
 Texture NFS4::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name) {
     std::stringstream filename;

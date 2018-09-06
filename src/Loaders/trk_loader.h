@@ -41,7 +41,7 @@ public:
     std::vector<TrackBlock> track_blocks;
     std::vector<Entity> global_objects;
     uint32_t nBlocks;
-    GLuint texture_array;
+    GLuint textureArrayID;
 };
 
 class TrackLoader {

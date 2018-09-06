@@ -5,19 +5,6 @@
 #include <bitset>
 #include "nfs2_loader.h"
 
-// Map the texture name from the Raw GEO file from a string into an unsigned int representation, so it's cheaper to use during binding.
-unsigned int remapTextureName(std::string texName) {
-    std::stringstream remappedNameString;
-    for (uint32_t char_Idx = 0; char_Idx < texName.length(); ++char_Idx) {
-        if (!isdigit(texName[char_Idx])) {
-            remappedNameString << (int) texName[char_Idx] - 96; // Just change the letter into an alphabet number 1-26
-        } else {
-            remappedNameString << texName[char_Idx];
-        }
-    }
-    return (unsigned int) stoi(remappedNameString.str());
-}
-
 void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
     std::ofstream obj_dump;
     std::stringstream obj_name;
@@ -39,7 +26,7 @@ void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::
 }
 
 template<>
-std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures) {
+std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids) {
     // Mike Thompson CarEd disasm parts table for NFS2 Cars
     std::string PC_PART_NAMES[32]{
             "High Additional Body Part",
@@ -143,8 +130,8 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
         }
 
         for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
-            std::string textureName(polygons[poly_Idx].texName);
-            Texture gl_texture = car_textures[remapTextureName(textureName)];
+            std::string textureName(polygons[poly_Idx].texName, polygons[poly_Idx].texName + 4);
+            Texture gl_texture = car_textures[remapped_texture_ids[textureName]];
 
             indices.emplace_back(polygons[poly_Idx].vertex[0]);
             indices.emplace_back(polygons[poly_Idx].vertex[1]);
@@ -168,12 +155,12 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             norms.emplace_back(glm::vec3(1, 1, 1));
             norms.emplace_back(glm::vec3(1, 1, 1));
 
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256) / carScaleFactor, (geoBlockHeader->position[1] / 256) / carScaleFactor, (geoBlockHeader->position[2] / 256) / carScaleFactor);
         car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
@@ -185,7 +172,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
 }
 
 template<>
-std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures) {
+std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids) {
     std::string PS1_PART_NAMES[33]{
             "High Additional Body Part",
             "High Main Body Part",
@@ -346,8 +333,8 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
         }
 
         for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
-            std::string textureName(polygons[poly_Idx].texName);
-            Texture gl_texture = car_textures[remapTextureName(textureName)];
+            std::string textureName(polygons[poly_Idx].texName, polygons[poly_Idx].texName + 4);
+            Texture gl_texture = car_textures[remapped_texture_ids[textureName]];
 
             std::bitset<8> texMapBits(polygons[poly_Idx].texMap[0]);
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
@@ -391,12 +378,12 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             norms.emplace_back(glm::vec3(1, 1, 1));
             norms.emplace_back(glm::vec3(1, 1, 1));
 
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
-            texture_indices.emplace_back(remapTextureName(textureName));
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
+            texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.0f) / carScaleFactor, (geoBlockHeader->position[1] / 256.0f) / carScaleFactor, (geoBlockHeader->position[2] / 256.0f) / carScaleFactor);
         car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
@@ -474,17 +461,23 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
 
     // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
     std::map<unsigned int, Texture> car_textures;
+    std::map<std::string, uint32_t> remapped_texture_ids;
+    uint32_t remappedTextureID = 0;
+
     for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
-        if (itr->path().filename().string().find("BMP") != std::string::npos) {
+        if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
+            // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
+            remapped_texture_ids[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
+
             GLubyte *data;
             GLsizei width;
             GLsizei height;
             ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 248u), "Texture " << itr->path().string() << " did not load succesfully!");
-            car_textures[remapTextureName(itr->path().filename().string())] = Texture(remapTextureName(itr->path().filename().string()), data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+            car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
         }
     }
 
-    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, TrackUtils::MakeTextureArray(car_textures, 256, 256, false));
+    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures, remapped_texture_ids), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name,  TrackUtils::MakeTextureArray(car_textures, 256, 256, false));
 }
 
 // TRACK
@@ -525,7 +518,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
         track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track->name, nfs_version);
     }
 
-    track->texture_array = TrackUtils::MakeTextureArray(track->textures, 256, 256, false);
+    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 256, 256, false);
     ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 

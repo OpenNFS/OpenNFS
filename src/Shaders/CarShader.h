@@ -22,15 +22,18 @@ public:
     void loadCarTexture();
     void loadLight(Light light);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
-    void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
-    void bindTextureArray(GLuint texture_array);
+    void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view);
+    void loadTransformationMatrix(const glm::mat4 &transformation);
+    void bindTextureArray(GLuint textureArrayID);
     void setMultiTextured(bool multiTextured);
     void setPolyFlagged(bool polyFlagged);
     void load_tga_texture();
+    void loadEnvironmentMapTexture();
 protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
+    void loadEnvMapTextureData();
     shared_ptr<Car> car;
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
@@ -43,17 +46,14 @@ protected:
     GLint shineDamperLocation;
     GLint reflectivityLocation;
     GLint envReflectivityLocation;
-    GLint isMultiTexturedLocation;
-    GLint hasPolyFlagsLocation;
-    GLuint textureID;
-    GLuint envMapTextureID;
-    // Multitextured
-    GLint CarTexturesID;
+    GLint carTextureArrayLocation; // Multitextured
+    GLint isMultiTexturedLocation; // Multitextured
+    GLint hasPolyFlagsLocation;    // PolyFlagged
+
+    GLuint textureID = 0;
+    GLuint envMapTextureID = 0;
 
     typedef BaseShader super;
-
-    void loadEnvironmentMapTexture();
-    void LoadEnvMapTexture();
 };
 
 

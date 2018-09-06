@@ -302,7 +302,7 @@ namespace NFS3_4_DATA {
         std::vector<TrackBlock> track_blocks;
         std::vector<Entity> global_objects;
         std::map<unsigned int, Texture> textures;
-        GLuint texture_array;
+        GLuint textureArrayID;
         glm::vec3 sky_top_colour, sky_bottom_colour;
     };
 
@@ -596,7 +596,7 @@ namespace NFS2_DATA {
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
             std::map<unsigned int, Texture> textures;
-            GLuint texture_array;
+            GLuint textureArrayID;
         };
 
         struct GEO {
@@ -717,7 +717,7 @@ namespace NFS2_DATA {
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
             std::map<unsigned int, Texture> textures;
-            GLuint texture_array;
+            GLuint textureArrayID;
         };
 
         struct PSH {

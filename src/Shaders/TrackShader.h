@@ -15,8 +15,9 @@
 class TrackShader : public BaseShader {
 public:
     TrackShader();
-    void bindTextureArray(GLuint texture_array);
-    void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
+    void bindTextureArray(GLuint textureArrayID);
+    void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view); // These don't change between Shader binds, better to set state once for a track render pass
+    void loadTransformMatrix(const glm::mat4 &transformation);
     void loadSpecular(float damper, float reflectivity);
     void loadLights(std::vector<Light> lights);
     void setClassic(bool useClassic);

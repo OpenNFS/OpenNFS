@@ -143,9 +143,10 @@ namespace TrackUtils {
         glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, textures.size());
 
         for (uint32_t i = 0; i < textures.size(); i++) {
-            auto & texture = textures[i];
-            assert(texture.width <= max_width);
-            assert(texture.height <= max_height);
+            // TODO: This will create a texture if it doesn't exist in the map. I should retrieve a texture in this case so that it doesn't look silly.
+            auto &texture = textures[i];
+            ASSERT(texture.width <= max_width, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
+            ASSERT(texture.height <= max_height, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
             // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
             glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
             glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *)  texture.texture_data);

@@ -118,7 +118,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     ASSERT(LoadCAN(can_path.str(), track), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     ASSERT(LoadHRZ(hrz_path.str(), track), "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
 
-    track->texture_array = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
+    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
     track->track_blocks = ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 
@@ -664,6 +664,7 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
                     texture_for_block = track->texture[t];
                 }
             }
+            Texture gl_texture = track->textures[texture_for_block.texture];
             indices.emplace_back(s.polygon->v[0]);
             indices.emplace_back(s.polygon->v[1]);
             indices.emplace_back(s.polygon->v[2]);
@@ -676,12 +677,12 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
             norms.emplace_back(glm::vec3(1, 1, 1));
             norms.emplace_back(glm::vec3(1, 1, 1));
             norms.emplace_back(glm::vec3(1, 1, 1));
-            uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-            uvs.emplace_back(texture_for_block.corners[2], 1.0f - texture_for_block.corners[3]);
-            uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-            uvs.emplace_back(texture_for_block.corners[0], 1.0f - texture_for_block.corners[1]);
-            uvs.emplace_back(texture_for_block.corners[4], 1.0f - texture_for_block.corners[5]);
-            uvs.emplace_back(texture_for_block.corners[6], 1.0f - texture_for_block.corners[7]);
+            uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
             texture_indices.emplace_back(texture_for_block.texture);
             texture_indices.emplace_back(texture_for_block.texture);
             texture_indices.emplace_back(texture_for_block.texture);

@@ -27,7 +27,7 @@ void TrackShader::getAllUniformLocations() {
     transformationMatrixLocation = getUniformLocation("transformationMatrix");
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
-    TrackTexturesID = getUniformLocation("texture_array");
+    TrackTexturesID = getUniformLocation("textureArrayID");
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
     useClassicLocation = getUniformLocation("useClassic");
@@ -43,9 +43,9 @@ void TrackShader::customCleanup(){
 
 }
 
-void TrackShader::bindTextureArray(GLuint texture_array) {
+void TrackShader::bindTextureArray(GLuint textureArrayID) {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
     glUniform1i(TrackTexturesID, 0);
 }
 
@@ -72,9 +72,12 @@ void TrackShader::loadSpecular(float damper, float reflectivity){
     loadFloat(reflectivityLocation, reflectivity);
 }
 
-void TrackShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation){
+void TrackShader::loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view){
     loadMat4(viewMatrixLocation, &view[0][0]);
     loadMat4(projectionMatrixLocation, &projection[0][0]);
+}
+
+void TrackShader::loadTransformMatrix(const glm::mat4 &transformation){
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
