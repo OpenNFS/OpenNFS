@@ -334,8 +334,8 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
         for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
             std::string textureName(polygons[poly_Idx].texName, polygons[poly_Idx].texName + 4);
             Texture gl_texture = car_textures[remapped_texture_ids[textureName]];
-
             std::bitset<8> texMapBits(polygons[poly_Idx].texMap[0]);
+
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
@@ -351,11 +351,17 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
             indices.emplace_back(polygons[poly_Idx].vertex[0][3]);
 
-            glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+            uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+
+            // TODO: Use Polygon TexMap type to fix texture mapping, use UV factory in trk utils
+           /* glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
             float angle = 0;
             glm::vec2 flip(1.0f, 1.0f);
-
-            // TODO: Use Polygon TexMap type to fix texture mapping
             if (texMapBits[3]) {
                 flip = glm::vec2(-1.0f, 1.0f);
             }
@@ -367,7 +373,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
             uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
             uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-            uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+            uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);*/
 
             // TODO: Long overdue normal calculation
             norms.emplace_back(glm::vec3(1, 1, 1));
@@ -450,6 +456,11 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     psh_path << car_base_path << ".PSH";
     qfs_path << car_base_path << ".QFS";
 
+    // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
+    std::map<unsigned int, Texture> car_textures;
+    std::map<std::string, uint32_t> remapped_texture_ids;
+    uint32_t remappedTextureID = 0;
+
     if (std::is_same<Platform, PS1>::value) {
         car_out_path << CAR_PATH << ToString(NFS_3_PS1) << "/" << car_name << "/";
         Utils::ExtractPSH(psh_path.str(), car_out_path.str());
@@ -458,22 +469,26 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
         Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
     }
 
-    // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
-    std::map<unsigned int, Texture> car_textures;
-    std::map<std::string, uint32_t> remapped_texture_ids;
-    uint32_t remappedTextureID = 0;
-
     for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
         if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
             remapped_texture_ids[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
-            bmpread_t bmpAttr; // This will leak.
-            ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
-            car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
+            if (std::is_same<Platform, PS1>::value) {
+                GLubyte *data;
+                GLsizei width;
+                GLsizei height;
+                ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 248u), "Texture " << itr->path().string() << " did not load succesfully!");
+                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+            } else {
+                bmpread_t bmpAttr; // This will leak.
+                ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
+                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
+
+            }
         }
     }
 
-    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures, remapped_texture_ids), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name,  TrackUtils::MakeTextureArray(car_textures, 256, 256, false));
+    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures, remapped_texture_ids), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, TrackUtils::MakeTextureArray(car_textures, 256, 256, false));
 }
 
 // TRACK
@@ -507,7 +522,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
 
     ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name , nfs_version), "Could not extract " << track->name  << " texture pack.");
+    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, nfs_version), "Could not extract " << track->name << " texture pack.");
 
     // Load up the textures
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
@@ -675,23 +690,23 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                                 trk.seekg(structure.recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
                             }
                             break;
-                        // PS1 Specific XBID, Misc purpose
-                        /*case 10: {
-                            std::cout << "XBID 10 NStruct: " << xblockHeader->nRecords << std::endl;
-                            PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) trackblock);
-                            ps1TrackBlock->nUnknownVerts =  xblockHeader->nRecords;
-                            uint8_t xbidHeader[8];
-                            trk.read((char *) xbidHeader, 8);
-                            for(int i = 0; i < 8; ++i){
-                                std::cout << (int) xbidHeader[i] << std::endl;
+                            // PS1 Specific XBID, Misc purpose
+                            /*case 10: {
+                                std::cout << "XBID 10 NStruct: " << xblockHeader->nRecords << std::endl;
+                                PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) trackblock);
+                                ps1TrackBlock->nUnknownVerts =  xblockHeader->nRecords;
+                                uint8_t xbidHeader[8];
+                                trk.read((char *) xbidHeader, 8);
+                                for(int i = 0; i < 8; ++i){
+                                    std::cout << (int) xbidHeader[i] << std::endl;
+                                }
+                                // TODO: Likely these are not VERTS, and the act of adding the parent block center gives meaning where none is present.
+                                ps1TrackBlock->unknownVerts = new PS1::VERT[xblockHeader->nRecords];
+                                for (uint32_t record_Idx = 0; record_Idx < xblockHeader->nRecords; ++record_Idx) {
+                                    trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx], sizeof(PS1::VERT));
+                                }
                             }
-                            // TODO: Likely these are not VERTS, and the act of adding the parent block center gives meaning where none is present.
-                            ps1TrackBlock->unknownVerts = new PS1::VERT[xblockHeader->nRecords];
-                            for (uint32_t record_Idx = 0; record_Idx < xblockHeader->nRecords; ++record_Idx) {
-                                trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx], sizeof(PS1::VERT));
-                            }
-                        }
-                            break;*/
+                                break;*/
                         case 6:
                             trackblock->medianData = static_cast<MEDIAN_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(MEDIAN_BLOCK)));
                             trk.read((char *) trackblock->medianData, xblockHeader->nRecords * sizeof(MEDIAN_BLOCK));
@@ -735,7 +750,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
     col.read((char *) &version, sizeof(uint32_t));
     if (version != 11) return false;
 
-	streampos colSize;
+    streampos colSize;
     col.read((char *) &colSize, sizeof(uint32_t));
 
     uint32_t nExtraBlocks;
@@ -969,12 +984,12 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
             }
 
 
-            if(std::is_same<Platform,PS1>::value) {
+            if (std::is_same<Platform, PS1>::value) {
                 VERT_HIGHP *refCoord = &track->blockReferenceCoords[trkBlock.header->blockSerial];
                 // PS1 Specific Misc XBID 10 Vert debug
-                PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK*) &superblock->trackBlocks[block_Idx]);
+                PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) &superblock->trackBlocks[block_Idx]);
                 for (uint32_t j = 0; j < ps1TrackBlock->nUnknownVerts; j++) {
-                    glm::vec3 light_center = rotationMatrix * glm::vec3((refCoord->x +(256 * ps1TrackBlock->unknownVerts[j].x))/scaleFactor, (refCoord->y +(256 * ps1TrackBlock->unknownVerts[j].y))/scaleFactor, (refCoord->z +(256 * ps1TrackBlock->unknownVerts[j].y))/scaleFactor);
+                    glm::vec3 light_center = rotationMatrix * glm::vec3((refCoord->x + (256 * ps1TrackBlock->unknownVerts[j].x)) / scaleFactor, (refCoord->y + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor, (refCoord->z + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor);
                     current_track_block.lights.emplace_back(Entity(0, j, NFS_2, LIGHT, TrackUtils::MakeLight(light_center, 0)));
                 }
             }
@@ -1037,8 +1052,8 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                     glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
                     glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
                     if (std::is_same<Platform, PS1>::value) {
-                       flip.x = -1.0f * gl_texture.max_u;
-                       flip.y = -1.0f * gl_texture.max_v;
+                        flip.x = -1.0f * gl_texture.max_u;
+                        flip.y = -1.0f * gl_texture.max_v;
                     } else {
                         flip.x = -1.0f * gl_texture.max_u;
                         flip.y = 1.0f * gl_texture.max_v;
@@ -1054,7 +1069,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                         flip.y = -flip.y;
                     }
 
-					glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+                    glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
 
                     // TODO: Use Polygon TexMap type to fix texture mapping
                     uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
@@ -1148,7 +1163,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                     flip.y = -flip.y;
                 }
 
-				glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+                glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
 
                 // TODO: Use Polygon TexMap type to fix texture mapping
                 uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
@@ -1244,7 +1259,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Pla
             texture_indices.emplace_back(texture_for_block.texNumber);
             texture_indices.emplace_back(texture_for_block.texNumber);
         }
-        glm::vec3 position = rotationMatrix * glm::vec3(structureReferenceCoordinates->x/scaleFactor, structureReferenceCoordinates->y/scaleFactor, structureReferenceCoordinates->z/scaleFactor);
+        glm::vec3 position = rotationMatrix * glm::vec3(structureReferenceCoordinates->x / scaleFactor, structureReferenceCoordinates->y / scaleFactor, structureReferenceCoordinates->z / scaleFactor);
         col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, shading_data, position)));
         //free(structureReferenceCoordinates);
     }

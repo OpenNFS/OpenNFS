@@ -420,7 +420,7 @@ namespace NFS3_4_DATA {
                 uint32_t nSecColours;
                 COLOUR secondaryColours[16];
 
-                char dummyNames[64][16];
+                char dummyNames[16][64];
                 char partNames[64][64];
 
                 uint32_t unknownTable[64];

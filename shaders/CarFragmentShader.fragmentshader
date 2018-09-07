@@ -52,7 +52,7 @@ void main(){
 	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0);
 
 	// Apply NFS4 Polygon Flags
-	if(!polyFlagged) {
+	if(polyFlagged) {
 	    if(((polyFlag << 28) >> 28) == 0xAu){
 	        color.a = 0.5f;
 	    }

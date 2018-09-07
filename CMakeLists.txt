@@ -5,7 +5,13 @@ set(VS_STARTUP_PROJECT OpenNFS)
 set(BUILD_SHARED_LIBS OFF)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-msse3")
+
+include (cmake/CheckCXXCompilerFlag.cmake)
+include (cmake/CheckCCompilerFlag.cmake)
+include (cmake/AddCompilerFlag.cmake)
+include (cmake/OptimizeForArchitecture.cmake)
+OptimizeForArchitecture()
+MESSAGE( STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS} )
 
 #[[Static linking broken under Mac OSX]]
 if(WIN32)

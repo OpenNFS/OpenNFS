@@ -105,9 +105,9 @@ AssetData Renderer::Render() {
 
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
 
-        //SetCulling(true);
+        if(car->tag == NFS_3 || car->tag == NFS_4) SetCulling(true);
         carRenderer.render(mainCamera, cameraLight);
-        //SetCulling(false);
+        SetCulling(false);
 
         trackRenderer.renderLights(mainCamera, activeTrackBlockIDs);
 
