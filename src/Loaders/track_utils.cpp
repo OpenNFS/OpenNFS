@@ -148,14 +148,14 @@ namespace TrackUtils {
             ASSERT(texture.width <= max_width, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
             ASSERT(texture.height <= max_height, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
             // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height,         1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
             glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *)  texture.texture_data);
 
-            texture.min_u = 0;
-            texture.min_v = 0;
+            texture.min_u = 0.01;
+            texture.min_v = 0.01;
             texture.layer = i;
-            texture.max_u = texture.width / static_cast<float>(max_width);
-            texture.max_v = texture.height / static_cast<float>(max_height);
+            texture.max_u = texture.width  / static_cast<float>(max_width  + 3.0); // TODO: Attempt to remove potential for sampling texture from transparent area
+            texture.max_v = texture.height / static_cast<float>(max_height + 3.0); // TODO: Attempt to remove potential for sampling texture from transparent area
             texture.texture_id = texture_name;
         }
         if (repeatable) {
@@ -174,6 +174,58 @@ namespace TrackUtils {
         glBindTexture( GL_TEXTURE_2D_ARRAY, 0);
 
         return texture_name;
+    }
+
+    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture){
+        std::vector<glm::vec2> uvs;
+
+        switch(tag){
+            case NFS_1:
+                switch(mesh_type){
+                    case XOBJ:break;
+                    case OBJ_POLY:break;
+                    case ROAD:break;
+                    case GLOBAL:break;
+                    case CAR:break;
+                }
+                break;
+            case NFS_2:
+            case NFS_2_SE:
+                switch(mesh_type){
+                    case XOBJ:break;
+                    case OBJ_POLY:break;
+                    case ROAD:break;
+                    case GLOBAL:break;
+                    case CAR:break;
+                }
+                break;
+            case NFS_2_PS1:
+            case NFS_3_PS1:
+                switch(mesh_type){
+                    case XOBJ:break;
+                    case OBJ_POLY:break;
+                    case ROAD:break;
+                    case GLOBAL:break;
+                    case CAR:break;
+                }
+                break;
+            case NFS_3:
+            case NFS_4:
+                switch(mesh_type){
+                    case XOBJ:break;
+                    case OBJ_POLY:break;
+                    case ROAD:break;
+                    case GLOBAL:break;
+                    case CAR:break;
+                }
+                break;
+            case NFS_5:
+                break;
+            case UNKNOWN:
+                break;
+        }
+
+        return uvs;
     }
 
     glm::vec3 parseRGBString(const std::string &rgb_string) {

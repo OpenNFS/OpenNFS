@@ -110,7 +110,7 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
                     if(car_model.m_name == "High Main Body Part"){
                         car_model.enable();
                         car_body_model = car_model;
-                    } else if(car_model.m_name.find("High Front Left Wheel Part") != std::string::npos){
+                    } else if(car_model.m_name.find("High Front Left Wheel") != std::string::npos){
                         car_model.enable();
                         left_front_wheel_model = car_model;
                     } else if(car_model.m_name.find("High Front Right Wheel Part") != std::string::npos){

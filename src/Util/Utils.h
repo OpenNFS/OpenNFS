@@ -33,6 +33,7 @@ extern "C" {
 }
 
 #define BI_RGB 0x0000
+#define BI_BITFIELDS 0x0003
 
 typedef uint32_t DWORD;
 typedef uint16_t WORD;

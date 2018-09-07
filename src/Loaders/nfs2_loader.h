@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <cstdint>
 #include <cstdlib>
+#include <bitset>
+#include "bmpread.h"
 #include "track_utils.h"
 #include "../Physics/Car.h"
 #include "../Config.h"

@@ -15,6 +15,8 @@ endif()
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 set(SOURCE_FILES
+        include/bmpread/bmpread.c
+        include/bmpread/bmpread.h
         include/imgui/imgui.cpp
         include/imgui/imgui.h
         include/imgui/imgui_demo.cpp
@@ -101,6 +103,8 @@ add_executable(OpenNFS ${SOURCE_FILES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 #[[TINYOBJLOADER]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
+#[[BMPREAD]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS Boost::filesystem Boost::boost)

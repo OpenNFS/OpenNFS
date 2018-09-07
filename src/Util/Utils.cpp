@@ -290,7 +290,7 @@ namespace Utils {
 
         BITMAPINFOHEADER BMIH;                         // BMP header
         BMIH.biSize = sizeof(BITMAPINFOHEADER);
-        BMIH.biSizeImage = w * h * 3;
+        BMIH.biSizeImage = w * h * 4;
         // Create the bitmap for this OpenGL context
         BMIH.biSize = sizeof(BITMAPINFOHEADER);
         BMIH.biWidth = w;
@@ -298,7 +298,7 @@ namespace Utils {
         BMIH.biPlanes = 1;
         BMIH.biBitCount = 32;
         BMIH.biCompression = BI_RGB;
-        BMIH.biSizeImage = w * h * 4;
+
 
         BITMAPFILEHEADER bmfh;                         // Other BMP header
         int nBitsOffset = sizeof(BITMAPFILEHEADER) + BMIH.biSize;

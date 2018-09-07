@@ -2,7 +2,6 @@
 // Created by Amrik.Sadhra on 20/06/2018.
 //
 
-#include <bitset>
 #include "nfs2_loader.h"
 
 void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
@@ -468,12 +467,9 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
         if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
             remapped_texture_ids[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
-
-            GLubyte *data;
-            GLsizei width;
-            GLsizei height;
-            ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 248u), "Texture " << itr->path().string() << " did not load succesfully!");
-            car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+            bmpread_t bmpAttr; // This will leak.
+            ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
+            car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
         }
     }
 

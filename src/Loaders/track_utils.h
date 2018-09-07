@@ -22,6 +22,8 @@ namespace TrackUtils {
 
     GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, size_t max_width, size_t max_height, bool repeatable);
 
+    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture);
+
     glm::vec3 parseRGBString(const std::string &rgb_string);
 };
 

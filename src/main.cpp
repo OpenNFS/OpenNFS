@@ -31,7 +31,7 @@ public:
         std::vector<NeedForSpeed> installedNFS = populateAssets();
 
         AssetData loadedAssets = {
-                NFS_3, "merc",
+                NFS_2, "GT90",
                 NFS_3, "trk000"
         };
 
