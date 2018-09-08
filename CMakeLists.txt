@@ -30,9 +30,9 @@ set(SOURCE_FILES
         include/imgui/imgui_widgets.cpp
         include/imgui/imgui_internal.h
         include/imgui/imconfig.h
-        include/imgui/stb_rect_pack.h
-        include/imgui/stb_textedit.h
-        include/imgui/stb_truetype.h
+        include/imgui/imstb_rectpack.h
+        include/imgui/imstb_textedit.h
+        include/imgui/imstb_truetype.h
         include/imgui/examples/imgui_impl_glfw.cpp
         include/imgui/examples/imgui_impl_glfw.h
         include/imgui/examples/imgui_impl_opengl3.cpp
