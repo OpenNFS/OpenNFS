@@ -379,7 +379,7 @@ void makepal(unsigned char *pos, int *len, int *pal) {
 void fsh_to_bmp(char *fshname) {
     FILE *log, *bmp, *alpha;
     unsigned short *sbuf;
-    int nbmp, i, j, k, l, hasglobpal, globpallen, offs, nxoffs, paloffs, auxoffs, nattach;
+    int nbmp, i, j, k, l, hasglobpal, globpallen, offs, nxoffs, paloffs, auxoffs, nattach, mirrorskip = 0;
     int isbmp, locpallen, bmpw, curoffs, compressed;
     int numscales;
     int globpal[256], locpal[256];
@@ -521,7 +521,7 @@ void fsh_to_bmp(char *fshname) {
 
             if (!numscales) {
                 // Amrik: If the directory name starts with a letter, don't rename the file, use directory name directly  (NFS2 Car texture references)
-                if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])) {
+                if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])&&isdigit(dir[i].name[2])&&isdigit(dir[i].name[3])) {
                     sprintf(pad,"%c%c%c%c.BMP", dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3]);
                     printf("'(Skipping Rename) %s' (%dx%d) ", pad, hdr->width, hdr->height);
                 } else {
@@ -544,12 +544,12 @@ void fsh_to_bmp(char *fshname) {
 
             while (l >= 0) {
                 // Amrik: If the directory name starts with a letter, don't rename the file, use directory name directly  (NFS2 Car texture references)
-                if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])) {
+                if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])&&isdigit(dir[i].name[2])&&isdigit(dir[i].name[3])) {
                     if (numscales) sprintf(pad,"%c%c%c%c-%d.BMP", dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3],l);
                     else sprintf(pad,"%c%c%c%c.BMP",dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3]);
                 } else {
                     if (numscales) sprintf(pad, "%04d-%d.BMP", i, l);
-                    else sprintf(pad, "%04d.BMP", i);
+                    else sprintf(pad, "%04d.BMP", i-mirrorskip);
                 }
                 bmp = fopen(pad, "wb");
                 if (bmp == NULL) {
@@ -764,6 +764,7 @@ void fsh_to_bmp(char *fshname) {
             auxoffs = offs;
             if (nattach > 0) printf("  (attached:");
             k = nattach;
+
             while (k > 0) {
                 k--;
                 auxoffs += (auxhdr->code >> 8);
@@ -784,9 +785,14 @@ void fsh_to_bmp(char *fshname) {
                     else j = 3;
                     curoffs = auxoffs + 16 + auxhdr->width * j;
                 } else if ((auxhdr->code & 0xff) == 0x6F) {
-                    printf(" text");
-                    fprintf(log, "TXT %02X %d %d\n",
-                            auxhdr->code & 0xff, auxhdr->width, auxhdr->height);
+                    // TODO: This should be more robust, pass in tag and object type enums to fshtool
+                    if (strstr(fshname, "NFS_4") != NULL) {
+                        i++;
+                        mirrorskip++;
+                        printf(" (skipping mirrored image)");
+                    }
+                    printf(" text ");
+                    fprintf(log, "TXT %02X %d %d\n", auxhdr->code & 0xff, auxhdr->width, auxhdr->height);
                     quotify(inbuf + auxoffs + 8, auxhdr->width, pad);
                     fprintf(log, "%s\n", pad);
                     curoffs = auxoffs + 8 + auxhdr->width;
@@ -820,7 +826,7 @@ void fsh_to_bmp(char *fshname) {
             /* not a bitmap */
             j = hdr->code & 0xff;
             // Amrik: If the directory name starts with a letter, don't rename the file, use directory name directly  (NFS2 Car texture references)
-            if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])) {
+            if (isalpha(dir[i].name[0])&&isdigit(dir[i].name[1])&&isdigit(dir[i].name[2])&&isdigit(dir[i].name[3])) {
                 sprintf(pad,"%c%c%c%c.BMP", dir[i].name[0],dir[i].name[1],dir[i].name[2], dir[i].name[3]);
             } else {
                 sprintf(pad, "%04d.BIN", i);

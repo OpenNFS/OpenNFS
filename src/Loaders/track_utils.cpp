@@ -139,25 +139,31 @@ namespace TrackUtils {
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture_name);
         std::vector<uint32_t> clear_data(max_width * max_height, 0);
 
-        std::cout << "Creating texture array with " <<  (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height << std::endl;
+        std::cout << "Creating texture array with " << (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height << std::endl;
         glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, textures.size());
 
+        uint32_t preMap = textures.size();
         for (uint32_t i = 0; i < textures.size(); i++) {
             // TODO: This will create a texture if it doesn't exist in the map. I should retrieve a texture in this case so that it doesn't look silly.
             auto &texture = textures[i];
             ASSERT(texture.width <= max_width, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
             ASSERT(texture.height <= max_height, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
             // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height,         1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *)  texture.texture_data);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
 
-            texture.min_u = 0.01;
-            texture.min_v = 0.01;
+            texture.min_u = 0.00;
+            texture.min_v = 0.00;
             texture.layer = i;
-            texture.max_u = texture.width  / static_cast<float>(max_width  + 3.0); // TODO: Attempt to remove potential for sampling texture from transparent area
-            texture.max_v = texture.height / static_cast<float>(max_height + 3.0); // TODO: Attempt to remove potential for sampling texture from transparent area
+            texture.max_u = (texture.width / static_cast<float>(max_width )); // TODO: Attempt to remove potential for sampling texture from transparent area
+            texture.max_v = (texture.height / static_cast<float>(max_height)); // TODO: Attempt to remove potential for sampling texture from transparent area
             texture.texture_id = texture_name;
         }
+
+        if (preMap != textures.size()){
+            std::cerr << "Texture array creation created " << textures.size() - preMap << " extra textures" << std::endl;
+        }
+
         if (repeatable) {
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);

@@ -74,14 +74,17 @@ private:
         // Initialise GLFW
         ASSERT(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&glfwError);
-        glfwWindowHint(GLFW_SAMPLES, 4);
-        // TODO: If we fail to create a GL context, fall back to not requesting any (Keiiko Bug #1)
-        //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
+        // TODO: Disable MSAA for now until texture array adds padding
+        //glfwWindowHint(GLFW_SAMPLES, 4);
+
 #ifdef __APPLE__
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #else
+        // TODO: If we fail to create a GL context on Windows, fall back to not requesting any (Keiiko Bug #1)
         //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 #endif
 
@@ -123,7 +126,7 @@ private:
         glEnable(GL_BACK);
         //glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         GLint texture_units, max_array_texture_layers;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
@@ -145,13 +148,15 @@ private:
     }
 
     std::vector<NeedForSpeed> populateAssets(){
-        boost::filesystem::path basePath(RESOURCE_PATH);
+        using namespace boost::filesystem;
+
+        path basePath(RESOURCE_PATH);
         std::vector<NeedForSpeed> installedNFS;
         bool hasLanes = false;
         bool hasMisc = false;
         bool hasSfx = false;
 
-        for (boost::filesystem::directory_iterator itr(basePath); itr != boost::filesystem::directory_iterator(); ++itr) {
+        for (directory_iterator itr(basePath); itr != directory_iterator(); ++itr) {
             NeedForSpeed currentNFS;
             currentNFS.tag = UNKNOWN;
 
@@ -161,9 +166,9 @@ private:
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_SE_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(boost::filesystem::exists(trackBasePath), "NFS 2 Special Edition track folder: " << trackBasePath << " is missing.");
+                ASSERT(exists(trackBasePath), "NFS 2 Special Edition track folder: " << trackBasePath << " is missing.");
 
-                for (boost::filesystem::directory_iterator trackItr(trackBasePath); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
+                for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
                         currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
                     }
@@ -172,7 +177,7 @@ private:
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_2_SE_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(boost::filesystem::exists(carBasePath), "NFS 2 Special Edition car folder: " << carBasePath << " is missing.");
+                ASSERT(exists(carBasePath), "NFS 2 Special Edition car folder: " << carBasePath << " is missing.");
 
                 // TODO: Work out where NFS2 SE Cars are stored
             } else if (itr->path().filename().string().find(ToString(NFS_2)) != std::string::npos) {
@@ -181,9 +186,9 @@ private:
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(boost::filesystem::exists(trackBasePath), "NFS 2 track folder: " << trackBasePath << " is missing.");
+                ASSERT(exists(trackBasePath), "NFS 2 track folder: " << trackBasePath << " is missing.");
 
-                for (boost::filesystem::directory_iterator trackItr(trackBasePath); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
+                for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
                         currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
                     }
@@ -192,9 +197,9 @@ private:
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_2_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(boost::filesystem::exists(carBasePath), "NFS 2 car folder: " << carBasePath << " is missing.");
+                ASSERT(exists(carBasePath), "NFS 2 car folder: " << carBasePath << " is missing.");
 
-                for (boost::filesystem::directory_iterator carItr(carBasePath); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find(".GEO") != std::string::npos) {
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
@@ -202,13 +207,13 @@ private:
             } else if (itr->path().filename().string().find(ToString(NFS_3_PS1)) != std::string::npos) {
                 currentNFS.tag = NFS_3_PS1;
 
-                for (boost::filesystem::directory_iterator trackItr(itr->path().string()); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
+                for (directory_iterator trackItr(itr->path().string()); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
                         currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
                     }
                 }
 
-                for (boost::filesystem::directory_iterator carItr(itr->path().string()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(itr->path().string()); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find(".GEO") != std::string::npos) {
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
@@ -219,31 +224,31 @@ private:
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_3_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(boost::filesystem::exists(trackBasePath), "NFS 3 Hot Pursuit track folder: " << trackBasePath << " is missing.");
+                ASSERT(exists(trackBasePath), "NFS 3 Hot Pursuit track folder: " << trackBasePath << " is missing.");
 
                 // TODO: Dive one folder deeper, or alter the loader to be able to handle just the base path
-                for (boost::filesystem::directory_iterator trackItr(trackBasePath); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
+                for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     currentNFS.tracks.emplace_back(trackItr->path().filename().string());
                 }
 
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_3_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(boost::filesystem::exists(carBasePath), "NFS 3 Hot Pursuit car folder: " << carBasePath << " is missing.");
+                ASSERT(exists(carBasePath), "NFS 3 Hot Pursuit car folder: " << carBasePath << " is missing.");
 
-                for (boost::filesystem::directory_iterator carItr(carBasePath); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find("traffic") == std::string::npos) {
                         currentNFS.cars.emplace_back(carItr->path().filename().string());
                     }
                 }
 
                 carBasePathStream << "traffic/";
-                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("traffic/" + carItr->path().filename().string());
                 }
 
                 carBasePathStream << "pursuit/";
-                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find("PURSUIT") == std::string::npos) {
                         currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                     }
@@ -254,39 +259,39 @@ private:
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_4_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(boost::filesystem::exists(trackBasePath), "NFS 4 High Stakes track folder: " << trackBasePath << " is missing.");
+                ASSERT(exists(trackBasePath), "NFS 4 High Stakes track folder: " << trackBasePath << " is missing.");
 
                 // TODO: Dive one folder deeper, or alter the loader to be able to handle just the base path
-                for (boost::filesystem::directory_iterator trackItr(trackBasePath); trackItr != boost::filesystem::directory_iterator(); ++trackItr) {
+                for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     currentNFS.tracks.emplace_back(trackItr->path().filename().string());
                 }
 
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_4_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(boost::filesystem::exists(carBasePath), "NFS 4 High Stakes car folder: " << carBasePath << " is missing.");
+                ASSERT(exists(carBasePath), "NFS 4 High Stakes car folder: " << carBasePath << " is missing.");
 
-                for (boost::filesystem::directory_iterator carItr(carBasePath); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find("TRAFFIC") == std::string::npos) {
                         currentNFS.cars.emplace_back(carItr->path().filename().string());
                     }
                 }
 
                 carBasePathStream << "TRAFFIC/";
-                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     if ((carItr->path().filename().string().find("CHOPPERS") == std::string::npos)&&(carItr->path().filename().string().find("PURSUIT") == std::string::npos)) {
                         currentNFS.cars.emplace_back("TRAFFIC/" + carItr->path().filename().string());
                     }
                 }
 
                 carBasePathStream << "CHOPPERS/";
-                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                         currentNFS.cars.emplace_back("TRAFFIC/CHOPPERS/" + carItr->path().filename().string());
                 }
 
                 carBasePathStream.str(std::string());
                 carBasePathStream  << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/" << "PURSUIT/";
-                for (boost::filesystem::directory_iterator carItr(carBasePathStream.str()); carItr != boost::filesystem::directory_iterator(); ++carItr) {
+                for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
                 }
             } else if (itr->path().filename().string().find("lanes") != std::string::npos) {
@@ -305,9 +310,9 @@ private:
             installedNFS.emplace_back(currentNFS);
         }
 
-        ASSERT(hasLanes, "Missing \'lanes\' folder in resources directory");
+        ASSERT(hasLanes,"Missing \'lanes\' folder in resources directory");
         ASSERT(hasMisc, "Missing \'misc\' folder in resources directory");
-        ASSERT(hasSfx, "Missing \'sfx\' folder in resources directory");
+        ASSERT(hasSfx,  "Missing \'sfx\' folder in resources directory");
 
         return installedNFS;
     }

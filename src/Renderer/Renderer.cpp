@@ -303,7 +303,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     };
     ImGui::SameLine(0, -1.0f);
     if (ImGui::Button("Reset Car")) {
-        car->resetCar(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10));
+        car->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z));
     };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);

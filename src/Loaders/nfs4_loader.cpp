@@ -789,12 +789,13 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     for (int32_t i = 0; i < m; i++) {
         track->texture[i].width=16;
         track->texture[i].height=16; // WHY ?????
+        track->texture[i].islane = i >> 11;
         track->texture[i].corners[2]=1.0; // (1,0)
         track->texture[i].corners[4]=1.0; // (1,1)
         track->texture[i].corners[5]=1.0;
         track->texture[i].corners[7]=1.0; // (0,1)
-        track->texture[i].texture = i & 0x7FF;  // ANYWAY WE CAN'T FIND IT !
-        track->texture[i].islane = i >> 11;
+        track->texture[i].texture = i;  // ANYWAY WE CAN'T FIND IT !
+
         if(track->texture[i].texture < nData -1||track->texture[i].islane){
             track->textures[track->texture[i].texture] = LoadTexture(track->texture[i], track_name);
         }
@@ -993,6 +994,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
                 uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
                 uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
+
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);
@@ -1017,20 +1019,11 @@ Texture NFS4::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     std::stringstream filename_alpha;
 
     if (track_texture.islane) {
-        int texNum = track_texture.texture + 9;
-        /*if(track_texture.texture < 14){
-            if (track_texture.texture > 9)
-            {
-                texNum = nData-1;
-            } else {
-                texNum = track_texture.texture+nData-11;
-            }
-        }*/
-        filename << "../resources/sfx/" << setfill('0') << setw(4) << texNum << ".BMP";
-        filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << texNum << "-a.BMP";
+        filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture - 2048 << ".BMP";
+        filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture - 2048 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4)       << track_texture.texture + 8 << ".BMP";
-        filename_alpha << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture + 8  << "-a.BMP";
+        filename << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4)       << track_texture.texture << ".BMP";
+        filename_alpha << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture  << "-a.BMP";
     }
 
     // Width and height data isn't set properly in FRD loader so deduce from bmp
