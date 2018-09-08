@@ -62,7 +62,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             "Reserved",
     };
 
-    float carScaleFactor = 1000;
+    float carScaleFactor = 1000.f;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     std::cout << "- Parsing GEO File " << std::endl;
@@ -161,7 +161,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
-        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256) / carScaleFactor, (geoBlockHeader->position[1] / 256) / carScaleFactor, (geoBlockHeader->position[2] / 256) / carScaleFactor);
+        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.f) / carScaleFactor, (geoBlockHeader->position[1] / 256.f) / carScaleFactor, (geoBlockHeader->position[2] / 256.f) / carScaleFactor);
         car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         delete geoBlockHeader;
@@ -990,7 +990,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) &superblock->trackBlocks[block_Idx]);
                 for (uint32_t j = 0; j < ps1TrackBlock->nUnknownVerts; j++) {
                     glm::vec3 light_center = rotationMatrix * glm::vec3((refCoord->x + (256 * ps1TrackBlock->unknownVerts[j].x)) / scaleFactor, (refCoord->y + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor, (refCoord->z + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor);
-                    current_track_block.lights.emplace_back(Entity(0, j, NFS_2, LIGHT, TrackUtils::MakeLight(light_center, 0)));
+                    current_track_block.lights.emplace_back(Entity(0, j, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, LIGHT, TrackUtils::MakeLight(light_center, 0)));
                 }
             }
 
@@ -1048,37 +1048,8 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                     debug_data.emplace_back(texture_for_block.alignmentData);
                     debug_data.emplace_back(texture_for_block.alignmentData);
 
-                    std::bitset<16> textureAlignment(texture_for_block.alignmentData);
-                    glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                    glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
-                    if (std::is_same<Platform, PS1>::value) {
-                        flip.x = -1.0f * gl_texture.max_u;
-                        flip.y = -1.0f * gl_texture.max_v;
-                    } else {
-                        flip.x = -1.0f * gl_texture.max_u;
-                        flip.y = 1.0f * gl_texture.max_v;
-                    }
-                    float angle = 0;
-
-                    // Horizontal Flip
-                    if (textureAlignment[8]) {
-                        flip.x = -flip.x;
-                    }
-                    // Vertical Flip
-                    if (textureAlignment[9]) {
-                        flip.y = -flip.y;
-                    }
-
-                    glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
-
-                    // TODO: Use Polygon TexMap type to fix texture mapping
-                    uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                    uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                    uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                    uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                    uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                    uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-
+                    std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, XOBJ, texture_for_block.alignmentData, gl_texture);
+                    uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     texture_indices.emplace_back(texture_for_block.texNumber);
                     texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1096,7 +1067,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 }
                 std::stringstream xobj_name;
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
-                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, shading_verts, debug_data, glm::vec3(0, 0, 0))));
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, shading_verts, debug_data, glm::vec3(0, 0, 0))));
             }
 
             // Mesh Data
@@ -1141,37 +1112,8 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 debug_data.emplace_back(texture_for_block.alignmentData);
                 debug_data.emplace_back(texture_for_block.alignmentData);
 
-                std::bitset<16> textureAlignment(texture_for_block.alignmentData);
-                glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
-                if (std::is_same<Platform, PS1>::value) {
-                    flip.x = -1.0f * gl_texture.max_u;
-                    flip.y = -1.0f * gl_texture.max_v;
-                } else {
-                    flip.x = 1.0f * gl_texture.max_u;
-                    flip.y = -1.0f * gl_texture.max_v;
-                }
-
-                float angle = 0;
-
-                // Horizontal Flip
-                if (textureAlignment[8]) {
-                    flip.x = -flip.x;
-                }
-                // Vertical Flip
-                if (textureAlignment[9]) {
-                    flip.y = -flip.y;
-                }
-
-                glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
-
-                // TODO: Use Polygon TexMap type to fix texture mapping
-                uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, ROAD, texture_for_block.alignmentData, gl_texture);
+                uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 texture_indices.emplace_back(texture_for_block.texNumber);
                 texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1187,7 +1129,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
             }
-            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0))));
+            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0))));
 
             track->track_blocks.emplace_back(current_track_block);
         }

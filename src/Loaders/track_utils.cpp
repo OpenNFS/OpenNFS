@@ -155,8 +155,8 @@ namespace TrackUtils {
             texture.min_u = 0.00;
             texture.min_v = 0.00;
             texture.layer = i;
-            texture.max_u = (texture.width / static_cast<float>(max_width )); // TODO: Attempt to remove potential for sampling texture from transparent area
-            texture.max_v = (texture.height / static_cast<float>(max_height)); // TODO: Attempt to remove potential for sampling texture from transparent area
+            texture.max_u = (texture.width / static_cast<float>(max_width ))  - 0.01f; // Attempt to remove potential for sampling texture from transparent area
+            texture.max_v = (texture.height / static_cast<float>(max_height)) - 0.01f;
             texture.texture_id = texture_name;
         }
 
@@ -183,6 +183,7 @@ namespace TrackUtils {
     }
 
     std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture){
+        std::bitset<32> textureAlignment(textureFlags);
         std::vector<glm::vec2> uvs;
 
         switch(tag){
@@ -198,9 +199,84 @@ namespace TrackUtils {
             case NFS_2:
             case NFS_2_SE:
                 switch(mesh_type){
-                    case XOBJ:break;
+                    case XOBJ:
+                        /*glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                        glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
+                        if (std::is_same<Platform, PS1>::value) {
+                            flip.x = -1.0f * gl_texture.max_u;
+                            flip.y = -1.0f * gl_texture.max_v;
+                        } else {
+                            flip.x = -1.0f * gl_texture.max_u;
+                            flip.y = 1.0f * gl_texture.max_v;
+                        }
+                        float angle = 0;
+
+                        // Horizontal Flip
+                        if (textureAlignment[8]) {
+                            flip.x = -flip.x;
+                        }
+                        // Vertical Flip
+                        if (textureAlignment[9]) {
+                            flip.y = -flip.y;
+                        }
+
+                        glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+
+                        // TODO: Use Polygon TexMap type to fix texture mapping
+                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);*/
+
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        break;
                     case OBJ_POLY:break;
-                    case ROAD:break;
+                    case ROAD:
+                        /*glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                        glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
+                        if (std::is_same<Platform, PS1>::value) {
+                            flip.x = -1.0f * gl_texture.max_u;
+                            flip.y = -1.0f * gl_texture.max_v;
+                        } else {
+                            flip.x = 1.0f * gl_texture.max_u;
+                            flip.y = -1.0f * gl_texture.max_v;
+                        }
+
+                        float angle = 0;
+
+                        // Horizontal Flip
+                        if (textureAlignment[8]) {
+                            flip.x = -flip.x;
+                        }
+                        // Vertical Flip
+                        if (textureAlignment[9]) {
+                            flip.y = -flip.y;
+                        }
+
+                        glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+
+                        // TODO: Use Polygon TexMap type to fix texture mapping
+                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
+                        uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);*/
+
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        break;
                     case GLOBAL:break;
                     case CAR:break;
                 }
@@ -208,9 +284,23 @@ namespace TrackUtils {
             case NFS_2_PS1:
             case NFS_3_PS1:
                 switch(mesh_type){
-                    case XOBJ:break;
+                    case XOBJ:
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        break;
                     case OBJ_POLY:break;
-                    case ROAD:break;
+                    case ROAD:
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        break;
                     case GLOBAL:break;
                     case CAR:break;
                 }

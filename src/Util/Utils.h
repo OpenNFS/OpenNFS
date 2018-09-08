@@ -149,7 +149,6 @@ namespace Utils {
 
     uint32_t abgr1555ToARGB8888(uint16_t abgr1555);
 
-
     bool SaveImage(const char *szPathName, void *lpBits, uint16_t w, uint16_t h);
 
     bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
