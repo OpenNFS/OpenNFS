@@ -76,7 +76,7 @@ private:
         glfwSetErrorCallback(&glfwError);
 
         // TODO: Disable MSAA for now until texture array adds padding
-        //glfwWindowHint(GLFW_SAMPLES, 4);
+        //wglfwWindowHint(GLFW_SAMPLES, 4);
 
 #ifdef __APPLE__
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

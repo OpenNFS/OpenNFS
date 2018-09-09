@@ -306,12 +306,145 @@ namespace TrackUtils {
                 }
                 break;
             case NFS_3:
+                break;
             case NFS_4:
                 switch(mesh_type){
-                    case XOBJ:break;
-                    case OBJ_POLY:break;
-                    case ROAD:break;
-                    case GLOBAL:break;
+                    case XOBJ:
+                    case OBJ_POLY:
+                    case ROAD:
+                    case GLOBAL:
+                        // OBJ_POLY
+                        // TODO: How to pass in corners?
+                       /* uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);*/
+
+                       // XOBJ
+                        /*uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_for_block.corners[2]) * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_for_block.corners[6]) * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);*/
+                        int map[4], hold;
+                        //(flags>>2)&3 indicates the multiple of 90° by which the
+                        //texture should be rotated (0 for no rotation, 1 for 90°,
+                        //2 for 180°, 3 for 270°) ; a non-zero value of flags&0x10
+                        //indicates that the texture is horizontally flipped ; a
+                        //non-zero value of flags&0x20 indicates that the texture
+                        //is vertically flipped. The value of (flags>>6)&7 indicates
+                        //the scaling factor : 0 is no scaling ; 1 means that the
+                        //texture is tiled twice horizontally ; 2 that the texture
+                        //is tile twice vertically ; 3 indicates 4x horizontal
+                        //tiling, 4 indicates 4x vertical tiling. Finally, a non-zero
+                        //value of flags&0x8000 indicates that the polygon is one-sided.
+                        //ox, oy, and oz :: Origin of the wrap.
+                        //dx, dy, and dz :: The z-axis of the wrap.
+                        //ux, uy, and uz ::	The y-axis of the wrap.
+                        //ou and ov :: Origin in the texture.
+                        //su and sv :: Scale factor in the texture
+                        float oi[2], oo[2], ii[2], io[2];
+                        switch ((textureFlags >> 2) & 3) {
+                            case 0:
+                                map[0] = 0;
+                                map[1] = 1;
+                                map[2] = 2;
+                                map[3] = 3;
+                                break;
+                            case 1:
+                                map[0] = 3;
+                                map[1] = 0;
+                                map[2] = 1;
+                                map[3] = 2;
+                                break;
+                            case 2:
+                                map[0] = 2;
+                                map[1] = 3;
+                                map[2] = 0;
+                                map[3] = 1;
+                                break;
+                            case 3:
+                                map[0] = 1;
+                                map[1] = 2;
+                                map[2] = 3;
+                                map[3] = 0;
+                                break;
+                        }
+                        switch ((textureFlags >> 4) & 3) {
+                            case 1:
+                                hold = map[0];
+                                map[0] = map[1];
+                                map[1] = hold;
+                                hold = map[2];
+                                map[2] = map[3];
+                                map[3] = hold;
+                                break;
+                            case 2:
+                                hold = map[0];
+                                map[0] = map[3];
+                                map[3] = hold;
+                                hold = map[2];
+                                map[2] = map[1];
+                                map[1] = hold;
+                                break;
+                            case 3:
+                                hold = map[1];
+                                map[1] = map[3];
+                                map[3] = hold;
+                                hold = map[2];
+                                map[2] = map[0];
+                                map[0] = hold;
+                                break;
+                        }
+                        // Scale Factor
+                        switch ((textureFlags >> 6) & 7) {
+                            {
+                                case 0:
+                                    oi[1] = 1.0f;
+                                ii[0] = 1.0f;
+                                ii[1] = 1.0f;
+                                io[0] = 1.0f;
+                                break;
+                                case 1:
+                                    oi[1] = 1.0f;
+                                ii[0] = 2.0f;
+                                ii[1] = 1.0f;
+                                io[0] = 2.0f;
+                                break;
+                                case 2:
+                                    oi[1] = 2.0f;
+                                ii[0] = 1.0f;
+                                ii[1] = 2.0f;
+                                io[0] = 1.0f;
+                                break;
+                                case 3:
+                                    oi[1] = 1.0f;
+                                ii[0] = 4.0f;
+                                ii[1] = 1.0f;
+                                io[0] = 4.0f;
+                                break;
+                                case 4:
+                                    oi[1] = 4.0f;
+                                ii[0] = 1.0f;
+                                ii[1] = 4.0f;
+                                io[0] = 1.0f;
+                                break;
+                            }
+                        }
+                        oi[0] = 0.0f;
+                        io[1] = 0.0f;
+                        oo[0] = 0.0f;
+                        oo[1] = 0.0f;
+                        uvs.push_back(glm::vec2(oi[0], oi[1]));
+                        uvs.push_back(glm::vec2(ii[0], ii[1]));
+                        uvs.push_back(glm::vec2(io[0], io[1]));
+                        uvs.push_back(glm::vec2(oi[0], oi[1]));
+                        uvs.push_back(glm::vec2(io[0], io[1]));
+                        uvs.push_back(glm::vec2(oo[0], oo[1]));
+                        break;
                     case CAR:break;
                 }
                 break;

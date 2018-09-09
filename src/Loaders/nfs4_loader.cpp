@@ -870,12 +870,17 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         vertex_indices.emplace_back(object_polys[p].vertex[0]);
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
                         vertex_indices.emplace_back(object_polys[p].vertex[3]);
-                        uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+
+                        /*std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, OBJ_POLY, object_polys[p].hs_texflags, gl_texture);
+                        uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());*/
+
+                         uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
                         uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
                         uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
                         uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
                         uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
                         uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
+
                         // Use TextureID in place of normal
                         texture_indices.emplace_back(texture_for_block.texture);
                         texture_indices.emplace_back(texture_for_block.texture);
@@ -931,12 +936,17 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     vertex_indices.emplace_back(x->polyData->vertex[0]);
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
                     vertex_indices.emplace_back(x->polyData->vertex[3]);
+
+                   /* std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture);
+                    uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());*/
+
                     uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
                     uvs.emplace_back((1.0f - texture_for_block.corners[2]) * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
                     uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
                     uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
                     uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
                     uvs.emplace_back((1.0f - texture_for_block.corners[6]) * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
+
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);

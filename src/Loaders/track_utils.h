@@ -8,6 +8,7 @@
 #include <set>
 #include <sstream>
 #include <iostream>
+#include <bitset>
 #include <GL/glew.h>
 #include <boost/filesystem/operations.hpp>
 #include "../nfs_data.h"

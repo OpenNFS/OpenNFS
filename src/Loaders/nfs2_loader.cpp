@@ -62,7 +62,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             "Reserved",
     };
 
-    float carScaleFactor = 1000.f;
+    float carScaleFactor = 2000.f;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     std::cout << "- Parsing GEO File " << std::endl;
@@ -208,7 +208,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             "Reserved"
     };
 
-    float carScaleFactor = 1000;
+    float carScaleFactor = 2000.f;
 
     std::cout << "- Parsing GEO File " << std::endl;
     std::vector<CarModel> car_meshes;
@@ -477,7 +477,7 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
                 GLubyte *data;
                 GLsizei width;
                 GLsizei height;
-                ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 248u), "Texture " << itr->path().string() << " did not load succesfully!");
+                ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " << itr->path().string() << " did not load succesfully!");
                 car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
             } else {
                 bmpread_t bmpAttr; // This will leak.

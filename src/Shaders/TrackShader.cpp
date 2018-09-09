@@ -1,9 +1,8 @@
 //
 // Created by Amrik Sadhra on 01/03/2018.
 //
-#include <memory>
+
 #include "TrackShader.h"
-#include "../Util/Utils.h"
 
 const std::string vertexSrc = "../shaders/TrackVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/TrackFragmentShader.fragmentshader";

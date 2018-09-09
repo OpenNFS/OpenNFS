@@ -5,7 +5,6 @@
 #include "Utils.h"
 #include "../nfs_data.h"
 
-
 namespace Utils {
     glm::vec3 bulletToGlm(const btVector3 &v) { return glm::vec3(v.getX(), v.getY(), v.getZ()); }
 
@@ -80,9 +79,7 @@ namespace Utils {
             }
         }
 
-        return new btBoxShape(
-                btVector3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
-                          (top_right.z - bottom_left.z) / 2));
+        return new btBoxShape(btVector3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2, (top_right.z - bottom_left.z) / 2));
     }
 
     glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices) {

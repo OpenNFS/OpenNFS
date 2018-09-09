@@ -60,5 +60,7 @@ void main(){
 	    /*if (polyFlag == 0x1u && carTexColor.a < .1f){
 	        color.a = 0.0;
 	    }*/
+    } else {
+        color.a = carTexColor.a;
     }
 }

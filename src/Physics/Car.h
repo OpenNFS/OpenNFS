@@ -12,6 +12,7 @@
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
 
+
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
 #include "../Enums.h"
@@ -23,6 +24,8 @@ public:
     ~Car();
     void setPosition(glm::vec3 position);
     void update();
+    void simulate();
+    void update(btDynamicsWorld* dynamicsWorld);
     void resetCar(glm::vec3 reset_position);
     void writeObj(const std::string &path);
 
@@ -52,6 +55,14 @@ public:
     bool hasPolyFlags() {return car_body_model.hasPolyFlags; }
 
     float getRotY();
+
+    // Raycasting Data
+
+    glm::vec3 forwardCastPosition, upCastPosition, rightCastPosition, leftCastPosition;
+    float forwardDistance = 0.f;
+    float upDistance = 0.f;
+    float rightDistance = 0.f;
+    float leftDistance = 0.f;
 
     // Meshes
     std::vector<CarModel> misc_models;
@@ -90,6 +101,7 @@ public:
     // Shifts CoM
     float	rollInfluence;
 private:
+    void genRaycasts(btDynamicsWorld* dynamicsWorld);
     void setModels(std::vector<CarModel> car_models);
 
     // Base Physics objects for car

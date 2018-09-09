@@ -48,7 +48,14 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     localTrans.setIdentity();
 
     //Shift center of Mass (by 0 for now)
-    localTrans.setOrigin(btVector3(0.0,0.0,0));
+    if(tag == NFS_3 || tag == NFS_4){
+        localTrans.setOrigin(btVector3(0.0,0.0,0));
+    } else if (tag == NFS_3_PS1){
+        localTrans.setOrigin(btVector3(0.0,0.1f,0));
+    } else {
+        localTrans.setOrigin(btVector3(0.0,0.05f,0));
+    }
+
     compound->addChildShape(localTrans,chassisShape);
 
     float mass = 2000.0f;
@@ -59,6 +66,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     vehicleMotionState = new btDefaultMotionState(btTransform(btQuaternion(Utils::glmToBullet(car_body_model.orientation)), btVector3(Utils::glmToBullet(car_body_model.position))));
     btRigidBody::btRigidBodyConstructionInfo cInfo(mass,vehicleMotionState,compound,localInertia);
     m_carChassis = new btRigidBody(cInfo);
+
     // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
     m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, this));
     m_carChassis->setDamping(0.2,0.2);
@@ -228,7 +236,7 @@ Car::~Car() {
     }
 }
 
-void Car::update() {
+void Car::update(){
     btTransform trans;
     vehicleMotionState->getWorldTransform(trans);
     car_body_model.position = Utils::bulletToGlm(trans.getOrigin()) + (car_body_model.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
@@ -294,11 +302,11 @@ void Car::update() {
     }
     else
     {
-      if(gVehicleSteering > 0){
-          gVehicleSteering -= steeringIncrement;
-      } else if (gVehicleSteering < 0){
-          gVehicleSteering += steeringIncrement;
-      }
+        if(gVehicleSteering > 0){
+            gVehicleSteering -= steeringIncrement;
+        } else if (gVehicleSteering < 0){
+            gVehicleSteering += steeringIncrement;
+        }
     }
 
     // Set front wheels steering value
@@ -306,6 +314,63 @@ void Car::update() {
     m_vehicle->setSteeringValue(gVehicleSteering,wheelIndex);
     wheelIndex = 1;
     m_vehicle->setSteeringValue(gVehicleSteering,wheelIndex);
+}
+
+void Car::update(btDynamicsWorld* dynamicsWorld) {
+    // Update car
+    update();
+    // Update raycasts
+    genRaycasts(dynamicsWorld);
+}
+
+
+void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
+    float castDistance = 1.f;
+
+    btTransform trans;
+    vehicleMotionState->getWorldTransform(trans);
+    glm::vec3 carBodyPosition = Utils::bulletToGlm(trans.getOrigin());
+
+    glm::vec3 carUp = car_body_model.ModelMatrix * glm::vec4(0,1,0,0);
+    glm::vec3 carRight = car_body_model.ModelMatrix * glm::vec4(1,0,0,0);
+    glm::vec3 carForward = car_body_model.ModelMatrix * glm::vec4(0,0,-1,0);
+
+    forwardCastPosition = carBodyPosition + carForward;
+    upCastPosition = carBodyPosition + carUp;
+    rightCastPosition = carBodyPosition + (carRight + carForward);
+    leftCastPosition = carBodyPosition - (carRight - carForward);
+
+    btCollisionWorld::ClosestRayResultCallback ForwardRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardCastPosition * castDistance));
+    btCollisionWorld::ClosestRayResultCallback UpRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition * castDistance));
+    btCollisionWorld::ClosestRayResultCallback RightRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rightCastPosition * castDistance));
+    btCollisionWorld::ClosestRayResultCallback LeftRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(leftCastPosition * castDistance));
+
+
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardCastPosition * castDistance), ForwardRayCallback);
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition * castDistance), UpRayCallback);
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rightCastPosition * castDistance), RightRayCallback);
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(leftCastPosition * castDistance), LeftRayCallback);
+
+    if(ForwardRayCallback.hasHit()){
+        forwardDistance = glm::distance(carBodyPosition,  glm::vec3(ForwardRayCallback.m_hitPointWorld.getX(), ForwardRayCallback.m_hitPointWorld.getY(),ForwardRayCallback.m_hitPointWorld.getZ()));
+    } else {
+        forwardDistance = 1.f;
+    }
+    if(UpRayCallback.hasHit()){
+        upDistance = glm::distance(carBodyPosition,  glm::vec3(ForwardRayCallback.m_hitPointWorld.getX(), ForwardRayCallback.m_hitPointWorld.getY(),ForwardRayCallback.m_hitPointWorld.getZ()));
+    } else {
+        upDistance = 1.f;
+    }
+    if(RightRayCallback.hasHit()){
+        rightDistance = glm::distance(carBodyPosition,  glm::vec3(RightRayCallback.m_hitPointWorld.getX(), RightRayCallback.m_hitPointWorld.getY(),RightRayCallback.m_hitPointWorld.getZ()));
+    } else {
+        rightDistance = 1.f;
+    }
+    if(LeftRayCallback.hasHit()){
+        leftDistance = glm::distance(carBodyPosition,  glm::vec3(LeftRayCallback.m_hitPointWorld.getX(), LeftRayCallback.m_hitPointWorld.getY(),LeftRayCallback.m_hitPointWorld.getZ()));
+    }  else {
+        leftDistance = 1.f;
+    }
 }
 
 void Car::applyAccelerationForce(bool accelerate, bool reverse)
@@ -389,4 +454,42 @@ void Car::writeObj(const std::string &path) {
 float Car::getRotY() {
     glm::quat orientation = car_body_model.orientation;
     return glm::degrees(atan2(2*orientation.y*orientation.w - 2*orientation.x*orientation.z, 1 - 2*orientation.y*orientation.y - 2*orientation.z*orientation.z));
+}
+
+// TODO: This code should be in a CarController class of some sort
+void Car::simulate() {
+    if(leftDistance < 1.0f){
+        applySteeringRight(true);
+    } else {
+        applySteeringRight(false);
+    }
+
+    if(rightDistance < 1.0f) {
+        applySteeringLeft(true);
+    } else {
+        applySteeringLeft(false);
+    }
+
+    if(forwardDistance >= 1.0f){
+        applyAccelerationForce(false, true);
+    } else {
+        applyAccelerationForce(true, false);
+
+        if(leftDistance < 1.0f){
+            applySteeringLeft(true);
+        } else {
+            applySteeringLeft(false);
+        }
+
+        if(rightDistance < 1.0f) {
+            applySteeringRight(true);
+        } else {
+            applySteeringRight(false);
+
+        }
+    }
+
+    if(upDistance <= 0.5f || upDistance > 90.0f){
+        resetCar(car_body_model.position);
+    }
 }

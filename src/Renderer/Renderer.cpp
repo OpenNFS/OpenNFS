@@ -66,20 +66,21 @@ AssetData Renderer::Render() {
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
 
         //TODO: Refactor to controller class? AND USE SDL
-        if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
-            car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
-            car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
-            car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
-            car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+        if(userParams.simulate_car){
+            car->simulate();
+        } else {
+            if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
+                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+                car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+                car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+                car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
             // Go and find the Vroad Data to reset to
             if (track->tag == NFS_3 || track->tag == NFS_4) {
                 car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y)+0.2, track->track_blocks[closestBlockID].center.z));
-                /*if (boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].nVRoad){
-                    boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0].x
-                }*/
             } else if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
                 car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y+0.2), track->track_blocks[closestBlockID].center.z));
             }
@@ -87,6 +88,23 @@ AssetData Renderer::Render() {
 
         // Step the physics simulation
         physicsEngine.stepSimulation(mainCamera.deltaTime);
+
+        if(userParams.draw_raycast){
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position), Utils::glmToBullet(car->forwardCastPosition), btVector3(2.0f * (1.0f -car->forwardDistance), 2.0f * (car->forwardDistance), 0));
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position), Utils::glmToBullet(car->upCastPosition), btVector3(2.0f * (1.0f -car->upDistance), 2.0f * (car->upDistance), 0));
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position), Utils::glmToBullet(car->rightCastPosition),   btVector3(2.0f * (1.0f -car->rightDistance  ), 2.0f * (car->rightDistance), 0));
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position), Utils::glmToBullet(car->leftCastPosition),    btVector3(2.0f * (1.0f -car->leftDistance   ), 2.0f * (car->leftDistance), 0));
+        }
+
+        // TODO: Move to TrackRenderer
+       /* if(track->tag == NFS_3 || track->tag == NFS_4){
+            for(uint32_t block_Idx = 0; block_Idx < track->nBlocks; ++block_Idx){
+               for(uint32_t vroad_Idx = 0; vroad_Idx < boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[block_Idx].nVRoad; ++vroad_Idx){
+                    boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0]
+                }
+            }
+        }*/
+
         std::vector<int> activeTrackBlockIDs;
         if(userParams.frustum_cull)
         {
@@ -146,7 +164,6 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z), btVector3(out_end.x, out_end.y, out_end.z));
     physicsEngine.getDynamicsWorld()->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z), btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
-    //physicsEngine.getDynamicsWorld()->convexSweepTest()
     if (RayCallback.hasHit()) {
         *entity_targeted = true;
         return static_cast<Entity *>(RayCallback.m_collisionObject->getUserPointer());
@@ -194,6 +211,7 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             // TODO: Allow adjustment of shader parameters here as well, and car colour
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s", targetCar->name.c_str());
+            ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f", targetCar->upDistance, targetCar->forwardDistance, targetCar->rightDistance, targetCar->leftDistance);
             // Physics Parameters
             ImGui::SliderFloat("Engine Force", &targetCar->gEngineForce, 0, 10000.0f);
             ImGui::SliderFloat("Breaking Force", &targetCar->gBreakingForce, 0, 1000.0f);
@@ -297,6 +315,8 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Text("Block ID: %d", closestBlockID);
     ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
     ImGui::Checkbox("Frustum Cull", &preferences->frustum_cull);
+    ImGui::Checkbox("Raycast Viz", &preferences->draw_raycast);
+    ImGui::Checkbox("AI Sim", &preferences->simulate_car);
 
     if (ImGui::Button("Reset View")) {
         mainCamera.resetView();
