@@ -12,6 +12,7 @@
 
 #include "../Renderer/HermiteCurve.h"
 #include "../Physics/Car.h"
+#include "../nfs_data.h"
 
 class Camera {
 private:
@@ -30,6 +31,8 @@ public:
     void useSpline();
     void computeMatricesFromInputs(bool &window_active, ImGuiIO& io);
     void followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io);
+    bool playAnimation();
+    void setCameraAnimation(std::vector<NFS3_4_DATA::ANIMDATA> canPoints);
 
     glm::mat4 ViewMatrix;
     glm::mat4 ProjectionMatrix;
@@ -49,6 +52,12 @@ public:
     float horizontalAngle;
     // Initial vertical angle : none
     float verticalAngle;
+
+    // NFS Camera Spline
+    std::vector<NFS3_4_DATA::ANIMDATA> cameraAnimPoints;
+    uint8_t animationPosition = 0;
+    float animationDelay = 0.2f; // How much time should elapse until moving to next position in ms
+    float animationDeltaTime = 0.f;
 
     // Cam Spline
     HermiteCurve cameraSpline;

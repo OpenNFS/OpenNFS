@@ -17,7 +17,18 @@ Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &insta
     loadedAssets.trackTag = track->tag;
     loadedAssets.track = track->name;
 
-    mainCamera = Camera(glm::vec3(track->track_blocks[0].center.x / 10, track->track_blocks[0].center.y / 10, track->track_blocks[0].center.z / 10), 45.0f, 4.86f, -0.21f, window);
+
+    glm::vec3 initialCameraPosition;
+    if(track->tag == NFS_3 || track->tag == NFS_4){
+        INTPT refPt =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[0].refPt;
+        glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((refPt.x/ 65536.0f) / 10.f, ((refPt.y/ 65536.0f) / 10.f), (refPt.z/ 65536.0f) / 10.f);
+        vroadPoint += 0.2;
+        initialCameraPosition =  vroadPoint;
+    } else {
+        initialCameraPosition  =  glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z);
+    }
+
+    mainCamera = Camera(initialCameraPosition, 45.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
     cameraLight = Light(mainCamera.position, glm::vec4(255.0f, 255.0f, 255.0f, 255.0f), 1, 0, 0, 0, 0.f);
 
@@ -34,8 +45,14 @@ Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &insta
 
 AssetData Renderer::Render() {
     ParamData userParams;
+
+    bool camera_animation_played = false;
+
     if(track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1){
         userParams.use_nb_data = false;
+        camera_animation_played = true;
+    } else {
+        mainCamera.setCameraAnimation( boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->cameraAnimation);
     }
 
     Light sun = Light(glm::vec3(10000, 150000, -10000), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
@@ -53,7 +70,10 @@ AssetData Renderer::Render() {
     while (!glfwWindowShouldClose(window)) {
         NewFrame(&userParams);
 
-        if (userParams.attach_cam_to_hermite) {
+        // Play the original camera animation
+        if(!camera_animation_played){
+            camera_animation_played = mainCamera.playAnimation();
+        } else if (userParams.attach_cam_to_hermite) {
             mainCamera.useSpline();
         } else if (userParams.attach_cam_to_car) {
             // Compute MVP from keyboard and mouse, centered around a target car
@@ -96,14 +116,42 @@ AssetData Renderer::Render() {
             physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position), Utils::glmToBullet(car->leftCastPosition),    btVector3(2.0f * (1.0f -car->leftDistance   ), 2.0f * (car->leftDistance), 0));
         }
 
+        if(userParams.draw_can){
+            if(track->tag == NFS_3 || track->tag == NFS_4){
+                std::vector<NFS3_4_DATA::ANIMDATA> cameraAnimations = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->cameraAnimation;
+                for(uint8_t can_Idx = 0; can_Idx < cameraAnimations.size(); ++can_Idx){
+                    if(can_Idx <  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->cameraAnimation.size() - 1){
+                            INTPT refPt = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->cameraAnimation[can_Idx].pt;
+                            INTPT refPtNext =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->cameraAnimation[can_Idx + 1].pt;
+                            glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((refPt.x/ 65536.0f) / 10.f, ((refPt.y/ 65536.0f) / 10.f), (refPt.z/ 65536.0f) / 10.f);
+                            glm::vec3 vroadPointNext = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((refPtNext.x/ 65536.0f) / 10.f, ((refPtNext.y/ 65536.0f) / 10.f), (refPtNext.z/ 65536.0f) / 10.f);
+                            vroadPoint.y     += 0.2f;
+                            vroadPointNext.y += 0.2f;
+                            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint+mainCamera.initialPosition), Utils::glmToBullet(vroadPointNext+mainCamera.initialPosition), btVector3(0,1,1));
+                        }
+                    }
+                }
+        }
+
         // TODO: Move to TrackRenderer
-       /* if(track->tag == NFS_3 || track->tag == NFS_4){
-            for(uint32_t block_Idx = 0; block_Idx < track->nBlocks; ++block_Idx){
-               for(uint32_t vroad_Idx = 0; vroad_Idx < boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[block_Idx].nVRoad; ++vroad_Idx){
-                    boost::get<NFS3_4_DATA::TRACK>(track->trackData).trk[closestBlockID].vroadData[0]
+        if(userParams.draw_vroad){
+            if(track->tag == NFS_3 || track->tag == NFS_4){
+                float vRoadDisplayHeight = 0.2f;
+                uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+                for(uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx){
+                    // Render COL Vroad? Should I use TRK VROAD to work across HS too?
+                    if(vroad_Idx < nVroad - 1){
+                        INTPT refPt =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
+                        INTPT refPtNext =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1].refPt;
+                        glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((refPt.x/ 65536.0f) / 10.f, ((refPt.y/ 65536.0f) / 10.f), (refPt.z/ 65536.0f) / 10.f);
+                        glm::vec3 vroadPointNext = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((refPtNext.x/ 65536.0f) / 10.f, ((refPtNext.y/ 65536.0f) / 10.f), (refPtNext.z/ 65536.0f) / 10.f);
+                        vroadPoint.y += vRoadDisplayHeight;
+                        vroadPointNext.y += vRoadDisplayHeight;
+                        physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1,0,1));
+                    }
                 }
             }
-        }*/
+        }
 
         std::vector<int> activeTrackBlockIDs;
         if(userParams.frustum_cull)
@@ -118,7 +166,7 @@ AssetData Renderer::Render() {
             }
         } else {
             physicsEngine.destroyGhostObject();
-            activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, userParams.attach_cam_to_car ? car->car_body_model.position : mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
+            activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
         }
 
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
@@ -317,6 +365,8 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Checkbox("Frustum Cull", &preferences->frustum_cull);
     ImGui::Checkbox("Raycast Viz", &preferences->draw_raycast);
     ImGui::Checkbox("AI Sim", &preferences->simulate_car);
+    ImGui::Checkbox("Vroad Viz", &preferences->draw_vroad);
+    ImGui::Checkbox("CAN Debug", &preferences->draw_can);
 
     if (ImGui::Button("Reset View")) {
         mainCamera.resetView();
@@ -372,7 +422,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
     std::vector<int> activeTrackBlockIds;
 
     // Basic Geometry Cull
-    if ((oldWorldPosition.x != worldPosition.x) && (oldWorldPosition.z != worldPosition.z)) {
+    if ((oldWorldPosition.x != worldPosition.x) || (oldWorldPosition.z != worldPosition.z)) {
         cameraLight.position = worldPosition;
         float lowestDistanceSqr = FLT_MAX;
         //Primitive Draw distance
@@ -448,51 +498,6 @@ bool Renderer::DrawMenuBar() {
         ImGui::EndMainMenuBar();
     }
     return assetChange;
-    /*if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Open", "Ctrl+O")) {}
-            if (ImGui::BeginMenu("Open Recent")) {
-                ImGui::MenuItem("fish_hat.c");
-                ImGui::MenuItem("fish_hat.inl");
-                ImGui::MenuItem("fish_hat.h");
-                if (ImGui::BeginMenu("More..")) {
-                    ImGui::MenuItem("Hello");
-                    ImGui::MenuItem("Sailor");
-                    ImGui::EndMenu();
-                }
-                ImGui::EndMenu();
-            }
-            ImGui::Separator();
-            if (ImGui::BeginMenu("Options")) {
-                static bool enabled = true;
-                ImGui::MenuItem("Enabled", "", &enabled);
-                ImGui::BeginChild("child", ImVec2(0, 60), true);
-                for (int i = 0; i < 10; i++)
-                    ImGui::Text("Scrolling Text %d", i);
-                ImGui::EndChild();
-                static float f = 0.5f;
-                static int n = 0;
-                static bool b = true;
-                ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
-                ImGui::InputFloat("Input", &f, 0.1f);
-                ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
-                ImGui::Checkbox("Check", &b);
-                ImGui::EndMenu();
-            }
-            if (ImGui::MenuItem("Quit", "Alt+F4")) {}
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit")) {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }*/
 }
 
 Renderer::~Renderer() {

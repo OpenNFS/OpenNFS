@@ -298,6 +298,7 @@ namespace NFS3_4_DATA {
         uint32_t nTextures;
         TEXTUREBLOCK *texture;
         COLFILE col;
+        std::vector<ANIMDATA> cameraAnimation;
         // GL 3D Render Data
         std::vector<TrackBlock> track_blocks;
         std::vector<Entity> global_objects;

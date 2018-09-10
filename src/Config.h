@@ -38,8 +38,10 @@ struct ParamData {
     bool use_nb_data = true;
     bool attach_cam_to_car = true;
     bool frustum_cull = false;
+    bool draw_vroad = false;
+    bool draw_can = true;
 
-    bool draw_raycast = false;
+    bool draw_raycast = true;
     bool simulate_car = false;
 };
 

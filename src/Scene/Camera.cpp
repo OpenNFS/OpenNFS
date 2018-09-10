@@ -1,6 +1,6 @@
 #include "Camera.h"
-
 #include <glm/gtx/quaternion.hpp>
+
 Camera::Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window) {
     window = gl_window;
     // Initial position : on +Z
@@ -224,3 +224,37 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
 }
 
 Camera::Camera() {}
+
+void Camera::setCameraAnimation(std::vector<NFS3_4_DATA::ANIMDATA> canPoints) {
+    cameraAnimPoints = canPoints;
+}
+
+bool Camera::playAnimation() {
+    static double lastTime = glfwGetTime();
+    double currentTime = glfwGetTime();
+    animationDeltaTime += float(currentTime - lastTime);
+
+    if(animationDeltaTime < animationDelay){
+        return false;
+    } else {
+        animationDeltaTime = 0.f;
+    }
+
+    NFS3_4_DATA::ANIMDATA animPosition = cameraAnimPoints[animationPosition++];
+    // TODO: This should really be relative to the players car
+    position =  (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.pt.x/ 65536.0f) / 10.f, ((animPosition.pt.y/ 65536.0f) / 10.f), (animPosition.pt.z/ 65536.0f) / 10.f)) + initialPosition;
+    glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(-animPosition.od1, animPosition.od2, animPosition.od3,animPosition.od4));
+    glm::vec3 direction = position * RotationMatrix;
+
+    // Camera matrix
+    ViewMatrix = glm::lookAt(
+            position,             // Camera is here
+            position + direction, // and looks here : at the same position, plus "direction"
+            glm::vec3(0,1,0)
+    );
+
+    // TODO: At conclusion of animation routine, Hermite to rear of car
+    lastTime = currentTime;
+
+    return animationPosition == cameraAnimPoints.size();
+}

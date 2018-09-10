@@ -25,12 +25,14 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
 
     boost::filesystem::path p(track_base_path);
     track->name = p.filename().string();
-    stringstream frd_path;
+    stringstream frd_path, can_path;
 
     frd_path << track_base_path << "/TR.frd";
+    can_path << track_base_path << "/TR00A.CAN";
 
     ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCAN(can_path.str(), track), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
 
     track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
     track->track_blocks = ParseTRKModels(track);
@@ -801,6 +803,40 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         }
     }
     //CorrectVirtualRoad();
+    return true;
+}
+
+// TODO: Share this between NFS3 and 4 Loaders
+bool NFS4::LoadCAN(std::string can_path, const std::shared_ptr<TRACK> &track) {
+    ifstream can(can_path, ios::in | ios::binary);
+
+    if(!can.is_open()){
+        return false;
+    }
+
+    std::cout << "Loading CAN File" << std::endl;
+
+    // Get filesize so can check have parsed all bytes
+    can.seekg(0, ios_base::end);
+    streamoff fileSize = can.tellg();
+    can.seekg(0, ios_base::beg);
+
+    uint8_t header[8];
+    can.read((char*) header, sizeof(uint8_t) * 8);
+    // 4th byte is the number of ANIMDATA points in the CAN file
+    uint8_t nAnimations = header[4];
+
+    ANIMDATA *anim = new ANIMDATA[nAnimations];
+    can.read((char*) anim, sizeof(ANIMDATA)*nAnimations);
+
+    for(uint8_t anim_Idx = 0; anim_Idx < nAnimations; ++anim_Idx){
+        track->cameraAnimation.emplace_back(anim[anim_Idx]);
+    }
+
+    streamoff readBytes = can.tellg();
+
+    ASSERT(readBytes == fileSize, "Missing " << fileSize - readBytes << " bytes from loaded CAN file: " << can_path);
+
     return true;
 }
 

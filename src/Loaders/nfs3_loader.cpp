@@ -109,7 +109,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
 
     frd_path << track_base_path << "/"  << track->name << ".frd";
     col_path << track_base_path << "/"  << track->name << ".col";
-    can_path << track_base_path << "/"  << track->name << ".can";
+    can_path << track_base_path << "/"  << track->name << "00a.can";
     hrz_path << track_base_path << "/3" << track->name << ".hrz";
 
     ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack.");
@@ -139,6 +139,8 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, const st
     SAFE_READ(ar, &track->nBlocks, 4);
     track->nBlocks++;
     if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
+
+    std::cout << "Loading FRD File" << std::endl;
 
     track->trk = new TRKBLOCK[track->nBlocks]();
     track->poly = new POLYGONBLOCK[track->nBlocks]();
@@ -300,6 +302,8 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
         return false;
     }
 
+    std::cout << "Loading COL File" << std::endl;
+
     if (track->col.version != 11) return false;
     if ((track->col.nBlocks != 2) && (track->col.nBlocks != 4) && (track->col.nBlocks != 5)) return false;
     SAFE_READ(coll, track->col.xbTable, 4 * track->col.nBlocks);
@@ -389,23 +393,42 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
 }
 
 bool NFS3::LoadCAN(std::string can_path, const std::shared_ptr<TRACK> &track) {
-    return true;
-    // TODO: Reverse engineer .CAN file
     ifstream can(can_path, ios::in | ios::binary);
-    ofstream dump("./assets/can_dump.txt");
 
-    while(!can.eof()){
-        uint16_t *test = new uint16_t[1];
-        can.read((char*) test, sizeof(uint16_t));
-        dump << test[0] << ", " << std::endl;
+    if(!can.is_open()){
+        return false;
     }
 
-    dump.close();
+    std::cout << "Loading CAN File" << std::endl;
+
+    // Get filesize so can check have parsed all bytes
+    can.seekg(0, ios_base::end);
+    streamoff fileSize = can.tellg();
+    can.seekg(0, ios_base::beg);
+
+    uint8_t header[8];
+    can.read((char*) header, sizeof(uint8_t) * 8);
+    // 4th byte is the number of ANIMDATA points in the CAN file
+    uint8_t nAnimations = header[4];
+
+    ANIMDATA *anim = new ANIMDATA[nAnimations];
+    can.read((char*) anim, sizeof(ANIMDATA)*nAnimations);
+
+    for(uint8_t anim_Idx = 0; anim_Idx < nAnimations; ++anim_Idx){
+        track->cameraAnimation.emplace_back(anim[anim_Idx]);
+    }
+
+    streamoff readBytes = can.tellg();
+
+    ASSERT(readBytes == fileSize, "Missing " << fileSize - readBytes << " bytes from loaded CAN file: " << can_path);
+
+    return true;
 }
 
 bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track) {
     ifstream hrz(hrz_path, ios::in | ios::binary);
     if(!hrz.is_open()) return false;
+    std::cout << "Loading HRZ File" << std::endl;
 
     std::string str, skyTopColour, skyBottomColour;
 

@@ -144,20 +144,24 @@ namespace TrackUtils {
 
         uint32_t preMap = textures.size();
         for (uint32_t i = 0; i < textures.size(); i++) {
-            // TODO: This will create a texture if it doesn't exist in the map. I should retrieve a texture in this case so that it doesn't look silly.
-            auto &texture = textures[i];
-            ASSERT(texture.width <= max_width, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
-            ASSERT(texture.height <= max_height, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
-            // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
+            auto it = textures.find(i);
+            if (it != textures.end()){
+                // TODO: This will create a texture if it doesn't exist in the map. I should retrieve a texture in this case so that it doesn't look silly.
+                auto &texture = textures[i];
 
-            texture.min_u = 0.00;
-            texture.min_v = 0.00;
-            texture.layer = i;
-            texture.max_u = (texture.width / static_cast<float>(max_width ))  - 0.01f; // Attempt to remove potential for sampling texture from transparent area
-            texture.max_v = (texture.height / static_cast<float>(max_height)) - 0.01f;
-            texture.texture_id = texture_name;
+                ASSERT(texture.width <= max_width, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
+                ASSERT(texture.height <= max_height, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
+                // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
+                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
+                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
+
+                texture.min_u = 0.00;
+                texture.min_v = 0.00;
+                texture.layer = i;
+                texture.max_u = (texture.width / static_cast<float>(max_width ))  - 0.01f; // Attempt to remove potential for sampling texture from transparent area
+                texture.max_v = (texture.height / static_cast<float>(max_height)) - 0.01f;
+                texture.texture_id = texture_name;
+            }
         }
 
         if (preMap != textures.size()){
