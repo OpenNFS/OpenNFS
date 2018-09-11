@@ -32,7 +32,7 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
 
     ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCAN(can_path.str(), track), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
+    ASSERT(TrackUtils::LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
 
     track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
     track->track_blocks = ParseTRKModels(track);
@@ -50,158 +50,6 @@ void parsePolygonFlags(int triangle, uint32_t polygonFlags){
     } else {
         //std::cout << triangle << " " << bits << std::endl;
     }
-}
-
-std::vector<glm::vec2> highStakesToGLUV(POLYGONDATA poly) {
-    std::vector<glm::vec2> converted_uvs;
-    int map[4], hold;
-    //(flags>>2)&3 indicates the multiple of 90° by which the
-    //texture should be rotated (0 for no rotation, 1 for 90°,
-    //2 for 180°, 3 for 270°) ; a non-zero value of flags&0x10
-    //indicates that the texture is horizontally flipped ; a
-    //non-zero value of flags&0x20 indicates that the texture
-    //is vertically flipped. The value of (flags>>6)&7 indicates
-    //the scaling factor : 0 is no scaling ; 1 means that the
-    //texture is tiled twice horizontally ; 2 that the texture
-    //is tile twice vertically ; 3 indicates 4x horizontal
-    //tiling, 4 indicates 4x vertical tiling. Finally, a non-zero
-    //value of flags&0x8000 indicates that the polygon is one-sided.
-    //ox, oy, and oz :: Origin of the wrap.
-    //dx, dy, and dz :: The z-axis of the wrap.
-    //ux, uy, and uz ::	The y-axis of the wrap.
-    //ou and ov :: Origin in the texture.
-    //su and sv :: Scale factor in the texture
-    float oi[2], oo[2], ii[2], io[2];
-    switch ((poly.hs_texflags >> 2) & 3) {
-        case 0:
-            map[0] = 0;
-            map[1] = 1;
-            map[2] = 2;
-            map[3] = 3;
-            break;
-        case 1:
-            map[0] = 3;
-            map[1] = 0;
-            map[2] = 1;
-            map[3] = 2;
-            break;
-        case 2:
-            map[0] = 2;
-            map[1] = 3;
-            map[2] = 0;
-            map[3] = 1;
-            break;
-        case 3:
-            map[0] = 1;
-            map[1] = 2;
-            map[2] = 3;
-            map[3] = 0;
-            break;
-    }
-    switch ((poly.hs_texflags >> 4) & 3) {
-        case 1:
-            hold = map[0];
-            map[0] = map[1];
-            map[1] = hold;
-            hold = map[2];
-            map[2] = map[3];
-            map[3] = hold;
-            break;
-        case 2:
-            hold = map[0];
-            map[0] = map[3];
-            map[3] = hold;
-            hold = map[2];
-            map[2] = map[1];
-            map[1] = hold;
-            break;
-        case 3:
-            hold = map[1];
-            map[1] = map[3];
-            map[3] = hold;
-            hold = map[2];
-            map[2] = map[0];
-            map[0] = hold;
-            break;
-    }
-    // Scale Factor
-    switch ((poly.hs_texflags >> 6) & 7) {
-        /* case 0:
-             oi[1] = 1.0f;
-             ii[0] = 1.0f;
-             ii[1] = 1.0f;
-             io[0] = 1.0f;
-             break;
-         case 1:
-             oi[1] = 1.0f;
-             ii[0] = 0.5f;
-             ii[1] = 1.0f;
-             io[0] = 0.5f;
-             break;
-         case 2:
-             oi[1] = 0.5f;
-             ii[0] = 1.0f;
-             ii[1] = 0.5f;
-             io[0] = 1.0f;
-             break;
-         case 3:
-             oi[1] = 1.0f;
-             ii[0] = 0.25f;
-             ii[1] = 1.0f;
-             io[0] = 0.25f;
-             break;
-         case 4:
-             oi[1] = 0.25f;
-             ii[0] = 1.0f;
-             ii[1] = 0.25f;
-             io[0] = 1.0f;
-             break;*/
-        {
-            case 0:
-                oi[1] = 1.0f;
-            ii[0] = 1.0f;
-            ii[1] = 1.0f;
-            io[0] = 1.0f;
-            break;
-            case 1:
-                oi[1] = 1.0f;
-            ii[0] = 2.0f;
-            ii[1] = 1.0f;
-            io[0] = 2.0f;
-            break;
-            case 2:
-                oi[1] = 2.0f;
-            ii[0] = 1.0f;
-            ii[1] = 2.0f;
-            io[0] = 1.0f;
-            break;
-            case 3:
-                oi[1] = 1.0f;
-            ii[0] = 4.0f;
-            ii[1] = 1.0f;
-            io[0] = 4.0f;
-            break;
-            case 4:
-                oi[1] = 4.0f;
-            ii[0] = 1.0f;
-            ii[1] = 4.0f;
-            io[0] = 1.0f;
-            break;
-        }
-    }
-    oi[0] = 0.0f;
-    io[1] = 0.0f;
-    oo[0] = 0.0f;
-    oo[1] = 0.0f;
-
-    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
-    converted_uvs.push_back(glm::vec2(ii[0], ii[1]));
-    converted_uvs.push_back(glm::vec2(io[0], io[1]));
-    converted_uvs.push_back(glm::vec2(oi[0], oi[1]));
-    converted_uvs.push_back(glm::vec2(io[0], io[1]));
-    converted_uvs.push_back(glm::vec2(oo[0], oo[1]));
-
-    return converted_uvs;//std::vector<glm::vec2>(converted_uvs, converted_uvs + 6);
 }
 
 std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
@@ -806,40 +654,6 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     return true;
 }
 
-// TODO: Share this between NFS3 and 4 Loaders
-bool NFS4::LoadCAN(std::string can_path, const std::shared_ptr<TRACK> &track) {
-    ifstream can(can_path, ios::in | ios::binary);
-
-    if(!can.is_open()){
-        return false;
-    }
-
-    std::cout << "Loading CAN File" << std::endl;
-
-    // Get filesize so can check have parsed all bytes
-    can.seekg(0, ios_base::end);
-    streamoff fileSize = can.tellg();
-    can.seekg(0, ios_base::beg);
-
-    uint8_t header[8];
-    can.read((char*) header, sizeof(uint8_t) * 8);
-    // 4th byte is the number of ANIMDATA points in the CAN file
-    uint8_t nAnimations = header[4];
-
-    ANIMDATA *anim = new ANIMDATA[nAnimations];
-    can.read((char*) anim, sizeof(ANIMDATA)*nAnimations);
-
-    for(uint8_t anim_Idx = 0; anim_Idx < nAnimations; ++anim_Idx){
-        track->cameraAnimation.emplace_back(anim[anim_Idx]);
-    }
-
-    streamoff readBytes = can.tellg();
-
-    ASSERT(readBytes == fileSize, "Missing " << fileSize - readBytes << " bytes from loaded CAN file: " << can_path);
-
-    return true;
-}
-
 std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track) {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
@@ -907,15 +721,8 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
                         vertex_indices.emplace_back(object_polys[p].vertex[3]);
 
-                        /*std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, OBJ_POLY, object_polys[p].hs_texflags, gl_texture);
-                        uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());*/
-
-                         uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
+                        std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, OBJ_POLY, object_polys[p].hs_texflags, gl_texture, texture_for_block);
+                        uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         // Use TextureID in place of normal
                         texture_indices.emplace_back(texture_for_block.texture);
@@ -973,15 +780,8 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
                     vertex_indices.emplace_back(x->polyData->vertex[3]);
 
-                   /* std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture);
-                    uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());*/
-
-                    uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                    uvs.emplace_back((1.0f - texture_for_block.corners[2]) * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
-                    uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                    uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                    uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                    uvs.emplace_back((1.0f - texture_for_block.corners[6]) * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
+                    std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
+                    uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);
@@ -1034,12 +834,9 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[3]);
-                uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
-                uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
+
+                std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, chnk == 6 ? LANE : ROAD, poly_chunk[k].hs_texflags, gl_texture, texture_for_block);
+                uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);

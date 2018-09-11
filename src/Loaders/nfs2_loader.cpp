@@ -207,7 +207,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             "Reserved",
             "Reserved"
     };
-
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0)));
     float carScaleFactor = 2000.f;
 
     std::cout << "- Parsing GEO File " << std::endl;
@@ -328,13 +328,12 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
         std::cout << "BlockEndOffset:     " << geo.tellg() << " Size: " << geo.tellg() - start << std::endl;
 
         for (uint32_t vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx) {
-            verts.emplace_back(glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
+            verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
         }
 
         for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx) {
             std::string textureName(polygons[poly_Idx].texName, polygons[poly_Idx].texName + 4);
             Texture gl_texture = car_textures[remapped_texture_ids[textureName]];
-            std::bitset<8> texMapBits(polygons[poly_Idx].texMap[0]);
 
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
@@ -351,29 +350,9 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
             indices.emplace_back(polygons[poly_Idx].vertex[0][3]);
 
-            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-
             // TODO: Use Polygon TexMap type to fix texture mapping, use UV factory in trk utils
-           /* glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-            float angle = 0;
-            glm::vec2 flip(1.0f, 1.0f);
-            if (texMapBits[3]) {
-                flip = glm::vec2(-1.0f, 1.0f);
-            }
-
-            glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
-
-            uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-            uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-            uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-            uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-            uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-            uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);*/
+            std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_3_PS1, CAR, polygons->texMap[0], gl_texture);
+            uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
             // TODO: Long overdue normal calculation
             norms.emplace_back(glm::vec3(1, 1, 1));
@@ -488,7 +467,9 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
         }
     }
 
-    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures, remapped_texture_ids), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, TrackUtils::MakeTextureArray(car_textures, 256, 256, false));
+    GLuint texture_array_id = TrackUtils::MakeTextureArray(car_textures, 256, 256, false);
+
+    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures, remapped_texture_ids), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, texture_array_id);
 }
 
 // TRACK
@@ -499,7 +480,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
 
     boost::filesystem::path p(track_base_path);
     track->name = p.filename().string();
-    stringstream trk_path, col_path;
+    stringstream trk_path, col_path, can_path;
 
     trk_path << track_base_path << ".TRK";
     col_path << track_base_path << ".COL";
@@ -512,6 +493,8 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
         } else {
             nfs_version = NFS_2;
         }
+        can_path << RESOURCE_PATH << ToString(nfs_version) << "/GAMEDATA/TRACKS/DATA/PC/" << track->name << "00.CAN";
+        ASSERT(TrackUtils::LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     } else if (std::is_same<Platform, PS1>::value) {
         nfs_version = NFS_3_PS1;
         std::string ps1_col_path = col_path.str();

@@ -25,6 +25,10 @@ namespace TrackUtils {
 
     std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture);
 
+    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture, NFS3_4_DATA::TEXTUREBLOCK texture_block);
+
+    bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations);
+
     glm::vec3 parseRGBString(const std::string &rgb_string);
 };
 

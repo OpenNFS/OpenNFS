@@ -37,6 +37,14 @@ public:
 /* HEREIN LIES THE HOLY GRAIL OF OLD SCHOOL NEED FOR SPEED MODDING.
  * Every raw data structure from every interesting file in NFS 2, 3, 4 is documented here.
  * Big up to Denis Auroux, Jesper Juul Mortensen, JimDiabolo, Lasse (Nappe1), Hoo, Valery V. Anisimovsky */
+
+namespace SHARED {
+    struct CANPT {
+        int32_t x, z, y;
+        int16_t od1, od2, od3, od4;
+    };
+}
+
 namespace NFS3_4_DATA {
     struct FLOATPT {
         float x, z, y;
@@ -152,7 +160,7 @@ namespace NFS3_4_DATA {
 
     struct ANIMDATA {
         INTPT pt;
-        short od1,od2,od3,od4;
+        int16_t od1,od2,od3,od4;
     };
 
     struct XOBJDATA {
@@ -298,7 +306,7 @@ namespace NFS3_4_DATA {
         uint32_t nTextures;
         TEXTUREBLOCK *texture;
         COLFILE col;
-        std::vector<ANIMDATA> cameraAnimation;
+        std::vector<SHARED::CANPT> cameraAnimation;
         // GL 3D Render Data
         std::vector<TrackBlock> track_blocks;
         std::vector<Entity> global_objects;
@@ -593,6 +601,7 @@ namespace NFS2_DATA {
             std::vector<GEOM_REF_BLOCK> colStructureRefData;
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
+            std::vector<SHARED::CANPT> cameraAnimation;
             // GL 3D Render Data
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
@@ -714,6 +723,8 @@ namespace NFS2_DATA {
 
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
+
+            std::vector<SHARED::CANPT> cameraAnimation;
             // GL 3D Render Data
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;

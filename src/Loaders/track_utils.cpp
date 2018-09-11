@@ -145,7 +145,7 @@ namespace TrackUtils {
         uint32_t preMap = textures.size();
         for (uint32_t i = 0; i < textures.size(); i++) {
             auto it = textures.find(i);
-            if (it != textures.end()){
+            if (it != textures.end()) {
                 // TODO: This will create a texture if it doesn't exist in the map. I should retrieve a texture in this case so that it doesn't look silly.
                 auto &texture = textures[i];
 
@@ -158,13 +158,13 @@ namespace TrackUtils {
                 texture.min_u = 0.00;
                 texture.min_v = 0.00;
                 texture.layer = i;
-                texture.max_u = (texture.width / static_cast<float>(max_width ))  - 0.01f; // Attempt to remove potential for sampling texture from transparent area
+                texture.max_u = (texture.width / static_cast<float>(max_width )) - 0.01f; // Attempt to remove potential for sampling texture from transparent area
                 texture.max_v = (texture.height / static_cast<float>(max_height)) - 0.01f;
                 texture.texture_id = texture_name;
             }
         }
 
-        if (preMap != textures.size()){
+        if (preMap != textures.size()) {
             std::cerr << "Texture array creation created " << textures.size() - preMap << " extra textures" << std::endl;
         }
 
@@ -181,67 +181,49 @@ namespace TrackUtils {
         glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
         //Unbind texture
-        glBindTexture( GL_TEXTURE_2D_ARRAY, 0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
         return texture_name;
     }
 
-    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture){
+    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture) {
         std::bitset<32> textureAlignment(textureFlags);
         std::vector<glm::vec2> uvs;
 
-        switch(tag){
+        switch (tag) {
             case NFS_1:
-                switch(mesh_type){
-                    case XOBJ:break;
-                    case OBJ_POLY:break;
-                    case ROAD:break;
-                    case GLOBAL:break;
-                    case CAR:break;
-                }
+                ASSERT(false, "Unimplemented");
                 break;
             case NFS_2:
             case NFS_2_SE:
-                switch(mesh_type){
-                    case XOBJ:
-                        /*glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                        glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
-                        if (std::is_same<Platform, PS1>::value) {
-                            flip.x = -1.0f * gl_texture.max_u;
-                            flip.y = -1.0f * gl_texture.max_v;
-                        } else {
-                            flip.x = -1.0f * gl_texture.max_u;
-                            flip.y = 1.0f * gl_texture.max_v;
-                        }
-                        float angle = 0;
-
-                        // Horizontal Flip
-                        if (textureAlignment[8]) {
-                            flip.x = -flip.x;
-                        }
-                        // Vertical Flip
-                        if (textureAlignment[9]) {
-                            flip.y = -flip.y;
-                        }
-
+                switch (mesh_type) {
+                    case XOBJ: {
+                        bool horizontalFlip = false; //textureAlignment[8];
+                        bool verticalFlip =  false; //textureAlignment[9];
+                        glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                        uint8_t nRotate = 0;
+                        float angle = nRotate * 90.f;
                         glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
-
-                        // TODO: Use Polygon TexMap type to fix texture mapping
-                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);*/
-
-                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-                        uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-                        uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        for (auto &uv : uvs) {
+                            if (horizontalFlip) {
+                                uv.x = 1.0f - uv.x;
+                            }
+                            if (verticalFlip) {
+                                uv.y = 1.0f - uv.y;
+                            }
+                            uv.x *= gl_texture.max_u;
+                            uv.y *= gl_texture.max_v;
+                        }
+                    }
                         break;
-                    case OBJ_POLY:break;
+                    case OBJ_POLY:
+                        break;
                     case ROAD:
                         /*glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
                         glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
@@ -262,18 +244,7 @@ namespace TrackUtils {
                         // Vertical Flip
                         if (textureAlignment[9]) {
                             flip.y = -flip.y;
-                        }
-
-                        glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
-
-                        // TODO: Use Polygon TexMap type to fix texture mapping
-                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);
-                        uvs.emplace_back((((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) * flip) + originTransform);*/
-
+                        }*/
                         uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
                         uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
                         uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
@@ -281,13 +252,15 @@ namespace TrackUtils {
                         uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
                         uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
                         break;
-                    case GLOBAL:break;
-                    case CAR:break;
+                    case GLOBAL:
+                        break;
+                    case CAR:
+                        break;
                 }
                 break;
             case NFS_2_PS1:
             case NFS_3_PS1:
-                switch(mesh_type){
+                switch (mesh_type) {
                     case XOBJ:
                         uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
                         uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
@@ -296,7 +269,8 @@ namespace TrackUtils {
                         uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
                         uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
                         break;
-                    case OBJ_POLY:break;
+                    case OBJ_POLY:
+                        break;
                     case ROAD:
                         uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
                         uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
@@ -304,152 +278,162 @@ namespace TrackUtils {
                         uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
                         uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
                         uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                        break;
+                    case GLOBAL:
+                        break;
+                    case CAR: {
+                        bool horizontalFlip = !textureAlignment[4];
+                        bool verticalFlip = true;
+                        glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                        uint8_t nRotate = static_cast<uint8_t>((textureFlags >> 5) & 3);
+                        float angle = nRotate * 90.f;
+                        glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+                        uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        for (auto &uv : uvs) {
+                            if (horizontalFlip) {
+                                uv.x = 1.0f - uv.x;
+                            }
+                            if (verticalFlip) {
+                                uv.y = 1.0f - uv.y;
+                            }
+                            uv.x *= gl_texture.max_u;
+                            uv.y *= gl_texture.max_v;
+                        }
+                    }
+                        break;
+                }
+                break;
+            case NFS_3:
+            case NFS_4:
+                ASSERT(false, "Incorrect UV generate function call, did you mean to pass in an NFS3_4::TEXTUREBLOCK as well?");
+                break;
+            case NFS_5:
+                ASSERT(false, "Unimplemented");
+                break;
+            case UNKNOWN:
+                ASSERT(false, "Unimplemented");
+                break;
+        }
+
+        return uvs;
+    }
+
+    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture, NFS3_4_DATA::TEXTUREBLOCK texture_block) {
+        std::bitset<32> textureAlignment(textureFlags);
+        std::vector<glm::vec2> uvs;
+
+        switch (tag) {
+            case NFS_1:
+            case NFS_2:
+            case NFS_2_SE:
+            case NFS_2_PS1:
+            case NFS_3_PS1:
+                ASSERT(false, "Incorrect UV generate function call, did you mean to pass in an NFS3_4::TEXTUREBLOCK as well?");
+                break;
+            case NFS_3:
+                switch(mesh_type){
+                    case XOBJ:
+                        uvs.emplace_back((1.0f - texture_block.corners[0]) * gl_texture.max_u, (1.0f - texture_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_block.corners[2]) * gl_texture.max_u, (1.0f - texture_block.corners[3]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_block.corners[4]) * gl_texture.max_u, (1.0f - texture_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_block.corners[0]) * gl_texture.max_u, (1.0f - texture_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_block.corners[4]) * gl_texture.max_u, (1.0f - texture_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back((1.0f - texture_block.corners[6]) * gl_texture.max_u, (1.0f - texture_block.corners[7]) * gl_texture.max_v);
+                        break;
+                    case OBJ_POLY:
+                    case LANE:
+                    case ROAD:
+                        uvs.emplace_back(texture_block.corners[0] * gl_texture.max_u, (1.0f - texture_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_block.corners[2] * gl_texture.max_u, (1.0f - texture_block.corners[3]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_block.corners[4] * gl_texture.max_u, (1.0f - texture_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_block.corners[0] * gl_texture.max_u, (1.0f - texture_block.corners[1]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_block.corners[4] * gl_texture.max_u, (1.0f - texture_block.corners[5]) * gl_texture.max_v);
+                        uvs.emplace_back(texture_block.corners[6] * gl_texture.max_u, (1.0f - texture_block.corners[7]) * gl_texture.max_v);
                         break;
                     case GLOBAL:break;
                     case CAR:break;
                 }
-                break;
-            case NFS_3:
+
                 break;
             case NFS_4:
-                switch(mesh_type){
+                switch (mesh_type) {
+                    //(flags>>2)&3 indicates the multiple of 90° by which the
+                    //texture should be rotated (0 for no rotation, 1 for 90°,
+                    //2 for 180°, 3 for 270°) ; a non-zero value of flags&0x10
+                    //indicates that the texture is horizontally flipped ; a
+                    //non-zero value of flags&0x20 indicates that the texture
+                    //is vertically flipped. The value of (flags>>6)&7 indicates
+                    //the scaling factor : 0 is no scaling ; 1 means that the
+                    //texture is tiled twice horizontally ; 2 that the texture
+                    //is tile twice vertically ; 3 indicates 4x horizontal
+                    //tiling, 4 indicates 4x vertical tiling. Finally, a non-zero
+                    //value of flags&0x8000 indicates that the polygon is one-sided.
+                    //ox, oy, and oz :: Origin of the wrap.
+                    //dx, dy, and dz :: The z-axis of the wrap.
+                    //ux, uy, and uz ::	The y-axis of the wrap.
+                    //ou and ov :: Origin in the texture.
+                    //su and sv :: Scale factor in the texture
                     case XOBJ:
+                    {
+                        bool horizontalFlip = textureAlignment[4];
+                        bool verticalFlip   = textureAlignment[5];
+                        glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                        uint8_t nRotate = static_cast<uint8_t>((textureFlags >> 2) & 3);
+                        float angle = nRotate * 90.f;
+                        glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+                        uvs.emplace_back(((glm::vec2(1.0f - texture_block.corners[0], 1.0f - texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f - texture_block.corners[2], 1.0f - texture_block.corners[3]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f - texture_block.corners[4], 1.0f - texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f - texture_block.corners[0], 1.0f - texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f - texture_block.corners[4], 1.0f - texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f - texture_block.corners[6], 1.0f - texture_block.corners[7]) - originTransform) * uvRotationTransform) + originTransform);
+                        for (auto &uv : uvs) {
+                            if (horizontalFlip) {
+                                uv.x = 1.0f - uv.x;
+                            }
+                            if (verticalFlip) {
+                                uv.y = 1.0f - uv.y;
+                            }
+                            uv.x *= gl_texture.max_u;
+                            uv.y *= gl_texture.max_v;
+                        }
+                    }
+                    break;
                     case OBJ_POLY:
                     case ROAD:
                     case GLOBAL:
-                        // OBJ_POLY
-                        // TODO: How to pass in corners?
-                       /* uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                        uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);*/
-
-                       // XOBJ
-                        /*uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                        uvs.emplace_back((1.0f - texture_for_block.corners[2]) * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
-                        uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                        uvs.emplace_back((1.0f - texture_for_block.corners[0]) * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-                        uvs.emplace_back((1.0f - texture_for_block.corners[4]) * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-                        uvs.emplace_back((1.0f - texture_for_block.corners[6]) * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);*/
-                        int map[4], hold;
-                        //(flags>>2)&3 indicates the multiple of 90° by which the
-                        //texture should be rotated (0 for no rotation, 1 for 90°,
-                        //2 for 180°, 3 for 270°) ; a non-zero value of flags&0x10
-                        //indicates that the texture is horizontally flipped ; a
-                        //non-zero value of flags&0x20 indicates that the texture
-                        //is vertically flipped. The value of (flags>>6)&7 indicates
-                        //the scaling factor : 0 is no scaling ; 1 means that the
-                        //texture is tiled twice horizontally ; 2 that the texture
-                        //is tile twice vertically ; 3 indicates 4x horizontal
-                        //tiling, 4 indicates 4x vertical tiling. Finally, a non-zero
-                        //value of flags&0x8000 indicates that the polygon is one-sided.
-                        //ox, oy, and oz :: Origin of the wrap.
-                        //dx, dy, and dz :: The z-axis of the wrap.
-                        //ux, uy, and uz ::	The y-axis of the wrap.
-                        //ou and ov :: Origin in the texture.
-                        //su and sv :: Scale factor in the texture
-                        float oi[2], oo[2], ii[2], io[2];
-                        switch ((textureFlags >> 2) & 3) {
-                            case 0:
-                                map[0] = 0;
-                                map[1] = 1;
-                                map[2] = 2;
-                                map[3] = 3;
-                                break;
-                            case 1:
-                                map[0] = 3;
-                                map[1] = 0;
-                                map[2] = 1;
-                                map[3] = 2;
-                                break;
-                            case 2:
-                                map[0] = 2;
-                                map[1] = 3;
-                                map[2] = 0;
-                                map[3] = 1;
-                                break;
-                            case 3:
-                                map[0] = 1;
-                                map[1] = 2;
-                                map[2] = 3;
-                                map[3] = 0;
-                                break;
-                        }
-                        switch ((textureFlags >> 4) & 3) {
-                            case 1:
-                                hold = map[0];
-                                map[0] = map[1];
-                                map[1] = hold;
-                                hold = map[2];
-                                map[2] = map[3];
-                                map[3] = hold;
-                                break;
-                            case 2:
-                                hold = map[0];
-                                map[0] = map[3];
-                                map[3] = hold;
-                                hold = map[2];
-                                map[2] = map[1];
-                                map[1] = hold;
-                                break;
-                            case 3:
-                                hold = map[1];
-                                map[1] = map[3];
-                                map[3] = hold;
-                                hold = map[2];
-                                map[2] = map[0];
-                                map[0] = hold;
-                                break;
-                        }
-                        // Scale Factor
-                        switch ((textureFlags >> 6) & 7) {
-                            {
-                                case 0:
-                                    oi[1] = 1.0f;
-                                ii[0] = 1.0f;
-                                ii[1] = 1.0f;
-                                io[0] = 1.0f;
-                                break;
-                                case 1:
-                                    oi[1] = 1.0f;
-                                ii[0] = 2.0f;
-                                ii[1] = 1.0f;
-                                io[0] = 2.0f;
-                                break;
-                                case 2:
-                                    oi[1] = 2.0f;
-                                ii[0] = 1.0f;
-                                ii[1] = 2.0f;
-                                io[0] = 1.0f;
-                                break;
-                                case 3:
-                                    oi[1] = 1.0f;
-                                ii[0] = 4.0f;
-                                ii[1] = 1.0f;
-                                io[0] = 4.0f;
-                                break;
-                                case 4:
-                                    oi[1] = 4.0f;
-                                ii[0] = 1.0f;
-                                ii[1] = 4.0f;
-                                io[0] = 1.0f;
-                                break;
+                    {
+                        bool horizontalFlip = textureAlignment[4];
+                        bool verticalFlip   = textureAlignment[5];
+                        glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                        uint8_t nRotate = static_cast<uint8_t>((textureFlags >> 2) & 3);
+                        float angle = nRotate * 90.f;
+                        glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[0], 1.0f- texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[2], 1.0f- texture_block.corners[3]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[4], 1.0f- texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[0], 1.0f- texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[4], 1.0f- texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[6], 1.0f- texture_block.corners[7]) - originTransform) * uvRotationTransform) + originTransform);
+                        for (auto &uv : uvs) {
+                            if (horizontalFlip) {
+                                uv.x = 1.0f - uv.x;
                             }
+                            if (verticalFlip) {
+                                uv.y = 1.0f - uv.y;
+                            }
+                            uv.x *= gl_texture.max_u;
+                            uv.y *= gl_texture.max_v;
                         }
-                        oi[0] = 0.0f;
-                        io[1] = 0.0f;
-                        oo[0] = 0.0f;
-                        oo[1] = 0.0f;
-                        uvs.push_back(glm::vec2(oi[0], oi[1]));
-                        uvs.push_back(glm::vec2(ii[0], ii[1]));
-                        uvs.push_back(glm::vec2(io[0], io[1]));
-                        uvs.push_back(glm::vec2(oi[0], oi[1]));
-                        uvs.push_back(glm::vec2(io[0], io[1]));
-                        uvs.push_back(glm::vec2(oo[0], oo[1]));
+                    }
                         break;
-                    case CAR:break;
+                    case CAR:
+                        break;
                 }
                 break;
             case NFS_5:
@@ -459,6 +443,47 @@ namespace TrackUtils {
         }
 
         return uvs;
+    }
+
+    bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations) {
+        ifstream can(can_path, ios::in | ios::binary);
+
+        if (!can.is_open()) {
+            return false;
+        }
+
+        std::cout << "Loading CAN File" << std::endl;
+
+        // Get filesize so can check have parsed all bytes
+        can.seekg(0, ios_base::end);
+        streamoff fileSize = can.tellg();
+        can.seekg(0, ios_base::beg);
+
+        /* uint16_t size;
+        char type;     // 1 = basic object, 3 = animated ...
+        char struct3D; // reference in previous block
+// type 1
+        INTPT ptRef;
+// type 3
+        uint16_t animLength;
+        uint16_t unknown;*/
+        uint8_t header[8];
+        can.read((char *) header, sizeof(uint8_t) * 8);
+        // 4th byte is the number of ANIMDATA points in the CAN file
+        uint8_t nAnimations = header[4];
+
+        SHARED::CANPT *anim = new SHARED::CANPT[nAnimations];
+        can.read((char *) anim, sizeof(SHARED::CANPT) * nAnimations);
+
+        for (uint8_t anim_Idx = 0; anim_Idx < nAnimations; ++anim_Idx) {
+            cameraAnimations.emplace_back(anim[anim_Idx]);
+        }
+
+        streamoff readBytes = can.tellg();
+
+        ASSERT(readBytes == fileSize, "Missing " << fileSize - readBytes << " bytes from loaded CAN file: " << can_path);
+
+        return true;
     }
 
     glm::vec3 parseRGBString(const std::string &rgb_string) {
@@ -480,8 +505,8 @@ namespace TrackUtils {
                         break;
                 }
                 tempComponent.str("");
-                if(++commaCount >= 3) break;
-            }  else {
+                if (++commaCount >= 3) break;
+            } else {
                 tempComponent << rgb_string[char_Idx];
             }
         }

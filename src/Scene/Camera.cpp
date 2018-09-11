@@ -225,7 +225,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
 
 Camera::Camera() {}
 
-void Camera::setCameraAnimation(std::vector<NFS3_4_DATA::ANIMDATA> canPoints) {
+void Camera::setCameraAnimation(std::vector<SHARED::CANPT> canPoints) {
     cameraAnimPoints = canPoints;
 }
 
@@ -240,11 +240,11 @@ bool Camera::playAnimation() {
         animationDeltaTime = 0.f;
     }
 
-    NFS3_4_DATA::ANIMDATA animPosition = cameraAnimPoints[animationPosition++];
+    SHARED::CANPT animPosition = cameraAnimPoints[animationPosition++];
     // TODO: This should really be relative to the players car
-    position =  (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.pt.x/ 65536.0f) / 10.f, ((animPosition.pt.y/ 65536.0f) / 10.f), (animPosition.pt.z/ 65536.0f) / 10.f)) + initialPosition;
-    glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(-animPosition.od1, animPosition.od2, animPosition.od3,animPosition.od4));
-    glm::vec3 direction = position * RotationMatrix;
+    position =  (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.x/ 65536.0f) / 10.f, ((animPosition.y/ 65536.0f) / 10.f), (animPosition.z/ 65536.0f) / 10.f)) + initialPosition;
+    glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(animPosition.od1/ 65536.0f, animPosition.od2/ 65536.0f, animPosition.od3/ 65536.0f,animPosition.od4/ 65536.0f));
+    glm::vec3 direction = glm::normalize(position * RotationMatrix);
 
     // Camera matrix
     ViewMatrix = glm::lookAt(
