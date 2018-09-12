@@ -55,6 +55,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             camera_animations = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->cameraAnimation;
             textureArrayID = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
             track_blocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
+            global_objects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
             break;
         case UNKNOWN:
             ASSERT(false, "Unknown track type!");

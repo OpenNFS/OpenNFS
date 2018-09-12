@@ -60,11 +60,23 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
                     animMap[global_object.entityID] = 0;
                 }
             }
+        } else if (track->tag == NFS_4) {
+            uint32_t globalObjIdx = 4 * track->nBlocks; //Global Objects
+            NFS3_4_DATA::XOBJDATA animObject  = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->xobj[globalObjIdx].obj[global_object.entityID];
+            if (animObject.type3 == 3) {
+                if (animMap[global_object.entityID] < animObject.nAnimLength) {
+                    boost::get<Track>(global_object.glMesh).position = glm::normalize(glm::quat(glm::vec3(glm::radians(-90.f), 0, 0))) * glm::vec3((animObject.animData[animMap[global_object.entityID]].pt.x / 65536.0) / 10, (animObject.animData[animMap[global_object.entityID]].pt.y / 65536.0) / 10, (animObject.animData[animMap[global_object.entityID]].pt.z / 65536.0) / 10);
+                    boost::get<Track>(global_object.glMesh).orientation = glm::normalize(glm::quat(glm::vec3(glm::radians(-180.f), glm::radians(-180.f), 0))) * glm::normalize(glm::quat(-animObject.animData[animMap[global_object.entityID]].od1, animObject.animData[animMap[global_object.entityID]].od2, animObject.animData[animMap[global_object.entityID]].od3, animObject.animData[animMap[global_object.entityID]].od4));
+                    animMap[global_object.entityID]++;
+                } else {
+                    animMap[global_object.entityID] = 0;
+                }
+            }
         } else if (track->tag == NFS_2 || track->tag == NFS_2_SE || track->tag == NFS_3_PS1) {
-            std::vector<GEOM_REF_BLOCK> colStructureRefData = track->tag == NFS_3_PS1 ? boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(track->trackData)->colStructureRefData : boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(track->trackData)->colStructureRefData;
-            // Find the structure reference that matches this structure, else use block default
-            for (auto &structure : colStructureRefData) {
-                // Only check fixed type structure references
+                std::vector<GEOM_REF_BLOCK> colStructureRefData = track->tag == NFS_3_PS1 ? boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(track->trackData)->colStructureRefData : boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(track->trackData)->colStructureRefData;
+                // Find the structure reference that matches this structure, else use block default
+                        for (auto &structure : colStructureRefData) {
+                            // Only check fixed type structure references
                 if (structure.structureRef == global_object.entityID) {
                     if (structure.recType == 3) {
                         if (animMap[global_object.entityID] < structure.animLength) {
