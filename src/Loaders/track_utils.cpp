@@ -225,26 +225,6 @@ namespace TrackUtils {
                     case OBJ_POLY:
                         break;
                     case ROAD:
-                        /*glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                        glm::vec2 flip(-1.0f * gl_texture.max_u, -1.0f * gl_texture.max_v);
-                        if (std::is_same<Platform, PS1>::value) {
-                            flip.x = -1.0f * gl_texture.max_u;
-                            flip.y = -1.0f * gl_texture.max_v;
-                        } else {
-                            flip.x = 1.0f * gl_texture.max_u;
-                            flip.y = -1.0f * gl_texture.max_v;
-                        }
-
-                        float angle = 0;
-
-                        // Horizontal Flip
-                        if (textureAlignment[8]) {
-                            flip.x = -flip.x;
-                        }
-                        // Vertical Flip
-                        if (textureAlignment[9]) {
-                            flip.y = -flip.y;
-                        }*/
                         uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
                         uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
                         uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);

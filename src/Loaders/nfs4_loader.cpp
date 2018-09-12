@@ -741,9 +741,6 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         for (uint32_t l = (i * 4); l < (i * 4) + 4; l++) {
             for (uint32_t j = 0; j < track->xobj[l].nobj; j++) {
                 XOBJDATA *x = &(track->xobj[l].obj[j]);
-                if (x->crosstype == 4) { // basic objects
-                } else if (x->crosstype == 3) { // animated objects
-                }
                 // common part : vertices & polygons
                 std::vector<glm::vec3> verts;
                 std::vector<glm::vec4> xobj_shading_verts;
@@ -863,7 +860,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             std::vector<glm::vec3> verts;
             std::vector<glm::vec4> xobj_shading_verts;
             for (uint32_t k = 0; k < x->nVertices; k++, x->vert++) {
-                verts.emplace_back(rotationMatrix * glm::vec3(x->ptRef.x / 10 + x->vert->x / 10, x->ptRef.y / 10 + x->vert->y / 10, x->ptRef.z / 10 + x->vert->z / 10));
+                verts.emplace_back(rotationMatrix * glm::vec3(x->vert->x / 10, x->vert->y / 10, x->vert->z / 10));
                 uint32_t shading_data = x->unknVertices[k];
                 //RGBA
                 xobj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));

@@ -50,7 +50,6 @@ void main(){
 
 	// Output color = color of the texture at the specified UV
 	color = vec4(diffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(finalSpecular, 1.0);
-	color = carTexColor;
 
 	// Apply NFS4 Polygon Flags
 	if(polyFlagged) {

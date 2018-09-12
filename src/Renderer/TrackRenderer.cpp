@@ -49,7 +49,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
 
     // Render the global data, animations go here.
     for (auto &global_object : track->global_objects) {
-        if (track->tag == NFS_3 || track->tag == NFS_4) {
+        if (track->tag == NFS_3) {
             COLFILE col = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
             if (col.object[global_object.entityID].type == 3) {
                 if (animMap[global_object.entityID] < col.object[global_object.entityID].animLength) {
