@@ -133,6 +133,22 @@ namespace TrackUtils {
         return (Utils::ExtractQFS(tex_archive_path.str(), output_dir.str()));
     }
 
+    int hsStockTextureIndexRemap(int textureIndex){
+        int remappedIndex = textureIndex;
+
+        int textureArraySize = 256;
+        int nStockTextures = 30;
+
+        // Remap texture index between 0 and 256
+        if(textureIndex >= 2048){
+            remappedIndex = textureArraySize - nStockTextures  + (textureIndex - 2048);
+        }
+
+        ASSERT(remappedIndex <= 256, "Texture index still exceeds max texture array size, post-remap");
+
+        return remappedIndex;
+    }
+
     GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, size_t max_width, size_t max_height, bool repeatable) {
         GLuint texture_name;
         glGenTextures(1, &texture_name);
@@ -140,32 +156,22 @@ namespace TrackUtils {
         std::vector<uint32_t> clear_data(max_width * max_height, 0);
 
         std::cout << "Creating texture array with " << (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height << std::endl;
-        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, textures.size());
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, 256); // I should really call this on textures.size(), but the layer numbers are not linear up to textures.size(). HS Bloats tex index up over 2048.
 
-        uint32_t preMap = textures.size();
-        for (uint32_t i = 0; i < textures.size(); i++) {
-            auto it = textures.find(i);
-            if (it != textures.end()) {
-                // TODO: This will create a texture if it doesn't exist in the map. I should retrieve a texture in this case so that it doesn't look silly.
-                auto &texture = textures[i];
+        for (auto &texture : textures) {
+            ASSERT(texture.second.width <= max_width, "Texture " << texture.second.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
+            ASSERT(texture.second.height <= max_height, "Texture " << texture.second.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
+            // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, hsStockTextureIndexRemap(texture.first), max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, hsStockTextureIndexRemap(texture.first), texture.second.width, texture.second.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.second.texture_data);
 
-                ASSERT(texture.width <= max_width, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
-                ASSERT(texture.height <= max_height, "Texture " << texture.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
-                // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
-                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
-                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, texture.width, texture.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.texture_data);
+            texture.second.min_u = 0.00;
+            texture.second.min_v = 0.00;
+            texture.second.layer = hsStockTextureIndexRemap(texture.first);
+            texture.second.max_u = (texture.second.width / static_cast<float>(max_width )) - 0.005f; // Attempt to remove potential for sampling texture from transparent area
+            texture.second.max_v = (texture.second.height / static_cast<float>(max_height)) - 0.005f;
+            texture.second.texture_id = texture_name;
 
-                texture.min_u = 0.00;
-                texture.min_v = 0.00;
-                texture.layer = i;
-                texture.max_u = (texture.width / static_cast<float>(max_width )) - 0.01f; // Attempt to remove potential for sampling texture from transparent area
-                texture.max_v = (texture.height / static_cast<float>(max_height)) - 0.01f;
-                texture.texture_id = texture_name;
-            }
-        }
-
-        if (preMap != textures.size()) {
-            std::cerr << "Texture array creation created " << textures.size() - preMap << " extra textures" << std::endl;
         }
 
         if (repeatable) {
@@ -199,7 +205,7 @@ namespace TrackUtils {
                 switch (mesh_type) {
                     case XOBJ: {
                         bool horizontalFlip = false; //textureAlignment[8];
-                        bool verticalFlip =  false; //textureAlignment[9];
+                        bool verticalFlip = false; //textureAlignment[9];
                         glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
                         uint8_t nRotate = 0;
                         float angle = nRotate * 90.f;
@@ -316,7 +322,7 @@ namespace TrackUtils {
                 ASSERT(false, "Incorrect UV generate function call, did you mean to pass in an NFS3_4::TEXTUREBLOCK as well?");
                 break;
             case NFS_3:
-                switch(mesh_type){
+                switch (mesh_type) {
                     case XOBJ:
                         uvs.emplace_back((1.0f - texture_block.corners[0]) * gl_texture.max_u, (1.0f - texture_block.corners[1]) * gl_texture.max_v);
                         uvs.emplace_back((1.0f - texture_block.corners[2]) * gl_texture.max_u, (1.0f - texture_block.corners[3]) * gl_texture.max_v);
@@ -335,8 +341,10 @@ namespace TrackUtils {
                         uvs.emplace_back(texture_block.corners[4] * gl_texture.max_u, (1.0f - texture_block.corners[5]) * gl_texture.max_v);
                         uvs.emplace_back(texture_block.corners[6] * gl_texture.max_u, (1.0f - texture_block.corners[7]) * gl_texture.max_v);
                         break;
-                    case GLOBAL:break;
-                    case CAR:break;
+                    case GLOBAL:
+                        break;
+                    case CAR:
+                        break;
                 }
 
                 break;
@@ -358,10 +366,9 @@ namespace TrackUtils {
                     //ux, uy, and uz ::	The y-axis of the wrap.
                     //ou and ov :: Origin in the texture.
                     //su and sv :: Scale factor in the texture
-                    case XOBJ:
-                    {
+                    case XOBJ: {
                         bool horizontalFlip = textureAlignment[4];
-                        bool verticalFlip   = textureAlignment[5];
+                        bool verticalFlip = textureAlignment[5];
                         glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
                         uint8_t nRotate = static_cast<uint8_t>((textureFlags >> 2) & 3);
                         float angle = nRotate * 90.f;
@@ -383,23 +390,23 @@ namespace TrackUtils {
                             uv.y *= gl_texture.max_v;
                         }
                     }
-                    break;
+                        break;
                     case OBJ_POLY:
                     case ROAD:
-                    case GLOBAL:
-                    {
+                    case LANE:
+                    case GLOBAL: {
                         bool horizontalFlip = textureAlignment[4];
-                        bool verticalFlip   = textureAlignment[5];
+                        bool verticalFlip = textureAlignment[5];
                         glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
                         uint8_t nRotate = static_cast<uint8_t>((textureFlags >> 2) & 3);
                         float angle = nRotate * 90.f;
                         glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
-                        uvs.emplace_back(((glm::vec2(texture_block.corners[0], 1.0f- texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
-                        uvs.emplace_back(((glm::vec2(texture_block.corners[2], 1.0f- texture_block.corners[3]) - originTransform) * uvRotationTransform) + originTransform);
-                        uvs.emplace_back(((glm::vec2(texture_block.corners[4], 1.0f- texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
-                        uvs.emplace_back(((glm::vec2(texture_block.corners[0], 1.0f- texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
-                        uvs.emplace_back(((glm::vec2(texture_block.corners[4], 1.0f- texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
-                        uvs.emplace_back(((glm::vec2(texture_block.corners[6], 1.0f- texture_block.corners[7]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[0], 1.0f - texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[2], 1.0f - texture_block.corners[3]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[4], 1.0f - texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[0], 1.0f - texture_block.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[4], 1.0f - texture_block.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(texture_block.corners[6], 1.0f - texture_block.corners[7]) - originTransform) * uvRotationTransform) + originTransform);
                         for (auto &uv : uvs) {
                             if (horizontalFlip) {
                                 uv.x = 1.0f - uv.x;
@@ -435,33 +442,26 @@ namespace TrackUtils {
         std::cout << "Loading CAN File" << std::endl;
 
         // Get filesize so can check have parsed all bytes
-        can.seekg(0, ios_base::end);
-        streamoff fileSize = can.tellg();
-        can.seekg(0, ios_base::beg);
+        uint16_t size;
+        uint8_t type, struct3D;
+        uint16_t animLength, unknown;
 
-        /* uint16_t size;
-        char type;     // 1 = basic object, 3 = animated ...
-        char struct3D; // reference in previous block
-// type 1
-        INTPT ptRef;
-// type 3
-        uint16_t animLength;
-        uint16_t unknown;*/
-        uint8_t header[8];
-        can.read((char *) header, sizeof(uint8_t) * 8);
-        // 4th byte is the number of ANIMDATA points in the CAN file
-        uint8_t nAnimations = header[4];
+        can.read((char *) &size, sizeof(uint16_t));
+        can.read((char *) &type, sizeof(uint8_t));
+        can.read((char *) &struct3D, sizeof(uint8_t));
+        can.read((char *) &animLength, sizeof(uint16_t));
+        can.read((char *) &unknown, sizeof(uint16_t));
 
-        SHARED::CANPT *anim = new SHARED::CANPT[nAnimations];
-        can.read((char *) anim, sizeof(SHARED::CANPT) * nAnimations);
+        SHARED::CANPT *anim = new SHARED::CANPT[animLength];
+        can.read((char *) anim, sizeof(SHARED::CANPT) * animLength);
 
-        for (uint8_t anim_Idx = 0; anim_Idx < nAnimations; ++anim_Idx) {
+        for (uint8_t anim_Idx = 0; anim_Idx < animLength; ++anim_Idx) {
             cameraAnimations.emplace_back(anim[anim_Idx]);
         }
 
         streamoff readBytes = can.tellg();
 
-        ASSERT(readBytes == fileSize, "Missing " << fileSize - readBytes << " bytes from loaded CAN file: " << can_path);
+        ASSERT(readBytes == size, "Missing " << size - readBytes << " bytes from loaded CAN file: " << can_path);
 
         return true;
     }

@@ -41,10 +41,10 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     return track;
 }
 
-void parsePolygonFlags(int triangle, uint32_t polygonFlags){
+void parsePolygonFlags(int triangle, uint32_t polygonFlags) {
     std::bitset<32> bits(polygonFlags);
 
-    if ((polygonFlags & 0xF) == 0xA){
+    if ((polygonFlags & 0xF) == 0xA) {
         // Transparent
         //std::cout << triangle << " " << bits << " Semi Transparent: " << polygonFlags << std::endl;
     } else {
@@ -52,9 +52,9 @@ void parsePolygonFlags(int triangle, uint32_t polygonFlags){
     }
 }
 
-std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
+std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
     std::vector<CarModel> meshes;
     bool isTraffic = fce_path.find("TRAFFIC") != std::string::npos;
 
@@ -76,7 +76,7 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
         std::vector<glm::vec2> uvs;
 
         std::string part_name(fceHeader->partNames[part_Idx]);
-        glm::vec3 center = rotationMatrix * glm::vec3(fceHeader->partCoords[part_Idx].x /10, fceHeader->partCoords[part_Idx].y/10, fceHeader->partCoords[part_Idx].z/10);
+        glm::vec3 center = rotationMatrix * glm::vec3(fceHeader->partCoords[part_Idx].x / 10, fceHeader->partCoords[part_Idx].y / 10, fceHeader->partCoords[part_Idx].z / 10);
 
         auto *partVertices = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
@@ -85,7 +85,7 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
         fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->vertTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (uint32_t vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
-            vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x/10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
+            vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x / 10, partVertices[vert_Idx].y / 10, partVertices[vert_Idx].z / 10));
         }
 
         fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->normTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
@@ -104,23 +104,23 @@ std::vector<CarModel>  NFS4::LoadFCE(const std::string &fce_path) {
             indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[1]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[2]);
-            if(isTraffic){
+            if (isTraffic) {
                 uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], partTriangles[tri_Idx].uvTable[3]));
                 uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], partTriangles[tri_Idx].uvTable[4]));
                 uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
             } else {
-                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], 1.0f -partTriangles[tri_Idx].uvTable[3]));
-                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], 1.0f -partTriangles[tri_Idx].uvTable[4]));
-                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], 1.0f -partTriangles[tri_Idx].uvTable[5]));
+                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], 1.0f - partTriangles[tri_Idx].uvTable[3]));
+                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], 1.0f - partTriangles[tri_Idx].uvTable[4]));
+                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], 1.0f - partTriangles[tri_Idx].uvTable[5]));
             }
         }
 
         meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
-        std::cout << "Mesh: "       << meshes[part_Idx].m_name
-                  << " UVs: "       << meshes[part_Idx].m_uvs.size()
-                  << " Verts: "     << meshes[part_Idx].m_vertices.size()
-                  << " Indices: "   << meshes[part_Idx].m_vertex_indices.size()
-                  << " Normals: "   << meshes[part_Idx].m_normals.size()
+        std::cout << "Mesh: " << meshes[part_Idx].m_name
+                  << " UVs: " << meshes[part_Idx].m_uvs.size()
+                  << " Verts: " << meshes[part_Idx].m_vertices.size()
+                  << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
+                  << " Normals: " << meshes[part_Idx].m_normals.size()
                   << " PolyFlags: " << meshes[part_Idx].m_polygon_flags.size() << std::endl;
 
         delete[] partNormals;
@@ -524,7 +524,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         }
     }
 
-	uint32_t j = 4 * track->nBlocks; //Global Objects
+    uint32_t j = 4 * track->nBlocks; //Global Objects
     ar.read((char *) &track->xobj[j], 4);
     if (track->xobj[j].nobj > 0) {
         track->xobj[j].obj = new XOBJDATA[track->xobj[j].nobj]();
@@ -606,7 +606,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         for (j = 0; j < 4; j++) {
             for (uint32_t k = 0; k < track->poly[i].obj[j].nobj; k++) {
                 LPPOLYGONDATA pp;
-				uint32_t l;
+                uint32_t l;
                 for (l = 0, pp = track->poly[i].obj[j].poly[k]; l < track->poly[i].obj[j].numpoly[k]; l++, pp++)
                     if (pp->texture > m) m = pp->texture;
             }
@@ -615,38 +615,35 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     for (uint32_t i = 0; i < 4 * track->nBlocks; i++) {
         for (j = 0; j < track->xobj[i].nobj; j++) {
             LPPOLYGONDATA pp;
-			uint32_t k;
+            uint32_t k;
             for (k = 0, pp = track->xobj[i].obj[j].polyData; k < track->xobj[i].obj[j].nPolygons; k++, pp++)
                 if (pp->texture > m) m = pp->texture;
         }
     }
 
-
-    std::stringstream tex_dir;
-
     using namespace boost::filesystem;
     using namespace boost::lambda;
-
+    std::stringstream tex_dir;
     tex_dir << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/";
     path tex_path(tex_dir.str());
 
-	uint64_t nData = std::count_if(directory_iterator(tex_path), directory_iterator(), static_cast<bool(*)(const path&)>(is_regular_file) );
+    uint64_t nData = std::count_if(directory_iterator(tex_path), directory_iterator(), static_cast<bool (*)(const path &)>(is_regular_file));
 
     //HOO: This is changed because some pStockBitmap can not be seen (3)
     track->nTextures = m += 15;
     //HOO: (3)
     track->texture = new TEXTUREBLOCK[m]();
     for (int32_t i = 0; i < m; i++) {
-        track->texture[i].width=16;
-        track->texture[i].height=16; // WHY ?????
+        track->texture[i].width = 16;
+        track->texture[i].height = 16; // WHY ?????
         track->texture[i].islane = i >> 11;
-        track->texture[i].corners[2]=1.0; // (1,0)
-        track->texture[i].corners[4]=1.0; // (1,1)
-        track->texture[i].corners[5]=1.0;
-        track->texture[i].corners[7]=1.0; // (0,1)
+        track->texture[i].corners[2] = 1.0; // (1,0)
+        track->texture[i].corners[4] = 1.0; // (1,1)
+        track->texture[i].corners[5] = 1.0;
+        track->texture[i].corners[7] = 1.0; // (0,1)
         track->texture[i].texture = i;  // ANYWAY WE CAN'T FIND IT !
 
-        if(track->texture[i].texture < nData -1||track->texture[i].islane){
+        if (track->texture[i].texture < nData - 1 || track->texture[i].islane) {
             track->textures[track->texture[i].texture] = LoadTexture(track->texture[i], track_name);
         }
     }
@@ -656,14 +653,14 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
 
 std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track) {
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (uint32_t i = 0; i < track->nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = track->trk[i];
         POLYGONBLOCK polygon_block = track->poly[i];
-        TrackBlock current_track_block(i, rotationMatrix * glm::vec3(trk_block.ptCentre.x/ 10, trk_block.ptCentre.y/ 10, trk_block.ptCentre.z/ 10));
+        TrackBlock current_track_block(i, rotationMatrix * glm::vec3(trk_block.ptCentre.x / 10, trk_block.ptCentre.y / 10, trk_block.ptCentre.z / 10));
         glm::vec3 trk_block_center = rotationMatrix * glm::vec3(0, 0, 0);
 
         // Light sources
@@ -707,6 +704,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     for (uint32_t p = 0; p < obj_polygon_block.numpoly[k]; p++) {
                         TEXTUREBLOCK texture_for_block = track->texture[object_polys[p].texture];
                         Texture gl_texture = track->textures[texture_for_block.texture];
+
                         norm_floatpt = SumVector(norm_floatpt, QuadNormalVectorCalc(trk_block.vert[object_polys[p].vertex[0]], trk_block.vert[object_polys[p].vertex[1]], trk_block.vert[object_polys[p].vertex[2]], trk_block.vert[object_polys[p].vertex[3]]));
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
@@ -714,6 +712,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                         norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+
                         vertex_indices.emplace_back(object_polys[p].vertex[0]);
                         vertex_indices.emplace_back(object_polys[p].vertex[1]);
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
@@ -724,15 +723,14 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, OBJ_POLY, object_polys[p].hs_texflags, gl_texture, texture_for_block);
                         uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                        // Use TextureID in place of normal
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
+                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
                     }
-                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_4, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center)));
+                    current_track_block.objects.emplace_back(Entity(i, (j + 1) * (k + 1), NFS_4, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center)));
                 }
             }
         }
@@ -758,6 +756,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
                     Texture gl_texture = track->textures[texture_for_block.texture];
+
                     norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                     norm_floatpt = VertexNormal(i, x->polyData->vertex[1], track->trk, track->poly);
@@ -770,6 +769,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                     norm_floatpt = VertexNormal(i, x->polyData->vertex[3], track->trk, track->poly);
                     norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+
                     vertex_indices.emplace_back(x->polyData->vertex[0]);
                     vertex_indices.emplace_back(x->polyData->vertex[1]);
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
@@ -780,12 +780,12 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
+                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
                 }
                 current_track_block.objects.emplace_back(Entity(i, l, NFS_4, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, trk_block_center)));
             }
@@ -813,6 +813,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             for (uint32_t k = 0; k < polygon_block.sz[chnk]; k++) {
                 TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
                 Texture gl_texture = track->textures[texture_for_block.texture];
+
                 norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0], track->trk, track->poly);
                 norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                 norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[1], track->trk, track->poly);
@@ -825,6 +826,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
                 norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[3], track->trk, track->poly);
                 norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+
                 vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[1]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
@@ -835,15 +837,15 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, chnk == 6 ? LANE : ROAD, poly_chunk[k].hs_texflags, gl_texture, texture_for_block);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
+                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
             }
 
-            if(chnk == 6){
+            if (chnk == 6) {
                 current_track_block.lanes.emplace_back(Entity(i, -1, NFS_4, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center)));
             } else {
                 current_track_block.track.emplace_back(Entity(i, -1, NFS_4, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center)));
@@ -854,52 +856,53 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
 
     // Animated, Global objects
     uint32_t globalObjIdx = 4 * track->nBlocks; //Global Objects
-        for (uint32_t j = 0; j < track->xobj[globalObjIdx].nobj; j++) {
-            XOBJDATA *x = &(track->xobj[globalObjIdx].obj[j]);
-            // common part : vertices & polygons
-            std::vector<glm::vec3> verts;
-            std::vector<glm::vec4> xobj_shading_verts;
-            for (uint32_t k = 0; k < x->nVertices; k++, x->vert++) {
-                verts.emplace_back(rotationMatrix * glm::vec3(x->vert->x / 10, x->vert->y / 10, x->vert->z / 10));
-                uint32_t shading_data = x->unknVertices[k];
-                //RGBA
-                xobj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
-            }
-            std::vector<unsigned int> vertex_indices;
-            std::vector<glm::vec2> uvs;
-            std::vector<unsigned int> texture_indices;
-            std::vector<glm::vec3> norms;
-            FLOATPT norm_floatpt;
-            for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
-                TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
-                Texture gl_texture = track->textures[texture_for_block.texture];
-                norms.emplace_back(glm::vec3(0,0,0));
-                norms.emplace_back(glm::vec3(0,0,0));
-                norms.emplace_back(glm::vec3(0,0,0));
-                norms.emplace_back(glm::vec3(0,0,0));
-                norms.emplace_back(glm::vec3(0,0,0));
-                norms.emplace_back(glm::vec3(0,0,0));
-
-                vertex_indices.emplace_back(x->polyData->vertex[0]);
-                vertex_indices.emplace_back(x->polyData->vertex[1]);
-                vertex_indices.emplace_back(x->polyData->vertex[2]);
-                vertex_indices.emplace_back(x->polyData->vertex[0]);
-                vertex_indices.emplace_back(x->polyData->vertex[2]);
-                vertex_indices.emplace_back(x->polyData->vertex[3]);
-
-                std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
-                uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
-
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-            }
-            glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(x->ptRef.x / 65536.0) / 10, static_cast<float>(x->ptRef.y / 65536.0) / 10, static_cast<float>(x->ptRef.z / 65536.0) / 10);
-            track->global_objects.emplace_back(Entity(-1, j, NFS_4, GLOBAL, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, position)));
+    for (uint32_t j = 0; j < track->xobj[globalObjIdx].nobj; j++) {
+        XOBJDATA *x = &(track->xobj[globalObjIdx].obj[j]);
+        // common part : vertices & polygons
+        std::vector<glm::vec3> verts;
+        std::vector<glm::vec4> xobj_shading_verts;
+        for (uint32_t k = 0; k < x->nVertices; k++, x->vert++) {
+            verts.emplace_back(rotationMatrix * glm::vec3(x->vert->x / 10, x->vert->y / 10, x->vert->z / 10));
+            uint32_t shading_data = x->unknVertices[k];
+            //RGBA
+            xobj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
+        std::vector<unsigned int> vertex_indices;
+        std::vector<glm::vec2> uvs;
+        std::vector<unsigned int> texture_indices;
+        std::vector<glm::vec3> norms;
+        FLOATPT norm_floatpt;
+        for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
+            TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
+            Texture gl_texture = track->textures[texture_for_block.texture];
+
+            norms.emplace_back(glm::vec3(0, 0, 0));
+            norms.emplace_back(glm::vec3(0, 0, 0));
+            norms.emplace_back(glm::vec3(0, 0, 0));
+            norms.emplace_back(glm::vec3(0, 0, 0));
+            norms.emplace_back(glm::vec3(0, 0, 0));
+            norms.emplace_back(glm::vec3(0, 0, 0));
+
+            vertex_indices.emplace_back(x->polyData->vertex[0]);
+            vertex_indices.emplace_back(x->polyData->vertex[1]);
+            vertex_indices.emplace_back(x->polyData->vertex[2]);
+            vertex_indices.emplace_back(x->polyData->vertex[0]);
+            vertex_indices.emplace_back(x->polyData->vertex[2]);
+            vertex_indices.emplace_back(x->polyData->vertex[3]);
+
+            std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
+            uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
+
+            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+        }
+        glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(x->ptRef.x / 65536.0) / 10, static_cast<float>(x->ptRef.y / 65536.0) / 10, static_cast<float>(x->ptRef.z / 65536.0) / 10);
+        track->global_objects.emplace_back(Entity(-1, j, NFS_4, GLOBAL, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, position)));
+    }
 
     return track_blocks;
 }
@@ -909,11 +912,11 @@ Texture NFS4::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     std::stringstream filename_alpha;
 
     if (track_texture.islane) {
-        filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture - 2048 << ".BMP";
-        filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture - 2048 << "-a.BMP";
+        filename       << "../resources/sfx/" << setfill('0') << setw(4) << (track_texture.texture - 2048) + 9 << ".BMP";
+        filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << (track_texture.texture - 2048) + 9 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4)       << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture  << "-a.BMP";
+        filename << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+        filename_alpha << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
     }
 
     // Width and height data isn't set properly in FRD loader so deduce from bmp

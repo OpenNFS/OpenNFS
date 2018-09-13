@@ -21,6 +21,8 @@ namespace TrackUtils {
 
     bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version);
 
+    int hsStockTextureIndexRemap(int textureIndex);
+
     GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, size_t max_width, size_t max_height, bool repeatable);
 
     std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture);

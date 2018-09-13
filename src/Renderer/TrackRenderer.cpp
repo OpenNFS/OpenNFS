@@ -29,12 +29,12 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
             contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
         }
         trackShader.loadLights(active_track_Block.lights.size() ? contributingLights : camlights);
-        for (auto &track_block_entity : active_track_Block.objects) {
+        for (auto &track_block_entity : active_track_Block.track) {
             boost::get<Track>(track_block_entity.glMesh).update();
             trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
-        for (auto &track_block_entity : active_track_Block.track) {
+        for (auto &track_block_entity : active_track_Block.objects) {
             boost::get<Track>(track_block_entity.glMesh).update();
             trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();

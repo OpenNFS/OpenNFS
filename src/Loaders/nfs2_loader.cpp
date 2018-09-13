@@ -424,7 +424,6 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
     }
 }
 
-
 template<typename Platform>
 std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     boost::filesystem::path p(car_base_path);

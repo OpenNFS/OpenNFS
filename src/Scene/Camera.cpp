@@ -246,6 +246,7 @@ bool Camera::playAnimation() {
     glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(animPosition.od1/ 65536.0f, animPosition.od2/ 65536.0f, animPosition.od3/ 65536.0f,animPosition.od4/ 65536.0f));
     glm::vec3 direction = glm::normalize(position * RotationMatrix);
 
+
     // Camera matrix
     ViewMatrix = glm::lookAt(
             position,             // Camera is here
