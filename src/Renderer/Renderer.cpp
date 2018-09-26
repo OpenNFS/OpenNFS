@@ -60,8 +60,8 @@ AssetData Renderer::Render() {
         mainCamera.setCameraAnimation(track->camera_animations);
     }
 
-    Light sun = Light(glm::vec3(10000, 150000, -10000), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
-
+    Light sun = Light(glm::vec3(0, 100, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
+    sun.attenuation.x = 0.1;
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
 
@@ -180,11 +180,25 @@ AssetData Renderer::Render() {
 
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
 
-        if (car->tag == NFS_3 || car->tag == NFS_4) SetCulling(true);
-        carRenderer.render(mainCamera, cameraLight);
-        SetCulling(false);
-
         trackRenderer.renderLights(mainCamera, activeTrackBlockIDs);
+
+        // Render the Car
+        if (car->tag == NFS_3 || car->tag == NFS_4) SetCulling(true);
+        int nBlocksToContributeToCar = 3;
+        // Get lights that will contribute to car body (currentBlock, a few blocks forward, and a few back (NBData would give weird results, as NBData blocks aren't generally adjacent))
+        // Should use NFS3/4 Shading data too as a fake light
+        std::vector<Light> carBodyContributingLights;
+        carBodyContributingLights.emplace_back(cameraLight);
+        carBodyContributingLights.emplace_back(sun);
+        activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, nBlocksToContributeToCar, false);
+        for (auto activeBlk_Idx : activeTrackBlockIDs) {
+            TrackBlock active_track_Block = track->track_blocks[activeBlk_Idx];
+            for (auto &light_entity : active_track_Block.lights) {
+                carBodyContributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
+            }
+        }
+        carRenderer.render(mainCamera, carBodyContributingLights);
+        SetCulling(false);
 
         if (ImGui::GetIO().MouseReleased[0] & userParams.window_active) {
             targetedEntity = CheckForPicking(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix, &entity_targeted);
@@ -455,8 +469,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         } else {
             // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
             int wrapBlocks = 0;
-            for (int block_Idx = closestBlockID - blockDrawDistance;
-                 block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
+            for (int block_Idx = closestBlockID - blockDrawDistance; block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
                 if (block_Idx < 0) {
                     int activeBlock = ((int) track->track_blocks.size() + (closestBlockID - blockDrawDistance)) + wrapBlocks++;
                     activeTrackBlockIds.emplace_back(activeBlock);

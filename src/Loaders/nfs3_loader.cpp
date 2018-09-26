@@ -118,7 +118,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     ASSERT(TrackUtils::LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     ASSERT(LoadHRZ(hrz_path.str(), track), "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
 
-    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
+    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, false);
     track->track_blocks = ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 

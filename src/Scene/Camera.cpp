@@ -243,7 +243,7 @@ bool Camera::playAnimation() {
     SHARED::CANPT animPosition = cameraAnimPoints[animationPosition++];
     // TODO: This should really be relative to the players car
     position =  (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.x/ 65536.0f) / 10.f, ((animPosition.y/ 65536.0f) / 10.f), (animPosition.z/ 65536.0f) / 10.f)) + initialPosition;
-    glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(animPosition.od1/ 65536.0f, animPosition.od2/ 65536.0f, animPosition.od3/ 65536.0f,animPosition.od4/ 65536.0f));
+    glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(1.0f - (animPosition.od1/ 65536.0f), 1.0f - (animPosition.od2/ 65536.0f), 1.0f - (animPosition.od3/ 65536.0f), 1.0f - (animPosition.od4/ 65536.0f)));
     glm::vec3 direction = glm::normalize(position * RotationMatrix);
 
 

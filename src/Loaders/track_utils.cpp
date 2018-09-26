@@ -133,30 +133,40 @@ namespace TrackUtils {
         return (Utils::ExtractQFS(tex_archive_path.str(), output_dir.str()));
     }
 
-    int hsStockTextureIndexRemap(int textureIndex){
+    int hsStockTextureIndexRemap(int textureIndex) {
         int remappedIndex = textureIndex;
 
-        int textureArraySize = 256;
         int nStockTextures = 30;
 
-        // Remap texture index between 0 and 256
-        if(textureIndex >= 2048){
-            remappedIndex = textureArraySize - nStockTextures  + (textureIndex - 2048);
+        // Remap texture index between 0 and MAX_TEXTURE_ARRAY_SIZE if exceeds
+        if (textureIndex >= 2048) {
+            remappedIndex = MAX_TEXTURE_ARRAY_SIZE - nStockTextures + (textureIndex - 2048);
         }
 
-        ASSERT(remappedIndex <= 256, "Texture index still exceeds max texture array size, post-remap");
+        ASSERT(remappedIndex <= MAX_TEXTURE_ARRAY_SIZE, "Texture index still exceeds max texture array size, post-remap");
 
         return remappedIndex;
     }
 
-    GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, size_t max_width, size_t max_height, bool repeatable) {
+    GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, bool repeatable) {
+        ASSERT(textures.size() < MAX_TEXTURE_ARRAY_SIZE, "Configured maximum texture array size of " << MAX_TEXTURE_ARRAY_SIZE << " has been exceeded.");
+
+        size_t max_width =0, max_height = 0;
         GLuint texture_name;
+
         glGenTextures(1, &texture_name);
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture_name);
+
+        // Find the maximum width and height, so we can avoid overestimating with blanket values (256x256) and thereby scale UV's uneccesarily
+        for(auto &texture: textures){
+            if(texture.second.width > max_width) max_width = texture.second.width;
+            if(texture.second.height > max_height) max_height = texture.second.height;
+        }
+
         std::vector<uint32_t> clear_data(max_width * max_height, 0);
 
         std::cout << "Creating texture array with " << (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height << std::endl;
-        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, 256); // I should really call this on textures.size(), but the layer numbers are not linear up to textures.size(). HS Bloats tex index up over 2048.
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, MAX_TEXTURE_ARRAY_SIZE); // I should really call this on textures.size(), but the layer numbers are not linear up to textures.size(). HS Bloats tex index up over 2048.
 
         for (auto &texture : textures) {
             ASSERT(texture.second.width <= max_width, "Texture " << texture.second.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
@@ -231,12 +241,30 @@ namespace TrackUtils {
                     case OBJ_POLY:
                         break;
                     case ROAD:
-                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-                        uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-                        uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-                        uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-                        uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
+                    {
+                        bool horizontalFlip = false; // textureAlignment[8];
+                        bool verticalFlip = false;   // textureAlignment[9];
+                        glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
+                        uint8_t nRotate = (textureFlags >> 11) & 3; // 8,11 ok
+                        float angle = nRotate * 90.f;
+                        glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
+                        uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        uvs.emplace_back(((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
+                        for (auto &uv : uvs) {
+                            if (horizontalFlip) {
+                                uv.x = 1.0f - uv.x;
+                            }
+                            if (verticalFlip) {
+                                uv.y = 1.0f - uv.y;
+                            }
+                            uv.x *= gl_texture.max_u;
+                            uv.y *= gl_texture.max_v;
+                        }
+                    }
                         break;
                     case GLOBAL:
                         break;
@@ -268,10 +296,10 @@ namespace TrackUtils {
                     case GLOBAL:
                         break;
                     case CAR: {
-                        bool horizontalFlip = !textureAlignment[4];
+                        bool horizontalFlip = textureAlignment[4];
                         bool verticalFlip = true;
                         glm::vec2 originTransform = glm::vec2(0.5f, 0.5f);
-                        uint8_t nRotate = static_cast<uint8_t>((textureFlags >> 5) & 3);
+                        uint8_t nRotate = static_cast<uint8_t>((textureFlags) & 3);
                         float angle = nRotate * 90.f;
                         glm::mat2 uvRotationTransform = glm::mat2(cos(glm::radians(angle)), sin(glm::radians(angle)), -sin(glm::radians(angle)), cos(glm::radians(angle)));
                         uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
@@ -432,6 +460,30 @@ namespace TrackUtils {
         return uvs;
     }
 
+    bmpread_t RemapNFS2CarColours(bmpread_t bmpAttr){
+        glm::vec3 carColour(29, 47, 82);
+        glm::vec3 deltaColour(255/carColour.x, 255/carColour.y, 255/carColour.z);
+
+        bmpread_t remapped = bmpAttr;
+        for (uint16_t y = 0; y < bmpAttr.height; y++) {
+            for (uint16_t x = 0; x < bmpAttr.width; x++) {
+                uint8_t r = bmpAttr.data[x+y*bmpAttr.width];
+                uint8_t g = bmpAttr.data[x+y*bmpAttr.width+1];
+                uint8_t b = bmpAttr.data[x+y*bmpAttr.width+2];
+
+                if(r == g){
+                    if(g == b){
+                        remapped.data[x+y*bmpAttr.width]   *= deltaColour.x;
+                        remapped.data[x+y*bmpAttr.width+1] *= deltaColour.y;
+                        remapped.data[x+y*bmpAttr.width+2] *= deltaColour.z;
+                    }
+                }
+            }
+        }
+
+        return remapped;
+    }
+
     bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations) {
         ifstream can(can_path, ios::in | ios::binary);
 
@@ -462,6 +514,36 @@ namespace TrackUtils {
         streamoff readBytes = can.tellg();
 
         ASSERT(readBytes == size, "Missing " << size - readBytes << " bytes from loaded CAN file: " << can_path);
+
+        /*ofstream can_out("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\tracks\\trk000\\tr0000a.can", ios::out | ios::binary);
+
+        if (!can_out.is_open()) {
+            return false;
+        }
+
+        std::cout << "Writing CAN File with no rotations" << std::endl;
+
+        can_out.write((char *) &size, sizeof(uint16_t));
+        can_out.write((char *) &type, sizeof(uint8_t));
+        can_out.write((char *) &struct3D, sizeof(uint8_t));
+        can_out.write((char *) &animLength, sizeof(uint16_t));
+        can_out.write((char *) &unknown, sizeof(uint16_t));
+
+        for (uint8_t anim_Idx = 0; anim_Idx < animLength; ++anim_Idx) {
+            //cameraAnimations[anim_Idx].x = cameraAnimations[animLength-anim_Idx].x;
+            //cameraAnimations[anim_Idx].y = cameraAnimations[animLength-anim_Idx].y;
+            //cameraAnimations[anim_Idx].z = cameraAnimations[animLength-anim_Idx].z;
+            cameraAnimations[anim_Idx].x = cameraAnimations[anim_Idx].x*10;
+            cameraAnimations[anim_Idx].y = cameraAnimations[anim_Idx].y*10;
+            cameraAnimations[anim_Idx].z = cameraAnimations[anim_Idx].z*10;
+
+            cameraAnimations[anim_Idx].od1 = cameraAnimations[anim_Idx].od1;
+            cameraAnimations[anim_Idx].od2 = cameraAnimations[anim_Idx].od2; // OD2 seems to be something more than just rotation, like zoom or some shit
+            cameraAnimations[anim_Idx].od3 = cameraAnimations[anim_Idx].od3; // OD3 seems to set perspective
+            cameraAnimations[anim_Idx].od4 = cameraAnimations[anim_Idx].od4; // OD4 similar to OD1, induces wavyness but animation remains
+            can_out.write((char *) &cameraAnimations[anim_Idx], sizeof(SHARED::CANPT));
+        }
+        can_out.close();*/
 
         return true;
     }

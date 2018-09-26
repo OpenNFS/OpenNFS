@@ -19,11 +19,12 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
-//#include <boost/log/trivial.hpp>
+/*#include <boost/log/trivial.hpp>*/
 
 class OpenNFS {
 public:
     void run() {
+        /*BOOST_LOG_TRIVIAL(info) << "Lol";*/
         std::cout << "----------- OpenNFS v0.2 -----------" << std::endl;
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
@@ -31,8 +32,8 @@ public:
         std::vector<NeedForSpeed> installedNFS = populateAssets();
 
         AssetData loadedAssets = {
-                NFS_3, "merc",
-                NFS_3, "trk000"
+                NFS_2, "GT90",
+                NFS_2_SE, "tr00"
         };
 
         /*------- Render --------*/
@@ -44,7 +45,7 @@ public:
             std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
             //Load Music
-            //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\hometech");
+            //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
 
             Renderer renderer(window, installedNFS, track, car);
             loadedAssets = renderer.Render();

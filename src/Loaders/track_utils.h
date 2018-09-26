@@ -11,6 +11,7 @@
 #include <bitset>
 #include <GL/glew.h>
 #include <boost/filesystem/operations.hpp>
+#include "bmpread.h"
 #include "../nfs_data.h"
 #include "../Config.h"
 #include "../Scene/Light.h"
@@ -23,11 +24,13 @@ namespace TrackUtils {
 
     int hsStockTextureIndexRemap(int textureIndex);
 
-    GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, size_t max_width, size_t max_height, bool repeatable);
+    GLuint MakeTextureArray(std::map<unsigned int, Texture> &textures, bool repeatable);
 
     std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture);
 
     std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture, NFS3_4_DATA::TEXTUREBLOCK texture_block);
+
+    bmpread_t RemapNFS2CarColours(bmpread_t bmpAttr);
 
     bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations);
 

@@ -7,6 +7,7 @@
 #include <imgui.h>
 #include "Enums.h"
 
+// TODO: Change these to consts
 #define ASSET_PATH "./assets/"
 #define CAR_PATH ASSET_PATH "car/"
 #define TRACK_PATH ASSET_PATH "tracks/"
@@ -23,6 +24,8 @@
 
 #define NFS_4_TRACK_PATH "/DATA/TRACKS/"
 #define NFS_4_CAR_PATH "/DATA/CARS/"
+
+#define MAX_TEXTURE_ARRAY_SIZE 512
 
 struct ParamData {
     ImVec4 clear_color = ImVec4(119 / 255.0f, 197 / 255.0f, 252 / 255.0f, 1.0f);

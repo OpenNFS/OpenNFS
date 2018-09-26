@@ -48,8 +48,13 @@ void CarShader::getAllUniformLocations() {
     envMapTextureLocation = getUniformLocation("envMapTextureSampler");
     carTextureLocation = getUniformLocation("carTextureSampler");
     colourLocation = getUniformLocation("carColour");
-    lightPositionLocation = getUniformLocation("lightPosition");
-    lightColourLocation = getUniformLocation("lightColour");
+
+    for(int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i){
+        lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
+        lightColourLocation[i] =  getUniformLocation("lightColour[" + std::to_string(i) + "]");
+        attenuationLocation[i] = getUniformLocation("attenuation[" + std::to_string(i) + "]");
+    }
+
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
     envReflectivityLocation  =  getUniformLocation("envReflectivity");
@@ -122,9 +127,18 @@ void CarShader::loadTransformationMatrix(const glm::mat4 &transformation){
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void CarShader::loadLight(Light light){
-    loadVec3(lightPositionLocation, light.position);
-    loadVec4(lightColourLocation, light.colour);
+void CarShader::loadLights(std::vector<Light> lights) {
+    for(int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i){
+        if(i < lights.size()){
+            loadVec3(lightPositionLocation[i], lights[i].position);
+            loadVec4(lightColourLocation[i], lights[i].colour);
+            loadVec3(attenuationLocation[i], lights[i].attenuation);
+        } else {
+            loadVec3(lightPositionLocation[i], glm::vec3(0,0,0));
+            loadVec4(lightColourLocation[i], glm::vec4(0,0,0,0));
+            loadVec3(attenuationLocation[i], glm::vec3(1,0,0));
+        }
+    }
 }
 
 void CarShader::loadCarColor(glm::vec3 color){

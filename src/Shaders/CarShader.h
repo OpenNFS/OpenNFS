@@ -14,13 +14,14 @@
 #include "../Scene/Light.h"
 #include "../Physics/Car.h"
 
+#define MAX_CAR_CONTRIB_LIGHTS 6
 
 class CarShader : public BaseShader {
 public:
     explicit CarShader(shared_ptr<Car> current_car);
     void loadCarColor(glm::vec3 color);
     void loadCarTexture();
-    void loadLight(Light light);
+    void loadLights(std::vector<Light> lights);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view);
     void loadTransformationMatrix(const glm::mat4 &transformation);
@@ -41,8 +42,9 @@ protected:
     GLint envMapTextureLocation;
     GLint carTextureLocation;
     GLint colourLocation;
-    GLint lightPositionLocation;
-    GLint lightColourLocation;
+    GLint lightPositionLocation[MAX_CAR_CONTRIB_LIGHTS];
+    GLint lightColourLocation[MAX_CAR_CONTRIB_LIGHTS];
+    GLint attenuationLocation[MAX_CAR_CONTRIB_LIGHTS];
     GLint shineDamperLocation;
     GLint reflectivityLocation;
     GLint envReflectivityLocation;

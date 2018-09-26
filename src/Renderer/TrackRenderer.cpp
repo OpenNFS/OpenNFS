@@ -28,7 +28,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
         for (auto &light_entity : active_track_Block.lights) {
             contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
         }
-        trackShader.loadLights(active_track_Block.lights.size() ? contributingLights : camlights);
+        trackShader.loadLights(contributingLights.size() ? contributingLights : camlights);
         for (auto &track_block_entity : active_track_Block.track) {
             boost::get<Track>(track_block_entity.glMesh).update();
             trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);

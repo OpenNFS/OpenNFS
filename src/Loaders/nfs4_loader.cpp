@@ -34,7 +34,7 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(TrackUtils::LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
 
-    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 128, 128, false);
+    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, false);
     track->track_blocks = ParseTRKModels(track);
 
     std::cout << "Successful track load!" << std::endl;
@@ -883,12 +883,12 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             norms.emplace_back(glm::vec3(0, 0, 0));
             norms.emplace_back(glm::vec3(0, 0, 0));
 
-            vertex_indices.emplace_back(x->polyData->vertex[0]);
-            vertex_indices.emplace_back(x->polyData->vertex[1]);
-            vertex_indices.emplace_back(x->polyData->vertex[2]);
-            vertex_indices.emplace_back(x->polyData->vertex[0]);
-            vertex_indices.emplace_back(x->polyData->vertex[2]);
-            vertex_indices.emplace_back(x->polyData->vertex[3]);
+            vertex_indices.emplace_back(x->polyData->vertex[0]); // FL
+            vertex_indices.emplace_back(x->polyData->vertex[1]); // FR
+            vertex_indices.emplace_back(x->polyData->vertex[2]); // BR
+            vertex_indices.emplace_back(x->polyData->vertex[0]); // FL
+            vertex_indices.emplace_back(x->polyData->vertex[2]); // BR
+            vertex_indices.emplace_back(x->polyData->vertex[3]); // BL
 
             std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
             uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
@@ -915,7 +915,7 @@ Texture NFS4::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
         filename       << "../resources/sfx/" << setfill('0') << setw(4) << (track_texture.texture - 2048) + 9 << ".BMP";
         filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << (track_texture.texture - 2048) + 9 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
+        filename       << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
         filename_alpha << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
     }
 

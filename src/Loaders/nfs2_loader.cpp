@@ -460,13 +460,13 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
             } else {
                 bmpread_t bmpAttr; // This will leak.
                 ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
+                //bmpAttr = TrackUtils::RemapNFS2CarColours(bmpAttr);
                 car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
-
             }
         }
     }
 
-    GLuint texture_array_id = TrackUtils::MakeTextureArray(car_textures, 256, 256, false);
+    GLuint texture_array_id = TrackUtils::MakeTextureArray(car_textures, false);
 
     return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures, remapped_texture_ids), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, texture_array_id);
 }
@@ -511,7 +511,7 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
         track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track->name, nfs_version);
     }
 
-    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, 256, 256, false);
+    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, false);
     ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 

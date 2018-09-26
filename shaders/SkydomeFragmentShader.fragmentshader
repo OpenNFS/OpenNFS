@@ -1,4 +1,5 @@
 #version 330 core
+/*http://blog.simonrodriguez.fr/articles/28-06-2015_un_ciel_dans_le_shader.html*/
 //---------IN------------
 in vec3 pos;
 in vec3 sun_norm;

@@ -12,14 +12,14 @@ CarRenderer::CarRenderer(const shared_ptr<Car> &activeCar) : carShader(activeCar
     }
 }
 
-void CarRenderer::render(const Camera &mainCamera, const Light &cameraLight) {
+void CarRenderer::render(const Camera &mainCamera, const std::vector<Light> &contributingLights) {
     carShader.use();
 
     // This shader state doesnt change during a car renderpass
     carShader.loadProjectionViewMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix);
     carShader.setPolyFlagged(car->hasPolyFlags());
     carShader.loadCarColor(glm::vec3(1, 1, 1));
-    carShader.loadLight(cameraLight);
+    carShader.loadLights(contributingLights);
     carShader.loadEnvironmentMapTexture();
     // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
     carShader.setMultiTextured(car->isMultitextured());
