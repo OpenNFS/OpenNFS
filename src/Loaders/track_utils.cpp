@@ -579,7 +579,7 @@ namespace TrackUtils {
     glm::vec3 calculateQuadNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4){
         glm::vec3 triANormal = calculateNormal(p1, p2, p3);
         glm::vec3 triBNormal = calculateNormal(p1, p3, p4);
-        return -glm::normalize(triANormal + triBNormal);
+        return glm::normalize(triANormal + triBNormal);
     }
 
     glm::vec3 calculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3){

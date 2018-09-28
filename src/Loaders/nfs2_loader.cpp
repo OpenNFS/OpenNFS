@@ -151,7 +151,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             glm::vec3 normal = rotationMatrix * calculateQuadNormal(pointToVec(vertices[polygons[poly_Idx].vertex[0]]), pointToVec(vertices[polygons[poly_Idx].vertex[1]]), pointToVec(vertices[polygons[poly_Idx].vertex[2]]), pointToVec(vertices[polygons[poly_Idx].vertex[3]]));
 
             // Use the R/L flag to flip normals
-            if(!(polygons[poly_Idx].texMapType & 0x4)){
+            if(polygons[poly_Idx].texMapType & 0x4){
                 normal = -normal;
             }
 

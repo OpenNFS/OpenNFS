@@ -5,6 +5,9 @@
 #include "nfs4_loader.h"
 #include "../Util/Raytracer.h"
 
+using namespace TrackUtils;
+
+// CAR
 std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path) {
     boost::filesystem::path p(car_base_path);
     std::string car_name = p.filename().string();
@@ -30,11 +33,11 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     frd_path << track_base_path << "/TR.frd";
     can_path << track_base_path << "/TR00A.CAN";
 
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack.");
+    ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack.");
     ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(TrackUtils::LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
+    ASSERT(LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
 
-    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, false);
+    track->textureArrayID = MakeTextureArray(track->textures, false);
     track->track_blocks = ParseTRKModels(track);
 
     std::cout << "Successful track load!" << std::endl;
@@ -668,7 +671,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             glm::vec3 light_center = rotationMatrix * glm::vec3((trk_block.lightsrc[j].refpoint.x / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.z / 65536.0) / 10);
-            current_track_block.lights.emplace_back(Entity(i, j, NFS_4, LIGHT, TrackUtils::MakeLight(light_center, trk_block.lightsrc[j].type)));
+            current_track_block.lights.emplace_back(Entity(i, j, NFS_4, LIGHT, MakeLight(light_center, trk_block.lightsrc[j].type)));
         }
 
         for (uint32_t s = 0; s < trk_block.nSoundsrc; s++) {
@@ -705,13 +708,13 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         TEXTUREBLOCK texture_for_block = track->texture[object_polys[p].texture];
                         Texture gl_texture = track->textures[texture_for_block.texture];
 
-                        norm_floatpt = SumVector(norm_floatpt, QuadNormalVectorCalc(trk_block.vert[object_polys[p].vertex[0]], trk_block.vert[object_polys[p].vertex[1]], trk_block.vert[object_polys[p].vertex[2]], trk_block.vert[object_polys[p].vertex[3]]));
-                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                        norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                        glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(trk_block.vert[object_polys[p].vertex[0]]),  pointToVec(trk_block.vert[object_polys[p].vertex[1]]), pointToVec(trk_block.vert[object_polys[p].vertex[2]]), pointToVec(trk_block.vert[object_polys[p].vertex[3]]));
+                        norms.emplace_back(normal);
+                        norms.emplace_back(normal);
+                        norms.emplace_back(normal);
+                        norms.emplace_back(normal);
+                        norms.emplace_back(normal);
+                        norms.emplace_back(normal);
 
                         vertex_indices.emplace_back(object_polys[p].vertex[0]);
                         vertex_indices.emplace_back(object_polys[p].vertex[1]);
@@ -720,15 +723,15 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
                         vertex_indices.emplace_back(object_polys[p].vertex[3]);
 
-                        std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, OBJ_POLY, object_polys[p].hs_texflags, gl_texture, texture_for_block);
+                        std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_4, OBJ_POLY, object_polys[p].hs_texflags, gl_texture, texture_for_block);
                         uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                        texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                        texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
                     }
                     current_track_block.objects.emplace_back(Entity(i, (j + 1) * (k + 1), NFS_4, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center)));
                 }
@@ -757,18 +760,13 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
                     Texture gl_texture = track->textures[texture_for_block.texture];
 
-                    norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
-                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    norm_floatpt = VertexNormal(i, x->polyData->vertex[1], track->trk, track->poly);
-                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    norm_floatpt = VertexNormal(i, x->polyData->vertex[2], track->trk, track->poly);
-                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    norm_floatpt = VertexNormal(i, x->polyData->vertex[0], track->trk, track->poly);
-                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    norm_floatpt = VertexNormal(i, x->polyData->vertex[2], track->trk, track->poly);
-                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                    norm_floatpt = VertexNormal(i, x->polyData->vertex[3], track->trk, track->poly);
-                    norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                    glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(verts[x->polyData->vertex[0]]),  pointToVec(verts[x->polyData->vertex[1]]), pointToVec(verts[x->polyData->vertex[2]]), pointToVec(verts[x->polyData->vertex[3]]));
+                    norms.emplace_back(normal);
+                    norms.emplace_back(normal);
+                    norms.emplace_back(normal);
+                    norms.emplace_back(normal);
+                    norms.emplace_back(normal);
+                    norms.emplace_back(normal);
 
                     vertex_indices.emplace_back(x->polyData->vertex[0]);
                     vertex_indices.emplace_back(x->polyData->vertex[1]);
@@ -777,15 +775,15 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
                     vertex_indices.emplace_back(x->polyData->vertex[3]);
 
-                    std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
+                    std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                    texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                    texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
                 }
                 current_track_block.objects.emplace_back(Entity(i, l, NFS_4, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, trk_block_center)));
             }
@@ -814,18 +812,13 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
                 Texture gl_texture = track->textures[texture_for_block.texture];
 
-                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0], track->trk, track->poly);
-                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[1], track->trk, track->poly);
-                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2], track->trk, track->poly);
-                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[0], track->trk, track->poly);
-                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[2], track->trk, track->poly);
-                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
-                norm_floatpt = VertexNormal(i, poly_chunk[k].vertex[3], track->trk, track->poly);
-                norms.emplace_back(glm::vec3(norm_floatpt.x, norm_floatpt.y, norm_floatpt.z));
+                glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(trk_block.vert[poly_chunk[k].vertex[0]]),  pointToVec(trk_block.vert[poly_chunk[k].vertex[1]]), pointToVec(trk_block.vert[poly_chunk[k].vertex[2]]), pointToVec(trk_block.vert[poly_chunk[k].vertex[3]]));
+                norms.emplace_back(normal);
+                norms.emplace_back(normal);
+                norms.emplace_back(normal);
+                norms.emplace_back(normal);
+                norms.emplace_back(normal);
+                norms.emplace_back(normal);
 
                 vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[1]);
@@ -834,15 +827,15 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[3]);
 
-                std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, chnk == 6 ? LANE : ROAD, poly_chunk[k].hs_texflags, gl_texture, texture_for_block);
+                std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_4, chnk == 6 ? LANE : ROAD, poly_chunk[k].hs_texflags, gl_texture, texture_for_block);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-                texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+                texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
             }
 
             if (chnk == 6) {
@@ -876,12 +869,13 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
             Texture gl_texture = track->textures[texture_for_block.texture];
 
-            norms.emplace_back(glm::vec3(0, 0, 0));
-            norms.emplace_back(glm::vec3(0, 0, 0));
-            norms.emplace_back(glm::vec3(0, 0, 0));
-            norms.emplace_back(glm::vec3(0, 0, 0));
-            norms.emplace_back(glm::vec3(0, 0, 0));
-            norms.emplace_back(glm::vec3(0, 0, 0));
+            glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(verts[x->polyData->vertex[0]]),  pointToVec(verts[x->polyData->vertex[1]]), pointToVec(verts[x->polyData->vertex[2]]), pointToVec(verts[x->polyData->vertex[3]]));
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
 
             vertex_indices.emplace_back(x->polyData->vertex[0]); // FL
             vertex_indices.emplace_back(x->polyData->vertex[1]); // FR
@@ -890,15 +884,15 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             vertex_indices.emplace_back(x->polyData->vertex[2]); // BR
             vertex_indices.emplace_back(x->polyData->vertex[3]); // BL
 
-            std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
+            std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
             uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
-            texture_indices.emplace_back(TrackUtils::hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
+            texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
         }
         glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(x->ptRef.x / 65536.0) / 10, static_cast<float>(x->ptRef.y / 65536.0) / 10, static_cast<float>(x->ptRef.z / 65536.0) / 10);
         track->global_objects.emplace_back(Entity(-1, j, NFS_4, GLOBAL, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, position)));

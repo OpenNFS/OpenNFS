@@ -113,7 +113,7 @@ void main(){
            totalSpecular += (dampedFactor * reflectivity * lightColour[i].xyz)/attenFactor;
         }
         totalDiffuse = max(totalDiffuse, 0.5); // Min brightness
-
+        //color = vec4(unitNormal, 1.0);
         color = vec4(totalDiffuse, 1.0) * (nfsColor) + vec4(totalSpecular, 1.0);
         color.a = 1.0;
         if(debugDataOut == 32u){
