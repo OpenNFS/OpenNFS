@@ -575,4 +575,23 @@ namespace TrackUtils {
 
         return rgbValue;
     }
+
+    glm::vec3 calculateQuadNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4){
+        glm::vec3 triANormal = calculateNormal(p1, p2, p3);
+        glm::vec3 triBNormal = calculateNormal(p1, p3, p4);
+        return -glm::normalize(triANormal + triBNormal);
+    }
+
+    glm::vec3 calculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3){
+        glm::vec3 vertexNormal(0,0,0);
+
+        glm::vec3 U = p2 - p1;
+        glm::vec3 V = p3 - p1;
+
+        vertexNormal.x = (U.y * V.z) - (U.z * V.y);
+        vertexNormal.y = (U.z * V.x) - (U.x * V.z);
+        vertexNormal.z = (U.x * V.y) - (U.y * V.x);
+
+        return vertexNormal;
+    }
 }

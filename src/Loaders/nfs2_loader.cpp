@@ -4,6 +4,8 @@
 
 #include "nfs2_loader.h"
 
+using namespace TrackUtils;
+
 void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
     std::ofstream obj_dump;
     std::stringstream obj_name;
@@ -146,13 +148,19 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
             uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
 
-            // TODO: Long overdue normal calculation
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
+            glm::vec3 normal = rotationMatrix * calculateQuadNormal(pointToVec(vertices[polygons[poly_Idx].vertex[0]]), pointToVec(vertices[polygons[poly_Idx].vertex[1]]), pointToVec(vertices[polygons[poly_Idx].vertex[2]]), pointToVec(vertices[polygons[poly_Idx].vertex[3]]));
+
+            // Use the R/L flag to flip normals
+            if(!(polygons[poly_Idx].texMapType & 0x4)){
+                normal = -normal;
+            }
+
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
 
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
@@ -354,13 +362,19 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_3_PS1, CAR, polygons->texMap[0], gl_texture);
             uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-            // TODO: Long overdue normal calculation
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
-            norms.emplace_back(glm::vec3(1, 1, 1));
+            glm::vec3 normal = rotationMatrix * calculateQuadNormal(pointToVec(vertices[polygons[poly_Idx].vertex[0][0]]), pointToVec(vertices[polygons[poly_Idx].vertex[0][1]]), pointToVec(vertices[polygons[poly_Idx].vertex[0][2]]), pointToVec(vertices[polygons[poly_Idx].vertex[0][3]]));
+
+            // Use the R/L flag to flip normals
+            if(!(polygons[poly_Idx].texMap[0] & 0x4)){
+                normal = -normal;
+            }
+
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
+            norms.emplace_back(normal);
 
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
             texture_indices.emplace_back(remapped_texture_ids[textureName]);

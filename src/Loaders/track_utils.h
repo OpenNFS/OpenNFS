@@ -35,6 +35,16 @@ namespace TrackUtils {
     bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations);
 
     glm::vec3 parseRGBString(const std::string &rgb_string);
+
+    glm::vec3 calculateQuadNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4);
+
+    glm::vec3 calculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
+
+    // Easily convert propietary and platform specific Vertices to glm::vec3. NFS2_DATA::PC::GEO::BLOCK_3D, NFS2_DATA::PS1::GEO::BLOCK_3D, NFS3_4_DATA::FLOATPT etc.
+    template <class NFSVertexStruct>
+    glm::vec3 pointToVec(NFSVertexStruct block_3d){
+        return glm::vec3(block_3d.x, block_3d.y, block_3d.z);
+    }
 };
 
 

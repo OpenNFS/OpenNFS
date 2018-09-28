@@ -35,10 +35,7 @@ CarModel::CarModel(std::string name, std::vector<glm::vec3> verts, std::vector<g
     specularDamper = specular_damper;
     specularReflectivity = specular_reflectivity;
     envReflectivity = env_reflectivity;
-    m_normals.clear();
-    for (unsigned int m_vertex_index : m_vertex_indices) {
-        m_normals.push_back(norms[m_vertex_index]);
-    }
+    m_normals = norms;
 
     // Gen VBOs, add to Bullet Physics
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model ");
