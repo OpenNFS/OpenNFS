@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.4)
 project(OpenNFS)
 set(VS_STARTUP_PROJECT OpenNFS)
 
-set(BUILD_SHARED_LIBS OFF)
-
 set(CMAKE_CXX_STANDARD 11)
 
 include (cmake/CheckCXXCompilerFlag.cmake)
@@ -101,7 +99,7 @@ set(SOURCE_FILES
         src/Renderer/TrackRenderer.cpp
         src/Renderer/TrackRenderer.h
         src/Shaders/SkydomeShader.cpp
-        src/Shaders/SkydomeShader.h)
+        src/Shaders/SkydomeShader.h src/Renderer/SkyRenderer.cpp src/Renderer/SkyRenderer.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
@@ -113,7 +111,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
-target_link_libraries(OpenNFS Boost::filesystem Boost::boost)
+target_link_libraries(OpenNFS Boost::date_time Boost::filesystem Boost::log Boost::log_setup Boost::regex Boost::system Boost::thread Boost_log_common Boost::boost)
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)

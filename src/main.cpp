@@ -19,12 +19,12 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
-/*#include <boost/log/trivial.hpp>*/
+#include <boost/log/trivial.hpp>
 
 class OpenNFS {
 public:
     void run() {
-        /*BOOST_LOG_TRIVIAL(info) << "Lol";*/
+       /* BOOST_LOG_TRIVIAL(info) << "Lol";*/
         std::cout << "----------- OpenNFS v0.2 -----------" << std::endl;
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
@@ -32,7 +32,7 @@ public:
         std::vector<NeedForSpeed> installedNFS = populateAssets();
 
         AssetData loadedAssets = {
-                NFS_3, "diab",
+                NFS_2, "GT90",
                 NFS_3, "trk006"
         };
 

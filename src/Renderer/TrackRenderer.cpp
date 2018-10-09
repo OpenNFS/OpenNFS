@@ -20,7 +20,16 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
     std::vector<Light> camlights;
     camlights.push_back(cameraLight);
 
+    std::vector<Light> contributingLights;
+
     // Render the per-trackblock data
+    /*for (auto activeBlk_Idx : activeTrackBlockIDs) {
+        TrackBlock active_track_Block = track->track_blocks[activeBlk_Idx];
+        for (auto &light_entity : active_track_Block.lights) {
+            contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
+        }
+    }
+    */
     for (int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx) {
         TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
         // TODO: Merge lighting contributions across track block, must use a smarter Track structure, also must be a better way of building this from the Entities. This will be too slow.
@@ -28,6 +37,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
         for (auto &light_entity : active_track_Block.lights) {
             contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
         }
+        // TODO: Merge lighting contributions across track block, must use a smarter Track structure, also must be a better way of building this from the Entities. This will be too slow.
         trackShader.loadLights(contributingLights.size() ? contributingLights : camlights);
         for (auto &track_block_entity : active_track_Block.track) {
             boost::get<Track>(track_block_entity.glMesh).update();

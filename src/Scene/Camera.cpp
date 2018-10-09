@@ -116,6 +116,7 @@ float Camera::calculateHorizontalDistance() {
 }
 
 void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io){
+    totalTime += deltaTime;
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key
@@ -149,6 +150,7 @@ void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, I
 }
 
 void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
+    totalTime += deltaTime;
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key

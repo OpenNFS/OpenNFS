@@ -99,3 +99,4 @@ void main(){
     //Final mix
     //mixing with the cloud color allows us to hide things behind clouds (sun, stars, moon)
     color = mix(color,cloud_color,clamp((2-weather)*transparency,0,1));
+}

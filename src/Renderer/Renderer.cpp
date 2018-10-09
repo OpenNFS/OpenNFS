@@ -7,7 +7,7 @@
 
 
 Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car)
-        : carRenderer(current_car), trackRenderer(current_track) {
+        : carRenderer(current_car), trackRenderer(current_track), skyRenderer(current_track) {
     window = gl_window;
     installedNFSGames = installedNFS;
     track = current_track;
@@ -60,7 +60,7 @@ AssetData Renderer::Render() {
         mainCamera.setCameraAnimation(track->camera_animations);
     }
 
-    Light sun = Light(glm::vec3(0, 100, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
+    Light sun = Light(glm::vec3(0, 50, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     sun.attenuation.x = 0.1;
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
@@ -177,6 +177,8 @@ AssetData Renderer::Render() {
             physicsEngine.destroyGhostObject();
             activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
         }
+
+        skyRenderer.renderSky(mainCamera, sun, userParams);
 
         trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
 

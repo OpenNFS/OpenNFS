@@ -28,11 +28,8 @@ public:
     void enable();
 
     virtual bool genBuffers()= 0;
-
     virtual void update()= 0;
-
     virtual void destroy()= 0;
-
     virtual void render()= 0;
 
     /*--------- Model State --------*/

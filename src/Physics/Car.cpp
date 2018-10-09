@@ -22,7 +22,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     maxEngineForce = 3000.f;
     maxBreakingForce = 1000.f;
     suspensionRestLength = btScalar(0.026);
-    suspensionStiffness = 500.f;
+    suspensionStiffness = 1000.f;
     suspensionDamping = 200.f;
     suspensionCompression = 500.4f;
     wheelFriction = 0.45f;

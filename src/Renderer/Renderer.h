@@ -21,6 +21,7 @@
 #include "HermiteCurve.h"
 #include "CarRenderer.h"
 #include "TrackRenderer.h"
+#include "SkyRenderer.h"
 
 class Renderer {
 public:
@@ -39,6 +40,7 @@ private:
 
     TrackRenderer trackRenderer;
     CarRenderer carRenderer;
+    SkyRenderer skyRenderer;
 
     Camera mainCamera;
     Light cameraLight;
