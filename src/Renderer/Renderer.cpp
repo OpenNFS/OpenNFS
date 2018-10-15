@@ -62,6 +62,7 @@ AssetData Renderer::Render() {
 
     Light sun = Light(glm::vec3(0, 50, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     sun.attenuation.x = 0.1;
+
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
 
@@ -72,20 +73,32 @@ AssetData Renderer::Render() {
 
     bool newAssetSelected = false;
 
+    float deltaTime = 0; // Keep track of time between engine ticks
+
     while (!glfwWindowShouldClose(window)) {
+        // glfwGetTime is called only once, the first time this function is called
+        static double lastTime = glfwGetTime();
+        // Compute time difference between current and last frame
+        double currentTime = glfwGetTime();
+        // Update time between engine ticks
+        deltaTime = float(currentTime - lastTime);
+
         NewFrame(&userParams);
+
+        // Move the Sun
+        sun.position = sun.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f , 0, 0)));
 
         // Play the original camera animation
         if (!camera_animation_played) {
             camera_animation_played = mainCamera.playAnimation();
         } else if (userParams.attach_cam_to_hermite) {
-            mainCamera.useSpline();
+            mainCamera.useSpline(totalTime);
         } else if (userParams.attach_cam_to_car) {
             // Compute MVP from keyboard and mouse, centered around a target car
             mainCamera.followCar(car, userParams.window_active, ImGui::GetIO());
         } else {
             // Compute the MVP matrix from keyboard and mouse input
-            mainCamera.computeMatricesFromInputs(userParams.window_active, ImGui::GetIO());
+            mainCamera.computeMatricesFromInputs(userParams.window_active, ImGui::GetIO(), deltaTime);
         }
 
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
@@ -112,7 +125,7 @@ AssetData Renderer::Render() {
         }
 
         // Step the physics simulation
-        physicsEngine.stepSimulation(mainCamera.deltaTime);
+        physicsEngine.stepSimulation(deltaTime);
 
         if (userParams.draw_raycast) {
             physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position), Utils::glmToBullet(car->forwardCastPosition), btVector3(2.0f * (1.0f - car->forwardDistance), 2.0f * (car->forwardDistance), 0));
@@ -178,9 +191,9 @@ AssetData Renderer::Render() {
             activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
         }
 
-        skyRenderer.renderSky(mainCamera, sun, userParams);
+        skyRenderer.renderSky(mainCamera, sun, userParams, totalTime);
 
-        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams);
+        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams, ticks);
 
         trackRenderer.renderLights(mainCamera, activeTrackBlockIDs);
 
@@ -220,6 +233,12 @@ AssetData Renderer::Render() {
         glfwSwapBuffers(window);
 
         if (newAssetSelected) break;
+
+        // For the next frame, the "last time" will be "now"
+        lastTime = currentTime;
+        // Keep track of total elapsed time too
+        totalTime += deltaTime;
+        ++ticks;
     }
     if (newAssetSelected) {
         return loadedAssets;
@@ -377,6 +396,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     static float f = 0.0f;
     ImGui::Text("OpenNFS Engine");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::SliderFloat("Time Scale Factor", &preferences->timeScaleFactor, 0, 10);
     ImGui::Checkbox("Bullet Debug View", &preferences->physics_debug_view);
     ImGui::Checkbox("Classic Graphics", &preferences->use_classic_graphics);
     ImGui::Checkbox("Hermite Curve Cam", &preferences->attach_cam_to_hermite);
@@ -384,7 +404,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     std::stringstream world_position_string;
     ImGui::Text("X %f Y %f Z %f H: %f V: %f", worldPosition.x, worldPosition.y, worldPosition.z, mainCamera.horizontalAngle, mainCamera.verticalAngle);
     ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", mainCamera.yaw, mainCamera.pitch, mainCamera.distanceFromCar, mainCamera.angleAroundCar);
-    ImGui::Text("Hermite Roll: %f Time: %f", mainCamera.roll, fmod(mainCamera.totalTime, (mainCamera.loopTime / 200)));
+    ImGui::Text("Hermite Roll: %f Time: %f", mainCamera.roll, fmod(totalTime, (mainCamera.loopTime / 200)));
     ImGui::Text("Block ID: %d", closestBlockID);
     ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
     ImGui::Checkbox("Frustum Cull", &preferences->frustum_cull);

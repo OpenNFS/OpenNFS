@@ -28,6 +28,7 @@
 #define MAX_TEXTURE_ARRAY_SIZE 512
 
 struct ParamData {
+    float timeScaleFactor = 1.f;
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);
     ImVec4 nfs2_rotate = ImVec4(0.f, 0.f, 0.f, 0.f);
     float trackSpecReflectivity = 1;

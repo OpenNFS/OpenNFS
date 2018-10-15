@@ -116,13 +116,13 @@ void SkyRenderer::loadTextures() {
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void SkyRenderer::renderSky(const Camera &mainCamera, const Light &sun, const ParamData &userParams) {
+void SkyRenderer::renderSky(const Camera &mainCamera, const Light &sun, const ParamData &userParams, float elapsedTime) {
     skydomeShader.use();
     skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
     skydomeShader.loadStarRotationMatrix(glm::toMat4(glm::normalize(glm::quat(glm::vec3(SIMD_PI,SIMD_PI,0))))); // No star rotation
     skydomeShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, skydome.ModelMatrix);
     skydomeShader.loadSunPosition(sun);
-    skydomeShader.loadTime(mainCamera.totalTime);
+    skydomeShader.loadTime(elapsedTime);
     skydomeShader.loadWeatherMixFactor(0.7f);
     // Bind the sphere model
     skydome.render();

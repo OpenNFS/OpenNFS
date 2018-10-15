@@ -14,7 +14,7 @@ class SkyRenderer {
 public:
     explicit SkyRenderer(const shared_ptr<ONFSTrack> &activeTrack);
     ~SkyRenderer();
-    void renderSky(const Camera &mainCamera, const Light &sun, const ParamData &userParams);
+    void renderSky(const Camera &mainCamera, const Light &sun, const ParamData &userParams, float elapsedTime);
 private:
     // Create and compile our GLSL programs from the shaders
     SkydomeShader skydomeShader;

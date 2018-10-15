@@ -8,7 +8,7 @@ TrackRenderer::TrackRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
     track = activeTrack;
 }
 
-void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, const ParamData &userParams) {
+void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, const ParamData &userParams, uint64_t engineTicks) {
     trackShader.use();
 
     // This shader state doesnt change during a track renderpass
@@ -59,18 +59,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
 
     // Render the global data, animations go here.
     for (auto &global_object : track->global_objects) {
-        if (track->tag == NFS_3) {
-            COLFILE col = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col;
-            if (col.object[global_object.entityID].type == 3) {
-                if (animMap[global_object.entityID] < col.object[global_object.entityID].animLength) {
-                    boost::get<Track>(global_object.glMesh).position = glm::normalize(glm::quat(glm::vec3(glm::radians(-90.f), 0, 0))) * glm::vec3((col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.x / 65536.0) / 10, (col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.y / 65536.0) / 10, (col.object[global_object.entityID].animData[animMap[global_object.entityID]].pt.z / 65536.0) / 10);
-                    boost::get<Track>(global_object.glMesh).orientation = glm::normalize(glm::quat(glm::vec3(glm::radians(-180.f), glm::radians(-180.f), 0))) * glm::normalize(glm::quat(-col.object[global_object.entityID].animData[animMap[global_object.entityID]].od1, col.object[global_object.entityID].animData[animMap[global_object.entityID]].od2, col.object[global_object.entityID].animData[animMap[global_object.entityID]].od3, col.object[global_object.entityID].animData[animMap[global_object.entityID]].od4));
-                    animMap[global_object.entityID]++;
-                } else {
-                    animMap[global_object.entityID] = 0;
-                }
-            }
-        } else if (track->tag == NFS_4) {
+      if (track->tag == NFS_4 || track->tag == NFS_3) {
             uint32_t globalObjIdx = 4 * track->nBlocks; //Global Objects
             NFS3_4_DATA::XOBJDATA animObject  = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->xobj[globalObjIdx].obj[global_object.entityID];
             if (animObject.type3 == 3) {

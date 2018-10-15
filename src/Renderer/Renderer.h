@@ -46,6 +46,9 @@ private:
     Light cameraLight;
 
     // ------ Renderer State ------
+    uint64_t ticks = 0; // Engine ticks elapsed
+    float totalTime = 0;
+
     // Data used for culling
     int closestBlockID = 0;
 

@@ -46,11 +46,10 @@ void Camera::generateSpline(std::vector<TrackBlock> trackBlock) {
     hasSpline = true;
 }
 
-void Camera::useSpline() {
+void Camera::useSpline(float elapsedTime) {
     ASSERT(hasSpline, "Attempted to use Camera spline without generating one first with \'generateSpline\'");
-    totalTime += deltaTime;
     // Ensure we're never sampling the hermite curve outside of points arr size.
-    float tmod = fmod(totalTime, (loopTime/202.5f))/(loopTime / 200.f);
+    float tmod = fmod(elapsedTime, (loopTime/202.5f))/(loopTime / 200.f);
     position = cameraSpline.getPointAt(tmod);
 
     // Look towards the position that is a few ms away
@@ -116,19 +115,11 @@ float Camera::calculateHorizontalDistance() {
 }
 
 void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io){
-    totalTime += deltaTime;
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key
     window_active = (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
     io.MouseDrawCursor = true;
-
-    // glfwGetTime is called only once, the first time this function is called
-    static double lastTime = glfwGetTime();
-
-    // Compute time difference between current and last frame
-    double currentTime = glfwGetTime();
-    deltaTime = float(currentTime - lastTime);
 
     // Blessed be ThinMatrix
     calculateZoom();
@@ -144,25 +135,14 @@ void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, I
     ViewMatrix = glm::rotate(ViewMatrix, yaw * SIMD_PI/180, glm::vec3(0,1,0));
     glm::vec3 negativeCameraPos(-position);
     ViewMatrix = glm::translate(ViewMatrix, negativeCameraPos);
-
-    // For the next frame, the "last time" will be "now"
-    lastTime = currentTime;
 }
 
-void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
-    totalTime += deltaTime;
+void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io, float deltaTime) {
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key
     window_active = (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
     io.MouseDrawCursor = true;
-
-    // glfwGetTime is called only once, the first time this function is called
-    static double lastTime = glfwGetTime();
-
-    // Compute time difference between current and last frame
-    double currentTime = glfwGetTime();
-    deltaTime = float(currentTime - lastTime);
 
     // Get mouse position and compute new orientation with it
     horizontalAngle += mouseSpeed * (1920 / 2 - io.MousePos.x);
@@ -220,9 +200,6 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io) {
             position + direction, // and looks here : at the same position, plus "direction"
             up                  // Head is up (set to 0,-1,0 to look upside-down)
     );
-
-    // For the next frame, the "last time" will be "now"
-    lastTime = currentTime;
 }
 
 Camera::Camera() {}
@@ -232,16 +209,6 @@ void Camera::setCameraAnimation(std::vector<SHARED::CANPT> canPoints) {
 }
 
 bool Camera::playAnimation() {
-    static double lastTime = glfwGetTime();
-    double currentTime = glfwGetTime();
-    animationDeltaTime += float(currentTime - lastTime);
-
-    if(animationDeltaTime < animationDelay){
-        return false;
-    } else {
-        animationDeltaTime = 0.f;
-    }
-
     SHARED::CANPT animPosition = cameraAnimPoints[animationPosition++];
     // TODO: This should really be relative to the players car
     position =  (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.x/ 65536.0f) / 10.f, ((animPosition.y/ 65536.0f) / 10.f), (animPosition.z/ 65536.0f) / 10.f)) + initialPosition;
@@ -257,7 +224,5 @@ bool Camera::playAnimation() {
     );
 
     // TODO: At conclusion of animation routine, Hermite to rear of car
-    lastTime = currentTime;
-
     return animationPosition == cameraAnimPoints.size();
 }

@@ -28,8 +28,8 @@ public:
 
     void resetView();
     void generateSpline(std::vector<TrackBlock> trackBlocks);
-    void useSpline();
-    void computeMatricesFromInputs(bool &window_active, ImGuiIO& io);
+    void useSpline(float elapsedTime); // Move to position on spline dependent on how long game has been running
+    void computeMatricesFromInputs(bool &window_active, ImGuiIO& io, float deltaTime);
     void followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io);
     bool playAnimation();
     void setCameraAnimation(std::vector<SHARED::CANPT> canPoints);
@@ -37,7 +37,6 @@ public:
     glm::mat4 ViewMatrix;
     glm::mat4 ProjectionMatrix;
     glm::vec3 initialPosition;
-    float deltaTime;
 
     // Car Camera
     glm::vec3 position;
@@ -61,7 +60,6 @@ public:
 
     // Cam Spline
     HermiteCurve cameraSpline;
-    float totalTime = 1;
     int loopTime;
 
     void calculateZoom();
