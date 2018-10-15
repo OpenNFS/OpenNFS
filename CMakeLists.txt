@@ -16,6 +16,7 @@ if(WIN32)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif()
 
+set(OpenGL_GL_PREFERENCE LEGACY)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 set(SOURCE_FILES
@@ -111,7 +112,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
-target_link_libraries(OpenNFS Boost::date_time Boost::filesystem Boost::log Boost::log_setup Boost::regex Boost::system Boost::thread Boost_log_common Boost::boost)
+target_link_libraries(OpenNFS Boost::filesystem Boost::system Boost::boost)
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)

@@ -19,7 +19,7 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
-#include <boost/log/trivial.hpp>
+/*#include <boost/log/trivial.hpp>*/
 
 class OpenNFS {
 public:
@@ -32,7 +32,7 @@ public:
         std::vector<NeedForSpeed> installedNFS = populateAssets();
 
         AssetData loadedAssets = {
-                NFS_2, "GT90",
+                NFS_3, "diab",
                 NFS_3, "trk006"
         };
 
