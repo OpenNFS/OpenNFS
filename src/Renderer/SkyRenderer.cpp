@@ -130,6 +130,12 @@ void SkyRenderer::renderSky(const Camera &mainCamera, const Light &sun, const Pa
 }
 
 SkyRenderer::~SkyRenderer() {
+    glDeleteTextures(1, &clouds1TextureID);
+    glDeleteTextures(1, &clouds2TextureID);
+    glDeleteTextures(1, &sunTextureID);
+    glDeleteTextures(1, &moonTextureID);
+    glDeleteTextures(1, &tintTextureID);
+    glDeleteTextures(1, &tint2TextureID);
     skydomeShader.cleanup();
 }
 

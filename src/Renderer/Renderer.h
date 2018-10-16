@@ -22,6 +22,7 @@
 #include "CarRenderer.h"
 #include "TrackRenderer.h"
 #include "SkyRenderer.h"
+#include "../Shaders/DepthShader.h"
 
 class Renderer {
 public:
@@ -38,10 +39,18 @@ private:
     /*------- BULLET --------*/
     Physics physicsEngine;
 
+    /* Renderers */
     TrackRenderer trackRenderer;
     CarRenderer carRenderer;
     SkyRenderer skyRenderer;
 
+    /* Shadow Mapping */
+    const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+    GLuint depthMapFBO = 0;
+    GLuint depthTextureID = 0;
+    DepthShader depthShader;
+
+    /* Scene Objects */
     Camera mainCamera;
     Light cameraLight;
 
@@ -58,6 +67,7 @@ private:
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
     bool DrawMenuBar();
+    void InitialiseDepthTexture();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
     void NewFrame(ParamData *userParams);
     std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);

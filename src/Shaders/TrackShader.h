@@ -18,8 +18,10 @@ public:
     void bindTextureArray(GLuint textureArrayID);
     void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view); // These don't change between Shader binds, better to set state once for a track render pass
     void loadTransformMatrix(const glm::mat4 &transformation);
+    void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
     void loadSpecular(float damper, float reflectivity);
     void loadLights(std::vector<Light> lights);
+    void loadShadowMapTexture(GLuint shadowMapTextureID);
     void setClassic(bool useClassic);
 
 protected:
@@ -29,12 +31,14 @@ protected:
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
     GLint viewMatrixLocation;
+    GLint lightSpaceMatrixLocation;
     GLint lightPositionLocation[MAX_LIGHTS];
     GLint lightColourLocation[MAX_LIGHTS];
     GLint attenuationLocation[MAX_LIGHTS];
     GLint shineDamperLocation;
     GLint reflectivityLocation;
     GLint useClassicLocation;
+    GLint shadowMapTextureLocation;
     GLint TrackTexturesID;
 
     typedef BaseShader super;

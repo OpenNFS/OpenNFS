@@ -18,7 +18,6 @@ Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &insta
     loadedAssets.trackTag = track->tag;
     loadedAssets.track = track->name;
 
-
     glm::vec3 initialCameraPosition;
     if (track->tag == NFS_3_PS1) {
         initialCameraPosition = glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z);
@@ -44,6 +43,34 @@ Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &insta
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
     ImGui::StyleColorsDark();
+
+    // Create Depth buffer and attach
+    InitialiseDepthTexture();
+}
+
+void Renderer::InitialiseDepthTexture(){
+    // Configure depth map FBO
+    // -----------------------
+
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth texture
+    glGenTextures(1, &depthTextureID);
+    glBindTexture(GL_TEXTURE_2D, depthTextureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTextureID, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
+    // Always check that our framebuffer is ok
+    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Depth FBO is nae good.");
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 AssetData Renderer::Render() {
@@ -60,7 +87,7 @@ AssetData Renderer::Render() {
         mainCamera.setCameraAnimation(track->camera_animations);
     }
 
-    Light sun = Light(glm::vec3(0, 50, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
+    Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     sun.attenuation.x = 0.1;
 
     // Detect position change to trigger Cull code
@@ -73,20 +100,15 @@ AssetData Renderer::Render() {
 
     bool newAssetSelected = false;
 
-    float deltaTime = 0; // Keep track of time between engine ticks
-
     while (!glfwWindowShouldClose(window)) {
         // glfwGetTime is called only once, the first time this function is called
         static double lastTime = glfwGetTime();
         // Compute time difference between current and last frame
         double currentTime = glfwGetTime();
         // Update time between engine ticks
-        deltaTime = float(currentTime - lastTime);
+        float deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
         NewFrame(&userParams);
-
-        // Move the Sun
-        sun.position = sun.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f , 0, 0)));
 
         // Play the original camera animation
         if (!camera_animation_played) {
@@ -148,7 +170,7 @@ AssetData Renderer::Render() {
                         physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint + mainCamera.initialPosition), Utils::glmToBullet(vroadPointNext + mainCamera.initialPosition), btVector3(0, 1, 1));
 
                         // Draw Rotations
-                        glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(refPt.od1/ 65536.0f, refPt.od2/ 65536.0f, refPt.od3/ 65536.0f,refPt.od4/ 65536.0f));
+                        glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(refPt.od1 / 65536.0f, refPt.od2 / 65536.0f, refPt.od3 / 65536.0f, refPt.od4 / 65536.0f));
                         glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
                         physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint + mainCamera.initialPosition), Utils::glmToBullet(vroadPoint + mainCamera.initialPosition + direction), btVector3(0, 0.5, 0.5));
                     }
@@ -191,9 +213,64 @@ AssetData Renderer::Render() {
             activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, userParams.blockDrawDistance, userParams.use_nb_data);
         }
 
+        // Move the Sun, and update the position it's looking (for test)
+        sun.position = sun.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f, 0, 0)));
+        sun.lookAt = track->track_blocks[closestBlockID].center;
+        sun.update();
+        physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(sun.position), Utils::glmToBullet(sun.lookAt), btVector3(0.0, 1.0, 0.0));
+
+        /* ------- SHADOW MAPPING ------- */
+        depthShader.use();
+        float near_plane = 150.0f, far_plane = 300.f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        glm::mat4 lightView = sun.ViewMatrix;
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+        depthShader.loadLightSpaceMatrix(lightSpaceMatrix);
+
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        /* Render the track using this simple shader to get depth texture to test against during draw */
+        for (int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx) {
+            TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
+            std::vector<Light> contributingLights;
+            for (auto &light_entity : active_track_Block.lights) {
+                contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
+            }
+            for (auto &track_block_entity : active_track_Block.track) {
+                boost::get<Track>(track_block_entity.glMesh).update();
+                depthShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+                boost::get<Track>(track_block_entity.glMesh).render();
+            }
+            for (auto &track_block_entity : active_track_Block.objects) {
+                boost::get<Track>(track_block_entity.glMesh).update();
+                depthShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+                boost::get<Track>(track_block_entity.glMesh).render();
+            }
+        }
+        /* And the Car */
+        for (auto &misc_model : car->misc_models) {
+            depthShader.loadTransformMatrix(misc_model.ModelMatrix);
+            misc_model.render();
+        }
+        depthShader.loadTransformMatrix(car->left_front_wheel_model.ModelMatrix);
+        car->left_front_wheel_model.render();
+        depthShader.loadTransformMatrix(car->left_rear_wheel_model.ModelMatrix);
+        car->left_rear_wheel_model.render();
+        depthShader.loadTransformMatrix(car->right_front_wheel_model.ModelMatrix);
+        car->right_front_wheel_model.render();
+        depthShader.loadTransformMatrix(car->right_rear_wheel_model.ModelMatrix);
+        car->right_rear_wheel_model.render();
+        depthShader.loadTransformMatrix(car->car_body_model.ModelMatrix);
+        car->car_body_model.render();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, 1920, 1080);
+
         skyRenderer.renderSky(mainCamera, sun, userParams, totalTime);
 
-        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams, ticks);
+        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams, ticks, depthTextureID, lightSpaceMatrix);
 
         trackRenderer.renderLights(mainCamera, activeTrackBlockIDs);
 
@@ -223,12 +300,18 @@ AssetData Renderer::Render() {
             DrawMetadata(targetedEntity);
         }
 
-        if (userParams.physics_debug_view)
+        if (userParams.physics_debug_view) {
             physicsEngine.getDynamicsWorld()->debugDrawWorld();
+        }
 
         if (DrawMenuBar()) {
             newAssetSelected = true;
         };
+
+        ImGui::Begin("Shadow Map");
+        ImGui::Image((ImTextureID) depthTextureID, ImVec2(SHADOW_WIDTH, SHADOW_HEIGHT), ImVec2(0,0), ImVec2(1,-1));
+        ImGui::End();
+
         DrawUI(&userParams, mainCamera.position);
         glfwSwapBuffers(window);
 

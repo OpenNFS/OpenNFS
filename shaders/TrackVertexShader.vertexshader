@@ -23,13 +23,17 @@ out vec3 surfaceNormal;
 // Fog
 out vec3 worldPosition;
 out vec4 viewSpace;
+out vec4 lightSpace;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix ,transformationMatrix;
+uniform mat4 lightSpaceMatrix;
 uniform vec3 lightPosition[MAX_LIGHTS];
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
+
+    lightSpace = lightSpaceMatrix * worldPosition;
 
     // Pass through texture Index
     texIndex = textureIndex;

@@ -53,6 +53,8 @@ void Light::update() {
     //Rotate around center
     TranslationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0,0,0));
     ModelMatrix = TranslationMatrix * RotationMatrix;
+
+    ViewMatrix = glm::lookAt(position, lookAt, glm::vec3(0,1.0,0));
 }
 
 void Light::destroy() {

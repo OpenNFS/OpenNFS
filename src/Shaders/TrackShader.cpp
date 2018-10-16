@@ -26,10 +26,13 @@ void TrackShader::getAllUniformLocations() {
     transformationMatrixLocation = getUniformLocation("transformationMatrix");
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
+    lightSpaceMatrixLocation = getUniformLocation("lightSpaceMatrix");
     TrackTexturesID = getUniformLocation("textureArrayID");
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
     useClassicLocation = getUniformLocation("useClassic");
+    shadowMapTextureLocation = getUniformLocation("shadowMap");
+
 
     for(int i = 0; i < MAX_LIGHTS; ++i){
         lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
@@ -78,6 +81,16 @@ void TrackShader::loadProjectionViewMatrices(const glm::mat4 &projection, const 
 
 void TrackShader::loadTransformMatrix(const glm::mat4 &transformation){
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
+}
+
+void TrackShader::loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix){
+    loadMat4(lightSpaceMatrixLocation, &lightSpaceMatrix[0][0]);
+}
+
+void TrackShader::loadShadowMapTexture(GLuint shadowMapTextureID) {
+    loadSampler2D(shadowMapTextureLocation, 1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, shadowMapTextureID);
 }
 
 

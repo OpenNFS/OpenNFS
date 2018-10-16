@@ -23,6 +23,10 @@ public:
     glm::vec4 colour;
     long type;
 
+    // Point light is looking at
+    glm::vec3 lookAt = glm::vec3(0.f,0.f,0.f);
+    glm::mat4 ViewMatrix; // For shadow mapping Depth
+
     // NFS3 and 4 light data stored in TR.ini [track glows]
     int unknown1, unknown2, unknown3;
     float unknown4;

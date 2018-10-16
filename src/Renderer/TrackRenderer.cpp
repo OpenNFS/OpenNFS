@@ -8,14 +8,16 @@ TrackRenderer::TrackRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
     track = activeTrack;
 }
 
-void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, const ParamData &userParams, uint64_t engineTicks) {
+void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, const ParamData &userParams, uint64_t engineTicks, GLuint depthTextureID, const glm::mat4 &lightSpaceMatrix) {
     trackShader.use();
 
     // This shader state doesnt change during a track renderpass
     trackShader.setClassic(userParams.use_classic_graphics);
     trackShader.loadProjectionViewMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix);
+    trackShader.loadLightSpaceMatrix(lightSpaceMatrix);
     trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
     trackShader.bindTextureArray(track->textureArrayID);
+    trackShader.loadShadowMapTexture(depthTextureID);
 
     std::vector<Light> camlights;
     camlights.push_back(cameraLight);
