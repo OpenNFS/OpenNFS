@@ -42,8 +42,23 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     float currentDepth = projCoords.z;
     // Apply bias to remove acne, such that fragments are not incorrectly considered below the surface.
     float bias = 0.005;
-    // Check whether currentDepth is higher than closestDepth and if so, the fragment is in shadow
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+
+    // Apply percentage closer filtering, to soften shadow edges (average neighbours by jittering projection coords)
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            // Check whether currentDepth is higher than closestDepth and if so, the fragment is in shadow
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+
+    // Force the shadow value to 0.0 whenever the projected vector's z coordinate is larger than 1.0
+    if(projCoords.z > 1.0) shadow = 0.0;
 
     return shadow;
 }
@@ -151,17 +166,9 @@ void main(){
         totalDiffuse = max(totalDiffuse, 0.5); // Min brightness
 
         float shadow = ShadowCalculation(lightSpace);
-        vec3 ambient = 0.15 * nfsColor.rgb;
+        vec3 ambient = 0.45 * nfsColor.rgb;
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
-
-        //color = vec4(shadow, 0,0,1);
-
-        /*
-            color = vec4(totalDiffuse, 1.0) * (nfsColor) + vec4(totalSpecular, 1.0);
-            color.a = 1.0;
-          //color = vec4(unitNormal, 1.0); // Visualise normals
-        */
 
         // DEBUG: Stop this debugData buffer from being optimised out
         if(debugDataOut == 32u){

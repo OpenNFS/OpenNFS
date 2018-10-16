@@ -59,8 +59,10 @@ void Renderer::InitialiseDepthTexture(){
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     // attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTextureID, 0);
@@ -220,6 +222,7 @@ AssetData Renderer::Render() {
         physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(sun.position), Utils::glmToBullet(sun.lookAt), btVector3(0.0, 1.0, 0.0));
 
         /* ------- SHADOW MAPPING ------- */
+        glCullFace(GL_FRONT);
         depthShader.use();
         float near_plane = 150.0f, far_plane = 300.f;
         glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
@@ -264,6 +267,7 @@ AssetData Renderer::Render() {
         car->right_rear_wheel_model.render();
         depthShader.loadTransformMatrix(car->car_body_model.ModelMatrix);
         car->car_body_model.render();
+        glCullFace(GL_BACK); // Reset original culling face
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0, 0, 1920, 1080);
