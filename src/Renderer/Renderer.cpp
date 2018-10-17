@@ -59,10 +59,12 @@ void Renderer::InitialiseDepthTexture(){
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    /*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);*/
     // attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTextureID, 0);
@@ -91,6 +93,8 @@ AssetData Renderer::Render() {
 
     Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     sun.attenuation.x = 0.1;
+    Light moon = Light(glm::vec3(0, -200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
+    moon.attenuation.x = 0.1;
 
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
@@ -216,17 +220,24 @@ AssetData Renderer::Render() {
         }
 
         // Move the Sun, and update the position it's looking (for test)
-        sun.position = sun.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f, 0, 0)));
+        sun.position = sun.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f, 0, userParams.timeScaleFactor * 0.001f)));
+        moon.position = moon.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f, 0, userParams.timeScaleFactor * 0.001f)));
+
+        // If Sun moving below Horizon, change 'Sun' to 'Moon' and flip some state so we know to drop ambient in TrackShader
+        bool nightTime = (sun.position.y <= 0);
+        float ambientLightFactor = nightTime ? 0.05f : 0.45f;
+
         sun.lookAt = track->track_blocks[closestBlockID].center;
         sun.update();
-        physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(sun.position), Utils::glmToBullet(sun.lookAt), btVector3(0.0, 1.0, 0.0));
+        moon.lookAt = track->track_blocks[closestBlockID].center;
+        moon.update();
 
         /* ------- SHADOW MAPPING ------- */
         glCullFace(GL_FRONT);
         depthShader.use();
         float near_plane = 150.0f, far_plane = 300.f;
         glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-        glm::mat4 lightView = sun.ViewMatrix;
+        glm::mat4 lightView = nightTime ? moon.ViewMatrix : sun.ViewMatrix;
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
         depthShader.loadLightSpaceMatrix(lightSpaceMatrix);
 
@@ -267,6 +278,7 @@ AssetData Renderer::Render() {
         car->right_rear_wheel_model.render();
         depthShader.loadTransformMatrix(car->car_body_model.ModelMatrix);
         car->car_body_model.render();
+
         glCullFace(GL_BACK); // Reset original culling face
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -274,7 +286,7 @@ AssetData Renderer::Render() {
 
         skyRenderer.renderSky(mainCamera, sun, userParams, totalTime);
 
-        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams, ticks, depthTextureID, lightSpaceMatrix);
+        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams, ticks, depthTextureID, lightSpaceMatrix, ambientLightFactor);
 
         trackRenderer.renderLights(mainCamera, activeTrackBlockIDs);
 

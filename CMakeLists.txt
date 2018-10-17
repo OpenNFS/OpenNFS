@@ -1,20 +1,23 @@
 cmake_minimum_required(VERSION 3.4)
 project(OpenNFS)
-set(VS_STARTUP_PROJECT OpenNFS)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
-include (cmake/CheckCXXCompilerFlag.cmake)
-include (cmake/CheckCCompilerFlag.cmake)
-include (cmake/AddCompilerFlag.cmake)
-include (cmake/OptimizeForArchitecture.cmake)
+set(DEP_ROOT_DIR ${CMAKE_SOURCE_DIR}/lib)
+
+include(cmake/g3log.cmake)
+include(cmake/CheckCXXCompilerFlag.cmake)
+include(cmake/CheckCCompilerFlag.cmake)
+include(cmake/AddCompilerFlag.cmake)
+include(cmake/OptimizeForArchitecture.cmake)
+
 OptimizeForArchitecture()
-MESSAGE( STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS} )
+MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 
 #[[Static linking broken under Mac OSX]]
-if(WIN32)
+if (WIN32)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
-endif()
+endif ()
 
 set(OpenGL_GL_PREFERENCE LEGACY)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
@@ -113,6 +116,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS Boost::filesystem Boost::system Boost::boost)
+#[[G3Log (Because Boost-cmake logging won't build]]
+include_directories(${DEP_ROOT_DIR}/${G3LOG_NAME}/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/${G3LOG_NAME}/build/include)
+target_link_libraries(OpenNFS ${G3LOGGER_LIBRARIES} dbghelp)
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
@@ -122,24 +129,18 @@ set(BUILD_ENET OFF CACHE BOOL "" FORCE)
 set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
 set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS  OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3" EXCLUDE_FROM_ALL)
 TARGET_LINK_LIBRARIES(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
-#[[SDL Configuration]]
-# Support both 32 and 64 bit builds
-#[[set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/sdl")
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
-target_link_libraries(OpenNFS ${SDL2_LIBRARIES})]]
 #[[GLEW Configuration]]
-add_definitions(-DGLEW_STATIC  -D__NO_INLINE__)
+add_definitions(-DGLEW_STATIC -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")
 #[[GLM Configuration]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glm")
 #[[OpenGL Configuration]]
 find_package(OpenGL REQUIRED)
-include_directories( ${OPENGL_INCLUDE_DIRS})
+include_directories(${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[VULKAN]]
 #[[set(VULKAN_INCLUDE_DIR "C:/VulkanSDK/1.1.70.1/Include")

@@ -8,24 +8,26 @@
 #include "Enums.h"
 
 // TODO: Change these to consts
-#define ASSET_PATH "./assets/"
-#define CAR_PATH ASSET_PATH "car/"
-#define TRACK_PATH ASSET_PATH "tracks/"
-#define RESOURCE_PATH "../resources/"
+const std::string LOG_FILE_PATH = "./";
 
-#define NFS_2_TRACK_PATH  "/GAMEDATA/TRACKS/PC/"
-#define NFS_2_CAR_PATH  "/GAMEDATA/CARMODEL/PC/"
+const std::string ASSET_PATH= "./assets/";
+const std::string CAR_PATH = "car/";
+const std::string TRACK_PATH = "tracks/";
+const std::string RESOURCE_PATH = "../resources/";
 
-#define NFS_2_SE_TRACK_PATH "/GAMEDATA/TRACKS/SE/"
-#define NFS_2_SE_CAR_PATH "/GAMEDATA/CARMODEL/PC/"
+const std::string NFS_2_TRACK_PATH = "/GAMEDATA/TRACKS/PC/";
+const std::string NFS_2_CAR_PATH = "/GAMEDATA/CARMODEL/PC/";
 
-#define NFS_3_TRACK_PATH "/gamedata/tracks/"
-#define NFS_3_CAR_PATH  "/gamedata/carmodel/"
+const std::string NFS_2_SE_TRACK_PATH = "/GAMEDATA/TRACKS/SE/";
+const std::string NFS_2_SE_CAR_PATH = "/GAMEDATA/CARMODEL/PC/";
 
-#define NFS_4_TRACK_PATH "/DATA/TRACKS/"
-#define NFS_4_CAR_PATH "/DATA/CARS/"
+const std::string NFS_3_TRACK_PATH = "/gamedata/tracks/";
+const std::string NFS_3_CAR_PATH  = "/gamedata/carmodel/";
 
-#define MAX_TEXTURE_ARRAY_SIZE 512
+const std::string NFS_4_TRACK_PATH = "/DATA/TRACKS/";
+const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
+
+const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
 
 struct ParamData {
     float timeScaleFactor = 1.f;

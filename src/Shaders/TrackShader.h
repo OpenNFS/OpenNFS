@@ -22,6 +22,7 @@ public:
     void loadSpecular(float damper, float reflectivity);
     void loadLights(std::vector<Light> lights);
     void loadShadowMapTexture(GLuint shadowMapTextureID);
+    void loadAmbientFactor(float ambientFactor);
     void setClassic(bool useClassic);
 
 protected:
@@ -39,6 +40,7 @@ protected:
     GLint reflectivityLocation;
     GLint useClassicLocation;
     GLint shadowMapTextureLocation;
+    GLint ambientFactorLocation;
     GLint TrackTexturesID;
 
     typedef BaseShader super;

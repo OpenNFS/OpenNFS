@@ -22,6 +22,7 @@ class BaseShader {
 
 public:
     BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path);
+    BaseShader(const std::string &vertex_file_path, const std::string &geometry_file_path, const std::string &fragment_file_path);
     ~BaseShader();
     void use();
     void unbind();
@@ -29,6 +30,7 @@ public:
 
     GLuint VertexShaderID;
     GLuint FragmentShaderID;
+    GLuint GeometryShaderID;
     GLuint ProgramID;
 protected:
     void loadMat4(GLint location, const GLfloat *value);

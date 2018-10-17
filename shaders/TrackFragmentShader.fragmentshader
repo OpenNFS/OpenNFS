@@ -25,6 +25,7 @@ uniform bool useClassic;
 
 uniform sampler2DArray texture_array;
 uniform sampler2D shadowMap;
+uniform float ambientFactor;
 uniform vec4 lightColour[MAX_LIGHTS];
 uniform vec3 attenuation[MAX_LIGHTS];
 uniform float shineDamper;
@@ -166,7 +167,7 @@ void main(){
         totalDiffuse = max(totalDiffuse, 0.5); // Min brightness
 
         float shadow = ShadowCalculation(lightSpace);
-        vec3 ambient = 0.45 * nfsColor.rgb;
+        vec3 ambient = ambientFactor * nfsColor.rgb;
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
 

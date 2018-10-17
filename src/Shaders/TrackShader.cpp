@@ -32,7 +32,7 @@ void TrackShader::getAllUniformLocations() {
     reflectivityLocation =  getUniformLocation("reflectivity");
     useClassicLocation = getUniformLocation("useClassic");
     shadowMapTextureLocation = getUniformLocation("shadowMap");
-
+    ambientFactorLocation = getUniformLocation("ambientFactor");
 
     for(int i = 0; i < MAX_LIGHTS; ++i){
         lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
@@ -91,6 +91,10 @@ void TrackShader::loadShadowMapTexture(GLuint shadowMapTextureID) {
     loadSampler2D(shadowMapTextureLocation, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, shadowMapTextureID);
+}
+
+void TrackShader::loadAmbientFactor(float ambientFactor){
+    loadFloat(ambientFactorLocation, ambientFactor);
 }
 
 

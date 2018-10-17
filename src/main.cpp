@@ -7,10 +7,11 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <future>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-/*#define GLFW_INCLUDE_VULKAN
-#include "vkRenderer.h"*/
+#include <g3log/g3log.hpp>
+#include <g3log/logworker.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 // Source
@@ -19,12 +20,11 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
-/*#include <boost/log/trivial.hpp>*/
+
 
 class OpenNFS {
 public:
     void run() {
-       /* BOOST_LOG_TRIVIAL(info) << "Lol";*/
         std::cout << "----------- OpenNFS v0.2 -----------" << std::endl;
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
@@ -53,15 +53,6 @@ public:
 
         // Close OpenGL window and terminate GLFW
         glfwTerminate();
-
-        /*vkRenderer renderer;
-
-        try {
-            renderer.run();
-        } catch (const std::runtime_error &e) {
-            std::cerr << e.what() << std::endl;
-            return EXIT_FAILURE;
-        }*/
     }
 
 private:
@@ -320,6 +311,16 @@ private:
 };
 
 int main(int argc, char **argv) {
+   // Set up logging framework
+    using namespace g3;
+    auto worker = LogWorker::createLogWorker();
+    auto defaultHandler = worker->addDefaultLogger(argv[0], LOG_FILE_PATH);
+
+    // logger is initialized
+    g3::initializeLogging(worker.get());
+
+    LOG(DEBUG) << "First test of logging framework!";
+
     OpenNFS game;
 
     try {
