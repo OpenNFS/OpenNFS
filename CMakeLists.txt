@@ -119,7 +119,11 @@ target_link_libraries(OpenNFS Boost::filesystem Boost::system Boost::boost)
 #[[G3Log (Because Boost-cmake logging won't build]]
 include_directories(${DEP_ROOT_DIR}/${G3LOG_NAME}/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/lib/${G3LOG_NAME}/build/include)
-target_link_libraries(OpenNFS ${G3LOGGER_LIBRARIES} dbghelp)
+target_link_libraries(OpenNFS ${G3LOGGER_LIBRARIES})
+if (WIN32)
+    target_link_libraries(OpenNFS dbghelp)
+endif ()
+add_dependencies(OpenNFS g3logger)
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
