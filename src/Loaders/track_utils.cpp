@@ -113,7 +113,7 @@ namespace TrackUtils {
             boost::filesystem::create_directories(output_dir.str());
         }
 
-        std::cout << "Extracting track textures" << std::endl;
+        LOG(INFO) << "Extracting track textures";
 
         if (nfs_version == NFS_3_PS1) {
             output_dir << "/textures/";
@@ -124,8 +124,7 @@ namespace TrackUtils {
             if (boost::filesystem::exists(sky_fsh_path.str())) {
                 std::stringstream sky_textures_path;
                 sky_textures_path << output_dir.str() << "/sky_textures/";
-                std::cout << sky_fsh_path.str() << std::endl;
-                ASSERT(Utils::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from sky.fsh");
+                ASSERT(Utils::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from " << sky_fsh_path.str());
             }
         }
 
@@ -165,7 +164,7 @@ namespace TrackUtils {
 
         std::vector<uint32_t> clear_data(max_width * max_height, 0);
 
-        std::cout << "Creating texture array with " << (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height << std::endl;
+        LOG(INFO) << "Creating texture array with " << (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height;
         glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, MAX_TEXTURE_ARRAY_SIZE); // I should really call this on textures.size(), but the layer numbers are not linear up to textures.size(). HS Bloats tex index up over 2048.
 
         for (auto &texture : textures) {
@@ -491,7 +490,7 @@ namespace TrackUtils {
             return false;
         }
 
-        std::cout << "Loading CAN File" << std::endl;
+        LOG(INFO) << "Loading CAN File located at " << can_path;
 
         // Get filesize so can check have parsed all bytes
         uint16_t size;

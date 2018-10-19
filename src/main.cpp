@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <cmath>
 #include <future>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -25,7 +26,8 @@
 class OpenNFS {
 public:
     void run() {
-        std::cout << "----------- OpenNFS v0.2 -----------" << std::endl;
+        LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
+
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(initOpenGL(), "OpenGL init failed.");
         initDirectories();
@@ -37,7 +39,7 @@ public:
         };
 
         /*------- Render --------*/
-        while(loadedAssets.trackTag != UNKNOWN){
+        while (loadedAssets.trackTag != UNKNOWN) {
             /*------ ASSET LOAD ------*/
             //Load Track Data
             std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
@@ -59,7 +61,7 @@ private:
     GLFWwindow *window;
 
     static void glfwError(int id, const char *description) {
-        std::cout << description << std::endl;
+        LOG(FATAL) << description;
     }
 
     bool initOpenGL() {
@@ -83,7 +85,7 @@ private:
         window = glfwCreateWindow(1920, 1080, "OpenNFS", nullptr, nullptr);
 
         if (window == nullptr) {
-            fprintf(stderr, "Failed to create a GLFW window.\n");
+            LOG(FATAL) << "Failed to create a GLFW window.";
             getchar();
             glfwTerminate();
             return false;
@@ -94,7 +96,7 @@ private:
         glewExperimental = GL_TRUE; // Needed for core profile
 
         if (glewInit() != GLEW_OK) {
-            fprintf(stderr, "Failed to initialize GLEW\n");
+            LOG(FATAL) << "Failed to initialize GLEW";
             getchar();
             glfwTerminate();
             return false;
@@ -123,9 +125,9 @@ private:
         GLint texture_units, max_array_texture_layers;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
         glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_array_texture_layers);
-        std::cout << "Max Texture Units: " << texture_units << std::endl;
-        std::cout << "Max Array Texture Layers: " << max_array_texture_layers << std::endl;
-        std::cout << "OpenGL Initialisation successful" << std::endl;
+        LOG(INFO) << "Max Texture Units: " << texture_units;
+        LOG(INFO) << "Max Array Texture Layers: " << max_array_texture_layers;
+        LOG(INFO) << "OpenGL Initialisation successful";
 
         return true;
     }
@@ -139,7 +141,7 @@ private:
         }
     }
 
-    std::vector<NeedForSpeed> populateAssets(){
+    std::vector<NeedForSpeed> populateAssets() {
         using namespace boost::filesystem;
 
         path basePath(RESOURCE_PATH);
@@ -158,7 +160,8 @@ private:
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_SE_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(exists(trackBasePath), "NFS 2 Special Edition track folder: " << trackBasePath << " is missing.");
+                ASSERT(exists(trackBasePath),
+                       "NFS 2 Special Edition track folder: " << trackBasePath << " is missing.");
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
@@ -271,18 +274,19 @@ private:
 
                 carBasePathStream << "TRAFFIC/";
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
-                    if ((carItr->path().filename().string().find("CHOPPERS") == std::string::npos)&&(carItr->path().filename().string().find("PURSUIT") == std::string::npos)) {
+                    if ((carItr->path().filename().string().find("CHOPPERS") == std::string::npos) &&
+                        (carItr->path().filename().string().find("PURSUIT") == std::string::npos)) {
                         currentNFS.cars.emplace_back("TRAFFIC/" + carItr->path().filename().string());
                     }
                 }
 
                 carBasePathStream << "CHOPPERS/";
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
-                        currentNFS.cars.emplace_back("TRAFFIC/CHOPPERS/" + carItr->path().filename().string());
+                    currentNFS.cars.emplace_back("TRAFFIC/CHOPPERS/" + carItr->path().filename().string());
                 }
 
                 carBasePathStream.str(std::string());
-                carBasePathStream  << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/" << "PURSUIT/";
+                carBasePathStream << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/" << "PURSUIT/";
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
                 }
@@ -296,37 +300,78 @@ private:
                 hasSfx = true;
                 continue;
             } else {
-                std::cerr << "Unknown folder in resources directory: " << itr->path().filename().string() << std::endl;
+                LOG(WARNING) << "Unknown folder in resources directory: " << itr->path().filename().string();
                 continue;
             }
             installedNFS.emplace_back(currentNFS);
         }
 
-        ASSERT(hasLanes,"Missing \'lanes\' folder in resources directory");
+        ASSERT(hasLanes, "Missing \'lanes\' folder in resources directory");
         ASSERT(hasMisc, "Missing \'misc\' folder in resources directory");
-        ASSERT(hasSfx,  "Missing \'sfx\' folder in resources directory");
+        ASSERT(hasSfx, "Missing \'sfx\' folder in resources directory");
 
         return installedNFS;
     }
 };
 
+std::string FormatLog(const g3::LogMessage& msg) {
+    const int levelFileLineWidth = 40;
+
+    std::string timestamp(msg.timestamp().substr(11, 8)); // Trim microseconds and date from timestamp
+    std::string variableWidthMessage(msg.level() + " [" + msg.file() + "->" + msg.function() + ":" + msg.line() + "]: ");
+    variableWidthMessage.append(levelFileLineWidth > variableWidthMessage.length() ? (levelFileLineWidth - variableWidthMessage.length()) : 0, ' '); // Pad variable width element to fixed size
+
+    return timestamp + " " + variableWidthMessage;
+}
+
+struct ColorCoutSink {
+    const std::string newHeader = "\t\tLOG format: [hh:mm:ss FILE->FUNCTION:LINE]: message\n\t\t\n\n";
+
+    enum FG_Color {
+        YELLOW = 33, RED = 31, GREEN = 32, WHITE = 97
+    };
+
+    FG_Color GetColor(const LEVELS level) const {
+        if (level.value == WARNING.value) { return YELLOW; }
+        if (level.value == DEBUG.value) { return GREEN; }
+        if (g3::internal::wasFatal(level)) { return RED; }
+
+        return WHITE;
+    }
+
+    void ReceiveLogMessage(g3::LogMessageMover logEntry) {
+        auto level = logEntry.get()._level;
+        auto color = GetColor(level);
+
+
+
+#ifdef _WIN32
+        std::cout << logEntry.get().toString(&FormatLog);
+#else
+        std::cout << "\033[" << color << "m" << logEntry.get().toString() << "\033[m" << std::endl;
+#endif
+    }
+};
+
 int main(int argc, char **argv) {
-   // Set up logging framework
+    // Set up logging framework
     using namespace g3;
     auto worker = LogWorker::createLogWorker();
     auto defaultHandler = worker->addDefaultLogger(argv[0], LOG_FILE_PATH);
+    auto changeFormatting = defaultHandler->call(&g3::FileSink::overrideLogDetails, g3::LogMessage::FullLogDetailsToString);
+    const std::string newHeader = "\t\tLOG format: [hh:mm:ss FILE->FUNCTION:LINE]: message\n\t\t\n\n";
+    auto changeHeader = defaultHandler->call(&g3::FileSink::overrideLogHeader, newHeader);
+    auto sinkHandle = worker->addSink(std::make_unique<ColorCoutSink>(), &ColorCoutSink::ReceiveLogMessage);
 
     // logger is initialized
     g3::initializeLogging(worker.get());
-
-    LOG(DEBUG) << "First test of logging framework!";
 
     OpenNFS game;
 
     try {
         game.run();
     } catch (const std::runtime_error &e) {
-        std::cerr << e.what() << std::endl;
+        LOG(FATAL) << e.what();
         return EXIT_FAILURE;
     }
 

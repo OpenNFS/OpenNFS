@@ -10,6 +10,7 @@
 #include <LinearMath/btQuaternion.h>
 #include <LinearMath/btMatrix3x3.h>
 #include <tiny_obj_loader.h>
+#include <g3log/g3log.hpp>
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -83,9 +84,9 @@ typedef struct tagBITMAPINFO {
 #define ASSERT(condition, message) \
     do { \
         if (! (condition)) { \
-            std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
-                      << " line " << __LINE__ << ": " << message << std::endl; \
-            std::cerr << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)" << std::endl; \
+            LOG(FATAL) << "Assertion `" #condition "` failed in " << __FILE__ \
+                      << " line " << __LINE__ << ": " << message; \
+            LOG(FATAL) << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)"; \
             char c;  \
             while(true) { \
                 c = std::getchar(); \

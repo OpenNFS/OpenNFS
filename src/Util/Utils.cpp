@@ -140,8 +140,9 @@ namespace Utils {
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
         std::string err;
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, obj_path.c_str())) {
-            std::cout << err << std::endl;
+        std::string warn;
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path.c_str(), nullptr, true, true)) {
+            LOG(FATAL) << err;
             return meshes;
         }
         // Loop over shapes
@@ -191,7 +192,7 @@ namespace Utils {
         int a, b;
 
         if(boost::filesystem::exists(output_dir)){
-            std::cout << "VIV already extracted." << std::endl;
+            LOG(INFO) << "VIV " << viv_path << " has already been extracted. Skipping.";
             return true;
         } else {
             boost::filesystem::create_directories(output_dir);
@@ -322,8 +323,9 @@ namespace Utils {
     }
 
     bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir) {
+        LOG(INFO) << "Extracting QFS file: " << qfs_input << " to " << output_dir;
         if (boost::filesystem::exists(output_dir)) {
-            std::cout << "Textures already exist at " << output_dir << " so returning." << std::endl;
+            LOG(INFO) << "Textures already exist at " << output_dir << ". Nothing to extract.";
             return true;
         }
 
@@ -357,30 +359,31 @@ namespace Utils {
     bool ExtractPSH(const std::string &psh_path, const std::string &output_path) {
         using namespace NFS2_DATA;
 
+        LOG(INFO) << "Extracting PSH file: " << psh_path << " to " << output_path;
+
         if (boost::filesystem::exists(output_path)) {
-            std::cout << "Textures already exist at " << output_path << " so returning." << std::endl;
+            LOG(INFO) << "Textures already exist at " << output_path << ". Nothing to extract.";
             return true;
         }
 
         boost::filesystem::create_directories(output_path);
-        std::cout << "Extracting PSH File " << std::endl;
         ifstream psh(psh_path, ios::in | ios::binary);
 
         PS1::PSH::HEADER *pshHeader = new PS1::PSH::HEADER();
 
         // Check we're in a valid TRK file
         if (psh.read(((char *) pshHeader), sizeof(PS1::PSH::HEADER)).gcount() != sizeof(PS1::PSH::HEADER)) {
-            std::cout << "Couldn't open file/truncated." << std::endl;
+            LOG(FATAL) << "Couldn't open file/truncated.";
             delete pshHeader;
             return false;
         }
 
-        std::cout << pshHeader->nDirectories << " images inside PSH" << std::endl;
+        LOG(INFO) << pshHeader->nDirectories << " images inside PSH";
 
         // Header should contain TRAC
         if (memcmp(pshHeader->header, "SHPP", sizeof(pshHeader->header)) != 0 &&
             memcmp(pshHeader->chk, "GIMX", sizeof(pshHeader->chk)) != 0) {
-            std::cout << "Invalid PSH Header(s)." << std::endl;
+            LOG(FATAL) << "Invalid PSH Header(s).";
             delete pshHeader;
             return false;
         }
@@ -390,7 +393,7 @@ namespace Utils {
         psh.read(((char *) directoryEntries), pshHeader->nDirectories * sizeof(PS1::PSH::DIR_ENTRY));
 
         for (uint32_t image_Idx = 0; image_Idx < pshHeader->nDirectories; ++image_Idx) {
-            std::cout << "Extracting GIMX " << image_Idx << ": " << directoryEntries[image_Idx].imageName[0] << directoryEntries[image_Idx].imageName[1] << directoryEntries[image_Idx].imageName[2] << directoryEntries[image_Idx].imageName[3] << ".BMP" << std::endl;
+            LOG(INFO) << "Extracting GIMX " << image_Idx << ": " << directoryEntries[image_Idx].imageName[0] << directoryEntries[image_Idx].imageName[1] << directoryEntries[image_Idx].imageName[2] << directoryEntries[image_Idx].imageName[3] << ".BMP";
             psh.seekg(directoryEntries[image_Idx].imageOffset, ios_base::beg);
             auto *imageHeader = new PS1::PSH::IMAGE_HEADER();
             psh.read(((char *) imageHeader), sizeof(PS1::PSH::IMAGE_HEADER));

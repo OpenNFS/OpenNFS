@@ -12,6 +12,7 @@
 #include <fstream>
 #include <algorithm>
 #include <cstring>
+#include <g3log/g3log.hpp>
 #include <glm/vec3.hpp>
 #include <glm/detail/type_mat4x4.hpp>
 #include <GL/glew.h>

@@ -51,7 +51,7 @@ MusicLoader::MusicLoader(const std::string &song_base_path) {
     std::string song_name = p.filename().string();
     stringstream mus_path, map_path;
 
-    std::cout << "--- Loading Song " << song_name << "---" << std::endl;
+    LOG(INFO) << "Loading Song " << song_name << " from " << song_base_path;
 
     mus_path << song_base_path << ".mus";
     map_path << song_base_path << ".map";

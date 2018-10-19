@@ -14,7 +14,8 @@ SkyRenderer::SkyRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string err;
-    ASSERT(tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "../resources/misc/skydome/sphere.obj"), err);
+    std::string warn;
+    ASSERT(tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "../resources/misc/skydome/sphere.obj", nullptr, true, true), err);
 
     // TODO: Generify the Utils loader to detect norms and uvs, else backfill with vecs of 0's
     for (size_t s = 0; s < shapes.size(); s++) {

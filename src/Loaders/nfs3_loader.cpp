@@ -28,7 +28,7 @@ void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_pa
 }
 
 std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
-    std::cout << "- Parsing FCE File: " << fce_path << std::endl;
+    LOG(INFO) << "Parsing FCE File located at " << fce_path;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     std::vector<CarModel> meshes;
@@ -83,7 +83,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         }
 
         meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
-        std::cout << "Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size() << std::endl;
+        LOG(INFO) << "Loaded Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size();
 
         delete[] partNormals;
         delete[] partVertices;
@@ -98,7 +98,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
 
 // TRACK
 std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
-    std::cout << "--- Loading NFS3 Track ---" << std::endl;
+    LOG(INFO) << "Loading Track located at " << track_base_path;
     auto track = make_shared<TRACK>(TRACK());
 
     boost::filesystem::path p(track_base_path);
@@ -124,7 +124,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     track->track_blocks = ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 
-    std::cout << "Successful track load!" << std::endl;
+    LOG(INFO) << "Track loaded successfully";
     return track;
 }
 
@@ -142,7 +142,7 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, const st
     track->nBlocks++;
     if ((track->nBlocks < 1) || (track->nBlocks > 500)) return false; // 1st sanity check
 
-    std::cout << "Loading FRD File" << std::endl;
+    LOG(INFO) << "Loading FRD File located at " << frd_path;
 
     track->trk = new TRKBLOCK[track->nBlocks]();
     track->poly = new POLYGONBLOCK[track->nBlocks]();
@@ -300,11 +300,11 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
     track->col.hs_extra = NULL;
     if (coll.read((char *) &track->col, 16).gcount() != 16) return false;
     if (memcmp(track->col.collID, "COLL", sizeof(track->col.collID[0])) != 0) {
-        std::cout << "Invalid COL file." << std::endl;
+        LOG(FATAL) << "Invalid COL file";
         return false;
     }
 
-    std::cout << "Loading COL File" << std::endl;
+    LOG(INFO) << "Loading COL File located at " << col_path;
 
     if (track->col.version != 11) return false;
     if ((track->col.nBlocks != 2) && (track->col.nBlocks != 4) && (track->col.nBlocks != 5)) return false;
@@ -397,7 +397,7 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
 bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track) {
     ifstream hrz(hrz_path, ios::in | ios::binary);
     if(!hrz.is_open()) return false;
-    std::cout << "Loading HRZ File" << std::endl;
+    LOG(INFO) << "Loading HRZ File located at " << hrz_path;
 
     std::string str, skyTopColour, skyBottomColour;
 
@@ -697,7 +697,7 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     GLsizei height = track_texture.height;
 
     if (!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height)) {
-        std::cerr << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!" << std::endl;
+        LOG(WARNING) << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!";
         // If the texture is missing, load a "MISSING" texture of identical size.
         ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height), "Even the 'missing' texture is missing!");
         return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));

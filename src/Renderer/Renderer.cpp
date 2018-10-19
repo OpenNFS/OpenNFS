@@ -46,6 +46,8 @@ Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &insta
 
     // Create Depth buffer and attach
     InitialiseDepthTexture();
+
+    LOG(DEBUG) << "Renderer Initialised";
 }
 
 void Renderer::InitialiseDepthTexture(){

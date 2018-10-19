@@ -35,7 +35,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     int InfoLogLength;
 
     // Compile Vertex Shader
-    printf("Compiling shader : %s\n", vertex_file_path.c_str());
+    LOG(INFO) << "Compiling shader : " << vertex_file_path.c_str();
     char const * VertexSourcePointer = VertexShaderCode.c_str();
     glShaderSource(VertexShaderID, 1, &VertexSourcePointer , nullptr);
     glCompileShader(VertexShaderID);
@@ -46,11 +46,11 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     if ( InfoLogLength > 0 ){
         std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(VertexShaderID, InfoLogLength, nullptr, &VertexShaderErrorMessage[0]);
-        printf("%s\n", &VertexShaderErrorMessage[0]);
+        LOG(FATAL) << &VertexShaderErrorMessage[0];
     }
 
     // Compile Fragment Shader
-    printf("Compiling shader : %s\n", fragment_file_path.c_str());
+    LOG(INFO) << "Compiling shader : " << fragment_file_path.c_str();
     char const * FragmentSourcePointer = FragmentShaderCode.c_str();
     glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , nullptr);
     glCompileShader(FragmentShaderID);
@@ -61,11 +61,11 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     if ( InfoLogLength > 0 ){
         std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nullptr, &FragmentShaderErrorMessage[0]);
-        printf("%s\n", &FragmentShaderErrorMessage[0]);
+        LOG(FATAL) << &FragmentShaderErrorMessage[0];
     }
 
     // Link the program
-    printf("Linking program\n");
+    LOG(INFO) << "Linking program";
 
     ProgramID = glCreateProgram();
     glAttachShader(ProgramID, VertexShaderID);
@@ -78,7 +78,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     if ( InfoLogLength > 0 ){
         std::vector<char> ProgramErrorMessage(InfoLogLength+1);
         glGetProgramInfoLog(ProgramID, InfoLogLength, nullptr, &ProgramErrorMessage[0]);
-        printf("%s\n", &ProgramErrorMessage[0]);
+        LOG(FATAL) << &ProgramErrorMessage[0];
     }
 }
 
@@ -122,7 +122,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     int InfoLogLength;
 
     // Compile Vertex Shader
-    printf("Compiling shader : %s\n", vertex_file_path.c_str());
+    LOG(INFO) << "Compiling shader : " << vertex_file_path.c_str();
     char const * VertexSourcePointer = VertexShaderCode.c_str();
     glShaderSource(VertexShaderID, 1, &VertexSourcePointer , nullptr);
     glCompileShader(VertexShaderID);
@@ -133,11 +133,11 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(VertexShaderID, InfoLogLength, nullptr, &VertexShaderErrorMessage[0]);
-        printf("%s\n", &VertexShaderErrorMessage[0]);
+        LOG(FATAL) << &VertexShaderErrorMessage[0];
     }
 
     // Compile Fragment Shader
-    printf("Compiling shader : %s\n", fragment_file_path.c_str());
+    LOG(INFO) << "Compiling shader : " << fragment_file_path.c_str();
     char const * FragmentSourcePointer = FragmentShaderCode.c_str();
     glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , nullptr);
     glCompileShader(FragmentShaderID);
@@ -148,11 +148,11 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nullptr, &FragmentShaderErrorMessage[0]);
-        printf("%s\n", &FragmentShaderErrorMessage[0]);
+        LOG(FATAL) << &FragmentShaderErrorMessage[0];
     }
 
     // Compile Geometry Shader
-    printf("Compiling shader : %s\n", geometry_file_path.c_str());
+    LOG(INFO) << "Compiling shader : " << geometry_file_path.c_str();
     char const * GeometrySourcePointer = GeometryShaderCode.c_str();
     glShaderSource(GeometryShaderID, 1, &GeometrySourcePointer , nullptr);
     glCompileShader(GeometryShaderID);
@@ -163,11 +163,11 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> GeometryShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(GeometryShaderID, InfoLogLength, nullptr, &GeometryShaderErrorMessage[0]);
-        printf("%s\n", &GeometryShaderErrorMessage[0]);
+        LOG(FATAL) << &GeometryShaderErrorMessage[0];
     }
 
     // Link the program
-    printf("Linking program\n");
+    LOG(INFO) << "Linking program";
 
     ProgramID = glCreateProgram();
     glAttachShader(ProgramID, VertexShaderID);
@@ -181,7 +181,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> ProgramErrorMessage(InfoLogLength+1);
         glGetProgramInfoLog(ProgramID, InfoLogLength, nullptr, &ProgramErrorMessage[0]);
-        printf("%s\n", &ProgramErrorMessage[0]);
+        LOG(FATAL) << &ProgramErrorMessage[0];
     }
 }
 

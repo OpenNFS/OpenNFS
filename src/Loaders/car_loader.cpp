@@ -45,4 +45,6 @@ shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_na
             ASSERT(false, "Unknown car type!");
             break;
     }
+
+    return shared_ptr<Car>();
 }
