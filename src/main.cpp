@@ -4,17 +4,16 @@
 //
 //  Created by Amrik Sadhra on 27/01/2015.
 //
+
+#define TINYOBJLOADER_IMPLEMENTATION
+
 #include <cstdlib>
 #include <string>
 #include <iostream>
-#include <cmath>
-#include <future>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-// Source
-#include "Util/Logging.h"
+#include "Util/Logger.h"
 #include "Loaders/trk_loader.h"
 #include "Loaders/car_loader.h"
 #include "Loaders/music_loader.h"
@@ -24,7 +23,7 @@
 
 class OpenNFS {
 public:
-    void run() {
+    void run(std::shared_ptr<Logger> logger) {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
@@ -48,7 +47,7 @@ public:
             //Load Music
             //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
 
-            Renderer renderer(window, installedNFS, track, car);
+            Renderer renderer(window, logger, installedNFS, track, car);
             loadedAssets = renderer.Render();
         }
 
@@ -314,11 +313,11 @@ private:
 };
 
 int main(int argc, char **argv) {
-    Logging::InitialiseLogging();
+    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
     OpenNFS game;
 
     try {
-        game.run();
+        game.run(logger);
     } catch (const std::runtime_error &e) {
         LOG(WARNING) << e.what();
         return EXIT_FAILURE;

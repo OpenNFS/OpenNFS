@@ -10,8 +10,6 @@
 #include <LinearMath/btQuaternion.h>
 #include <LinearMath/btMatrix3x3.h>
 #include <tiny_obj_loader.h>
-#include <g3log/g3log.hpp>
-#include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
@@ -27,6 +25,7 @@
 #include <cstdio>
 #include <sstream>
 #include <iomanip>
+#include "Logger.h"
 #include "../Scene/CarModel.h"
 #include "../Enums.h"
 

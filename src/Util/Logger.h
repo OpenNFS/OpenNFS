@@ -12,6 +12,7 @@
 #endif
 
 #include <iostream>
+#include <cmath>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
@@ -21,11 +22,8 @@ static std::string FormatLog(const g3::LogMessage &msg) {
     const int levelFileLineWidth = 40;
 
     std::string timestamp(msg.timestamp().substr(11, 8)); // Trim microseconds and date from timestamp
-    std::string variableWidthMessage(
-            msg.level() + " [" + msg.file() + "->" + msg.function() + ":" + msg.line() + "]: ");
-    variableWidthMessage.append(
-            levelFileLineWidth > variableWidthMessage.length() ? (levelFileLineWidth - variableWidthMessage.length())
-                                                               : 0, ' '); // Pad variable width element to fixed size
+    std::string variableWidthMessage(msg.level() + " [" + msg.file() + "->" + msg.function() + ":" + msg.line() + "]: ");
+    variableWidthMessage.append(levelFileLineWidth > variableWidthMessage.length() ? (levelFileLineWidth - variableWidthMessage.length()) : 0, ' '); // Pad variable width element to fixed size
 
     return timestamp + " " + variableWidthMessage;
 }
@@ -93,7 +91,18 @@ struct AppLog {
     }
 };
 
-static AppLog onScreenLog;
+struct OnScreenLogSink {
+    AppLog *log;
+
+    explicit OnScreenLogSink(AppLog *targetLog) {
+        log = targetLog;
+    };
+
+    void ReceiveLogMessage(g3::LogMessageMover logEntry) {
+        auto level = logEntry.get()._level;
+        log->AddLog(logEntry.get().toString(&FormatLog).c_str(), nullptr);
+    }
+};
 
 struct ColorCoutSink {
 #ifdef _WIN32
@@ -124,23 +133,16 @@ struct ColorCoutSink {
         std::cout << logEntry.get().toString(&FormatLog);
         SetConsoleTextAttribute(consoleHandle_, WHITE);
 #else
-        std::cout << "\033[" << color << "m" << logEntry.get().toString() << "\033[m" << std::endl;
+        std::cout << "\033[" << color << "m" << logEntry.get().toString(&FormatLog) << "\033[m";
 #endif
     }
 };
 
-struct OnScreenLogSink {
-    void ReceiveLogMessage(g3::LogMessageMover logEntry) {
-        auto level = logEntry.get()._level;
-        onScreenLog.AddLog(logEntry.get().toString(&FormatLog).c_str());
-    }
-};
-
-class Logging {
-private:
-
+class Logger {
 public:
-    static void InitialiseLogging ();
+    AppLog onScreenLog;
+
+    explicit Logger();
 };
 
 

@@ -103,7 +103,7 @@ set(SOURCE_FILES
         src/Renderer/TrackRenderer.cpp
         src/Renderer/TrackRenderer.h
         src/Shaders/SkydomeShader.cpp
-        src/Shaders/SkydomeShader.h src/Renderer/SkyRenderer.cpp src/Renderer/SkyRenderer.h src/Shaders/DepthShader.cpp src/Shaders/DepthShader.h src/Util/Logging.cpp src/Util/Logging.h)
+        src/Shaders/SkydomeShader.h src/Renderer/SkyRenderer.cpp src/Renderer/SkyRenderer.h src/Shaders/DepthShader.cpp src/Shaders/DepthShader.h src/Util/Logger.cpp src/Util/Logger.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

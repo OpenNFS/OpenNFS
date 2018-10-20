@@ -11,13 +11,12 @@
 #include <imgui.h>
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
-#include <g3log/logworker.hpp>
-#include <g3log/g3log.hpp>
 
 #include "../Scene/Camera.h"
 #include "../Scene/Entity.h"
 #include "../Loaders/trk_loader.h"
 #include "../Physics/Physics.h"
+#include "../Util/Logger.h"
 #include "../Config.h"
 
 #include "HermiteCurve.h"
@@ -28,11 +27,12 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
+    Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
     ~Renderer();
     AssetData Render();
 private:
     GLFWwindow *window;
+    std::shared_ptr<Logger> logger;
     std::vector<NeedForSpeed> installedNFSGames;
     AssetData loadedAssets;
     shared_ptr<ONFSTrack> track;

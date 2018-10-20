@@ -6,8 +6,10 @@
 #include "Renderer.h"
 
 
-Renderer::Renderer(GLFWwindow *gl_window, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track), skyRenderer(current_track) {
+Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track), skyRenderer(current_track) {
     window = gl_window;
+    logger = onfs_logger;
+
     installedNFSGames = installedNFS;
     track = current_track;
     car = current_car;
@@ -108,7 +110,6 @@ AssetData Renderer::Render() {
     bool newAssetSelected = false;
 
     while (!glfwWindowShouldClose(window)) {
-        LOG(INFO) << "Banana";
         // glfwGetTime is called only once, the first time this function is called
         static double lastTime = glfwGetTime();
         // Compute time difference between current and last frame
@@ -495,7 +496,8 @@ void Renderer::SetCulling(bool toCull) {
 }
 
 void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
-    //onScreenLog.Draw("ONFS Log");
+    // Draw Logger UI
+    logger->onScreenLog.Draw("ONFS Log");
     // Draw UI (Tactically)
     static float f = 0.0f;
     ImGui::Text("OpenNFS Engine");
