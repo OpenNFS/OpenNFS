@@ -5,11 +5,14 @@
 #pragma once
 
 #include <imgui.h>
+#include <cstdint>
+#include <string>
+#include <vector>
+
 #include "Enums.h"
 
 const std::string ONFS_VERSION = "0.3";
 
-// TODO: Change these to consts
 const std::string LOG_FILE_PATH = "./";
 
 const std::string ASSET_PATH= "./assets/";
