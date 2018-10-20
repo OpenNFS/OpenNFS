@@ -13,7 +13,7 @@ public:
     DepthShader();
     void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
     void loadTransformMatrix(const glm::mat4 &transformationMatrix);
-
+    void bindTextureArray(GLuint textureArrayID);
 protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
@@ -21,6 +21,7 @@ protected:
 
     GLint lightSpaceMatrixLocation;
     GLint transformationMatrixLocation;
+    GLint textureArrayLocation;
 
     typedef BaseShader super;
 };

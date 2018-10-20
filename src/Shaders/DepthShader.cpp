@@ -21,11 +21,17 @@ void DepthShader::bindAttributes() {
 void DepthShader::getAllUniformLocations() {
     lightSpaceMatrixLocation = getUniformLocation("lightSpaceMatrix");
     transformationMatrixLocation = getUniformLocation("transformationMatrix");
+    textureArrayLocation = getUniformLocation("texture_array");
 }
-
 
 void DepthShader::customCleanup() {
 
+}
+
+void DepthShader::bindTextureArray(GLuint textureArrayID) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
+    glUniform1i(textureArrayLocation, 0);
 }
 
 void DepthShader::loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix) {

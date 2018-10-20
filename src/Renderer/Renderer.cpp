@@ -242,6 +242,7 @@ AssetData Renderer::Render() {
         glm::mat4 lightView = nightTime ? moon.ViewMatrix : sun.ViewMatrix;
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
         depthShader.loadLightSpaceMatrix(lightSpaceMatrix);
+        depthShader.bindTextureArray(track->textureArrayID);
 
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -266,6 +267,7 @@ AssetData Renderer::Render() {
             }
         }
         /* And the Car */
+        depthShader.bindTextureArray(car->textureArrayID);
         for (auto &misc_model : car->misc_models) {
             depthShader.loadTransformMatrix(misc_model.ModelMatrix);
             misc_model.render();

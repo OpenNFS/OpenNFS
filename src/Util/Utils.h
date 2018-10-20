@@ -47,7 +47,7 @@ typedef struct tagCP_BITMAPFILEHEADER {
 } CP_BITMAPFILEHEADER;
 #pragma pack(pop)
 
-typedef struct tagCP_CP_BITMAPINFOHEADER {
+typedef struct tagCP_BITMAPINFOHEADER {
     uint32_t biSize;
     int32_t biWidth;
     int32_t biHeight;
@@ -59,7 +59,7 @@ typedef struct tagCP_CP_BITMAPINFOHEADER {
     int32_t biYPelsPerMeter;
     uint32_t biClrUsed;
     uint32_t biClrImportant;
-} CP_CP_BITMAPINFOHEADER, *PCP_CP_BITMAPINFOHEADER;
+} CP_BITMAPINFOHEADER, *PCP_BITMAPINFOHEADER;
 
 typedef struct tagCP_RGBQUAD {
     uint8_t rgbBlue;
@@ -69,7 +69,7 @@ typedef struct tagCP_RGBQUAD {
 } CP_RGBQUAD;
 
 typedef struct tagCP_BITMAPINFO {
-    CP_CP_BITMAPINFOHEADER bmiHeader;
+    CP_BITMAPINFOHEADER bmiHeader;
     CP_RGBQUAD bmiColors[1];
 } CP_BITMAPINFO;
 

@@ -287,11 +287,11 @@ namespace Utils {
             return false;
         }
 
-        CP_CP_BITMAPINFOHEADER BMIH;                         // BMP header
-        BMIH.biSize = sizeof(CP_CP_BITMAPINFOHEADER);
+        CP_BITMAPINFOHEADER BMIH;                         // BMP header
+        BMIH.biSize = sizeof(CP_BITMAPINFOHEADER);
         BMIH.biSizeImage = w * h * 4;
         // Create the bitmap for this OpenGL context
-        BMIH.biSize = sizeof(CP_CP_BITMAPINFOHEADER);
+        BMIH.biSize = sizeof(CP_BITMAPINFOHEADER);
         BMIH.biWidth = w;
         BMIH.biHeight = h;
         BMIH.biPlanes = 1;
@@ -312,7 +312,7 @@ namespace Utils {
 		size_t nWrittenFileHeaderSize = fwrite(&bmfh, 1, sizeof(CP_BITMAPFILEHEADER), pFile);
 
         // And then the bitmap info header            // Saving the second header to file
-		size_t nWrittenInfoHeaderSize = fwrite(&BMIH, 1, sizeof(CP_CP_BITMAPINFOHEADER), pFile);
+		size_t nWrittenInfoHeaderSize = fwrite(&BMIH, 1, sizeof(CP_BITMAPINFOHEADER), pFile);
 
         // Finally, write the image data itself
         //-- the data represents our drawing          // Saving the file content in lpBits to file

@@ -84,7 +84,7 @@ void Track::render() {
 bool Track::genBuffers() {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
-    // Verts
+    // 1st attribute buffer : Vertices
     glGenBuffers(1, &vertexbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
@@ -96,9 +96,8 @@ bool Track::genBuffers() {
             0,                  // stride
             (void *) 0            // array buffer offset
     );
-    // 1st attribute buffer : Vertices
     glEnableVertexAttribArray(0);
-    // UVs
+    // 2nd attribute buffer : UVs
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
@@ -110,50 +109,47 @@ bool Track::genBuffers() {
             0,                                // stride
             (void *) 0                          // array buffer offset
     );
-    // 2nd attribute buffer : UVs
     glEnableVertexAttribArray(1);
-    // Texture Indices
-    glGenBuffers(1, &textureIndexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, textureIndexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_texture_indices.size() * sizeof(unsigned int), &m_texture_indices[0], GL_STATIC_DRAW);
-    glVertexAttribIPointer(
-            2,
-            1,
-            GL_UNSIGNED_INT,
-            0,
-            (void *) 0
-    );
-    // 3rd attribute buffer : Texture Indices
-    glEnableVertexAttribArray(2);
-    // NFS Shading Data
-    glGenBuffers(1, &shadingBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, shadingBuffer);
-    glBufferData(GL_ARRAY_BUFFER, m_shading_data.size() * sizeof(glm::vec4), &m_shading_data[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(
-            3,
-            4,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            (void *) 0
-    );
-    // 4th attribute buffer : NFS Shading Data
-    glEnableVertexAttribArray(3);
-    // Normals
+    // 3rd attribute buffer : Track Normals
     glGenBuffers(1, &normalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
     glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
     glVertexAttribPointer(
-            4,                  // attribute
+            2,                  // attribute
             3,                  // size
             GL_FLOAT,           // type
             GL_FALSE,           // normalized?
             0,                  // stride
             (void *) 0            // array buffer offset
     );
-    // 5th attribute buffer : Track Normals
+    glEnableVertexAttribArray(2);
+    // 4th attribute buffer : Texture Indices
+    glGenBuffers(1, &textureIndexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, textureIndexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, m_texture_indices.size() * sizeof(unsigned int), &m_texture_indices[0], GL_STATIC_DRAW);
+    glVertexAttribIPointer(
+            3,
+            1,
+            GL_UNSIGNED_INT,
+            0,
+            (void *) 0
+    );
+    glEnableVertexAttribArray(3);
+    // 5th attribute buffer : NFS Shading Data
+    glGenBuffers(1, &shadingBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, shadingBuffer);
+    glBufferData(GL_ARRAY_BUFFER, m_shading_data.size() * sizeof(glm::vec4), &m_shading_data[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(
+            4,
+            4,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void *) 0
+    );
     glEnableVertexAttribArray(4);
-    // Debug Data
+    // 6th attribute buffer : Debug Data
+    // Normals
     glGenBuffers(1, &debugBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, debugBuffer);
     glBufferData(GL_ARRAY_BUFFER, m_debug_data.size() * sizeof(uint32_t), &m_debug_data[0], GL_STATIC_DRAW);
@@ -164,8 +160,8 @@ bool Track::genBuffers() {
             0,
             (void *) 0
     );
-    // 6th attribute buffer : Debug Data
     glEnableVertexAttribArray(5);
+    // Lets not affect any state
     glBindVertexArray(0);
     return true;
 }

@@ -27,7 +27,7 @@ void TrackShader::getAllUniformLocations() {
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
     lightSpaceMatrixLocation = getUniformLocation("lightSpaceMatrix");
-    TrackTexturesID = getUniformLocation("textureArrayID");
+    trackTextureArrayLocation = getUniformLocation("texture_array");
     shineDamperLocation=  getUniformLocation("shineDamper");
     reflectivityLocation =  getUniformLocation("reflectivity");
     useClassicLocation = getUniformLocation("useClassic");
@@ -48,7 +48,7 @@ void TrackShader::customCleanup(){
 void TrackShader::bindTextureArray(GLuint textureArrayID) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
-    glUniform1i(TrackTexturesID, 0);
+    glUniform1i(trackTextureArrayLocation, 0);
 }
 
 void TrackShader::loadLights(std::vector<Light> lights) {

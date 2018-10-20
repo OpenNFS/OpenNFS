@@ -41,7 +41,7 @@ protected:
     GLint useClassicLocation;
     GLint shadowMapTextureLocation;
     GLint ambientFactorLocation;
-    GLint TrackTexturesID;
+    GLint trackTextureArrayLocation;
 
     typedef BaseShader super;
 };
