@@ -53,6 +53,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
+
 /* Windows compatibility */
 #if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>

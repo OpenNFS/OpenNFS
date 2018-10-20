@@ -46,7 +46,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     if ( InfoLogLength > 0 ){
         std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(VertexShaderID, InfoLogLength, nullptr, &VertexShaderErrorMessage[0]);
-        LOG(FATAL) << &VertexShaderErrorMessage[0];
+        LOG(WARNING) << &VertexShaderErrorMessage[0];
     }
 
     // Compile Fragment Shader
@@ -61,7 +61,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     if ( InfoLogLength > 0 ){
         std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nullptr, &FragmentShaderErrorMessage[0]);
-        LOG(FATAL) << &FragmentShaderErrorMessage[0];
+        LOG(WARNING) << &FragmentShaderErrorMessage[0];
     }
 
     // Link the program
@@ -78,7 +78,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     if ( InfoLogLength > 0 ){
         std::vector<char> ProgramErrorMessage(InfoLogLength+1);
         glGetProgramInfoLog(ProgramID, InfoLogLength, nullptr, &ProgramErrorMessage[0]);
-        LOG(FATAL) << &ProgramErrorMessage[0];
+        LOG(WARNING) << &ProgramErrorMessage[0];
     }
 }
 
@@ -133,7 +133,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(VertexShaderID, InfoLogLength, nullptr, &VertexShaderErrorMessage[0]);
-        LOG(FATAL) << &VertexShaderErrorMessage[0];
+        LOG(WARNING) << &VertexShaderErrorMessage[0];
     }
 
     // Compile Fragment Shader
@@ -148,7 +148,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(FragmentShaderID, InfoLogLength, nullptr, &FragmentShaderErrorMessage[0]);
-        LOG(FATAL) << &FragmentShaderErrorMessage[0];
+        LOG(WARNING) << &FragmentShaderErrorMessage[0];
     }
 
     // Compile Geometry Shader
@@ -163,7 +163,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> GeometryShaderErrorMessage(InfoLogLength+1);
         glGetShaderInfoLog(GeometryShaderID, InfoLogLength, nullptr, &GeometryShaderErrorMessage[0]);
-        LOG(FATAL) << &GeometryShaderErrorMessage[0];
+        LOG(WARNING) << &GeometryShaderErrorMessage[0];
     }
 
     // Link the program
@@ -181,7 +181,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     if ( InfoLogLength > 0 ){
         std::vector<char> ProgramErrorMessage(InfoLogLength+1);
         glGetProgramInfoLog(ProgramID, InfoLogLength, nullptr, &ProgramErrorMessage[0]);
-        LOG(FATAL) << &ProgramErrorMessage[0];
+        LOG(WARNING) << &ProgramErrorMessage[0];
     }
 }
 

@@ -23,7 +23,7 @@
 
 #include "music_loader.h"
 
-#define SWAPDWORD(x) ((((x)&0xFF)<<24)+(((x)>>24)&0xFF)+(((x)>>8)&0xFF00)+(((x)<<8)&0xFF0000))
+#define SWAPuint32_t(x) ((((x)&0xFF)<<24)+(((x)>>24)&0xFF)+(((x)>>8)&0xFF00)+(((x)<<8)&0xFF0000))
 #define HINIBBLE(byte) ((byte) >> 4)
 #define LONIBBLE(byte) ((byte) & 0x0F)
 
@@ -36,13 +36,13 @@ int32_t Clip16BitSample(int32_t sample) {
 		return sample;
 }
 
-void write_little_endian(unsigned int word, int num_bytes, FILE *wav_file) {
+void write_little_endian(unsigned int uint16_t, int num_bytes, FILE *wav_file) {
 	unsigned buf;
 	while (num_bytes > 0) {
-		buf = word & 0xff;
+		buf = uint16_t & 0xff;
 		fwrite(&buf, 1, 1, wav_file);
 		num_bytes--;
-		word >>= 8;
+		uint16_t >>= 8;
 	}
 }
 
@@ -346,7 +346,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     for (int startPos_Idx = 0; startPos_Idx < mapHeader->bNumSections; ++startPos_Idx) {
         uint32_t startingPosition;
         map.read((char *) &startingPosition, sizeof(uint32_t));
-        startingPositions[startPos_Idx] = SWAPDWORD(startingPosition);
+        startingPositions[startPos_Idx] = SWAPuint32_t(startingPosition);
     }
 
     std::cout << "MAP File successfully parsed. Playing back MUS file." << std::endl;

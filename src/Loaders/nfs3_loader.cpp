@@ -300,7 +300,7 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
     track->col.hs_extra = NULL;
     if (coll.read((char *) &track->col, 16).gcount() != 16) return false;
     if (memcmp(track->col.collID, "COLL", sizeof(track->col.collID[0])) != 0) {
-        LOG(FATAL) << "Invalid COL file";
+        LOG(WARNING) << "Invalid COL file";
         return false;
     }
 

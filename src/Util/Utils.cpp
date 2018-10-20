@@ -142,7 +142,7 @@ namespace Utils {
         std::string err;
         std::string warn;
         if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path.c_str(), nullptr, true, true)) {
-            LOG(FATAL) << err;
+            LOG(WARNING) << err;
             return meshes;
         }
         // Loop over shapes
@@ -181,6 +181,7 @@ namespace Utils {
     }
 
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir) {
+        LOG(INFO) << "Extracting VIV file: " << viv_path << " to " << output_dir;
         FILE *vivfile, *outfile;  // file stream
         int numberOfFiles; // number of files in viv file
         char filename[100];
@@ -192,7 +193,7 @@ namespace Utils {
         int a, b;
 
         if(boost::filesystem::exists(output_dir)){
-            LOG(INFO) << "VIV " << viv_path << " has already been extracted. Skipping.";
+            LOG(INFO) << "VIV has already been extracted. Skipping.";
             return true;
         } else {
             boost::filesystem::create_directories(output_dir);
@@ -201,7 +202,7 @@ namespace Utils {
         vivfile = fopen(viv_path.c_str(), "rb");
 
         if (!vivfile) {
-            printf("Error while opening %s\n", viv_path.c_str());
+            LOG(WARNING) << "Error while opening " << viv_path;
             return false;
         }
 
@@ -210,7 +211,7 @@ namespace Utils {
         }
 
         if (memcmp(buf, "BIGF", 4)) {
-            printf("%s if not a viv file\n", viv_path.c_str());
+            LOG(WARNING) << "Not a valid VIV file (BIGF header missing)";
             fclose(vivfile);
             return false;
         }
@@ -218,7 +219,7 @@ namespace Utils {
         readInt32(vivfile, false); // size of viv file
 
         numberOfFiles = readInt32(vivfile, false);
-        printf("Number of files: %d\n", numberOfFiles);
+        LOG(INFO) << "VIV contains " << numberOfFiles << " files";
 
         int startPos = readInt32(vivfile, false); // start position of files
 
@@ -226,7 +227,7 @@ namespace Utils {
 
         for (a = 0; a < numberOfFiles; a++) {
             if (fseek(vivfile, currentpos, SEEK_SET)) {
-                printf("Error while seeking in file %s\n", viv_path.c_str());
+                LOG(WARNING) << "Error while seeking in file.";
                 fclose(vivfile);
                 return false;
             }
@@ -250,13 +251,13 @@ namespace Utils {
             out_file_path << output_dir << filename;
 
             if ((outfile = fopen(out_file_path.str().c_str(), "wb")) == NULL) {
-                printf("Error while opening file %s\n", filename);
+                LOG(WARNING) << "Error while creating output file " << filename;
                 fclose(vivfile);
                 return false;
             }
 
             if (fseek(vivfile, filepos, SEEK_SET)) {
-                printf("Error while seeking in file %s\n", viv_path.c_str());
+                LOG(WARNING) << "Error while seeking in file.";
                 fclose(vivfile);
                 return false;
             }
@@ -267,7 +268,7 @@ namespace Utils {
             }
 
             fclose(outfile);
-            printf("File %s written successfully\n", filename);
+            LOG(INFO) << "File " << filename << " was written successfully";
         }
         fclose(vivfile);
 
@@ -286,32 +287,32 @@ namespace Utils {
             return false;
         }
 
-        BITMAPINFOHEADER BMIH;                         // BMP header
-        BMIH.biSize = sizeof(BITMAPINFOHEADER);
+        CP_CP_BITMAPINFOHEADER BMIH;                         // BMP header
+        BMIH.biSize = sizeof(CP_CP_BITMAPINFOHEADER);
         BMIH.biSizeImage = w * h * 4;
         // Create the bitmap for this OpenGL context
-        BMIH.biSize = sizeof(BITMAPINFOHEADER);
+        BMIH.biSize = sizeof(CP_CP_BITMAPINFOHEADER);
         BMIH.biWidth = w;
         BMIH.biHeight = h;
         BMIH.biPlanes = 1;
         BMIH.biBitCount = 32;
-        BMIH.biCompression = BI_RGB;
+        BMIH.biCompression = CP_BI_RGB;
 
 
-        BITMAPFILEHEADER bmfh;                         // Other BMP header
-        int nBitsOffset = sizeof(BITMAPFILEHEADER) + BMIH.biSize;
-        LONG lImageSize = BMIH.biSizeImage;
-        LONG lFileSize = nBitsOffset + lImageSize;
+        CP_BITMAPFILEHEADER bmfh;                         // Other BMP header
+        int nBitsOffset = sizeof(CP_BITMAPFILEHEADER) + BMIH.biSize;
+        int32_t lImageSize = BMIH.biSizeImage;
+        int32_t lFileSize = nBitsOffset + lImageSize;
         bmfh.bfType = 'B' + ('M' << 8);
         bmfh.bfOffBits = nBitsOffset;
         bmfh.bfSize = lFileSize;
         bmfh.bfReserved1 = bmfh.bfReserved2 = 0;
 
         // Write the bitmap file header               // Saving the first header to file
-		size_t nWrittenFileHeaderSize = fwrite(&bmfh, 1, sizeof(BITMAPFILEHEADER), pFile);
+		size_t nWrittenFileHeaderSize = fwrite(&bmfh, 1, sizeof(CP_BITMAPFILEHEADER), pFile);
 
         // And then the bitmap info header            // Saving the second header to file
-		size_t nWrittenInfoHeaderSize = fwrite(&BMIH, 1, sizeof(BITMAPINFOHEADER), pFile);
+		size_t nWrittenInfoHeaderSize = fwrite(&BMIH, 1, sizeof(CP_CP_BITMAPINFOHEADER), pFile);
 
         // Finally, write the image data itself
         //-- the data represents our drawing          // Saving the file content in lpBits to file
@@ -373,7 +374,7 @@ namespace Utils {
 
         // Check we're in a valid TRK file
         if (psh.read(((char *) pshHeader), sizeof(PS1::PSH::HEADER)).gcount() != sizeof(PS1::PSH::HEADER)) {
-            LOG(FATAL) << "Couldn't open file/truncated.";
+            LOG(WARNING) << "Couldn't open file/truncated.";
             delete pshHeader;
             return false;
         }
@@ -383,7 +384,7 @@ namespace Utils {
         // Header should contain TRAC
         if (memcmp(pshHeader->header, "SHPP", sizeof(pshHeader->header)) != 0 &&
             memcmp(pshHeader->chk, "GIMX", sizeof(pshHeader->chk)) != 0) {
-            LOG(FATAL) << "Invalid PSH Header(s).";
+            LOG(WARNING) << "Invalid PSH Header(s).";
             delete pshHeader;
             return false;
         }
@@ -518,17 +519,17 @@ namespace Utils {
         if (fp) {
             fseek(fp, 0L, 2);
             long size = ftell(fp);
-            if (size > (long) sizeof(BITMAPFILEHEADER)) {
+            if (size > (long) sizeof(CP_BITMAPFILEHEADER)) {
                 unsigned char *data = new unsigned char[size];
                 if (data) {
                     fseek(fp, 0L, 0);
                     if (fread(data, size, 1, fp) == 1) {
-                        BITMAPFILEHEADER *file_header = (BITMAPFILEHEADER *) data;
-                        if (file_header->bfType == MAKEWORD('B', 'M')) {
-                            if (file_header->bfSize == (DWORD) size) {
-                                BITMAPINFO *info = (BITMAPINFO *) (data + sizeof(BITMAPFILEHEADER));
+                        CP_BITMAPFILEHEADER *file_header = (CP_BITMAPFILEHEADER *) data;
+                        if (file_header->bfType == MAKEuint16_t('B', 'M')) {
+                            if (file_header->bfSize == (uint32_t) size) {
+                                CP_BITMAPINFO *info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
                                 // we only handle uncompressed bitmaps
-                                if (info->bmiHeader.biCompression == BI_RGB) {
+                                if (info->bmiHeader.biCompression == CP_BI_RGB) {
                                     width = info->bmiHeader.biWidth;
                                     *width_ = width;
                                     if (width > 0) {
@@ -548,7 +549,7 @@ namespace Utils {
                                                     // 8-bit palette bitmaps
                                                     case 8:
                                                         padding = w % 2;
-                                                        RGBQUAD rgba;
+                                                        CP_RGBQUAD rgba;
                                                         for (; h > 0; h--) {
                                                             for (w = width; w > 0; w--) {
                                                                 rgba = info->bmiColors[*pixel];
@@ -654,13 +655,13 @@ namespace Utils {
                 fseek(fp, 0L, 0);
                 fseek(fp_a, 0L, 0);
                 if ((fread(data, size, 1, fp) == 1) && (fread(data_a, size_a, 1, fp_a) == 1)) {
-                    BITMAPFILEHEADER *file_header = (BITMAPFILEHEADER *) data;
-                    BITMAPFILEHEADER *file_header_a = (BITMAPFILEHEADER *) data_a;
-                    if (file_header->bfType == MAKEWORD('B', 'M')) {
-                        if (file_header->bfSize == (DWORD) size) {
-                            BITMAPINFO *info = (BITMAPINFO *) (data + sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
-                            BITMAPINFO *info_a = (BITMAPINFO *) (data_a + sizeof(BITMAPFILEHEADER));// we only handle uncompressed bitmaps
-                            if (info->bmiHeader.biCompression == BI_RGB) {
+                    CP_BITMAPFILEHEADER *file_header = (CP_BITMAPFILEHEADER *) data;
+                    CP_BITMAPFILEHEADER *file_header_a = (CP_BITMAPFILEHEADER *) data_a;
+                    if (file_header->bfType == MAKEuint16_t('B', 'M')) {
+                        if (file_header->bfSize == (uint32_t) size) {
+                            CP_BITMAPINFO *info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));// we only handle uncompressed bitmaps
+                            CP_BITMAPINFO *info_a = (CP_BITMAPINFO *) (data_a + sizeof(CP_BITMAPFILEHEADER));// we only handle uncompressed bitmaps
+                            if (info->bmiHeader.biCompression == CP_BI_RGB) {
                                 width = info->bmiHeader.biWidth;
                                 *width_ = width;
                                 if (width > 0) {
@@ -682,7 +683,7 @@ namespace Utils {
                                                 case 8:
                                                     padding_a = w % 2;
                                                     padding = w % 2;
-                                                    RGBQUAD rgba;
+                                                    CP_RGBQUAD rgba;
                                                     for (; h > 0; h--) {
                                                         for (w = width; w > 0; w--) {
                                                             rgba = info->bmiColors[*pixel];

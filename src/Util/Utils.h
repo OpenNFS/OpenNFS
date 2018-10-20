@@ -34,59 +34,53 @@ extern "C" {
 #include "../../tools/fshtool.h"
 }
 
-#define BI_RGB 0x0000
-#define BI_BITFIELDS 0x0003
-
-typedef uint32_t DWORD;
-typedef uint16_t WORD;
-typedef uint8_t BYTE;
-typedef int32_t LONG;
+// Define Windows Bitmap structs and macros with CP (CrossPlatform prefix) to avoid redef when conditionally including Windows.h for logging colour handles
+#define CP_BI_RGB 0x0000
 
 #pragma pack(push, 2)
-typedef struct tagBITMAPFILEHEADER {
-    WORD bfType;
-    DWORD bfSize;
-    WORD bfReserved1;
-    WORD bfReserved2;
-    DWORD bfOffBits;
-} BITMAPFILEHEADER, *LPBITMAPFILEHEADER, *PBITMAPFILEHEADER;
+typedef struct tagCP_BITMAPFILEHEADER {
+    uint16_t bfType;
+    uint32_t bfSize;
+    uint16_t bfReserved1;
+    uint16_t bfReserved2;
+    uint32_t bfOffBits;
+} CP_BITMAPFILEHEADER;
 #pragma pack(pop)
 
-typedef struct tagBITMAPINFOHEADER {
-    DWORD biSize;
-    LONG biWidth;
-    LONG biHeight;
-    WORD biPlanes;
-    WORD biBitCount;
-    DWORD biCompression;
-    DWORD biSizeImage;
-    LONG biXPelsPerMeter;
-    LONG biYPelsPerMeter;
-    DWORD biClrUsed;
-    DWORD biClrImportant;
-} BITMAPINFOHEADER, *PBITMAPINFOHEADER;
+typedef struct tagCP_CP_BITMAPINFOHEADER {
+    uint32_t biSize;
+    int32_t biWidth;
+    int32_t biHeight;
+    uint16_t biPlanes;
+    uint16_t biBitCount;
+    uint32_t biCompression;
+    uint32_t biSizeImage;
+    int32_t biXPelsPerMeter;
+    int32_t biYPelsPerMeter;
+    uint32_t biClrUsed;
+    uint32_t biClrImportant;
+} CP_CP_BITMAPINFOHEADER, *PCP_CP_BITMAPINFOHEADER;
 
-typedef struct tagRGBQUAD {
-    BYTE rgbBlue;
-    BYTE rgbGreen;
-    BYTE rgbRed;
-    BYTE rgbReserved;
-} RGBQUAD;
+typedef struct tagCP_RGBQUAD {
+    uint8_t rgbBlue;
+    uint8_t rgbGreen;
+    uint8_t rgbRed;
+    uint8_t rgbReserved;
+} CP_RGBQUAD;
 
-typedef struct tagBITMAPINFO {
-    BITMAPINFOHEADER bmiHeader;
-    RGBQUAD bmiColors[1];
-} BITMAPINFO, *PBITMAPINFO;
+typedef struct tagCP_BITMAPINFO {
+    CP_CP_BITMAPINFOHEADER bmiHeader;
+    CP_RGBQUAD bmiColors[1];
+} CP_BITMAPINFO;
 
 
 #define SAFE_READ(file, structure, size)  if((file).read((char *) (structure), (size)).gcount() != (size)) return false
-#define MAKEWORD(a, b)    ((WORD)(((BYTE)(a))|(((WORD)((BYTE)(b)))<<8)))
+#define MAKEuint16_t(a, b)    ((uint16_t)(((uint8_t)(a))|(((uint16_t)((uint8_t)(b)))<<8)))
 #define ASSERT(condition, message) \
     do { \
         if (! (condition)) { \
-            LOG(FATAL) << "Assertion `" #condition "` failed in " << __FILE__ \
-                      << " line " << __LINE__ << ": " << message; \
-            LOG(FATAL) << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)"; \
+            LOG(WARNING) << "Assertion `" #condition "` failed in " << __FILE__ << " line " << __LINE__ << ": " << message; \
+            LOG(WARNING) << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)"; \
             char c;  \
             while(true) { \
                 c = std::getchar(); \

@@ -14,6 +14,13 @@
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
+// Windows Specific console handles for colour
+#ifdef _WIN32
+
+#include <windows.h>
+
+#endif
+
 #define TINYOBJLOADER_IMPLEMENTATION
 // Source
 #include "Loaders/trk_loader.h"
@@ -61,7 +68,7 @@ private:
     GLFWwindow *window;
 
     static void glfwError(int id, const char *description) {
-        LOG(FATAL) << description;
+        LOG(WARNING) << description;
     }
 
     bool initOpenGL() {
@@ -85,7 +92,7 @@ private:
         window = glfwCreateWindow(1920, 1080, "OpenNFS", nullptr, nullptr);
 
         if (window == nullptr) {
-            LOG(FATAL) << "Failed to create a GLFW window.";
+            LOG(WARNING) << "Failed to create a GLFW window.";
             getchar();
             glfwTerminate();
             return false;
@@ -96,7 +103,7 @@ private:
         glewExperimental = GL_TRUE; // Needed for core profile
 
         if (glewInit() != GLEW_OK) {
-            LOG(FATAL) << "Failed to initialize GLEW";
+            LOG(WARNING) << "Failed to initialize GLEW";
             getchar();
             glfwTerminate();
             return false;
@@ -314,22 +321,29 @@ private:
     }
 };
 
-std::string FormatLog(const g3::LogMessage& msg) {
+std::string FormatLog(const g3::LogMessage &msg) {
     const int levelFileLineWidth = 40;
 
     std::string timestamp(msg.timestamp().substr(11, 8)); // Trim microseconds and date from timestamp
-    std::string variableWidthMessage(msg.level() + " [" + msg.file() + "->" + msg.function() + ":" + msg.line() + "]: ");
-    variableWidthMessage.append(levelFileLineWidth > variableWidthMessage.length() ? (levelFileLineWidth - variableWidthMessage.length()) : 0, ' '); // Pad variable width element to fixed size
+    std::string variableWidthMessage(
+            msg.level() + " [" + msg.file() + "->" + msg.function() + ":" + msg.line() + "]: ");
+    variableWidthMessage.append(
+            levelFileLineWidth > variableWidthMessage.length() ? (levelFileLineWidth - variableWidthMessage.length())
+                                                               : 0, ' '); // Pad variable width element to fixed size
 
     return timestamp + " " + variableWidthMessage;
 }
 
 struct ColorCoutSink {
-    const std::string newHeader = "\t\tLOG format: [hh:mm:ss FILE->FUNCTION:LINE]: message\n\t\t\n\n";
-
+#ifdef _WIN32
+    enum FG_Color {
+        BLACK = 0, BLUE = 1, GREEN = 2, RED = 4, YELLOW = 6, WHITE = 7
+    };
+#else
     enum FG_Color {
         YELLOW = 33, RED = 31, GREEN = 32, WHITE = 97
     };
+#endif
 
     FG_Color GetColor(const LEVELS level) const {
         if (level.value == WARNING.value) { return YELLOW; }
@@ -342,11 +356,12 @@ struct ColorCoutSink {
     void ReceiveLogMessage(g3::LogMessageMover logEntry) {
         auto level = logEntry.get()._level;
         auto color = GetColor(level);
-
-
-
 #ifdef _WIN32
+        HANDLE consoleHandle_;
+        consoleHandle_ = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleTextAttribute(consoleHandle_, color);
         std::cout << logEntry.get().toString(&FormatLog);
+        SetConsoleTextAttribute(consoleHandle_, WHITE);
 #else
         std::cout << "\033[" << color << "m" << logEntry.get().toString() << "\033[m" << std::endl;
 #endif
@@ -355,9 +370,8 @@ struct ColorCoutSink {
 
 int main(int argc, char **argv) {
     // Set up logging framework
-    using namespace g3;
-    auto worker = LogWorker::createLogWorker();
-    auto defaultHandler = worker->addDefaultLogger(argv[0], LOG_FILE_PATH);
+    auto worker = g3::LogWorker::createLogWorker();
+    auto defaultHandler = worker->addDefaultLogger("OpenNFS", LOG_FILE_PATH, "");
     auto changeFormatting = defaultHandler->call(&g3::FileSink::overrideLogDetails, g3::LogMessage::FullLogDetailsToString);
     const std::string newHeader = "\t\tLOG format: [hh:mm:ss FILE->FUNCTION:LINE]: message\n\t\t\n\n";
     auto changeHeader = defaultHandler->call(&g3::FileSink::overrideLogHeader, newHeader);
@@ -371,7 +385,7 @@ int main(int argc, char **argv) {
     try {
         game.run();
     } catch (const std::runtime_error &e) {
-        LOG(FATAL) << e.what();
+        LOG(WARNING) << e.what();
         return EXIT_FAILURE;
     }
 
