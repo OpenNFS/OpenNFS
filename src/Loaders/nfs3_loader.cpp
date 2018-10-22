@@ -420,6 +420,8 @@ bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track) {
 }
 
 std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track) {
+    LOG(INFO) << "Parsing TRK file into ONFS GL structures";
+
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
@@ -618,6 +620,8 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
 }
 
 std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
+    LOG(INFO) << "Parsing COL file into ONFS GL structures";
+
     std::vector<Entity> col_entities;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 

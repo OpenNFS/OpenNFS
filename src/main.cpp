@@ -27,9 +27,9 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(initOpenGL(), "OpenGL init failed.");
-        initDirectories();
-        std::vector<NeedForSpeed> installedNFS = populateAssets();
+        ASSERT(InitOpenGL(), "OpenGL init failed.");
+        InitDirectories();
+        std::vector<NeedForSpeed> installedNFS = PopulateAssets();
 
         AssetData loadedAssets = {
                 NFS_3, "diab",
@@ -62,7 +62,7 @@ private:
         LOG(WARNING) << description;
     }
 
-    bool initOpenGL() {
+    bool InitOpenGL() {
         // Initialise GLFW
         ASSERT(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&glfwError);
@@ -111,12 +111,8 @@ private:
         // Enable depth test
         glEnable(GL_DEPTH_TEST);
         // Accept fragment if it closer to the camera than the former one
-        // glDepthFunc(GL_LESS);
+        glDepthFunc(GL_LESS);
 
-        // Cull triangles which normal is not towards the camera (when culling is enabled)
-        // glFrontFace(GL_CCW);
-        /*glEnable(GL_BACK);*/
-        //glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -130,7 +126,7 @@ private:
         return true;
     }
 
-    void initDirectories() {
+    void InitDirectories() {
         if (!(boost::filesystem::exists(CAR_PATH))) {
             boost::filesystem::create_directories(CAR_PATH);
         }
@@ -139,7 +135,7 @@ private:
         }
     }
 
-    std::vector<NeedForSpeed> populateAssets() {
+    std::vector<NeedForSpeed> PopulateAssets() {
         using namespace boost::filesystem;
 
         path basePath(RESOURCE_PATH);

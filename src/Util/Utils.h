@@ -75,19 +75,6 @@ typedef struct tagCP_BITMAPINFO {
 
 #define SAFE_READ(file, structure, size)  if((file).read((char *) (structure), (size)).gcount() != (size)) return false
 #define MAKEuint16_t(a, b)    ((uint16_t)(((uint8_t)(a))|(((uint16_t)((uint8_t)(b)))<<8)))
-#define ASSERT(condition, message) \
-    do { \
-        if (! (condition)) { \
-            LOG(WARNING) << "Assertion `" #condition "` failed in " << __FILE__ << " line " << __LINE__ << ": " << message; \
-            LOG(WARNING) << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)"; \
-            char c;  \
-            while(true) { \
-                c = std::getchar(); \
-                if (c==27) break; \
-            } \
-            std::terminate(); \
-        } \
-    } while (false)
 
 #define nyop "nop"
 

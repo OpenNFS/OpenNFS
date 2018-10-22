@@ -124,6 +124,8 @@ if (WIN32)
     target_link_libraries(OpenNFS dbghelp)
 endif ()
 add_dependencies(OpenNFS g3logger)
+#[[Tiny DNN]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/tiny-dnn")
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)

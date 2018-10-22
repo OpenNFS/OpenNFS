@@ -19,7 +19,6 @@ public:
     bool genBuffers()override;
 
     glm::vec3 attenuation = glm::vec3(2.0f, 0.0f, 0.1f);
-    glm::vec3 position{};
     glm::vec4 colour;
     long type;
 

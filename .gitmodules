@@ -22,3 +22,6 @@
 [submodule "lib/g3log"]
 	path = lib/g3log
 	url = https://github.com/KjellKod/g3log.git
+[submodule "lib/tiny-dnn"]
+	path = lib/tiny-dnn
+	url = https://github.com/tiny-dnn/tiny-dnn.git

@@ -18,6 +18,20 @@
 
 #include "../Config.h"
 
+#define ASSERT(condition, message) \
+    do { \
+        if (! (condition)) { \
+            LOG(WARNING) << "Assertion `" #condition "` failed in " << __FILE__ << " line " << __LINE__ << ": " << message; \
+            LOG(WARNING) << "Press ESC to terminate, and let me know on Discord! (if you're sure this isn't your own fault)"; \
+            char c;  \
+            while(true) { \
+                c = std::getchar(); \
+                if (c==27) break; \
+            } \
+            std::terminate(); \
+        } \
+    } while (false)
+
 static std::string FormatLog(const g3::LogMessage &msg) {
     const int levelFileLineWidth = 40;
 
@@ -31,12 +45,13 @@ static std::string FormatLog(const g3::LogMessage &msg) {
 struct AppLog {
     ImGuiTextBuffer     Buf;
     ImGuiTextFilter     Filter;
+    ImVec4              TextColour;
     ImVector<int>       LineOffsets;        // Index to lines offset
     bool                ScrollToBottom;
 
     void    Clear()     { Buf.clear(); LineOffsets.clear(); }
 
-    void    AddLog(const char* fmt, ...) IM_FMTARGS(2)
+    void    AddLog(ImVec4 textColour, const char* fmt, ...) IM_FMTARGS(3)
     {
         int old_size = Buf.size();
         va_list args;
@@ -47,6 +62,7 @@ struct AppLog {
             if (Buf[old_size] == '\n')
                 LineOffsets.push_back(old_size);
         ScrollToBottom = true;
+        TextColour = textColour;
     }
 
     void    Draw(const char* title, bool* p_open = NULL)
@@ -66,6 +82,7 @@ struct AppLog {
         ImGui::BeginChild("scrolling", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar);
         if (copy) ImGui::LogToClipboard();
 
+        //ImGui::PushStyleColor(ImGuiCol_Text, TextColour);
         if (Filter.IsActive())
         {
             const char* buf_begin = Buf.begin();
@@ -82,6 +99,7 @@ struct AppLog {
         {
             ImGui::TextUnformatted(Buf.begin());
         }
+        //ImGui::PopStyleColor();
 
         if (ScrollToBottom)
             ImGui::SetScrollHereY(1.0f);
@@ -98,9 +116,19 @@ struct OnScreenLogSink {
         log = targetLog;
     };
 
+    ImVec4 GetColor(const LEVELS level) const {
+        if (level.value == WARNING.value) { return ImVec4(1.f, 1.f, 0.f, 1.f); }
+        if (level.value == DEBUG.value) { return ImVec4(0.f, 1.f, 0.f, 1.f); }
+        if (g3::internal::wasFatal(level)) { return ImVec4(1.f, 0.f, 0.f, 1.f); }
+
+        return ImVec4(1.f, 1.f, 1.f, 0.f);
+    }
+
     void ReceiveLogMessage(g3::LogMessageMover logEntry) {
         auto level = logEntry.get()._level;
-        log->AddLog(logEntry.get().toString(&FormatLog).c_str(), nullptr);
+        auto color = GetColor(level);
+
+        log->AddLog(color, logEntry.get().toString(&FormatLog).c_str(), nullptr);
     }
 };
 

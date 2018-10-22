@@ -16,6 +16,7 @@
 #include "../Util/Utils.h"
 #include "../Scene/TrackBlock.h"
 #include "../nfs_data.h"
+#include "../Util/Logger.h"
 
 #define scaleFactor 1000000.0f
 
