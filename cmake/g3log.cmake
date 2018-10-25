@@ -18,11 +18,14 @@ else ()
     set(GENERATOR ${CMAKE_GENERATOR})
 endif ()
 
+set(SH_NOT_FOUND "CMAKE_SH-NOTFOUND")
+
 if (NOT EXISTS G3LOGGER_BUILD_DIR)
     message("Configuring G3log")
     file(MAKE_DIRECTORY ${G3LOGGER_BUILD_DIR})
     execute_process(COMMAND ${CMAKE_COMMAND}
             "-G${GENERATOR}"
+            "-DCMAKE_SH=${SH_NOT_FOUND}"
             "-DCMAKE_BUILD_TYPE=Release"
             "-DG3_SHARED_LIB=OFF"
             "-H${DEP_ROOT_DIR}/${G3LOG_NAME}"
