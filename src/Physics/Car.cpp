@@ -72,6 +72,14 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     m_carChassis->setDamping(0.2,0.2);
     m_carChassis -> setLinearVelocity(btVector3(0,0,0));
     m_carChassis -> setAngularVelocity(btVector3(0,0,0));
+
+    /* THIS DOESN'T BELONG HERE BUT I'M TESTING OK */
+    //carNet << fully_connected_layer(3, 6) << tanh_layer()
+    //      << fully_connected_layer(6, 4) << tanh_layer();
+    // Gen visualisation of NN
+   // std::ofstream ofs("car_neural_net_graphviz.txt");
+   // graph_visualizer viz(carNet, "graph");
+   // viz.generate(ofs);
 }
 
 // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
@@ -458,7 +466,14 @@ float Car::getRotY() {
 
 // TODO: This code should be in a CarController class of some sort
 void Car::simulate() {
-    if(leftDistance < 1.0f){
+    //vec_t carInputs = {leftDistance, rightDistance, forwardDistance};
+   // vec_t carOutputs = carNet.predict(carInputs);
+
+    //applySteeringRight(carOutputs[0]);
+    //applySteeringLeft(carOutputs[1]);
+    //applyAccelerationForce(carOutputs[2], carOutputs[3]);
+
+    /*if(leftDistance < 1.0f){
         applySteeringRight(true);
     } else {
         applySteeringRight(false);
@@ -491,5 +506,5 @@ void Car::simulate() {
 
     if(upDistance <= 0.5f || upDistance > 90.0f){
         resetCar(car_body_model.position);
-    }
+    }*/
 }

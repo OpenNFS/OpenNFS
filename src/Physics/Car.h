@@ -12,10 +12,12 @@
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
 
-
+//#include "tiny_dnn/tiny_dnn.h"
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
 #include "../Enums.h"
+
+//using namespace tiny_dnn;
 
 class Car {
 public:
@@ -113,4 +115,7 @@ private:
     bool steerRight;
     bool steerLeft;
     bool isSteering;
+
+    // Car Neural Net
+    //network<sequential> carNet;
 };

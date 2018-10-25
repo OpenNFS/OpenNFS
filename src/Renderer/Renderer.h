@@ -11,7 +11,6 @@
 #include <imgui.h>
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
-#include "tiny_dnn/tiny_dnn.h"
 
 #include "../Scene/Camera.h"
 #include "../Scene/Entity.h"
@@ -26,7 +25,6 @@
 #include "SkyRenderer.h"
 #include "../Shaders/DepthShader.h"
 
-using namespace tiny_dnn;
 
 class Renderer {
 public:

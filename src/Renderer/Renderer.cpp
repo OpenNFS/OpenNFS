@@ -46,12 +46,6 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
     InitialiseDepthTexture();
 
     LOG(DEBUG) << "Renderer Initialised";
-
-    /* THIS DOESN'T BELONG HERE BUT I'M TESTING OK */
-   // network<sequential> mynet;
-   // mynet << fully_connected_layer(32 * 32, 300) << tanh()
-   //       << fully_connected_layer(300, 10) << tiny_dnn::tanh();
-   // mynet.c
 }
 
 void Renderer::InitialiseDepthTexture() {
