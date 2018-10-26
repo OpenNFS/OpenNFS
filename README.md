@@ -1,6 +1,6 @@
 # OpenNFS 
 
-#### Linux [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/GCC%20Linux%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=4) Windows [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MSVC%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=2) Mac [![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/Clang%20Mac%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=3)
+#### Linux [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/GCC%20Linux%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=4) Windows [![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MinGW%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=5) Mac [![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/Clang%20Mac%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=3)
 
 An attempt to recreate the classic Need for Speed Games (1-6), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
  
@@ -48,7 +48,7 @@ OpenNFS does not bundle any EA intellectual property. A copy of the original gam
 All versions (Windows/Mac/Linux) are built on VSTS, but the current build artifacts only contain the OpenNFS.exe. To use these builds, it is recommended to download a Github Release from the 'Releases' page, and replace the OpenNFS exe with that produced by CI. You will most likely also need to update the 'shaders' directory, using the latest available from Git. I will alter my CI scripts soon to produce zips that can be ran without these extra steps.
 
 #### VSTS Windows 
-[![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MSVC%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=2)
+[![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MinGW%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=5)
 
 #### VSTS Linux 
 [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/GCC%20Linux%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=4)
