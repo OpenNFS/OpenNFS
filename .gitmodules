@@ -19,9 +19,9 @@
 [submodule "include/tinyobjloader"]
 	path = include/tinyobjloader
 	url = https://github.com/syoyo/tinyobjloader.git
-[submodule "lib/g3log"]
-	path = lib/g3log
-	url = https://github.com/AmrikSadhra/g3log.git
 [submodule "lib/tiny-dnn"]
 	path = lib/tiny-dnn
 	url = https://github.com/tiny-dnn/tiny-dnn.git
+[submodule "g3log"]
+	path = lib/g3log
+	url = https://github.com/AmrikSadhra/g3log.git
