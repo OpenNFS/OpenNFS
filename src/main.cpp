@@ -12,6 +12,7 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <zmq.h>
 
 #include "Util/Logger.h"
 #include "Loaders/trk_loader.h"
@@ -19,6 +20,7 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
+#include "RaceNet/MutationController.h"
 
 
 class OpenNFS {
@@ -50,6 +52,21 @@ public:
             Renderer renderer(window, logger, installedNFS, track, car);
             loadedAssets = renderer.Render();
         }
+
+        // Close OpenGL window and terminate GLFW
+        glfwTerminate();
+    }
+    void train(){
+        LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
+
+        // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
+        ASSERT(InitOpenGL(), "OpenGL init failed.");
+        InitDirectories();
+
+        //Load Track Data
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(NFS_3, "trk006");
+
+        auto mutationController = MutationController(10, 10000, track);
 
         // Close OpenGL window and terminate GLFW
         glfwTerminate();
@@ -132,6 +149,27 @@ private:
         }
         if (!(boost::filesystem::exists(TRACK_PATH))) {
             boost::filesystem::create_directories(TRACK_PATH);
+        }
+    }
+
+    void InitZMQSocket() {
+        void *ctx = zmq_ctx_new();
+        void *subscriber = zmq_socket(ctx, ZMQ_SUB);
+
+        zmq_bind(subscriber, "tcp://*:5563");
+        zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
+
+        while (true) {
+            zmq_msg_t msg;
+            int rc;
+
+            rc = zmq_msg_init(&msg);
+            assert(rc == 0);
+            std::cout << "waiting for message..." << std::endl;
+            rc = zmq_msg_recv(&msg, subscriber, 0);
+
+            std::cout << "received: " << (char *) zmq_msg_data(&msg) << std::endl;
+            zmq_msg_close(&msg);
         }
     }
 
@@ -309,11 +347,22 @@ private:
 };
 
 int main(int argc, char **argv) {
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
+    std::vector<std::string> args(argv, argv+argc);
+    bool trainingMode = false;
+
+    if(argc > 1){
+        trainingMode= (args[1] == "train");
+    }
+
+    std::shared_ptr<Logger> logger = std::make_shared<Logger>(!trainingMode); // Enable IMGUI logger if not in Training mode
     OpenNFS game;
 
     try {
-        game.run(logger);
+        if(trainingMode){
+            game.train();
+        } else {
+            game.run(logger);
+        }
     } catch (const std::runtime_error &e) {
         LOG(WARNING) << e.what();
         return EXIT_FAILURE;

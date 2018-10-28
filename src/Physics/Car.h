@@ -12,19 +12,19 @@
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
 
-//#include "tiny_dnn/tiny_dnn.h"
+#include "../RaceNet/RaceNet.h"
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
 #include "../Enums.h"
 
-//using namespace tiny_dnn;
-
 class Car {
 public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
+    Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet); // Neural Net/GA Training
     Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID); // Multitextured car
     ~Car();
     void setPosition(glm::vec3 position);
+    void setNetwork(RaceNet carNet) { this->carNet = carNet; };
     void update();
     void simulate();
     void update(btDynamicsWorld* dynamicsWorld);
@@ -117,5 +117,5 @@ private:
     bool isSteering;
 
     // Car Neural Net
-    //network<sequential> carNet;
+    RaceNet carNet;
 };

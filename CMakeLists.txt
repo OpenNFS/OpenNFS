@@ -103,7 +103,7 @@ set(SOURCE_FILES
         src/Renderer/TrackRenderer.cpp
         src/Renderer/TrackRenderer.h
         src/Shaders/SkydomeShader.cpp
-        src/Shaders/SkydomeShader.h src/Renderer/SkyRenderer.cpp src/Renderer/SkyRenderer.h src/Shaders/DepthShader.cpp src/Shaders/DepthShader.h src/Util/Logger.cpp src/Util/Logger.h)
+        src/Shaders/SkydomeShader.h src/Renderer/SkyRenderer.cpp src/Renderer/SkyRenderer.h src/Shaders/DepthShader.cpp src/Shaders/DepthShader.h src/Util/Logger.cpp src/Util/Logger.h src/RaceNet/Network.cpp src/RaceNet/Network.h src/RaceNet/Matrix.h src/RaceNet/RaceNet.cpp src/RaceNet/RaceNet.h src/RaceNet/TrainingGround.cpp src/RaceNet/TrainingGround.h src/RaceNet/MutationController.cpp src/RaceNet/MutationController.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
@@ -124,6 +124,10 @@ if (WIN32)
     target_link_libraries(OpenNFS dbghelp)
 endif ()
 add_dependencies(OpenNFS g3logger)
+#[[ZeroMQ]]
+add_subdirectory(lib/libzmq/)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/libzmq/include")
+target_link_libraries(OpenNFS libzmq-static)
 #[[Tiny DNN]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/tiny-dnn")
 #[[Bullet Configuration]]

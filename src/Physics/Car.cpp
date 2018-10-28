@@ -11,6 +11,9 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     multitexturedCarModel = true;
 }
 
+Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet) : Car(car_meshes, nfs_version, car_name) {
+    this->carNet = carNet;
+}
 
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
     tag = nfs_version;
@@ -464,14 +467,20 @@ float Car::getRotY() {
     return glm::degrees(atan2(2*orientation.y*orientation.w - 2*orientation.x*orientation.z, 1 - 2*orientation.y*orientation.y - 2*orientation.z*orientation.z));
 }
 
-// TODO: This code should be in a CarController class of some sort
-void Car::simulate() {
-    //vec_t carInputs = {leftDistance, rightDistance, forwardDistance};
-   // vec_t carOutputs = carNet.predict(carInputs);
 
-    //applySteeringRight(carOutputs[0]);
-    //applySteeringLeft(carOutputs[1]);
-    //applyAccelerationForce(carOutputs[2], carOutputs[3]);
+void Car::simulate() {
+    std::vector<double> raycastInputs;
+    raycastInputs = {leftDistance, rightDistance};
+
+    std::vector<double> networkOutputs = carNet.Infer(raycastInputs);
+    applySteeringLeft(networkOutputs[0]);
+    applySteeringRight(networkOutputs[1]);
+
+    if(forwardDistance >= 1.0f){
+        applyAccelerationForce(false, true);
+    } else {
+        applyAccelerationForce(true, false);
+    }
 
     /*if(leftDistance < 1.0f){
         applySteeringRight(true);
@@ -508,3 +517,5 @@ void Car::simulate() {
         resetCar(car_body_model.position);
     }*/
 }
+
+
