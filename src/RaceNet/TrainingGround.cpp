@@ -2,9 +2,9 @@
 // Created by Amrik on 28/10/2018.
 //
 
-#include "MutationController.h"
+#include "TrainingGround.h"
 
-MutationController::MutationController(uint16_t populationSize, uint16_t nGenerations, shared_ptr<ONFSTrack> training_track) {
+TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, shared_ptr<ONFSTrack> training_track) {
     LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations: " << nGenerations << " Track: " << training_track->name;
     const float stepTime = 1 / 60.f;
 
@@ -16,8 +16,8 @@ MutationController::MutationController(uint16_t populationSize, uint16_t nGenera
     // Create new cars, each with new RaceNetworks
     for (uint16_t pop_Idx = 0; pop_Idx < populationSize; ++pop_Idx) {
         shared_ptr<Car> car_agent = std::make_shared<Car>(pop_Idx, fce_models, NFS_3, "diab", RaceNet());
-        // TODO: Ensure that these cannot hit eachother
         physicsEngine.registerVehicle(car_agent);
+        car_agent->resetCar(glm::vec3(this->training_track->track_blocks[0].center.x, this->training_track->track_blocks[0].center.y, this->training_track->track_blocks[0].center.z));
         car_agents.emplace_back(car_agent);
     }
 
@@ -40,7 +40,7 @@ MutationController::MutationController(uint16_t populationSize, uint16_t nGenera
 }
 
 // Move this to agent class?
-float MutationController::EvaluateFitness(shared_ptr<Car> car_agent) {
+float TrainingGround::EvaluateFitness(shared_ptr<Car> car_agent) {
     int closestBlockID = 0;
 
     float lowestDistanceSqr = FLT_MAX;

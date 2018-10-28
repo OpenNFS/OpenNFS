@@ -20,7 +20,7 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
-#include "RaceNet/MutationController.h"
+#include "RaceNet/TrainingGround.h"
 
 
 class OpenNFS {
@@ -66,7 +66,7 @@ public:
         //Load Track Data
         std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(NFS_3, "trk006");
 
-        auto mutationController = MutationController(10, 10000, track);
+        auto trainingGround = TrainingGround(10, 10000, track);
 
         // Close OpenGL window and terminate GLFW
         glfwTerminate();

@@ -11,9 +11,9 @@
 #include "../Loaders/nfs3_loader.h"
 #include "../Physics/Physics.h"
 
-class MutationController {
+class TrainingGround {
 public:
-    explicit MutationController(uint16_t populationSize, uint16_t nGenerations, shared_ptr<ONFSTrack> training_track);
+    explicit TrainingGround(uint16_t populationSize, uint16_t nGenerations, shared_ptr<ONFSTrack> training_track);
     float EvaluateFitness(shared_ptr<Car> car_agent);
 private:
     shared_ptr<ONFSTrack> training_track;

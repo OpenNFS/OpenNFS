@@ -6,16 +6,6 @@
 
 #include <boost/preprocessor.hpp>
 
-#define BIT(x) (1<<(x))
-
-enum collisionTypes {
-    COL_NOTHING = 0, //<Collide with nothing
-    COL_RAY = BIT(0),
-    COL_CAR = BIT(1), //<Collide with cars
-    COL_TRACK = BIT(2) //<Collide with track
-};
-
-
 #define X_DEFINE_ENUM_WITH_STRING_CONVERSIONS_TOSTRING_CASE(r, data, elem)    \
     case elem : return BOOST_PP_STRINGIZE(elem);
 
