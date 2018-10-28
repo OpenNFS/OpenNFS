@@ -5,7 +5,7 @@
 
 #include "Renderer.h"
 
-
+#include "../Loaders/car_loader.h"
 Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
                    const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track,
                    shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track),
@@ -18,6 +18,7 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
     loadedAssets.car = car->name;
     loadedAssets.trackTag = track->tag;
     loadedAssets.track = track->name;
+
 
     glm::vec3 initialCameraPosition;
     if (track->tag == NFS_3_PS1) {
@@ -35,6 +36,10 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
     // Generate the collision meshes
     physicsEngine.registerTrack(track);
     physicsEngine.registerVehicle(car);
+
+    shared_ptr<Car> newCar = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+    physicsEngine.registerVehicle(newCar);
+    newCar->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z));
 
     /*------- ImGui -------*/
     ImGui::CreateContext();
@@ -100,8 +105,7 @@ AssetData Renderer::Render() {
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
 
-    car->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y,
-                            track->track_blocks[0].center.z));
+    car->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z));
 
     bool entity_targeted = false;
     Entity *targetedEntity;
@@ -387,6 +391,7 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
                                                            btVector3(out_end.x, out_end.y, out_end.z));
+    RayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK;
     physicsEngine.getDynamicsWorld()->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z),
                                               btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
     if (RayCallback.hasHit()) {

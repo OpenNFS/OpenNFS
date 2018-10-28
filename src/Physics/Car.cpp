@@ -11,7 +11,8 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     multitexturedCarModel = true;
 }
 
-Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet) : Car(car_meshes, nfs_version, car_name) {
+Car::Car(uint16_t populationID, std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet) : Car(car_meshes, nfs_version, car_name) {
+    this->populationID = populationID;
     this->carNet = carNet;
 }
 

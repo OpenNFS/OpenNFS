@@ -199,9 +199,8 @@ void Physics::stepSimulation(float time) {
 }
 
 void Physics::cleanSimulation() {
-    // TODO: Only cleanup if have loaded these guys
     for (auto &car : cars) {
-        //dynamicsWorld->removeRigidBody(car->);
+        dynamicsWorld->removeRigidBody(car->getVehicleRigidBody());
     }
     for (auto &track_block : current_track->track_blocks) {
         for (auto &road : track_block.track) {
@@ -233,15 +232,15 @@ void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
     for (auto &track_block : track->track_blocks) {
         for (auto &road : track_block.track) {
             road.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(road.rigidBody);
+            dynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY);
         }
         for (auto &object : track_block.objects) {
             object.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(object.rigidBody);
+            dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
         }
         for (auto &light : track_block.lights) {
             light.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(light.rigidBody);
+            dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
         }
     }
 }
@@ -255,13 +254,9 @@ void Physics::registerVehicle(std::shared_ptr<Car> car) {
     float wheelWidth = car->getWheelWidth();
     btScalar sRestLength = car->getSuspensionRestLength();
 
-    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->
-            cleanProxyFromPairs(
-            car->getVehicleRigidBody()->getBroadphaseHandle(),
-            dynamicsWorld->getDispatcher()
-    );
+    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
 
-    dynamicsWorld->addRigidBody(car->getVehicleRigidBody());
+    dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK| COL_RAY);
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
     car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
     car->getVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
