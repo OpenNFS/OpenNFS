@@ -17,25 +17,7 @@ double stepFunction(double x)
     return x;
 }
 
-RaceNet::RaceNet() : net(layerParams, 0.7) {
-    /*LOG(INFO) << "Training RaceNet";
-    // Turn right if close to left, turn left if close to write
-    // Inputs: {leftDistance, rightDistance}
-    // Outputs: {turnLeft, turn Right}
-    vector<vector<double> > inputVector = {{0,1}, {1,0}, {1,1}};
-    vector<vector<double> > outputVector = {{0, 1}, {1, 0}, {0, 0}};
-
-
-    // train on 10000 iterations
-    for (int i=0 ; i<10000 ; i++)
-    {
-        for (int j=0 ; j<inputVector.size() ; j++)
-        {
-            net.computeOutput(inputVector[j]);
-            net.learn(outputVector[j]);
-        }
-    }*/
-}
+RaceNet::RaceNet() : net(layerParams, learningRate) {}
 
 vector<double> RaceNet::Infer(vector<double> raycastInputs) {
         // as the sigmoid function never reaches 0.0 nor 1.0
@@ -46,6 +28,8 @@ vector<double> RaceNet::Infer(vector<double> raycastInputs) {
 
         resultVector.emplace_back(resultMatrix.get(0, 0));
         resultVector.emplace_back(resultMatrix.get(0, 1));
+        resultVector.emplace_back(resultMatrix.get(0, 2));
+        //resultVector.emplace_back(resultMatrix.get(0, 3));
 
         return resultVector;
 }

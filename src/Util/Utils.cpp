@@ -6,6 +6,18 @@
 #include "../nfs_data.h"
 
 namespace Utils {
+    float RandomFloat(float min, float max) {
+        // this  function assumes max > min, you may want
+        // more robust error checking for a non-debug build
+        assert(max > min);
+        float random = ((float) rand()) / (float) RAND_MAX;
+
+        // generate (in your case) a float between 0 and (4.5-.78)
+        // then add .78, giving you a float between .78 and 4.5
+        float range = max - min;
+        return (random * range) + min;
+    }
+
     glm::vec3 bulletToGlm(const btVector3 &v) { return glm::vec3(v.getX(), v.getY(), v.getZ()); }
 
     btVector3 glmToBullet(const glm::vec3 &v) { return btVector3(v.x, v.y, v.z); }

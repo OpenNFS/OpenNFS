@@ -29,7 +29,7 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(), "OpenGL init failed.");
+        ASSERT(InitOpenGL(1920, 1080), "OpenGL init failed.");
         InitDirectories();
         std::vector<NeedForSpeed> installedNFS = PopulateAssets();
 
@@ -56,17 +56,18 @@ public:
         // Close OpenGL window and terminate GLFW
         glfwTerminate();
     }
-    void train(){
+
+    void train() {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(), "OpenGL init failed.");
+        ASSERT(InitOpenGL(10, 10), "OpenGL init failed.");
         InitDirectories();
 
         //Load Track Data
         std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(NFS_3, "trk006");
 
-        auto trainingGround = TrainingGround(10, 10000, track);
+        auto trainingGround = TrainingGround(1, 1000, 20000, track);
 
         // Close OpenGL window and terminate GLFW
         glfwTerminate();
@@ -79,7 +80,7 @@ private:
         LOG(WARNING) << description;
     }
 
-    bool InitOpenGL() {
+    bool InitOpenGL(int resolutionX, int resolutionY) {
         // Initialise GLFW
         ASSERT(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&glfwError);
@@ -97,7 +98,7 @@ private:
         //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 #endif
 
-        window = glfwCreateWindow(1920, 1080, "OpenNFS", nullptr, nullptr);
+        window = glfwCreateWindow(resolutionX, resolutionY, "OpenNFS", nullptr, nullptr);
 
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window.";
@@ -347,18 +348,19 @@ private:
 };
 
 int main(int argc, char **argv) {
-    std::vector<std::string> args(argv, argv+argc);
+    std::vector<std::string> args(argv, argv + argc);
     bool trainingMode = false;
 
-    if(argc > 1){
-        trainingMode= (args[1] == "train");
+    if (argc > 1) {
+        trainingMode = (args[1] == "train");
     }
 
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>(!trainingMode); // Enable IMGUI logger if not in Training mode
+    std::shared_ptr<Logger> logger = std::make_shared<Logger>(
+            !trainingMode); // Enable IMGUI logger if not in Training mode
     OpenNFS game;
 
     try {
-        if(trainingMode){
+        if (trainingMode) {
             game.train();
         } else {
             game.run(logger);

@@ -35,6 +35,8 @@ public:
     NFSVer tag;
     uint16_t populationID = -1;
     bool multitexturedCarModel = false;
+    // Car Neural Net
+    RaceNet carNet;
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }
@@ -60,6 +62,8 @@ public:
     float getRotY();
 
     // Raycasting Data
+    static constexpr float castDistance = 1.f;
+    static constexpr float castHeightOffset = 0.05f;
 
     glm::vec3 forwardCastPosition, upCastPosition, rightCastPosition, leftCastPosition;
     float forwardDistance = 0.f;
@@ -116,7 +120,4 @@ private:
     bool steerRight;
     bool steerLeft;
     bool isSteering;
-
-    // Car Neural Net
-    RaceNet carNet;
 };

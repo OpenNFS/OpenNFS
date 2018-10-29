@@ -79,6 +79,8 @@ typedef struct tagCP_BITMAPINFO {
 #define nyop "nop"
 
 namespace Utils {
+    float RandomFloat(float min, float max);
+
     glm::vec3 bulletToGlm(const btVector3 &v);
 
     btVector3 glmToBullet(const glm::vec3 &v);

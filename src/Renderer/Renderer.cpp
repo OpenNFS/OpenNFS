@@ -39,7 +39,7 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
 
     shared_ptr<Car> newCar = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
     physicsEngine.registerVehicle(newCar);
-    newCar->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z));
+    newCar->resetCar(TrackUtils::pointToVec(track->track_blocks[0].center));
 
     /*------- ImGui -------*/
     ImGui::CreateContext();
@@ -105,7 +105,7 @@ AssetData Renderer::Render() {
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
 
-    car->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z));
+    car->resetCar(TrackUtils::pointToVec(track->track_blocks[0].center));
 
     bool entity_targeted = false;
     Entity *targetedEntity;
@@ -159,19 +159,21 @@ AssetData Renderer::Render() {
         physicsEngine.stepSimulation(deltaTime);
 
         if (userParams.draw_raycast) {
-            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position),
+            glm::vec3 carBodyPosition = car->car_body_model.position;
+
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                                  Utils::glmToBullet(car->forwardCastPosition),
                                                  btVector3(2.0f * (1.0f - car->forwardDistance),
                                                            2.0f * (car->forwardDistance), 0));
-            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position),
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                                  Utils::glmToBullet(car->upCastPosition),
                                                  btVector3(2.0f * (1.0f - car->upDistance), 2.0f * (car->upDistance),
                                                            0));
-            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position),
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                                  Utils::glmToBullet(car->rightCastPosition),
                                                  btVector3(2.0f * (1.0f - car->rightDistance),
                                                            2.0f * (car->rightDistance), 0));
-            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(car->car_body_model.position),
+            physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                                  Utils::glmToBullet(car->leftCastPosition),
                                                  btVector3(2.0f * (1.0f - car->leftDistance),
                                                            2.0f * (car->leftDistance), 0));
@@ -569,8 +571,7 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     };
     ImGui::SameLine(0, -1.0f);
     if (ImGui::Button("Reset Car")) {
-        car->resetCar(glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y,
-                                track->track_blocks[0].center.z));
+        car->resetCar(TrackUtils::pointToVec(track->track_blocks[0].center));
     };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);

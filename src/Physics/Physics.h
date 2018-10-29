@@ -30,17 +30,6 @@
 #include "Car.h"
 
 
-#define BIT(x) (1<<(x))
-
-// Collision masks
-enum collisionTypes {
-    COL_NOTHING = 0, // Collide with nothing
-    COL_RAY = BIT(0), // Collide with rays
-    COL_CAR = BIT(1), // Collide with cars
-    COL_TRACK = BIT(2) // Collide with track
-};
-
-
 class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw {
 public:
     void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix) {

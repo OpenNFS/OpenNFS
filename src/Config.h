@@ -20,6 +20,8 @@ const std::string CAR_PATH = ASSET_PATH + "car/";
 const std::string TRACK_PATH = ASSET_PATH + "tracks/";
 const std::string RESOURCE_PATH = "../resources/";
 
+const std::string BEST_NETWORK_PATH = ASSET_PATH + "bestRacer.net";
+
 const std::string NFS_2_TRACK_PATH = "/GAMEDATA/TRACKS/PC/";
 const std::string NFS_2_CAR_PATH = "/GAMEDATA/CARMODEL/PC/";
 
