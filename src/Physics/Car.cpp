@@ -478,16 +478,16 @@ void Car::simulate() {
     raycastInputs = {leftDistance, rightDistance, forwardDistance};
 
     std::vector<double> networkOutputs = carNet.Infer(raycastInputs);
-    applySteeringLeft(networkOutputs[0]);
-    applySteeringRight(networkOutputs[1]);
-    applyAccelerationForce(networkOutputs[2], false);
+    applySteeringLeft((int)networkOutputs[0]);
+    applySteeringRight((int)networkOutputs[1]);
+    applyAccelerationForce(!((int)networkOutputs[2]), false);
 
     /*if(leftDistance < 1.0f){
         applySteeringRight(true);
     } else {
         applySteeringRight(false);
     }
-
+Tu
     if(rightDistance < 1.0f) {
         applySteeringLeft(true);
     } else {

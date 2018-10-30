@@ -938,8 +938,9 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
                     }
                 }
             }
-            if (structRef_Idx == track->nColStructureReferences - 1)
+            if (structRef_Idx == track->nColStructureReferences - 1){
                 LOG(WARNING) << "Couldn't find a reference coordinate for COL Structure " << structRef_Idx;
+            }
         }
         obj_dump << "o ColStruct" << &track->colStructures[structure_Idx] << std::endl;
         for (uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx) {

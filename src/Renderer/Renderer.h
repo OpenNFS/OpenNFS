@@ -16,6 +16,7 @@
 #include "../Scene/Entity.h"
 #include "../Loaders/trk_loader.h"
 #include "../Physics/Physics.h"
+#include "../Loaders/car_loader.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
 

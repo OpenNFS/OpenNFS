@@ -170,7 +170,7 @@ class Logger {
 public:
     AppLog onScreenLog;
 
-    explicit Logger(bool onScreenSinkEnable);
+    explicit Logger();
 };
 
 

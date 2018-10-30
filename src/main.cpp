@@ -29,7 +29,7 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(1920, 1080), "OpenGL init failed.");
+        ASSERT(InitOpenGL(1920, 1080, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
         InitDirectories();
         std::vector<NeedForSpeed> installedNFS = PopulateAssets();
 
@@ -57,17 +57,17 @@ public:
         glfwTerminate();
     }
 
-    void train() {
+    void train(std::shared_ptr<Logger> logger) {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(10, 10), "OpenGL init failed.");
+        ASSERT(InitOpenGL(1920, 1080, "OpenNFS (GA Training Mode)"), "OpenGL init failed.");
         InitDirectories();
 
         //Load Track Data
         std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(NFS_3, "trk006");
 
-        auto trainingGround = TrainingGround(1, 1000, 20000, track);
+        auto trainingGround = TrainingGround(1, 100, 200000, track, logger, window);
 
         // Close OpenGL window and terminate GLFW
         glfwTerminate();
@@ -80,7 +80,7 @@ private:
         LOG(WARNING) << description;
     }
 
-    bool InitOpenGL(int resolutionX, int resolutionY) {
+    bool InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
         // Initialise GLFW
         ASSERT(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&glfwError);
@@ -98,7 +98,7 @@ private:
         //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 #endif
 
-        window = glfwCreateWindow(resolutionX, resolutionY, "OpenNFS", nullptr, nullptr);
+        window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
 
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window.";
@@ -254,7 +254,6 @@ private:
                 std::string trackBasePath(trackBasePathStream.str());
                 ASSERT(exists(trackBasePath), "NFS 3 Hot Pursuit track folder: " << trackBasePath << " is missing.");
 
-                // TODO: Dive one folder deeper, or alter the loader to be able to handle just the base path
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     currentNFS.tracks.emplace_back(trackItr->path().filename().string());
                 }
@@ -289,7 +288,6 @@ private:
                 std::string trackBasePath(trackBasePathStream.str());
                 ASSERT(exists(trackBasePath), "NFS 4 High Stakes track folder: " << trackBasePath << " is missing.");
 
-                // TODO: Dive one folder deeper, or alter the loader to be able to handle just the base path
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     currentNFS.tracks.emplace_back(trackItr->path().filename().string());
                 }
@@ -355,13 +353,12 @@ int main(int argc, char **argv) {
         trainingMode = (args[1] == "train");
     }
 
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>(
-            !trainingMode); // Enable IMGUI logger if not in Training mode
+    std::shared_ptr<Logger> logger = std::make_shared<Logger>(); // Enable IMGUI logger if not in Training mode
     OpenNFS game;
 
     try {
         if (trainingMode) {
-            game.train();
+            game.train(logger);
         } else {
             game.run(logger);
         }

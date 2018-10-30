@@ -5,7 +5,6 @@
 
 #include "Renderer.h"
 
-#include "../Loaders/car_loader.h"
 Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
                    const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track,
                    shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track),

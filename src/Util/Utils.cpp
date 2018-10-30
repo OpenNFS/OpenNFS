@@ -258,7 +258,6 @@ namespace Utils {
 
             currentpos = ftell(vivfile);
 
-            // TODO: Can place into a subdirectory using car name, wherever it's stored.
             std::stringstream out_file_path;
             out_file_path << output_dir << filename;
 

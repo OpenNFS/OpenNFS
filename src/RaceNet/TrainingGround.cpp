@@ -4,9 +4,9 @@
 
 #include "TrainingGround.h"
 
-TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint16_t nTicks, shared_ptr<ONFSTrack> training_track) {
+TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks, shared_ptr<ONFSTrack> training_track, std::shared_ptr<Logger> logger, GLFWwindow *gl_window) : window(gl_window), raceNetRenderer(gl_window, logger){
     LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations: "
-              << nGenerations << " Track: " << training_track->name << " (" << ToString(training_track->tag) << ")";
+              << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " (" << ToString(training_track->tag) << ")";
 
     this->training_track = training_track;
     physicsEngine.registerTrack(this->training_track);
@@ -66,21 +66,26 @@ void TrainingGround::InitialiseAgents(uint16_t populationSize) {
     LOG(INFO) << "Agents initialised";
 }
 
-std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations, uint16_t nTicks) {
+std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
     std::vector<std::vector<int>> agentFitnesses;
+    // TODO: Remove this and
+    std::vector<int> dummyAgentData = {0,0};
+    agentFitnesses.emplace_back(dummyAgentData);
 
     for (uint16_t gen_Idx = 0; gen_Idx < nGenerations; ++gen_Idx) {
         LOG(INFO) << "Beginning Generation " << gen_Idx;
 
         // Simulate the population
-        for (uint16_t tick_Idx = 0; tick_Idx < nTicks; ++tick_Idx) {
+        for (uint32_t tick_Idx = 0; tick_Idx < nTicks; ++tick_Idx) {
             for (auto &car_agent : car_agents) {
-                car_agent->simulate();
-                if ((!(tick_Idx % 5000)) && (car_agent->populationID == 0)) {
+                //car_agent->simulate();
+                if ((!(tick_Idx % 50000)) && (car_agent->populationID == 0)) {
                     LOG(INFO) << tick_Idx;
                 }
             }
             physicsEngine.stepSimulation(stepTime);
+            raceNetRenderer.Render(car_agents, training_track);
+            if(glfwWindowShouldClose(window)) return agentFitnesses;
         }
 
         // Clear fitness data for next generation

@@ -17,13 +17,20 @@
 #include "../Loaders/trk_loader.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
+#include "../Shaders/RaceNetShader.h"
 
 class RaceNetRenderer {
 private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
+    glm::mat4 projectionMatrix;
+    RaceNetShader raceNetShader;
+    float minX = -250.f, maxX = 250.f, minY = 140.625f, maxY = -140.625f; // Default area to display for start of training
+
+    std::vector<int> getVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render);
+    void RescaleUI();
 public:
     explicit RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger);
-
-    void Render(std::vector <Car> car_list, shared_ptr <ONFSTrack> track_to_render);
+    ~RaceNetRenderer();
+    void Render(std::vector <shared_ptr<Car>> &car_list, shared_ptr <ONFSTrack> &track_to_render);
 };

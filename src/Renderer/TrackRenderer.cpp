@@ -34,18 +34,15 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &cameraLig
         // TODO: Merge lighting contributions across track block, must use a smarter Track structure, also must be a better way of building this from the Entities. This will be too slow.
         trackShader.loadLights(contributingLights.size() ? contributingLights : camlights);
         for (auto &track_block_entity : active_track_Block.track) {
-            boost::get<Track>(track_block_entity.glMesh).update();
             trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
         for (auto &track_block_entity : active_track_Block.objects) {
-            boost::get<Track>(track_block_entity.glMesh).update();
             trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
         // TODO: Render Lanes with a simpler shader set, straight vert MVP transform w/ one texture sample on bound lane texture
         for (auto &track_block_entity : active_track_Block.lanes) {
-            boost::get<Track>(track_block_entity.glMesh).update();
             trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
@@ -96,7 +93,6 @@ void TrackRenderer::renderLights(const Camera &mainCamera, std::vector<int> acti
     for (auto &track_block_id : activeTrackBlockIDs) {
         // Render the lights far to near
         for (auto &light_entity : std::vector<Entity>(track->track_blocks[track_block_id].lights.rbegin(), track->track_blocks[track_block_id].lights.rend())) {
-            boost::get<Light>(light_entity.glMesh).update();
             billboardShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, boost::get<Light>(light_entity.glMesh).ModelMatrix);
             billboardShader.loadLight(boost::get<Light>(light_entity.glMesh));
             boost::get<Light>(light_entity.glMesh).render();
