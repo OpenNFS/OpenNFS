@@ -28,6 +28,7 @@ if (NOT EXISTS G3LOGGER_BUILD_DIR)
             "-DCMAKE_SH=${SH_NOT_FOUND}"
             "-DCMAKE_BUILD_TYPE=Release"
             "-DG3_SHARED_LIB=OFF"
+            "-DADD_FATAL_EXAMPLE=OFF"
             "-H${DEP_ROOT_DIR}/${G3LOG_NAME}"
             "-B${G3LOGGER_BUILD_DIR}"
             RESULT_VARIABLE
