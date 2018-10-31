@@ -226,7 +226,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
         // 6 nVertices
         ar.read((char *) &(b->nVertices), 24);
         if (b->nVertices < 0) {/*||(b->nVertices>1000)*/
-            free(track->col.hs_extra);
+            delete [] track->col.hs_extra;
             free(track->col.texture);
             return false;
         }
@@ -289,7 +289,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
             b->polyData[k].flags = ptrspace[8];
             b->polyData[k].hs_unknown = ptrspace[9];
             if ((ptrspace[8] & 15) == 14) {
-                free(track->col.hs_extra);
+                delete [] track->col.hs_extra;
                 free(track->col.texture);
                 return false;
             }
@@ -468,7 +468,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
                         // unkn3 instead of ptRef
                         ar.read((char *) x->unknown3, 12);
                     } else {
-                        free(track->col.hs_extra);
+                        delete [] track->col.hs_extra;
                         free(track->col.texture);
                         return false; // unknown object type
                     }
@@ -495,7 +495,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
                         // type3, objno, animLength, unknown4
                         ar.read((char *) &(x->type3), 6);
                         if (x->type3 != 3) {
-                            free(track->col.hs_extra);
+                            delete [] track->col.hs_extra;
                             free(track->col.texture);
                             return false;
                         }
