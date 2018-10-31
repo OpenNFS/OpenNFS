@@ -38,7 +38,7 @@ SkyRenderer::SkyRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
             }
             index_offset += fv;
             // per-face material
-            shapes[s].mesh.material_ids[f];
+            // shapes[s].mesh.material_ids[f];
         }
         skydome = CarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01f, 0.0f, 0.5f);
         break;
