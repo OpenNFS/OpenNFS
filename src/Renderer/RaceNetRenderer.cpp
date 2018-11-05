@@ -14,7 +14,7 @@ RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> 
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(std::vector<shared_ptr<Car>> &car_list, shared_ptr<ONFSTrack> &track_to_render) {
+void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_list, shared_ptr<ONFSTrack> &track_to_render) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glfwPollEvents();
@@ -28,24 +28,33 @@ void RaceNetRenderer::Render(std::vector<shared_ptr<Car>> &car_list, shared_ptr<
     RescaleUI();
     std::vector<int> visibleTrackBlocks = getVisibleTrackBlocks(track_to_render);
 
-    raceNetShader.use();
-    raceNetShader.loadProjectionMatrix(projectionMatrix);
-    // Draw Track
-    raceNetShader.loadColor(glm::vec3(0.f, 0.5f, 0.5f));
-    for (auto &visibleTrackBlockID : visibleTrackBlocks) {
-        for (auto &track_block_entity : track_to_render->track_blocks[visibleTrackBlockID].track) {
-            raceNetShader.loadTransformationMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-            boost::get<Track>(track_block_entity.glMesh).render();
+    if(visibleTrackBlocks.size()){
+        raceNetShader.use();
+        raceNetShader.loadProjectionMatrix(projectionMatrix);
+        // Draw Track
+        raceNetShader.loadColor(glm::vec3(0.f, 0.5f, 0.5f));
+        for (auto &visibleTrackBlockID : visibleTrackBlocks) {
+            for (auto &track_block_entity : track_to_render->track_blocks[visibleTrackBlockID].track) {
+                raceNetShader.loadTransformationMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
+                boost::get<Track>(track_block_entity.glMesh).render();
+            }
         }
-    }
-    // Draw Cars
-    for (auto &car : car_list) {
+
         raceNetShader.loadColor(glm::vec3(1.f, 0.f, 0.f));
-        raceNetShader.loadTransformationMatrix(car->car_body_model.ModelMatrix);
-        car->car_body_model.render();
+        // Draw Cars
+        for (auto &car : car_list) {
+            raceNetShader.loadTransformationMatrix(car->car_body_model.ModelMatrix);
+            car->car_body_model.render();
+        }
+
+        raceNetShader.unbind();
     }
 
-    raceNetShader.unbind();
+    // Draw some useful info
+    ImGui::Text("Tick %d", tick);
+    for (auto &car : car_list) {
+        ImGui::Text("Car %d %f %f %f", car->populationID, car->car_body_model.position.x, car->car_body_model.position.y, car->car_body_model.position.z);   car->car_body_model.render();
+    }
 
     // Draw Logger UI
     logger->onScreenLog.Draw("ONFS Log");

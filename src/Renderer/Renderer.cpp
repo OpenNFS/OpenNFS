@@ -36,10 +36,6 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
     physicsEngine.registerTrack(track);
     physicsEngine.registerVehicle(car);
 
-    shared_ptr<Car> newCar = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
-    physicsEngine.registerVehicle(newCar);
-    newCar->resetCar(TrackUtils::pointToVec(track->track_blocks[0].center));
-
     /*------- ImGui -------*/
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -53,15 +49,14 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
 }
 
 void Renderer::InitialiseDepthTexture() {
+    // -----------------------
     // Configure depth map FBO
     // -----------------------
-
     glGenFramebuffers(1, &depthMapFBO);
     // create depth texture
     glGenTextures(1, &depthTextureID);
     glBindTexture(GL_TEXTURE_2D, depthTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
-                 NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -141,8 +136,7 @@ AssetData Renderer::Render() {
             car->simulate();
         } else {
             if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
-                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
-                                            glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
                 car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
                 car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
                 car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);

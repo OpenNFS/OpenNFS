@@ -32,5 +32,5 @@ private:
 public:
     explicit RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger);
     ~RaceNetRenderer();
-    void Render(std::vector <shared_ptr<Car>> &car_list, shared_ptr <ONFSTrack> &track_to_render);
+    void Render(uint32_t tick, std::vector <shared_ptr<Car>> &car_list, shared_ptr <ONFSTrack> &track_to_render);
 };

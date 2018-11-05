@@ -22,17 +22,19 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
 }
 
 void TrainingGround::Mutate(RaceNet &toMutate) {
-    unsigned long layerToMutate = rand() % toMutate.net.W.size();
+    for(uint8_t mut_Idx = 0; mut_Idx < 200; ++mut_Idx){
+        unsigned long layerToMutate = rand() % toMutate.net.W.size();
 
-    auto &m = toMutate.net.W[layerToMutate];
+        auto &m = toMutate.net.W[layerToMutate];
 
-    int h = m.getHeight();
-    int w = m.getWidth();
+        int h = m.getHeight();
+        int w = m.getWidth();
 
-    int xNeuronToMutate = rand() % h;
-    int yNeuronToMutate = rand() % w;
+        int xNeuronToMutate = rand() % h;
+        int yNeuronToMutate = rand() % w;
 
-    m.put(xNeuronToMutate, yNeuronToMutate, m.get(xNeuronToMutate, yNeuronToMutate) * Utils::RandomFloat(0.5, 1.5));
+        m.put(xNeuronToMutate, yNeuronToMutate, m.get(xNeuronToMutate, yNeuronToMutate) * Utils::RandomFloat(0.5, 1.5));
+    }
 }
 
 // Move this to agent class?
@@ -77,13 +79,14 @@ std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations,
         // Simulate the population
         for (uint32_t tick_Idx = 0; tick_Idx < nTicks; ++tick_Idx) {
             for (auto &car_agent : car_agents) {
-                //car_agent->simulate();
-                if ((!(tick_Idx % 50000)) && (car_agent->populationID == 0)) {
-                    LOG(INFO) << tick_Idx;
-                }
+                //car_agent->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+                //car_agent->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+                //car_agent->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+                //car_agent->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+                car_agent->simulate();
             }
             physicsEngine.stepSimulation(stepTime);
-            raceNetRenderer.Render(car_agents, training_track);
+            raceNetRenderer.Render(tick_Idx, car_agents, training_track);
             if(glfwWindowShouldClose(window)) return agentFitnesses;
         }
 
@@ -105,8 +108,11 @@ std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations,
 
         LOG(DEBUG) << "Agent " << agentFitnesses[0][0] << " was fittest";
 
+
+        car_agents[agentFitnesses[0][0]]->carNet.net.saveNetworkParams("./assets/bestNetPreMut.net");
         // Mutate the fittest network
         Mutate(car_agents[agentFitnesses[0][0]]->carNet);
+        car_agents[agentFitnesses[0][0]]->carNet.net.saveNetworkParams("./assets/bestNetPostMut.net");
 
         // Reset the cars for the next generation
         for (auto &car_agent : car_agents) {
