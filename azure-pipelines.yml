@@ -8,8 +8,8 @@ jobs:
 
   steps:
   - script: |
-    sudo apt-get -y install freeglut3 freeglut3-dev
-    sudo apt-get -y install xorg-dev libglu1-mesa-dev
+      sudo apt-get -y install freeglut3 freeglut3-dev
+      sudo apt-get -y install xorg-dev libglu1-mesa-dev
     displayName: 'Command Line Script'
 
   - task: CMake@1
