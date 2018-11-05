@@ -8,8 +8,8 @@ jobs:
 
   steps:
   - script: |
-    sudo apt-get -y install freeglut3 freeglut3-dev
-    sudo apt-get -y install xorg-dev libglu1-mesa-dev
+      sudo apt-get -y install freeglut3 freeglut3-dev
+      sudo apt-get -y install xorg-dev libglu1-mesa-dev
     displayName: 'Command Line Script'
 
   - task: CMake@1
@@ -24,10 +24,10 @@ jobs:
       cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
 
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
-    inputs:
-      PathtoPublish: ./build/OpenNFS
+#  - task: PublishBuildArtifacts@1
+#    displayName: 'Publish Artifact: drop'
+#    inputs:
+#      PathtoPublish: ./build/OpenNFS
 
 -job: Windows (GCC)
   resources:
@@ -49,10 +49,10 @@ jobs:
       cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
 
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
-    inputs:
-      PathtoPublish: ./build
+#  - task: PublishBuildArtifacts@1
+#    displayName: 'Publish Artifact: drop'
+#    inputs:
+#      PathtoPublish: ./build
 
 -job: Windows (MSVC)
   resources:
@@ -70,10 +70,13 @@ jobs:
   #Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
   steps:
   - script: |
-    git submodule init
-    git submodule update --remote
+      git submodule init
+      git submodule update --remote
     
     displayName: 'Command Line Script'
+    
+  - script: mkdir build
+    displayName: Make build directory
 
   - task: CMake@1
     displayName: 'Generate Solution Files'
@@ -110,10 +113,10 @@ jobs:
       TargetFolder: '$(build.artifactstagingdirectory)'
 
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
-    inputs:
-      PathtoPublish: '$(build.artifactstagingdirectory)'
+#  - task: PublishBuildArtifacts@1
+#    displayName: 'Publish Artifact: drop'
+#    inputs:
+#      PathtoPublish: '$(build.artifactstagingdirectory)'
 
 -job: Mac 
   resources:
@@ -135,7 +138,7 @@ jobs:
       cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
 
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
-    inputs:
-      PathtoPublish: ./build/OpenNFS
+#  - task: PublishBuildArtifacts@1
+#    displayName: 'Publish Artifact: drop'
+#    inputs:
+#      PathtoPublish: ./build/OpenNFS
