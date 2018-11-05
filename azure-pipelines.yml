@@ -74,6 +74,9 @@ jobs:
     git submodule update --remote
     
     displayName: 'Command Line Script'
+    
+  - script: mkdir build
+    displayName: Make build directory
 
   - task: CMake@1
     displayName: 'Generate Solution Files'
