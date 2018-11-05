@@ -64,10 +64,18 @@ public:
         ASSERT(InitOpenGL(1920, 1080, "OpenNFS (GA Training Mode)"), "OpenGL init failed.");
         InitDirectories();
 
-        //Load Track Data
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(NFS_3, "trk006");
+        AssetData trainingAssets = {
+                NFS_3, "diab",
+                NFS_3, "trk006"
+        };
 
-        auto trainingGround = TrainingGround(1, 100, 200000, track, logger, window);
+        /*------ ASSET LOAD ------*/
+        //Load Track Data
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
+        //Load Car data from unpacked NFS files
+        std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
+
+        auto trainingGround = TrainingGround(1, 100, 200000, track, car, logger, window);
 
         // Close OpenGL window and terminate GLFW
         glfwTerminate();

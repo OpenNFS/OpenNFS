@@ -72,6 +72,7 @@ public:
     float leftDistance = 0.f;
 
     // Meshes
+    std::vector<CarModel> all_models;
     std::vector<CarModel> misc_models;
     CarModel left_front_wheel_model;
     CarModel right_front_wheel_model;

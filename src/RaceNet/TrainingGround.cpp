@@ -4,11 +4,12 @@
 
 #include "TrainingGround.h"
 
-TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks, shared_ptr<ONFSTrack> training_track, std::shared_ptr<Logger> logger, GLFWwindow *gl_window) : window(gl_window), raceNetRenderer(gl_window, logger){
+TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks, shared_ptr<ONFSTrack> training_track, shared_ptr<Car> training_car, std::shared_ptr<Logger> logger, GLFWwindow *gl_window) : window(gl_window), raceNetRenderer(gl_window, logger){
     LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations: "
               << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " (" << ToString(training_track->tag) << ")";
 
     this->training_track = training_track;
+    this->training_car = training_car;
     physicsEngine.registerTrack(this->training_track);
 
     InitialiseAgents(populationSize);
@@ -53,11 +54,9 @@ float TrainingGround::EvaluateFitness(shared_ptr<Car> car_agent) {
 }
 
 void TrainingGround::InitialiseAgents(uint16_t populationSize) {
-    std::vector<CarModel> fce_models = NFS3::LoadFCE("./assets/car/NFS_3/diab/car.fce");
-
-    // Create new cars, each with new RaceNetworks
+    // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
     for (uint16_t pop_Idx = 0; pop_Idx < populationSize; ++pop_Idx) {
-        shared_ptr<Car> car_agent = std::make_shared<Car>(pop_Idx, fce_models, NFS_3, "diab", RaceNet());
+        shared_ptr<Car> car_agent = std::make_shared<Car>(pop_Idx, this->training_car->all_models, NFS_3, "diab", RaceNet());
         physicsEngine.registerVehicle(car_agent);
         car_agent->resetCar(TrackUtils::pointToVec(this->training_track->track_blocks[0].center));
         car_agents.emplace_back(car_agent);

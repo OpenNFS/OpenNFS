@@ -93,6 +93,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
 
 // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
 void Car::setModels(std::vector<CarModel> loaded_car_models){
+    all_models = loaded_car_models;
     uint8_t usedModelCount = 0;
 
     switch(tag){
