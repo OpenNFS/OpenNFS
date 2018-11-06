@@ -12,7 +12,6 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <zmq.h>
 
 #include "Util/Logger.h"
 #include "Loaders/trk_loader.h"
@@ -158,27 +157,6 @@ private:
         }
         if (!(boost::filesystem::exists(TRACK_PATH))) {
             boost::filesystem::create_directories(TRACK_PATH);
-        }
-    }
-
-    void InitZMQSocket() {
-        void *ctx = zmq_ctx_new();
-        void *subscriber = zmq_socket(ctx, ZMQ_SUB);
-
-        zmq_bind(subscriber, "tcp://*:5563");
-        zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
-
-        while (true) {
-            zmq_msg_t msg;
-            int rc;
-
-            rc = zmq_msg_init(&msg);
-            assert(rc == 0);
-            std::cout << "waiting for message..." << std::endl;
-            rc = zmq_msg_recv(&msg, subscriber, 0);
-
-            std::cout << "received: " << (char *) zmq_msg_data(&msg) << std::endl;
-            zmq_msg_close(&msg);
         }
     }
 
