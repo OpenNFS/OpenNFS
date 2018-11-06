@@ -28,7 +28,7 @@ jobs:
 #    inputs:
 #      PathtoPublish: ./build/OpenNFS
 
-- job: Windows (GCC)
+- job: Windows_gcc
   pool: Hosted VS2017
 
   steps:
@@ -49,7 +49,7 @@ jobs:
 #    inputs:
 #      PathtoPublish: ./build
 
-- job: Windows (MSVC)
+- job: Windows_msvc
   pool: Hosted VS2017
 
   #Your build pipeline references an undefined variable named ‘Parameters.solution’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
