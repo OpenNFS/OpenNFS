@@ -93,7 +93,7 @@ jobs:
   - task: CopyFiles@2
     displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
     inputs:
-      SourceFolder: './Release/'
+      SourceFolder: '.build/Release/'
 
       Contents: OpenNFS.exe
 
