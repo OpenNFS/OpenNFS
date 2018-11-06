@@ -1,0 +1,141 @@
+jobs:
+- job: Linux
+  resources:
+  - repo: self
+  queue:
+    name: Hosted Ubuntu 1604
+    demands: cmake
+
+  steps:
+  - script: |
+    sudo apt-get -y install freeglut3 freeglut3-dev
+    sudo apt-get -y install xorg-dev libglu1-mesa-dev
+    displayName: 'Command Line Script'
+
+  - task: CMake@1
+    displayName: 'Generating Project Files'
+    inputs:
+      cmakeArgs: 'cmake -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - Unix Makefiles" ../'
+
+
+  - task: CMake@1
+    displayName: 'Building OpenNFS'
+    inputs:
+      cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
+
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      PathtoPublish: ./build/OpenNFS
+
+-job: Windows (GCC)
+  resources:
+  - repo: self
+  queue:
+    name: Hosted VS2017
+    demands: cmake
+
+  steps:
+  - task: CMake@1
+    displayName: 'Generating Project Files'
+    inputs:
+      cmakeArgs: '-G "CodeBlocks - MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -DCMAKE_BUILD_TYPE=Release ../'
+
+
+  - task: CMake@1
+    displayName: 'Building OpenNFS'
+    inputs:
+      cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
+
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      PathtoPublish: ./build
+
+-job: Windows (MSVC)
+  resources:
+  - repo: self
+  queue:
+    name: Hosted VS2017
+    demands: 
+    - cmake
+    - msbuild
+    - visualstudio
+
+  #Your build pipeline references an undefined variable named ‘Parameters.solution’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
+  #Your build pipeline references the ‘BuildPlatform’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
+  #Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
+  #Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
+  steps:
+  - script: |
+    git submodule init
+    git submodule update --remote
+    
+    displayName: 'Command Line Script'
+
+  - task: CMake@1
+    displayName: 'Generate Solution Files'
+    inputs:
+      cmakeArgs: '-G "Visual Studio 15 2017 Win64"'
+
+
+  - task: VSBuild@1
+    displayName: 'Build solution OpenNFS.sln'
+    inputs:
+      solution: '$(Parameters.solution)'
+
+      platform: '$(BuildPlatform)'
+
+      configuration: '$(BuildConfiguration)'
+
+
+  - task: PublishSymbols@2
+    displayName: 'Publish symbols path'
+    inputs:
+      SearchPattern: '**\bin\**\*.pdb'
+
+      PublishSymbols: false
+
+    continueOnError: true
+
+  - task: CopyFiles@2
+    displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
+    inputs:
+      SourceFolder: './$(BuildConfiguration)/'
+
+      Contents: OpenNFS.exe
+
+      TargetFolder: '$(build.artifactstagingdirectory)'
+
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      PathtoPublish: '$(build.artifactstagingdirectory)'
+
+-job: Mac 
+  resources:
+  - repo: self
+  queue:
+    name: Hosted macOS
+    demands: cmake
+
+  steps:
+  - task: CMake@1
+    displayName: 'Generating Project Files'
+    inputs:
+      cmakeArgs: 'cmake -DCMAKE_BUILD_TYPE=Release -G "CodeBlocks - Unix Makefiles" ../'
+
+
+  - task: CMake@1
+    displayName: 'Building OpenNFS'
+    inputs:
+      cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
+
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      PathtoPublish: ./build/OpenNFS
