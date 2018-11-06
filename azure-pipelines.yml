@@ -74,7 +74,7 @@ jobs:
   - task: VSBuild@1
     displayName: 'Build solution OpenNFS.sln'
     inputs:
-      solution: 'OpenNFS.sln'
+      solution: 'build/OpenNFS.sln'
 
       platform: 'x64'
 
