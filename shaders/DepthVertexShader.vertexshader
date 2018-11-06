@@ -1,4 +1,4 @@
-#version 330 core
+#version 300 es
 
 // Input vertex data, different for all executions of this shader.
 layout(location = 0) in vec3 vertexPosition_modelspace;

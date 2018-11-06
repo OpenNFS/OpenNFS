@@ -1,4 +1,5 @@
-#version 330 core
+#version 300 es
+precision mediump float;
 /*http://blog.simonrodriguez.fr/articles/28-06-2015_un_ciel_dans_le_shader.html*/
 //---------IN------------
 in vec3 pos;
@@ -23,9 +24,9 @@ float Hash( float n ){
         return fract( (1.0 + sin(n)) * 415.92653);
 }
 float Noise3d( vec3 x ){
-    float xhash = Hash(round(400*x.x) * 37.0);
-    float yhash = Hash(round(400*x.y) * 57.0);
-    float zhash = Hash(round(400*x.z) * 67.0);
+    float xhash = Hash(round(400.0*x.x) * 37.0);
+    float yhash = Hash(round(400.0*x.y) * 57.0);
+    float zhash = Hash(round(400.0*x.z) * 67.0);
     return fract(xhash + yhash + zhash);
 }
 
@@ -40,12 +41,12 @@ void main(){
     color = weather*mix(color_wo_sun,color_w_sun,dist*0.5+0.5);
 
     //Computing u and v for the clouds textures (spherical projection)
-    float u = 0.5 + atan(pos_norm.z,pos_norm.x)/(2*3.14159265);
+    float u = 0.5 + atan(pos_norm.z,pos_norm.x)/(2.0*3.14159265);
     float v = - 0.5 + asin(pos_norm.y)/3.14159265;
 
     //Cloud color
     //color depending on the weather (shade of grey) *  (day or night) ?
-    vec3 cloud_color = vec3(min(weather*3.0/2.0,1.0))*(sun_norm.y > 0 ? 0.95 : 0.95+sun_norm.y*1.8);
+    vec3 cloud_color = vec3(min(weather*3.0/2.0,1.0))*(sun_norm.y > 0.0 ? 0.95 : 0.95+sun_norm.y*1.8);
 
     //Reading from the clouds maps
     //mixing according to the weather (1.0 -> clouds1 (sunny), 0.5 -> clouds2 (rainy))
@@ -68,7 +69,7 @@ void main(){
     //Sun
     float radius = length(pos_norm-sun_norm);
     if(radius < 0.05){//We are in the area of the sky which is covered by the sun
-        float time = clamp(sun_norm.y,0.01,1);
+        float time = clamp(sun_norm.y,0.01,1.0);
         radius = radius/0.05;
         if(radius < 1.0-0.001){//< we need a small bias to avoid flickering on the border of the texture
             //We read the alpha value from a texture where x = radius and y=height in the sky (~time)
@@ -93,10 +94,10 @@ void main(){
         float compensation = 1.4;
         //And we read in the texture of the moon. The projection we did previously allows us to have an undeformed moon
         //(for the sun we didn't care as there are no details on it)
-        color = mix(color,texture(moon,vec2(x,y)*scale*compensation+vec2(0.5)).rgb,clamp(-sun_norm.y*3,0,1));
+        color = mix(color,texture(moon,vec2(x,y)*scale*compensation+vec2(0.5)).rgb,clamp(-sun_norm.y*3.0,0.0,1.0));
     }
 
     //Final mix
     //mixing with the cloud color allows us to hide things behind clouds (sun, stars, moon)
-    color = mix(color,cloud_color,clamp((2-weather)*transparency,0,1));
+    color = mix(color,cloud_color,clamp((2.0-weather)*transparency,0.0,1.0));
 }

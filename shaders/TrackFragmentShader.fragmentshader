@@ -1,4 +1,7 @@
-#version 330 core
+#version 300 es
+precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler2DArray;
 
 #define MAX_LIGHTS 6
 
@@ -46,7 +49,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 
     // Apply percentage closer filtering, to soften shadow edges (average neighbours by jittering projection coords)
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    vec2 texelSize = vec2(1 / textureSize(shadowMap, 0));
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
@@ -65,7 +68,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 }
 
 bool isGrayScale(vec4 colour) {
-    float diff = 0;
+    float diff = 0.0;
 
     float rg = abs(colour.r - colour.g);
     float rb = abs(colour.r - colour.b);

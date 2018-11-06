@@ -1,4 +1,4 @@
-#version 330 core
+#version 300 es
 
 #define MAX_CAR_CONTRIB_LIGHTS 6
 
