@@ -1,5 +1,8 @@
 resources:
-- repo: self
+  repositories:
+  - repository: self
+    checkoutOptions:
+      submodules: true
 
 jobs:
 - job: Linux
