@@ -55,10 +55,6 @@ jobs:
 - job: Windows_msvc
   pool: Hosted VS2017
 
-  #Your build pipeline references an undefined variable named ‘Parameters.solution’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
-  #Your build pipeline references the ‘BuildPlatform’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
-  #Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
-  #Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
   steps:
   - script: |
       git submodule init
@@ -78,11 +74,11 @@ jobs:
   - task: VSBuild@1
     displayName: 'Build solution OpenNFS.sln'
     inputs:
-      solution: '$(Parameters.solution)'
+      solution: 'OpenNFS.sln'
 
-      platform: '$(BuildPlatform)'
+      platform: 'x64'
 
-      configuration: '$(BuildConfiguration)'
+      configuration: 'Release'
 
 
   - task: PublishSymbols@2
@@ -97,7 +93,7 @@ jobs:
   - task: CopyFiles@2
     displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
     inputs:
-      SourceFolder: './$(BuildConfiguration)/'
+      SourceFolder: './Release/'
 
       Contents: OpenNFS.exe
 
