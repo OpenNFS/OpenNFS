@@ -26,9 +26,10 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
     ImGui::NewFrame();
 
     RescaleUI();
-    std::vector<int> visibleTrackBlocks = getVisibleTrackBlocks(track_to_render);
+    std::vector<int> visibleTrackBlocks = GetVisibleTrackBlocks(track_to_render);
 
-    if(visibleTrackBlocks.size()){
+    // Only bother to render cars if the track is visible
+    if(!visibleTrackBlocks.empty()){
         raceNetShader.use();
         raceNetShader.loadProjectionMatrix(projectionMatrix);
         // Draw Track
@@ -40,9 +41,13 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
             }
         }
 
-        raceNetShader.loadColor(glm::vec3(1.f, 0.f, 0.f));
         // Draw Cars
         for (auto &car : car_list) {
+            std::swap(car->car_body_model.position.y, car->car_body_model.position.z);
+            std::swap(car->car_body_model.orientation.y, car->car_body_model.orientation.z);
+            car->car_body_model.update();
+
+            raceNetShader.loadColor(car->colour);
             raceNetShader.loadTransformationMatrix(car->car_body_model.ModelMatrix);
             car->car_body_model.render();
         }
@@ -53,7 +58,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
     for (auto &car : car_list) {
-        ImGui::Text("Car %d %f %f %f", car->populationID, car->car_body_model.position.x, car->car_body_model.position.y, car->car_body_model.position.z);   car->car_body_model.render();
+        ImGui::Text("Car %d %f %f %f", car->populationID, car->car_body_model.position.x, car->car_body_model.position.y, car->car_body_model.position.z);
     }
 
     // Draw Logger UI
@@ -68,7 +73,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
     glfwSwapBuffers(window);
 }
 
-std::vector<int> RaceNetRenderer::getVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render){
+std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render){
     std::vector<int> activeTrackBlockIds;
 
     for(auto &track_block : track_to_render->track_blocks){

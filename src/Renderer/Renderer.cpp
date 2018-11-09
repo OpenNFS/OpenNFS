@@ -8,7 +8,8 @@
 Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
                    const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track,
                    shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track),
-                                                  skyRenderer(current_track), logger(onfs_logger), installedNFSGames(installedNFS) {
+                                                  skyRenderer(current_track), shadowMapRenderer(current_track),
+                                                  logger(onfs_logger), installedNFSGames(installedNFS) {
     window = gl_window;
     track = current_track;
     car = current_car;
@@ -21,9 +22,11 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
 
     glm::vec3 initialCameraPosition;
     if (track->tag == NFS_3_PS1) {
-        initialCameraPosition = glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z);
+        initialCameraPosition = glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y,
+                                          track->track_blocks[0].center.z);
     } else {
-        glm::vec3 vroadPoint = glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y, track->track_blocks[0].center.z);
+        glm::vec3 vroadPoint = glm::vec3(track->track_blocks[0].center.x, track->track_blocks[0].center.y,
+                                         track->track_blocks[0].center.z);
         initialCameraPosition = vroadPoint;
     }
 
@@ -49,32 +52,7 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger,
 }
 
 void Renderer::InitialiseDepthTexture() {
-    // -----------------------
-    // Configure depth map FBO
-    // -----------------------
-    glGenFramebuffers(1, &depthMapFBO);
-    // create depth texture
-    glGenTextures(1, &depthTextureID);
-    glBindTexture(GL_TEXTURE_2D, depthTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    /*glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);*/
-    // attach depth texture as FBO's depth buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTextureID, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
 
-    // Always check that our framebuffer is ok
-    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Depth FBO is nae good.");
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 AssetData Renderer::Render() {
@@ -136,7 +114,8 @@ AssetData Renderer::Render() {
             car->simulate();
         } else {
             if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
-                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
+                                            glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
                 car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
                 car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
                 car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
@@ -145,7 +124,9 @@ AssetData Renderer::Render() {
 
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
             // Go and find the Vroad Data to reset to
-            car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x, (track->track_blocks[closestBlockID].center.y) + 0.2, track->track_blocks[closestBlockID].center.z));
+            car->resetCar(glm::vec3(track->track_blocks[closestBlockID].center.x,
+                                    (track->track_blocks[closestBlockID].center.y) + 0.2,
+                                    track->track_blocks[closestBlockID].center.z));
         }
 
         // Step the physics simulation
@@ -259,69 +240,16 @@ AssetData Renderer::Render() {
         // If Sun moving below Horizon, change 'Sun' to 'Moon' and flip some state so we know to drop ambient in TrackShader
         bool nightTime = (sun.position.y <= 0);
         float ambientLightFactor = nightTime ? 0.05f : 0.45f;
-
         sun.lookAt = track->track_blocks[closestBlockID].center;
         sun.update();
         moon.lookAt = track->track_blocks[closestBlockID].center;
         moon.update();
 
-        /* ------- SHADOW MAPPING ------- */
-        glCullFace(GL_FRONT);
-        depthShader.use();
-        float near_plane = 160.0f, far_plane = 280.f;
-        glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
-        glm::mat4 lightView = nightTime ? moon.ViewMatrix : sun.ViewMatrix;
-        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-        depthShader.loadLightSpaceMatrix(lightSpaceMatrix);
-        depthShader.bindTextureArray(track->textureArrayID);
-
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        /* Render the track using this simple shader to get depth texture to test against during draw */
-        for (int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx) {
-            TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
-            std::vector<Light> contributingLights;
-            for (auto &light_entity : active_track_Block.lights) {
-                contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
-            }
-            for (auto &track_block_entity : active_track_Block.track) {
-                boost::get<Track>(track_block_entity.glMesh).update();
-                depthShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-                boost::get<Track>(track_block_entity.glMesh).render();
-            }
-            for (auto &track_block_entity : active_track_Block.objects) {
-                boost::get<Track>(track_block_entity.glMesh).update();
-                depthShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-                boost::get<Track>(track_block_entity.glMesh).render();
-            }
-        }
-        /* And the Car */
-        depthShader.bindTextureArray(car->textureArrayID);
-        for (auto &misc_model : car->misc_models) {
-            depthShader.loadTransformMatrix(misc_model.ModelMatrix);
-            misc_model.render();
-        }
-        depthShader.loadTransformMatrix(car->left_front_wheel_model.ModelMatrix);
-        car->left_front_wheel_model.render();
-        depthShader.loadTransformMatrix(car->left_rear_wheel_model.ModelMatrix);
-        car->left_rear_wheel_model.render();
-        depthShader.loadTransformMatrix(car->right_front_wheel_model.ModelMatrix);
-        car->right_front_wheel_model.render();
-        depthShader.loadTransformMatrix(car->right_rear_wheel_model.ModelMatrix);
-        car->right_rear_wheel_model.render();
-        depthShader.loadTransformMatrix(car->car_body_model.ModelMatrix);
-        car->car_body_model.render();
-
-        glCullFace(GL_BACK); // Reset original culling face
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        glViewport(0, 0, 1920, 1080);
+        shadowMapRenderer.renderShadowMap(nightTime ? moon.ViewMatrix : sun.ViewMatrix, activeTrackBlockIDs, car);
 
         skyRenderer.renderSky(mainCamera, sun, userParams, totalTime);
 
-        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams, ticks, depthTextureID, lightSpaceMatrix, ambientLightFactor);
+        trackRenderer.renderTrack(mainCamera, cameraLight, activeTrackBlockIDs, userParams, ticks, shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix, ambientLightFactor);
 
         trackRenderer.renderLights(mainCamera, activeTrackBlockIDs);
 
@@ -531,7 +459,7 @@ void Renderer::SetCulling(bool toCull) {
 void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
-    ImGui::Image((ImTextureID) depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+    ImGui::Image((ImTextureID) shadowMapRenderer.depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
     ImGui::End();
     // Draw Logger UI
     logger->onScreenLog.Draw("ONFS Log");
@@ -609,7 +537,8 @@ void Renderer::DrawDebugCube(glm::vec3 position) {
     physicsEngine.mydebugdrawer.drawBox(Utils::glmToBullet(position_min), Utils::glmToBullet(position_max), colour);
 }
 
-std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData) {
+std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance,
+                                           bool useNeighbourData) {
     std::vector<int> activeTrackBlockIds;
 
     // Basic Geometry Cull

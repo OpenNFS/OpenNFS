@@ -74,10 +74,7 @@ public:
         //Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 
-        auto trainingGround = TrainingGround(1, 100, 200000, track, car, logger, window);
-
-        // Close OpenGL window and terminate GLFW
-        glfwTerminate();
+        auto trainingGround = TrainingGround(20, 1000, 5000, track, car, logger, window);
     }
 
 private:

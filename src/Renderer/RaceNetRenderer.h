@@ -27,7 +27,7 @@ private:
     RaceNetShader raceNetShader;
     float minX = -250.f, maxX = 250.f, minY = 140.625f, maxY = -140.625f; // Default area to display for start of training
 
-    std::vector<int> getVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render);
+    std::vector<int> GetVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render);
     void RescaleUI();
 public:
     explicit RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger);

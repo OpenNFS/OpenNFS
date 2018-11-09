@@ -7,4 +7,5 @@ uniform mat4 projectionMatrix;
 void main()
 {
     gl_Position = projectionMatrix * transformationMatrix * vec4(vertexPosition_modelspace.xz, 0.0, 1.0);
+    gl_Position.z = 0.0;
 }

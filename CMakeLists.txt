@@ -117,7 +117,7 @@ set(SOURCE_FILES
         src/RaceNet/TrainingGround.cpp
         src/RaceNet/TrainingGround.h
         src/Renderer/RaceNetRenderer.cpp
-        src/Renderer/RaceNetRenderer.h src/Shaders/RaceNetShader.cpp src/Shaders/RaceNetShader.h)
+        src/Renderer/RaceNetRenderer.h src/Shaders/RaceNetShader.cpp src/Shaders/RaceNetShader.h src/Scene/Quad.cpp src/Scene/Quad.h src/Renderer/ShadowMapRenderer.cpp src/Renderer/ShadowMapRenderer.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

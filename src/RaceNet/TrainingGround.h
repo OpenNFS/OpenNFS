@@ -22,6 +22,8 @@ public:
 private:
     void InitialiseAgents(uint16_t populationSize);
     std::vector<std::vector<int>> TrainAgents(uint16_t nGenerations, uint32_t nTicks); // Train the agents, returning agent fitness data
+    void Crossover(RaceNet &a, RaceNet &b);
+    void SelectAgents(std::vector<shared_ptr<Car>> &car_agents, std::vector<std::vector<int>> agent_fitnesses);
     void Mutate(RaceNet &toMutate);
     GLFWwindow *window;
     shared_ptr<ONFSTrack> training_track;

@@ -24,8 +24,7 @@
 #include "CarRenderer.h"
 #include "TrackRenderer.h"
 #include "SkyRenderer.h"
-#include "../Shaders/DepthShader.h"
-
+#include "ShadowMapRenderer.h"
 
 class Renderer {
 public:
@@ -47,12 +46,7 @@ private:
     TrackRenderer trackRenderer;
     CarRenderer carRenderer;
     SkyRenderer skyRenderer;
-
-    /* Shadow Mapping */
-    const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
-    GLuint depthMapFBO = 0;
-    GLuint depthTextureID = 0;
-    DepthShader depthShader;
+    ShadowMapRenderer shadowMapRenderer;
 
     /* Scene Objects */
     Camera mainCamera;

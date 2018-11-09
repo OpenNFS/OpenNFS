@@ -35,6 +35,7 @@ public:
     NFSVer tag;
     uint16_t populationID = -1;
     bool multitexturedCarModel = false;
+    glm::vec3 colour;
     // Car Neural Net
     RaceNet carNet;
 

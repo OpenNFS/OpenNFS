@@ -23,7 +23,7 @@ vector<double> RaceNet::Infer(vector<double> raycastInputs) {
         // as the sigmoid function never reaches 0.0 nor 1.0
         // it can be a good idea to consider values greater than 0.9 as 1.0 and values smaller than 0.1 as 0.0
         // hence the step function.
-        Matrix<double> resultMatrix = net.computeOutput(raycastInputs).applyFunction(stepFunction);
+        Matrix<double> resultMatrix = net.computeOutput(raycastInputs);//.applyFunction(stepFunction);
         std::vector<double> resultVector;
 
         resultVector.emplace_back(resultMatrix.get(0, 0));
