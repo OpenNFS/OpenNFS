@@ -36,7 +36,7 @@ shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_na
         case NFS_2_SE:
             return NFS2<PC>::LoadCar(car_path.str());
         case NFS_3:
-           return NFS3::LoadCar(car_path.str());
+            return NFS3::LoadCar(car_path.str());
         case NFS_3_PS1:
             return NFS2<PS1>::LoadCar(car_path.str());
         case NFS_4:

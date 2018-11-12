@@ -4,7 +4,8 @@
 
 #include "RaceNetRenderer.h"
 
-RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger) : window(gl_window), logger(onfs_logger) {
+RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger)
+    : window(gl_window), logger(onfs_logger) {
     projectionMatrix = glm::ortho(minX, maxX, minY, maxY, -1.0f, 1.0f);
 
     /*------- ImGui -------*/
@@ -14,7 +15,8 @@ RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> 
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_list, shared_ptr<ONFSTrack> &track_to_render) {
+void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_list,
+                             shared_ptr<ONFSTrack> &track_to_render) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glfwPollEvents();
@@ -29,7 +31,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
     std::vector<int> visibleTrackBlocks = GetVisibleTrackBlocks(track_to_render);
 
     // Only bother to render cars if the track is visible
-    if(!visibleTrackBlocks.empty()){
+    if (!visibleTrackBlocks.empty()) {
         raceNetShader.use();
         raceNetShader.loadProjectionMatrix(projectionMatrix);
         // Draw Track
@@ -58,7 +60,8 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
     for (auto &car : car_list) {
-        ImGui::Text("Car %d %f %f %f", car->populationID, car->car_body_model.position.x, car->car_body_model.position.y, car->car_body_model.position.z);
+        ImGui::Text("Car %d %f %f %f", car->populationID, car->car_body_model.position.x,
+                    car->car_body_model.position.y, car->car_body_model.position.z);
     }
 
     // Draw Logger UI
@@ -73,11 +76,12 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
     glfwSwapBuffers(window);
 }
 
-std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render){
+std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<ONFSTrack> &track_to_render) {
     std::vector<int> activeTrackBlockIds;
 
-    for(auto &track_block : track_to_render->track_blocks){
-        if((track_block.center.x > minX)&&(track_block.center.x < maxX)&&(track_block.center.z < minY)&&(track_block.center.z > maxY)){
+    for (auto &track_block : track_to_render->track_blocks) {
+        if ((track_block.center.x > minX) && (track_block.center.x < maxX) && (track_block.center.z < minY) &&
+            (track_block.center.z > maxY)) {
             activeTrackBlockIds.emplace_back(track_block.block_id);
         }
     }
@@ -85,28 +89,29 @@ std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr <ONFSTrack> &
     return activeTrackBlockIds;
 }
 
-void RaceNetRenderer::RescaleUI(){
-    if(ImGui::IsAnyItemActive()) return;
+void RaceNetRenderer::RescaleUI() {
+    if (ImGui::IsAnyItemActive())
+        return;
 
     // Get mouse movement and compute new projection matrix with it
     static float prevZoomLevel = ImGui::GetIO().MouseWheel * 4.0f;
-    float currentZoomLevel     = ImGui::GetIO().MouseWheel * 4.0f;
+    float currentZoomLevel = ImGui::GetIO().MouseWheel * 4.0f;
 
     // If panning, update projection matrix
     if (ImGui::GetIO().MouseDown[0]) {
         float xChange = ImGui::GetIO().MouseDelta.x;
         float yChange = ImGui::GetIO().MouseDelta.y;
 
-        minX -= xChange*0.5f;
-        maxX -= xChange*0.5f;
-        minY -= yChange*0.5f;
-        maxY -= yChange*0.5f;
+        minX -= xChange * 0.5f;
+        maxX -= xChange * 0.5f;
+        minY -= yChange * 0.5f;
+        maxY -= yChange * 0.5f;
 
         projectionMatrix = glm::ortho(minX, maxX, minY, maxY, -1.0f, 1.0f);
     }
 
     // If scrolling, update projection matrix
-    if(prevZoomLevel != currentZoomLevel){
+    if (prevZoomLevel != currentZoomLevel) {
         prevZoomLevel = currentZoomLevel;
 
         minX += currentZoomLevel;

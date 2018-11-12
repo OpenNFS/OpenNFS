@@ -6,32 +6,34 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <examples/imgui_impl_glfw.h>
+#include <examples/imgui_impl_opengl3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
-#include <examples/imgui_impl_glfw.h>
-#include <examples/imgui_impl_opengl3.h>
 
-#include "../Scene/Camera.h"
-#include "../Scene/Entity.h"
+#include "../Config.h"
+#include "../Loaders/car_loader.h"
 #include "../Loaders/trk_loader.h"
 #include "../Physics/Physics.h"
-#include "../Loaders/car_loader.h"
+#include "../Scene/Camera.h"
+#include "../Scene/Entity.h"
 #include "../Util/Logger.h"
-#include "../Config.h"
 
-#include "HermiteCurve.h"
 #include "CarRenderer.h"
-#include "TrackRenderer.h"
-#include "SkyRenderer.h"
+#include "HermiteCurve.h"
 #include "ShadowMapRenderer.h"
+#include "SkyRenderer.h"
+#include "TrackRenderer.h"
 
 class Renderer {
-public:
-    Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
+  public:
+    Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger, const std::vector<NeedForSpeed> &installedNFS,
+             const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
     ~Renderer();
     AssetData Render();
-private:
+
+  private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
     std::vector<NeedForSpeed> installedNFSGames;
@@ -68,6 +70,7 @@ private:
     void InitialiseDepthTexture();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
     void NewFrame(ParamData *userParams);
-    std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
+    std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance,
+                                     bool useNeighbourData);
     Entity *CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted);
 };

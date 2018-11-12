@@ -5,17 +5,16 @@
 #ifndef OPENNFS_MATRIX_H
 #define OPENNFS_MATRIX_H
 
+#include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <assert.h>
 
-template<class T>
-class Matrix {
-public:
+template <class T> class Matrix {
+  public:
     Matrix<T>(int height, int width);
 
-    Matrix<T>(std::vector<std::vector<T> > const &array);
+    Matrix<T>(std::vector<std::vector<T>> const &array);
 
     Matrix<T>();
 
@@ -69,66 +68,48 @@ public:
 
     T &operator()(int y, int x);
 
-private:
-    std::vector<std::vector<T> > array;
+  private:
+    std::vector<std::vector<T>> array;
     int height;
     int width;
 };
 
-template<class T>
-Matrix<T> operator+(Matrix<T> const &a, Matrix<T> const &b);
+template <class T> Matrix<T> operator+(Matrix<T> const &a, Matrix<T> const &b);
 
-template<class T>
-Matrix<T> operator-(Matrix<T> const &a, Matrix<T> const &b);
+template <class T> Matrix<T> operator-(Matrix<T> const &a, Matrix<T> const &b);
 
-template<class T>
-Matrix<T> operator*(Matrix<T> const &a, Matrix<T> const &b);
+template <class T> Matrix<T> operator*(Matrix<T> const &a, Matrix<T> const &b);
 
-template<class T>
-Matrix<T> operator+(Matrix<T> const &a, T const &b);
+template <class T> Matrix<T> operator+(Matrix<T> const &a, T const &b);
 
-template<class T>
-Matrix<T> operator-(Matrix<T> const &a, T const &b);
+template <class T> Matrix<T> operator-(Matrix<T> const &a, T const &b);
 
-template<class T>
-Matrix<T> operator*(Matrix<T> const &a, T const &b);
+template <class T> Matrix<T> operator*(Matrix<T> const &a, T const &b);
 
-template<class T>
-std::ostream &operator<<(std::ostream &flux, Matrix<T> const &m);
+template <class T> std::ostream &operator<<(std::ostream &flux, Matrix<T> const &m);
 
 #endif
 
-
-template<class T>
-Matrix<T>::Matrix(int height, int width) {
+template <class T> Matrix<T>::Matrix(int height, int width) {
     this->height = height;
     this->width = width;
-    this->array = std::vector<std::vector<T> >(height, std::vector<T>(width));
+    this->array = std::vector<std::vector<T>>(height, std::vector<T>(width));
 }
 
-template<class T>
-Matrix<T>::Matrix(std::vector<std::vector<T> > const &array) {
+template <class T> Matrix<T>::Matrix(std::vector<std::vector<T>> const &array) {
     assert(array.size() != 0);
     this->height = array.size();
     this->width = array[0].size();
     this->array = array;
 }
 
-template<class T>
-Matrix<T>::Matrix() {}
+template <class T> Matrix<T>::Matrix() {}
 
-template<class T>
-int Matrix<T>::getHeight() {
-    return height;
-}
+template <class T> int Matrix<T>::getHeight() { return height; }
 
-template<class T>
-int Matrix<T>::getWidth() {
-    return width;
-}
+template <class T> int Matrix<T>::getWidth() { return width; }
 
-template<class T>
-void Matrix<T>::fill(T const &value) {
+template <class T> void Matrix<T>::fill(T const &value) {
     int i, j;
     for (i = 0; i < height; i++) {
         for (j = 0; j < width; j++) {
@@ -137,18 +118,11 @@ void Matrix<T>::fill(T const &value) {
     }
 }
 
-template<class T>
-void Matrix<T>::put(int h, int w, T const &value) {
-    array[h][w] = value;
-}
+template <class T> void Matrix<T>::put(int h, int w, T const &value) { array[h][w] = value; }
 
-template<class T>
-T Matrix<T>::get(int h, int w) const {
-    return array[h][w];
-}
+template <class T> T Matrix<T>::get(int h, int w) const { return array[h][w]; }
 
-template<class T>
-Matrix<T> Matrix<T>::add(T const &value) {
+template <class T> Matrix<T> Matrix<T>::add(T const &value) {
     int i, j;
     for (i = 0; i < height; i++) {
         for (j = 0; j < width; j++) {
@@ -159,8 +133,7 @@ Matrix<T> Matrix<T>::add(T const &value) {
     return *this;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::subtract(T const &value) {
+template <class T> Matrix<T> Matrix<T>::subtract(T const &value) {
     int i, j;
     for (i = 0; i < height; i++) {
         for (j = 0; j < width; j++) {
@@ -171,8 +144,7 @@ Matrix<T> Matrix<T>::subtract(T const &value) {
     return *this;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::multiply(T const &value) {
+template <class T> Matrix<T> Matrix<T>::multiply(T const &value) {
     int i, j;
     for (i = 0; i < height; i++) {
         for (j = 0; j < width; j++) {
@@ -183,8 +155,7 @@ Matrix<T> Matrix<T>::multiply(T const &value) {
     return *this;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::add(Matrix const &m) const {
+template <class T> Matrix<T> Matrix<T>::add(Matrix const &m) const {
     assert(height == m.height && width == m.width);
 
     Matrix result(height, width);
@@ -199,8 +170,7 @@ Matrix<T> Matrix<T>::add(Matrix const &m) const {
     return result;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::subtract(Matrix const &m) const {
+template <class T> Matrix<T> Matrix<T>::subtract(Matrix const &m) const {
     assert(height == m.height && width == m.width);
 
     Matrix result(height, width);
@@ -214,8 +184,7 @@ Matrix<T> Matrix<T>::subtract(Matrix const &m) const {
     return result;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::multiply(Matrix const &m) const {
+template <class T> Matrix<T> Matrix<T>::multiply(Matrix const &m) const {
     assert(height == m.height && width == m.width);
 
     Matrix result(height, width);
@@ -229,8 +198,7 @@ Matrix<T> Matrix<T>::multiply(Matrix const &m) const {
     return result;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::dot(Matrix const &m) const {
+template <class T> Matrix<T> Matrix<T>::dot(Matrix const &m) const {
     assert(width == m.height);
 
     int i, j, h, mwidth = m.width;
@@ -251,8 +219,7 @@ Matrix<T> Matrix<T>::dot(Matrix const &m) const {
     return result;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::transpose() const {
+template <class T> Matrix<T> Matrix<T>::transpose() const {
     Matrix<T> result(width, height);
     int i, j;
 
@@ -264,8 +231,7 @@ Matrix<T> Matrix<T>::transpose() const {
     return result;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::applyFunction(T (*function)(T)) const {
+template <class T> Matrix<T> Matrix<T>::applyFunction(T (*function)(T)) const {
     Matrix<T> result(height, width);
     int i, j;
 
@@ -278,8 +244,7 @@ Matrix<T> Matrix<T>::applyFunction(T (*function)(T)) const {
     return result;
 }
 
-template<class T>
-Matrix<T> Matrix<T>::subMatrix(int startH, int startW, int h, int w) const {
+template <class T> Matrix<T> Matrix<T>::subMatrix(int startH, int startW, int h, int w) const {
     assert(startH + h <= height && startW + w <= width);
 
     Matrix<T> result(h, w);
@@ -293,8 +258,7 @@ Matrix<T> Matrix<T>::subMatrix(int startH, int startW, int h, int w) const {
     return result;
 }
 
-template<class T>
-void Matrix<T>::print(std::ostream &flux) const {
+template <class T> void Matrix<T>::print(std::ostream &flux) const {
     int i, j;
     int maxLength[width] = {};
     std::stringstream ss;
@@ -322,8 +286,7 @@ void Matrix<T>::print(std::ostream &flux) const {
     }
 }
 
-template<class T>
-bool Matrix<T>::operator==(Matrix const &m) {
+template <class T> bool Matrix<T>::operator==(Matrix const &m) {
     if (height == m.height && width == m.width) {
         int i, j;
         for (i = 0; i < height; i++) {
@@ -338,82 +301,47 @@ bool Matrix<T>::operator==(Matrix const &m) {
     return false;
 }
 
-template<class T>
-bool Matrix<T>::operator!=(Matrix const &m) {
-    return !operator==(m);
-}
+template <class T> bool Matrix<T>::operator!=(Matrix const &m) { return !operator==(m); }
 
-template<class T>
-void Matrix<T>::operator+=(Matrix const &m) {
-    this->array = add(m).array;
-}
+template <class T> void Matrix<T>::operator+=(Matrix const &m) { this->array = add(m).array; }
 
-template<class T>
-void Matrix<T>::operator-=(Matrix const &m) {
-    this->array = subtract(m).array;
-}
+template <class T> void Matrix<T>::operator-=(Matrix const &m) { this->array = subtract(m).array; }
 
-template<class T>
-void Matrix<T>::operator*=(Matrix const &m) {
-    this->array = multiply(m).array;
-}
+template <class T> void Matrix<T>::operator*=(Matrix const &m) { this->array = multiply(m).array; }
 
-template<class T>
-void Matrix<T>::operator+=(T const &m) {
-    add(m);
-}
+template <class T> void Matrix<T>::operator+=(T const &m) { add(m); }
 
-template<class T>
-void Matrix<T>::operator-=(T const &m) {
-    subtract(m);
-}
+template <class T> void Matrix<T>::operator-=(T const &m) { subtract(m); }
 
-template<class T>
-void Matrix<T>::operator*=(T const &m) {
-    multiply(m);
-}
+template <class T> void Matrix<T>::operator*=(T const &m) { multiply(m); }
 
-template<class T>
-T &Matrix<T>::operator()(int y, int x) {
+template <class T> T &Matrix<T>::operator()(int y, int x) {
     assert(y < height && x < width);
     return array[y][x];
 }
 
-template<class T>
-Matrix<T> operator+(Matrix<T> const &a, Matrix<T> const &b) {
-    return a.add(b);
-}
+template <class T> Matrix<T> operator+(Matrix<T> const &a, Matrix<T> const &b) { return a.add(b); }
 
-template<class T>
-Matrix<T> operator-(Matrix<T> const &a, Matrix<T> const &b) {
-    return a.subtract(b);
-}
+template <class T> Matrix<T> operator-(Matrix<T> const &a, Matrix<T> const &b) { return a.subtract(b); }
 
-template<class T>
-Matrix<T> operator*(Matrix<T> const &a, Matrix<T> const &b) {
-    return a.multiply(b);
-}
+template <class T> Matrix<T> operator*(Matrix<T> const &a, Matrix<T> const &b) { return a.multiply(b); }
 
-template<class T>
-Matrix<T> operator+(Matrix<T> const &a, T const &b) {
+template <class T> Matrix<T> operator+(Matrix<T> const &a, T const &b) {
     Matrix<T> result = a;
     return result.add(b);
 }
 
-template<class T>
-Matrix<T> operator-(Matrix<T> const &a, T const &b) {
+template <class T> Matrix<T> operator-(Matrix<T> const &a, T const &b) {
     Matrix<T> result = a;
     return result.subtract(b);
 }
 
-template<class T>
-Matrix<T> operator*(Matrix<T> const &a, T const &b) {
+template <class T> Matrix<T> operator*(Matrix<T> const &a, T const &b) {
     Matrix<T> result = a;
     return result.multiply(b);
 }
 
-template<class T>
-std::ostream &operator<<(std::ostream &flux, Matrix<T> const &m) {
+template <class T> std::ostream &operator<<(std::ostream &flux, Matrix<T> const &m) {
     m.print(flux);
     return flux;
 }

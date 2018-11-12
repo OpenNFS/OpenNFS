@@ -4,27 +4,26 @@
 
 #pragma once
 
-#include <glm/vec3.hpp>
 #include "../Util/Utils.h"
 #include "Model.h"
-
+#include <glm/vec3.hpp>
 
 class Sound : public Model {
-public:
+  public:
     Sound(glm::vec3 sound_position, uint32_t sound_type);
     Sound();
 
     void update() override;
     void destroy() override;
     void render() override;
-    bool genBuffers()override;
+    bool genBuffers() override;
 
     glm::vec3 position{};
     uint32_t type;
-private:
+
+  private:
     GLuint vertexbuffer;
     GLuint uvbuffer;
     GLuint normalBuffer;
     typedef Model super;
 };
-

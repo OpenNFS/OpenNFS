@@ -6,12 +6,11 @@
 
 TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks,
                                shared_ptr<ONFSTrack> training_track, shared_ptr<Car> training_car,
-                               std::shared_ptr<Logger> logger, GLFWwindow *gl_window) : window(gl_window),
-                                                                                        raceNetRenderer(gl_window,
-                                                                                                        logger) {
-    LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations: "
-              << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " ("
-              << ToString(training_track->tag) << ")";
+                               std::shared_ptr<Logger> logger, GLFWwindow *gl_window)
+    : window(gl_window), raceNetRenderer(gl_window, logger) {
+    LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize
+              << " nGenerations: " << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name
+              << " (" << ToString(training_track->tag) << ")";
 
     this->training_track = training_track;
     this->training_car = training_car;
@@ -50,9 +49,9 @@ float TrainingGround::EvaluateFitness(shared_ptr<Car> car_agent) {
     float lowestDistanceSqr = FLT_MAX;
     for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
         INTPT refPt = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(training_track->trackData)->col.vroad[vroad_Idx].refPt;
-        glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
-                               glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f),
-                                         (refPt.z / 65536.0f) / 10.f);
+        glm::vec3 vroadPoint =
+            glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
+            glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
 
         float distanceSqr = glm::length2(glm::distance(car_agent->car_body_model.position, vroadPoint));
         if (distanceSqr < lowestDistanceSqr) {
@@ -62,16 +61,16 @@ float TrainingGround::EvaluateFitness(shared_ptr<Car> car_agent) {
     }
 
     // Return a number corresponding to the distance driven
-    return (float) closestVroadID;
+    return (float)closestVroadID;
 }
 
 void TrainingGround::InitialiseAgents(uint16_t populationSize) {
     // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
     for (uint16_t pop_Idx = 0; pop_Idx < populationSize; ++pop_Idx) {
-        shared_ptr<Car> car_agent = std::make_shared<Car>(pop_Idx, this->training_car->all_models, NFS_3, "diab",
-                                                          RaceNet());
-        car_agent->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f),
-                                      Utils::RandomFloat(0.f, 1.f));
+        shared_ptr<Car> car_agent =
+            std::make_shared<Car>(pop_Idx, this->training_car->all_models, NFS_3, "diab", RaceNet());
+        car_agent->colour =
+            glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
         physicsEngine.registerVehicle(car_agent);
         car_agent->resetCar(TrackUtils::pointToVec(this->training_track->track_blocks[0].center));
         car_agents.emplace_back(car_agent);
@@ -80,8 +79,8 @@ void TrainingGround::InitialiseAgents(uint16_t populationSize) {
     LOG(INFO) << "Agents initialised";
 }
 
-void
-TrainingGround::SelectAgents(std::vector<shared_ptr<Car>> &car_agents, std::vector<std::vector<int>> agent_fitnesses) {
+void TrainingGround::SelectAgents(std::vector<shared_ptr<Car>> &car_agents,
+                                  std::vector<std::vector<int>> agent_fitnesses) {
     // Clone the best 50% of networks into the worst 50%
     for (uint32_t cull_Idx = agent_fitnesses.size() / 2; cull_Idx < agent_fitnesses.size(); ++cull_Idx) {
         for (auto &car_agent : car_agents) {
@@ -112,7 +111,8 @@ std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations,
             }
             physicsEngine.stepSimulation(stepTime);
             raceNetRenderer.Render(tick_Idx, car_agents, training_track);
-            if (glfwWindowShouldClose(window)) return agentFitnesses;
+            if (glfwWindowShouldClose(window))
+                return agentFitnesses;
         }
 
         // Clear fitness data for next generation
@@ -121,15 +121,12 @@ std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations,
         // Evaluate the fitnesses and sort them
         for (auto &car_agent : car_agents) {
             LOG(INFO) << "Agent " << car_agent->populationID << " made it to trkblock " << EvaluateFitness(car_agent);
-            std::vector<int> agentData = {car_agent->populationID, (int) EvaluateFitness(car_agent)};
+            std::vector<int> agentData = {car_agent->populationID, (int)EvaluateFitness(car_agent)};
             agentFitnesses.emplace_back(agentData);
         }
 
         std::sort(agentFitnesses.begin(), agentFitnesses.end(),
-                  [](const std::vector<int> &a, const std::vector<int> &b) {
-                      return a[1] > b[1];
-                  });
-
+                  [](const std::vector<int> &a, const std::vector<int> &b) { return a[1] > b[1]; });
 
         LOG(DEBUG) << "Agent " << agentFitnesses[0][0] << " was fittest";
 
@@ -143,7 +140,6 @@ std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations,
         for (auto &car_agent : car_agents) {
             Mutate(car_agent->carNet);
         }
-
 
         // Reset the cars for the next generation
         for (auto &car_agent : car_agents) {

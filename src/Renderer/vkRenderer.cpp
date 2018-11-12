@@ -6,17 +6,12 @@
 
 #include "Loaders/nfs_loader.h"
 
-
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const std::vector<const char *> validationLayers = {
-        "VK_LAYER_LUNARG_standard_validation"
-};
+const std::vector<const char *> validationLayers = {"VK_LAYER_LUNARG_standard_validation"};
 
-const std::vector<const char *> deviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -26,7 +21,7 @@ const bool enableValidationLayers = true;
 
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
                                       const VkAllocationCallbacks *pAllocator, VkDebugReportCallbackEXT *pCallback) {
-    auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+    auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
     if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pCallback);
     } else {
@@ -36,8 +31,7 @@ VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCa
 
 void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback,
                                    const VkAllocationCallbacks *pAllocator) {
-    auto func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance,
-                                                                            "vkDestroyDebugReportCallbackEXT");
+    auto func = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
     if (func != nullptr) {
         func(instance, callback, pAllocator);
     }
@@ -45,16 +39,16 @@ void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT
 
 std::vector<std::vector<Vertex>> model_vertices = std::vector<std::vector<Vertex>>();
 
-void vkRenderer::run(){
+void vkRenderer::run() {
     {
         std::string car_name;
         NFS_Loader nfs_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
         std::vector<CarModel> car_meshes = nfs_loader.getMeshes();
-        for(int model_Idx = 0; model_Idx < car_meshes.size(); ++model_Idx){
+        for (int model_Idx = 0; model_Idx < car_meshes.size(); ++model_Idx) {
             model_vertices.emplace_back(std::vector<Vertex>());
             vertexBuffers.emplace_back(VkBuffer());
             vertexBufferMemory.emplace_back(VkDeviceMemory());
-            for(glm::vec3 vertex : car_meshes[model_Idx].m_vertices){
+            for (glm::vec3 vertex : car_meshes[model_Idx].m_vertices) {
                 Vertex temp;
                 temp.normal = vertex;
                 temp.uv = glm::vec2(0.0f, 0.0f);
@@ -136,10 +130,10 @@ void vkRenderer::cleanup() {
     vkDestroyBuffer(device, uniformBuffer, nullptr);
     vkFreeMemory(device, uniformBufferMemory, nullptr);
 
-    for(auto &vertexBuffer : vertexBuffers){
+    for (auto &vertexBuffer : vertexBuffers) {
         vkDestroyBuffer(device, vertexBuffer, nullptr);
     }
-    for(auto &vertexBufferMem : vertexBufferMemory){
+    for (auto &vertexBufferMem : vertexBufferMemory) {
         vkFreeMemory(device, vertexBufferMem, nullptr);
     }
 
@@ -165,7 +159,8 @@ void vkRenderer::cleanup() {
 void vkRenderer::recreateSwapChain() {
     int width, height;
     glfwGetWindowSize(window, &width, &height);
-    if (width == 0 || height == 0) return;
+    if (width == 0 || height == 0)
+        return;
 
     vkDeviceWaitIdle(device);
 
@@ -213,7 +208,8 @@ void vkRenderer::createInstance() {
 }
 
 void vkRenderer::setupDebugCallback() {
-    if (!enableValidationLayers) return;
+    if (!enableValidationLayers)
+        return;
 
     VkDebugReportCallbackCreateInfoEXT createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -322,7 +318,7 @@ void vkRenderer::createSwapChain() {
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-    uint32_t queueFamilyIndices[] = {(uint32_t) indices.graphicsFamily, (uint32_t) indices.presentFamily};
+    uint32_t queueFamilyIndices[] = {(uint32_t)indices.graphicsFamily, (uint32_t)indices.presentFamily};
 
     if (indices.graphicsFamily != indices.presentFamily) {
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -474,8 +470,8 @@ void vkRenderer::createGraphicsPipeline() {
     VkViewport viewport = {};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float) swapChainExtent.width;
-    viewport.height = (float) swapChainExtent.height;
+    viewport.width = (float)swapChainExtent.width;
+    viewport.height = (float)swapChainExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
@@ -507,7 +503,7 @@ void vkRenderer::createGraphicsPipeline() {
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
     colorBlendAttachment.colorWriteMask =
-            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     colorBlendAttachment.blendEnable = VK_FALSE;
 
     VkPipelineColorBlendStateCreateInfo colorBlending = {};
@@ -557,9 +553,7 @@ void vkRenderer::createFramebuffers() {
     swapChainFramebuffers.resize(swapChainImageViews.size());
 
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-        VkImageView attachments[] = {
-                swapChainImageViews[i]
-        };
+        VkImageView attachments[] = {swapChainImageViews[i]};
 
         VkFramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -589,7 +583,7 @@ void vkRenderer::createCommandPool() {
 }
 
 void vkRenderer::createVertexBuffers() {
-    for(int model_Idx = 0; model_Idx < model_vertices.size(); ++model_Idx){
+    for (int model_Idx = 0; model_Idx < model_vertices.size(); ++model_Idx) {
         VkDeviceSize bufferSize = sizeof(model_vertices[model_Idx][0]) * model_vertices[model_Idx].size();
 
         VkBuffer stagingBuffer;
@@ -600,10 +594,11 @@ void vkRenderer::createVertexBuffers() {
 
         void *data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, model_vertices[model_Idx].data(), (size_t) bufferSize);
+        memcpy(data, model_vertices[model_Idx].data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
 
-        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffers[model_Idx], vertexBufferMemory[model_Idx]);
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffers[model_Idx], vertexBufferMemory[model_Idx]);
 
         copyBuffer(stagingBuffer, vertexBuffers[model_Idx], bufferSize);
 
@@ -744,7 +739,7 @@ void vkRenderer::createCommandBuffers() {
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
+    allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
     if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
@@ -776,14 +771,14 @@ void vkRenderer::createCommandBuffers() {
 
         VkBuffer *vertexBufs = {&vertexBuffers[0]};
         VkDeviceSize offsets[] = {0};
-        std::cout<<vertexBuffers.size();
+        std::cout << vertexBuffers.size();
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBufs, offsets);
 
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                 &descriptorSet, 0, nullptr);
 
-        //for(auto &vertices : model_vertices){
-            vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(model_vertices[0].size()), 1, 0, 0);
+        // for(auto &vertices : model_vertices){
+        vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(model_vertices[0].size()), 1, 0, 0);
         //}
 
         vkCmdEndRenderPass(commandBuffers[i]);
@@ -814,8 +809,8 @@ void vkRenderer::updateUniformBuffer() {
     UniformBufferObject ubo = {};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f,
-                                10.0f);
+    ubo.proj =
+        glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
 
     void *data;
@@ -931,10 +926,7 @@ VkExtent2D vkRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabili
         int width, height;
         glfwGetWindowSize(window, &width, &height);
 
-        VkExtent2D actualExtent = {
-                static_cast<uint32_t>(width),
-                static_cast<uint32_t>(height)
-        };
+        VkExtent2D actualExtent = {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
 
         actualExtent.width = std::max(capabilities.minImageExtent.width,
                                       std::min(capabilities.maxImageExtent.width, actualExtent.width));
@@ -1077,7 +1069,7 @@ static std::vector<char> readFile(const std::string &filename) {
         throw std::runtime_error("failed to open file!");
     }
 
-    size_t fileSize = (size_t) file.tellg();
+    size_t fileSize = (size_t)file.tellg();
     std::vector<char> buffer(fileSize);
 
     file.seekg(0);
@@ -1088,8 +1080,9 @@ static std::vector<char> readFile(const std::string &filename) {
     return buffer;
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj,
-                          size_t location, int32_t code, const char *layerPrefix, const char *msg, void *userData) {
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType,
+                                                    uint64_t obj, size_t location, int32_t code,
+                                                    const char *layerPrefix, const char *msg, void *userData) {
     std::cerr << "validation layer: " << msg << std::endl;
 
     return VK_FALSE;

@@ -12,24 +12,22 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
 #include <algorithm>
-#include <chrono>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
 #include <array>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iostream>
 #include <set>
+#include <stdexcept>
+#include <vector>
 
 struct QueueFamilyIndices {
     int graphicsFamily = -1;
     int presentFamily = -1;
 
-    bool isComplete() {
-        return graphicsFamily >= 0 && presentFamily >= 0;
-    }
+    bool isComplete() { return graphicsFamily >= 0 && presentFamily >= 0; }
 };
 
 struct SwapChainSupportDetails {
@@ -80,17 +78,18 @@ struct UniformBufferObject {
     glm::mat4 proj;
 };
 
-static std::vector<char> readFile(const std::string& filename);
+static std::vector<char> readFile(const std::string &filename);
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code, const char* layerPrefix, const char* msg, void* userData) ;
-
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType,
+                                                    uint64_t obj, size_t location, int32_t code,
+                                                    const char *layerPrefix, const char *msg, void *userData);
 
 class vkRenderer {
-public:
+  public:
     void run();
 
-private:
-    GLFWwindow* window;
+  private:
+    GLFWwindow *window;
 
     VkInstance instance;
     VkDebugReportCallbackEXT callback;
@@ -132,19 +131,19 @@ private:
 
     void initWindow();
 
-    void initVulkan() ;
+    void initVulkan();
 
-    void mainLoop() ;
+    void mainLoop();
 
     void cleanupSwapChain();
 
     void cleanup();
 
-    void recreateSwapChain() ;
+    void recreateSwapChain();
 
-    void createInstance() ;
+    void createInstance();
 
-    void setupDebugCallback() ;
+    void setupDebugCallback();
 
     void createSurface();
 
@@ -154,15 +153,15 @@ private:
 
     void createSwapChain();
 
-    void createImageViews() ;
+    void createImageViews();
 
-    void createRenderPass() ;
+    void createRenderPass();
 
-    void createDescriptorSetLayout() ;
+    void createDescriptorSetLayout();
 
-    void createGraphicsPipeline() ;
+    void createGraphicsPipeline();
 
-    void createFramebuffers() ;
+    void createFramebuffers();
 
     void createCommandPool();
 
@@ -174,31 +173,32 @@ private:
 
     void createDescriptorSet();
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) ;
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer,
+                      VkDeviceMemory &bufferMemory);
 
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) ;
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     void createCommandBuffers();
 
     void createSemaphores();
 
-    void updateUniformBuffer() ;
+    void updateUniformBuffer();
 
     void drawFrame();
 
-    VkShaderModule createShaderModule(const std::vector<char>& code);
+    VkShaderModule createShaderModule(const std::vector<char> &code);
 
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
 
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
-    std::vector<const char*> getRequiredExtensions();
+    std::vector<const char *> getRequiredExtensions();
 
     bool isDeviceSuitable(VkPhysicalDevice device);
 
@@ -207,7 +207,6 @@ private:
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
     bool checkValidationLayerSupport();
+};
 
-   };
-
-#endif //OPENNFS3_VKRENDERER_H
+#endif // OPENNFS3_VKRENDERER_H

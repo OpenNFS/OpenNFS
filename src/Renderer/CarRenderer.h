@@ -4,16 +4,16 @@
 
 #pragma once
 
-
-#include "../Shaders/CarShader.h"
 #include "../Scene/Camera.h"
+#include "../Shaders/CarShader.h"
 
 class CarRenderer {
-public:
+  public:
     explicit CarRenderer(const shared_ptr<Car> &activeCar);
     ~CarRenderer();
     void render(const Camera &mainCamera, const std::vector<Light> &contributingLights);
-private:
+
+  private:
     // Create and compile our GLSL programs from the shaders
     CarShader carShader;
     shared_ptr<Car> car;

@@ -4,30 +4,32 @@
 
 #pragma once
 
-#include <LinearMath/btDefaultMotionState.h>
-#include <BulletDynamics/Dynamics/btRigidBody.h>
-#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#include <BulletDynamics/Vehicle/btVehicleRaycaster.h>
-#include <BulletDynamics/Vehicle/btRaycastVehicle.h>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
+#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
+#include <BulletDynamics/Dynamics/btRigidBody.h>
+#include <BulletDynamics/Vehicle/btRaycastVehicle.h>
+#include <BulletDynamics/Vehicle/btVehicleRaycaster.h>
+#include <LinearMath/btDefaultMotionState.h>
 #include <btBulletDynamicsCommon.h>
 
+#include "../Enums.h"
 #include "../RaceNet/RaceNet.h"
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
-#include "../Enums.h"
 
 class Car {
-public:
+  public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
-    Car(uint16_t populationID, std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet); // Neural Net/GA Training
-    Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID); // Multitextured car
+    Car(uint16_t populationID, std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name,
+        RaceNet carNet); // Neural Net/GA Training
+    Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name,
+        GLuint car_textureArrayID); // Multitextured car
     ~Car();
     void setPosition(glm::vec3 position);
     void setNetwork(RaceNet &carNet) { this->carNet = carNet; };
     void update();
     void simulate();
-    void update(btDynamicsWorld* dynamicsWorld);
+    void update(btDynamicsWorld *dynamicsWorld);
     void resetCar(glm::vec3 reset_position);
     void writeObj(const std::string &path);
 
@@ -39,10 +41,10 @@ public:
     // Car Neural Net
     RaceNet carNet;
 
-    btDefaultMotionState* getMotionState() { return vehicleMotionState; }
-    btRigidBody* getVehicleRigidBody() { return m_carChassis; }
-    btVehicleRaycaster* getRaycaster() { return m_vehicleRayCaster; }
-    btRaycastVehicle*	getRaycast() { return m_vehicle; }
+    btDefaultMotionState *getMotionState() { return vehicleMotionState; }
+    btRigidBody *getVehicleRigidBody() { return m_carChassis; }
+    btVehicleRaycaster *getRaycaster() { return m_vehicleRayCaster; }
+    btRaycastVehicle *getRaycast() { return m_vehicle; }
 
     void applyAccelerationForce(bool accelerate, bool reverse);
     void applyBrakingForce(bool apply);
@@ -57,8 +59,8 @@ public:
     float getSuspensionCompression() { return suspensionCompression; }
     float getWheelFriction() { return wheelFriction; }
     float getRollInfluence() { return rollInfluence; }
-    bool isMultitextured() {return multitexturedCarModel; }
-    bool hasPolyFlags() {return car_body_model.hasPolyFlags; }
+    bool isMultitextured() { return multitexturedCarModel; }
+    bool hasPolyFlags() { return car_body_model.hasPolyFlags; }
 
     float getRotY();
 
@@ -85,38 +87,39 @@ public:
 
     // Physics
     btRaycastVehicle::btVehicleTuning m_tuning; // Wheel properties
-    btVehicleRaycaster* m_vehicleRayCaster;     // Wheel simulation
-    btRaycastVehicle* m_vehicle;
+    btVehicleRaycaster *m_vehicleRayCaster;     // Wheel simulation
+    btRaycastVehicle *m_vehicle;
 
     // Vehicle Properties
-    float	gVehicleSteering;
-    float	steeringIncrement;   // Steering speed
-    float	steeringClamp;       // Max steering angle
+    float gVehicleSteering;
+    float steeringIncrement; // Steering speed
+    float steeringClamp;     // Max steering angle
 
-    float	gEngineForce;        // force to apply to engine
-    float	gBreakingForce;      // breaking force
-    float	maxEngineForce;      // max engine force to apply
-    float	maxBreakingForce;    // max breaking force
+    float gEngineForce;     // force to apply to engine
+    float gBreakingForce;   // breaking force
+    float maxEngineForce;   // max engine force to apply
+    float maxBreakingForce; // max breaking force
 
-    float	wheelRadius;
-    float	wheelWidth;
+    float wheelRadius;
+    float wheelWidth;
     btScalar suspensionRestLength;
 
     // Wheel Properties
-    float	suspensionStiffness;
-    float	suspensionDamping;
-    float	suspensionCompression;
-    float	wheelFriction;
+    float suspensionStiffness;
+    float suspensionDamping;
+    float suspensionCompression;
+    float wheelFriction;
     // Shifts CoM
-    float	rollInfluence;
-private:
-    void genRaycasts(btDynamicsWorld* dynamicsWorld);
+    float rollInfluence;
+
+  private:
+    void genRaycasts(btDynamicsWorld *dynamicsWorld);
     void setModels(std::vector<CarModel> car_models);
 
     // Base Physics objects for car
-    btDefaultMotionState* vehicleMotionState;   // Retrieving vehicle location in world
-    btRigidBody* m_carChassis;
-    btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
+    btDefaultMotionState *vehicleMotionState; // Retrieving vehicle location in world
+    btRigidBody *m_carChassis;
+    btAlignedObjectArray<btCollisionShape *> m_collisionShapes;
 
     // Steering state
     bool steerRight;

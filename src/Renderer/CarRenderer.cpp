@@ -6,7 +6,7 @@
 
 CarRenderer::CarRenderer(const shared_ptr<Car> &activeCar) : carShader(activeCar) {
     car = activeCar;
-    if(!car->isMultitextured()){
+    if (!car->isMultitextured()) {
         // TODO: Move this out of car shader and into Car constructor
         carShader.load_tga_texture();
     }
@@ -21,9 +21,10 @@ void CarRenderer::render(const Camera &mainCamera, const std::vector<Light> &con
     carShader.loadCarColor(glm::vec3(1, 1, 1));
     carShader.loadLights(contributingLights);
     carShader.loadEnvironmentMapTexture();
-    // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
+    // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind
+    // texture array
     carShader.setMultiTextured(car->isMultitextured());
-    if(car->isMultitextured()){
+    if (car->isMultitextured()) {
         carShader.bindTextureArray(car->textureArrayID);
     } else {
         carShader.loadCarTexture();
@@ -53,7 +54,8 @@ void CarRenderer::render(const Camera &mainCamera, const std::vector<Light> &con
     car->right_rear_wheel_model.render();
 
     carShader.loadTransformationMatrix(car->car_body_model.ModelMatrix);
-    carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity, car->car_body_model.envReflectivity);
+    carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity,
+                           car->car_body_model.envReflectivity);
     car->car_body_model.render();
 
     carShader.unbind();
@@ -63,4 +65,3 @@ CarRenderer::~CarRenderer() {
     // Cleanup VBOs and shaders
     carShader.cleanup();
 }
-

@@ -4,20 +4,20 @@
 
 #pragma once
 
-#include "BaseShader.h"
-#include <sstream>
-#include <glm/detail/type_mat4x4.hpp>
-#include "../Config.h"
-#include "../Util/Utils.h"
-#include "../Scene/Model.h"
 #include "../../include/TGALoader/TGALoader.h"
-#include "../Scene/Light.h"
+#include "../Config.h"
 #include "../Physics/Car.h"
+#include "../Scene/Light.h"
+#include "../Scene/Model.h"
+#include "../Util/Utils.h"
+#include "BaseShader.h"
+#include <glm/detail/type_mat4x4.hpp>
+#include <sstream>
 
 #define MAX_CAR_CONTRIB_LIGHTS 6
 
 class CarShader : public BaseShader {
-public:
+  public:
     explicit CarShader(shared_ptr<Car> current_car);
     void loadCarColor(glm::vec3 color);
     void loadCarTexture();
@@ -30,7 +30,8 @@ public:
     void setPolyFlagged(bool polyFlagged);
     void load_tga_texture();
     void loadEnvironmentMapTexture();
-protected:
+
+  protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
@@ -57,5 +58,3 @@ protected:
 
     typedef BaseShader super;
 };
-
-

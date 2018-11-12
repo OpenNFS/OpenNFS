@@ -4,7 +4,7 @@
 
 #include "ShadowMapRenderer.h"
 
-ShadowMapRenderer::ShadowMapRenderer(const shared_ptr<ONFSTrack> &activeTrack): track(activeTrack) {
+ShadowMapRenderer::ShadowMapRenderer(const shared_ptr<ONFSTrack> &activeTrack) : track(activeTrack) {
     // -----------------------
     // Configure depth map FBO
     // -----------------------
@@ -12,7 +12,8 @@ ShadowMapRenderer::ShadowMapRenderer(const shared_ptr<ONFSTrack> &activeTrack): 
     // create depth texture
     glGenTextures(1, &depthTextureID);
     glBindTexture(GL_TEXTURE_2D, depthTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -33,7 +34,8 @@ ShadowMapRenderer::ShadowMapRenderer(const shared_ptr<ONFSTrack> &activeTrack): 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::vector<int> activeTrackBlockIDs, const std::shared_ptr<Car> &car){
+void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix, std::vector<int> activeTrackBlockIDs,
+                                        const std::shared_ptr<Car> &car) {
     /* ------- SHADOW MAPPING ------- */
     glCullFace(GL_FRONT);
     depthShader.use();

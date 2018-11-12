@@ -4,17 +4,18 @@
 
 #pragma once
 
-#include "BaseShader.h"
-#include "../Util/Utils.h"
 #include "../Scene/Light.h"
+#include "../Util/Utils.h"
+#include "BaseShader.h"
 
 class DepthShader : public BaseShader {
-public:
+  public:
     DepthShader();
     void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
     void loadTransformMatrix(const glm::mat4 &transformationMatrix);
     void bindTextureArray(GLuint textureArrayID);
-protected:
+
+  protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
@@ -25,4 +26,3 @@ protected:
 
     typedef BaseShader super;
 };
-

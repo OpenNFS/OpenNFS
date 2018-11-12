@@ -4,19 +4,21 @@
 
 #pragma once
 
-#include "BaseShader.h"
-#include "../Scene/Track.h"
 #include "../Scene/Light.h"
+#include "../Scene/Track.h"
+#include "BaseShader.h"
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
 
 #define MAX_LIGHTS 6
 
 class TrackShader : public BaseShader {
-public:
+  public:
     TrackShader();
     void bindTextureArray(GLuint textureArrayID);
-    void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view); // These don't change between Shader binds, better to set state once for a track render pass
+    void loadProjectionViewMatrices(const glm::mat4 &projection,
+                                    const glm::mat4 &view); // These don't change between Shader binds, better to set
+                                                            // state once for a track render pass
     void loadTransformMatrix(const glm::mat4 &transformation);
     void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
     void loadSpecular(float damper, float reflectivity);
@@ -25,7 +27,7 @@ public:
     void loadAmbientFactor(float ambientFactor);
     void setClassic(bool useClassic);
 
-protected:
+  protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;

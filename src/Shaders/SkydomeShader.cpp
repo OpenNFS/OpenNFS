@@ -7,15 +7,15 @@
 const std::string vertexSrc = "../shaders/SkydomeVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/SkydomeFragmentShader.fragmentshader";
 
-SkydomeShader::SkydomeShader() : super(vertexSrc, fragSrc){
+SkydomeShader::SkydomeShader() : super(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }
 
 void SkydomeShader::bindAttributes() {
-    bindAttribute(0 ,"vertexPosition_modelspace");
-    bindAttribute(1 ,"vertexUV");
-    bindAttribute(2 ,"normal");
+    bindAttribute(0, "vertexPosition_modelspace");
+    bindAttribute(1, "vertexUV");
+    bindAttribute(2, "normal");
 }
 
 void SkydomeShader::getAllUniformLocations() {
@@ -43,15 +43,14 @@ void SkydomeShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &v
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void SkydomeShader::loadStarRotationMatrix(const glm::mat4 &star_rotation_matrix){
+void SkydomeShader::loadStarRotationMatrix(const glm::mat4 &star_rotation_matrix) {
     loadMat4(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
 }
 
-void SkydomeShader::loadSunPosition(const Light &sun){
-    loadVec3(sunPositionLocation, sun.position);
-}
+void SkydomeShader::loadSunPosition(const Light &sun) { loadVec3(sunPositionLocation, sun.position); }
 
-void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID){
+void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID,
+                                 GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID) {
     loadSampler2D(clouds1TextureLocation, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, clouds1TextureID);
@@ -77,15 +76,8 @@ void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureI
     glBindTexture(GL_TEXTURE_2D, tint2TextureID);
 }
 
-void SkydomeShader::loadWeatherMixFactor(float weatherMixFactor) {
-    loadFloat(weatherLocation, weatherMixFactor);
-}
+void SkydomeShader::loadWeatherMixFactor(float weatherMixFactor) { loadFloat(weatherLocation, weatherMixFactor); }
 
-void SkydomeShader::loadTime(float time) {
-    loadFloat(timeLocation, time);
-}
+void SkydomeShader::loadTime(float time) { loadFloat(timeLocation, time); }
 
-void SkydomeShader::customCleanup() {
-
-}
-
+void SkydomeShader::customCleanup() {}

@@ -5,33 +5,32 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <glm/detail/type_mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/detail/type_mat4x4.hpp>
 #include <glm/vec3.hpp>
 
-#include <btBulletDynamicsCommon.h>
-#include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <BulletCollision/BroadphaseCollision/btBroadphaseInterface.h>
 #include <BulletCollision/BroadphaseCollision/btDbvtBroadphase.h>
-#include <BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h>
 #include <BulletCollision/CollisionDispatch/btCollisionDispatcher.h>
+#include <BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <BulletCollision/CollisionShapes/btBoxShape.h>
+#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
+#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
-#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
-#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <btBulletDynamicsCommon.h>
 
 #include <vector>
 
-#include "../Util/Utils.h"
-#include "../Scene/TrackBlock.h"
 #include "../Loaders/trk_loader.h"
+#include "../Scene/TrackBlock.h"
+#include "../Util/Utils.h"
 #include "Car.h"
 
-
 class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw {
-public:
+  public:
     void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix) {
         glUseProgram(0); // Use Fixed-function pipeline (no shaders)
         glMatrixMode(GL_MODELVIEW);
@@ -54,9 +53,7 @@ public:
 
     virtual void draw3dText(const btVector3 &, const char *) {}
 
-    virtual void setDebugMode(int p) {
-        m = p;
-    }
+    virtual void setDebugMode(int p) { m = p; }
 
     int getDebugMode(void) const { return 3; }
 
@@ -64,22 +61,23 @@ public:
 };
 
 void ScreenPosToWorldRay(
-        int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
-        int screenWidth, int screenHeight,  // Window size, in pixels
-        glm::mat4 ViewMatrix,               // Camera position and orientation
-        glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
-        glm::vec3 &out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.
-        glm::vec3 &out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
+    int mouseX, int mouseY,            // Mouse position, in pixels, from bottom-left corner of the window
+    int screenWidth, int screenHeight, // Window size, in pixels
+    glm::mat4 ViewMatrix,              // Camera position and orientation
+    glm::mat4 ProjectionMatrix,        // Camera parameters (ratio, field of view, near and far planes)
+    glm::vec3 &out_origin,   // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start
+                             // at the camera's position instead, ignore this.
+    glm::vec3 &out_direction // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
 );
 
-class Physics{
-public:
+class Physics {
+  public:
     Physics();
-    ~Physics(){ cleanSimulation(); }
+    ~Physics() { cleanSimulation(); }
     void initSimulation();
     void stepSimulation(float time);
     void cleanSimulation();
-    btDynamicsWorld* getDynamicsWorld() { return dynamicsWorld; }
+    btDynamicsWorld *getDynamicsWorld() { return dynamicsWorld; }
     void registerVehicle(std::shared_ptr<Car> car);
     void registerTrack(const std::shared_ptr<ONFSTrack> &track);
 
@@ -89,8 +87,8 @@ public:
     void updateFrustrum(glm::mat4 viewMatrix);
     void destroyGhostObject();
     int numObjects = 0;
-    btAlignedObjectArray<btCollisionObject*> m_objectsInFrustum;	// Frustum cull results
-private:
+    btAlignedObjectArray<btCollisionObject *> m_objectsInFrustum; // Frustum cull results
+  private:
     shared_ptr<ONFSTrack> current_track;
     std::vector<std::shared_ptr<Car>> cars;
     /*------- BULLET --------*/
@@ -100,8 +98,8 @@ private:
     btSequentialImpulseConstraintSolver *solver;
     btDiscreteDynamicsWorld *dynamicsWorld;
     // Frustum Culling
-    btPairCachingGhostObject* m_ghostObject = nullptr;
-    btOverlappingPairCallback*	m_ghostPairCallback = nullptr;
-    btCollisionShape* buildFrustumShape();
+    btPairCachingGhostObject *m_ghostObject = nullptr;
+    btOverlappingPairCallback *m_ghostPairCallback = nullptr;
+    btCollisionShape *buildFrustumShape();
     void buildGhostObject();
 };

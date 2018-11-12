@@ -4,16 +4,16 @@
 
 #pragma once
 
-#include <vector>
-#include <fstream>
 #include <cmath>
-#include <time.h>
+#include <fstream>
 #include <stdlib.h>
+#include <time.h>
+#include <vector>
 
 #include "Matrix.h"
 
 class Network {
-public:
+  public:
     Network(std::vector<int> neurons, double learningRate);
 
     Network(const char *filepath);
@@ -26,13 +26,13 @@ public:
 
     void loadNetworkParams(const char *filepath);
 
-    std::vector<Matrix<double> > W;
-    std::vector<Matrix<double> > B;
+    std::vector<Matrix<double>> W;
+    std::vector<Matrix<double>> B;
 
-private:
-    std::vector<Matrix<double> > H;
-    std::vector<Matrix<double> > dEdW;
-    std::vector<Matrix<double> > dEdB;
+  private:
+    std::vector<Matrix<double>> H;
+    std::vector<Matrix<double>> dEdW;
+    std::vector<Matrix<double>> dEdB;
 
     Matrix<double> Y;
 

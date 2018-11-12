@@ -4,17 +4,17 @@
 
 #pragma once
 
-#include "BaseShader.h"
-#include "../Util/Utils.h"
 #include "../Scene/Light.h"
+#include "../Util/Utils.h"
+#include "BaseShader.h"
 
 class BillboardShader : public BaseShader {
-public:
+  public:
     BillboardShader();
     void loadLight(Light board_light);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
 
-protected:
+  protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
@@ -33,4 +33,3 @@ protected:
 
     void load_bmp_texture();
 };
-

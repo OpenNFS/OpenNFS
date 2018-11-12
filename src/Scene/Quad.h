@@ -4,26 +4,25 @@
 
 #pragma once
 
-#include <glm/vec3.hpp>
 #include "Model.h"
-
+#include <glm/vec3.hpp>
 
 class Quad : public Model {
-public:
+  public:
     Quad(glm::vec3 position, glm::vec3 colour, float size);
     Quad();
 
     void update() override;
     void destroy() override;
     void render() override;
-    bool genBuffers()override;
+    bool genBuffers() override;
 
     glm::vec3 colour;
     long type;
-private:
+
+  private:
     GLuint vertexbuffer;
     GLuint uvbuffer;
     GLuint normalBuffer;
     typedef Model super;
 };
-

@@ -7,14 +7,12 @@
 const std::string vertexSrc = "../shaders/RaceNetVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/RaceNetFragmentShader.fragmentshader";
 
-RaceNetShader::RaceNetShader() : super(vertexSrc, fragSrc){
+RaceNetShader::RaceNetShader() : super(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }
 
-void RaceNetShader::bindAttributes() {
-    bindAttribute(0 ,"vertexPosition_modelspace");
-}
+void RaceNetShader::bindAttributes() { bindAttribute(0, "vertexPosition_modelspace"); }
 
 void RaceNetShader::getAllUniformLocations() {
     // Get handles for uniforms
@@ -31,12 +29,6 @@ void RaceNetShader::loadTransformationMatrix(const glm::mat4 &transformation) {
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void RaceNetShader::loadColor(glm::vec3 color) {
-    loadVec3(colourLocation, color);
-}
+void RaceNetShader::loadColor(glm::vec3 color) { loadVec3(colourLocation, color); }
 
-
-void RaceNetShader::customCleanup() {
-
-}
-
+void RaceNetShader::customCleanup() {}

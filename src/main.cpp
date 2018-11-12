@@ -7,23 +7,22 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 
-#include <cstdlib>
-#include <string>
-#include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
-#include "Util/Logger.h"
-#include "Loaders/trk_loader.h"
 #include "Loaders/car_loader.h"
 #include "Loaders/music_loader.h"
+#include "Loaders/trk_loader.h"
 #include "Physics/Car.h"
-#include "Renderer/Renderer.h"
 #include "RaceNet/TrainingGround.h"
-
+#include "Renderer/Renderer.h"
+#include "Util/Logger.h"
 
 class OpenNFS {
-public:
+  public:
     void run(std::shared_ptr<Logger> logger) {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
@@ -32,21 +31,18 @@ public:
         InitDirectories();
         std::vector<NeedForSpeed> installedNFS = PopulateAssets();
 
-        AssetData loadedAssets = {
-                NFS_3, "diab",
-                NFS_3, "trk006"
-        };
+        AssetData loadedAssets = {NFS_3, "diab", NFS_3, "trk006"};
 
         /*------- Render --------*/
         while (loadedAssets.trackTag != UNKNOWN) {
             /*------ ASSET LOAD ------*/
-            //Load Track Data
+            // Load Track Data
             std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
-            //Load Car data from unpacked NFS files
+            // Load Car data from unpacked NFS files
             std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
-            //Load Music
-            //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
+            // Load Music
+            // MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
 
             Renderer renderer(window, logger, installedNFS, track, car);
             loadedAssets = renderer.Render();
@@ -63,26 +59,21 @@ public:
         ASSERT(InitOpenGL(1920, 1080, "OpenNFS (GA Training Mode)"), "OpenGL init failed.");
         InitDirectories();
 
-        AssetData trainingAssets = {
-                NFS_3, "diab",
-                NFS_3, "trk006"
-        };
+        AssetData trainingAssets = {NFS_3, "diab", NFS_3, "trk006"};
 
         /*------ ASSET LOAD ------*/
-        //Load Track Data
+        // Load Track Data
         std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
-        //Load Car data from unpacked NFS files
+        // Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 
         auto trainingGround = TrainingGround(20, 1000, 5000, track, car, logger, window);
     }
 
-private:
+  private:
     GLFWwindow *window;
 
-    static void glfwError(int id, const char *description) {
-        LOG(WARNING) << description;
-    }
+    static void glfwError(int id, const char *description) { LOG(WARNING) << description; }
 
     bool InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
         // Initialise GLFW
@@ -90,7 +81,7 @@ private:
         glfwSetErrorCallback(&glfwError);
 
         // TODO: Disable MSAA for now until texture array adds padding
-        //wglfwWindowHint(GLFW_SAMPLES, 4);
+        // wglfwWindowHint(GLFW_SAMPLES, 4);
 
 #ifdef __APPLE__
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -99,7 +90,7 @@ private:
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #else
         // TODO: If we fail to create a GL context on Windows, fall back to not requesting any (Keiiko Bug #1)
-        //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+        // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 #endif
 
         window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
@@ -300,7 +291,8 @@ private:
                 }
 
                 carBasePathStream.str(std::string());
-                carBasePathStream << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/" << "PURSUIT/";
+                carBasePathStream << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/"
+                                  << "PURSUIT/";
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
                 }

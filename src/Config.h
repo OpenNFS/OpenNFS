@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <imgui.h>
 #include <cstdint>
+#include <imgui.h>
 #include <string>
 #include <vector>
 
@@ -15,7 +15,7 @@ const std::string ONFS_VERSION = "0.3";
 
 const std::string LOG_FILE_PATH = "./";
 
-const std::string ASSET_PATH= "./assets/";
+const std::string ASSET_PATH = "./assets/";
 const std::string CAR_PATH = ASSET_PATH + "car/";
 const std::string TRACK_PATH = ASSET_PATH + "tracks/";
 const std::string RESOURCE_PATH = "../resources/";
@@ -29,7 +29,7 @@ const std::string NFS_2_SE_TRACK_PATH = "/GAMEDATA/TRACKS/SE/";
 const std::string NFS_2_SE_CAR_PATH = "/GAMEDATA/CARMODEL/PC/";
 
 const std::string NFS_3_TRACK_PATH = "/gamedata/tracks/";
-const std::string NFS_3_CAR_PATH  = "/gamedata/carmodel/";
+const std::string NFS_3_CAR_PATH = "/gamedata/carmodel/";
 
 const std::string NFS_4_TRACK_PATH = "/DATA/TRACKS/";
 const std::string NFS_4_CAR_PATH = "/DATA/CARS/";

@@ -7,7 +7,7 @@
 const std::string vertexSrc = "../shaders/CarVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/CarFragmentShader.fragmentshader";
 
-CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
+CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc) {
     car = current_car;
     bindAttributes();
     getAllUniformLocations();
@@ -21,7 +21,8 @@ void CarShader::loadEnvMapTextureData() {
     int width, height;
     GLubyte *data;
 
-    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, 0), "Environment map texture loading failed!");
+    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, 0),
+           "Environment map texture loading failed!");
 
     glGenTextures(1, &envMapTextureID);
     glBindTexture(GL_TEXTURE_2D, envMapTextureID);
@@ -29,15 +30,15 @@ void CarShader::loadEnvMapTextureData() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *)data);
 }
 
 void CarShader::bindAttributes() {
-    bindAttribute(0 ,"vertexPosition_modelspace");
-    bindAttribute(1 ,"vertexUV");
-    bindAttribute(2 ,"normal");
-    bindAttribute(3 ,"textureIndex");
-    bindAttribute(4 ,"polygonFlag");
+    bindAttribute(0, "vertexPosition_modelspace");
+    bindAttribute(1, "vertexUV");
+    bindAttribute(2, "normal");
+    bindAttribute(3, "textureIndex");
+    bindAttribute(4, "polygonFlag");
 }
 
 void CarShader::getAllUniformLocations() {
@@ -49,31 +50,25 @@ void CarShader::getAllUniformLocations() {
     carTextureLocation = getUniformLocation("carTextureSampler");
     colourLocation = getUniformLocation("carColour");
 
-    for(int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i){
+    for (int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i) {
         lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
-        lightColourLocation[i] =  getUniformLocation("lightColour[" + std::to_string(i) + "]");
+        lightColourLocation[i] = getUniformLocation("lightColour[" + std::to_string(i) + "]");
         attenuationLocation[i] = getUniformLocation("attenuation[" + std::to_string(i) + "]");
     }
 
-    shineDamperLocation=  getUniformLocation("shineDamper");
-    reflectivityLocation =  getUniformLocation("reflectivity");
-    envReflectivityLocation  =  getUniformLocation("envReflectivity");
+    shineDamperLocation = getUniformLocation("shineDamper");
+    reflectivityLocation = getUniformLocation("reflectivity");
+    envReflectivityLocation = getUniformLocation("envReflectivity");
     carTextureArrayLocation = getUniformLocation("textureArray");
     isMultiTexturedLocation = getUniformLocation("multiTextured");
     hasPolyFlagsLocation = getUniformLocation("polyFlagged");
 }
 
-void CarShader::setMultiTextured(bool multiTextured){
-    loadBool(isMultiTexturedLocation, multiTextured);
-}
+void CarShader::setMultiTextured(bool multiTextured) { loadBool(isMultiTexturedLocation, multiTextured); }
 
-void CarShader::setPolyFlagged(bool polyFlagged){
-    loadBool(hasPolyFlagsLocation, polyFlagged);
-}
+void CarShader::setPolyFlagged(bool polyFlagged) { loadBool(hasPolyFlagsLocation, polyFlagged); }
 
-void CarShader::customCleanup() {
-    glDeleteTextures(1, &textureID);
-}
+void CarShader::customCleanup() { glDeleteTextures(1, &textureID); }
 
 void CarShader::bindTextureArray(GLuint textureArrayID) {
     loadSampler2D(carTextureArrayLocation, 0);
@@ -84,14 +79,15 @@ void CarShader::bindTextureArray(GLuint textureArrayID) {
 
 void CarShader::load_tga_texture() {
     std::stringstream car_texture_path;
-    car_texture_path << CAR_PATH << ToString(car->tag) << "/" <<car->name << "/car00.tga";
+    car_texture_path << CAR_PATH << ToString(car->tag) << "/" << car->name << "/car00.tga";
 
     NS_TGALOADER::IMAGE texture_loader;
     ASSERT(texture_loader.LoadTGA(car_texture_path.str().c_str()), "Car Texture loading failed!");
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA,
+                 GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -100,50 +96,45 @@ void CarShader::load_tga_texture() {
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void CarShader::loadCarTexture(){
+void CarShader::loadCarTexture() {
     loadSampler2D(carTextureLocation, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
 
-void CarShader::loadEnvironmentMapTexture(){
+void CarShader::loadEnvironmentMapTexture() {
     loadSampler2D(envMapTextureLocation, 2);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, envMapTextureID);
 }
 
-void CarShader::loadSpecular(float damper, float reflectivity, float env_reflectivity){
+void CarShader::loadSpecular(float damper, float reflectivity, float env_reflectivity) {
     loadFloat(shineDamperLocation, damper);
     loadFloat(reflectivityLocation, reflectivity);
     loadFloat(envReflectivityLocation, env_reflectivity);
 }
 
-void CarShader::loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view){
+void CarShader::loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view) {
     loadMat4(viewMatrixLocation, &view[0][0]);
     loadMat4(projectionMatrixLocation, &projection[0][0]);
 }
 
-void CarShader::loadTransformationMatrix(const glm::mat4 &transformation){
+void CarShader::loadTransformationMatrix(const glm::mat4 &transformation) {
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
 void CarShader::loadLights(std::vector<Light> lights) {
-    for(int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i){
-        if(i < lights.size()){
+    for (int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i) {
+        if (i < lights.size()) {
             loadVec3(lightPositionLocation[i], lights[i].position);
             loadVec4(lightColourLocation[i], lights[i].colour);
             loadVec3(attenuationLocation[i], lights[i].attenuation);
         } else {
-            loadVec3(lightPositionLocation[i], glm::vec3(0,0,0));
-            loadVec4(lightColourLocation[i], glm::vec4(0,0,0,0));
-            loadVec3(attenuationLocation[i], glm::vec3(1,0,0));
+            loadVec3(lightPositionLocation[i], glm::vec3(0, 0, 0));
+            loadVec4(lightColourLocation[i], glm::vec4(0, 0, 0, 0));
+            loadVec3(attenuationLocation[i], glm::vec3(1, 0, 0));
         }
     }
 }
 
-void CarShader::loadCarColor(glm::vec3 color){
-    loadVec3(colourLocation, color);
-}
-
-
-
+void CarShader::loadCarColor(glm::vec3 color) { loadVec3(colourLocation, color); }

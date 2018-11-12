@@ -7,18 +7,18 @@
 const std::string vertexSrc = "../shaders/TrackVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/TrackFragmentShader.fragmentshader";
 
-TrackShader::TrackShader() : super(vertexSrc, fragSrc){
+TrackShader::TrackShader() : super(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }
 
 void TrackShader::bindAttributes() {
-    bindAttribute(0 ,"vertexPosition_modelspace");
-    bindAttribute(1 ,"vertexUV");
-    bindAttribute(2 ,"textureIndex");
-    bindAttribute(3 ,"nfsData");
-    bindAttribute(4 ,"normal");
-    bindAttribute(5 ,"debugData");
+    bindAttribute(0, "vertexPosition_modelspace");
+    bindAttribute(1, "vertexUV");
+    bindAttribute(2, "textureIndex");
+    bindAttribute(3, "nfsData");
+    bindAttribute(4, "normal");
+    bindAttribute(5, "debugData");
 }
 
 void TrackShader::getAllUniformLocations() {
@@ -28,22 +28,20 @@ void TrackShader::getAllUniformLocations() {
     viewMatrixLocation = getUniformLocation("viewMatrix");
     lightSpaceMatrixLocation = getUniformLocation("lightSpaceMatrix");
     trackTextureArrayLocation = getUniformLocation("texture_array");
-    shineDamperLocation=  getUniformLocation("shineDamper");
-    reflectivityLocation =  getUniformLocation("reflectivity");
+    shineDamperLocation = getUniformLocation("shineDamper");
+    reflectivityLocation = getUniformLocation("reflectivity");
     useClassicLocation = getUniformLocation("useClassic");
     shadowMapTextureLocation = getUniformLocation("shadowMap");
     ambientFactorLocation = getUniformLocation("ambientFactor");
 
-    for(int i = 0; i < MAX_LIGHTS; ++i){
+    for (int i = 0; i < MAX_LIGHTS; ++i) {
         lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
-        lightColourLocation[i] =  getUniformLocation("lightColour[" + std::to_string(i) + "]");
+        lightColourLocation[i] = getUniformLocation("lightColour[" + std::to_string(i) + "]");
         attenuationLocation[i] = getUniformLocation("attenuation[" + std::to_string(i) + "]");
     }
 }
 
-void TrackShader::customCleanup(){
-
-}
+void TrackShader::customCleanup() {}
 
 void TrackShader::bindTextureArray(GLuint textureArrayID) {
     glActiveTexture(GL_TEXTURE0);
@@ -52,38 +50,36 @@ void TrackShader::bindTextureArray(GLuint textureArrayID) {
 }
 
 void TrackShader::loadLights(std::vector<Light> lights) {
-    for(int i = 0; i < MAX_LIGHTS; ++i){
-        if(i < lights.size()){
+    for (int i = 0; i < MAX_LIGHTS; ++i) {
+        if (i < lights.size()) {
             loadVec3(lightPositionLocation[i], lights[i].position);
             loadVec4(lightColourLocation[i], lights[i].colour);
             loadVec3(attenuationLocation[i], lights[i].attenuation);
         } else {
-            loadVec3(lightPositionLocation[i], glm::vec3(0,0,0));
-            loadVec4(lightColourLocation[i], glm::vec4(0,0,0,0));
-            loadVec3(attenuationLocation[i], glm::vec3(1,0,0));
+            loadVec3(lightPositionLocation[i], glm::vec3(0, 0, 0));
+            loadVec4(lightColourLocation[i], glm::vec4(0, 0, 0, 0));
+            loadVec3(attenuationLocation[i], glm::vec3(1, 0, 0));
         }
     }
 }
 
-void TrackShader::setClassic(bool useClassic){
-    loadBool(useClassicLocation, useClassic);
-}
+void TrackShader::setClassic(bool useClassic) { loadBool(useClassicLocation, useClassic); }
 
-void TrackShader::loadSpecular(float damper, float reflectivity){
+void TrackShader::loadSpecular(float damper, float reflectivity) {
     loadFloat(shineDamperLocation, damper);
     loadFloat(reflectivityLocation, reflectivity);
 }
 
-void TrackShader::loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view){
+void TrackShader::loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view) {
     loadMat4(viewMatrixLocation, &view[0][0]);
     loadMat4(projectionMatrixLocation, &projection[0][0]);
 }
 
-void TrackShader::loadTransformMatrix(const glm::mat4 &transformation){
+void TrackShader::loadTransformMatrix(const glm::mat4 &transformation) {
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void TrackShader::loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix){
+void TrackShader::loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix) {
     loadMat4(lightSpaceMatrixLocation, &lightSpaceMatrix[0][0]);
 }
 
@@ -93,8 +89,4 @@ void TrackShader::loadShadowMapTexture(GLuint shadowMapTextureID) {
     glBindTexture(GL_TEXTURE_2D, shadowMapTextureID);
 }
 
-void TrackShader::loadAmbientFactor(float ambientFactor){
-    loadFloat(ambientFactorLocation, ambientFactor);
-}
-
-
+void TrackShader::loadAmbientFactor(float ambientFactor) { loadFloat(ambientFactorLocation, ambientFactor); }

@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
-#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
-#include "Track.h"
+#include "Entity.h"
 #include "Light.h"
 #include "Sound.h"
-#include "Entity.h"
+#include "Track.h"
+#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
+#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 
-class TrackBlock  {
-public:
+class TrackBlock {
+  public:
     TrackBlock(int blockID, glm::vec3 center_pos);
 
     glm::vec3 center;

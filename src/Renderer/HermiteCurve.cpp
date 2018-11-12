@@ -2,7 +2,6 @@
 // Created by Amrik Sadhra on 20/07/2018.
 //
 
-
 #include "HermiteCurve.h"
 
 // Phoboslab JS Impl: https://github.com/phoboslab/wipeout/blob/master/HermiteCurve3.js
@@ -17,7 +16,7 @@ HermiteCurve::HermiteCurve(std::vector<glm::vec3> curvePoints, float curveTensio
 
 glm::vec3 HermiteCurve::getPointAt(float t) {
     float point = (points.size() - 1) * t;
-    int intPoint = (int) point;
+    int intPoint = (int)point;
 
     float weight = point - intPoint;
 
@@ -30,11 +29,9 @@ glm::vec3 HermiteCurve::getPointAt(float t) {
 }
 
 float HermiteCurve::Interpolate(float p0, float p1, float p2, float p3, float t, float tension, float bias) {
-    float m0 = (p1 - p0) * (1 + bias) * (1 - tension) / 2
-               + (p2 - p1) * (1 - bias) * (1 - tension) / 2;
+    float m0 = (p1 - p0) * (1 + bias) * (1 - tension) / 2 + (p2 - p1) * (1 - bias) * (1 - tension) / 2;
 
-    float m1 = (p2 - p1) * (1 + bias) * (1 - tension) / 2
-               + (p3 - p2) * (1 - bias) * (1 - tension) / 2;
+    float m1 = (p2 - p1) * (1 + bias) * (1 - tension) / 2 + (p3 - p2) * (1 - bias) * (1 - tension) / 2;
 
     float t2 = t * t;
     float t3 = t2 * t;
@@ -47,13 +44,11 @@ float HermiteCurve::Interpolate(float p0, float p1, float p2, float p3, float t,
     return h0 * p1 + h1 * m0 + h2 * m1 + h3 * p2;
 }
 
+glm::vec3 HermiteCurve::Interpolate(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t, float tension,
+                                    float bias) {
+    glm::vec3 m0 = (p1 - p0) * ((1 + bias) * (1 - tension) / 2) + (p2 - p1) * ((1 - bias) * (1 - tension) / 2);
 
-glm::vec3 HermiteCurve::Interpolate(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t, float tension, float bias) {
-    glm::vec3 m0 = (p1 - p0) * ((1 + bias) * (1 - tension) / 2)
-               + (p2 - p1) * ((1 - bias) * (1 - tension) / 2);
-
-    glm::vec3 m1 = (p2 - p1) * ((1 + bias) * (1 - tension) / 2)
-               + (p3 - p2) * ((1 - bias) * (1 - tension) / 2);
+    glm::vec3 m1 = (p2 - p1) * ((1 + bias) * (1 - tension) / 2) + (p3 - p2) * ((1 - bias) * (1 - tension) / 2);
 
     float t2 = t * t;
     float t3 = t2 * t;
@@ -67,7 +62,3 @@ glm::vec3 HermiteCurve::Interpolate(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, gl
 }
 
 HermiteCurve::HermiteCurve() {}
-
-
-
-

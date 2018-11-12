@@ -2,32 +2,25 @@
 // Created by Amrik Sadhra on 05/02/2018.
 //
 
-
 #include "Physics.h"
 
 void ScreenPosToWorldRay(
-        int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
-        int screenWidth, int screenHeight,  // Window size, in pixels
-        glm::mat4 ViewMatrix,               // Camera position and orientation
-        glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
-        glm::vec3 &out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.Reall
-        glm::vec3 &out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
+    int mouseX, int mouseY,            // Mouse position, in pixels, from bottom-left corner of the window
+    int screenWidth, int screenHeight, // Window size, in pixels
+    glm::mat4 ViewMatrix,              // Camera position and orientation
+    glm::mat4 ProjectionMatrix,        // Camera parameters (ratio, field of view, near and far planes)
+    glm::vec3 &out_origin,   // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start
+                             // at the camera's position instead, ignore this.Reall
+    glm::vec3 &out_direction // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
 ) {
 
     // The ray Start and End positions, in Normalized Device Coordinates (Have you read Tutorial 4 ?)
-    glm::vec4 lRayStart_NDC(
-            ((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
-            ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f,
-            -1.0, // The near plane maps to Z=-1 in Normalized Device Coordinates
-            1.0f
-    );
-    glm::vec4 lRayEnd_NDC(
-            ((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
-            ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f,
-            0.0,
-            1.0f
-    );
-
+    glm::vec4 lRayStart_NDC(((float)mouseX / (float)screenWidth - 0.5f) * 2.0f,
+                            ((float)mouseY / (float)screenHeight - 0.5f) * 2.0f,
+                            -1.0, // The near plane maps to Z=-1 in Normalized Device Coordinates
+                            1.0f);
+    glm::vec4 lRayEnd_NDC(((float)mouseX / (float)screenWidth - 0.5f) * 2.0f,
+                          ((float)mouseY / (float)screenHeight - 0.5f) * 2.0f, 0.0, 1.0f);
 
     // The Projection matrix goes from Camera Space to NDC.
     // So inverse(ProjectionMatrix) goes from NDC to Camera Space.
@@ -46,15 +39,13 @@ void ScreenPosToWorldRay(
     glm::vec4 lRayEnd_world = InverseViewMatrix * lRayEnd_camera;
     lRayEnd_world /= lRayEnd_world.w;
 
-
     // Faster way (just one inverse)
-    //glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
-    //glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
-    //glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
+    // glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
+    // glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
+    // glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
 
     glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
     lRayDir_world = glm::normalize(lRayDir_world);
-
 
     out_origin = glm::vec3(lRayStart_world);
     out_direction = glm::normalize(lRayDir_world);
@@ -68,9 +59,9 @@ btCollisionShape *Physics::buildFrustumShape() {
     const btScalar farPlane = 1000.0;
 
     const btScalar planesFraction = farPlane / nearPlane;
-    const btScalar centralPlane = (farPlane - nearPlane) * 0.5;    // Actually it's the center of the collision shape.
+    const btScalar centralPlane = (farPlane - nearPlane) * 0.5; // Actually it's the center of the collision shape.
     btScalar left, right, bottom, top, farLeft, farRight, farBottom, farTop;
-    const btScalar aspect = (btScalar) m_ScreenWidth / (btScalar) m_ScreenHeight;
+    const btScalar aspect = (btScalar)m_ScreenWidth / (btScalar)m_ScreenHeight;
     if (m_ScreenWidth > m_ScreenHeight) {
         left = -aspect;
         right = aspect;
@@ -92,15 +83,11 @@ btCollisionShape *Physics::buildFrustumShape() {
     // Add the frustum points
     {
         btVector3 points[8] = {
-                btVector3(left, top, centralPlane),
-                btVector3(right, top, centralPlane),
-                btVector3(left, bottom, centralPlane),
-                btVector3(right, bottom, centralPlane),
+            btVector3(left, top, centralPlane),           btVector3(right, top, centralPlane),
+            btVector3(left, bottom, centralPlane),        btVector3(right, bottom, centralPlane),
 
-                btVector3(farLeft, farTop, -centralPlane),
-                btVector3(farRight, farTop, -centralPlane),
-                btVector3(farLeft, farBottom, -centralPlane),
-                btVector3(farRight, farBottom, -centralPlane),
+            btVector3(farLeft, farTop, -centralPlane),    btVector3(farRight, farTop, -centralPlane),
+            btVector3(farLeft, farBottom, -centralPlane), btVector3(farRight, farBottom, -centralPlane),
         };
 
         for (int t = 0; t < 8; t++) {
@@ -111,8 +98,8 @@ btCollisionShape *Physics::buildFrustumShape() {
     // Crashes OpenNFS with a frustum thats actually frustum shaped, use a box for now.
     /*btCompoundShape *frustumShape = new btCompoundShape();
     const btVector3 v(0., 0., -(nearPlane + centralPlane));
-    const btQuaternion q = btQuaternion::getIdentity();// = btQuaternion::getIdentity();//(btVector3(0.,1.,0.),btRadians(180));
-    btTransform T(q, v);
+    const btQuaternion q = btQuaternion::getIdentity();// =
+    btQuaternion::getIdentity();//(btVector3(0.,1.,0.),btRadians(180)); btTransform T(q, v);
     frustumShape->addChildShape(T.inverse(), shape);  */
     btBoxShape *frustumShape = new btBoxShape(btVector3(2, 2, 2));
 
@@ -120,7 +107,8 @@ btCollisionShape *Physics::buildFrustumShape() {
 }
 
 void Physics::destroyGhostObject() {
-    if (!m_ghostObject) return;
+    if (!m_ghostObject)
+        return;
     // Remove From World:
     dynamicsWorld->removeCollisionObject(m_ghostObject);
     // Delete Collision Shapes:
@@ -150,27 +138,36 @@ void Physics::buildGhostObject() {
 }
 
 void Physics::updateFrustrum(glm::mat4 viewMatrix) {
-    if (m_ghostObject) m_ghostObject->setWorldTransform(Utils::glmToBullet(viewMatrix).inverse());
-    else buildGhostObject();
+    if (m_ghostObject)
+        m_ghostObject->setWorldTransform(Utils::glmToBullet(viewMatrix).inverse());
+    else
+        buildGhostObject();
     checkForFrustumIntersect();
 }
 
 void Physics::checkForFrustumIntersect() {
     m_objectsInFrustum.resize(0);
-    dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(m_ghostObject->getOverlappingPairCache(), dynamicsWorld->getDispatchInfo(), dynamicsWorld->getDispatcher());
+    dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(
+        m_ghostObject->getOverlappingPairCache(), dynamicsWorld->getDispatchInfo(), dynamicsWorld->getDispatcher());
 
-    btBroadphasePairArray &collisionPairs = m_ghostObject->getOverlappingPairCache()->getOverlappingPairArray();    //New
+    btBroadphasePairArray &collisionPairs = m_ghostObject->getOverlappingPairCache()->getOverlappingPairArray(); // New
     numObjects = collisionPairs.size();
     static btManifoldArray m_manifoldArray;
     for (int i = 0; i < numObjects; i++) {
         const btBroadphasePair &collisionPair = collisionPairs[i];
         m_manifoldArray.resize(0);
-        if (collisionPair.m_algorithm) collisionPair.m_algorithm->getAllContactManifolds(m_manifoldArray);
-        else std::cerr << "No collisionPair.m_algorithm - probably m_dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(...) must be missing." << std::endl;
+        if (collisionPair.m_algorithm)
+            collisionPair.m_algorithm->getAllContactManifolds(m_manifoldArray);
+        else
+            std::cerr << "No collisionPair.m_algorithm - probably "
+                         "m_dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(...) must be missing."
+                      << std::endl;
         for (int j = 0; j < m_manifoldArray.size(); j++) {
             btPersistentManifold *manifold = m_manifoldArray[j];
             if (manifold->getNumContacts() > 0) {
-                m_objectsInFrustum.push_back((btCollisionObject *) (manifold->getBody0() == m_ghostObject ? manifold->getBody1() : manifold->getBody0()));
+                m_objectsInFrustum.push_back((btCollisionObject *)(manifold->getBody0() == m_ghostObject
+                                                                       ? manifold->getBody1()
+                                                                       : manifold->getBody0()));
                 break;
             }
         }
@@ -236,11 +233,11 @@ void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
         }
         for (auto &object : track_block.objects) {
             object.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
+            dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR | COL_RAY);
         }
         for (auto &light : track_block.lights) {
             light.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
+            dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_CAR | COL_RAY);
         }
     }
 }
@@ -254,9 +251,10 @@ void Physics::registerVehicle(std::shared_ptr<Car> car) {
     float wheelWidth = car->getWheelWidth();
     btScalar sRestLength = car->getSuspensionRestLength();
 
-    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
+    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
+        car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
 
-    dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK| COL_RAY);
+    dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY);
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
     car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
     car->getVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
@@ -266,14 +264,18 @@ void Physics::registerVehicle(std::shared_ptr<Car> car) {
     // Wire up the wheels
     // Fronties
     btVector3 connectionPointCS0(Utils::glmToBullet(car->left_front_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, true);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, true);
     connectionPointCS0 = btVector3(Utils::glmToBullet(car->right_front_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, true);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, true);
     // Rearies
     connectionPointCS0 = btVector3(Utils::glmToBullet(car->left_rear_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, false);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, false);
     connectionPointCS0 = btVector3(Utils::glmToBullet(car->right_rear_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, false);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, false);
 
     for (int i = 0; i < car->getRaycast()->getNumWheels(); i++) {
         btWheelInfo &wheel = car->getRaycast()->getWheelInfo(i);
@@ -285,7 +287,4 @@ void Physics::registerVehicle(std::shared_ptr<Car> car) {
     }
 }
 
-Physics::Physics() {
-    initSimulation();
-}
-
+Physics::Physics() { initSimulation(); }

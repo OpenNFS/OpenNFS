@@ -10,26 +10,27 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 
-#include "../Renderer/HermiteCurve.h"
 #include "../Physics/Car.h"
+#include "../Renderer/HermiteCurve.h"
 #include "../nfs_data.h"
 
 class Camera {
-private:
+  private:
     // Initial Field of View
     float initialFoV;
     float speed = 3.0f; // 3 units / second
     float mouseSpeed = 0.005f;
-    GLFWwindow* window;
+    GLFWwindow *window;
     bool hasSpline = false;
-public:
+
+  public:
     Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window);
     Camera();
 
     void resetView();
     void generateSpline(std::vector<TrackBlock> trackBlocks);
     void useSpline(float elapsedTime); // Move to position on spline dependent on how long game has been running
-    void computeMatricesFromInputs(bool &window_active, ImGuiIO& io, float deltaTime);
+    void computeMatricesFromInputs(bool &window_active, ImGuiIO &io, float deltaTime);
     void followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io);
     bool playAnimation();
     void setCameraAnimation(std::vector<SHARED::CANPT> canPoints);
@@ -69,4 +70,3 @@ public:
     float calculateVerticalDistance();
     void calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance);
 };
-

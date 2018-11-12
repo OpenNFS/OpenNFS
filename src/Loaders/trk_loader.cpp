@@ -35,7 +35,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             trackData = NFS3::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
             camera_animations = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->cameraAnimation;
-            textureArrayID =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
+            textureArrayID = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
             track_blocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
             global_objects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
             break;
@@ -44,7 +44,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             trackData = NFS2<PS1>::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->nBlocks;
             camera_animations = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->cameraAnimation;
-            textureArrayID =  boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->textureArrayID;
+            textureArrayID = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->textureArrayID;
             track_blocks = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->track_blocks;
             global_objects = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->global_objects;
             break;

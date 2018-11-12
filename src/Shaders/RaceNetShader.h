@@ -11,12 +11,13 @@
 #define MAX_CAR_CONTRIB_LIGHTS 6
 
 class RaceNetShader : public BaseShader {
-public:
+  public:
     explicit RaceNetShader();
     void loadColor(glm::vec3 color);
     void loadProjectionMatrix(const glm::mat4 &projection);
     void loadTransformationMatrix(const glm::mat4 &transformation);
-protected:
+
+  protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
@@ -27,5 +28,3 @@ protected:
 
     typedef BaseShader super;
 };
-
-
