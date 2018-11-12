@@ -1,0 +1,11 @@
+---
+BinPackArguments: 'true'
+ColumnLimit: '120'
+IndentCaseLabels: 'true'
+IndentWidth: '4'
+Language: Cpp
+SortIncludes: 'true'
+Standard: Cpp11
+
+...
+
