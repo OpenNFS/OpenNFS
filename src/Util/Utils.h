@@ -18,6 +18,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <GL/glew.h>
 #include <vector>
+#include <random>
 #include <iostream>
 #include <fstream>
 #include <string>

@@ -23,12 +23,12 @@ public:
     Car(uint16_t populationID, std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet); // Neural Net/GA Training
     Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID); // Multitextured car
     ~Car();
-    void setPosition(glm::vec3 position);
+    void setPosition(glm::vec3 position, glm::quat orientation);
     void setNetwork(RaceNet &carNet) { this->carNet = carNet; };
     void update();
     void simulate();
     void update(btDynamicsWorld* dynamicsWorld);
-    void resetCar(glm::vec3 reset_position);
+    void resetCar(glm::vec3 reset_position, glm::quat reset_orientation);
     void writeObj(const std::string &path);
 
     std::string name;

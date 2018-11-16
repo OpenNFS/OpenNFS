@@ -34,7 +34,7 @@ public:
 
         AssetData loadedAssets = {
                 NFS_3, "diab",
-                NFS_3, "trk006"
+                NFS_3, "trk001"
         };
 
         /*------- Render --------*/
@@ -65,7 +65,7 @@ public:
 
         AssetData trainingAssets = {
                 NFS_3, "diab",
-                NFS_3, "trk006"
+                NFS_3, "trk008"
         };
 
         /*------ ASSET LOAD ------*/
@@ -74,7 +74,7 @@ public:
         //Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 
-        auto trainingGround = TrainingGround(20, 1000, 5000, track, car, logger, window);
+        auto trainingGround = TrainingGround(20, 1000, 500, track, car, logger, window);
     }
 
 private:

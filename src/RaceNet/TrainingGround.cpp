@@ -68,12 +68,10 @@ float TrainingGround::EvaluateFitness(shared_ptr<Car> car_agent) {
 void TrainingGround::InitialiseAgents(uint16_t populationSize) {
     // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
     for (uint16_t pop_Idx = 0; pop_Idx < populationSize; ++pop_Idx) {
-        shared_ptr<Car> car_agent = std::make_shared<Car>(pop_Idx, this->training_car->all_models, NFS_3, "diab",
-                                                          RaceNet());
-        car_agent->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f),
-                                      Utils::RandomFloat(0.f, 1.f));
+        shared_ptr<Car> car_agent = std::make_shared<Car>(pop_Idx, this->training_car->all_models, NFS_3, "diab", RaceNet());
+        car_agent->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
         physicsEngine.registerVehicle(car_agent);
-        car_agent->resetCar(TrackUtils::pointToVec(this->training_track->track_blocks[0].center));
+        Renderer::ResetToVroad(1, training_track, car_agent);
         car_agents.emplace_back(car_agent);
     }
 
@@ -147,7 +145,7 @@ std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations,
 
         // Reset the cars for the next generation
         for (auto &car_agent : car_agents) {
-            car_agent->resetCar(TrackUtils::pointToVec(this->training_track->track_blocks[0].center));
+            Renderer::ResetToVroad(1, training_track, car_agent);
         }
     }
 

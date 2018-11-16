@@ -39,6 +39,7 @@ const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
 struct ParamData {
     float timeScaleFactor = 1.f;
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);
+    ImVec4 sun_attenuation = ImVec4(0.f, 0.f, 0.f, 1.0f);
     ImVec4 nfs2_rotate = ImVec4(0.f, 0.f, 0.f, 0.f);
     float trackSpecReflectivity = 1;
 
@@ -48,7 +49,7 @@ struct ParamData {
     bool physics_debug_view = false;
     bool use_classic_graphics = false;
     bool attach_cam_to_hermite = false;
-    bool use_nb_data = true;
+    bool use_nb_data = false;
     bool attach_cam_to_car = true;
     bool frustum_cull = false;
     bool draw_vroad = false;

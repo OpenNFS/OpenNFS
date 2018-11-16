@@ -11,6 +11,7 @@
 #include "../Loaders/car_loader.h"
 #include "../Physics/Physics.h"
 #include "../Util/Utils.h"
+#include "../Renderer/Renderer.h"
 #include "../Renderer/RaceNetRenderer.h"
 
 static const float stepTime = 1 / 60.f;

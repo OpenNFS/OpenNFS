@@ -28,9 +28,10 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
+    Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> current_car);
     ~Renderer();
     AssetData Render();
+    static void ResetToVroad(uint32_t trackBlockIndex, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car); // TODO: Move this _somewhere_
 private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
@@ -51,6 +52,8 @@ private:
     /* Scene Objects */
     Camera mainCamera;
     Light cameraLight;
+    Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
+    Light moon = Light(glm::vec3(0, -200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
 
     // ------ Renderer State ------
     uint64_t ticks = 0; // Engine ticks elapsed
@@ -61,11 +64,14 @@ private:
 
     // ------- Helper Functions ------
     void SetCulling(bool toCull);
+    void DrawCarRaycasts();
+    void DrawVroad();
+    void DrawCameraAnimation();
     void DrawDebugCube(glm::vec3 position);
+    void InitialiseIMGUI();
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
     bool DrawMenuBar();
-    void InitialiseDepthTexture();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
     void NewFrame(ParamData *userParams);
     std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);

@@ -235,10 +235,10 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
     }
 }
 
-void Car::setPosition(glm::vec3 position){
+void Car::setPosition(glm::vec3 position, glm::quat orientation){
     btTransform initialTransform;
     initialTransform.setOrigin(Utils::glmToBullet(position));
-    initialTransform.setRotation(btQuaternion(0,0,0,1));
+    initialTransform.setRotation(Utils::glmToBullet(orientation));
     m_carChassis->setWorldTransform(initialTransform);
     update();
 }
@@ -426,9 +426,9 @@ void Car::applyBrakingForce(bool apply)
     }
 }
 
-void Car::resetCar(glm::vec3 reset_position)
+void Car::resetCar(glm::vec3 reset_position, glm::quat reset_orientation)
 {
-    setPosition(reset_position);
+    setPosition(reset_position, reset_orientation);
     if (m_vehicle)
     {
         m_carChassis->clearForces();
