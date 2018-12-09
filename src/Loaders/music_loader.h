@@ -2,8 +2,7 @@
 // Created by Amrik Sadhra on 02/06/2018.
 //
 
-#ifndef OPENNFS3_MAP_LOADER_H
-#define OPENNFS3_MAP_LOADER_H
+#pragma once
 
 #include <cstdint>
 #include <cstring>
@@ -57,5 +56,3 @@ private:
 
     void ParsePTHeader(FILE* file, uint32_t  *dwSampleRate, uint32_t  *dwChannels, uint32_t  *dwCompression, uint32_t  *dwNumSamples, uint32_t  *dwDataStart, uint32_t  *dwLoopOffset, uint32_t  *dwLoopLength, uint32_t *dwBytesPerSample, uint32_t  *bSplit, uint32_t  *bSplitCompression);
 };
-
-#endif //OPENNFS3_MAP_LOADER_H

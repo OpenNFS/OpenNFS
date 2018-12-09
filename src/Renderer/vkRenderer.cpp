@@ -4,9 +4,6 @@
 
 #include "vkRenderer.h"
 
-#include "Loaders/nfs_loader.h"
-
-
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
@@ -45,16 +42,15 @@ void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT
 
 std::vector<std::vector<Vertex>> model_vertices = std::vector<std::vector<Vertex>>();
 
-void vkRenderer::run(){
+void vkRenderer::run() {
     {
-        std::string car_name;
-        NFS_Loader nfs_loader("../resources/NFS3/gamedata/carmodel/diab", &car_name);
-        std::vector<CarModel> car_meshes = nfs_loader.getMeshes();
-        for(int model_Idx = 0; model_Idx < car_meshes.size(); ++model_Idx){
+        //Load Car data from unpacked NFS files
+        std::shared_ptr<Car> car = CarLoader::LoadCar(NFS_3, "diab");
+        for (int model_Idx = 0; model_Idx < car->all_models.size(); ++model_Idx) {
             model_vertices.emplace_back(std::vector<Vertex>());
             vertexBuffers.emplace_back(VkBuffer());
             vertexBufferMemory.emplace_back(VkDeviceMemory());
-            for(glm::vec3 vertex : car_meshes[model_Idx].m_vertices){
+            for (glm::vec3 vertex : car->all_models[model_Idx].m_vertices) {
                 Vertex temp;
                 temp.normal = vertex;
                 temp.uv = glm::vec2(0.0f, 0.0f);
@@ -136,10 +132,10 @@ void vkRenderer::cleanup() {
     vkDestroyBuffer(device, uniformBuffer, nullptr);
     vkFreeMemory(device, uniformBufferMemory, nullptr);
 
-    for(auto &vertexBuffer : vertexBuffers){
+    for (auto &vertexBuffer : vertexBuffers) {
         vkDestroyBuffer(device, vertexBuffer, nullptr);
     }
-    for(auto &vertexBufferMem : vertexBufferMemory){
+    for (auto &vertexBufferMem : vertexBufferMemory) {
         vkFreeMemory(device, vertexBufferMem, nullptr);
     }
 
@@ -435,8 +431,8 @@ void vkRenderer::createDescriptorSetLayout() {
 }
 
 void vkRenderer::createGraphicsPipeline() {
-    auto vertShaderCode = readFile("../shaders/vert.spv");
-    auto fragShaderCode = readFile("../shaders/frag.spv");
+    auto vertShaderCode = readFile("../shaders/vk/vert.spv");
+    auto fragShaderCode = readFile("../shaders/vk/frag.spv");
 
     VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -589,7 +585,7 @@ void vkRenderer::createCommandPool() {
 }
 
 void vkRenderer::createVertexBuffers() {
-    for(int model_Idx = 0; model_Idx < model_vertices.size(); ++model_Idx){
+    for (int model_Idx = 0; model_Idx < model_vertices.size(); ++model_Idx) {
         VkDeviceSize bufferSize = sizeof(model_vertices[model_Idx][0]) * model_vertices[model_Idx].size();
 
         VkBuffer stagingBuffer;
@@ -603,7 +599,8 @@ void vkRenderer::createVertexBuffers() {
         memcpy(data, model_vertices[model_Idx].data(), (size_t) bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
 
-        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffers[model_Idx], vertexBufferMemory[model_Idx]);
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffers[model_Idx], vertexBufferMemory[model_Idx]);
 
         copyBuffer(stagingBuffer, vertexBuffers[model_Idx], bufferSize);
 
@@ -776,14 +773,14 @@ void vkRenderer::createCommandBuffers() {
 
         VkBuffer *vertexBufs = {&vertexBuffers[0]};
         VkDeviceSize offsets[] = {0};
-        std::cout<<vertexBuffers.size();
+        std::cout << vertexBuffers.size();
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBufs, offsets);
 
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                                 &descriptorSet, 0, nullptr);
 
         //for(auto &vertices : model_vertices){
-            vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(model_vertices[0].size()), 1, 0, 0);
+        vkCmdDraw(commandBuffers[i], static_cast<uint32_t>(model_vertices[0].size()), 1, 0, 0);
         //}
 
         vkCmdEndRenderPass(commandBuffers[i]);
@@ -1088,8 +1085,9 @@ static std::vector<char> readFile(const std::string &filename) {
     return buffer;
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj,
-                          size_t location, int32_t code, const char *layerPrefix, const char *msg, void *userData) {
+static VKAPI_ATTR VkBool32 VKAPI_CALL
+debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj,
+              size_t location, int32_t code, const char *layerPrefix, const char *msg, void *userData) {
     std::cerr << "validation layer: " << msg << std::endl;
 
     return VK_FALSE;

@@ -117,7 +117,15 @@ set(SOURCE_FILES
         src/RaceNet/TrainingGround.cpp
         src/RaceNet/TrainingGround.h
         src/Renderer/RaceNetRenderer.cpp
-        src/Renderer/RaceNetRenderer.h src/Shaders/RaceNetShader.cpp src/Shaders/RaceNetShader.h src/Scene/Quad.cpp src/Scene/Quad.h src/Renderer/ShadowMapRenderer.cpp src/Renderer/ShadowMapRenderer.h)
+        src/Renderer/RaceNetRenderer.h
+        src/Shaders/RaceNetShader.cpp
+        src/Shaders/RaceNetShader.h
+        src/Scene/Quad.cpp
+        src/Scene/Quad.h
+        src/Renderer/ShadowMapRenderer.cpp
+        src/Renderer/ShadowMapRenderer.h
+        src/Renderer/vkRenderer.cpp
+        src/Renderer/vkRenderer.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
@@ -162,12 +170,13 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[VULKAN]]
-#[[set(VULKAN_INCLUDE_DIR "C:/VulkanSDK/1.1.70.1/Include")
-include_directories(${VULKAN_INCLUDE_DIR})
-target_link_libraries(OpenNFS C:/VulkanSDK/1.1.70.1/Lib32/vulkan-1.lib)]]
+find_package(Vulkan REQUIRED)
+include_directories(${Vulkan_INCLUDE_DIRS})
+target_link_libraries(OpenNFS ${Vulkan_LIBRARIES})
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
+#[[SoLoud Configuration]]

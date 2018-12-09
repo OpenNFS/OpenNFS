@@ -25,3 +25,6 @@
 [submodule "g3log"]
 	path = lib/g3log
 	url = https://github.com/AmrikSadhra/g3log.git
+[submodule "lib/soloud"]
+	path = lib/soloud
+	url = https://github.com/jarikomppa/soloud.git

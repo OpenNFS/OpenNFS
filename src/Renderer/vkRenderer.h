@@ -2,10 +2,10 @@
 // Created by Amrik Sadhra on 17/06/2018.
 //
 
-#ifndef OPENNFS3_VKRENDERER_H
-#define OPENNFS3_VKRENDERER_H
+#pragma once
 
 #define GLFW_INCLUDE_VULKAN
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_RADIANS
@@ -22,6 +22,10 @@
 #include <cstdlib>
 #include <array>
 #include <set>
+
+#include "../Enums.h"
+#include "../Physics/Car.h"
+#include "../Loaders/car_loader.h"
 
 struct QueueFamilyIndices {
     int graphicsFamily = -1;
@@ -210,4 +214,3 @@ private:
 
    };
 
-#endif //OPENNFS3_VKRENDERER_H

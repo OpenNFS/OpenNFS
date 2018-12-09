@@ -6,6 +6,7 @@
 //
 
 #define TINYOBJLOADER_IMPLEMENTATION
+#define GLFW_INCLUDE_VULKAN
 
 #include <cstdlib>
 #include <string>
@@ -19,22 +20,36 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
+#include "Renderer/vkRenderer.h"
 #include "RaceNet/TrainingGround.h"
 
 
 class OpenNFS {
 public:
-    void run(std::shared_ptr<Logger> logger) {
+    explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger, std::map<std::string, std::string> &onfs_parameters) : logger(onfs_logger), parameters(onfs_parameters) {
+        InitDirectories();
+
+        if (parameters["renderer"] == "vulkan" || parameters["renderer"] == "vk") {
+            vkRenderer renderer;
+            renderer.run();
+        } else if (parameters["mode"] == "train") {
+            train();
+        } else {
+            run();
+        }
+    }
+
+    void run() {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(1920, 1080, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
-        InitDirectories();
+        ASSERT(InitOpenGL(parameters.count("xres") ? std::stoi(parameters["xres"]) : 1920, parameters.count("yres") ? std::stoi(parameters["yres"]) : 1080, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
+
         std::vector<NeedForSpeed> installedNFS = PopulateAssets();
 
         AssetData loadedAssets = {
-                NFS_3, "diab",
-                NFS_3, "trk001"
+                NFS_3, parameters.count("car") ? parameters["car"] : "diab", // This is a shitty idea, cmd line car/tracks will only pull from NFS3, parse ver?
+                NFS_3, parameters.count("track") ? parameters["track"] : "trk001"
         };
 
         /*------- Render --------*/
@@ -56,12 +71,11 @@ public:
         glfwTerminate();
     }
 
-    void train(std::shared_ptr<Logger> logger) {
+    void train() {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(1920, 1080, "OpenNFS (GA Training Mode)"), "OpenGL init failed.");
-        InitDirectories();
+        ASSERT(InitOpenGL(parameters.count("xres") ? std::stoi(parameters["xres"]) : 1920, parameters.count("yres") ? std::stoi(parameters["yres"]) : 1080, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"), "OpenGL init failed.");
 
         AssetData trainingAssets = {
                 NFS_3, "diab",
@@ -79,6 +93,10 @@ public:
 
 private:
     GLFWwindow *window;
+
+    std::shared_ptr<Logger> logger;
+
+    std::map<std::string, std::string> parameters;
 
     static void glfwError(int id, const char *description) {
         LOG(WARNING) << description;
@@ -328,23 +346,30 @@ private:
     }
 };
 
-int main(int argc, char **argv) {
-    std::vector<std::string> args(argv, argv + argc);
-    bool trainingMode = false;
+std::map<std::string, std::string> ParseCommandLineArgs(std::vector<std::string> args) {
+    std::map<std::string, std::string> parameters;
 
-    if (argc > 1) {
-        trainingMode = (args[1] == "train");
+    // Parse key val pairs from command line args
+    for (auto &paramValPair : args) {
+        size_t
+        delimiterPos = paramValPair.find('=');
+        ASSERT(delimiterPos != std::string::npos, "Invalid option on command line (missing '='): " << paramValPair);
+        std::string parameter = paramValPair.substr(0, delimiterPos);
+        ASSERT(parameter.size(), "Invalid option on command line (missing key or value around '='): " << paramValPair);
+        std::string value = paramValPair.substr(delimiterPos + 1, paramValPair.length());
+        parameters[parameter] = value;
     }
 
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>(); // Enable IMGUI logger if not in Training mode
-    OpenNFS game;
+    return parameters;
+}
+
+int main(int argc, char **argv) {
+    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
+    std::vector<std::string> args(argv + 1, argv + argc);
+    std::map<std::string, std::string> parameters = ParseCommandLineArgs(args);
 
     try {
-        if (trainingMode) {
-            game.train(logger);
-        } else {
-            game.run(logger);
-        }
+        OpenNFS game(logger, parameters);
     } catch (const std::runtime_error &e) {
         LOG(WARNING) << e.what();
         return EXIT_FAILURE;
