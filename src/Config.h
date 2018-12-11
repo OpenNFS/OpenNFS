@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-err58-cpp"
 //
 // Created by Amrik.Sadhra on 13/06/2018.
 //
@@ -64,8 +66,13 @@ public:
     };
     // Better named parameters instead of using var_map with command-line arg name
     std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
-    bool vulkanRender = false, trainingMode = false;
+    /* -- Render Params -- */
+    bool vulkanRender = false;
     uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
+    /* -- Training Params -- */
+    bool trainingMode = false;
+    uint16_t populationSize, nGenerations;
+    uint32_t nTicks;
 private:
     Config() = default;
     Config(const Config&);
@@ -108,3 +115,4 @@ struct NeedForSpeed {
     std::vector<std::string> tracks;
     std::vector<std::string> cars;
 };
+#pragma clang diagnostic pop

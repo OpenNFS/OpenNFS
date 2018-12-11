@@ -98,7 +98,7 @@ public:
         //Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 
-        auto trainingGround = TrainingGround(20, 1000, 500, track, car, logger, window);
+        auto trainingGround = TrainingGround(Config::get().populationSize, Config::get().nGenerations, Config::get().nTicks, track, car, logger, window);
     }
 
 private:

@@ -267,7 +267,7 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
 void Renderer::InitialiseIMGUI() {
     /*------- ImGui -------*/
     ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(window, false);
     ImGui_ImplOpenGL3_Init("#version 330");
     ImGui::StyleColorsDark();
 }
