@@ -431,8 +431,8 @@ void vkRenderer::createDescriptorSetLayout() {
 }
 
 void vkRenderer::createGraphicsPipeline() {
-    auto vertShaderCode = readFile("../shaders/vk/vert.spv");
-    auto fragShaderCode = readFile("../shaders/vk/frag.spv");
+    auto vertShaderCode = readFile("../shaders/vk/shader.vert.spv");
+    auto fragShaderCode = readFile("../shaders/vk/shader.frag.spv");
 
     VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);

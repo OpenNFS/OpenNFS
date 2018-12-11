@@ -316,6 +316,10 @@ namespace NFS3_4_DATA {
     };
 
     struct FCE {
+        struct TVECTOR {
+            float x, y, z;
+        };
+
         struct TRIANGLE {
             uint32_t texPage;
             uint32_t vertex[3]; // Local indexes, add part first Vert index from "partFirstVertIndices"

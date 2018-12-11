@@ -27,7 +27,7 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
 }
 
 void TrainingGround::Mutate(RaceNet &toMutate) {
-    for (uint8_t mut_Idx = 0; mut_Idx < 20; ++mut_Idx) {
+    for (uint8_t mut_Idx = 0; mut_Idx < 5; ++mut_Idx) {
         unsigned long layerToMutate = rand() % toMutate.net.W.size();
 
         auto &m = toMutate.net.W[layerToMutate];
@@ -80,11 +80,11 @@ void TrainingGround::InitialiseAgents(uint16_t populationSize) {
 
 void
 TrainingGround::SelectAgents(std::vector<shared_ptr<Car>> &car_agents, std::vector<std::vector<int>> agent_fitnesses) {
-    // Clone the best 50% of networks into the worst 50%
+    // Clone the best network into the worst 50%
     for (uint32_t cull_Idx = agent_fitnesses.size() / 2; cull_Idx < agent_fitnesses.size(); ++cull_Idx) {
         for (auto &car_agent : car_agents) {
-            if (car_agent->populationID == cull_Idx) {
-                car_agent->carNet = car_agents[cull_Idx - (agent_fitnesses.size() / 2)]->carNet;
+            if (car_agent->populationID == agent_fitnesses[cull_Idx][0]) {
+                car_agent->carNet = car_agents[agent_fitnesses[0][0]]->carNet;
             }
         }
     }

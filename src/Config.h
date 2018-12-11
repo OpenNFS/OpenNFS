@@ -36,6 +36,12 @@ const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
 
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
 
+struct ConfigData {
+    bool isVulkan = false;
+    uint32_t resX = 0;
+    uint32_t resY = 0;
+};
+
 struct ParamData {
     float timeScaleFactor = 1.f;
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);

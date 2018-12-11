@@ -9,6 +9,7 @@ include(cmake/CheckCXXCompilerFlag.cmake)
 include(cmake/CheckCCompilerFlag.cmake)
 include(cmake/AddCompilerFlag.cmake)
 include(cmake/OptimizeForArchitecture.cmake)
+include(cmake/CompileGLSLToSPIRV.cmake)
 
 OptimizeForArchitecture()
 MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
@@ -126,10 +127,10 @@ set(SOURCE_FILES
         src/Renderer/ShadowMapRenderer.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
-if(NOT (APPLE OR WIN32))
+if (NOT (APPLE OR WIN32))
     set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h)
     add_definitions(-DVULKAN_BUILD)
-endif()
+endif ()
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
@@ -149,8 +150,6 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/lib/g3log")
 include_directories(${DEP_ROOT_DIR}/${G3LOG_NAME}/src)
 target_include_directories(OpenNFS INTERFACE g3logger)
 target_link_libraries(OpenNFS g3logger)
-#[[Tiny DNN]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/tiny-dnn")
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
@@ -176,8 +175,10 @@ target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[Vulkan Configuration]]
 if (NOT (APPLE OR WIN32))
     find_package(Vulkan REQUIRED)
+    message("VULKAN FOUND")
     include_directories(${Vulkan_INCLUDE_DIRS})
     target_link_libraries(OpenNFS ${Vulkan_LIBRARIES})
+    CompileGLSLToSpirV(OpenNFS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/vk" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/vk")
 endif ()
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
