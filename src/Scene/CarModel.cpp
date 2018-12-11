@@ -95,11 +95,13 @@ void CarModel::update() {
 }
 
 void CarModel::destroy() {
+#ifndef VULKAN_BUILD
     glDeleteBuffers(1, &vertexBuffer);
     glDeleteBuffers(1, &uvBuffer);
     glDeleteBuffers(1, &normalBuffer);
     glDeleteBuffers(1, &textureIndexBuffer);
     glDeleteBuffers(1, &polyFlagBuffer);
+#endif
 }
 
 void CarModel::render() {
@@ -111,6 +113,7 @@ void CarModel::render() {
 }
 
 bool CarModel::genBuffers() {
+#ifndef VULKAN_BUILD
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
@@ -184,5 +187,6 @@ bool CarModel::genBuffers() {
     glEnableVertexAttribArray(4);
 
     glBindVertexArray(0);
+#endif
     return true;
 }

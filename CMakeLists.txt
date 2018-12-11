@@ -123,9 +123,13 @@ set(SOURCE_FILES
         src/Scene/Quad.cpp
         src/Scene/Quad.h
         src/Renderer/ShadowMapRenderer.cpp
-        src/Renderer/ShadowMapRenderer.h
-        src/Renderer/vkRenderer.cpp
-        src/Renderer/vkRenderer.h)
+        src/Renderer/ShadowMapRenderer.h)
+
+#[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
+if(NOT (APPLE OR WIN32))
+    set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h)
+    add_definitions(-DVULKAN_BUILD)
+endif()
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
@@ -158,7 +162,7 @@ set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3" EXCLUDE_FROM_ALL)
-TARGET_LINK_LIBRARIES(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
+target_link_libraries(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC -D__NO_INLINE__)
@@ -169,14 +173,15 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glm")
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
-#[[VULKAN]]
-find_package(Vulkan REQUIRED)
-include_directories(${Vulkan_INCLUDE_DIRS})
-target_link_libraries(OpenNFS ${Vulkan_LIBRARIES})
+#[[Vulkan Configuration]]
+if (NOT (APPLE OR WIN32))
+    find_package(Vulkan REQUIRED)
+    include_directories(${Vulkan_INCLUDE_DIRS})
+    target_link_libraries(OpenNFS ${Vulkan_LIBRARIES})
+endif ()
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
-#[[SoLoud Configuration]]

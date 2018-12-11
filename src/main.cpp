@@ -6,7 +6,13 @@
 //
 
 #define TINYOBJLOADER_IMPLEMENTATION
+
+#ifdef VULKAN_BUILD
 #define GLFW_INCLUDE_VULKAN
+
+#include "Renderer/vkRenderer.h"
+
+#endif
 
 #include <cstdlib>
 #include <string>
@@ -20,18 +26,22 @@
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
-#include "Renderer/vkRenderer.h"
 #include "RaceNet/TrainingGround.h"
 
 
 class OpenNFS {
 public:
-    explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger, std::map<std::string, std::string> &onfs_parameters) : logger(onfs_logger), parameters(onfs_parameters) {
+    explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger, std::map<std::string, std::string> &onfs_parameters)
+            : logger(onfs_logger), parameters(onfs_parameters) {
         InitDirectories();
 
         if (parameters["renderer"] == "vulkan" || parameters["renderer"] == "vk") {
+#ifdef VULKAN_BUILD
             vkRenderer renderer;
             renderer.run();
+#else
+            ASSERT(false, "This build of OpenNFS was not compiled with Vulkan support!");
+#endif
         } else if (parameters["mode"] == "train") {
             train();
         } else {
@@ -43,12 +53,15 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(parameters.count("xres") ? std::stoi(parameters["xres"]) : 1920, parameters.count("yres") ? std::stoi(parameters["yres"]) : 1080, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
+        ASSERT(InitOpenGL(parameters.count("xres") ? std::stoi(parameters["xres"]) : 1920,
+                          parameters.count("yres") ? std::stoi(parameters["yres"]) : 1080, "OpenNFS v" + ONFS_VERSION),
+               "OpenGL init failed.");
 
         std::vector<NeedForSpeed> installedNFS = PopulateAssets();
 
         AssetData loadedAssets = {
-                NFS_3, parameters.count("car") ? parameters["car"] : "diab", // This is a shitty idea, cmd line car/tracks will only pull from NFS3, parse ver?
+                NFS_3, parameters.count("car") ? parameters["car"]
+                                               : "diab", // This is a shitty idea, cmd line car/tracks will only pull from NFS3, parse ver?
                 NFS_3, parameters.count("track") ? parameters["track"] : "trk001"
         };
 
@@ -75,7 +88,9 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(parameters.count("xres") ? std::stoi(parameters["xres"]) : 1920, parameters.count("yres") ? std::stoi(parameters["yres"]) : 1080, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"), "OpenGL init failed.");
+        ASSERT(InitOpenGL(parameters.count("xres") ? std::stoi(parameters["xres"]) : 1920,
+                          parameters.count("yres") ? std::stoi(parameters["yres"]) : 1080,
+                          "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"), "OpenGL init failed.");
 
         AssetData trainingAssets = {
                 NFS_3, "diab",

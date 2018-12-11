@@ -14,7 +14,7 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger,
 
     loadedAssets = {car->tag, car->name, track->tag, track->name};
 
-    mainCamera = Camera(glm::vec3(0,0,0), 55.0f, 4.86f, -0.21f, window);
+    mainCamera = Camera(glm::vec3(0, 0, 0), 55.0f, 4.86f, -0.21f, window);
     mainCamera.generateSpline(track->track_blocks);
     cameraLight = Light(mainCamera.position, glm::vec4(255.0f, 255.0f, 255.0f, 255.0f), 1, 0, 0, 0, 0.f);
 
@@ -96,12 +96,9 @@ AssetData Renderer::Render() {
         NewFrame(&userParams);
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
 
-        sun.attenuation.x = 0.710f;
-        sun.attenuation.y = 0;
-        sun.attenuation.z = 0;
-        moon.attenuation.x = sun.attenuation.x;
-        moon.attenuation.y = sun.attenuation.y;
-        moon.attenuation.z = sun.attenuation.z;
+        moon.attenuation.x = sun.attenuation.x = 0.710f;
+        moon.attenuation.y = sun.attenuation.y = 0;
+        moon.attenuation.z = sun.attenuation.z = 0;
 
         // Play the original camera animation
         if (!camera_animation_played) {
@@ -121,7 +118,8 @@ AssetData Renderer::Render() {
             car->simulate();
         } else {
             if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
-                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
+                                            glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
                 car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
                 car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
                 car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
@@ -185,7 +183,8 @@ AssetData Renderer::Render() {
 
         /*SetCulling(true);
         glFrontFace(GL_CW);*/
-        trackRenderer.renderTrack(mainCamera, nightTime ? moon : sun, cameraLight, activeTrackBlockIDs, userParams, ticks,
+        trackRenderer.renderTrack(mainCamera, nightTime ? moon : sun, cameraLight, activeTrackBlockIDs, userParams,
+                                  ticks,
                                   shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix,
                                   ambientLightFactor);
         /*SetCulling(false);*/
@@ -514,7 +513,8 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
         } else {
             // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
             int wrapBlocks = 0;
-            for (int block_Idx = closestBlockID - blockDrawDistance; block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
+            for (int block_Idx = closestBlockID - blockDrawDistance;
+                 block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
                 if (block_Idx < 0) {
                     int activeBlock =
                             ((int) track->track_blocks.size() + (closestBlockID - blockDrawDistance)) + wrapBlocks++;
@@ -529,6 +529,7 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
     // Render far to near
     return std::vector<int>(activeTrackBlockIds.rbegin(), activeTrackBlockIds.rend());
 }
+
 bool Renderer::DrawMenuBar() {
     bool assetChange = false;
     if (ImGui::BeginMainMenuBar()) {
