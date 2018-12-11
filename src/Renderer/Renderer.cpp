@@ -248,7 +248,7 @@ AssetData Renderer::Render() {
 Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted) {
     glm::vec3 out_origin;
     glm::vec3 out_direction;
-    ScreenPosToWorldRay(1920 / 2, 1080 / 2, 1920, 1080, ViewMatrix, ProjectionMatrix, out_origin, out_direction);
+    ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, ViewMatrix, ProjectionMatrix, out_origin, out_direction);
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
                                                            btVector3(out_end.x, out_end.y, out_end.z));

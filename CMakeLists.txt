@@ -75,6 +75,7 @@ set(SOURCE_FILES
         src/Physics/Car.h
         src/Loaders/music_loader.cpp
         src/Loaders/music_loader.h
+        src/Config.cpp
         src/Config.h
         src/Loaders/nfs2_loader.cpp
         src/Loaders/nfs2_loader.h

@@ -34,14 +34,14 @@ public:
     explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
         InitDirectories();
 
-        if (Config::get().getValue<std::string>("renderer") == "vulkan") {
+        if (Config::get().vulkanRender) {
 #ifdef VULKAN_BUILD
             vkRenderer renderer;
             renderer.run();
 #else
             ASSERT(false, "This build of OpenNFS was not compiled with Vulkan support!");
 #endif
-        } else if (Config::get().getValue<std::string>("mode") == "train") {
+        } else if (Config::get().trainingMode) {
             train();
         } else {
             run();
@@ -52,13 +52,13 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(1920, 1080, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
+        ASSERT(InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
 
         std::vector<NeedForSpeed> installedNFS = PopulateAssets();
 
         AssetData loadedAssets = {
-                NFS_3, "diab",
-                NFS_3, "trk001"
+                NFS_3, Config::get().car,
+                NFS_3, Config::get().track
         };
 
         /*------- Render --------*/
@@ -84,11 +84,12 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(1920, 1080, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"), "OpenGL init failed.");
+        ASSERT(InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"),
+               "OpenGL init failed.");
 
         AssetData trainingAssets = {
-                NFS_3, "diab",
-                NFS_3, "trk008"
+                NFS_3, Config::get().car,
+                NFS_3, Config::get().track
         };
 
         /*------ ASSET LOAD ------*/
@@ -107,6 +108,11 @@ private:
 
     static void glfwError(int id, const char *description) {
         LOG(WARNING) << description;
+    }
+
+    static void window_size_callback(GLFWwindow *window, int width, int height) {
+        Config::get().resX = width;
+        Config::get().resY = height;
     }
 
     bool InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
@@ -136,6 +142,8 @@ private:
             return false;
         }
         glfwMakeContextCurrent(window);
+
+        glfwSetWindowSizeCallback(window, window_size_callback);
 
         // Initialize GLEW
         glewExperimental = GL_TRUE; // Needed for core profile
@@ -354,8 +362,8 @@ private:
 };
 
 int main(int argc, char **argv) {
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
     Config::get().InitFromCommandLine(argc, argv);
+    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
 
     try {
         OpenNFS game(logger);

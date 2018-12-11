@@ -86,7 +86,7 @@ void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::
     glCullFace(GL_BACK); // Reset original culling face
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glViewport(0, 0, 1920, 1080);
+    glViewport(0, 0, Config::get().resX, Config::get().resY);
 }
 
 ShadowMapRenderer::~ShadowMapRenderer() {

@@ -42,6 +42,11 @@ const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
 
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
 
+const uint32_t DEFAULT_X_RESOLUTION = 1920;
+const uint32_t DEFAULT_Y_RESOLUTION = 1080;
+
+const std::string DEFAULT_CAR = "diab";
+const std::string DEFAULT_TRACK = "trk001";
 
 class Config
 {
@@ -54,13 +59,18 @@ public:
     void ParseFile(std::ifstream& inStream);
     void InitFromCommandLine(int argc, char **argv);
     template<typename _T>
-    _T getValue(std::string key);
+    _T getValue(const std::string &key){
+        return storedConfig[key].as<_T>();
+    };
+    // Better named parameters instead of using var_map with command-line arg name
+    std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
+    bool vulkanRender = false, trainingMode = false;
+    uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
 private:
-    Config() = default;;
+    Config() = default;
     Config(const Config&);
-    static std::map<std::string, std::string> ParseCommandLineArgs(std::vector<std::string> args);
     Config& operator=(const Config&);
-    std::map<std::string,std::string> storedConfig;
+    variables_map storedConfig;
 };
 
 struct ParamData {
