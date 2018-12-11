@@ -8,8 +8,14 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <map>
+#include <boost/program_options.hpp>
 
 #include "Enums.h"
+#include "Util/Logger.h"
+
+using namespace boost::program_options;
 
 const std::string ONFS_VERSION = "0.3";
 
@@ -36,10 +42,25 @@ const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
 
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
 
-struct ConfigData {
-    bool isVulkan = false;
-    uint32_t resX = 0;
-    uint32_t resY = 0;
+
+class Config
+{
+public:
+    static Config& get()
+    {
+        static Config instance;
+        return instance;
+    }
+    void ParseFile(std::ifstream& inStream);
+    void InitFromCommandLine(int argc, char **argv);
+    template<typename _T>
+    _T getValue(std::string key);
+private:
+    Config() = default;;
+    Config(const Config&);
+    static std::map<std::string, std::string> ParseCommandLineArgs(std::vector<std::string> args);
+    Config& operator=(const Config&);
+    std::map<std::string,std::string> storedConfig;
 };
 
 struct ParamData {

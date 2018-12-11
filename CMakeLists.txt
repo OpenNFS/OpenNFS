@@ -142,7 +142,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
-target_link_libraries(OpenNFS Boost::filesystem Boost::system Boost::boost)
+target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::system Boost::boost)
 #[[G3Log (Because Boost-cmake logging won't build]]
 set(G3_SHARED_LIB OFF CACHE BOOL "Compile g3log as static library")
 set(ADD_FATAL_EXAMPLE OFF CACHE BOOL "Don't bother compiling invalid code in g3log")
