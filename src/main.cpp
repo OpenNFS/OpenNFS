@@ -31,8 +31,9 @@
 
 class OpenNFS {
 public:
-    explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
+    explicit OpenNFS(std::shared_ptr <Logger> &onfs_logger) : logger(onfs_logger) {
         InitDirectories();
+        PopulateAssets();
 
         if (Config::get().vulkanRender) {
 #ifdef VULKAN_BUILD
@@ -54,20 +55,22 @@ public:
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         ASSERT(InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
 
-        std::vector<NeedForSpeed> installedNFS = PopulateAssets();
-
         AssetData loadedAssets = {
                 NFS_3, Config::get().car,
                 NFS_3, Config::get().track
         };
 
+        if (Config::get().car != DEFAULT_CAR) {
+            loadedAssets.carTag = FindCarByName(Config::get().car);
+        }
+
         /*------- Render --------*/
         while (loadedAssets.trackTag != UNKNOWN) {
             /*------ ASSET LOAD ------*/
             //Load Track Data
-            std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+            std::shared_ptr <ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
             //Load Car data from unpacked NFS files
-            std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+            std::shared_ptr <Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
             //Load Music
             //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
@@ -92,19 +95,26 @@ public:
                 NFS_3, Config::get().track
         };
 
+        if (Config::get().car != DEFAULT_CAR) {
+            trainingAssets.carTag = FindCarByName(Config::get().car);
+        }
+
         /*------ ASSET LOAD ------*/
         //Load Track Data
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
+        std::shared_ptr <ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
         //Load Car data from unpacked NFS files
-        std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
+        std::shared_ptr <Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 
-        auto trainingGround = TrainingGround(Config::get().populationSize, Config::get().nGenerations, Config::get().nTicks, track, car, logger, window);
+        auto trainingGround = TrainingGround(Config::get().populationSize, Config::get().nGenerations,
+                                             Config::get().nTicks, track, car, logger, window);
     }
 
 private:
     GLFWwindow *window;
 
-    std::shared_ptr<Logger> logger;
+    std::shared_ptr <Logger> logger;
+
+    std::vector <NeedForSpeed> installedNFS;
 
     static void glfwError(int id, const char *description) {
         LOG(WARNING) << description;
@@ -190,11 +200,10 @@ private:
         }
     }
 
-    std::vector<NeedForSpeed> PopulateAssets() {
+    void PopulateAssets() {
         using namespace boost::filesystem;
 
         path basePath(RESOURCE_PATH);
-        std::vector<NeedForSpeed> installedNFS;
         bool hasLanes = false;
         bool hasMisc = false;
         bool hasSfx = false;
@@ -356,14 +365,56 @@ private:
         ASSERT(hasLanes, "Missing \'lanes\' folder in resources directory");
         ASSERT(hasMisc, "Missing \'misc\' folder in resources directory");
         ASSERT(hasSfx, "Missing \'sfx\' folder in resources directory");
+        ASSERT(installedNFS.size(), "No Need for Speed games detected in resources directory");
 
-        return installedNFS;
+        for (auto nfs : installedNFS) {
+            LOG(INFO) << "Detected: " << ToString(nfs.tag);
+        }
+    }
+
+    NFSVer FindCarByName(const std::string &car_name) {
+        std::vector <NFSVer> possibleNFS;
+        NFSVer carNFSVersion;
+
+        for (auto nfs : installedNFS) {
+            for (const auto &car : nfs.cars) {
+                if (car == car_name) {
+                    possibleNFS.emplace_back(nfs.tag);
+                }
+            }
+        }
+
+        ASSERT(possibleNFS.size(), "Specified car '" << car_name << "' does not exist across any NFS.");
+
+        if (possibleNFS.size() == 1) {
+            carNFSVersion = possibleNFS[0];
+        } else {
+            LOG(INFO) << "Selected car exists in multiple NFS versions. Please select desired version: ";
+            for (uint8_t nfs_Idx = 0; nfs_Idx < possibleNFS.size(); ++nfs_Idx) {
+                LOG(INFO) << nfs_Idx << ". " << ToString(possibleNFS[nfs_Idx]);
+            }
+            std::string line;
+            uint8_t choice = 0;
+            while (std::getline(std::cin, line)) {
+                std::stringstream ss(line);
+                if (ss >> choice) {
+                    if (ss.eof()) {
+                        if (choice >= 0 && choice < possibleNFS.size())
+                            break;
+                    }
+                }
+                LOG(INFO) << "Invalid selection, try again.";
+            }
+            carNFSVersion = possibleNFS[choice];
+        }
+
+        return carNFSVersion;
     }
 };
 
 int main(int argc, char **argv) {
     Config::get().InitFromCommandLine(argc, argv);
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
+    std::shared_ptr <Logger> logger = std::make_shared<Logger>();
 
     try {
         OpenNFS game(logger);
