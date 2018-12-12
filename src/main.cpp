@@ -31,7 +31,7 @@
 
 class OpenNFS {
 public:
-    explicit OpenNFS(std::shared_ptr <Logger> &onfs_logger) : logger(onfs_logger) {
+    explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
         InitDirectories();
         PopulateAssets();
 
@@ -68,9 +68,9 @@ public:
         while (loadedAssets.trackTag != UNKNOWN) {
             /*------ ASSET LOAD ------*/
             //Load Track Data
-            std::shared_ptr <ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+            std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
             //Load Car data from unpacked NFS files
-            std::shared_ptr <Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+            std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
             //Load Music
             //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
@@ -101,9 +101,9 @@ public:
 
         /*------ ASSET LOAD ------*/
         //Load Track Data
-        std::shared_ptr <ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
+        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
         //Load Car data from unpacked NFS files
-        std::shared_ptr <Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
+        std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 
         auto trainingGround = TrainingGround(Config::get().populationSize, Config::get().nGenerations,
                                              Config::get().nTicks, track, car, logger, window);
@@ -112,9 +112,9 @@ public:
 private:
     GLFWwindow *window;
 
-    std::shared_ptr <Logger> logger;
+    std::shared_ptr<Logger> logger;
 
-    std::vector <NeedForSpeed> installedNFS;
+    std::vector<NeedForSpeed> installedNFS;
 
     static void glfwError(int id, const char *description) {
         LOG(WARNING) << description;
@@ -373,7 +373,7 @@ private:
     }
 
     NFSVer FindCarByName(const std::string &car_name) {
-        std::vector <NFSVer> possibleNFS;
+        std::vector<NFSVer> possibleNFS;
         NFSVer carNFSVersion;
 
         for (auto nfs : installedNFS) {
@@ -391,30 +391,22 @@ private:
         } else {
             LOG(INFO) << "Selected car exists in multiple NFS versions. Please select desired version: ";
             for (uint8_t nfs_Idx = 0; nfs_Idx < possibleNFS.size(); ++nfs_Idx) {
-                LOG(INFO) << nfs_Idx << ". " << ToString(possibleNFS[nfs_Idx]);
+                LOG(INFO) << (int) nfs_Idx << ". " << ToString(possibleNFS[nfs_Idx]);
             }
             std::string line;
-            uint8_t choice = 0;
-            while (std::getline(std::cin, line)) {
-                std::stringstream ss(line);
-                if (ss >> choice) {
-                    if (ss.eof()) {
-                        if (choice >= 0 && choice < possibleNFS.size())
-                            break;
-                    }
-                }
+            int choice = 0;
+            while ((std::cin >> choice)&&!(choice >= 0 && choice < possibleNFS.size())) {
                 LOG(INFO) << "Invalid selection, try again.";
             }
             carNFSVersion = possibleNFS[choice];
         }
-
         return carNFSVersion;
     }
 };
 
 int main(int argc, char **argv) {
     Config::get().InitFromCommandLine(argc, argv);
-    std::shared_ptr <Logger> logger = std::make_shared<Logger>();
+    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
 
     try {
         OpenNFS game(logger);

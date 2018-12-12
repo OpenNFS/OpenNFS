@@ -4,7 +4,7 @@
 
 #include "CarRenderer.h"
 
-CarRenderer::CarRenderer(const shared_ptr<Car> &activeCar) : carShader(activeCar) {
+CarRenderer::CarRenderer(shared_ptr<Car> &activeCar) : carShader(activeCar) {
     car = activeCar;
     if(!car->isMultitextured()){
         // TODO: Move this out of car shader and into Car constructor

@@ -245,7 +245,7 @@ void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
     }
 }
 
-void Physics::registerVehicle(std::shared_ptr<Car> car) {
+void Physics::registerVehicle(std::shared_ptr<Car> &car) {
     cars.emplace_back(car);
 
     btVector3 wheelDirectionCS0(0, -1, 0);

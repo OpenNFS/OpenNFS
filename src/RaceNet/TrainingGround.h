@@ -18,8 +18,8 @@ static const float stepTime = 1 / 60.f;
 
 class TrainingGround {
 public:
-    explicit TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks, shared_ptr<ONFSTrack> training_track, shared_ptr<Car> training_car, std::shared_ptr<Logger> logger, GLFWwindow *gl_window);
-    float EvaluateFitness(shared_ptr<Car> car_agent);
+    explicit TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks, shared_ptr<ONFSTrack> &training_track, shared_ptr<Car> &training_car, std::shared_ptr<Logger> &logger, GLFWwindow *gl_window);
+    float EvaluateFitness(shared_ptr<Car> &car_agent);
 private:
     void InitialiseAgents(uint16_t populationSize);
     std::vector<std::vector<int>> TrainAgents(uint16_t nGenerations, uint32_t nTicks); // Train the agents, returning agent fitness data

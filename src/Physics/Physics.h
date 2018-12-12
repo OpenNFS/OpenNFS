@@ -80,7 +80,7 @@ public:
     void stepSimulation(float time);
     void cleanSimulation();
     btDynamicsWorld* getDynamicsWorld() { return dynamicsWorld; }
-    void registerVehicle(std::shared_ptr<Car> car);
+    void registerVehicle(std::shared_ptr<Car> &car);
     void registerTrack(const std::shared_ptr<ONFSTrack> &track);
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
