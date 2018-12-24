@@ -7,7 +7,7 @@
 
 Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger,
                    const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track,
-                   shared_ptr<Car> current_car) : carRenderer(current_car), trackRenderer(current_track),
+                   shared_ptr<Car> &current_car) : carRenderer(current_car), trackRenderer(current_track),
                                                   skyRenderer(current_track), shadowMapRenderer(current_track),
                                                   logger(onfs_logger), installedNFSGames(installedNFS),
                                                   window(gl_window), track(current_track), car(current_car) {
@@ -54,7 +54,7 @@ void Renderer::ResetToVroad(uint32_t trackBlockIndex, std::shared_ptr<ONFSTrack>
     } else {
         vroadPoint = TrackUtils::pointToVec(track->track_blocks[trackBlockIndex].center);
         vroadPoint.y += 0.2;
-        carOrientation = glm::quat(0, 0, 0, 1);
+        carOrientation = glm::quat(2, 0, 0, 1);
     }
 
     // Go and find the Vroad Data to reset to

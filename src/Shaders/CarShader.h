@@ -18,7 +18,7 @@
 
 class CarShader : public BaseShader {
 public:
-    explicit CarShader(shared_ptr<Car> current_car);
+    explicit CarShader(shared_ptr<Car> &current_car);
     void loadCarColor(glm::vec3 color);
     void loadCarTexture();
     void loadLights(std::vector<Light> lights);

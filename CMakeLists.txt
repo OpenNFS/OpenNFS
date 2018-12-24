@@ -11,7 +11,7 @@ include(cmake/AddCompilerFlag.cmake)
 include(cmake/OptimizeForArchitecture.cmake)
 include(cmake/CompileGLSLToSPIRV.cmake)
 
-OptimizeForArchitecture()
+#[[OptimizeForArchitecture()]
 MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 
 #[[Static linking broken under Mac OSX]]

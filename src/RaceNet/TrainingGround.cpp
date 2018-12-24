@@ -5,8 +5,8 @@
 #include "TrainingGround.h"
 
 TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks,
-                               shared_ptr<ONFSTrack> training_track, shared_ptr<Car> training_car,
-                               std::shared_ptr<Logger> logger, GLFWwindow *gl_window) : window(gl_window),
+                               shared_ptr<ONFSTrack> &training_track, shared_ptr<Car> &training_car,
+                               std::shared_ptr<Logger> &logger, GLFWwindow *gl_window) : window(gl_window),
                                                                                         raceNetRenderer(gl_window,
                                                                                                         logger) {
     LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations: "
@@ -43,7 +43,7 @@ void TrainingGround::Mutate(RaceNet &toMutate) {
 }
 
 // Move this to agent class?
-float TrainingGround::EvaluateFitness(shared_ptr<Car> car_agent) {
+float TrainingGround::EvaluateFitness(shared_ptr<Car> &car_agent) {
     uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(training_track->trackData)->col.vroadHead.nrec;
 
     int closestVroadID = 0;

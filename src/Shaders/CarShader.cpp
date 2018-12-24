@@ -7,7 +7,7 @@
 const std::string vertexSrc = "../shaders/CarVertexShader.vertexshader";
 const std::string fragSrc = "../shaders/CarFragmentShader.fragmentshader";
 
-CarShader::CarShader(shared_ptr<Car> current_car) : super(vertexSrc, fragSrc){
+CarShader::CarShader(shared_ptr<Car> &current_car) : super(vertexSrc, fragSrc){
     car = current_car;
     bindAttributes();
     getAllUniformLocations();
