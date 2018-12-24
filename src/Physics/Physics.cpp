@@ -157,7 +157,9 @@ void Physics::updateFrustrum(glm::mat4 viewMatrix) {
 
 void Physics::checkForFrustumIntersect() {
     m_objectsInFrustum.resize(0);
-    dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(m_ghostObject->getOverlappingPairCache(), dynamicsWorld->getDispatchInfo(), dynamicsWorld->getDispatcher());
+    dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(m_ghostObject->getOverlappingPairCache(),
+                                                              dynamicsWorld->getDispatchInfo(),
+                                                              dynamicsWorld->getDispatcher());
 
     btBroadphasePairArray &collisionPairs = m_ghostObject->getOverlappingPairCache()->getOverlappingPairArray();    //New
     numObjects = collisionPairs.size();
@@ -166,11 +168,16 @@ void Physics::checkForFrustumIntersect() {
         const btBroadphasePair &collisionPair = collisionPairs[i];
         m_manifoldArray.resize(0);
         if (collisionPair.m_algorithm) collisionPair.m_algorithm->getAllContactManifolds(m_manifoldArray);
-        else std::cerr << "No collisionPair.m_algorithm - probably m_dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(...) must be missing." << std::endl;
+        else
+            std::cerr
+                    << "No collisionPair.m_algorithm - probably m_dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(...) must be missing."
+                    << std::endl;
         for (int j = 0; j < m_manifoldArray.size(); j++) {
             btPersistentManifold *manifold = m_manifoldArray[j];
             if (manifold->getNumContacts() > 0) {
-                m_objectsInFrustum.push_back((btCollisionObject *) (manifold->getBody0() == m_ghostObject ? manifold->getBody1() : manifold->getBody0()));
+                m_objectsInFrustum.push_back(
+                        (btCollisionObject *) (manifold->getBody0() == m_ghostObject ? manifold->getBody1()
+                                                                                     : manifold->getBody0()));
                 break;
             }
         }
@@ -236,11 +243,15 @@ void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
         }
         for (auto &object : track_block.objects) {
             object.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
+            if (object.collideable) {
+                dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
+            } else {
+                LOG(WARNING) << "Hey ams, seeing an object in " << track_block.block_id << " of ID " << object.entityID << " thats not collideable";
+            }
         }
         for (auto &light : track_block.lights) {
             light.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
+            dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_CAR | COL_RAY);
         }
     }
 }
@@ -254,9 +265,10 @@ void Physics::registerVehicle(std::shared_ptr<Car> car) {
     float wheelWidth = car->getWheelWidth();
     btScalar sRestLength = car->getSuspensionRestLength();
 
-    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
+    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
+            car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
 
-    dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK| COL_RAY);
+    dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY);
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
     car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
     car->getVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
@@ -266,14 +278,18 @@ void Physics::registerVehicle(std::shared_ptr<Car> car) {
     // Wire up the wheels
     // Fronties
     btVector3 connectionPointCS0(Utils::glmToBullet(car->left_front_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, true);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, true);
     connectionPointCS0 = btVector3(Utils::glmToBullet(car->right_front_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, true);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, true);
     // Rearies
     connectionPointCS0 = btVector3(Utils::glmToBullet(car->left_rear_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, false);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, false);
     connectionPointCS0 = btVector3(Utils::glmToBullet(car->right_rear_wheel_model.position));
-    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->m_tuning, false);
+    car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
+                                car->m_tuning, false);
 
     for (int i = 0; i < car->getRaycast()->getNumWheels(); i++) {
         btWheelInfo &wheel = car->getRaycast()->getWheelInfo(i);

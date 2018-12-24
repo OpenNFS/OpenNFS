@@ -5,12 +5,14 @@
 
 #include "Entity.h"
 
-Entity::Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, EngineModel gl_mesh) {
+Entity::Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, EngineModel gl_mesh, uint32_t flags) {
     tag = nfs_version;
     type = entity_type;
     glMesh = gl_mesh;
+    this->flags = flags;
     parentTrackblockID = parent_trackblock_id;
     entityID = entity_id;
+    setParameters();
 }
 
 void Entity::genPhysicsMesh(){
@@ -40,4 +42,30 @@ void Entity::genPhysicsMesh(){
     rigidBody = new btRigidBody( btRigidBody::btRigidBodyConstructionInfo(0, motionState, physicsShape, btVector3(0, 0, 0)));
     rigidBody->setFriction(btScalar(1.f));
     rigidBody->setUserPointer(this);
+}
+
+void Entity::setParameters() {
+    switch(tag){
+        case NFS_3:
+            switch(type){
+                case LIGHT:
+                    collideable = false;
+                    break;
+
+                case SOUND:
+                    collideable = false;
+                    break;
+                case OBJ_POLY:
+                    if(flags & (1 << 4)){ // Flags 32 for hometown is a godray
+                        collideable = false;
+                    } else {
+                        collideable = true;
+                    }
+                    break;
+            }
+            break;
+        default:
+            collideable = true;
+            LOG(WARNING) << "Entity parameters are unset for " << ToString(tag);
+    }
 }

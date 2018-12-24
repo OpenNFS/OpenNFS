@@ -11,6 +11,9 @@
 #include <imgui.h>
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
+#include <chrono>
+#include <thread>
+
 
 #include "../Scene/Camera.h"
 #include "../Scene/Entity.h"

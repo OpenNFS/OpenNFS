@@ -468,7 +468,9 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     std::vector<glm::vec2> uvs;
                     std::vector<unsigned int> texture_indices;
                     std::vector<glm::vec3> norms;
+                    std::vector<uint32_t> debug_data;
 					FLOATPT norm_floatpt = {0.f, 0.f, 0.f};
+					uint32_t accumulatedObjectFlags = 0u;
                     // Get Polygons in object
                     LPPOLYGONDATA object_polys = obj_polygon_block.poly[k];
                     for (uint32_t p = 0; p < obj_polygon_block.numpoly[k]; p++) {
@@ -499,8 +501,16 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         texture_indices.emplace_back(texture_for_block.texture);
                         texture_indices.emplace_back(texture_for_block.texture);
                         texture_indices.emplace_back(texture_for_block.texture);
+
+                        accumulatedObjectFlags |= object_polys[p].flags;
+                        debug_data.emplace_back(object_polys[p].flags);
+                        debug_data.emplace_back(object_polys[p].flags);
+                        debug_data.emplace_back(object_polys[p].flags);
+                        debug_data.emplace_back(object_polys[p].flags);
+                        debug_data.emplace_back(object_polys[p].flags);
+                        debug_data.emplace_back(object_polys[p].flags);
                     }
-                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center)));
+                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, debug_data, trk_block_center), accumulatedObjectFlags));
                 }
             }
         }

@@ -93,6 +93,7 @@ AssetData Renderer::Render() {
         // Update time between engine ticks
         auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
+
         NewFrame(&userParams);
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
 
@@ -226,6 +227,13 @@ AssetData Renderer::Render() {
         };
 
         DrawUI(&userParams, mainCamera.position);
+
+
+        // Update time between engine ticks
+        /*float sleepTimeFloat = abs(0.01667f - (deltaTime + float(glfwGetTime() - currentTime)));
+        int sleepTime = sleepTimeFloat * 1000;
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));*/
+
         glfwSwapBuffers(window);
 
         if (newAssetSelected) break;
