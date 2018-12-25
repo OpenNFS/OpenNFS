@@ -13,7 +13,8 @@ enum collisionTypes {
     COL_NOTHING = 0, // Collide with nothing
     COL_RAY = BIT(0), // Collide with rays
     COL_CAR = BIT(1), // Collide with cars
-    COL_TRACK = BIT(2) // Collide with track
+    COL_TRACK = BIT(2), // Collide with track
+    COL_DYNAMIC_TRACK = BIT(3)  // Collide with roadsigns
 };
 
 #define X_DEFINE_ENUM_WITH_STRING_CONVERSIONS_TOSTRING_CASE(r, data, elem)    \

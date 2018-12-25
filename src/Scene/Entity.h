@@ -25,13 +25,15 @@ public:
     // TODO: Deprecate this Entity constructor, and use collidable flags from every NFS polygon type
     Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, EngineModel gl_mesh) : Entity(parent_trackblock_id, entity_id, nfs_version, entity_type, gl_mesh, 0u) {};
     void genPhysicsMesh();
+    void update(); // Update Entity position based on Physics engine
     NFSVer tag;
     EntityType type;
     EngineModel glMesh;
     btRigidBody* rigidBody;
     uint32_t parentTrackblockID, entityID;
     uint32_t flags;
-    bool collideable, dynamic;
+    bool collideable = false;
+    bool dynamic = false;
 
     private:
     btTriangleMesh physicsMesh;

@@ -160,7 +160,7 @@ namespace NFS3_4_DATA {
 
     struct ANIMDATA {
         INTPT pt;
-        int16_t od1,od2,od3,od4;
+        int16_t od1, od2, od3, od4;
     };
 
     struct XOBJDATA {
@@ -693,7 +693,7 @@ namespace NFS2_DATA {
 
             uint16_t nUnknownVerts;
             VERT *unknownVerts;
-            
+
             MEDIAN_BLOCK *medianData;
             uint16_t nVroad;
             VROAD *vroadData; // Reference using XBID 5

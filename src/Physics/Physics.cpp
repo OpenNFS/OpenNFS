@@ -203,6 +203,12 @@ void Physics::stepSimulation(float time) {
     for (auto &car : cars) {
         car->update(dynamicsWorld);
     }
+    // TODO: Track updates should only propagate for active track blocks. Active list should be based upon track blocks cars are on
+    for(auto &track_block : current_track->track_blocks){
+        for(auto &objects : track_block.objects){
+            objects.update();
+        }
+    }
 }
 
 void Physics::cleanSimulation() {
@@ -235,25 +241,40 @@ void Physics::cleanSimulation() {
 
 void Physics::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
     current_track = track;
-    // TODO: NFS3, Use passable flags (flags&0x80)
     for (auto &track_block : track->track_blocks) {
         for (auto &road : track_block.track) {
             road.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY);
+            dynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
         }
         for (auto &object : track_block.objects) {
             object.genPhysicsMesh();
+            int collisionMask = COL_RAY;
             if (object.collideable) {
-                dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR| COL_RAY);
-            } else {
-                LOG(WARNING) << "Hey ams, seeing an object in " << track_block.block_id << " of ID " << object.entityID << " thats not collideable";
+                collisionMask |= COL_CAR;
             }
+            if (object.dynamic){
+                collisionMask |= COL_TRACK;
+            }
+            dynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
+            if(object.dynamic){
+                btTransform initialTransform;
+                initialTransform.setOrigin(Utils::glmToBullet(boost::get<Track>(object.glMesh).initialPosition));
+                initialTransform.setRotation(Utils::glmToBullet(boost::get<Track>(object.glMesh).orientation));
+                object.rigidBody->setWorldTransform(initialTransform);
+                object.update();
+            }
+
         }
         for (auto &light : track_block.lights) {
             light.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_CAR | COL_RAY);
+            dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
         }
     }
+    /*btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+    btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+    btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+    dynamicsWorld->addRigidBody(groundRigidBody, COL_TRACK, COL_DYNAMIC_TRACK);*/
 }
 
 void Physics::registerVehicle(std::shared_ptr<Car> &car) {
@@ -265,9 +286,7 @@ void Physics::registerVehicle(std::shared_ptr<Car> &car) {
     float wheelWidth = car->getWheelWidth();
     btScalar sRestLength = car->getSuspensionRestLength();
 
-    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
-            car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
-
+    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
     dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY);
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
     car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());

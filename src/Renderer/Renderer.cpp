@@ -119,8 +119,7 @@ AssetData Renderer::Render() {
             car->simulate();
         } else {
             if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
-                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
-                                            glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
                 car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
                 car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
                 car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
@@ -132,7 +131,7 @@ AssetData Renderer::Render() {
         }
 
         // Step the physics simulation
-        physicsEngine.stepSimulation(deltaTime);
+        physicsEngine.stepSimulation(0.001);
 
         if (userParams.draw_raycast) {
             DrawCarRaycasts();
@@ -358,6 +357,9 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
 
             break;
     }
+    ImGui::Text("Object Flags: %d", targetEntity->flags);
+    ImGui::Text("Collideable: %s", targetEntity->collideable ? "Yes" : "No");
+    ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
 }
 
 void Renderer::DrawMetadata(Entity *targetEntity) {

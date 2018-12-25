@@ -468,8 +468,6 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     std::vector<glm::vec2> uvs;
                     std::vector<unsigned int> texture_indices;
                     std::vector<glm::vec3> norms;
-                    std::vector<uint32_t> debug_data;
-					FLOATPT norm_floatpt = {0.f, 0.f, 0.f};
 					uint32_t accumulatedObjectFlags = 0u;
                     // Get Polygons in object
                     LPPOLYGONDATA object_polys = obj_polygon_block.poly[k];
@@ -503,14 +501,8 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         texture_indices.emplace_back(texture_for_block.texture);
 
                         accumulatedObjectFlags |= object_polys[p].flags;
-                        debug_data.emplace_back(object_polys[p].flags);
-                        debug_data.emplace_back(object_polys[p].flags);
-                        debug_data.emplace_back(object_polys[p].flags);
-                        debug_data.emplace_back(object_polys[p].flags);
-                        debug_data.emplace_back(object_polys[p].flags);
-                        debug_data.emplace_back(object_polys[p].flags);
                     }
-                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, debug_data, trk_block_center), accumulatedObjectFlags));
+                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center), accumulatedObjectFlags));
                 }
             }
         }
@@ -535,7 +527,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 std::vector<glm::vec2> uvs;
                 std::vector<unsigned int> texture_indices;
                 std::vector<glm::vec3> norms;
-                FLOATPT norm_floatpt;
+                uint32_t accumulatedObjectFlags = 0u;
                 for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
                     Texture gl_texture = track->textures[texture_for_block.texture];
@@ -564,8 +556,11 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);
                     texture_indices.emplace_back(texture_for_block.texture);
+
+                    accumulatedObjectFlags |= x->polyData->flags;
                 }
-                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, trk_block_center)));
+                glm::vec3 xobj_center = rotationMatrix * glm::vec3(x->ptRef.x / 10, x->ptRef.y / 10, x->ptRef.z / 10 );
+                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, trk_block_center), accumulatedObjectFlags));
             }
         }
 
@@ -576,13 +571,13 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> trk_block_shading_verts;
         std::vector<glm::vec3> norms;
+        uint32_t accumulatedObjectFlags = 0u;
         for (int32_t j = 0; j < trk_block.nVertices; j++) {
             verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
             // Break uint32_t of RGB into 4 normalised floats and store into vec4
             uint32_t shading_data = trk_block.unknVertices[j];
             trk_block_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
-        FLOATPT norm_floatpt;
         // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
         for (uint32_t chnk = 4; chnk <= 6; chnk++) {
             if ((chnk == 6) && (trk_block.nVertices <= trk_block.nHiResVert))
@@ -616,12 +611,14 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);
                 texture_indices.emplace_back(texture_for_block.texture);
+
+                accumulatedObjectFlags |= poly_chunk[k].flags;
             }
 
             if(chnk == 6){
-                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center)));
+                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), accumulatedObjectFlags));
             } else {
-                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center)));
+                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), accumulatedObjectFlags));
             }
         }
         track_blocks.emplace_back(current_track_block);
