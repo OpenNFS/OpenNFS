@@ -4,8 +4,8 @@
 
 #include "BillboardShader.h"
 
-const std::string vertexSrc = "../shaders/BillboardVertexShader.vertexshader";
-const std::string fragSrc = "../shaders/BillboardFragmentShader.fragmentshader";
+const std::string vertexSrc = "../shaders/BillboardVertexShader.vert";
+const std::string fragSrc = "../shaders/BillboardFragmentShader.frag";
 
 BillboardShader::BillboardShader() : super(vertexSrc, fragSrc){
     bindAttributes();

@@ -93,6 +93,8 @@ AssetData Renderer::Render() {
         // Update time between engine ticks
         auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
+        // Hot reload shaders
+        UpdateShaders();
 
         NewFrame(&userParams);
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
@@ -131,7 +133,7 @@ AssetData Renderer::Render() {
         }
 
         // Step the physics simulation
-        physicsEngine.stepSimulation(0.001);
+        physicsEngine.stepSimulation(deltaTime);
 
         if (userParams.draw_raycast) {
             DrawCarRaycasts();
@@ -259,7 +261,7 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
                                                            btVector3(out_end.x, out_end.y, out_end.z));
-    RayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK;
+    RayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
     physicsEngine.getDynamicsWorld()->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z),
                                               btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
     if (RayCallback.hasHit()) {
@@ -275,7 +277,8 @@ void Renderer::InitialiseIMGUI() {
     /*------- ImGui -------*/
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, false);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    std::string imgui_gl_version = "#version " + ONFS_GL_VERSION;
+    ImGui_ImplOpenGL3_Init(imgui_gl_version.c_str());
     ImGui::StyleColorsDark();
 }
 
@@ -685,4 +688,11 @@ void Renderer::DrawCameraAnimation() {
     }
 }
 
+void Renderer::UpdateShaders(){
+    trackRenderer.trackShader.shaders.UpdatePrograms();
+    trackRenderer.billboardShader.shaders.UpdatePrograms();
+    carRenderer.carShader.shaders.UpdatePrograms();
+    skyRenderer.skydomeShader.shaders.UpdatePrograms();
+    shadowMapRenderer.depthShader.shaders.UpdatePrograms();
+}
 

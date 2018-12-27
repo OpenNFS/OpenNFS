@@ -4,8 +4,8 @@
 
 #include "TrackShader.h"
 
-const std::string vertexSrc = "../shaders/TrackVertexShader.vertexshader";
-const std::string fragSrc = "../shaders/TrackFragmentShader.fragmentshader";
+const std::string vertexSrc = "../shaders/TrackVertexShader.vert";
+const std::string fragSrc = "../shaders/TrackFragmentShader.frag";
 
 TrackShader::TrackShader() : super(vertexSrc, fragSrc){
     bindAttributes();

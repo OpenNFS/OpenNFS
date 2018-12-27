@@ -1,5 +1,3 @@
-#version 330 core
-
 #define MAX_CAR_CONTRIB_LIGHTS 6
 
 // Interpolated values from the vertex shaders

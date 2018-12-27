@@ -1,5 +1,3 @@
-#version 330 core
-
 #define MAX_LIGHTS 6
 
 // Interpolated values from the vertex shaders
@@ -164,7 +162,7 @@ void main(){
            totalDiffuse += (brightness * lightColour[i].xyz)/attenFactor;
            totalSpecular += (dampedFactor * reflectivity * lightColour[i].xyz)/attenFactor;
         }
-        totalDiffuse = max(totalDiffuse, 0.5); // Min brightness
+        totalDiffuse = max(totalDiffuse, 0.2); // Min brightness
 
         float shadow = ShadowCalculation(lightSpace);
         vec3 ambient = ambientFactor * nfsColor.rgb;

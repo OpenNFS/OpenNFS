@@ -16,6 +16,7 @@
 #include <glm/vec3.hpp>
 #include <glm/detail/type_mat4x4.hpp>
 #include <GL/glew.h>
+#include "ShaderSet.h"
 
 using namespace std;
 
@@ -29,12 +30,11 @@ public:
     void unbind();
     void cleanup();
 
-    GLuint VertexShaderID;
-    GLuint FragmentShaderID;
-    GLuint GeometryShaderID;
-    GLuint ProgramID;
+    ShaderSet shaders;
+    GLuint *ProgramID;
 protected:
     void loadMat4(GLint location, const GLfloat *value);
+    void loadMat3(GLint location, const GLfloat *value);
     void loadBool(GLint location, bool value);
     void loadVec4(GLint location, glm::vec4 value);
     void loadVec2(GLint location, glm::vec2 value);

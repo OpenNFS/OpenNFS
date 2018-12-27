@@ -1,5 +1,3 @@
-#version 330 core
-
 #define MAX_LIGHTS 6
 
 // Input vertex data, different for all executions of this shader.

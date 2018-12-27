@@ -16,11 +16,11 @@ public:
 
     GLuint depthTextureID = 0;
     glm::mat4 lightSpaceMatrix;
+    DepthShader depthShader;
 private:
     shared_ptr<ONFSTrack> track;
     /* Shadow Mapping */
     const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
     GLuint depthMapFBO = 0;
-    DepthShader depthShader;
 };
 

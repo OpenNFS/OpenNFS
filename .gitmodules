@@ -25,3 +25,6 @@
 [submodule "lib/soloud"]
 	path = lib/soloud
 	url = https://github.com/jarikomppa/soloud.git
+[submodule "include/ImGuiColorTextEdit"]
+	path = include/ImGuiColorTextEdit
+	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git

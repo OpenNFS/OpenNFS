@@ -36,8 +36,16 @@ void Entity::genPhysicsMesh() {
         }
         physicsShape = new btBvhTriangleMeshShape(&physicsMesh, true, true);
     } else if (dynamic) {
-        // btBvhTriangleMeshShape doesn't collide when dynamic, temporarily use a box until I write a better compount creator
-        physicsShape = Utils::genCollisionBox(boost::get<Track>(glMesh).m_vertices);
+        // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
+        auto *mesh = new btTriangleMesh();
+        std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
+        for (int i = 0; i < vertices.size() - 2; i += 3) {
+            glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
+            glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
+            glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
+            mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+        }
+        physicsShape = new btConvexTriangleMeshShape(mesh);
     } else {
         std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
         // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
@@ -49,8 +57,13 @@ void Entity::genPhysicsMesh() {
         }
         physicsShape = new btBvhTriangleMeshShape(&physicsMesh, true, true);
     }
+    float entityMass = dynamic ? 100.f : 0.f;
+    btVector3 localInertia;
+    if(dynamic){
+        physicsShape->calculateLocalInertia(entityMass, localInertia);
+    }
     motionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-    rigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(dynamic ? 100.f : 0, motionState, physicsShape, btVector3(0, 0, 0)));
+    rigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(entityMass, motionState, physicsShape, localInertia));
     rigidBody->setFriction(btScalar(1.f));
     rigidBody->setUserPointer(this);
 }
@@ -62,7 +75,7 @@ void Entity::update() {
     }
     btTransform trans;
     motionState->getWorldTransform(trans);
-    boost::get<Track>(glMesh).position = Utils::bulletToGlm(trans.getOrigin()) + (boost::get<Track>(glMesh).initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+    boost::get<Track>(glMesh).position = Utils::bulletToGlm(trans.getOrigin());
     boost::get<Track>(glMesh).orientation = Utils::bulletToGlm(trans.getRotation());
     boost::get<Track>(glMesh).update();
 }

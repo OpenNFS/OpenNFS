@@ -4,8 +4,8 @@
 
 #include "RaceNetShader.h"
 
-const std::string vertexSrc = "../shaders/RaceNetVertexShader.vertexshader";
-const std::string fragSrc = "../shaders/RaceNetFragmentShader.fragmentshader";
+const std::string vertexSrc = "../shaders/RaceNetVertexShader.vert";
+const std::string fragSrc = "../shaders/RaceNetFragmentShader.frag";
 
 RaceNetShader::RaceNetShader() : super(vertexSrc, fragSrc){
     bindAttributes();

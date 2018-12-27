@@ -4,8 +4,8 @@
 
 #include "SkydomeShader.h"
 
-const std::string vertexSrc = "../shaders/SkydomeVertexShader.vertexshader";
-const std::string fragSrc = "../shaders/SkydomeFragmentShader.fragmentshader";
+const std::string vertexSrc = "../shaders/SkydomeVertexShader.vert";
+const std::string fragSrc = "../shaders/SkydomeFragmentShader.frag";
 
 SkydomeShader::SkydomeShader() : super(vertexSrc, fragSrc){
     bindAttributes();
@@ -43,8 +43,8 @@ void SkydomeShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &v
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void SkydomeShader::loadStarRotationMatrix(const glm::mat4 &star_rotation_matrix){
-    loadMat4(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
+void SkydomeShader::loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix){
+    loadMat3(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
 }
 
 void SkydomeShader::loadSunPosition(const Light &sun){

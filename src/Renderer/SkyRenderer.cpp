@@ -120,11 +120,11 @@ void SkyRenderer::loadTextures() {
 void SkyRenderer::renderSky(const Camera &mainCamera, const Light &sun, const ParamData &userParams, float elapsedTime) {
     skydomeShader.use();
     skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
-    skydomeShader.loadStarRotationMatrix(glm::toMat4(glm::normalize(glm::quat(glm::vec3(SIMD_PI,SIMD_PI,0))))); // No star rotation
+    skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(SIMD_PI,SIMD_PI,0))))); // No star rotation
     skydomeShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, skydome.ModelMatrix);
     skydomeShader.loadSunPosition(sun);
     skydomeShader.loadTime(elapsedTime);
-    skydomeShader.loadWeatherMixFactor(0.7f);
+    skydomeShader.loadWeatherMixFactor(0.5f);
     // Bind the sphere model
     skydome.render();
     skydomeShader.unbind();

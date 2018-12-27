@@ -4,8 +4,8 @@
 
 #include "DepthShader.h"
 
-const std::string vertexSrc = "../shaders/DepthVertexShader.vertexshader";
-const std::string fragSrc = "../shaders/DepthFragmentShader.fragmentshader";
+const std::string vertexSrc = "../shaders/DepthVertexShader.vert";
+const std::string fragSrc = "../shaders/DepthFragmentShader.frag";
 
 DepthShader::DepthShader() : super(vertexSrc, fragSrc){
     bindAttributes();

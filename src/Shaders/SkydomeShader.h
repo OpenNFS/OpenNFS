@@ -13,7 +13,7 @@ public:
     SkydomeShader();
     void loadSunPosition(const Light &sun);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
-    void loadStarRotationMatrix(const glm::mat4 &star_rotation_matrix);
+    void loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix);
     void loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID);
     void loadWeatherMixFactor(float weatherMixFactor);
     void loadTime(float time);

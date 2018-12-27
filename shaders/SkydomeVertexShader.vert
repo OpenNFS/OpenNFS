@@ -1,4 +1,3 @@
-#version 330 core
 /*http://blog.simonrodriguez.fr/articles/28-06-2015_un_ciel_dans_le_shader.html*/
 //---------IN------------
 layout(location = 0)in vec3 vertexPosition_modelspace;

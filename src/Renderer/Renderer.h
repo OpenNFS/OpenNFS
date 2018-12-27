@@ -77,6 +77,7 @@ private:
     bool DrawMenuBar();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
     void NewFrame(ParamData *userParams);
+    void UpdateShaders();
     std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
     Entity *CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted);
 };
