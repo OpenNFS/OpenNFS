@@ -1,5 +1,3 @@
-#define MAX_CAR_CONTRIB_LIGHTS 6
-
 // Interpolated values from the vertex shaders
 in vec2 envUV;
 in vec2 UV;

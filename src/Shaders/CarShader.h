@@ -13,8 +13,8 @@
 #include "../../include/TGALoader/TGALoader.h"
 #include "../Scene/Light.h"
 #include "../Physics/Car.h"
+#include "../../shaders/ShaderPreamble.h"
 
-#define MAX_CAR_CONTRIB_LIGHTS 6
 
 class CarShader : public BaseShader {
 public:

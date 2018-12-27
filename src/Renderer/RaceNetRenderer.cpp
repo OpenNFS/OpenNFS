@@ -15,6 +15,7 @@ RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> 
 }
 
 void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_list, shared_ptr<ONFSTrack> &track_to_render) {
+    raceNetShader.shaders.UpdatePrograms(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glfwPollEvents();

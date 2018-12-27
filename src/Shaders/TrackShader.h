@@ -7,10 +7,11 @@
 #include "BaseShader.h"
 #include "../Scene/Track.h"
 #include "../Scene/Light.h"
+#include "../../shaders/ShaderPreamble.h"
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
 
-#define MAX_LIGHTS 6
+
 
 class TrackShader : public BaseShader {
 public:

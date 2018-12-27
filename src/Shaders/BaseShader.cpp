@@ -12,7 +12,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &f
     shaders.SetVersion(ONFS_GL_VERSION);
 
     // File prepended to shaders (after #version)
-    //shaders.SetPreambleFile("preamble.glsl");
+    shaders.SetPreambleFile(SHADER_PREAMBLE_PATH);
 
     ProgramID = shaders.AddProgramFromExts({vertex_file_path, fragment_file_path});
     shaders.UpdatePrograms();
@@ -23,7 +23,7 @@ BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &g
     shaders.SetVersion(ONFS_GL_VERSION);
 
     // File prepended to shaders (after #version)
-    shaders.SetPreambleFile("preamble.glsl");
+    shaders.SetPreambleFile(SHADER_PREAMBLE_PATH);
 
     ProgramID = shaders.AddProgramFromExts({vertex_file_path, geometry_file_path, fragment_file_path});
     shaders.UpdatePrograms();

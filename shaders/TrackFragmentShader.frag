@@ -1,5 +1,3 @@
-#define MAX_LIGHTS 6
-
 // Interpolated values from the vertex shaders
 in vec2 UV;
 flat in uint texIndex;

@@ -23,6 +23,7 @@ const std::string ONFS_VERSION = "0.3";
 const std::string ONFS_GL_VERSION = "330";
 
 const std::string LOG_FILE_PATH = "./";
+const std::string SHADER_PREAMBLE_PATH = "../shaders/ShaderPreamble.h";
 
 const std::string ASSET_PATH= "./assets/";
 const std::string CAR_PATH = ASSET_PATH + "car/";

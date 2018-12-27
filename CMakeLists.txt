@@ -129,7 +129,8 @@ set(SOURCE_FILES
         src/Renderer/ShadowMapRenderer.cpp
         src/Renderer/ShadowMapRenderer.h
         src/Shaders/ShaderSet.cpp
-        src/Shaders/ShaderSet.h)
+        src/Shaders/ShaderSet.h
+        shaders/ShaderPreamble.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
