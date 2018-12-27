@@ -200,7 +200,7 @@ AssetData Renderer::Render() {
         // Get lights that will contribute to car body (currentBlock, a few blocks forward, and a few back (NBData would give weird results, as NBData blocks aren't generally adjacent))
         // Should use NFS3/4 Shading data too as a fake light
         std::vector<Light> carBodyContributingLights;
-        carBodyContributingLights.emplace_back(sun);
+        carBodyContributingLights.emplace_back(nightTime ? moon : sun);
         activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, nBlocksToContributeToCar, false);
         for (auto activeBlk_Idx : activeTrackBlockIDs) {
             TrackBlock active_track_Block = track->track_blocks[activeBlk_Idx];
