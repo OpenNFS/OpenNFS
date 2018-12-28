@@ -19,9 +19,12 @@
 
 using namespace boost::program_options;
 
+/* --------------- ONFS Compile time parameters here -----------------*/
+/* Some graphics parameters can be found at file SHADER_PREAMBLE_PATH */
 const std::string ONFS_VERSION = "0.3";
 const std::string ONFS_GL_VERSION = "330";
 
+// ----- File paths for asset load/write -----
 const std::string LOG_FILE_PATH = "./";
 const std::string SHADER_PREAMBLE_PATH = "../shaders/ShaderPreamble.h";
 
@@ -44,14 +47,23 @@ const std::string NFS_3_CAR_PATH  = "/gamedata/carmodel/";
 const std::string NFS_4_TRACK_PATH = "/DATA/TRACKS/";
 const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
 
+// ----- Graphics -----
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
-
 const uint32_t DEFAULT_X_RESOLUTION = 1920;
 const uint32_t DEFAULT_Y_RESOLUTION = 1080;
+// Shadow Map Resolution
+const unsigned int SHADOW_WIDTH = 2048;    // Resolution of shadow map
+const unsigned int SHADOW_HEIGHT = 2048;
+// Lighting parameters - These should be adjusted in tandem with ShaderPreamble MAX_CONTRIB limits
+const int LIGHTS_PER_NB_BLOCK = 3;         // Number of lights per neighbouring trackblock to contribute to current trackblock lighting
+const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks to search for lights
 
+// ----- Defaults -----
 const std::string DEFAULT_CAR = "diab";
 const std::string DEFAULT_TRACK = "trk001";
 
+
+/* --------------- ONFS Runtime parameters here -----------------*/
 class Config
 {
 public:

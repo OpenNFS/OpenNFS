@@ -8,8 +8,6 @@
 
 #include <glm/detail/type_mat4x4.hpp>
 
-#define MAX_CAR_CONTRIB_LIGHTS 6
-
 class RaceNetShader : public BaseShader {
 public:
     explicit RaceNetShader();

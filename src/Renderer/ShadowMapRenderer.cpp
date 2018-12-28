@@ -35,7 +35,6 @@ ShadowMapRenderer::ShadowMapRenderer(const shared_ptr<ONFSTrack> &activeTrack): 
 
 void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::vector<int> activeTrackBlockIDs, const std::shared_ptr<Car> &car){
     /* ------- SHADOW MAPPING ------- */
-    glCullFace(GL_FRONT);
     depthShader.use();
     float near_plane = 160.0f, far_plane = 280.f;
     glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
@@ -49,23 +48,22 @@ void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::
     glClear(GL_DEPTH_BUFFER_BIT);
 
     /* Render the track using this simple shader to get depth texture to test against during draw */
-    for (int activeBlk_Idx = 0; activeBlk_Idx < activeTrackBlockIDs.size(); ++activeBlk_Idx) {
-        TrackBlock active_track_Block = track->track_blocks[activeTrackBlockIDs[activeBlk_Idx]];
-        std::vector<Light> contributingLights;
-        for (auto &light_entity : active_track_Block.lights) {
-            contributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
-        }
+    for (int activeTrackBlockID : activeTrackBlockIDs) {
+        TrackBlock active_track_Block = track->track_blocks[activeTrackBlockID];
         for (auto &track_block_entity : active_track_Block.track) {
-            boost::get<Track>(track_block_entity.glMesh).update();
             depthShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
         for (auto &track_block_entity : active_track_Block.objects) {
-            boost::get<Track>(track_block_entity.glMesh).update();
             depthShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();
         }
     }
+    for (auto &global_object : track->global_objects) {
+        depthShader.loadTransformMatrix(boost::get<Track>(global_object.glMesh).ModelMatrix);
+        boost::get<Track>(global_object.glMesh).render();
+    }
+
     /* And the Car */
     depthShader.bindTextureArray(car->textureArrayID);
     for (auto &misc_model : car->misc_models) {
@@ -83,7 +81,6 @@ void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::
     depthShader.loadTransformMatrix(car->car_body_model.ModelMatrix);
     car->car_body_model.render();
 
-    glCullFace(GL_BACK); // Reset original culling face
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glViewport(0, 0, Config::get().resX, Config::get().resY);

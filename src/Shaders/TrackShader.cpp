@@ -34,7 +34,7 @@ void TrackShader::getAllUniformLocations() {
     shadowMapTextureLocation = getUniformLocation("shadowMap");
     ambientFactorLocation = getUniformLocation("ambientFactor");
 
-    for(int i = 0; i < MAX_LIGHTS; ++i){
+    for(int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
         lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
         lightColourLocation[i] =  getUniformLocation("lightColour[" + std::to_string(i) + "]");
         attenuationLocation[i] = getUniformLocation("attenuation[" + std::to_string(i) + "]");
@@ -52,7 +52,7 @@ void TrackShader::bindTextureArray(GLuint textureArrayID) {
 }
 
 void TrackShader::loadLights(std::vector<Light> lights) {
-    for(int i = 0; i < MAX_LIGHTS; ++i){
+    for(int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
         if(i < lights.size()){
             loadVec3(lightPositionLocation[i], lights[i].position);
             loadVec4(lightColourLocation[i], lights[i].colour);

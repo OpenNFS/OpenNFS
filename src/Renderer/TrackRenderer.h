@@ -17,9 +17,13 @@ public:
     // TODO: Refactor this, passing Sun and Moon Lights and deriving matrices internally
     void renderTrack(const Camera &mainCamera, const Light &sunLight, const Light &cameraLight, std::vector<int> activeTrackBlockIDs, const ParamData &userParams, uint64_t engineTicks, GLuint depthTextureID, const glm::mat4 &lightSpaceMatrix, float ambientFactor);
     void renderLights(const Camera &mainCamera, std::vector<int> activeTrackBlockIDs);
+    static std::vector<Light> GetInterestingLights(const TrackBlock &activeTrackBlock);
+    static std::map<int, std::vector<Light>> GetContributingLights(const shared_ptr<ONFSTrack> &activeTrack);
     // Create and compile our GLSL programs from the shaders
     TrackShader trackShader;
     BillboardShader billboardShader;
+    // Map of lights that contribute to each trackblock
+    std::map<int, std::vector<Light>> trackLightMap;
 private:
     shared_ptr<ONFSTrack> track;
     // Map of COL animated object to anim keyframe

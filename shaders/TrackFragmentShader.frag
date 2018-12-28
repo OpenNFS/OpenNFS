@@ -6,7 +6,7 @@ flat in uint debugDataOut;
 
 // Diffuse and Specular
 in vec3 surfaceNormal;
-in vec3 toLightVector[MAX_LIGHTS];
+in vec3 toLightVector[MAX_TRACK_CONTRIB_LIGHTS];
 in vec3 toCameraVector;
 
 // Fog
@@ -22,8 +22,8 @@ uniform bool useClassic;
 uniform sampler2DArray texture_array;
 uniform sampler2D shadowMap;
 uniform float ambientFactor;
-uniform vec4 lightColour[MAX_LIGHTS];
-uniform vec3 attenuation[MAX_LIGHTS];
+uniform vec4 lightColour[MAX_TRACK_CONTRIB_LIGHTS];
+uniform vec3 attenuation[MAX_TRACK_CONTRIB_LIGHTS];
 uniform float shineDamper;
 uniform float reflectivity;
 
@@ -144,7 +144,7 @@ void main(){
         vec3 totalDiffuse = vec3(0.0f);
         vec3 totalSpecular = vec3(0.0f);
 
-        for(int i = 0; i < MAX_LIGHTS; ++i){
+        for(int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
            float distance = length(toLightVector[i]);
            float attenFactor = attenuation[i].x + (attenuation[i].y * distance) + (attenuation[i].z * distance * distance);
            vec3 unitLightVector = normalize(toLightVector[i]);

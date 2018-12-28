@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 #include "../Loaders/trk_loader.h"
 #include "../Shaders/DepthShader.h"
+#include "../Config.h"
 
 class ShadowMapRenderer {
 public:
@@ -19,8 +20,6 @@ public:
     DepthShader depthShader;
 private:
     shared_ptr<ONFSTrack> track;
-    /* Shadow Mapping */
-    const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
     GLuint depthMapFBO = 0;
 };
 

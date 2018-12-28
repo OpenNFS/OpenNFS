@@ -75,15 +75,19 @@ AssetData Renderer::Render() {
         mainCamera.setCameraAnimation(track->camera_animations);
     }
 
+    // Set some light parameters
+    moon.attenuation.x = sun.attenuation.x = 0.710f;
+    moon.attenuation.y = sun.attenuation.y = 0;
+    moon.attenuation.z = sun.attenuation.z = 0;
+
     // Detect position change to trigger Cull code
     glm::vec3 oldWorldPosition(0, 0, 0);
 
     ResetToVroad(0, track, car);
 
+    bool newAssetSelected = false;
     bool entity_targeted = false;
     Entity *targetedEntity;
-
-    bool newAssetSelected = false;
 
     while (!glfwWindowShouldClose(window)) {
         // glfwGetTime is called only once, the first time this function is called
@@ -98,10 +102,6 @@ AssetData Renderer::Render() {
 
         NewFrame(&userParams);
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
-
-        moon.attenuation.x = sun.attenuation.x = 0.710f;
-        moon.attenuation.y = sun.attenuation.y = 0;
-        moon.attenuation.z = sun.attenuation.z = 0;
 
         // Play the original camera animation
         if (!camera_animation_played) {
@@ -174,40 +174,21 @@ AssetData Renderer::Render() {
         // If Sun moving below Horizon, change 'Sun' to 'Moon' and flip some state so we know to drop ambient in TrackShader
         bool nightTime = (sun.position.y <= 0);
         float ambientLightFactor = nightTime ? 0.05f : 0.45f;
-        sun.lookAt = track->track_blocks[closestBlockID].center;
+        sun.lookAt = moon.lookAt = track->track_blocks[closestBlockID].center;
         sun.update();
-        moon.lookAt = track->track_blocks[closestBlockID].center;
         moon.update();
 
         shadowMapRenderer.renderShadowMap(nightTime ? moon.ViewMatrix : sun.ViewMatrix, activeTrackBlockIDs, car);
-
         skyRenderer.renderSky(mainCamera, sun, userParams, totalTime);
-
-        /*SetCulling(true);
-        glFrontFace(GL_CW);*/
-        trackRenderer.renderTrack(mainCamera, nightTime ? moon : sun, cameraLight, activeTrackBlockIDs, userParams,
-                                  ticks,
-                                  shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix,
-                                  ambientLightFactor);
-        /*SetCulling(false);*/
-
+        trackRenderer.renderTrack(mainCamera, nightTime ? moon : sun, cameraLight, activeTrackBlockIDs, userParams, ticks, shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix, ambientLightFactor);
         trackRenderer.renderLights(mainCamera, activeTrackBlockIDs);
 
         // Render the Car
         if (car->tag == NFS_3 || car->tag == NFS_4) SetCulling(true);
-        //glFrontFace(GL_CCW);
-        int nBlocksToContributeToCar = 3;
         // Get lights that will contribute to car body (currentBlock, a few blocks forward, and a few back (NBData would give weird results, as NBData blocks aren't generally adjacent))
         // Should use NFS3/4 Shading data too as a fake light
-        std::vector<Light> carBodyContributingLights;
+        std::vector<Light> carBodyContributingLights = trackRenderer.trackLightMap[closestBlockID];
         carBodyContributingLights.emplace_back(nightTime ? moon : sun);
-        activeTrackBlockIDs = CullTrackBlocks(oldWorldPosition, mainCamera.position, nBlocksToContributeToCar, false);
-        for (auto activeBlk_Idx : activeTrackBlockIDs) {
-            TrackBlock active_track_Block = track->track_blocks[activeBlk_Idx];
-            for (auto &light_entity : active_track_Block.lights) {
-                carBodyContributingLights.emplace_back(boost::get<Light>(light_entity.glMesh));
-            }
-        }
         carRenderer.render(mainCamera, carBodyContributingLights);
         SetCulling(false);
 
@@ -228,13 +209,6 @@ AssetData Renderer::Render() {
         };
 
         DrawUI(&userParams, mainCamera.position);
-
-
-        // Update time between engine ticks
-        /*float sleepTimeFloat = abs(0.01667f - (deltaTime + float(glfwGetTime() - currentTime)));
-        int sleepTime = sleepTimeFloat * 1000;
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));*/
-
         glfwSwapBuffers(window);
 
         if (newAssetSelected) break;
@@ -525,16 +499,9 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3
             }
         } else {
             // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
-            int wrapBlocks = 0;
-            for (int block_Idx = closestBlockID - blockDrawDistance;
-                 block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
-                if (block_Idx < 0) {
-                    int activeBlock =
-                            ((int) track->track_blocks.size() + (closestBlockID - blockDrawDistance)) + wrapBlocks++;
-                    activeTrackBlockIds.emplace_back(activeBlock);
-                } else {
-                    activeTrackBlockIds.emplace_back(block_Idx % track->track_blocks.size());
-                }
+            for (int block_Idx = closestBlockID - blockDrawDistance; block_Idx < closestBlockID + blockDrawDistance; ++block_Idx) {
+                int activeBlock = block_Idx < 0 ? ((int) track->track_blocks.size() + block_Idx) : (block_Idx % (int) track->track_blocks.size());
+                activeTrackBlockIds.emplace_back(activeBlock);
             }
         }
         oldWorldPosition = worldPosition;

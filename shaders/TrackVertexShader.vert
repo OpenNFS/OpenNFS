@@ -13,7 +13,7 @@ out vec4 nfsDataOut;
 flat out uint debugDataOut;
 
 // Diffuse and Specular
-out vec3 toLightVector[MAX_LIGHTS];
+out vec3 toLightVector[MAX_TRACK_CONTRIB_LIGHTS];
 out vec3 toCameraVector;
 out vec3 surfaceNormal;
 // Fog
@@ -24,7 +24,7 @@ out vec4 lightSpace;
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix ,transformationMatrix;
 uniform mat4 lightSpaceMatrix;
-uniform vec3 lightPosition[MAX_LIGHTS];
+uniform vec3 lightPosition[MAX_TRACK_CONTRIB_LIGHTS];
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
@@ -43,7 +43,7 @@ void main(){
     surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
 
     // Diffuse and Specular passout
-    for(int i = 0; i < MAX_LIGHTS; ++i){
+    for(int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
         toLightVector[i] = lightPosition[i] - worldPosition.xyz;
     }
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;

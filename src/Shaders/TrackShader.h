@@ -34,9 +34,9 @@ protected:
     GLint projectionMatrixLocation;
     GLint viewMatrixLocation;
     GLint lightSpaceMatrixLocation;
-    GLint lightPositionLocation[MAX_LIGHTS];
-    GLint lightColourLocation[MAX_LIGHTS];
-    GLint attenuationLocation[MAX_LIGHTS];
+    GLint lightPositionLocation[MAX_TRACK_CONTRIB_LIGHTS];
+    GLint lightColourLocation[MAX_TRACK_CONTRIB_LIGHTS];
+    GLint attenuationLocation[MAX_TRACK_CONTRIB_LIGHTS];
     GLint shineDamperLocation;
     GLint reflectivityLocation;
     GLint useClassicLocation;
