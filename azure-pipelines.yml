@@ -10,6 +10,7 @@ jobs:
 
   steps:
   - script: |
+      lscpu
       wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
       sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.1.92-xenial.list http://packages.lunarg.com/vulkan/1.1.92/lunarg-vulkan-1.1.92-xenial.list
       sudo apt update
@@ -61,6 +62,7 @@ jobs:
 
   steps:
   - script: |
+      WMIC CPU Get DeviceID,NumberOfCores,NumberOfLogicalProcessors
       git submodule init
       git submodule update --remote
     
