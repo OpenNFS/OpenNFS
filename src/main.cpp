@@ -220,8 +220,7 @@ private:
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_SE_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(exists(trackBasePath),
-                       "NFS 2 Special Edition track folder: " << trackBasePath << " is missing.");
+                ASSERT(exists(trackBasePath), "NFS 2 Special Edition track folder: " << trackBasePath << " is missing.");
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {

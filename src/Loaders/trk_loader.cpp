@@ -31,6 +31,8 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             global_objects = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
             break;
         case NFS_3:
+            // TODO: Remove this code that tests FFN Load
+            //NFS3::LoadFFN("G:/NFS3/nfs3_modern_base_eng_font_fuckery/fedata/text/sci20.ffn");
             track_path << NFS_3_TRACK_PATH << track_name;
             trackData = NFS3::LoadTrack(track_path.str());
             nBlocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;

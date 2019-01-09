@@ -39,8 +39,8 @@ set(SOURCE_FILES
         include/imgui/examples/imgui_impl_glfw.h
         include/imgui/examples/imgui_impl_opengl3.cpp
         include/imgui/examples/imgui_impl_opengl3.h
-        include/ImGuiColorTextEdit/TextEditor.cpp
-        include/ImGuiColorTextEdit/TextEditor.h
+        #[[include/ImGuiColorTextEdit/TextEditor.cpp
+        include/ImGuiColorTextEdit/TextEditor.h]]
         resources/asset/icon.rc
         src/main.cpp
         src/Scene/Camera.cpp
@@ -133,7 +133,7 @@ set(SOURCE_FILES
         shaders/ShaderPreamble.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
-if (NOT (APPLE OR WIN32))
+if (NOT APPLE)
     set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h)
     add_definitions(-DVULKAN_BUILD)
 endif ()
@@ -179,7 +179,7 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[Vulkan Configuration]]
-if (NOT (APPLE OR WIN32))
+if (NOT APPLE)
     find_package(Vulkan REQUIRED)
     message("VULKAN FOUND")
     include_directories(${Vulkan_INCLUDE_DIRS})

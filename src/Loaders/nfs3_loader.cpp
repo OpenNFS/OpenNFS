@@ -128,6 +128,38 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     return track;
 }
 
+bool NFS3::LoadFFN(const string &ffn_path){
+    ifstream ffn(ffn_path, ios::in | ios::binary);
+
+    if (!ffn.is_open()) {
+        return false;
+    }
+
+    LOG(INFO) << "Loading FFN File located at " << ffn_path;
+
+    // Get filesize so can check have parsed all bytes
+    FFN::HEADER *header = new FFN::HEADER;
+    ffn.read((char *) header, sizeof(FFN::HEADER));
+
+    FFN::CHAR_TABLE_ENTRY *charTable = new FFN::CHAR_TABLE_ENTRY[header->numChars];
+    ffn.read((char *) charTable, sizeof(FFN::CHAR_TABLE_ENTRY) * header->numChars);
+
+    uint32_t predictedAFontOffset = header->fontMapOffset;
+
+    for (uint8_t char_Idx = 0; char_Idx < header->numChars; ++char_Idx) {
+        FFN::CHAR_TABLE_ENTRY character = charTable[char_Idx];
+        if (character.asciiCode == 65){
+            LOG(INFO) << predictedAFontOffset;
+        }
+        predictedAFontOffset += character.unknown[1];
+        //predictedAFontOffset += (character.width * character.height);
+    }
+
+    streamoff readBytes = ffn.tellg();
+
+    ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
+}
+
 void NFS3::FreeTrack(const std::shared_ptr<TRACK> &track) {
     FreeFRD(track);
     FreeCOL(track);
