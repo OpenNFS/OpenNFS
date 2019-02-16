@@ -483,41 +483,6 @@ void Car::simulate() {
     applySteeringLeft(networkOutputs[0] > 0.5f ? true : false);
     applySteeringRight(networkOutputs[1] > 0.5f ? true : false);
     applyAccelerationForce(false, networkOutputs[2] > 0.5f ? true : false);
-
-    /*if(leftDistance < 1.0f){
-        applySteeringRight(true);
-    } else {
-        applySteeringRight(false);
-    }
-Tu
-    if(rightDistance < 1.0f) {
-        applySteeringLeft(true);
-    } else {
-        applySteeringLeft(false);
-    }
-
-    if(forwardDistance >= 1.0f){
-        applyAccelerationForce(false, true);
-    } else {
-        applyAccelerationForce(true, false);
-
-        if(leftDistance < 1.0f){
-            applySteeringLeft(true);
-        } else {
-            applySteeringLeft(false);
-        }
-
-        if(rightDistance < 1.0f) {
-            applySteeringRight(true);
-        } else {
-            applySteeringRight(false);
-
-        }
-    }
-
-    if(upDistance <= 0.5f || upDistance > 90.0f){
-        resetCar(car_body_model.position);
-    }*/
 }
 
 

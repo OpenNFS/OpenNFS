@@ -17,7 +17,8 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
     car_out_path << CAR_PATH << ToString(NFS_3) << "/" << car_name << "/";
     fce_path << CAR_PATH << ToString(NFS_3) << "/" << car_name << "/car.fce";
 
-    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
+    ASSERT(Utils::ExtractVIV(viv_path.str(), car_out_path.str()),
+           "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
     return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_3, car_name);
 }
@@ -29,7 +30,8 @@ void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_pa
 
 std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
     LOG(INFO) << "Parsing FCE File located at " << fce_path;
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0,
+                                                                  0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     std::vector<CarModel> meshes;
 
@@ -50,25 +52,33 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         std::vector<glm::vec2> uvs;
 
         std::string part_name(fceHeader->partNames[part_Idx]);
-        glm::vec3 center = rotationMatrix * glm::vec3(fceHeader->partCoords[part_Idx].x/10, fceHeader->partCoords[part_Idx].y/10, fceHeader->partCoords[part_Idx].z/10);
+        glm::vec3 center = rotationMatrix *
+                           glm::vec3(fceHeader->partCoords[part_Idx].x / 10, fceHeader->partCoords[part_Idx].y / 10,
+                                     fceHeader->partCoords[part_Idx].z / 10);
 
         auto *partVertices = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partTriangles = new FCE::TRIANGLE[fceHeader->partNumTriangles[part_Idx]];
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->vertTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->vertTblOffset +
+                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (uint32_t vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
-            vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x /10, partVertices[vert_Idx].y/10, partVertices[vert_Idx].z/10));
+            vertices.emplace_back(rotationMatrix *
+                                  glm::vec3(partVertices[vert_Idx].x / 10, partVertices[vert_Idx].y / 10,
+                                            partVertices[vert_Idx].z / 10));
         }
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->normTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->normTblOffset +
+                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
         fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (uint32_t normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
-            normals.emplace_back(rotationMatrix * glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
+            normals.emplace_back(rotationMatrix * glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y,
+                                                            partNormals[normal_Idx].z));
         }
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset +
+                  (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
         for (uint32_t tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
             polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
@@ -82,8 +92,11 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
-        LOG(INFO) << "Loaded Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size() << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: " << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size();
+        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper,
+                                     specularReflectivity, envReflectivity));
+        LOG(INFO) << "Loaded Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size()
+                  << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: "
+                  << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size();
 
         delete[] partNormals;
         delete[] partVertices;
@@ -109,16 +122,21 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     if (pos != string::npos)
         track->name.replace(pos, strip.size(), "");
 
-    frd_path << track_base_path << "/"  << track->name << ".frd";
-    col_path << track_base_path << "/"  << track->name << ".col";
-    can_path << track_base_path << "/"  << track->name << "00a.can";
+    frd_path << track_base_path << "/" << track->name << ".frd";
+    col_path << track_base_path << "/" << track->name << ".col";
+    can_path << track_base_path << "/" << track->name << "00a.can";
     hrz_path << track_base_path << "/3" << track->name << ".hrz";
 
-    ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
-    ASSERT(LoadHRZ(hrz_path.str(), track), "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
+    ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_3),
+           "Could not extract " << track->name << " QFS texture pack.");
+    ASSERT(LoadFRD(frd_path.str(), track->name, track),
+           "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
+            << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(LoadCAN(can_path.str(), track->cameraAnimation),
+           "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
+    ASSERT(LoadHRZ(hrz_path.str(), track),
+           "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
 
     track->textureArrayID = MakeTextureArray(track->textures, false);
     track->track_blocks = ParseTRKModels(track);
@@ -128,7 +146,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     return track;
 }
 
-bool NFS3::LoadFFN(const string &ffn_path){
+bool NFS3::LoadFFN(const string &ffn_path) {
     ifstream ffn(ffn_path, ios::in | ios::binary);
 
     if (!ffn.is_open()) {
@@ -141,6 +159,12 @@ bool NFS3::LoadFFN(const string &ffn_path){
     FFN::HEADER *header = new FFN::HEADER;
     ffn.read((char *) header, sizeof(FFN::HEADER));
 
+    if (memcmp(header->fntfChk, "FNTF", sizeof(header->fntfChk)) != 0) {
+        LOG(WARNING) << "Invalid FFN Header.";
+        delete header;
+        return false;
+    }
+
     FFN::CHAR_TABLE_ENTRY *charTable = new FFN::CHAR_TABLE_ENTRY[header->numChars];
     ffn.read((char *) charTable, sizeof(FFN::CHAR_TABLE_ENTRY) * header->numChars);
 
@@ -148,16 +172,42 @@ bool NFS3::LoadFFN(const string &ffn_path){
 
     for (uint8_t char_Idx = 0; char_Idx < header->numChars; ++char_Idx) {
         FFN::CHAR_TABLE_ENTRY character = charTable[char_Idx];
-        if (character.asciiCode == 65){
-            LOG(INFO) << predictedAFontOffset;
-        }
-        predictedAFontOffset += character.unknown[1];
-        //predictedAFontOffset += (character.width * character.height);
+    }
+    header->numChars = 400;
+    header->version = 164;
+
+    //streamoff readBytes = ffn.tellg();
+    //ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
+
+    ffn.seekg(header->fontMapOffset, ios_base::beg);
+    uint32_t *pixels = new uint32_t[header->version * header->numChars];
+    uint16_t *paletteColours = new uint16_t[0xFF];
+    uint8_t *indexes = new uint8_t[header->version * header->numChars]; // Only used if indexed
+
+    for(int pal_Idx = 0; pal_Idx < 255; ++pal_Idx){
+        paletteColours[pal_Idx] = 65535;
     }
 
-    streamoff readBytes = ffn.tellg();
+    for (int y = 0; y < header->numChars; y++) {
+        for (int x = 0; x < header->version; x++) {
+            ffn.read((char *) &indexes[(x + y * header->version)], sizeof(uint8_t));
+        }
+    }
 
-    ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
+    // Rewrite the pixels using the palette data
+    for (int y = 0; y < header->numChars; y++) {
+        for (int x = 0; x < header->version; x++) {
+            uint32_t pixel = Utils::abgr1555ToARGB8888(paletteColours[indexes[(x + y * header->version)]]);
+            pixels[(x + y * header->version)] = pixel;
+        }
+    }
+
+    Utils::SaveImage("C:/Users/Amrik/Desktop/test.bmp", pixels, header->version, header->numChars);
+    delete[]pixels;
+
+
+    delete header;
+    return true;
 }
 
 void NFS3::FreeTrack(const std::shared_ptr<TRACK> &track) {
@@ -428,17 +478,17 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
 
 bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track) {
     ifstream hrz(hrz_path, ios::in | ios::binary);
-    if(!hrz.is_open()) return false;
+    if (!hrz.is_open()) return false;
     LOG(INFO) << "Loading HRZ File located at " << hrz_path;
 
     std::string str, skyTopColour, skyBottomColour;
 
     while (std::getline(hrz, str))
     {
-        if(str.find("/* r,g,b value at top of Gourad shaded SKY area */") != std::string::npos){
+        if (str.find("/* r,g,b value at top of Gourad shaded SKY area */") != std::string::npos) {
             std::getline(hrz, skyTopColour);
         }
-        if(str.find("/* r,g,b values for base of Gourad shaded SKY area */") != std::string::npos){
+        if (str.find("/* r,g,b values for base of Gourad shaded SKY area */") != std::string::npos) {
             std::getline(hrz, skyBottomColour);
         }
     }
@@ -455,14 +505,17 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
     LOG(INFO) << "Parsing TRK file into ONFS GL structures";
 
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0,
+                                                                  0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (uint32_t i = 0; i < track->nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
         TRKBLOCK trk_block = track->trk[i];
         POLYGONBLOCK polygon_block = track->poly[i];
-        TrackBlock current_track_block(i, rotationMatrix * glm::vec3(trk_block.ptCentre.x/ 10, trk_block.ptCentre.y/ 10, trk_block.ptCentre.z/ 10));
+        TrackBlock current_track_block(i, rotationMatrix *
+                                          glm::vec3(trk_block.ptCentre.x / 10, trk_block.ptCentre.y / 10,
+                                                    trk_block.ptCentre.z / 10));
         glm::vec3 trk_block_center = rotationMatrix * glm::vec3(0, 0, 0);
 
         // Light sources
@@ -470,23 +523,28 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
             glm::vec3 light_center = rotationMatrix * glm::vec3((trk_block.lightsrc[j].refpoint.x / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.z / 65536.0) / 10);
-            current_track_block.lights.emplace_back(Entity(i, j, NFS_3, LIGHT, MakeLight(light_center, trk_block.lightsrc[j].type)));
+            current_track_block.lights.emplace_back(
+                    Entity(i, j, NFS_3, LIGHT, MakeLight(light_center, trk_block.lightsrc[j].type)));
         }
 
         for (uint32_t s = 0; s < trk_block.nSoundsrc; s++) {
             glm::vec3 sound_center = rotationMatrix * glm::vec3((trk_block.soundsrc[s].refpoint.x / 65536.0) / 10,
                                                                 (trk_block.soundsrc[s].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.soundsrc[s].refpoint.z / 65536.0) / 10);
-            current_track_block.sounds.emplace_back(Entity(i, s, NFS_3, SOUND, Sound(sound_center, trk_block.soundsrc[s].type)));
+            current_track_block.sounds.emplace_back(
+                    Entity(i, s, NFS_3, SOUND, Sound(sound_center, trk_block.soundsrc[s].type)));
         }
 
         // Get Object vertices
         std::vector<glm::vec3> obj_verts;
         std::vector<glm::vec4> obj_shading_verts;
         for (uint32_t v = 0; v < trk_block.nObjectVert; v++) {
-            obj_verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[v].x / 10, trk_block.vert[v].y / 10, trk_block.vert[v].z / 10));
+            obj_verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[v].x / 10, trk_block.vert[v].y / 10,
+                                                              trk_block.vert[v].z / 10));
             uint32_t shading_data = trk_block.unknVertices[v];
-            obj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
+            obj_shading_verts.emplace_back(
+                    glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
+                              (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
         // 4 OBJ Poly blocks
         for (uint32_t j = 0; j < 4; j++) {
@@ -500,14 +558,18 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     std::vector<glm::vec2> uvs;
                     std::vector<unsigned int> texture_indices;
                     std::vector<glm::vec3> norms;
-					uint32_t accumulatedObjectFlags = 0u;
+                    uint32_t accumulatedObjectFlags = 0u;
                     // Get Polygons in object
                     LPPOLYGONDATA object_polys = obj_polygon_block.poly[k];
                     for (uint32_t p = 0; p < obj_polygon_block.numpoly[k]; p++) {
                         TEXTUREBLOCK texture_for_block = track->texture[object_polys[p].texture];
                         Texture gl_texture = track->textures[texture_for_block.texture];
 
-                        glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(trk_block.vert[object_polys[p].vertex[0]]),  pointToVec(trk_block.vert[object_polys[p].vertex[1]]), pointToVec(trk_block.vert[object_polys[p].vertex[2]]), pointToVec(trk_block.vert[object_polys[p].vertex[3]]));
+                        glm::vec3 normal = rotationMatrix *
+                                           calculateQuadNormal(pointToVec(trk_block.vert[object_polys[p].vertex[0]]),
+                                                               pointToVec(trk_block.vert[object_polys[p].vertex[1]]),
+                                                               pointToVec(trk_block.vert[object_polys[p].vertex[2]]),
+                                                               pointToVec(trk_block.vert[object_polys[p].vertex[3]]));
                         norms.emplace_back(normal);
                         norms.emplace_back(normal);
                         norms.emplace_back(normal);
@@ -522,7 +584,9 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
                         vertex_indices.emplace_back(object_polys[p].vertex[3]);
 
-                        std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_3, OBJ_POLY, object_polys[p].hs_texflags, gl_texture, texture_for_block);
+                        std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_3, OBJ_POLY,
+                                                                              object_polys[p].hs_texflags, gl_texture,
+                                                                              texture_for_block);
                         uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         texture_indices.emplace_back(texture_for_block.texture);
@@ -534,7 +598,10 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
 
                         accumulatedObjectFlags |= object_polys[p].flags;
                     }
-                    current_track_block.objects.emplace_back(Entity(i,  (j + 1) * (k + 1), NFS_3, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center), accumulatedObjectFlags));
+                    current_track_block.objects.emplace_back(Entity(i, (j + 1) * (k + 1), NFS_3, OBJ_POLY,
+                                                                    Track(obj_verts, norms, uvs, texture_indices,
+                                                                          vertex_indices, obj_shading_verts,
+                                                                          trk_block_center), accumulatedObjectFlags));
                 }
             }
         }
@@ -553,7 +620,9 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     verts.emplace_back(rotationMatrix * glm::vec3(x->vert->x / 10, x->vert->y / 10, x->vert->z / 10));
                     uint32_t shading_data = x->unknVertices[k];
                     //RGBA
-                    xobj_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
+                    xobj_shading_verts.emplace_back(
+                            glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
+                                      (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
                 }
                 std::vector<unsigned int> vertex_indices;
                 std::vector<glm::vec2> uvs;
@@ -564,7 +633,10 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
                     Texture gl_texture = track->textures[texture_for_block.texture];
 
-                    glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(verts[x->polyData->vertex[0]]),  pointToVec(verts[x->polyData->vertex[1]]), pointToVec(verts[x->polyData->vertex[2]]), pointToVec(verts[x->polyData->vertex[3]]));
+                    glm::vec3 normal = rotationMatrix * calculateQuadNormal(pointToVec(verts[x->polyData->vertex[0]]),
+                                                                            pointToVec(verts[x->polyData->vertex[1]]),
+                                                                            pointToVec(verts[x->polyData->vertex[2]]),
+                                                                            pointToVec(verts[x->polyData->vertex[3]]));
                     norms.emplace_back(normal);
                     norms.emplace_back(normal);
                     norms.emplace_back(normal);
@@ -579,7 +651,8 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
                     vertex_indices.emplace_back(x->polyData->vertex[3]);
 
-                    std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_3, XOBJ, x->polyData->hs_texflags, gl_texture, texture_for_block);
+                    std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_3, XOBJ, x->polyData->hs_texflags,
+                                                                          gl_texture, texture_for_block);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     texture_indices.emplace_back(texture_for_block.texture);
@@ -591,8 +664,11 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
 
                     accumulatedObjectFlags |= x->polyData->flags;
                 }
-                glm::vec3 xobj_center = rotationMatrix * glm::vec3(x->ptRef.x / 10, x->ptRef.y / 10, x->ptRef.z / 10 );
-                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, xobj_center), accumulatedObjectFlags));
+                glm::vec3 xobj_center = rotationMatrix * glm::vec3(x->ptRef.x / 10, x->ptRef.y / 10, x->ptRef.z / 10);
+                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ,
+                                                                Track(verts, norms, uvs, texture_indices,
+                                                                      vertex_indices, xobj_shading_verts, xobj_center),
+                                                                accumulatedObjectFlags));
             }
         }
 
@@ -605,10 +681,13 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
         std::vector<glm::vec3> norms;
         uint32_t accumulatedObjectFlags = 0u;
         for (int32_t j = 0; j < trk_block.nVertices; j++) {
-            verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
+            verts.emplace_back(rotationMatrix *
+                               glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
             // Break uint32_t of RGB into 4 normalised floats and store into vec4
             uint32_t shading_data = trk_block.unknVertices[j];
-            trk_block_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
+            trk_block_shading_verts.emplace_back(
+                    glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
+                              (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
         // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
         for (uint32_t chnk = 4; chnk <= 6; chnk++) {
@@ -619,7 +698,11 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
                 Texture gl_texture = track->textures[texture_for_block.texture];
 
-                glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(trk_block.vert[poly_chunk[k].vertex[0]]),  pointToVec(trk_block.vert[poly_chunk[k].vertex[1]]), pointToVec(trk_block.vert[poly_chunk[k].vertex[2]]), pointToVec(trk_block.vert[poly_chunk[k].vertex[3]]));
+                glm::vec3 normal = rotationMatrix *
+                                   calculateQuadNormal(pointToVec(trk_block.vert[poly_chunk[k].vertex[0]]),
+                                                       pointToVec(trk_block.vert[poly_chunk[k].vertex[1]]),
+                                                       pointToVec(trk_block.vert[poly_chunk[k].vertex[2]]),
+                                                       pointToVec(trk_block.vert[poly_chunk[k].vertex[3]]));
                 norms.emplace_back(normal);
                 norms.emplace_back(normal);
                 norms.emplace_back(normal);
@@ -634,7 +717,9 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[3]);
 
-                std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_3,  chnk == 6 ? LANE : ROAD, poly_chunk[k].hs_texflags, gl_texture, texture_for_block);
+                std::vector<glm::vec2> transformedUVs = nfsUvGenerate(NFS_3, chnk == 6 ? LANE : ROAD,
+                                                                      poly_chunk[k].hs_texflags, gl_texture,
+                                                                      texture_for_block);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 texture_indices.emplace_back(texture_for_block.texture);
@@ -647,10 +732,16 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 accumulatedObjectFlags |= poly_chunk[k].flags;
             }
 
-            if(chnk == 6){
-                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), accumulatedObjectFlags));
+            if (chnk == 6) {
+                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE,
+                                                              Track(verts, norms, uvs, texture_indices, vertex_indices,
+                                                                    trk_block_shading_verts, trk_block_center),
+                                                              accumulatedObjectFlags));
             } else {
-                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), accumulatedObjectFlags));
+                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD,
+                                                              Track(verts, norms, uvs, texture_indices, vertex_indices,
+                                                                    trk_block_shading_verts, trk_block_center),
+                                                              accumulatedObjectFlags));
             }
         }
         track_blocks.emplace_back(current_track_block);
@@ -662,7 +753,8 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
     LOG(INFO) << "Parsing COL file into ONFS GL structures";
 
     std::vector<Entity> col_entities;
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0,
+                                                                  0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     COLOBJECT *o = track->col.object;
     /* COL DATA - TODO: Come back for VROAD AI/Collision data */
@@ -675,7 +767,8 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
         std::vector<glm::vec4> shading_data;
         std::vector<glm::vec3> norms;
         for (uint32_t j = 0; j < s.nVert; j++, s.vertex++) {
-            verts.emplace_back(rotationMatrix * glm::vec3(s.vertex->pt.x / 10, s.vertex->pt.y / 10, s.vertex->pt.z / 10));
+            verts.emplace_back(
+                    rotationMatrix * glm::vec3(s.vertex->pt.x / 10, s.vertex->pt.y / 10, s.vertex->pt.z / 10));
             shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
         }
         for (uint32_t k = 0; k < s.nPoly; k++, s.polygon++) {
@@ -696,7 +789,10 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
             indices.emplace_back(s.polygon->v[2]);
             indices.emplace_back(s.polygon->v[3]);
 
-            glm::vec3 normal = rotationMatrix * calculateQuadNormal( pointToVec(verts[s.polygon->v[0]]),  pointToVec(verts[s.polygon->v[1]]), pointToVec(verts[s.polygon->v[2]]), pointToVec(verts[s.polygon->v[3]]));
+            glm::vec3 normal = rotationMatrix * calculateQuadNormal(pointToVec(verts[s.polygon->v[0]]),
+                                                                    pointToVec(verts[s.polygon->v[1]]),
+                                                                    pointToVec(verts[s.polygon->v[2]]),
+                                                                    pointToVec(verts[s.polygon->v[3]]));
             norms.emplace_back(normal);
             norms.emplace_back(normal);
             norms.emplace_back(normal);
@@ -704,12 +800,18 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
             norms.emplace_back(normal);
             norms.emplace_back(normal);
 
-            uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-            uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u, (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
-            uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-            uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u, (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
-            uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u, (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
-            uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u, (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u,
+                             (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[2] * gl_texture.max_u,
+                             (1.0f - texture_for_block.corners[3]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u,
+                             (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[0] * gl_texture.max_u,
+                             (1.0f - texture_for_block.corners[1]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[4] * gl_texture.max_u,
+                             (1.0f - texture_for_block.corners[5]) * gl_texture.max_v);
+            uvs.emplace_back(texture_for_block.corners[6] * gl_texture.max_u,
+                             (1.0f - texture_for_block.corners[7]) * gl_texture.max_v);
             texture_indices.emplace_back(texture_for_block.texture);
             texture_indices.emplace_back(texture_for_block.texture);
             texture_indices.emplace_back(texture_for_block.texture);
@@ -717,8 +819,11 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
             texture_indices.emplace_back(texture_for_block.texture);
             texture_indices.emplace_back(texture_for_block.texture);
         }
-        glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10, static_cast<float>(o->ptRef.y / 65536.0) / 10, static_cast<float>(o->ptRef.z / 65536.0) / 10);
-        col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL, Track(verts, norms, uvs, texture_indices, indices, shading_data, position)));
+        glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(o->ptRef.x / 65536.0) / 10,
+                                                        static_cast<float>(o->ptRef.y / 65536.0) / 10,
+                                                        static_cast<float>(o->ptRef.z / 65536.0) / 10);
+        col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL,
+                                         Track(verts, norms, uvs, texture_indices, indices, shading_data, position)));
     }
     return col_entities;
 }
@@ -731,8 +836,10 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
         filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
         filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
+        filename << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4)
+                 << track_texture.texture << ".BMP";
+        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4)
+                       << track_texture.texture << "-a.BMP";
     }
 
     GLubyte *data;
@@ -742,11 +849,14 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     if (!Utils::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height)) {
         LOG(WARNING) << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!";
         // If the texture is missing, load a "MISSING" texture of identical size.
-        ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height), "Even the 'missing' texture is missing!");
-        return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+        ASSERT(Utils::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data,
+                                       &width, &height), "Even the 'missing' texture is missing!");
+        return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(width),
+                       static_cast<unsigned int>(height));
     }
 
-    return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width), static_cast<unsigned int>(track_texture.height));
+    return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
+                   static_cast<unsigned int>(track_texture.height));
 }
 
 void NFS3::FreeFRD(const std::shared_ptr<TRACK> &track) {

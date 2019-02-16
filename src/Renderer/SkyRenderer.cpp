@@ -124,7 +124,7 @@ void SkyRenderer::renderSky(const Camera &mainCamera, const Light &sun, const Pa
     skydomeShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, skydome.ModelMatrix);
     skydomeShader.loadSunPosition(sun);
     skydomeShader.loadTime(elapsedTime);
-    skydomeShader.loadWeatherMixFactor(0.5f);
+    skydomeShader.loadWeatherMixFactor(1.0f);
     // Bind the sphere model
     skydome.render();
     skydomeShader.unbind();

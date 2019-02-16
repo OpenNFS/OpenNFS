@@ -28,3 +28,9 @@
 [submodule "include/ImGuiColorTextEdit"]
 	path = include/ImGuiColorTextEdit
 	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+[submodule "lib/libzmq"]
+	path = lib/libzmq
+	url = https://github.com/zeromq/libzmq.git
+[submodule "lib/tinyai"]
+	path = lib/tinyai
+	url = https://github.com/hav4ik/tinyai.git

@@ -140,6 +140,8 @@ endif ()
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
+#[[TinyAI]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/tinyai/src")
 #[[IMGUI]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 #[[TINYOBJLOADER]]
@@ -156,6 +158,10 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/lib/g3log")
 include_directories(${DEP_ROOT_DIR}/${G3LOG_NAME}/src)
 target_include_directories(OpenNFS INTERFACE g3logger)
 target_link_libraries(OpenNFS g3logger)
+#[[ZeroMQ]]
+add_subdirectory(lib/libzmq/)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/libzmq/include")
+target_link_libraries(OpenNFS libzmq-static)
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)

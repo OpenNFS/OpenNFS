@@ -86,7 +86,7 @@ AssetData Renderer::Render() {
     ResetToVroad(0, track, car);
 
     bool newAssetSelected = false;
-    bool entity_targeted = false;
+    bool entityTargeted = false;
     Entity *targetedEntity;
 
     while (!glfwWindowShouldClose(window)) {
@@ -193,10 +193,10 @@ AssetData Renderer::Render() {
         SetCulling(false);
 
         if (ImGui::GetIO().MouseReleased[0] & userParams.window_active) {
-            targetedEntity = CheckForPicking(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix, &entity_targeted);
+            targetedEntity = CheckForPicking(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix, &entityTargeted);
         }
 
-        if (entity_targeted) {
+        if (entityTargeted) {
             DrawMetadata(targetedEntity);
         }
 
@@ -250,7 +250,7 @@ Entity *Renderer::CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatr
 void Renderer::InitialiseIMGUI() {
     /*------- ImGui -------*/
     ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(window, false);
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
     std::string imgui_gl_version = "#version " + ONFS_GL_VERSION;
     ImGui_ImplOpenGL3_Init(imgui_gl_version.c_str());
     ImGui::StyleColorsDark();
@@ -552,6 +552,10 @@ Renderer::~Renderer() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+    glfwSetMouseButtonCallback(window, nullptr);
+    glfwSetScrollCallback(window, nullptr);
+    glfwSetKeyCallback(window, nullptr);
+    glfwSetCharCallback(window, nullptr);
 }
 
 void Renderer::NewFrame(ParamData *userParams) {
