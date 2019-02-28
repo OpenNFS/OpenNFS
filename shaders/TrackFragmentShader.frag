@@ -160,10 +160,10 @@ void main(){
            totalDiffuse += (brightness * lightColour[i].xyz)/attenFactor;
            totalSpecular += (dampedFactor * reflectivity * lightColour[i].xyz)/attenFactor;
         }
-        totalDiffuse = max(totalDiffuse, 0.2); // Min brightness
+        totalDiffuse = max(totalDiffuse, ambientFactor); // Min brightness
 
         float shadow = ShadowCalculation(lightSpace);
-        vec3 ambient = ambientFactor * nfsColor.rgb;
+        vec3 ambient =  0.4f * nfsColor.rgb;
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
 

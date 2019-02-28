@@ -23,6 +23,7 @@ void Config::InitFromCommandLine(int argc, char **argv) {
                 // Option name/short name, parameter to option, description
                 ("help,h", "Print OpenNFS command-line parameters")
                 ("vulkan", bool_switch(&vulkanRender), "Use the Vulkan renderer instead of GL default")
+                ("headless", bool_switch(&headless), "Launch ONFS without a window")
                 ("train", bool_switch(&trainingMode), "Launch ONFS in AI training mode")
                 ("popsize", value(&populationSize), "Number of AI agents to place in a GA generation (training mode)")
                 ("ngens", value(&nGenerations), "Number of generations to allow AI to develop for (training mode)")

@@ -114,12 +114,12 @@ float Camera::calculateHorizontalDistance() {
     return distanceFromCar * cos(pitch * (SIMD_PI / 180));
 }
 
-void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io){
+void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active){
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key
     window_active = (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
-    io.MouseDrawCursor = true;
+    ImGui::GetIO().MouseDrawCursor = true;
 
     // Blessed be ThinMatrix
     calculateZoom();
@@ -137,16 +137,16 @@ void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active, I
     ViewMatrix = glm::translate(ViewMatrix, negativeCameraPos);
 }
 
-void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io, float deltaTime) {
+void Camera::computeMatricesFromInputs(bool &window_active, float deltaTime) {
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key
     window_active = (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
-    io.MouseDrawCursor = true;
+    ImGui::GetIO().MouseDrawCursor = true;
 
     // Get mouse position and compute new orientation with it
-    horizontalAngle += mouseSpeed * (Config::get().resX / 2 - io.MousePos.x);
-    verticalAngle += mouseSpeed * (Config::get().resY / 2 - io.MousePos.y);
+    horizontalAngle += mouseSpeed * (Config::get().resX / 2 - ImGui::GetIO().MousePos.x);
+    verticalAngle += mouseSpeed * (Config::get().resY / 2 - ImGui::GetIO().MousePos.y);
 
     // Reset mouse position for next frame
     glfwSetCursorPos(window, Config::get().resX / 2, Config::get().resY / 2);
@@ -202,7 +202,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, ImGuiIO &io, float d
     );
 }
 
-Camera::Camera() {}
+Camera::Camera() = default;
 
 void Camera::setCameraAnimation(std::vector<SHARED::CANPT> canPoints) {
     cameraAnimPoints = canPoints;

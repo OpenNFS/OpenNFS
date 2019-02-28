@@ -11,16 +11,11 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     multitexturedCarModel = true;
 }
 
-Car::Car(uint16_t populationID, std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet) : Car(car_meshes, nfs_version, car_name) {
-    this->populationID = populationID;
-    this->carNet = carNet;
-}
-
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
     tag = nfs_version;
     name = car_name;
     if (boost::filesystem::exists(BEST_NETWORK_PATH)) {
-        carNet.net.loadNetworkParams(BEST_NETWORK_PATH.c_str());
+        //carNet.net.loadNetworkParams(BEST_NETWORK_PATH.c_str());
     } else {
         LOG(WARNING) << "AI Neural network couldn't be loaded from " << BEST_NETWORK_PATH << ", randomising weights";
     }
@@ -473,16 +468,3 @@ float Car::getRotY() {
     glm::quat orientation = car_body_model.orientation;
     return glm::degrees(atan2(2*orientation.y*orientation.w - 2*orientation.x*orientation.z, 1 - 2*orientation.y*orientation.y - 2*orientation.z*orientation.z));
 }
-
-void Car::simulate() {
-    std::vector<double> raycastInputs;
-    raycastInputs = {leftDistance, rightDistance, forwardDistance};
-
-    std::vector<double> networkOutputs = carNet.Infer(raycastInputs);
-
-    applySteeringLeft(networkOutputs[0] > 0.5f ? true : false);
-    applySteeringRight(networkOutputs[1] > 0.5f ? true : false);
-    applyAccelerationForce(false, networkOutputs[2] > 0.5f ? true : false);
-}
-
-

@@ -14,7 +14,7 @@ RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> 
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_list, shared_ptr<ONFSTrack> &track_to_render) {
+void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, shared_ptr<ONFSTrack> &track_to_render) {
     raceNetShader.shaders.UpdatePrograms(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -43,14 +43,14 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
         }
 
         // Draw Cars
-        for (auto &car : car_list) {
-            std::swap(car->car_body_model.position.y, car->car_body_model.position.z);
-            std::swap(car->car_body_model.orientation.y, car->car_body_model.orientation.z);
-            car->car_body_model.update();
+        for (auto &car_agent : car_list) {
+            std::swap(car_agent.car->car_body_model.position.y, car_agent.car->car_body_model.position.z);
+            std::swap(car_agent.car->car_body_model.orientation.y, car_agent.car->car_body_model.orientation.z);
+            car_agent.car->car_body_model.update();
 
-            raceNetShader.loadColor(car->colour);
-            raceNetShader.loadTransformationMatrix(car->car_body_model.ModelMatrix);
-            car->car_body_model.render();
+            raceNetShader.loadColor(car_agent.car->colour);
+            raceNetShader.loadTransformationMatrix(car_agent.car->car_body_model.ModelMatrix);
+            car_agent.car->car_body_model.render();
         }
 
         raceNetShader.unbind();
@@ -58,8 +58,8 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<shared_ptr<Car>> &car_li
 
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
-    for (auto &car : car_list) {
-        ImGui::Text("Car %d %f %f %f", car->populationID, car->car_body_model.position.x, car->car_body_model.position.y, car->car_body_model.position.z);
+    for (auto &car_agent : car_list) {
+        ImGui::Text("Car %d %f %f %f", car_agent.populationID, car_agent.car->car_body_model.position.x, car_agent.car->car_body_model.position.y, car_agent.car->car_body_model.position.z);
     }
 
     // Draw Logger UI

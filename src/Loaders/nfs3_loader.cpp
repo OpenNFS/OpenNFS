@@ -205,8 +205,9 @@ bool NFS3::LoadFFN(const string &ffn_path) {
     Utils::SaveImage("C:/Users/Amrik/Desktop/test.bmp", pixels, header->version, header->numChars);
     delete[]pixels;
 
-
     delete header;
+
+    //ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
     return true;
 }
 

@@ -7,8 +7,8 @@
 TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks,
                                shared_ptr<ONFSTrack> &training_track, shared_ptr<Car> &training_car,
                                std::shared_ptr<Logger> &logger, GLFWwindow *gl_window) : window(gl_window),
-                                                                                        raceNetRenderer(gl_window,
-                                                                                                        logger) {
+                                                                                         raceNetRenderer(gl_window,
+                                                                                                         logger) {
     LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations: "
               << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " ("
               << ToString(training_track->tag) << ")";
@@ -17,137 +17,134 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
     this->training_car = training_car;
     physicsEngine.registerTrack(this->training_track);
 
-    InitialiseAgents(populationSize);
-    std::vector<std::vector<int>> trainedAgentFitness = TrainAgents(nGenerations, nTicks);
+    TrainAgents(nGenerations, nTicks);
 
     LOG(INFO) << "Saving best agent network to " << BEST_NETWORK_PATH;
-    car_agents[trainedAgentFitness[0][0]]->carNet.net.saveNetworkParams(BEST_NETWORK_PATH.c_str());
+    //car_agents[trainedAgentFitness[0][0]]->carNet.net.saveNetworkParams(BEST_NETWORK_PATH.c_str());
 
     LOG(INFO) << "Done";
 }
 
-void TrainingGround::Mutate(RaceNet &toMutate) {
-    for (uint8_t mut_Idx = 0; mut_Idx < 5; ++mut_Idx) {
-        unsigned long layerToMutate = rand() % toMutate.net.W.size();
+void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
+    // 5 input, 3 output, 1 bias, can be recurrent
+    pool ga_pool(3, 3, 1, true);
+    ga_pool.import_fromfile("generation.dat");
+    bool have_a_winner = false;
+    uint32_t gen_Idx = 0;
+    unsigned int global_maxfitness = 0;
 
-        auto &m = toMutate.net.W[layerToMutate];
+    // iterator
+    unsigned int specie_counter = 0;
+    auto specie_it = ga_pool.species.begin();
 
-        int h = m.getHeight();
-        int w = m.getWidth();
-
-        int xNeuronToMutate = rand() % h;
-        int yNeuronToMutate = rand() % w;
-
-        m.put(xNeuronToMutate, yNeuronToMutate, m.get(xNeuronToMutate, yNeuronToMutate) * Utils::RandomFloat(0.5, 1.5));
-    }
-}
-
-// Move this to agent class?
-float TrainingGround::EvaluateFitness(shared_ptr<Car> &car_agent) {
-    uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(training_track->trackData)->col.vroadHead.nrec;
-
-    int closestVroadID = 0;
-    float lowestDistanceSqr = FLT_MAX;
-    for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
-        INTPT refPt = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(training_track->trackData)->col.vroad[vroad_Idx].refPt;
-        glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
-                               glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f),
-                                         (refPt.z / 65536.0f) / 10.f);
-
-        float distanceSqr = glm::length2(glm::distance(car_agent->car_body_model.position, vroadPoint));
-        if (distanceSqr < lowestDistanceSqr) {
-            closestVroadID = vroad_Idx;
-            lowestDistanceSqr = distanceSqr;
+    // init initial
+    if (specie_it != ga_pool.species.end()) {
+        for (size_t i = 0; i < (*specie_it).genomes.size(); i++) {
+            // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
+            CarAgent car_agent(i, this->training_car, this->training_track);
+            car_agent.raceNet.from_genome((*specie_it).genomes[i]);
+            physicsEngine.registerVehicle(car_agent.car);
+            Renderer::ResetToVroad(1, training_track, car_agent.car);
+            car_agents.emplace_back(car_agent);
         }
     }
-
-    // Return a number corresponding to the distance driven
-    return (float) closestVroadID;
-}
-
-void TrainingGround::InitialiseAgents(uint16_t populationSize) {
-    // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
-    for (uint16_t pop_Idx = 0; pop_Idx < populationSize; ++pop_Idx) {
-        shared_ptr<Car> car_agent = std::make_shared<Car>(pop_Idx, this->training_car->all_models, NFS_3, "diab", RaceNet());
-        car_agent->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
-        physicsEngine.registerVehicle(car_agent);
-        Renderer::ResetToVroad(1, training_track, car_agent);
-        car_agents.emplace_back(car_agent);
-    }
-
     LOG(INFO) << "Agents initialised";
-}
 
-void
-TrainingGround::SelectAgents(std::vector<shared_ptr<Car>> &car_agents, std::vector<std::vector<int>> agent_fitnesses) {
-    // Clone the best network into the worst 50%
-    for (uint32_t cull_Idx = agent_fitnesses.size() / 2; cull_Idx < agent_fitnesses.size(); ++cull_Idx) {
+    // Start simulating GA generations
+    //for (uint16_t gen_Idx = 0; gen_Idx < nGenerations; ++gen_Idx) {
+
+    while(!glfwWindowShouldClose(window) && (!have_a_winner)) {
+        LOG(INFO) << "Beginning Generation " << gen_Idx++;
+
+        bool all_dead = true;
+
         for (auto &car_agent : car_agents) {
-            if (car_agent->populationID == agent_fitnesses[cull_Idx][0]) {
-                car_agent->carNet = car_agents[agent_fitnesses[0][0]]->carNet;
+            if (!car_agent.dead) {
+                all_dead = false;
             }
         }
-    }
-}
 
-void TrainingGround::Crossover(RaceNet &a, RaceNet &b) {
-    // TODO: Actually implement this
-}
+        if (all_dead) {
+            if (specie_it != ga_pool.species.end()) {
+                int best_id = -1;
+                for (size_t i = 0; i < (*specie_it).genomes.size(); i++) {
+                    (*specie_it).genomes[i].fitness = car_agents[i].fitness;
+                    if ((*specie_it).genomes[i].fitness > global_maxfitness) {
+                        global_maxfitness = (*specie_it).genomes[i].fitness;
+                        best_id = i;
+                    }
+                }
+                if (best_id != -1) {
+                    car_agents[best_id].raceNet.export_tofile("best_network");
+                }
+            }
 
-std::vector<std::vector<int>> TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
-    std::vector<std::vector<int>> agentFitnesses;
-    // TODO: Remove this and
-    std::vector<int> dummyAgentData = {0, 0};
-    agentFitnesses.emplace_back(dummyAgentData);
+            specie_it++;
+            specie_counter++;
+            car_agents.clear();
 
-    for (uint16_t gen_Idx = 0; gen_Idx < nGenerations; ++gen_Idx) {
-        LOG(INFO) << "Beginning Generation " << gen_Idx;
+            if (specie_it == ga_pool.species.end()) {
+                ga_pool.new_generation();
+                std::string fname = "result/gen";
+                fname += std::to_string(ga_pool.generation());
+                ga_pool.export_tofile(fname);
+                ga_pool.export_tofile("generation.dat");
+                std::cerr << "Starting new generation. Number = " << ga_pool.generation() << std::endl;
+                specie_it = ga_pool.species.begin();
+                specie_counter = 0;
+            }
 
-        // Simulate the population
+            if (specie_it != ga_pool.species.end())
+                for (size_t i = 0; i < (*specie_it).genomes.size(); i++) {
+                    // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
+                    CarAgent car_agent(i, this->training_car, this->training_track);
+                    car_agent.raceNet.from_genome((*specie_it).genomes[i]);
+                    physicsEngine.registerVehicle(car_agent.car);
+                    Renderer::ResetToVroad(1, training_track, car_agent.car);
+                    car_agents.emplace_back(car_agent);
+                }
+        }
+
         for (uint32_t tick_Idx = 0; tick_Idx < nTicks; ++tick_Idx) {
+            // Simulate the population
             for (auto &car_agent : car_agents) {
-                car_agent->simulate();
+                if (car_agent.dead)
+                    continue;
+
+                car_agent.simulate();
+
+                physicsEngine.stepSimulation(stepTime);
+
+                if (!Config::get().headless) {
+                    raceNetRenderer.Render(tick_Idx, car_agents, training_track);
+                }
+                if (glfwWindowShouldClose(window)) abort();
             }
-            physicsEngine.stepSimulation(stepTime);
-            raceNetRenderer.Render(tick_Idx, car_agents, training_track);
-            if (glfwWindowShouldClose(window)) return agentFitnesses;
         }
 
-        // Clear fitness data for next generation
-        agentFitnesses.clear();
-
-        // Evaluate the fitnesses and sort them
+        // Display the fitnesses
         for (auto &car_agent : car_agents) {
-            LOG(INFO) << "Agent " << car_agent->populationID << " made it to trkblock " << EvaluateFitness(car_agent);
-            std::vector<int> agentData = {car_agent->populationID, (int) EvaluateFitness(car_agent)};
-            agentFitnesses.emplace_back(agentData);
+            LOG(INFO) << "Agent " << car_agent.populationID << " made it to vroad " << car_agent.fitness;
         }
 
-        std::sort(agentFitnesses.begin(), agentFitnesses.end(),
-                  [](const std::vector<int> &a, const std::vector<int> &b) {
-                      return a[1] > b[1];
-                  });
-
-
-        LOG(DEBUG) << "Agent " << agentFitnesses[0][0] << " was fittest";
-
-        // Mutate the fittest network
-        // Mutate(car_agents[agentFitnesses[0][0]]->carNet);
-
-        // Perform selection
-        SelectAgents(car_agents, agentFitnesses);
-
-        // Mutate all networks
+        unsigned int local_maxfitness = 0;
         for (auto &car_agent : car_agents) {
-            Mutate(car_agent->carNet);
+            if (car_agent.fitness > local_maxfitness) {
+                local_maxfitness = car_agent.fitness;
+            }
         }
 
+        size_t winner_id;
+        for (size_t i = 0; i < car_agents.size(); i++)
+            if (car_agents[i].isWinner()) {
+                have_a_winner = true;
+                winner_id = i;
+            }
 
-        // Reset the cars for the next generation
-        for (auto &car_agent : car_agents) {
-            Renderer::ResetToVroad(1, training_track, car_agent);
+        if (have_a_winner) {
+            car_agents[winner_id].raceNet.export_tofile("winner_network");
         }
+
+        //output_info call
     }
-
-    return agentFitnesses;
 }

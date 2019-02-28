@@ -146,7 +146,7 @@ void Physics::buildGhostObject() {
     m_ghostObject = new btPairCachingGhostObject();
     m_ghostObject->setCollisionShape(shape);
     m_ghostObject->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
-    dynamicsWorld->addCollisionObject(m_ghostObject, btBroadphaseProxy::AllFilter, btBroadphaseProxy::StaticFilter);
+    dynamicsWorld->addCollisionObject(m_ghostObject, btBroadphaseProxy::AllFilter, COL_TRACK); // btBroadphaseProxy::StaticFilter);
 }
 
 void Physics::updateFrustrum(glm::mat4 viewMatrix) {

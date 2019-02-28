@@ -20,11 +20,9 @@
 class Car {
 public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
-    Car(uint16_t populationID, std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, RaceNet carNet); // Neural Net/GA Training
     Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID); // Multitextured car
     ~Car();
     void setPosition(glm::vec3 position, glm::quat orientation);
-    void setNetwork(RaceNet &carNet) { this->carNet = carNet; };
     void update();
     void simulate();
     void update(btDynamicsWorld* dynamicsWorld);
@@ -33,11 +31,8 @@ public:
 
     std::string name;
     NFSVer tag;
-    uint16_t populationID = -1;
     bool multitexturedCarModel = false;
     glm::vec3 colour;
-    // Car Neural Net
-    RaceNet carNet;
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }

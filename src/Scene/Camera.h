@@ -29,8 +29,8 @@ public:
     void resetView();
     void generateSpline(std::vector<TrackBlock> trackBlocks);
     void useSpline(float elapsedTime); // Move to position on spline dependent on how long game has been running
-    void computeMatricesFromInputs(bool &window_active, ImGuiIO& io, float deltaTime);
-    void followCar(const shared_ptr<Car> &target_car, bool &window_active, ImGuiIO &io);
+    void computeMatricesFromInputs(bool &window_active, float deltaTime);
+    void followCar(const shared_ptr<Car> &target_car, bool &window_active);
     bool playAnimation();
     void setCameraAnimation(std::vector<SHARED::CANPT> canPoints);
 

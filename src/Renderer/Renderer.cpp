@@ -110,15 +110,16 @@ AssetData Renderer::Render() {
             mainCamera.useSpline(totalTime);
         } else if (userParams.attach_cam_to_car) {
             // Compute MVP from keyboard and mouse, centered around a target car
-            mainCamera.followCar(car, userParams.window_active, ImGui::GetIO());
+            mainCamera.followCar(car, userParams.window_active);
         } else {
             // Compute the MVP matrix from keyboard and mouse input
-            mainCamera.computeMatricesFromInputs(userParams.window_active, ImGui::GetIO(), deltaTime);
+            mainCamera.computeMatricesFromInputs(userParams.window_active, deltaTime);
         }
 
         //TODO: Refactor to controller class? AND USE SDL
         if (userParams.simulate_car) {
-            car->simulate();
+            // TODO: The AI should go through a list of CarAgents
+            //car->simulate();
         } else {
             if (userParams.window_active && !ImGui::GetIO().MouseDown[1]) {
                 car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
@@ -173,7 +174,7 @@ AssetData Renderer::Render() {
 
         // If Sun moving below Horizon, change 'Sun' to 'Moon' and flip some state so we know to drop ambient in TrackShader
         bool nightTime = (sun.position.y <= 0);
-        float ambientLightFactor = nightTime ? 0.05f : 0.45f;
+        float ambientLightFactor = nightTime ? 0.2f : 0.5f;
         sun.lookAt = moon.lookAt = track->track_blocks[closestBlockID].center;
         sun.update();
         moon.update();
@@ -552,6 +553,7 @@ Renderer::~Renderer() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+    // Fixes bug on next render creation when install_callbacks set to true for ImGui
     glfwSetMouseButtonCallback(window, nullptr);
     glfwSetScrollCallback(window, nullptr);
     glfwSetKeyCallback(window, nullptr);

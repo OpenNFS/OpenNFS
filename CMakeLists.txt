@@ -130,7 +130,11 @@ set(SOURCE_FILES
         src/Renderer/ShadowMapRenderer.h
         src/Shaders/ShaderSet.cpp
         src/Shaders/ShaderSet.h
-        shaders/ShaderPreamble.h)
+        shaders/ShaderPreamble.h
+        src/RaceNet/RaceNEAT.cpp
+        src/RaceNet/RaceNEAT.h
+        src/RaceNet/CarAgent.cpp
+        src/RaceNet/CarAgent.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
@@ -140,8 +144,6 @@ endif ()
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
-#[[TinyAI]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/tinyai/src")
 #[[IMGUI]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 #[[TINYOBJLOADER]]
