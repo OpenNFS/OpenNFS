@@ -5,5 +5,5 @@
 #pragma once
 
 class RaceSession {
-
+    void simulate();
 };

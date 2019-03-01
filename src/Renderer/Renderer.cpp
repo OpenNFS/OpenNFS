@@ -21,7 +21,18 @@ Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger,
     physicsEngine.registerTrack(track);
     physicsEngine.registerVehicle(car);
 
+    if (track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1) {
+        userParams.useNbData = false;
+    }
+
+    if (track->tag != NFS_3_PS1) {
+        mainCamera.setCameraAnimation(track->cameraAnimations);
+    }
+
     InitialiseIMGUI();
+    InitGlobalLights();
+
+    CarAgent::resetToVroad(0, track, car);
 
     LOG(DEBUG) << "Renderer Initialised";
 }
@@ -33,10 +44,10 @@ void Renderer::InitGlobalLights(){
     moon.attenuation.z = sun.attenuation.z = 0;
 }
 
-bool Renderer::UpdateGlobalLights(ParamData *userParams ){
+bool Renderer::UpdateGlobalLights(){
     // Move the Sun, and update the position it's looking (for test)
-    sun.position = sun.position * glm::normalize(glm::quat(glm::vec3(userParams->timeScaleFactor * 0.001f, 0, 0)));
-    moon.position = moon.position * glm::normalize(glm::quat(glm::vec3(userParams->timeScaleFactor * 0.001f, 0, 0)));
+    sun.position = sun.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f, 0, 0)));
+    moon.position = moon.position * glm::normalize(glm::quat(glm::vec3(userParams.timeScaleFactor * 0.001f, 0, 0)));
 
     sun.lookAt = moon.lookAt = track->trackBlocks[closestBlockID].center;
     sun.update();
@@ -46,23 +57,8 @@ bool Renderer::UpdateGlobalLights(ParamData *userParams ){
 }
 
 AssetData Renderer::Render() {
-    ParamData userParams;
-
     // Skip CAN animation of PS1 track loaded
     bool cameraAnimationPlayed = track->tag == NFS_3_PS1;
-
-    if (track->tag == NFS_2_SE || track->tag == NFS_2 || track->tag == NFS_3_PS1) {
-        userParams.use_nb_data = false;
-    }
-
-    if (track->tag != NFS_3_PS1) {
-        mainCamera.setCameraAnimation(track->cameraAnimations);
-    }
-
-    InitGlobalLights();
-
-
-    CarAgent::resetToVroad(0, track, car);
 
     bool newAssetSelected = false;
     bool entityTargeted = false;
@@ -78,9 +74,11 @@ AssetData Renderer::Render() {
 
         // Hot reload shaders
         UpdateShaders();
-        NewFrame(&userParams);
+        NewFrame();
 
+        // Step the physics simulation and update physics debug view matrices
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
+        physicsEngine.stepSimulation(deltaTime);
 
         // Play the original camera animation
         if (!cameraAnimationPlayed) {
@@ -112,11 +110,8 @@ AssetData Renderer::Render() {
             CarAgent::resetToVroad(closestBlockID, track, car);
         }
 
-        // Step the physics simulation
-        physicsEngine.stepSimulation(deltaTime);
-
         std::vector<int> activeTrackBlockIDs;
-        if (userParams.frustum_cull) {
+        if (userParams.frustumCull) {
             physicsEngine.updateFrustrum(mainCamera.ViewMatrix);
             // Iterate through visible entity list, based on frustum intersection
             for (int i = 0; i < physicsEngine.m_objectsInFrustum.size(); ++i) {
@@ -130,11 +125,11 @@ AssetData Renderer::Render() {
             activeTrackBlockIDs = CullTrackBlocks(userParams.attachCamToHermite ? mainCamera.position : userParams.attachCamToCar
                                                                                      ? car->car_body_model.position
                                                                                      : mainCamera.position,
-                                                  userParams.blockDrawDistance, userParams.use_nb_data);
+                                                  userParams.blockDrawDistance, userParams.useNbData);
         }
 
         // If Sun moving below Horizon, change 'Sun' to 'Moon' and flip some state so we know to drop ambient in TrackShader
-        bool nightTime = UpdateGlobalLights(&userParams);
+        bool nightTime = UpdateGlobalLights();
         float ambientLightFactor = nightTime ? 0.2f : 0.5f;
 
         shadowMapRenderer.renderShadowMap(nightTime ? moon.ViewMatrix : sun.ViewMatrix, activeTrackBlockIDs, car);
@@ -151,15 +146,15 @@ AssetData Renderer::Render() {
         carRenderer.render(mainCamera, carBodyContributingLights);
         SetCulling(false);
 
-        if (userParams.draw_raycast) {
+        if (userParams.drawRaycast) {
             DrawCarRaycasts();
         }
 
-        if (userParams.draw_can) {
+        if (userParams.drawCAN) {
             DrawCameraAnimation();
         }
 
-        if (userParams.draw_vroad) {
+        if (userParams.drawVroad) {
             DrawVroad();
         }
 
@@ -171,7 +166,7 @@ AssetData Renderer::Render() {
             DrawMetadata(targetedEntity);
         }
 
-        if (userParams.physics_debug_view) {
+        if (userParams.physicsDebugView) {
             physicsEngine.getDynamicsWorld()->debugDrawWorld();
         }
 
@@ -179,7 +174,7 @@ AssetData Renderer::Render() {
             newAssetSelected = true;
         };
 
-        DrawUI(&userParams, mainCamera.position);
+        DrawUI(mainCamera.position);
         glfwSwapBuffers(window);
 
         if (newAssetSelected) break;
@@ -198,8 +193,6 @@ AssetData Renderer::Render() {
         return loadedAssets;
     }
 }
-
-
 
 void Renderer::InitialiseIMGUI() {
     /*------- ImGui -------*/
@@ -268,9 +261,9 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             ImGui::SliderFloat("Steer Incr.", &targetCar->steeringIncrement, 0.f, 0.1f);
             ImGui::SliderFloat("Steer Clamp", &targetCar->steeringClamp, 0.f, 0.5f);
             // Graphics Parameters
-            /*ImGui::ColorEdit3("Car Colour", (float *) &preferences->car_color);
-            ImGui::SliderFloat("Car Specular Damper", &preferences->carSpecDamper, 0, 100);
-            ImGui::SliderFloat("Car Specular Reflectivity", &preferences->carSpecReflectivity, 0, 10);*/
+            /*ImGui::ColorEdit3("Car Colour", (float *) &userParams.car_color);
+            ImGui::SliderFloat("Car Specular Damper", &userParams.carSpecDamper, 0, 100);
+            ImGui::SliderFloat("Car Specular Reflectivity", &userParams.carSpecReflectivity, 0, 10);*/
             ImGui::Text("Roll (deg) x: %f y: %f z: %f",
                         glm::eulerAngles(targetCar->car_body_model.orientation).x * 180 / SIMD_PI,
                         glm::eulerAngles(targetCar->car_body_model.orientation).y * 180 / SIMD_PI,
@@ -343,7 +336,7 @@ void Renderer::SetCulling(bool toCull) {
     }
 }
 
-void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
+void Renderer::DrawUI(glm::vec3 worldPosition) {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
     ImGui::Image((ImTextureID) shadowMapRenderer.depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
@@ -355,11 +348,11 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Text("OpenNFS Engine");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                 ImGui::GetIO().Framerate);
-    ImGui::SliderFloat("Time Scale Factor", &preferences->timeScaleFactor, 0, 10);
-    ImGui::Checkbox("Bullet Debug View", &preferences->physics_debug_view);
-    ImGui::Checkbox("Classic Graphics", &preferences->use_classic_graphics);
-    ImGui::Checkbox("Hermite Curve Cam", &preferences->attachCamToHermite);
-    ImGui::Checkbox("Car Cam", &preferences->attachCamToCar);
+    ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
+    ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);
+    ImGui::Checkbox("Classic Graphics", &userParams.useClassicGraphics);
+    ImGui::Checkbox("Hermite Curve Cam", &userParams.attachCamToHermite);
+    ImGui::Checkbox("Car Cam", &userParams.attachCamToCar);
     std::stringstream world_position_string;
     ImGui::Text("X %f Y %f Z %f H: %f V: %f", worldPosition.x, worldPosition.y, worldPosition.z,
                 mainCamera.horizontalAngle, mainCamera.verticalAngle);
@@ -368,11 +361,11 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     ImGui::Text("Hermite Roll: %f Time: %f", mainCamera.roll, fmod(totalTime, (mainCamera.loopTime / 200)));
     ImGui::Text("Block ID: %d", closestBlockID);
     ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
-    ImGui::Checkbox("Frustum Cull", &preferences->frustum_cull);
-    ImGui::Checkbox("Raycast Viz", &preferences->draw_raycast);
-    ImGui::Checkbox("AI Sim", &preferences->simulate_car);
-    ImGui::Checkbox("Vroad Viz", &preferences->draw_vroad);
-    ImGui::Checkbox("CAN Debug", &preferences->draw_can);
+    ImGui::Checkbox("Frustum Cull", &userParams.frustumCull);
+    ImGui::Checkbox("Raycast Viz", &userParams.drawRaycast);
+    ImGui::Checkbox("AI Sim", &userParams.simulate_car);
+    ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
+    ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
 
     if (ImGui::Button("Reset View")) {
         mainCamera.resetView();
@@ -383,16 +376,16 @@ void Renderer::DrawUI(ParamData *preferences, glm::vec3 worldPosition) {
     };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);
-    if (!preferences->use_nb_data)
-        ImGui::SliderInt("Draw Dist", &preferences->blockDrawDistance, 0, track->nBlocks);
-    ImGui::Checkbox("NBData", &preferences->use_nb_data);
+    if (!userParams.useNbData)
+        ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, track->nBlocks);
+    ImGui::Checkbox("NBData", &userParams.useNbData);
     ImGui::NewLine();
-    ImGui::ColorEdit3("Sky Colour", (float *) &preferences->clear_color); // Edit 3 floats representing a color
-    ImGui::ColorEdit3("Sun Atten", (float *) &preferences->sun_attenuation); // Edit 3 floats representing a color
-    //ImGui::SliderFloat3("NFS2 Rot Dbg", (float *) &preferences->nfs2_rotate, -M_PI, M_PI);
+    ImGui::ColorEdit3("Sky Colour", (float *) &userParams.clearColour); // Edit 3 floats representing a color
+    ImGui::ColorEdit3("Sun Atten", (float *) &userParams.sunAttenuation); // Edit 3 floats representing a color
+    //ImGui::SliderFloat3("NFS2 Rot Dbg", (float *) &userParams.nfs2_rotate, -M_PI, M_PI);
 
-    ImGui::SliderFloat("Track Specular Damper", &preferences->trackSpecDamper, 0, 100);
-    ImGui::SliderFloat("Track Specular Reflectivity", &preferences->trackSpecReflectivity, 0, 10);
+    ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
+    ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
 
     if (ImGui::TreeNode("Car Models")) {
         ImGui::Checkbox(car->car_body_model.m_name.c_str(), &car->car_body_model.enabled);
@@ -509,14 +502,14 @@ Renderer::~Renderer() {
     glfwSetCharCallback(window, nullptr);
 }
 
-void Renderer::NewFrame(ParamData *userParams) {
-    glClearColor(userParams->clear_color.x, userParams->clear_color.y, userParams->clear_color.z, userParams->clear_color.w);
+void Renderer::NewFrame() {
+    glClearColor(userParams.clearColour.x, userParams.clearColour.y, userParams.clearColour.z, userParams.clearColour.w);
     glfwPollEvents();
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-    userParams->windowActive = userParams->windowActive ? userParams->windowActive : ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse));
-    if (!userParams->windowActive) {
+    userParams.windowActive = userParams.windowActive ? userParams.windowActive : ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse));
+    if (!userParams.windowActive) {
         ImGui::GetIO().MouseDrawCursor = false;
     }
     ImGui_ImplOpenGL3_NewFrame();

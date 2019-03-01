@@ -78,7 +78,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
     trackShader.use();
 
     // This shader state doesnt change during a track renderpass
-    trackShader.setClassic(userParams.use_classic_graphics);
+    trackShader.setClassic(userParams.useClassicGraphics);
     trackShader.loadProjectionViewMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix);
     trackShader.loadLightSpaceMatrix(lightSpaceMatrix);
     trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);

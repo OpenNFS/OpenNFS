@@ -100,24 +100,23 @@ private:
 
 struct ParamData {
     float timeScaleFactor = 1.f;
-    ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);
-    ImVec4 sun_attenuation = ImVec4(0.f, 0.f, 0.f, 1.0f);
-    ImVec4 nfs2_rotate = ImVec4(0.f, 0.f, 0.f, 0.f);
+    ImVec4 clearColour = ImVec4(0.f, 0.f, 0.f, 1.0f);
+    ImVec4 sunAttenuation = ImVec4(0.f, 0.f, 0.f, 1.0f);
     float trackSpecReflectivity = 1;
 
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;
     bool windowActive = true;
-    bool physics_debug_view = false;
-    bool use_classic_graphics = false;
+    bool physicsDebugView = false;
+    bool useClassicGraphics = false;
     bool attachCamToHermite = false;
-    bool use_nb_data = true;
+    bool useNbData = true;
     bool attachCamToCar = true;
-    bool frustum_cull = false;
-    bool draw_vroad = false;
-    bool draw_can = true;
+    bool frustumCull = false;
+    bool drawVroad = false;
+    bool drawCAN = true;
 
-    bool draw_raycast = true;
+    bool drawRaycast = true;
     bool simulate_car = false;
 };
 

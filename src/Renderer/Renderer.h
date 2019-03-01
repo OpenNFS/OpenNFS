@@ -59,6 +59,7 @@ private:
     // ------ Renderer State ------
     uint64_t ticks = 0; // Engine ticks elapsed
     float totalTime = 0;
+    ParamData userParams;
 
     // Data used for culling
     uint32_t closestBlockID = 0;
@@ -66,9 +67,9 @@ private:
     // ------- Helper Functions ------
     void InitialiseIMGUI();
     void InitGlobalLights();
-    void NewFrame(ParamData *userParams);
+    void NewFrame();
     void UpdateShaders();
-    bool UpdateGlobalLights(ParamData *userParams );
+    bool UpdateGlobalLights();
     std::vector<int> CullTrackBlocks(glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
     void SetCulling(bool toCull);
     void DrawCarRaycasts();
@@ -78,5 +79,5 @@ private:
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
     bool DrawMenuBar();
-    void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
+    void DrawUI(glm::vec3 worldPositions);
 };

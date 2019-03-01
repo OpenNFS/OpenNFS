@@ -14,7 +14,7 @@ RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> 
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, shared_ptr<ONFSTrack> &track_to_render) {
+void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, shared_ptr<ONFSTrack> &trackToRender) {
     raceNetShader.shaders.UpdatePrograms(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -27,7 +27,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, sha
     ImGui::NewFrame();
 
     RescaleUI();
-    std::vector<int> visibleTrackBlocks = GetVisibleTrackBlocks(track_to_render);
+    std::vector<int> visibleTrackBlocks = GetVisibleTrackBlocks(trackToRender);
 
     // Only bother to render cars if the track is visible
     if(!visibleTrackBlocks.empty()){
@@ -36,14 +36,14 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, sha
         // Draw Track
         raceNetShader.loadColor(glm::vec3(0.f, 0.5f, 0.5f));
         for (auto &visibleTrackBlockID : visibleTrackBlocks) {
-            for (auto &track_block_entity : track_to_render->trackBlocks[visibleTrackBlockID].track) {
+            for (auto &track_block_entity : trackToRender->trackBlocks[visibleTrackBlockID].track) {
                 raceNetShader.loadTransformationMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
                 boost::get<Track>(track_block_entity.glMesh).render();
             }
         }
 
         // Draw Cars
-        for (auto &car_agent : car_list) {
+        for (auto &car_agent : carList) {
             std::swap(car_agent.car->car_body_model.position.y, car_agent.car->car_body_model.position.z);
             std::swap(car_agent.car->car_body_model.orientation.y, car_agent.car->car_body_model.orientation.z);
             car_agent.car->car_body_model.update();
@@ -58,8 +58,8 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, sha
 
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
-    for (auto &car_agent : car_list) {
-        ImGui::Text("%s %f %f %f", car_agent.name.c_str(), car_agent.car->car_body_model.position.x, car_agent.car->car_body_model.position.y, car_agent.car->car_body_model.position.z);
+    for (auto &carAgent : carList) {
+        ImGui::Text("%s %f %f %f", carAgent.name.c_str(), carAgent.car->car_body_model.position.x, carAgent.car->car_body_model.position.y, carAgent.car->car_body_model.position.z);
     }
 
     // Draw Logger UI
