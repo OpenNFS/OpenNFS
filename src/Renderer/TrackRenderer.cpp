@@ -54,11 +54,11 @@ std::map<int, std::vector<Light>> TrackRenderer::GetContributingLights(const sha
         // Get list of blocks on either side of current trackblock by nContributingBlocks
         for (int block_Idx = trackBlk_Idx - NEIGHBOUR_BLOCKS_FOR_LIGHTS;
              block_Idx < trackBlk_Idx + NEIGHBOUR_BLOCKS_FOR_LIGHTS; ++block_Idx) {
-            int activeBlock = block_Idx < 0 ? ((int) activeTrack->track_blocks.size() + block_Idx) : (block_Idx %
-                                                                                                      (int) activeTrack->track_blocks.size());
+            int activeBlock = block_Idx < 0 ? ((int) activeTrack->trackBlocks.size() + block_Idx) : (block_Idx %
+                                                                                                      (int) activeTrack->trackBlocks.size());
 
             std::vector<Light> contribLightsForNeighbouringBlock = GetInterestingLights(
-                    activeTrack->track_blocks[activeBlock]);
+                    activeTrack->trackBlocks[activeBlock]);
             contribLightsForCurrentBlock.insert(contribLightsForCurrentBlock.begin(),
                                                 contribLightsForNeighbouringBlock.begin(),
                                                 contribLightsForNeighbouringBlock.end());
@@ -72,7 +72,7 @@ std::map<int, std::vector<Light>> TrackRenderer::GetContributingLights(const sha
 }
 
 
-void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight, const Light &cameraLight,
+void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
                                 std::vector<int> activeTrackBlockIDs, const ParamData &userParams, uint64_t engineTicks,
                                 GLuint depthTextureID, const glm::mat4 &lightSpaceMatrix, float ambientFactor) {
     trackShader.use();
@@ -91,7 +91,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
 
     // Render the per-trackblock data
     for (int activeTrackBlockID : activeTrackBlockIDs) {
-        TrackBlock active_track_Block = track->track_blocks[activeTrackBlockID];
+        TrackBlock active_track_Block = track->trackBlocks[activeTrackBlockID];
         std::vector<Light> contributingLights = trackLightMap[activeTrackBlockID];
         contributingLights.emplace_back(sunLight);
         trackShader.loadLights(contributingLights);
@@ -181,8 +181,8 @@ void TrackRenderer::renderLights(const Camera &mainCamera, std::vector<int> acti
     billboardShader.use();
     for (auto &track_block_id : activeTrackBlockIDs) {
         // Render the lights far to near
-        for (auto &light_entity : std::vector<Entity>(track->track_blocks[track_block_id].lights.rbegin(),
-                                                      track->track_blocks[track_block_id].lights.rend())) {
+        for (auto &light_entity : std::vector<Entity>(track->trackBlocks[track_block_id].lights.rbegin(),
+                                                      track->trackBlocks[track_block_id].lights.rend())) {
             billboardShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix,
                                          boost::get<Light>(light_entity.glMesh).ModelMatrix);
             billboardShader.loadLight(boost::get<Light>(light_entity.glMesh));

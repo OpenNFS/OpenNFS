@@ -9,7 +9,7 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
                                std::shared_ptr<Logger> &logger, GLFWwindow *gl_window) : window(gl_window),
                                                                                          raceNetRenderer(gl_window,
                                                                                                          logger) {
-    LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations: "
+    LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations Cap: "
               << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " ("
               << ToString(training_track->tag) << ")";
 
@@ -20,7 +20,7 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
     TrainAgents(nGenerations, nTicks);
 
     LOG(INFO) << "Saving best agent network to " << BEST_NETWORK_PATH;
-    //car_agents[trainedAgentFitness[0][0]]->carNet.net.saveNetworkParams(BEST_NETWORK_PATH.c_str());
+    //carAgents[trainedAgentFitness[0][0]]->carNet.net.saveNetworkParams(BEST_NETWORK_PATH.c_str());
 
     LOG(INFO) << "Done";
 }
@@ -44,8 +44,8 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             CarAgent car_agent(i, this->training_car, this->training_track);
             car_agent.raceNet.from_genome((*specie_it).genomes[i]);
             physicsEngine.registerVehicle(car_agent.car);
-            Renderer::ResetToVroad(1, training_track, car_agent.car);
-            car_agents.emplace_back(car_agent);
+            car_agent.reset();
+            carAgents.emplace_back(car_agent);
         }
     }
     LOG(INFO) << "Agents initialised";
@@ -55,10 +55,14 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
 
     while(!glfwWindowShouldClose(window) && (!have_a_winner)) {
         LOG(INFO) << "Beginning Generation " << gen_Idx++;
+        // If user provided a generation cap and we've hit it, bail
+        if(Config::get().nGenerations != 0){
+            if(gen_Idx == Config::get().nGenerations) break;
+        }
 
         bool all_dead = true;
 
-        for (auto &car_agent : car_agents) {
+        for (auto &car_agent : carAgents) {
             if (!car_agent.dead) {
                 all_dead = false;
             }
@@ -68,20 +72,20 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             if (specie_it != ga_pool.species.end()) {
                 int best_id = -1;
                 for (size_t i = 0; i < (*specie_it).genomes.size(); i++) {
-                    (*specie_it).genomes[i].fitness = car_agents[i].fitness;
+                    (*specie_it).genomes[i].fitness = carAgents[i].fitness;
                     if ((*specie_it).genomes[i].fitness > global_maxfitness) {
                         global_maxfitness = (*specie_it).genomes[i].fitness;
                         best_id = i;
                     }
                 }
                 if (best_id != -1) {
-                    car_agents[best_id].raceNet.export_tofile("best_network");
+                    carAgents[best_id].raceNet.export_tofile("best_network");
                 }
             }
 
             specie_it++;
             specie_counter++;
-            car_agents.clear();
+            carAgents.clear();
 
             if (specie_it == ga_pool.species.end()) {
                 ga_pool.new_generation();
@@ -100,14 +104,14 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
                     CarAgent car_agent(i, this->training_car, this->training_track);
                     car_agent.raceNet.from_genome((*specie_it).genomes[i]);
                     physicsEngine.registerVehicle(car_agent.car);
-                    Renderer::ResetToVroad(1, training_track, car_agent.car);
-                    car_agents.emplace_back(car_agent);
+                    car_agent.reset();
+                    carAgents.emplace_back(car_agent);
                 }
         }
 
         for (uint32_t tick_Idx = 0; tick_Idx < nTicks; ++tick_Idx) {
             // Simulate the population
-            for (auto &car_agent : car_agents) {
+            for (auto &car_agent : carAgents) {
                 if (car_agent.dead)
                     continue;
 
@@ -116,35 +120,37 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
                 physicsEngine.stepSimulation(stepTime);
 
                 if (!Config::get().headless) {
-                    raceNetRenderer.Render(tick_Idx, car_agents, training_track);
+                    raceNetRenderer.Render(tick_Idx, carAgents, training_track);
                 }
                 if (glfwWindowShouldClose(window)) abort();
             }
         }
 
         // Display the fitnesses
-        for (auto &car_agent : car_agents) {
-            LOG(INFO) << "Agent " << car_agent.populationID << " made it to vroad " << car_agent.fitness;
+        for (auto &car_agent : carAgents) {
+            LOG(INFO) << car_agent.name << " made it to vroad " << car_agent.fitness;
         }
 
         unsigned int local_maxfitness = 0;
-        for (auto &car_agent : car_agents) {
+        for (auto &car_agent : carAgents) {
             if (car_agent.fitness > local_maxfitness) {
                 local_maxfitness = car_agent.fitness;
             }
         }
 
         size_t winner_id;
-        for (size_t i = 0; i < car_agents.size(); i++)
-            if (car_agents[i].isWinner()) {
+        for (size_t i = 0; i < carAgents.size(); i++)
+            if (carAgents[i].isWinner()) {
                 have_a_winner = true;
                 winner_id = i;
             }
 
         if (have_a_winner) {
-            car_agents[winner_id].raceNet.export_tofile("winner_network");
+            carAgents[winner_id].raceNet.export_tofile("winner_network");
         }
 
-        //output_info call
+        LOG(INFO) << "Generation: " << ga_pool.generation() << " Specie number: " << specie_counter << " Genomes in specie: " << carAgents.size() << " Global max fitness: " << global_maxfitness << " Current specie max: " << local_maxfitness;
     }
 }
+
+

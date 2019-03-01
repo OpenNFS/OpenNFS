@@ -38,8 +38,8 @@ public:
     typedef boost::variant<shared_ptr<NFS3_4_DATA::TRACK>, shared_ptr<NFS2_DATA::PS1::TRACK>, shared_ptr<NFS2_DATA::PC::TRACK>> track;
     track trackData;
 
-    std::vector<SHARED::CANPT> camera_animations;
-    std::vector<TrackBlock> track_blocks;
+    std::vector<SHARED::CANPT> cameraAnimations;
+    std::vector<TrackBlock> trackBlocks;
     std::vector<Entity> global_objects;
     uint32_t nBlocks;
     GLuint textureArrayID;

@@ -36,7 +36,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, sha
         // Draw Track
         raceNetShader.loadColor(glm::vec3(0.f, 0.5f, 0.5f));
         for (auto &visibleTrackBlockID : visibleTrackBlocks) {
-            for (auto &track_block_entity : track_to_render->track_blocks[visibleTrackBlockID].track) {
+            for (auto &track_block_entity : track_to_render->trackBlocks[visibleTrackBlockID].track) {
                 raceNetShader.loadTransformationMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
                 boost::get<Track>(track_block_entity.glMesh).render();
             }
@@ -59,7 +59,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, sha
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
     for (auto &car_agent : car_list) {
-        ImGui::Text("Car %d %f %f %f", car_agent.populationID, car_agent.car->car_body_model.position.x, car_agent.car->car_body_model.position.y, car_agent.car->car_body_model.position.z);
+        ImGui::Text("%s %f %f %f", car_agent.name.c_str(), car_agent.car->car_body_model.position.x, car_agent.car->car_body_model.position.y, car_agent.car->car_body_model.position.z);
     }
 
     // Draw Logger UI
@@ -77,9 +77,9 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &car_list, sha
 std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render){
     std::vector<int> activeTrackBlockIds;
 
-    for(auto &track_block : track_to_render->track_blocks){
+    for(auto &track_block : track_to_render->trackBlocks){
         if((track_block.center.x > minX)&&(track_block.center.x < maxX)&&(track_block.center.z < minY)&&(track_block.center.z > maxY)){
-            activeTrackBlockIds.emplace_back(track_block.block_id);
+            activeTrackBlockIds.emplace_back(track_block.blockId);
         }
     }
 

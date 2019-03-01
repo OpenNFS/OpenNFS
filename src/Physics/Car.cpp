@@ -14,11 +14,6 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
     tag = nfs_version;
     name = car_name;
-    if (boost::filesystem::exists(BEST_NETWORK_PATH)) {
-        //carNet.net.loadNetworkParams(BEST_NETWORK_PATH.c_str());
-    } else {
-        LOG(WARNING) << "AI Neural network couldn't be loaded from " << BEST_NETWORK_PATH << ", randomising weights";
-    }
 
     // Load these from Carp.txt
     gEngineForce = 0.f;
@@ -76,14 +71,6 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     m_carChassis->setDamping(0.2,0.2);
     m_carChassis -> setLinearVelocity(btVector3(0,0,0));
     m_carChassis -> setAngularVelocity(btVector3(0,0,0));
-
-    /* THIS DOESN'T BELONG HERE BUT I'M TESTING OK */
-    //carNet << fully_connected_layer(3, 6) << tanh_layer()
-    //      << fully_connected_layer(6, 4) << tanh_layer();
-    // Gen visualisation of NN
-   // std::ofstream ofs("car_neural_net_graphviz.txt");
-   // graph_visualizer viz(carNet, "graph");
-   // viz.generate(ofs);
 }
 
 // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
@@ -346,21 +333,21 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
     glm::vec3 carRight = car_body_model.ModelMatrix * glm::vec4(1,0,0,0);
     glm::vec3 carForward = car_body_model.ModelMatrix * glm::vec4(0,0,-1,0);
 
-    forwardCastPosition = carBodyPosition + carForward;
-    upCastPosition = carBodyPosition + carUp;
-    rightCastPosition = carBodyPosition + (carRight + carForward);
-    leftCastPosition = carBodyPosition - (carRight - carForward);
+    forwardCastPosition = (carBodyPosition + (carForward    * castDistance));
+    upCastPosition      = (carBodyPosition + (carUp * castDistance));
+    rightCastPosition   = (carBodyPosition + (castDistance * (carRight + carForward)));
+    leftCastPosition    = (carBodyPosition - (castDistance * (carRight - carForward)));
 
-    btCollisionWorld::ClosestRayResultCallback ForwardRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardCastPosition));
-    btCollisionWorld::ClosestRayResultCallback UpRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition));
-    btCollisionWorld::ClosestRayResultCallback RightRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rightCastPosition));
-    btCollisionWorld::ClosestRayResultCallback LeftRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(leftCastPosition));
+    btCollisionWorld::ClosestRayResultCallback ForwardRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardCastPosition* castDistance));
+    btCollisionWorld::ClosestRayResultCallback UpRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition* castDistance));
+    btCollisionWorld::ClosestRayResultCallback RightRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rightCastPosition* castDistance));
+    btCollisionWorld::ClosestRayResultCallback LeftRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(leftCastPosition* castDistance));
 
     // Don't Raycast against other opponents for now. Ghost through them.
-    ForwardRayCallback.m_collisionFilterMask = COL_TRACK;
-    UpRayCallback.m_collisionFilterMask      = COL_TRACK;
-    RightRayCallback.m_collisionFilterMask   = COL_TRACK;
-    LeftRayCallback.m_collisionFilterMask    = COL_TRACK;
+    ForwardRayCallback.m_collisionFilterMask = COL_TRACK | COL_DYNAMIC_TRACK;
+    UpRayCallback.m_collisionFilterMask      = COL_TRACK | COL_DYNAMIC_TRACK;
+    RightRayCallback.m_collisionFilterMask   = COL_TRACK | COL_DYNAMIC_TRACK;
+    LeftRayCallback.m_collisionFilterMask    = COL_TRACK | COL_DYNAMIC_TRACK;
 
     dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardCastPosition * castDistance), ForwardRayCallback);
     dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition * castDistance), UpRayCallback);
@@ -370,22 +357,22 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
     if(ForwardRayCallback.hasHit()){
         forwardDistance = glm::distance(carBodyPosition,  glm::vec3(ForwardRayCallback.m_hitPointWorld.getX(), ForwardRayCallback.m_hitPointWorld.getY(),ForwardRayCallback.m_hitPointWorld.getZ()));
     } else {
-        forwardDistance = castDistance;
+        forwardDistance = farDistance;
     }
     if(UpRayCallback.hasHit()){
         upDistance = glm::distance(carBodyPosition,  glm::vec3(ForwardRayCallback.m_hitPointWorld.getX(), ForwardRayCallback.m_hitPointWorld.getY(),ForwardRayCallback.m_hitPointWorld.getZ()));
     } else {
-        upDistance = castDistance;
+        upDistance = farDistance;
     }
     if(RightRayCallback.hasHit()){
         rightDistance = glm::distance(carBodyPosition,  glm::vec3(RightRayCallback.m_hitPointWorld.getX(), RightRayCallback.m_hitPointWorld.getY(),RightRayCallback.m_hitPointWorld.getZ()));
     } else {
-        rightDistance = castDistance;
+        rightDistance = farDistance;
     }
     if(LeftRayCallback.hasHit()){
         leftDistance = glm::distance(carBodyPosition,  glm::vec3(LeftRayCallback.m_hitPointWorld.getX(), LeftRayCallback.m_hitPointWorld.getY(),LeftRayCallback.m_hitPointWorld.getZ()));
     }  else {
-        leftDistance = castDistance;
+        leftDistance = farDistance;
     }
 }
 

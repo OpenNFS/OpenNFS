@@ -72,10 +72,10 @@ void ScreenPosToWorldRay(
         glm::vec3 &out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
 );
 
-class Physics{
+class PhysicsEngine{
 public:
-    Physics();
-    ~Physics(){ cleanSimulation(); }
+    PhysicsEngine();
+    ~PhysicsEngine(){ cleanSimulation(); }
     void initSimulation();
     void stepSimulation(float time);
     void cleanSimulation();
@@ -84,14 +84,14 @@ public:
     void registerTrack(const std::shared_ptr<ONFSTrack> &track);
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
-
+    Entity *checkForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted);
     void checkForFrustumIntersect();
     void updateFrustrum(glm::mat4 viewMatrix);
     void destroyGhostObject();
     int numObjects = 0;
     btAlignedObjectArray<btCollisionObject*> m_objectsInFrustum;	// Frustum cull results
 private:
-    shared_ptr<ONFSTrack> current_track;
+    shared_ptr<ONFSTrack> currentTrack;
     std::vector<std::shared_ptr<Car>> cars;
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase;

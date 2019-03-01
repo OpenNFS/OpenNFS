@@ -49,7 +49,7 @@ void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::
 
     /* Render the track using this simple shader to get depth texture to test against during draw */
     for (int activeTrackBlockID : activeTrackBlockIDs) {
-        TrackBlock active_track_Block = track->track_blocks[activeTrackBlockID];
+        TrackBlock active_track_Block = track->trackBlocks[activeTrackBlockID];
         for (auto &track_block_entity : active_track_Block.track) {
             depthShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
             boost::get<Track>(track_block_entity.glMesh).render();

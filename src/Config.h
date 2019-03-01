@@ -51,6 +51,7 @@ const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
 const uint32_t DEFAULT_X_RESOLUTION = 1920;
 const uint32_t DEFAULT_Y_RESOLUTION = 1080;
+const float    DEFAULT_FOV = 55.f;
 // Shadow Map Resolution
 const unsigned int SHADOW_WIDTH = 2048;    // Resolution of shadow map
 const unsigned int SHADOW_HEIGHT = 2048;
@@ -83,10 +84,12 @@ public:
     /* -- Render Params -- */
     bool vulkanRender = false;
     bool headless = false;
+    float fov = DEFAULT_FOV;
     uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
     /* -- Training Params -- */
     bool trainingMode = false;
-    uint16_t populationSize, nGenerations;
+    uint16_t populationSize = 0;
+    uint16_t nGenerations = 0;
     uint32_t nTicks;
 private:
     Config() = default;
@@ -104,12 +107,12 @@ struct ParamData {
 
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;
-    bool window_active = true;
+    bool windowActive = true;
     bool physics_debug_view = false;
     bool use_classic_graphics = false;
-    bool attach_cam_to_hermite = false;
-    bool use_nb_data = false;
-    bool attach_cam_to_car = true;
+    bool attachCamToHermite = false;
+    bool use_nb_data = true;
+    bool attachCamToCar = true;
     bool frustum_cull = false;
     bool draw_vroad = false;
     bool draw_can = true;

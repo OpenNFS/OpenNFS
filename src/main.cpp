@@ -17,7 +17,6 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
-#include <zmq.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -35,7 +34,6 @@ public:
     explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
         InitDirectories();
         PopulateAssets();
-        //InitZMQSocket();
 
         if (Config::get().vulkanRender) {
 #ifdef VULKAN_BUILD
@@ -89,8 +87,7 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"),
-               "OpenGL init failed.");
+        ASSERT(InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"), "OpenGL init failed.");
 
         AssetData trainingAssets = {
                 NFS_3, Config::get().car,
@@ -125,24 +122,6 @@ private:
     static void window_size_callback(GLFWwindow *window, int width, int height) {
         Config::get().resX = width;
         Config::get().resY = height;
-    }
-
-    void InitZMQSocket() {
-        void *ctx = zmq_ctx_new();
-        void *subscriber = zmq_socket(ctx, ZMQ_SUB);
-
-         zmq_bind(subscriber, "tcp://*:5563");
-        zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
-
-         while (true) {
-            zmq_msg_t msg;
-            int rc = zmq_msg_init(&msg);
-            assert(rc == 0);
-            LOG(DEBUG) << "Waiting for message: " << std::endl;
-            rc = zmq_msg_recv(&msg, subscriber, 0);
-            LOG(DEBUG) << "received: " << (char *) zmq_msg_data(&msg) << std::endl;
-            zmq_msg_close(&msg);
-        }
     }
 
     bool InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {

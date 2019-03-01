@@ -14,12 +14,12 @@
 #include <chrono>
 #include <thread>
 
-
 #include "../Scene/Camera.h"
 #include "../Scene/Entity.h"
 #include "../Loaders/trk_loader.h"
-#include "../Physics/Physics.h"
+#include "../Physics/PhysicsEngine.h"
 #include "../Loaders/car_loader.h"
+#include "../RaceNet/CarAgent.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
 
@@ -34,7 +34,6 @@ public:
     Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> &current_car);
     ~Renderer();
     AssetData Render();
-    static void ResetToVroad(uint32_t trackBlockIndex, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car); // TODO: Move this _somewhere_
 private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
@@ -44,7 +43,7 @@ private:
     shared_ptr<Car> car;
 
     /*------- BULLET --------*/
-    Physics physicsEngine;
+    PhysicsEngine physicsEngine;
 
     /* Renderers */
     TrackRenderer trackRenderer;
@@ -54,7 +53,6 @@ private:
 
     /* Scene Objects */
     Camera mainCamera;
-    Light cameraLight;
     Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     Light moon = Light(glm::vec3(0, -200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
 
@@ -63,21 +61,22 @@ private:
     float totalTime = 0;
 
     // Data used for culling
-    int closestBlockID = 0;
+    uint32_t closestBlockID = 0;
 
     // ------- Helper Functions ------
+    void InitialiseIMGUI();
+    void InitGlobalLights();
+    void NewFrame(ParamData *userParams);
+    void UpdateShaders();
+    bool UpdateGlobalLights(ParamData *userParams );
+    std::vector<int> CullTrackBlocks(glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
     void SetCulling(bool toCull);
     void DrawCarRaycasts();
     void DrawVroad();
     void DrawCameraAnimation();
     void DrawDebugCube(glm::vec3 position);
-    void InitialiseIMGUI();
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
     bool DrawMenuBar();
     void DrawUI(ParamData *preferences, glm::vec3 worldPositions);
-    void NewFrame(ParamData *userParams);
-    void UpdateShaders();
-    std::vector<int> CullTrackBlocks(glm::vec3 oldWorldPosition, glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
-    Entity *CheckForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted);
 };

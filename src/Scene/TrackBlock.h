@@ -16,7 +16,7 @@ public:
     TrackBlock(int blockID, glm::vec3 center_pos);
 
     glm::vec3 center;
-    int block_id;
+    int blockId;
 
     std::vector<Entity> track;
     std::vector<Entity> objects;

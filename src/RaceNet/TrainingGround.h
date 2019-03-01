@@ -10,7 +10,7 @@
 #include "CarAgent.h"
 #include "../Loaders/trk_loader.h"
 #include "../Loaders/car_loader.h"
-#include "../Physics/Physics.h"
+#include "../Physics/PhysicsEngine.h"
 #include "../Util/Utils.h"
 #include "../Renderer/Renderer.h"
 #include "../Renderer/RaceNetRenderer.h"
@@ -27,8 +27,8 @@ private:
     GLFWwindow *window;
     shared_ptr<ONFSTrack> training_track;
     shared_ptr<Car> training_car;
-    std::vector<CarAgent> car_agents;
+    std::vector<CarAgent> carAgents;
     RaceNetRenderer raceNetRenderer;
     /*------- BULLET --------*/
-    Physics physicsEngine;
+    PhysicsEngine physicsEngine;
 };

@@ -46,7 +46,7 @@ set(SOURCE_FILES
         src/Scene/Camera.cpp
         src/Scene/Model.cpp
         include/TGALoader/TGALoader.cpp
-        src/Physics/Physics.cpp
+        src/Physics/PhysicsEngine.cpp
         lib/glew-cmake/src/glew.c
         src/Scene/TrackBlock.cpp
         src/Scene/TrackBlock.h
@@ -138,7 +138,7 @@ set(SOURCE_FILES
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
-    set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h)
+    set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h src/Race/RaceSession.cpp src/Race/RaceSession.h)
     add_definitions(-DVULKAN_BUILD)
 endif ()
 

@@ -5,6 +5,6 @@
 #include "TrackBlock.h"
 
 TrackBlock::TrackBlock(int blockID, glm::vec3 center_pos) {
-    block_id = blockID;
+    blockId = blockID;
     center = center_pos;
 }

@@ -6,6 +6,17 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 
+#include <vector>
+#include <random>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cassert>
+#include <cstdio>
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+
 #include <LinearMath/btVector3.h>
 #include <LinearMath/btQuaternion.h>
 #include <LinearMath/btMatrix3x3.h>
@@ -17,15 +28,7 @@
 #include <boost/preprocessor.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <GL/glew.h>
-#include <vector>
-#include <random>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cassert>
-#include <cstdio>
-#include <sstream>
-#include <iomanip>
+
 #include "Logger.h"
 #include "../Scene/CarModel.h"
 #include "../Enums.h"
@@ -80,6 +83,26 @@ typedef struct tagCP_BITMAPINFO {
 #define nyop "nop"
 
 namespace Utils {
+    class Timer {
+    public:
+        Timer() : m_beg(clock_::now()) {
+        }
+        void reset() {
+            m_beg = clock_::now();
+        }
+
+        double elapsed() const {
+            return std::chrono::duration_cast<std::chrono::milliseconds>(
+                    clock_::now() - m_beg).count();
+        }
+
+    private:
+        typedef std::chrono::high_resolution_clock clock_;
+        typedef std::chrono::duration<double, std::ratio<1> > second_;
+        std::chrono::time_point<clock_> m_beg;
+    };
+
+
     float RandomFloat(float min, float max);
 
     glm::vec3 bulletToGlm(const btVector3 &v);
