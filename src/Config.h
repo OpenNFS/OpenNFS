@@ -117,7 +117,7 @@ struct ParamData {
     bool drawCAN = true;
 
     bool drawRaycast = true;
-    bool simulate_car = false;
+    bool simulateCars = false;
 };
 
 struct AssetData {

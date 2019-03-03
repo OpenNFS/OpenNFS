@@ -59,15 +59,16 @@ AssetData RaceSession::simulate() {
         }
 
         //TODO: Refactor to controller class? AND USE SDL
-        if (userParams.simulate_car) {
-            // TODO: The AI should go through a list of CarAgents
-            //car->simulate();
-        } else {
-            if (userParams.windowActive && !ImGui::GetIO().MouseDown[1]) {
-                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
-                car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
-                car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
-                car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+        if (userParams.windowActive && !ImGui::GetIO().MouseDown[1]) {
+            car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+            car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
+            car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
+            car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
+        }
+
+        if(userParams.simulateCars){
+            for(auto &racer : racers){
+                racer.simulate();
             }
         }
 
@@ -96,9 +97,9 @@ AssetData RaceSession::simulate() {
 void RaceSession::SpawnRacers(int nRacers) {
     float racerSpawnOffset = -0.25f;
     for(uint16_t racer_Idx = 0; racer_Idx < nRacers; ++racer_Idx){
-        CarAgent racer(racer_Idx, car, track);
+        CarAgent racer(racerNames[racer_Idx], "./generation.dat", car);
         physicsEngine.registerVehicle(racer.car);
-        racer.resetToVroad(0, racer_Idx, racerSpawnOffset, track, racer.car);
+        racer.resetToVroad(0, racer_Idx + 1, racerSpawnOffset, track, racer.car);
         racers.emplace_back(racer);
         racerSpawnOffset = -racerSpawnOffset;
     }

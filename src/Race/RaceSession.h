@@ -18,6 +18,32 @@
 
 class RaceSession {
 private:
+    // TODO: Read this from file
+    char const *racerNames[21] =
+            {
+                    "DumbPanda",
+                    "Spark198rus",
+                    "Keiiko",
+                    "N/A",
+                    "Patas De Pavo",
+                    "Dopamine Flint",
+                    "Oh Hansssss",
+                    "scaryred24",
+                    "MaximilianVeers",
+                    "AJ_Lethal",
+                    "Sirius-R",
+                    "Ewil",
+                    "heyitsleo",
+                    "MADMAN_nfs",
+                    "Wild One",
+                    "Gotcha",
+                    "Mulligan",
+                    "Lead Foot",
+                    "Ace",
+                    "Dead Beat",
+                    "Ram Rod"
+            };
+
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
     std::vector<NeedForSpeed> installedNFSGames;

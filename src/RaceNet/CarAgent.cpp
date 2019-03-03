@@ -7,6 +7,7 @@
 CarAgent::CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack) {
     this->populationID = populationID;
     name = "TrainingAgent" + std::to_string(populationID);
+    training = true;
     fitness = 0;
     tickCount = 0;
     dead = false;
@@ -34,11 +35,18 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
     if (track->tag == NFS_3 || track->tag == NFS_4) {
         // Can move this by trk[trackBlockIndex].nodePositions
         uint32_t nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
-        if (posIndex < boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions){
+        int nPositions = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
+        if (posIndex < nPositions){
             nodeNumber += posIndex;
         } else {
-
             // TODO: Write logic here to wrap to next trackblock vroad data. Or assert?
+            /*for(int wrapIdx = 0; wrapIdx < posIndex - nPositions;  ++wrapIdx){
+                ++trackBlockIndex;
+                nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
+                if (wrapIdx < boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions){
+                    nodeNumber += wrapIdx;
+                };
+            }*/
         }
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         COLVROAD resetVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
@@ -79,7 +87,7 @@ void CarAgent::reset(){
 }
 
 void CarAgent::simulate() {
-    if (dead){
+    if (dead && training){
         return ;
     }
 
@@ -96,6 +104,7 @@ void CarAgent::simulate() {
     car->applySteeringLeft(networkOutputs[2] > 0.0f);
     car->applySteeringRight(networkOutputs[3] > 0.0f);
 
+    if(!training) return;
 
     // Speculatively calculate where we're gonna end up
     int new_fitness = evaluateFitness();

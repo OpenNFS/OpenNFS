@@ -282,7 +282,7 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car
     // ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
     ImGui::Checkbox("Frustum Cull", &userParams.frustumCull);
     ImGui::Checkbox("Raycast Viz", &userParams.drawRaycast);
-    ImGui::Checkbox("AI Sim", &userParams.simulate_car);
+    ImGui::Checkbox("AI Sim", &userParams.simulateCars);
     ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
     ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
 

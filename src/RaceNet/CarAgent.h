@@ -34,6 +34,7 @@ public:
     RaceNet raceNet;
     std::string name;
     uint16_t populationID = UINT16_MAX;
+    bool training = false;
     int fitness = 0;
     bool dead = false;
 
