@@ -24,7 +24,7 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
 
 void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
     // 5 input, 3 output, 1 bias, can be recurrent
-    pool pool(3, 3, 1, true);
+    pool pool(4, 4, 6, true);
     pool.import_fromfile("generation.dat");
     bool haveWinner = false;
     uint32_t gen_Idx = 0;
@@ -49,7 +49,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
 
     // Start simulating GA generations
    while(!glfwWindowShouldClose(window) && (!haveWinner)) {
-        LOG(INFO) << "Beginning Generation " << gen_Idx++;
+        gen_Idx++;
         // If user provided a generation cap and we've hit it, bail
         if(Config::get().nGenerations != 0){
             if(gen_Idx == Config::get().nGenerations) break;
@@ -117,19 +117,14 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
                 if (!Config::get().headless) {
                     raceNetRenderer.Render(tick_Idx, carAgents, training_track);
                 }
-                if (glfwWindowShouldClose(window)) abort();
+                if (glfwWindowShouldClose(window)) break;
             }
         }
 
-        // Display the fitnesses
-        for (auto &car_agent : carAgents) {
-            LOG(INFO) << car_agent.name << " made it to vroad " << car_agent.fitness;
-        }
-
         unsigned int local_maxfitness = 0;
-        for (auto &car_agent : carAgents) {
-            if (car_agent.fitness > local_maxfitness) {
-                local_maxfitness = car_agent.fitness;
+        for (auto &carAgent : carAgents) {
+            if (carAgent.fitness > local_maxfitness) {
+                local_maxfitness = carAgent.fitness;
             }
         }
 
@@ -144,6 +139,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             LOG(INFO) << "WINNER: Saving best agent network to " << BEST_NETWORK_PATH;
             carAgents[winner_id].raceNet.export_tofile(BEST_NETWORK_PATH);
         }
+        // Display the fitnesses
         LOG(INFO) << "Generation: " << pool.generation() << " Specie number: " << specie_counter << " Genomes in specie: " << carAgents.size() << " Global max fitness: " << globalMaxFitness << " Current specie max: " << local_maxfitness;
     }
 }

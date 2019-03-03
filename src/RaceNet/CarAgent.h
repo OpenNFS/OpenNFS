@@ -34,7 +34,7 @@ public:
     RaceNet raceNet;
     std::string name;
     uint16_t populationID = UINT16_MAX;
-    uint32_t fitness = 0;
+    int fitness = 0;
     bool dead = false;
 
     CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack); // Training
@@ -44,7 +44,7 @@ public:
     static void resetToVroad(uint32_t trackBlockIndex, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car);
     void reset(); // Wrapper to reset to start of training track
     bool isWinner();
-    uint32_t evaluateFitness();
+    int evaluateFitness();
     void simulate();
 };
 

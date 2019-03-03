@@ -59,7 +59,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, shar
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
     for (auto &carAgent : carList) {
-        ImGui::Text("%s %f %f %f", carAgent.name.c_str(), carAgent.car->carBodyModel.position.x, carAgent.car->carBodyModel.position.y, carAgent.car->carBodyModel.position.z);
+        ImGui::Text("%s %f %f %f %d", carAgent.name.c_str(), carAgent.car->carBodyModel.position.x, carAgent.car->carBodyModel.position.y, carAgent.car->carBodyModel.position.z, carAgent.fitness);
     }
 
     // Draw Logger UI

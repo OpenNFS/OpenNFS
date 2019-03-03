@@ -64,7 +64,7 @@ bool CarAgent::isWinner() {
 }
 
 void CarAgent::reset(){
-    resetToVroad(1, track, car);
+    resetToVroad(2, track, car);
 }
 
 void CarAgent::simulate() {
@@ -75,17 +75,26 @@ void CarAgent::simulate() {
     std::vector<double> raycastInputs;
     std::vector<double> networkOutputs;
 
-    raycastInputs = {car->leftDistance, car->rightDistance, car->forwardDistance};
+    raycastInputs = {car->leftDistance, car->rightDistance, car->forwardDistance, car->m_vehicle->getCurrentSpeedKmHour()};
     networkOutputs = {0, 0, 0};
 
     raceNet.evaluate(raycastInputs, networkOutputs);
 
     car->applyAccelerationForce(false, networkOutputs[0] > 0.0f);
-    car->applySteeringLeft(networkOutputs[1] > 0.0f);
-    car->applySteeringRight(networkOutputs[2] > 0.0f);
+    car->applyBrakingForce(networkOutputs[1] > 0.0f);
+    car->applySteeringLeft(networkOutputs[2] > 0.0f);
+    car->applySteeringRight(networkOutputs[3] > 0.0f);
+
 
     // Speculatively calculate where we're gonna end up
-    uint32_t new_fitness = evaluateFitness();
+    int new_fitness = evaluateFitness();
+
+    // If the fitness jumps this much between ticks, we probably reversed over the start line.
+    // TODO: Add better logic to prevent this
+    if ((new_fitness - fitness) > 500){
+        dead = true;
+        return;
+    }
 
     if (new_fitness > fitness){
         tickCount = 0;
@@ -98,23 +107,25 @@ void CarAgent::simulate() {
     }
 }
 
-uint32_t CarAgent::evaluateFitness() {
+int CarAgent::evaluateFitness() {
     uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
-    uint32_t closestVroadID = 0;
-    float lowestDistanceSqr = FLT_MAX;
-    for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
+    int closestVroadID = 0;
+    float lowestDistance = FLT_MAX;
+    for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
         INTPT refPt = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
-        glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
-                               glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f),
-                                         (refPt.z / 65536.0f) / 10.f);
+        glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+        glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
 
-        float distanceSqr = glm::length2(glm::distance(car->carBodyModel.position, vroadPoint));
-        if (distanceSqr < lowestDistanceSqr) {
+        float distance = glm::distance(car->rightFrontWheelModel.position, vroadPoint);
+        if (distance < lowestDistance) {
             closestVroadID = vroad_Idx;
-            lowestDistanceSqr = distanceSqr;
+            lowestDistance = distance;
         }
     }
+    // TODO: HACK HACK HACK
+    if (closestVroadID == 1363) closestVroadID = 1;
+
     // Return a number corresponding to the distance driven
     return closestVroadID;
 }

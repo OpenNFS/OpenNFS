@@ -328,8 +328,8 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
                 Entity rightVroadBarrier = Entity(99, 99, NFS_3, VROAD, curRightVroadEdge, nextRightVroadEdge);
                 leftVroadBarrier.genPhysicsMesh();
                 rightVroadBarrier.genPhysicsMesh();
-                dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_TRACK, COL_RAY);
-                dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_TRACK, COL_RAY);
+                dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_TRACK, COL_RAY | COL_CAR);
+                dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_TRACK, COL_RAY | COL_CAR);
 
                 // Keep track of them so can clean up later
                 track->vroadBarriers.emplace_back(leftVroadBarrier);

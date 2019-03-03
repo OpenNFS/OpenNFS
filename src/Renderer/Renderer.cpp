@@ -337,14 +337,14 @@ void Renderer::DrawDebugCube(PhysicsEngine &physicsEngine, glm::vec3 position) {
 // Basic Geometry Cull
 std::vector<int> Renderer::CullTrackBlocks(glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData) {
     std::vector<int> activeTrackBlockIds;
-    float lowestDistanceSqr = FLT_MAX;
+    float lowestDistance = FLT_MAX;
 
     //Primitive Draw distance
     for (auto &track_block :  track->trackBlocks) {
-        float distanceSqr = glm::length2(glm::distance(worldPosition, track_block.center));
-        if (distanceSqr < lowestDistanceSqr) {
+        float distance = glm::distance(worldPosition, track_block.center);
+        if (distance < lowestDistance) {
             closestBlockID = track_block.blockId;
-            lowestDistanceSqr = distanceSqr;
+            lowestDistance = distance;
         }
     }
     // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render

@@ -33,7 +33,7 @@ public:
     ~Renderer();
     bool Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine);
     // Data used for culling
-    uint32_t closestBlockID = 0;
+    int closestBlockID = 0;
 private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;

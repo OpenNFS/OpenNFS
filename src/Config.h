@@ -61,7 +61,7 @@ const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks
 
 // ----- Defaults -----
 const std::string DEFAULT_CAR = "diab";
-const std::string DEFAULT_TRACK = "trk001";
+const std::string DEFAULT_TRACK = "trk000";
 
 
 /* --------------- ONFS Runtime parameters here -----------------*/
