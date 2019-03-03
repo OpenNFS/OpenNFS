@@ -36,7 +36,7 @@ void Camera::resetView() {
     );
 }
 
-void Camera::generateSpline(std::vector<TrackBlock> trackBlock) {
+void Camera::generateSpline(const std::vector<TrackBlock> &trackBlock) {
     std::vector<glm::vec3> cameraPoints;
     for (auto &track_block : trackBlock) {
         cameraPoints.emplace_back(glm::vec3(track_block.center.x, track_block.center.y + 0.2, track_block.center.z));
@@ -204,17 +204,17 @@ void Camera::computeMatricesFromInputs(bool &window_active, float deltaTime) {
 
 Camera::Camera() = default;
 
-void Camera::setCameraAnimation(std::vector<SHARED::CANPT> canPoints) {
+void Camera::setCameraAnimation(const std::vector<SHARED::CANPT> &canPoints) {
     cameraAnimPoints = canPoints;
 }
 
-bool Camera::playAnimation() {
+bool Camera::playAnimation(glm::vec3 playerCarPosition) {
     SHARED::CANPT animPosition = cameraAnimPoints[animationPosition++];
-    // TODO: This should really be relative to the players car
-    position =  (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.x/ 65536.0f) / 10.f, ((animPosition.y/ 65536.0f) / 10.f), (animPosition.z/ 65536.0f) / 10.f)) + initialPosition;
-    glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(1.0f - (animPosition.od1/ 65536.0f), 1.0f - (animPosition.od2/ 65536.0f), 1.0f - (animPosition.od3/ 65536.0f), 1.0f - (animPosition.od4/ 65536.0f)));
-    glm::vec3 direction = glm::normalize(position * RotationMatrix);
-
+    position = (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.x/ 65536.0f) / 10.f, ((animPosition.y/ 65536.0f) / 10.f), (animPosition.z/ 65536.0f) / 10.f)) + initialPosition;
+    glm::vec3 direction = glm::normalize(playerCarPosition - position);
+    // TODO: Reverse CAN rotation structure
+    // glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(1.0f - (animPosition.od1/ 65536.0f), 1.0f - (animPosition.od2/ 65536.0f), 1.0f - (animPosition.od3/ 65536.0f), 1.0f - (animPosition.od4/ 65536.0f)));
+    // glm::vec3 direction = glm::normalize(position * RotationMatrix);
 
     // Camera matrix
     ViewMatrix = glm::lookAt(

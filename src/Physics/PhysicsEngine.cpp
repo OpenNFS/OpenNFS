@@ -267,6 +267,9 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
         }
         for (auto &object : trackBlock.objects) {
             object.genPhysicsMesh();
+            dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
+            // TODO: Temporarily disable collidables
+            /*object.genPhysicsMesh();
             int collisionMask = COL_RAY;
             // Set collision masks
             if (object.collideable) {
@@ -280,7 +283,7 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
             initialTransform.setOrigin(Utils::glmToBullet(boost::get<Track>(object.glMesh).initialPosition));
             initialTransform.setRotation(Utils::glmToBullet(boost::get<Track>(object.glMesh).orientation));
             object.rigidBody->setWorldTransform(initialTransform);
-            dynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
+            dynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);*/
         }
         for (auto &light : trackBlock.lights) {
             light.genPhysicsMesh();

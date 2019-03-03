@@ -134,11 +134,13 @@ set(SOURCE_FILES
         src/RaceNet/RaceNEAT.cpp
         src/RaceNet/RaceNEAT.h
         src/RaceNet/CarAgent.cpp
-        src/RaceNet/CarAgent.h)
+        src/RaceNet/CarAgent.h
+        src/Race/RaceSession.cpp
+        src/Race/RaceSession.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
-    set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h src/Race/RaceSession.cpp src/Race/RaceSession.h)
+    set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h)
     add_definitions(-DVULKAN_BUILD)
 endif ()
 

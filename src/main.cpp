@@ -26,7 +26,7 @@
 #include "Loaders/car_loader.h"
 #include "Loaders/music_loader.h"
 #include "Physics/Car.h"
-#include "Renderer/Renderer.h"
+#include "Race/RaceSession.h"
 #include "RaceNet/TrainingGround.h"
 
 class OpenNFS {
@@ -75,8 +75,8 @@ public:
             //Load Music
             //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
 
-            Renderer renderer(window, logger, installedNFS, track, car);
-            loadedAssets = renderer.Render();
+            RaceSession race(window, logger, installedNFS, track, car);
+            loadedAssets = race.simulate();
         }
 
         // Close OpenGL window and terminate GLFW

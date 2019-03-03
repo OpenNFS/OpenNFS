@@ -22,35 +22,6 @@ private:
     float mouseSpeed = 0.005f;
     GLFWwindow* window;
     bool hasSpline = false;
-public:
-    Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window);
-    Camera();
-
-    void resetView();
-    void generateSpline(std::vector<TrackBlock> trackBlocks);
-    void useSpline(float elapsedTime); // Move to position on spline dependent on how long game has been running
-    void computeMatricesFromInputs(bool &window_active, float deltaTime);
-    void followCar(const shared_ptr<Car> &target_car, bool &window_active);
-    bool playAnimation();
-    void setCameraAnimation(std::vector<SHARED::CANPT> canPoints);
-
-    glm::mat4 ViewMatrix;
-    glm::mat4 ProjectionMatrix;
-    glm::vec3 initialPosition;
-
-    // Car Camera
-    glm::vec3 position;
-    float distanceFromCar = 0.7f;
-    float angleAroundCar = 0;
-    float pitch = 10;
-    float yaw = 0;
-    float roll = 0;
-
-    // Free look
-    // Initial horizontal angle : toward -Z
-    float horizontalAngle;
-    // Initial vertical angle : none
-    float verticalAngle;
 
     // NFS Camera Spline
     std::vector<SHARED::CANPT> cameraAnimPoints;
@@ -60,7 +31,6 @@ public:
 
     // Cam Spline
     HermiteCurve cameraSpline;
-    int loopTime;
 
     void calculateZoom();
     void calculatePitch();
@@ -68,5 +38,36 @@ public:
     float calculateHorizontalDistance();
     float calculateVerticalDistance();
     void calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance);
+public:
+    Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window);
+    Camera();
+
+    void resetView();
+    void generateSpline(const std::vector<TrackBlock> &trackBlocks);
+    void useSpline(float elapsedTime); // Move to position on spline dependent on how long game has been running
+    void computeMatricesFromInputs(bool &window_active, float deltaTime);
+    void followCar(const shared_ptr<Car> &target_car, bool &window_active);
+    bool playAnimation(glm::vec3 playerCarPosition);
+    void setCameraAnimation(const std::vector<SHARED::CANPT> &canPoints);
+
+    glm::mat4 ViewMatrix;
+    glm::mat4 ProjectionMatrix;
+    glm::vec3 initialPosition;
+    // Free look
+    // Initial horizontal angle : toward -Z
+    float horizontalAngle;
+    // Initial vertical angle : none
+    float verticalAngle;
+
+    // Cam Spline
+    int loopTime;
+
+    // Car Camera
+    glm::vec3 position;
+    float distanceFromCar = 0.7f;
+    float angleAroundCar = 0;
+    float pitch = 10;
+    float yaw = 0;
+    float roll = 0;
 };
 

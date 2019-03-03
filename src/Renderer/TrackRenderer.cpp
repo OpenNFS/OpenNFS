@@ -73,7 +73,7 @@ std::map<int, std::vector<Light>> TrackRenderer::GetContributingLights(const sha
 
 
 void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
-                                std::vector<int> activeTrackBlockIDs, const ParamData &userParams, uint64_t engineTicks,
+                                std::vector<int> activeTrackBlockIDs, const ParamData &userParams,
                                 GLuint depthTextureID, const glm::mat4 &lightSpaceMatrix, float ambientFactor) {
     trackShader.use();
 

@@ -15,7 +15,7 @@ public:
     explicit TrackRenderer(const shared_ptr<ONFSTrack> &activeTrack);
     ~TrackRenderer();
     // TODO: Refactor this, passing Sun and Moon Lights and deriving matrices internally
-    void renderTrack(const Camera &mainCamera, const Light &sunLight,  std::vector<int> activeTrackBlockIDs, const ParamData &userParams, uint64_t engineTicks, GLuint depthTextureID, const glm::mat4 &lightSpaceMatrix, float ambientFactor);
+    void renderTrack(const Camera &mainCamera, const Light &sunLight,  std::vector<int> activeTrackBlockIDs, const ParamData &userParams, GLuint depthTextureID, const glm::mat4 &lightSpaceMatrix, float ambientFactor);
     void renderLights(const Camera &mainCamera, std::vector<int> activeTrackBlockIDs);
     static std::vector<Light> GetInterestingLights(const TrackBlock &activeTrackBlock);
     static std::map<int, std::vector<Light>> GetContributingLights(const shared_ptr<ONFSTrack> &activeTrack);

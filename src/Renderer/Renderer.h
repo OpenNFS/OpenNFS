@@ -11,8 +11,6 @@
 #include <imgui.h>
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
-#include <chrono>
-#include <thread>
 
 #include "../Scene/Camera.h"
 #include "../Scene/Entity.h"
@@ -33,17 +31,15 @@ class Renderer {
 public:
     Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> &current_car);
     ~Renderer();
-    AssetData Render();
+    bool Render(float deltaTime, float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine);
+    // Data used for culling
+    uint32_t closestBlockID = 0;
 private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
     std::vector<NeedForSpeed> installedNFSGames;
-    AssetData loadedAssets;
     shared_ptr<ONFSTrack> track;
     shared_ptr<Car> car;
-
-    /*------- BULLET --------*/
-    PhysicsEngine physicsEngine;
 
     /* Renderers */
     TrackRenderer trackRenderer;
@@ -52,32 +48,23 @@ private:
     ShadowMapRenderer shadowMapRenderer;
 
     /* Scene Objects */
-    Camera mainCamera;
     Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     Light moon = Light(glm::vec3(0, -200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
-
-    // ------ Renderer State ------
-    uint64_t ticks = 0; // Engine ticks elapsed
-    float totalTime = 0;
-    ParamData userParams;
-
-    // Data used for culling
-    uint32_t closestBlockID = 0;
 
     // ------- Helper Functions ------
     void InitialiseIMGUI();
     void InitGlobalLights();
-    void NewFrame();
+    void NewFrame(ParamData &userParams);
     void UpdateShaders();
-    bool UpdateGlobalLights();
+    bool UpdateGlobalLights(ParamData &userParams);
     std::vector<int> CullTrackBlocks(glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
     void SetCulling(bool toCull);
-    void DrawCarRaycasts();
-    void DrawVroad();
-    void DrawCameraAnimation();
-    void DrawDebugCube(glm::vec3 position);
+    void DrawCarRaycasts(PhysicsEngine &physicsEngine);
+    void DrawVroad(PhysicsEngine &physicsEngine);
+    void DrawCameraAnimation(Camera &camera, PhysicsEngine &physicsEngine);
+    void DrawDebugCube(PhysicsEngine &physicsEngine, glm::vec3 position);
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
-    bool DrawMenuBar();
-    void DrawUI(glm::vec3 worldPositions);
+    bool DrawMenuBar(AssetData &loadedAssets);
+    void DrawUI(ParamData &userParams, Camera &camera);
 };

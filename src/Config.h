@@ -100,7 +100,6 @@ private:
 
 struct ParamData {
     float timeScaleFactor = 1.f;
-    ImVec4 clearColour = ImVec4(0.f, 0.f, 0.f, 1.0f);
     ImVec4 sunAttenuation = ImVec4(0.f, 0.f, 0.f, 1.0f);
     float trackSpecReflectivity = 1;
 

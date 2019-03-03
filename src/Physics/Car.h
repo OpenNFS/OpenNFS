@@ -17,6 +17,20 @@
 #include "../Util/Utils.h"
 #include "../Enums.h"
 
+typedef struct {
+    float angle;
+    float curLapTime;
+    float distFromStartLine;
+    float distRaced;
+    float lastLapTime;
+    float opponents[36];
+    int racePos;
+    float speedX;
+    float speedY;
+    float trackPos;
+    float wheelSpinVel;
+} SensorPack;
+
 class Car {
 public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
