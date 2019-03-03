@@ -40,7 +40,8 @@ public:
 
     std::vector<SHARED::CANPT> cameraAnimations;
     std::vector<TrackBlock> trackBlocks;
-    std::vector<Entity> global_objects;
+    std::vector<Entity> globalObjects;
+    std::vector<Entity> vroadBarriers;
     uint32_t nBlocks;
     GLuint textureArrayID;
 };

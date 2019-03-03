@@ -4,8 +4,6 @@
 
 #include "CarAgent.h"
 
-
-
 CarAgent::CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack) {
     this->populationID = populationID;
     name = "TrainingAgent" + std::to_string(populationID);
@@ -13,7 +11,7 @@ CarAgent::CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, co
     tickCount = 0;
     dead = false;
 
-    this->car = std::make_shared<Car>(trainingCar->all_models, trainingCar->tag, trainingCar->name);
+    this->car = std::make_shared<Car>(trainingCar->allModels, trainingCar->tag, trainingCar->name);
     this->car->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
@@ -24,7 +22,7 @@ CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath,
         LOG(WARNING) << "AI Neural network couldn't be loaded from " << BEST_NETWORK_PATH << ", randomising weights";
     }
     name = racerName;
-    this->car = std::make_shared<Car>(car->all_models, car->tag, car->name);
+    this->car = std::make_shared<Car>(car->allModels, car->tag, car->name);
 }
 
 void CarAgent::resetToVroad(uint32_t trackBlockIndex, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car) {
@@ -111,7 +109,7 @@ uint32_t CarAgent::evaluateFitness() {
                                glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f),
                                          (refPt.z / 65536.0f) / 10.f);
 
-        float distanceSqr = glm::length2(glm::distance(car->car_body_model.position, vroadPoint));
+        float distanceSqr = glm::length2(glm::distance(car->carBodyModel.position, vroadPoint));
         if (distanceSqr < lowestDistanceSqr) {
             closestVroadID = vroad_Idx;
             lowestDistanceSqr = distanceSqr;

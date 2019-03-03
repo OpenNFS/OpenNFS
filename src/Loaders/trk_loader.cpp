@@ -19,7 +19,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             cameraAnimations = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->cameraAnimation;
             textureArrayID = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->textureArrayID;
             trackBlocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
-            global_objects = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
+            globalObjects = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
             break;
         case NFS_2_SE:
             track_path << NFS_2_SE_TRACK_PATH << track_name;
@@ -28,7 +28,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             cameraAnimations = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->cameraAnimation;
             textureArrayID = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->textureArrayID;
             trackBlocks = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
-            global_objects = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
+            globalObjects = boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
             break;
         case NFS_3:
             // TODO: Remove this code that tests FFN Load
@@ -39,7 +39,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             cameraAnimations = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->cameraAnimation;
             textureArrayID =  boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
             trackBlocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
-            global_objects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
+            globalObjects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
             break;
         case NFS_3_PS1:
             track_path << "/" << track_name;
@@ -48,7 +48,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             cameraAnimations = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->cameraAnimation;
             textureArrayID =  boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->textureArrayID;
             trackBlocks = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->track_blocks;
-            global_objects = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->global_objects;
+            globalObjects = boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->global_objects;
             break;
         case NFS_4:
             track_path << NFS_4_TRACK_PATH << track_name;
@@ -57,7 +57,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             cameraAnimations = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->cameraAnimation;
             textureArrayID = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
             trackBlocks = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
-            global_objects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
+            globalObjects = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
             break;
         case UNKNOWN:
             ASSERT(false, "Unknown track type!");

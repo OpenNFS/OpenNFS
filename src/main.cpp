@@ -187,7 +187,7 @@ private:
         LOG(INFO) << "Max Array Texture Layers: " << max_array_texture_layers;
         LOG(INFO) << "OpenGL Initialisation successful";
 
-        glfwSwapInterval(1);
+        //glfwSwapInterval(1);
 
         return true;
     }

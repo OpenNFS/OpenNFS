@@ -146,7 +146,8 @@ void PhysicsEngine::buildGhostObject() {
     m_ghostObject = new btPairCachingGhostObject();
     m_ghostObject->setCollisionShape(shape);
     m_ghostObject->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
-    dynamicsWorld->addCollisionObject(m_ghostObject, btBroadphaseProxy::AllFilter, COL_TRACK); // btBroadphaseProxy::StaticFilter);
+    dynamicsWorld->addCollisionObject(m_ghostObject, btBroadphaseProxy::AllFilter,
+                                      COL_TRACK); // btBroadphaseProxy::StaticFilter);
 }
 
 void PhysicsEngine::updateFrustrum(glm::mat4 viewMatrix) {
@@ -204,8 +205,8 @@ void PhysicsEngine::stepSimulation(float time) {
         car->update(dynamicsWorld);
     }
     // TODO: Track updates should only propagate for active track blocks. Active list should be based upon track blocks cars are on
-    for(auto &track_block : currentTrack->trackBlocks){
-        for(auto &objects : track_block.objects){
+    for (auto &track_block : currentTrack->trackBlocks) {
+        for (auto &objects : track_block.objects) {
             //objects.update();
         }
     }
@@ -232,6 +233,11 @@ void PhysicsEngine::cleanSimulation() {
             delete light.rigidBody;
         }
     }
+    for(auto &vroadBarrier : currentTrack->vroadBarriers){
+        dynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
+        delete vroadBarrier.rigidBody->getMotionState();
+        delete vroadBarrier.rigidBody;
+    }
     delete dynamicsWorld;
     delete solver;
     delete dispatcher;
@@ -242,13 +248,14 @@ void PhysicsEngine::cleanSimulation() {
 Entity *PhysicsEngine::checkForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted) {
     glm::vec3 out_origin;
     glm::vec3 out_direction;
-    ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, ViewMatrix, ProjectionMatrix, out_origin, out_direction);
+    ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY,
+                        ViewMatrix, ProjectionMatrix, out_origin, out_direction);
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
                                                            btVector3(out_end.x, out_end.y, out_end.z));
     RayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
     dynamicsWorld->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z),
-                                              btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
+                           btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
     if (RayCallback.hasHit()) {
         *entity_targeted = true;
         return static_cast<Entity *>(RayCallback.m_collisionObject->getUserPointer());
@@ -290,6 +297,46 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
             dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
         }
     }
+    if (track->tag == NFS_3 || track->tag == NFS_4) {
+        uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+        for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
+            if (vroad_Idx < nVroad - 1) {
+                COLVROAD curVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
+                COLVROAD nextVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
+                INTPT curVroadRefPt = curVroad.refPt;
+                INTPT nextVroadRefPt = nextVroad.refPt;
+
+                glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+
+                // Transform NFS3/4 coords into ONFS 3d space
+                glm::vec3 curVroadPoint = rotationMatrix * glm::vec3((curVroadRefPt.x / 65536.0f) / 10.f, ((curVroadRefPt.y / 65536.0f) / 10.f), (curVroadRefPt.z / 65536.0f) / 10.f);
+                glm::vec3 nextVroadPoint = rotationMatrix * glm::vec3((nextVroadRefPt.x / 65536.0f) / 10.f, ((nextVroadRefPt.y / 65536.0f) / 10.f), (nextVroadRefPt.z / 65536.0f) / 10.f);
+
+                // Get VROAD right vector
+                glm::vec3 curVroadRightVec = rotationMatrix * glm::vec3(curVroad.right.x / 128.f, curVroad.right.y / 128.f, curVroad.right.z / 128.f);
+                glm::vec3 nextVroadRightVec = rotationMatrix * glm::vec3(nextVroad.right.x / 128.f, nextVroad.right.y / 128.f, nextVroad.right.z / 128.f);
+
+                // TODO: Add a config parameter/find a way to use proper Vroad extents instead of just vector
+                // Get edges of road by adding to vroad right vector to vroad reference point
+                glm::vec3 curLeftVroadEdge = curVroadPoint - curVroadRightVec;
+                glm::vec3 curRightVroadEdge = curVroadPoint + curVroadRightVec;
+                glm::vec3 nextLeftVroadEdge = nextVroadPoint - nextVroadRightVec;
+                glm::vec3 nextRightVroadEdge = nextVroadPoint + nextVroadRightVec;
+
+                // Add them to the physics world
+                Entity leftVroadBarrier = Entity(99, 99, NFS_3, VROAD, curLeftVroadEdge, nextLeftVroadEdge);
+                Entity rightVroadBarrier = Entity(99, 99, NFS_3, VROAD, curRightVroadEdge, nextRightVroadEdge);
+                leftVroadBarrier.genPhysicsMesh();
+                rightVroadBarrier.genPhysicsMesh();
+                dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_TRACK, COL_RAY);
+                dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_TRACK, COL_RAY);
+
+                // Keep track of them so can clean up later
+                track->vroadBarriers.emplace_back(leftVroadBarrier);
+                track->vroadBarriers.emplace_back(rightVroadBarrier);
+            }
+        }
+    }
 }
 
 void PhysicsEngine::registerVehicle(std::shared_ptr<Car> &car) {
@@ -301,7 +348,8 @@ void PhysicsEngine::registerVehicle(std::shared_ptr<Car> &car) {
     float wheelWidth = car->getWheelWidth();
     btScalar sRestLength = car->getSuspensionRestLength();
 
-    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
+    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
+            car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
     dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK);
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
     car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
@@ -311,17 +359,17 @@ void PhysicsEngine::registerVehicle(std::shared_ptr<Car> &car) {
 
     // Wire up the wheels
     // Fronties
-    btVector3 connectionPointCS0(Utils::glmToBullet(car->left_front_wheel_model.position));
+    btVector3 connectionPointCS0(Utils::glmToBullet(car->leftFrontWheelModel.position));
     car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
                                 car->m_tuning, true);
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->right_front_wheel_model.position));
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->rightFrontWheelModel.position));
     car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
                                 car->m_tuning, true);
     // Rearies
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->left_rear_wheel_model.position));
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->leftRearWheelModel.position));
     car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
                                 car->m_tuning, false);
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->right_rear_wheel_model.position));
+    connectionPointCS0 = btVector3(Utils::glmToBullet(car->rightRearWheelModel.position));
     car->getRaycast()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius,
                                 car->m_tuning, false);
 

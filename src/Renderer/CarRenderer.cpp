@@ -30,31 +30,31 @@ void CarRenderer::render(const Camera &mainCamera, const std::vector<Light> &con
     }
 
     // Render the Car models
-    for (auto &misc_model : car->misc_models) {
+    for (auto &misc_model : car->miscModels) {
         carShader.loadTransformationMatrix(misc_model.ModelMatrix);
         carShader.loadSpecular(misc_model.specularDamper, 0, 0);
         misc_model.render();
     }
 
-    carShader.loadTransformationMatrix(car->left_front_wheel_model.ModelMatrix);
-    carShader.loadSpecular(car->left_front_wheel_model.specularDamper, 0, 0);
-    car->left_front_wheel_model.render();
+    carShader.loadTransformationMatrix(car->leftFrontWheelModel.ModelMatrix);
+    carShader.loadSpecular(car->leftFrontWheelModel.specularDamper, 0, 0);
+    car->leftFrontWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->left_rear_wheel_model.ModelMatrix);
-    carShader.loadSpecular(car->left_rear_wheel_model.specularDamper, 0, 0);
-    car->left_rear_wheel_model.render();
+    carShader.loadTransformationMatrix(car->leftRearWheelModel.ModelMatrix);
+    carShader.loadSpecular(car->leftRearWheelModel.specularDamper, 0, 0);
+    car->leftRearWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->right_front_wheel_model.ModelMatrix);
-    carShader.loadSpecular(car->right_front_wheel_model.specularDamper, 0, 0);
-    car->right_front_wheel_model.render();
+    carShader.loadTransformationMatrix(car->rightFrontWheelModel.ModelMatrix);
+    carShader.loadSpecular(car->rightFrontWheelModel.specularDamper, 0, 0);
+    car->rightFrontWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->right_rear_wheel_model.ModelMatrix);
-    carShader.loadSpecular(car->right_rear_wheel_model.specularDamper, 0, 0);
-    car->right_rear_wheel_model.render();
+    carShader.loadTransformationMatrix(car->rightRearWheelModel.ModelMatrix);
+    carShader.loadSpecular(car->rightRearWheelModel.specularDamper, 0, 0);
+    car->rightRearWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->car_body_model.ModelMatrix);
-    carShader.loadSpecular(car->car_body_model.specularDamper, car->car_body_model.specularReflectivity, car->car_body_model.envReflectivity);
-    car->car_body_model.render();
+    carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
+    carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity, car->carBodyModel.envReflectivity);
+    car->carBodyModel.render();
 
     carShader.unbind();
 }

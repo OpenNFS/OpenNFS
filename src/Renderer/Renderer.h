@@ -29,9 +29,9 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track, shared_ptr<Car> &current_car);
+    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack, shared_ptr<Car> &currentCar);
     ~Renderer();
-    bool Render(float deltaTime, float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine);
+    bool Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine);
     // Data used for culling
     uint32_t closestBlockID = 0;
 private:
@@ -50,6 +50,10 @@ private:
     /* Scene Objects */
     Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     Light moon = Light(glm::vec3(0, -200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
+
+    /* Entity Targeting */
+    bool entityTargeted = false;
+    Entity *targetedEntity;
 
     // ------- Helper Functions ------
     void InitialiseIMGUI();

@@ -46,7 +46,7 @@ AssetData RaceSession::simulate() {
 
         // Play the original camera animation
         if (!cameraAnimationPlayed) {
-            cameraAnimationPlayed = mainCamera.playAnimation(car->car_body_model.position);
+            cameraAnimationPlayed = mainCamera.playAnimation(car->carBodyModel.position);
         } else if (userParams.attachCamToHermite) {
             mainCamera.useSpline(totalTime);
         } else if (userParams.attachCamToCar) {
@@ -63,8 +63,7 @@ AssetData RaceSession::simulate() {
             //car->simulate();
         } else {
             if (userParams.windowActive && !ImGui::GetIO().MouseDown[1]) {
-                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
-                                            glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+                car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
                 car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
                 car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
                 car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
@@ -75,7 +74,7 @@ AssetData RaceSession::simulate() {
             CarAgent::resetToVroad(mainRenderer.closestBlockID, track, car);
         }
 
-        bool assetChange = mainRenderer.Render(deltaTime, totalTime, mainCamera, userParams, loadedAssets, physicsEngine);
+        bool assetChange = mainRenderer.Render(totalTime, mainCamera, userParams, loadedAssets, physicsEngine);
 
         if (assetChange) {
             return loadedAssets;

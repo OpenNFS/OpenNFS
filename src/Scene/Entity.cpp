@@ -16,6 +16,17 @@ Entity::Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_ver
     setParameters();
 }
 
+Entity::Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, glm::vec3 from, glm::vec3 to) {
+    ASSERT(entity_type == VROAD, "This constructor is purely for VROAD entities");
+    tag = nfs_version;
+    type = entity_type;
+    parentTrackblockID = parent_trackblock_id;
+    entityID = entity_id;
+    startPoint = from;
+    endPoint = to;
+    setParameters();
+}
+
 void Entity::genPhysicsMesh() {
     if (type == LIGHT) {
         // Light mesh billboarded, generated AABB too large. Divide verts by scale factor to make smaller.
@@ -35,6 +46,18 @@ void Entity::genPhysicsMesh() {
             physicsMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
         }
         physicsShape = new btBvhTriangleMeshShape(&physicsMesh, true, true);
+    } else if (type == VROAD) {
+        float wallHeight = 0.25f;
+        auto *mesh = new btTriangleMesh();
+        glm::vec3 triangle = glm::vec3(startPoint.x, startPoint.y - wallHeight, startPoint.z);
+        glm::vec3 triangle1 = glm::vec3(startPoint.x, startPoint.y + wallHeight, startPoint.z);
+        glm::vec3 triangle2 = glm::vec3(endPoint.x, endPoint.y + wallHeight, endPoint.z);
+        mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+        glm::vec3 triangleA = glm::vec3(endPoint.x, endPoint.y - wallHeight, endPoint.z);
+        glm::vec3 triangle1A = glm::vec3(endPoint.x, endPoint.y + wallHeight, endPoint.z);
+        glm::vec3 triangle2A = glm::vec3(startPoint.x, startPoint.y - wallHeight, startPoint.z);
+        mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
+        physicsShape = new btConvexTriangleMeshShape(mesh);
     } else if (dynamic) {
         // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
         auto *mesh = new btTriangleMesh();
@@ -43,7 +66,8 @@ void Entity::genPhysicsMesh() {
             glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
             glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
             glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
-            mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+            mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1),
+                              Utils::glmToBullet(triangle2), false);
         }
         physicsShape = new btConvexTriangleMeshShape(mesh);
     } else {
@@ -59,7 +83,7 @@ void Entity::genPhysicsMesh() {
     }
     float entityMass = dynamic ? 100.f : 0.f;
     btVector3 localInertia;
-    if(dynamic){
+    if (dynamic) {
         physicsShape->calculateLocalInertia(entityMass, localInertia);
     }
     motionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
@@ -84,6 +108,10 @@ void Entity::setParameters() {
     switch (tag) {
         case NFS_3:
             switch (type) {
+                case VROAD:
+                    collideable = true;
+                    dynamic = false;
+                    break;
                 case LIGHT:
                     collideable = false;
                     break;
@@ -129,3 +157,5 @@ void Entity::setParameters() {
             LOG(WARNING) << "Entity parameters are unset for " << ToString(tag);
     }
 }
+
+

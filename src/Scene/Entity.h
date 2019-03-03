@@ -24,6 +24,8 @@ public:
     Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, EngineModel gl_mesh, uint32_t flags);
     // TODO: Deprecate this Entity constructor, and use collidable flags from every NFS polygon type
     Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, EngineModel gl_mesh) : Entity(parent_trackblock_id, entity_id, nfs_version, entity_type, gl_mesh, 0u) {};
+    // For physics engine only collision-meshes (not visible)
+    Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, glm::vec3 from, glm::vec3 to);
     void genPhysicsMesh();
     void update(); // Update Entity position based on Physics engine
     NFSVer tag;
@@ -36,6 +38,7 @@ public:
     bool dynamic = false;
 
     private:
+    glm::vec3 startPoint, endPoint;
     btTriangleMesh physicsMesh;
     btCollisionShape* physicsShape;
     btDefaultMotionState* motionState;

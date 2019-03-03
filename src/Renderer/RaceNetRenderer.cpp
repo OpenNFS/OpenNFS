@@ -44,13 +44,13 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, shar
 
         // Draw Cars
         for (auto &car_agent : carList) {
-            std::swap(car_agent.car->car_body_model.position.y, car_agent.car->car_body_model.position.z);
-            std::swap(car_agent.car->car_body_model.orientation.y, car_agent.car->car_body_model.orientation.z);
-            car_agent.car->car_body_model.update();
+            std::swap(car_agent.car->carBodyModel.position.y, car_agent.car->carBodyModel.position.z);
+            std::swap(car_agent.car->carBodyModel.orientation.y, car_agent.car->carBodyModel.orientation.z);
+            car_agent.car->carBodyModel.update();
 
             raceNetShader.loadColor(car_agent.car->colour);
-            raceNetShader.loadTransformationMatrix(car_agent.car->car_body_model.ModelMatrix);
-            car_agent.car->car_body_model.render();
+            raceNetShader.loadTransformationMatrix(car_agent.car->carBodyModel.ModelMatrix);
+            car_agent.car->carBodyModel.render();
         }
 
         raceNetShader.unbind();
@@ -59,7 +59,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, shar
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
     for (auto &carAgent : carList) {
-        ImGui::Text("%s %f %f %f", carAgent.name.c_str(), carAgent.car->car_body_model.position.x, carAgent.car->car_body_model.position.y, carAgent.car->car_body_model.position.z);
+        ImGui::Text("%s %f %f %f", carAgent.name.c_str(), carAgent.car->carBodyModel.position.x, carAgent.car->carBodyModel.position.y, carAgent.car->carBodyModel.position.z);
     }
 
     // Draw Logger UI

@@ -5,12 +5,12 @@
 
 #include "Renderer.h"
 
-Renderer::Renderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger,
-                   const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &current_track,
-                   shared_ptr<Car> &current_car) : carRenderer(current_car), trackRenderer(current_track),
-                                                   skyRenderer(current_track), shadowMapRenderer(current_track),
-                                                   logger(onfs_logger), installedNFSGames(installedNFS),
-                                                   window(gl_window), track(current_track), car(current_car) {
+Renderer::Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
+                   const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack,
+                   shared_ptr<Car> &currentCar) : carRenderer(currentCar), trackRenderer(currentTrack),
+                                                   skyRenderer(currentTrack), shadowMapRenderer(currentTrack),
+                                                   logger(onfsLogger), installedNFSGames(installedNFS),
+                                                   window(glWindow), track(currentTrack), car(currentCar) {
     InitialiseIMGUI();
     InitGlobalLights();
     LOG(DEBUG) << "Renderer Initialised";
@@ -35,10 +35,8 @@ bool Renderer::UpdateGlobalLights(ParamData &userParams) {
     return sun.position.y <= 0;
 }
 
-bool Renderer::Render(float deltaTime, float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine) {
+bool Renderer::Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine) {
     bool newAssetSelected = false;
-    bool entityTargeted = false;
-    Entity *targetedEntity;
 
     // Hot reload shaders
     UpdateShaders();
@@ -58,7 +56,7 @@ bool Renderer::Render(float deltaTime, float totalTime, Camera &camera, ParamDat
         physicsEngine.destroyGhostObject();
         activeTrackBlockIDs = CullTrackBlocks(
                 userParams.attachCamToHermite ? camera.position : userParams.attachCamToCar
-                                                                      ? car->car_body_model.position
+                                                                      ? car->carBodyModel.position
                                                                       : camera.position,
                 userParams.blockDrawDistance, userParams.useNbData);
     }
@@ -186,9 +184,9 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             ImGui::SliderFloat("Car Specular Damper", &userParams.carSpecDamper, 0, 100);
             ImGui::SliderFloat("Car Specular Reflectivity", &userParams.carSpecReflectivity, 0, 10);*/
             ImGui::Text("Roll (deg) x: %f y: %f z: %f",
-                        glm::eulerAngles(targetCar->car_body_model.orientation).x * 180 / SIMD_PI,
-                        glm::eulerAngles(targetCar->car_body_model.orientation).y * 180 / SIMD_PI,
-                        glm::eulerAngles(targetCar->car_body_model.orientation).z * 180 / SIMD_PI);
+                        glm::eulerAngles(targetCar->carBodyModel.orientation).x * 180 / SIMD_PI,
+                        glm::eulerAngles(targetCar->carBodyModel.orientation).y * 180 / SIMD_PI,
+                        glm::eulerAngles(targetCar->carBodyModel.orientation).z * 180 / SIMD_PI);
 
             // TODO: Only do this on a change
             for (int i = 0; i < car->getRaycast()->getNumWheels(); i++) {
@@ -306,14 +304,14 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera) {
     ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
 
     if (ImGui::TreeNode("Car Models")) {
-        ImGui::Checkbox(car->car_body_model.m_name.c_str(), &car->car_body_model.enabled);
-        ImGui::Checkbox(car->left_front_wheel_model.m_name.c_str(), &car->left_front_wheel_model.enabled);
-        ImGui::Checkbox(car->left_rear_wheel_model.m_name.c_str(), &car->left_rear_wheel_model.enabled);
-        ImGui::Checkbox(car->right_front_wheel_model.m_name.c_str(), &car->right_front_wheel_model.enabled);
-        ImGui::Checkbox(car->right_rear_wheel_model.m_name.c_str(), &car->right_rear_wheel_model.enabled);
+        ImGui::Checkbox(car->carBodyModel.m_name.c_str(), &car->carBodyModel.enabled);
+        ImGui::Checkbox(car->leftFrontWheelModel.m_name.c_str(), &car->leftFrontWheelModel.enabled);
+        ImGui::Checkbox(car->leftRearWheelModel.m_name.c_str(), &car->leftRearWheelModel.enabled);
+        ImGui::Checkbox(car->rightFrontWheelModel.m_name.c_str(), &car->rightFrontWheelModel.enabled);
+        ImGui::Checkbox(car->rightRearWheelModel.m_name.c_str(), &car->rightRearWheelModel.enabled);
         ImGui::TreePop();
         if (ImGui::TreeNode("Misc Models")) {
-            for (auto &mesh : car->misc_models) {
+            for (auto &mesh : car->miscModels) {
                 ImGui::Checkbox(mesh.m_name.c_str(), &mesh.enabled);
             }
             ImGui::TreePop();
@@ -440,7 +438,7 @@ void Renderer::NewFrame(ParamData &userParams) {
 }
 
 void Renderer::DrawCarRaycasts(PhysicsEngine &physicsEngine) {
-    glm::vec3 carBodyPosition = car->car_body_model.position;
+    glm::vec3 carBodyPosition = car->carBodyModel.position;
 
     physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                          Utils::glmToBullet(car->forwardCastPosition),
@@ -468,21 +466,32 @@ void Renderer::DrawVroad(PhysicsEngine &physicsEngine) {
         for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
             // Render COL Vroad? Should I use TRK VROAD to work across HS too?
             if (vroad_Idx < nVroad - 1) {
-                INTPT refPt = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(
-                        track->trackData)->col.vroad[vroad_Idx].refPt;
-                INTPT refPtNext = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[
-                        vroad_Idx + 1].refPt;
-                glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
-                                       glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f),
-                                                 (refPt.z / 65536.0f) / 10.f);
-                glm::vec3 vroadPointNext = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
-                                           glm::vec3((refPtNext.x / 65536.0f) / 10.f,
-                                                     ((refPtNext.y / 65536.0f) / 10.f),
-                                                     (refPtNext.z / 65536.0f) / 10.f);
+                COLVROAD curVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
+                COLVROAD nextVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
+
+                INTPT refPt = curVroad.refPt;
+                INTPT refPtNext = nextVroad.refPt;
+
+                glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+
+                // Transform NFS3/4 coords into ONFS 3d space
+                glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
+                glm::vec3 vroadPointNext = rotationMatrix * glm::vec3((refPtNext.x / 65536.0f) / 10.f, ((refPtNext.y / 65536.0f) / 10.f), (refPtNext.z / 65536.0f) / 10.f);
+
+                // Add a little vertical offset so it's not clipping through track geometry
                 vroadPoint.y += vRoadDisplayHeight;
                 vroadPointNext.y += vRoadDisplayHeight;
-                physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint),
-                                                     Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
+                physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
+
+
+                physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
+
+                glm::vec3 curVroadRightVec = rotationMatrix* glm::vec3(curVroad.right.x/128.f, curVroad.right.y/128.f, curVroad.right.z/128.f);
+                // TODO: Add a config parameter/find a way to use proper Vroad extents instead of just vector
+                glm::vec3 leftWall = ((curVroad.leftWall/65536.0f) / 10.f) * curVroadRightVec;
+                glm::vec3 rightWall = ((curVroad.rightWall/65536.0f) / 10.f) * curVroadRightVec;
+                physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroadRightVec), btVector3(1, 0, 0.5f));
+                physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroadRightVec), btVector3(1, 0, 0.5f));
             }
         }
     }

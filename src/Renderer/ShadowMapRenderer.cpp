@@ -59,27 +59,27 @@ void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::
             boost::get<Track>(track_block_entity.glMesh).render();
         }
     }
-    for (auto &global_object : track->global_objects) {
+    for (auto &global_object : track->globalObjects) {
         depthShader.loadTransformMatrix(boost::get<Track>(global_object.glMesh).ModelMatrix);
         boost::get<Track>(global_object.glMesh).render();
     }
 
     /* And the Car */
     depthShader.bindTextureArray(car->textureArrayID);
-    for (auto &misc_model : car->misc_models) {
+    for (auto &misc_model : car->miscModels) {
         depthShader.loadTransformMatrix(misc_model.ModelMatrix);
         misc_model.render();
     }
-    depthShader.loadTransformMatrix(car->left_front_wheel_model.ModelMatrix);
-    car->left_front_wheel_model.render();
-    depthShader.loadTransformMatrix(car->left_rear_wheel_model.ModelMatrix);
-    car->left_rear_wheel_model.render();
-    depthShader.loadTransformMatrix(car->right_front_wheel_model.ModelMatrix);
-    car->right_front_wheel_model.render();
-    depthShader.loadTransformMatrix(car->right_rear_wheel_model.ModelMatrix);
-    car->right_rear_wheel_model.render();
-    depthShader.loadTransformMatrix(car->car_body_model.ModelMatrix);
-    car->car_body_model.render();
+    depthShader.loadTransformMatrix(car->leftFrontWheelModel.ModelMatrix);
+    car->leftFrontWheelModel.render();
+    depthShader.loadTransformMatrix(car->leftRearWheelModel.ModelMatrix);
+    car->leftRearWheelModel.render();
+    depthShader.loadTransformMatrix(car->rightFrontWheelModel.ModelMatrix);
+    car->rightFrontWheelModel.render();
+    depthShader.loadTransformMatrix(car->rightRearWheelModel.ModelMatrix);
+    car->rightRearWheelModel.render();
+    depthShader.loadTransformMatrix(car->carBodyModel.ModelMatrix);
+    car->carBodyModel.render();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

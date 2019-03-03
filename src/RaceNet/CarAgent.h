@@ -11,6 +11,20 @@
 
 static const uint32_t STALE_TICK_COUNT = 300;
 
+typedef struct {
+    float angle;
+    float curLapTime;
+    float distFromStartLine;
+    float distRaced;
+    float lastLapTime;
+    float opponents[36];
+    int racePos;
+    float speedX;
+    float speedY;
+    float trackPos;
+    float wheelSpinVel;
+} SensorPack;
+
 class CarAgent {
 private:
     std::shared_ptr<ONFSTrack> track;

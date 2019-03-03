@@ -17,20 +17,6 @@
 #include "../Util/Utils.h"
 #include "../Enums.h"
 
-typedef struct {
-    float angle;
-    float curLapTime;
-    float distFromStartLine;
-    float distRaced;
-    float lastLapTime;
-    float opponents[36];
-    int racePos;
-    float speedX;
-    float speedY;
-    float trackPos;
-    float wheelSpinVel;
-} SensorPack;
-
 class Car {
 public:
     explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
@@ -38,7 +24,6 @@ public:
     ~Car();
     void setPosition(glm::vec3 position, glm::quat orientation);
     void update();
-    void simulate();
     void update(btDynamicsWorld* dynamicsWorld);
     void resetCar(glm::vec3 reset_position, glm::quat reset_orientation);
     void writeObj(const std::string &path);
@@ -67,7 +52,7 @@ public:
     float getWheelFriction() { return wheelFriction; }
     float getRollInfluence() { return rollInfluence; }
     bool isMultitextured() {return multitexturedCarModel; }
-    bool hasPolyFlags() {return car_body_model.hasPolyFlags; }
+    bool hasPolyFlags() {return carBodyModel.hasPolyFlags; }
 
     float getRotY();
 
@@ -82,13 +67,13 @@ public:
     float leftDistance = 0.f;
 
     // Meshes
-    std::vector<CarModel> all_models;
-    std::vector<CarModel> misc_models;
-    CarModel left_front_wheel_model;
-    CarModel right_front_wheel_model;
-    CarModel left_rear_wheel_model;
-    CarModel right_rear_wheel_model;
-    CarModel car_body_model;
+    std::vector<CarModel> allModels;
+    std::vector<CarModel> miscModels;
+    CarModel leftFrontWheelModel;
+    CarModel rightFrontWheelModel;
+    CarModel leftRearWheelModel;
+    CarModel rightRearWheelModel;
+    CarModel carBodyModel;
     // Multitextured Car
     GLuint textureArrayID;
 

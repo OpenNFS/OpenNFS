@@ -112,7 +112,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
     }
 
     // Render the global data, animations go here.
-    for (auto &global_object : track->global_objects) {
+    for (auto &global_object : track->globalObjects) {
         if (track->tag == NFS_4 || track->tag == NFS_3) {
             uint32_t globalObjIdx = 4 * track->nBlocks; //Global Objects
             NFS3_4_DATA::XOBJDATA animObject = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(
