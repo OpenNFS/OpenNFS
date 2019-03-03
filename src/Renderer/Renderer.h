@@ -31,7 +31,7 @@ class Renderer {
 public:
     Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack, shared_ptr<Car> &currentCar);
     ~Renderer();
-    bool Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine);
+    bool Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine);
     // Data used for culling
     int closestBlockID = 0;
 private:
@@ -39,7 +39,6 @@ private:
     std::shared_ptr<Logger> logger;
     std::vector<NeedForSpeed> installedNFSGames;
     shared_ptr<ONFSTrack> track;
-    shared_ptr<Car> car;
 
     /* Renderers */
     TrackRenderer trackRenderer;
@@ -53,7 +52,7 @@ private:
 
     /* Entity Targeting */
     bool entityTargeted = false;
-    Entity *targetedEntity;
+    Entity *targetedEntity = nullptr;
 
     // ------- Helper Functions ------
     void InitialiseIMGUI();
@@ -63,12 +62,12 @@ private:
     bool UpdateGlobalLights(ParamData &userParams);
     std::vector<int> CullTrackBlocks(glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
     void SetCulling(bool toCull);
-    void DrawCarRaycasts(PhysicsEngine &physicsEngine);
+    void DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine);
     void DrawVroad(PhysicsEngine &physicsEngine);
     void DrawCameraAnimation(Camera &camera, PhysicsEngine &physicsEngine);
     void DrawDebugCube(PhysicsEngine &physicsEngine, glm::vec3 position);
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
     bool DrawMenuBar(AssetData &loadedAssets);
-    void DrawUI(ParamData &userParams, Camera &camera);
+    void DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar);
 };

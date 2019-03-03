@@ -4,15 +4,11 @@
 
 #include "CarRenderer.h"
 
-CarRenderer::CarRenderer(shared_ptr<Car> &activeCar) : carShader(activeCar) {
-    car = activeCar;
-    if(!car->isMultitextured()){
-        // TODO: Move this out of car shader and into Car constructor
-        carShader.load_tga_texture();
-    }
+CarRenderer::CarRenderer() {
+
 }
 
-void CarRenderer::render(const Camera &mainCamera, const std::vector<Light> &contributingLights) {
+void CarRenderer::render(shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights) {
     carShader.use();
 
     // This shader state doesnt change during a car renderpass
@@ -26,7 +22,7 @@ void CarRenderer::render(const Camera &mainCamera, const std::vector<Light> &con
     if(car->isMultitextured()){
         carShader.bindTextureArray(car->textureArrayID);
     } else {
-        carShader.loadCarTexture();
+        carShader.loadCarTexture(car->textureID);
     }
 
     // Render the Car models

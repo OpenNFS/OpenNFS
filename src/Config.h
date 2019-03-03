@@ -62,7 +62,7 @@ const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks
 // ----- Defaults -----
 const std::string DEFAULT_CAR = "diab";
 const std::string DEFAULT_TRACK = "trk000";
-
+const int         DEFAULT_NUM_RACERS = 0;
 
 /* --------------- ONFS Runtime parameters here -----------------*/
 class Config
@@ -81,6 +81,7 @@ public:
     };
     // Better named parameters instead of using var_map with command-line arg name
     std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
+    int nRacers = DEFAULT_NUM_RACERS;
     /* -- Render Params -- */
     bool vulkanRender = false;
     bool headless = false;

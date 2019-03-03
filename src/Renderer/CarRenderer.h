@@ -10,11 +10,9 @@
 
 class CarRenderer {
 public:
-    explicit CarRenderer(shared_ptr<Car> &activeCar);
+    explicit CarRenderer();
     ~CarRenderer();
-    void render(const Camera &mainCamera, const std::vector<Light> &contributingLights);
+    void render(shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights);
     // Create and compile our GLSL programs from the shaders
     CarShader carShader;
-private:
-    shared_ptr<Car> car;
 };

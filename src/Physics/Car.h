@@ -74,6 +74,10 @@ public:
     CarModel leftRearWheelModel;
     CarModel rightRearWheelModel;
     CarModel carBodyModel;
+
+    // GL ID's
+    // TGA Car
+    GLuint textureID;
     // Multitextured Car
     GLuint textureArrayID;
 
@@ -106,6 +110,7 @@ public:
 private:
     void genRaycasts(btDynamicsWorld* dynamicsWorld);
     void setModels(std::vector<CarModel> car_models);
+    GLuint LoadTGATexture();
 
     // Base Physics objects for car
     btDefaultMotionState* vehicleMotionState;   // Retrieving vehicle location in world

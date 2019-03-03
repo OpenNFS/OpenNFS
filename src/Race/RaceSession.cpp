@@ -24,8 +24,9 @@ RaceSession::RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogg
     if (track->tag != NFS_3_PS1) {
         mainCamera.setCameraAnimation(track->cameraAnimations);
     }
-
-    CarAgent::resetToVroad(0, track, car);
+    // Reset player character to start
+    CarAgent::resetToVroad(0, 0, 0.25f, track, car);
+    SpawnRacers(Config::get().nRacers);
 }
 
 AssetData RaceSession::simulate() {
@@ -71,10 +72,10 @@ AssetData RaceSession::simulate() {
         }
 
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-            CarAgent::resetToVroad(mainRenderer.closestBlockID, track, car);
+            CarAgent::resetToVroad(mainRenderer.closestBlockID, 0, 0.f, track, car);
         }
 
-        bool assetChange = mainRenderer.Render(totalTime, mainCamera, userParams, loadedAssets, physicsEngine);
+        bool assetChange = mainRenderer.Render(totalTime, mainCamera, userParams, loadedAssets, car, racers, physicsEngine);
 
         if (assetChange) {
             return loadedAssets;
@@ -90,5 +91,16 @@ AssetData RaceSession::simulate() {
     // Just set a flag temporarily to let main know that we outta here
     loadedAssets.trackTag = UNKNOWN;
     return loadedAssets;
+}
+
+void RaceSession::SpawnRacers(int nRacers) {
+    float racerSpawnOffset = -0.25f;
+    for(uint16_t racer_Idx = 0; racer_Idx < nRacers; ++racer_Idx){
+        CarAgent racer(racer_Idx, car, track);
+        physicsEngine.registerVehicle(racer.car);
+        racer.resetToVroad(0, racer_Idx, racerSpawnOffset, track, racer.car);
+        racers.emplace_back(racer);
+        racerSpawnOffset = -racerSpawnOffset;
+    }
 }
 

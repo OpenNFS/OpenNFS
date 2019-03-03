@@ -7,8 +7,7 @@
 const std::string vertexSrc = "../shaders/CarVertexShader.vert";
 const std::string fragSrc = "../shaders/CarFragmentShader.frag";
 
-CarShader::CarShader(shared_ptr<Car> &current_car) : super(vertexSrc, fragSrc){
-    car = current_car;
+CarShader::CarShader() : super(vertexSrc, fragSrc){
     bindAttributes();
     getAllUniformLocations();
     loadEnvMapTextureData();
@@ -72,7 +71,7 @@ void CarShader::setPolyFlagged(bool polyFlagged){
 }
 
 void CarShader::customCleanup() {
-    glDeleteTextures(1, &textureID);
+
 }
 
 void CarShader::bindTextureArray(GLuint textureArrayID) {
@@ -82,25 +81,7 @@ void CarShader::bindTextureArray(GLuint textureArrayID) {
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
 }
 
-void CarShader::load_tga_texture() {
-    std::stringstream car_texture_path;
-    car_texture_path << CAR_PATH << ToString(car->tag) << "/" <<car->name << "/car00.tga";
-
-    NS_TGALOADER::IMAGE texture_loader;
-    ASSERT(texture_loader.LoadTGA(car_texture_path.str().c_str()), "Car Texture loading failed!");
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-}
-
-void CarShader::loadCarTexture(){
+void CarShader::loadCarTexture(GLuint textureID){
     loadSampler2D(carTextureLocation, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textureID);

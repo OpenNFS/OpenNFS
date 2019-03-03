@@ -7,10 +7,10 @@
 #include "BaseShader.h"
 #include <sstream>
 #include <glm/detail/type_mat4x4.hpp>
+
 #include "../Config.h"
 #include "../Util/Utils.h"
 #include "../Scene/Model.h"
-#include "../../include/TGALoader/TGALoader.h"
 #include "../Scene/Light.h"
 #include "../Physics/Car.h"
 #include "../../shaders/ShaderPreamble.h"
@@ -18,9 +18,9 @@
 
 class CarShader : public BaseShader {
 public:
-    explicit CarShader(shared_ptr<Car> &current_car);
+    explicit CarShader();
     void loadCarColor(glm::vec3 color);
-    void loadCarTexture();
+    void loadCarTexture(GLuint textureID);
     void loadLights(std::vector<Light> lights);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view);
@@ -28,14 +28,13 @@ public:
     void bindTextureArray(GLuint textureArrayID);
     void setMultiTextured(bool multiTextured);
     void setPolyFlagged(bool polyFlagged);
-    void load_tga_texture();
     void loadEnvironmentMapTexture();
 protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
     void loadEnvMapTextureData();
-    shared_ptr<Car> car;
+
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
     GLint viewMatrixLocation;
@@ -52,7 +51,6 @@ protected:
     GLint isMultiTexturedLocation; // Multitextured
     GLint hasPolyFlagsLocation;    // PolyFlagged
 
-    GLuint textureID = 0;
     GLuint envMapTextureID = 0;
 
     typedef BaseShader super;

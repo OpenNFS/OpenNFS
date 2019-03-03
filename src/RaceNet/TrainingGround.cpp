@@ -28,10 +28,10 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
     pool.import_fromfile("generation.dat");
     bool haveWinner = false;
     uint32_t gen_Idx = 0;
-    unsigned int globalMaxFitness = 0;
+    int globalMaxFitness = 0;
 
     // iterator
-    unsigned int specie_counter = 0;
+    int specie_counter = 0;
     auto specieIter = pool.species.begin();
 
     // init initial
@@ -96,7 +96,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             if (specieIter != pool.species.end())
                 for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {
                     // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
-                    CarAgent car_agent(i, this->training_car, this->training_track);
+                    CarAgent car_agent((int) i, this->training_car, this->training_track);
                     car_agent.raceNet.from_genome((*specieIter).genomes[i]);
                     physicsEngine.registerVehicle(car_agent.car);
                     car_agent.reset();

@@ -41,7 +41,7 @@ public:
     CarAgent(const std::string &racerName, const std::string &networkPath, const shared_ptr<Car> &car); // Racing
     CarAgent() = default; // std::vector raw impl
 
-    static void resetToVroad(uint32_t trackBlockIndex, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car);
+    static void resetToVroad(int trackBlockIndex, int posIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car);
     void reset(); // Wrapper to reset to start of training track
     bool isWinner();
     int evaluateFitness();

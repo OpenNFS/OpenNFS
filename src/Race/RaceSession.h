@@ -24,6 +24,7 @@ private:
     AssetData loadedAssets;
     shared_ptr<ONFSTrack> track;
     shared_ptr<Car> car;
+    std::vector<CarAgent> racers;
     PhysicsEngine physicsEngine;
     Camera mainCamera;
     ParamData userParams;
@@ -31,6 +32,8 @@ private:
 
     uint64_t ticks = 0; // Engine ticks elapsed
     float totalTime = 0;
+
+    void SpawnRacers(int nRacers);
 public:
     RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack, shared_ptr<Car> &currentCar);
     AssetData simulate();

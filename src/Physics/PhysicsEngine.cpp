@@ -348,8 +348,7 @@ void PhysicsEngine::registerVehicle(std::shared_ptr<Car> &car) {
     float wheelWidth = car->getWheelWidth();
     btScalar sRestLength = car->getSuspensionRestLength();
 
-    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
-            car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
+    dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
     dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK);
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
     car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());

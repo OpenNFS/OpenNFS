@@ -25,19 +25,30 @@ CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath,
     this->car = std::make_shared<Car>(car->allModels, car->tag, car->name);
 }
 
-void CarAgent::resetToVroad(uint32_t trackBlockIndex, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car) {
+void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car) {
     glm::vec3 vroadPoint;
     glm::quat carOrientation;
+
+    ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
     if (track->tag == NFS_3 || track->tag == NFS_4) {
         // Can move this by trk[trackBlockIndex].nodePositions
         uint32_t nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
+        if (posIndex < boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions){
+            nodeNumber += posIndex;
+        } else {
 
+            // TODO: Write logic here to wrap to next trackblock vroad data. Or assert?
+        }
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         COLVROAD resetVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
         vroadPoint = (rotationMatrix * TrackUtils::pointToVec(resetVroad.refPt)) / 65536.f;
         vroadPoint /= 10.f;
         vroadPoint.y += 0.2;
+
+        // Get VROAD right vector
+        glm::vec3 curVroadRightVec = rotationMatrix * glm::vec3(resetVroad.right.x / 128.f, resetVroad.right.y / 128.f, resetVroad.right.z / 128.f);
+        vroadPoint += offset * curVroadRightVec;
 
         rotationMatrix = glm::normalize(glm::quat(glm::vec3(SIMD_PI / 2, 0, 0)));
         glm::vec3 forward = TrackUtils::pointToVec(resetVroad.forward) * rotationMatrix;
@@ -64,7 +75,7 @@ bool CarAgent::isWinner() {
 }
 
 void CarAgent::reset(){
-    resetToVroad(2, track, car);
+    resetToVroad(2, 0, 0.f, track, car);
 }
 
 void CarAgent::simulate() {

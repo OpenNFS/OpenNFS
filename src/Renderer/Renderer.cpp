@@ -7,10 +7,10 @@
 
 Renderer::Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
                    const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack,
-                   shared_ptr<Car> &currentCar) : carRenderer(currentCar), trackRenderer(currentTrack),
+                   shared_ptr<Car> &currentCar) : trackRenderer(currentTrack),
                                                    skyRenderer(currentTrack), shadowMapRenderer(currentTrack),
                                                    logger(onfsLogger), installedNFSGames(installedNFS),
-                                                   window(glWindow), track(currentTrack), car(currentCar) {
+                                                   window(glWindow), track(currentTrack) {
     InitialiseIMGUI();
     InitGlobalLights();
     LOG(DEBUG) << "Renderer Initialised";
@@ -35,7 +35,7 @@ bool Renderer::UpdateGlobalLights(ParamData &userParams) {
     return sun.position.y <= 0;
 }
 
-bool Renderer::Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, PhysicsEngine &physicsEngine) {
+bool Renderer::Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine) {
     bool newAssetSelected = false;
 
     // Hot reload shaders
@@ -56,7 +56,7 @@ bool Renderer::Render(float totalTime, Camera &camera, ParamData &userParams, As
         physicsEngine.destroyGhostObject();
         activeTrackBlockIDs = CullTrackBlocks(
                 userParams.attachCamToHermite ? camera.position : userParams.attachCamToCar
-                                                                      ? car->carBodyModel.position
+                                                                      ? playerCar->carBodyModel.position
                                                                       : camera.position,
                 userParams.blockDrawDistance, userParams.useNbData);
     }
@@ -65,22 +65,26 @@ bool Renderer::Render(float totalTime, Camera &camera, ParamData &userParams, As
     bool nightTime = UpdateGlobalLights(userParams);
     float ambientLightFactor = nightTime ? 0.2f : 0.5f;
 
-    shadowMapRenderer.renderShadowMap(nightTime ? moon.ViewMatrix : sun.ViewMatrix, activeTrackBlockIDs, car);
+    shadowMapRenderer.renderShadowMap(nightTime ? moon.ViewMatrix : sun.ViewMatrix, activeTrackBlockIDs, playerCar);
     skyRenderer.renderSky(camera, sun, userParams, totalTime);
     trackRenderer.renderTrack(camera, nightTime ? moon : sun, activeTrackBlockIDs, userParams, shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix, ambientLightFactor);
     trackRenderer.renderLights(camera, activeTrackBlockIDs);
 
-    // Render the Car
-    if (car->tag == NFS_3 || car->tag == NFS_4) SetCulling(true);
+    // Render the Car and racers
     // Get lights that will contribute to car body (currentBlock, a few blocks forward, and a few back (NBData would give weird results, as NBData blocks aren't generally adjacent))
     // Should use NFS3/4 Shading data too as a fake light
     std::vector<Light> carBodyContributingLights = trackRenderer.trackLightMap[closestBlockID];
     carBodyContributingLights.emplace_back(nightTime ? moon : sun);
-    carRenderer.render(camera, carBodyContributingLights);
+    if (playerCar->tag == NFS_3 || playerCar->tag == NFS_4) SetCulling(true);
+    carRenderer.render(playerCar, camera, carBodyContributingLights);
+    for(auto &racer : racers){
+        if (racer.car->tag == NFS_3 || racer.car->tag == NFS_4) SetCulling(true);
+        carRenderer.render(racer.car, camera, carBodyContributingLights);
+    }
     SetCulling(false);
 
     if (userParams.drawRaycast) {
-        DrawCarRaycasts(physicsEngine);
+        DrawCarRaycasts(playerCar, physicsEngine);
     }
 
     if (userParams.drawCAN) {
@@ -107,7 +111,7 @@ bool Renderer::Render(float totalTime, Camera &camera, ParamData &userParams, As
         newAssetSelected = true;
     };
 
-    DrawUI(userParams, camera);
+    DrawUI(userParams, camera, playerCar);
     glfwSwapBuffers(window);
 
     return newAssetSelected;
@@ -189,13 +193,13 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
                         glm::eulerAngles(targetCar->carBodyModel.orientation).z * 180 / SIMD_PI);
 
             // TODO: Only do this on a change
-            for (int i = 0; i < car->getRaycast()->getNumWheels(); i++) {
-                btWheelInfo &wheel = car->getRaycast()->getWheelInfo(i);
-                wheel.m_suspensionStiffness = car->getSuspensionStiffness();
-                wheel.m_wheelsDampingRelaxation = car->getSuspensionDamping();
-                wheel.m_wheelsDampingCompression = car->getSuspensionCompression();
-                wheel.m_frictionSlip = car->getWheelFriction();
-                wheel.m_rollInfluence = car->getRollInfluence();
+            for (int i = 0; i < targetCar->getRaycast()->getNumWheels(); i++) {
+                btWheelInfo &wheel = targetCar->getRaycast()->getWheelInfo(i);
+                wheel.m_suspensionStiffness = targetCar->getSuspensionStiffness();
+                wheel.m_wheelsDampingRelaxation = targetCar->getSuspensionDamping();
+                wheel.m_wheelsDampingCompression = targetCar->getSuspensionCompression();
+                wheel.m_frictionSlip = targetCar->getWheelFriction();
+                wheel.m_rollInfluence = targetCar->getRollInfluence();
             }
 
             break;
@@ -255,7 +259,7 @@ void Renderer::SetCulling(bool toCull) {
     }
 }
 
-void Renderer::DrawUI(ParamData &userParams, Camera &camera) {
+void Renderer::DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar) {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
     ImGui::Image((ImTextureID) shadowMapRenderer.depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
@@ -263,10 +267,8 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera) {
     // Draw Logger UI
     logger->onScreenLog.Draw("ONFS Log");
     // Draw UI (Tactically)
-    static float f = 0.0f;
     ImGui::Text("OpenNFS Engine");
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                ImGui::GetIO().Framerate);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
     ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);
     ImGui::Checkbox("Classic Graphics", &userParams.useClassicGraphics);
@@ -289,7 +291,7 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera) {
     };
     ImGui::SameLine(0, -1.0f);
     if (ImGui::Button("Reset Car to Start")) {
-        CarAgent::resetToVroad(0, track, car);
+        CarAgent::resetToVroad(0, 0, 0.f, track, playerCar);
     };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);
@@ -304,14 +306,14 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera) {
     ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
 
     if (ImGui::TreeNode("Car Models")) {
-        ImGui::Checkbox(car->carBodyModel.m_name.c_str(), &car->carBodyModel.enabled);
-        ImGui::Checkbox(car->leftFrontWheelModel.m_name.c_str(), &car->leftFrontWheelModel.enabled);
-        ImGui::Checkbox(car->leftRearWheelModel.m_name.c_str(), &car->leftRearWheelModel.enabled);
-        ImGui::Checkbox(car->rightFrontWheelModel.m_name.c_str(), &car->rightFrontWheelModel.enabled);
-        ImGui::Checkbox(car->rightRearWheelModel.m_name.c_str(), &car->rightRearWheelModel.enabled);
+        ImGui::Checkbox(playerCar->carBodyModel.m_name.c_str(), &playerCar->carBodyModel.enabled);
+        ImGui::Checkbox(playerCar->leftFrontWheelModel.m_name.c_str(), &playerCar->leftFrontWheelModel.enabled);
+        ImGui::Checkbox(playerCar->leftRearWheelModel.m_name.c_str(), &playerCar->leftRearWheelModel.enabled);
+        ImGui::Checkbox(playerCar->rightFrontWheelModel.m_name.c_str(), &playerCar->rightFrontWheelModel.enabled);
+        ImGui::Checkbox(playerCar->rightRearWheelModel.m_name.c_str(), &playerCar->rightRearWheelModel.enabled);
         ImGui::TreePop();
         if (ImGui::TreeNode("Misc Models")) {
-            for (auto &mesh : car->miscModels) {
+            for (auto &mesh : playerCar->miscModels) {
                 ImGui::Checkbox(mesh.m_name.c_str(), &mesh.enabled);
             }
             ImGui::TreePop();
@@ -437,7 +439,7 @@ void Renderer::NewFrame(ParamData &userParams) {
     ImGui::NewFrame();
 }
 
-void Renderer::DrawCarRaycasts(PhysicsEngine &physicsEngine) {
+void Renderer::DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine) {
     glm::vec3 carBodyPosition = car->carBodyModel.position;
 
     physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),

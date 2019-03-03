@@ -30,6 +30,7 @@
 #include <GL/glew.h>
 
 #include "Logger.h"
+#include "../../include/TGALoader/TGALoader.h"
 #include "../Scene/CarModel.h"
 #include "../Enums.h"
 
