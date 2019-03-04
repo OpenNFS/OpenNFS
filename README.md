@@ -75,7 +75,7 @@ The CMake files are currently configured to detect external libraries from withi
 
 Massive thanks to Denis Auroux, Vitaly 'Necromancer', EdasX, Ian Brownm, Jesper Juul-Mortensen and Arushan for their work on reverse engineering various NFS formats.
 
-Tom 'VapeTrick' Klapwijk - sarcasm and support and snaking my dev updates
+Tom 'VapeTrick' Klapwijk - sarcasm and support and snaking my dev updates [oi, I never snake them]
 
 ## Legal:
 Models, textures, tracks, cars by EA Seattle (C) 1998, 1999, 2002. EA Canada (C) 2000, EA Blackbox (C) 2002.
