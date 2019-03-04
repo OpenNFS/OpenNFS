@@ -83,7 +83,7 @@ AssetData RaceSession::simulate() {
 void RaceSession::SpawnRacers(int nRacers) {
     float racerSpawnOffset = -0.25f;
     for(uint16_t racer_Idx = 0; racer_Idx < nRacers; ++racer_Idx){
-        CarAgent racer(racerNames[racer_Idx], BEST_NETWORK_PATH, car);
+        CarAgent racer(racerNames[racer_Idx % 23], BEST_NETWORK_PATH, car);
         physicsEngine.registerVehicle(racer.car);
         racer.resetToVroad(0, racer_Idx + 1, racerSpawnOffset, track, racer.car);
         racers.emplace_back(racer);

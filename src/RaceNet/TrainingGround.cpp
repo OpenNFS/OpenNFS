@@ -55,15 +55,15 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             if(gen_Idx == Config::get().nGenerations) break;
         }
 
-        bool all_dead = true;
+        bool allDead = true;
 
         for (auto &car_agent : carAgents) {
             if (!car_agent.dead) {
-                all_dead = false;
+                allDead = false;
             }
         }
 
-        if (all_dead) {
+        if (allDead) {
             if (specieIter != pool.species.end()) {
                 int best_id = -1;
                 for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {

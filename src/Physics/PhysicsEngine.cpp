@@ -245,11 +245,11 @@ void PhysicsEngine::cleanSimulation() {
     delete broadphase;
 }
 
-Entity *PhysicsEngine::checkForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted) {
+Entity *PhysicsEngine::checkForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted) {
     glm::vec3 out_origin;
     glm::vec3 out_direction;
     ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY,
-                        ViewMatrix, ProjectionMatrix, out_origin, out_direction);
+                        viewMatrix, projectionMatrix, out_origin, out_direction);
     glm::vec3 out_end = out_origin + out_direction * 1000.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
                                                            btVector3(out_end.x, out_end.y, out_end.z));
@@ -257,10 +257,10 @@ Entity *PhysicsEngine::checkForPicking(glm::mat4 ViewMatrix, glm::mat4 Projectio
     dynamicsWorld->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z),
                            btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
     if (RayCallback.hasHit()) {
-        *entity_targeted = true;
+        *entityTargeted = true;
         return static_cast<Entity *>(RayCallback.m_collisionObject->getUserPointer());
     } else {
-        *entity_targeted = false;
+        *entityTargeted = false;
         return nullptr;
     }
 }

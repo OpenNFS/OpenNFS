@@ -84,7 +84,7 @@ public:
     void registerTrack(const std::shared_ptr<ONFSTrack> &track);
 
     BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
-    Entity *checkForPicking(glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix, bool *entity_targeted);
+    Entity *checkForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted);
     void checkForFrustumIntersect();
     void updateFrustrum(glm::mat4 viewMatrix);
     void destroyGhostObject();

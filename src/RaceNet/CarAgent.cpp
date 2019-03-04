@@ -35,17 +35,17 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
         // Can move this by trk[trackBlockIndex].nodePositions
         uint32_t nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
         int nPositions = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
-        if (posIndex < nPositions){
+        if (posIndex <= nPositions){
             nodeNumber += posIndex;
         } else {
-            // TODO: Write logic here to wrap to next trackblock vroad data. Or assert?
-            /*for(int wrapIdx = 0; wrapIdx < posIndex - nPositions;  ++wrapIdx){
-                ++trackBlockIndex;
-                nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
-                if (wrapIdx < boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions){
-                    nodeNumber += wrapIdx;
-                };
-            }*/
+            // Advance the trackblock until we can get to posIndex
+            int nExtra = posIndex - nPositions;
+            while(nExtra >= nPositions){
+                nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[++trackBlockIndex].nStartPos;
+                nPositions = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
+                nExtra -= nPositions;
+            }
+            nodeNumber += nExtra;
         }
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         COLVROAD resetVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
@@ -78,11 +78,11 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
 
 bool CarAgent::isWinner() {
     fitness = evaluateFitness();
-    return fitness > 400;
+    return fitness > 800;
 }
 
 void CarAgent::reset(){
-    resetToVroad(2, 0, 0.f, track, car);
+    resetToVroad(0, 0, 0.f, track, car);
 }
 
 void CarAgent::simulate() {
