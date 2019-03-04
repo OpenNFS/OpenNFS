@@ -13,6 +13,8 @@ Renderer::Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
                                                    window(glWindow), track(currentTrack) {
     InitialiseIMGUI();
     InitGlobalLights();
+    // Skip CAN animation if PS1 track loaded
+    cameraAnimationPlayed = track->tag == NFS_3_PS1;
     LOG(DEBUG) << "Renderer Initialised";
 }
 
@@ -35,12 +37,26 @@ bool Renderer::UpdateGlobalLights(ParamData &userParams) {
     return sun.position.y <= 0;
 }
 
-bool Renderer::Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine) {
+bool Renderer::Render(float totalTime, float deltaTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine) {
     bool newAssetSelected = false;
 
     // Hot reload shaders
     UpdateShaders();
     NewFrame(userParams);
+
+    // TODO: Extract camera back up to RaceSession class if can resolve mouse lag when calling this code before NewFrame
+    // Play the original camera animation
+    if (!cameraAnimationPlayed) {
+        cameraAnimationPlayed = camera.playAnimation(playerCar->carBodyModel.position);
+    } else if (userParams.attachCamToHermite) {
+        camera.useSpline(totalTime);
+    } else if (userParams.attachCamToCar) {
+        // Compute MVP from keyboard and mouse, centered around a target car
+        camera.followCar(playerCar, userParams.windowActive);
+    } else {
+        // Compute the MVP matrix from keyboard and mouse input
+        camera.computeMatricesFromInputs(userParams.windowActive, deltaTime);
+    }
 
     std::vector<int> activeTrackBlockIDs;
     if (userParams.frustumCull) {
@@ -128,6 +144,8 @@ void Renderer::InitialiseIMGUI() {
 
 void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
     switch (targetEntity->type) {
+        case EntityType::VROAD:
+            break;
         case EntityType::OBJ_POLY:
             break;
         case EntityType::GLOBAL:
@@ -229,7 +247,7 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
             DrawNFS34Metadata(targetEntity);
             break;
         case NFSVer::UNKNOWN:
-            ASSERT(false, "Unimplemented");
+            //ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_1:
             ASSERT(false, "Unimplemented");
@@ -484,16 +502,20 @@ void Renderer::DrawVroad(PhysicsEngine &physicsEngine) {
                 vroadPoint.y += vRoadDisplayHeight;
                 vroadPointNext.y += vRoadDisplayHeight;
                 physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
-
-
                 physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
 
                 glm::vec3 curVroadRightVec = rotationMatrix* glm::vec3(curVroad.right.x/128.f, curVroad.right.y/128.f, curVroad.right.z/128.f);
-                // TODO: Add a config parameter/find a way to use proper Vroad extents instead of just vector
-                glm::vec3 leftWall = ((curVroad.leftWall/65536.0f) / 10.f) * curVroadRightVec;
-                glm::vec3 rightWall = ((curVroad.rightWall/65536.0f) / 10.f) * curVroadRightVec;
-                physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroadRightVec), btVector3(1, 0, 0.5f));
-                physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroadRightVec), btVector3(1, 0, 0.5f));
+
+                if(Config::get().useFullVroad){
+                    glm::vec3 leftWall = ((curVroad.leftWall/65536.0f) / 10.f) * curVroadRightVec;
+                    glm::vec3 rightWall = ((curVroad.rightWall/65536.0f) / 10.f) * curVroadRightVec;
+
+                    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - leftWall), btVector3(1, 0, 0.5f));
+                    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + rightWall), btVector3(1, 0, 0.5f));
+                } else {
+                    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroadRightVec), btVector3(1, 0, 0.5f));
+                    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroadRightVec), btVector3(1, 0, 0.5f));
+                }
             }
         }
     }

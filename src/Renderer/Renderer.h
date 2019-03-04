@@ -31,7 +31,7 @@ class Renderer {
 public:
     Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack, shared_ptr<Car> &currentCar);
     ~Renderer();
-    bool Render(float totalTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine);
+    bool Render(float totalTime, float deltaTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine);
     // Data used for culling
     int closestBlockID = 0;
 private:
@@ -50,6 +50,8 @@ private:
     Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
     Light moon = Light(glm::vec3(0, -200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
 
+    /* State */
+    bool cameraAnimationPlayed = false;
     /* Entity Targeting */
     bool entityTargeted = false;
     Entity *targetedEntity = nullptr;

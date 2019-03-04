@@ -19,7 +19,7 @@
 class RaceSession {
 private:
     // TODO: Read this from file
-    char const *racerNames[21] =
+    char const *racerNames[23] =
             {
                     "DumbPanda",
                     "Spark198rus",
@@ -30,9 +30,11 @@ private:
                     "Oh Hansssss",
                     "scaryred24",
                     "MaximilianVeers",
+                    "Keith",
                     "AJ_Lethal",
                     "Sirius-R",
                     "Ewil",
+                    "Zipper",
                     "heyitsleo",
                     "MADMAN_nfs",
                     "Wild One",

@@ -4,9 +4,8 @@
 
 #include "CarAgent.h"
 
-CarAgent::CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack) {
+CarAgent::CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
     this->populationID = populationID;
-    name = "TrainingAgent" + std::to_string(populationID);
     training = true;
     fitness = 0;
     tickCount = 0;
@@ -79,7 +78,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
 
 bool CarAgent::isWinner() {
     fitness = evaluateFitness();
-    return fitness > 5000;
+    return fitness > 400;
 }
 
 void CarAgent::reset(){

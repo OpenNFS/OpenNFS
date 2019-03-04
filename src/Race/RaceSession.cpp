@@ -30,8 +30,7 @@ RaceSession::RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogg
 }
 
 AssetData RaceSession::simulate() {
-    // Skip CAN animation of PS1 track loaded
-    bool cameraAnimationPlayed = track->tag == NFS_3_PS1;
+
 
     while (!glfwWindowShouldClose(window)) {
         // glfwGetTime is called only once, the first time this function is called
@@ -44,19 +43,6 @@ AssetData RaceSession::simulate() {
         // Step the physics simulation and update physics debug view matrices
         physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
         physicsEngine.stepSimulation(deltaTime);
-
-        // Play the original camera animation
-        if (!cameraAnimationPlayed) {
-            cameraAnimationPlayed = mainCamera.playAnimation(car->carBodyModel.position);
-        } else if (userParams.attachCamToHermite) {
-            mainCamera.useSpline(totalTime);
-        } else if (userParams.attachCamToCar) {
-            // Compute MVP from keyboard and mouse, centered around a target car
-            mainCamera.followCar(car, userParams.windowActive);
-        } else {
-            // Compute the MVP matrix from keyboard and mouse input
-            mainCamera.computeMatricesFromInputs(userParams.windowActive, deltaTime);
-        }
 
         //TODO: Refactor to controller class? AND USE SDL
         if (userParams.windowActive && !ImGui::GetIO().MouseDown[1]) {
@@ -76,7 +62,7 @@ AssetData RaceSession::simulate() {
             CarAgent::resetToVroad(mainRenderer.closestBlockID, 0, 0.f, track, car);
         }
 
-        bool assetChange = mainRenderer.Render(totalTime, mainCamera, userParams, loadedAssets, car, racers, physicsEngine);
+        bool assetChange = mainRenderer.Render(totalTime, deltaTime, mainCamera, userParams, loadedAssets, car, racers, physicsEngine);
 
         if (assetChange) {
             return loadedAssets;
@@ -97,7 +83,7 @@ AssetData RaceSession::simulate() {
 void RaceSession::SpawnRacers(int nRacers) {
     float racerSpawnOffset = -0.25f;
     for(uint16_t racer_Idx = 0; racer_Idx < nRacers; ++racer_Idx){
-        CarAgent racer(racerNames[racer_Idx], "./generation.dat", car);
+        CarAgent racer(racerNames[racer_Idx], BEST_NETWORK_PATH, car);
         physicsEngine.registerVehicle(racer.car);
         racer.resetToVroad(0, racer_Idx + 1, racerSpawnOffset, track, racer.car);
         racers.emplace_back(racer);

@@ -82,6 +82,8 @@ public:
     // Better named parameters instead of using var_map with command-line arg name
     std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
     int nRacers = DEFAULT_NUM_RACERS;
+    /* -- Physics/AI Params -- */
+    bool useFullVroad = false;
     /* -- Render Params -- */
     bool vulkanRender = false;
     bool headless = false;

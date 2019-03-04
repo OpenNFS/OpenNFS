@@ -274,9 +274,6 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
         }
         for (auto &object : trackBlock.objects) {
             object.genPhysicsMesh();
-            dynamicsWorld->addRigidBody(object.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
-            // TODO: Temporarily disable collidables
-            /*object.genPhysicsMesh();
             int collisionMask = COL_RAY;
             // Set collision masks
             if (object.collideable) {
@@ -290,7 +287,7 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
             initialTransform.setOrigin(Utils::glmToBullet(boost::get<Track>(object.glMesh).initialPosition));
             initialTransform.setRotation(Utils::glmToBullet(boost::get<Track>(object.glMesh).orientation));
             object.rigidBody->setWorldTransform(initialTransform);
-            dynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);*/
+            dynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }
         for (auto &light : trackBlock.lights) {
             light.genPhysicsMesh();
@@ -316,16 +313,23 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
                 glm::vec3 curVroadRightVec = rotationMatrix * glm::vec3(curVroad.right.x / 128.f, curVroad.right.y / 128.f, curVroad.right.z / 128.f);
                 glm::vec3 nextVroadRightVec = rotationMatrix * glm::vec3(nextVroad.right.x / 128.f, nextVroad.right.y / 128.f, nextVroad.right.z / 128.f);
 
-                // TODO: Add a config parameter/find a way to use proper Vroad extents instead of just vector
+
+                glm::vec3 curVroadLeftWall = ((curVroad.leftWall/65536.0f) / 10.f) * curVroadRightVec;
+                glm::vec3 curVroadRightWall = ((curVroad.rightWall/65536.0f) / 10.f) * curVroadRightVec;
+                glm::vec3 nextVroadLeftWall = ((nextVroad.leftWall/65536.0f) / 10.f) * nextVroadRightVec;
+                glm::vec3 nextVroadRightWall = ((nextVroad.rightWall/65536.0f) / 10.f) * nextVroadRightVec;
+
+                bool useFullVroad = Config::get().useFullVroad;
+
                 // Get edges of road by adding to vroad right vector to vroad reference point
-                glm::vec3 curLeftVroadEdge = curVroadPoint - curVroadRightVec;
-                glm::vec3 curRightVroadEdge = curVroadPoint + curVroadRightVec;
-                glm::vec3 nextLeftVroadEdge = nextVroadPoint - nextVroadRightVec;
-                glm::vec3 nextRightVroadEdge = nextVroadPoint + nextVroadRightVec;
+                glm::vec3 curLeftVroadEdge = curVroadPoint      - (useFullVroad ? curVroadLeftWall : curVroadRightVec);
+                glm::vec3 curRightVroadEdge = curVroadPoint     + (useFullVroad ? curVroadRightWall : curVroadRightVec);
+                glm::vec3 nextLeftVroadEdge = nextVroadPoint    - (useFullVroad ? nextVroadLeftWall : nextVroadRightVec);
+                glm::vec3 nextRightVroadEdge = nextVroadPoint   + (useFullVroad ? nextVroadRightWall : nextVroadRightVec);
 
                 // Add them to the physics world
-                Entity leftVroadBarrier = Entity(99, 99, NFS_3, VROAD, curLeftVroadEdge, nextLeftVroadEdge);
-                Entity rightVroadBarrier = Entity(99, 99, NFS_3, VROAD, curRightVroadEdge, nextRightVroadEdge);
+                Entity leftVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, curLeftVroadEdge, nextLeftVroadEdge);
+                Entity rightVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, curRightVroadEdge, nextRightVroadEdge);
                 leftVroadBarrier.genPhysicsMesh();
                 rightVroadBarrier.genPhysicsMesh();
                 dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_TRACK, COL_RAY | COL_CAR);

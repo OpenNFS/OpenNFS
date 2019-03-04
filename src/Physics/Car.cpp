@@ -19,7 +19,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     // Load these from Carp.txt
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
-    maxEngineForce = 3000.f;
+    maxEngineForce = 2500.f;
     maxBreakingForce = 1000.f;
     suspensionRestLength = btScalar(0.026);
     suspensionStiffness = 1000.f;
