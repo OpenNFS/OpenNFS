@@ -100,9 +100,10 @@ void CarAgent::simulate() {
     std::vector<double> networkOutputs;
 
     // Use maximum from front 3 sensors, as per Luigi Cardamone
-    float maxForwardDistance = std::max({car->forwardDistance, car->forwardLeftDistance, car->forwardRightDistance});
+    float maxForwardDistance = std::max({car->rangefinders[Car::FORWARD_RAY], car->rangefinders[Car::FORWARD_LEFT_RAY], car->rangefinders[Car::FORWARD_RIGHT_RAY]});
 
-    raycastInputs = {car->leftDistance, car->rightDistance, maxForwardDistance, car->m_vehicle->getCurrentSpeedKmHour()};
+    // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed
+    raycastInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], car->m_vehicle->getCurrentSpeedKmHour()};
     networkOutputs = {0, 0, 0};
 
     raceNet.evaluate(raycastInputs, networkOutputs);
@@ -130,7 +131,7 @@ void CarAgent::simulate() {
     }
 
     ++tickCount;
-    if (tickCount > STALE_TICK_COUNT){
+    if (tickCount > STALE_TICK_COUNT || car->upDistance <= 0.1f){
         dead = true;
     }
 }

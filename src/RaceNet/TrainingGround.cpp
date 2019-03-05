@@ -23,8 +23,8 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
 }
 
 void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
-    // 5 input, 3 output, 1 bias, can be recurrent
-    pool pool(4, 4, 6, false);
+    // 8 input, 4 output, 6 bias, cannot be recurrent
+    pool pool(8, 4, 6, false);
     pool.import_fromfile("generation.dat");
     bool haveWinner = false;
     uint32_t gen_Idx = 0;

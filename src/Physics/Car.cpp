@@ -331,70 +331,38 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
     vehicleMotionState->getWorldTransform(trans);
     glm::vec3 carBodyPosition = Utils::bulletToGlm(trans.getOrigin());
 
+    // Get base vectors
     glm::vec3 carUp = carBodyModel.ModelMatrix * glm::vec4(0,1,0,0);
-    glm::vec3 carRight = glm::normalize(carBodyModel.ModelMatrix * glm::vec4(1,0,0,0));
     glm::vec3 carForward = carBodyModel.ModelMatrix * glm::vec4(0,0,-1,0);
-    glm::vec3 carForwardLeft  = carForward * glm::normalize(glm::quat(glm::vec3(0, glm::radians(-frontRayOffsetDegs), 0)));
-    glm::vec3 carForwardRight = carForward * glm::normalize(glm::quat(glm::vec3(0, glm::radians(frontRayOffsetDegs ), 0)));
 
-    forwardCastPosition = (carBodyPosition + (carForward    * castDistance));
-    forwardLeftCastPosition =  (carBodyPosition + (carForwardLeft    * castDistance));
-    forwardRightCastPosition =  (carBodyPosition + (carForwardRight * castDistance));
-    upCastPosition      = (carBodyPosition + (carUp * castDistance));
-    rightCastPosition   = (carBodyPosition + (castDistance * (carRight + carForward)));
-    leftCastPosition    = (carBodyPosition - (castDistance * (carRight - carForward)));
+    btCollisionWorld::ClosestRayResultCallback *rayCallbacks[kNumRangefinders];
+    glm::vec3 castVectors[kNumRangefinders];
 
-    btCollisionWorld::ClosestRayResultCallback forwardRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardCastPosition* castDistance));
-    btCollisionWorld::ClosestRayResultCallback forwardLeftRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardLeftCastPosition* castDistance));
-    btCollisionWorld::ClosestRayResultCallback forwardRightRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardRightCastPosition* castDistance));
-    btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition* castDistance));
-    btCollisionWorld::ClosestRayResultCallback rightRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rightCastPosition* castDistance));
-    btCollisionWorld::ClosestRayResultCallback leftRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(leftCastPosition* castDistance));
-
-    // Don't Raycast against other opponents for now. Ghost through them.
-    forwardRayCallback.m_collisionFilterMask        = COL_TRACK | COL_DYNAMIC_TRACK;
-    forwardLeftRayCallback.m_collisionFilterMask    = COL_TRACK | COL_DYNAMIC_TRACK;
-    forwardRightRayCallback.m_collisionFilterMask    = COL_TRACK | COL_DYNAMIC_TRACK;
-    upRayCallback.m_collisionFilterMask             = COL_TRACK | COL_DYNAMIC_TRACK;
-    rightRayCallback.m_collisionFilterMask          = COL_TRACK | COL_DYNAMIC_TRACK;
-    leftRayCallback.m_collisionFilterMask           = COL_TRACK | COL_DYNAMIC_TRACK;
-
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardCastPosition * castDistance), forwardRayCallback);
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardLeftCastPosition * castDistance), forwardLeftRayCallback);
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(forwardRightCastPosition * castDistance), forwardRightRayCallback);
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition * castDistance), upRayCallback);
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rightCastPosition * castDistance), rightRayCallback);
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(leftCastPosition * castDistance), leftRayCallback);
-
-    if(forwardRayCallback.hasHit()){
-        forwardDistance = glm::distance(carBodyPosition,  glm::vec3(forwardRayCallback.m_hitPointWorld.getX(), forwardRayCallback.m_hitPointWorld.getY(),forwardRayCallback.m_hitPointWorld.getZ()));
-    } else {
-        forwardDistance = farDistance;
+    for(uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx){
+        // Calculate base vector from -90 + (rangeIdx * kAngleBetweenRays) from car forward vector
+        castVectors[rangeIdx] = carForward * glm::normalize(glm::quat(glm::vec3(0, glm::radians(-90.f + (rangeIdx * kAngleBetweenRays)), 0)));
+        // Calculate where the ray will cast out to
+        castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistance);
+        rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(castPositions[rangeIdx]* kCastDistance));
+        // Don't Raycast against other opponents for now. Ghost through them.
+        rayCallbacks[rangeIdx]->m_collisionFilterMask = COL_TRACK | COL_DYNAMIC_TRACK;
+        // Perform the raycast
+        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(castPositions[rangeIdx] * kCastDistance), *rayCallbacks[rangeIdx]);
+        // Check whether we hit anything
+        if(rayCallbacks[rangeIdx]->hasHit()){
+            rangefinders[rangeIdx] = glm::distance(carBodyPosition,  glm::vec3(rayCallbacks[rangeIdx]->m_hitPointWorld.getX(), rayCallbacks[rangeIdx]->m_hitPointWorld.getY(),rayCallbacks[rangeIdx]->m_hitPointWorld.getZ()));
+        } else {
+            rangefinders[rangeIdx] = kFarDistance;
+        }
+        delete rayCallbacks[rangeIdx];
     }
-    if(forwardLeftRayCallback.hasHit()){
-        forwardLeftDistance = glm::distance(carBodyPosition,  glm::vec3(forwardLeftRayCallback.m_hitPointWorld.getX(), forwardLeftRayCallback.m_hitPointWorld.getY(),forwardLeftRayCallback.m_hitPointWorld.getZ()));
-    } else {
-        forwardLeftDistance = farDistance;
-    }
-    if(forwardRightRayCallback.hasHit()){
-        forwardRightDistance = glm::distance(carBodyPosition,  glm::vec3(forwardRightRayCallback.m_hitPointWorld.getX(), forwardRightRayCallback.m_hitPointWorld.getY(),forwardRightRayCallback.m_hitPointWorld.getZ()));
-    } else {
-        forwardRightDistance = farDistance;
-    }
+
+    upCastPosition = (carBodyPosition + (carUp * kCastDistance));
+    btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition* kCastDistance));
     if(upRayCallback.hasHit()){
         upDistance = glm::distance(carBodyPosition,  glm::vec3(upRayCallback.m_hitPointWorld.getX(), upRayCallback.m_hitPointWorld.getY(),upRayCallback.m_hitPointWorld.getZ()));
     } else {
-        upDistance = farDistance;
-    }
-    if(rightRayCallback.hasHit()){
-        rightDistance = glm::distance(carBodyPosition,  glm::vec3(rightRayCallback.m_hitPointWorld.getX(), rightRayCallback.m_hitPointWorld.getY(),rightRayCallback.m_hitPointWorld.getZ()));
-    } else {
-        rightDistance = farDistance;
-    }
-    if(leftRayCallback.hasHit()){
-        leftDistance = glm::distance(carBodyPosition,  glm::vec3(leftRayCallback.m_hitPointWorld.getX(), leftRayCallback.m_hitPointWorld.getY(),leftRayCallback.m_hitPointWorld.getZ()));
-    }  else {
-        leftDistance = farDistance;
+        upDistance = kFarDistance;
     }
 }
 

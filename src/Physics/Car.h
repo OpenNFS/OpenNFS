@@ -57,18 +57,21 @@ public:
     float getRotY();
 
     // Raycasting Data
-    static constexpr float castDistance = 2.f;
-    static constexpr float farDistance = 10.f;
-    static constexpr float frontRayOffsetDegs = 10.f;
+    static constexpr uint8_t LEFT_RAY = 0;
+    static constexpr uint8_t FORWARD_LEFT_RAY = 8;
+    static constexpr uint8_t FORWARD_RAY = 9;
+    static constexpr uint8_t FORWARD_RIGHT_RAY = 10;
+    static constexpr uint8_t RIGHT_RAY = 18;
 
+    static constexpr uint8_t kNumRangefinders = 19;
+    static constexpr float kCastDistance = 1.f;
+    static constexpr float kFarDistance = 3.f;
+    static constexpr float kAngleBetweenRays = 10.f;
 
-    glm::vec3 forwardCastPosition, forwardLeftCastPosition, forwardRightCastPosition, upCastPosition, rightCastPosition, leftCastPosition;
-    float forwardDistance = 0.f;
-    float forwardLeftDistance = 0.f;
-    float forwardRightDistance = 0.f;
+    float rangefinders[kNumRangefinders];
+    glm::vec3 castPositions[kNumRangefinders];
+    glm::vec3 upCastPosition;
     float upDistance = 0.f;
-    float rightDistance = 0.f;
-    float leftDistance = 0.f;
 
     // Meshes
     std::vector<CarModel> allModels;

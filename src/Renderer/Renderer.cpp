@@ -185,8 +185,7 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             // TODO: Allow adjustment of shader parameters here as well, and car colour
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s", targetCar->name.c_str());
-            ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f", targetCar->upDistance, targetCar->forwardDistance,
-                        targetCar->rightDistance, targetCar->leftDistance);
+            ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f", targetCar->upDistance, targetCar->rangefinders[Car::FORWARD_RAY], targetCar->rangefinders[Car::RIGHT_RAY], targetCar->rangefinders[Car::LEFT_RAY]);
             // Physics Parameters
             ImGui::SliderFloat("Engine Force", &targetCar->gEngineForce, 0, 10000.0f);
             ImGui::SliderFloat("Breaking Force", &targetCar->gBreakingForce, 0, 1000.0f);
@@ -460,31 +459,15 @@ void Renderer::NewFrame(ParamData &userParams) {
 void Renderer::DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine) {
     glm::vec3 carBodyPosition = car->carBodyModel.position;
 
-    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                         Utils::glmToBullet(car->forwardCastPosition),
-                                         btVector3(2.0f * (car->farDistance - car->forwardDistance),
-                                                   2.0f * (car->forwardDistance), 0));
-    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                         Utils::glmToBullet(car->forwardLeftCastPosition),
-                                         btVector3(2.0f * (car->farDistance - car->forwardLeftDistance),
-                                                   2.0f * (car->forwardLeftDistance), 0));
-    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                         Utils::glmToBullet(car->forwardRightCastPosition),
-                                         btVector3(2.0f * (car->farDistance - car->forwardRightDistance),
-                                                   2.0f * (car->forwardRightDistance), 0));
+    for(uint8_t rangeIdx = 0; rangeIdx < Car::kNumRangefinders; ++rangeIdx){
+        physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
+                                             Utils::glmToBullet(car->castPositions[rangeIdx]),
+                                             btVector3(2.0f * (Car::kFarDistance - car->rangefinders[rangeIdx]), 2.0f * (car->rangefinders[rangeIdx]), 0));
+    }
+
     physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                          Utils::glmToBullet(car->upCastPosition),
-                                         btVector3(2.0f * (car->farDistance - car->upDistance),
-                                                   2.0f * (car->upDistance),
-                                                   0));
-    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                         Utils::glmToBullet(car->rightCastPosition),
-                                         btVector3(2.0f * (car->farDistance - car->rightDistance),
-                                                   2.0f * (car->rightDistance), 0));
-    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                         Utils::glmToBullet(car->leftCastPosition),
-                                         btVector3(2.0f * (car->farDistance - car->leftDistance),
-                                                   2.0f * (car->leftDistance), 0));
+                                         btVector3(2.0f * (Car::kFarDistance - car->upDistance), 2.0f * (car->upDistance), 0));
 }
 
 void Renderer::DrawVroad(PhysicsEngine &physicsEngine) {
