@@ -37,6 +37,7 @@ public:
     bool training = false;
     int fitness = 0;
     bool dead = false;
+    bool droveBack = false;
 
     CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack); // Training
     CarAgent(const std::string &racerName, const std::string &networkPath, const shared_ptr<Car> &car); // Racing

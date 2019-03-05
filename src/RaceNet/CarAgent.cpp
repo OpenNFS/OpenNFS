@@ -40,12 +40,16 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
         } else {
             // Advance the trackblock until we can get to posIndex
             int nExtra = posIndex - nPositions;
-            while(nExtra >= nPositions){
+            while(true){
                 nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[++trackBlockIndex].nStartPos;
                 nPositions = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
-                nExtra -= nPositions;
+                if(nExtra < nPositions){
+                    nodeNumber += nExtra;
+                    break;
+                } else {
+                    nExtra -= nPositions;
+                }
             }
-            nodeNumber += nExtra;
         }
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         COLVROAD resetVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
@@ -77,12 +81,14 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
 }
 
 bool CarAgent::isWinner() {
+    if(droveBack) return false;
+
     fitness = evaluateFitness();
-    return fitness > 800;
+    return fitness > 500;
 }
 
 void CarAgent::reset(){
-    resetToVroad(0, 0, 0.f, track, car);
+    resetToVroad(2, 0, 0.f, track, car);
 }
 
 void CarAgent::simulate() {
@@ -93,7 +99,10 @@ void CarAgent::simulate() {
     std::vector<double> raycastInputs;
     std::vector<double> networkOutputs;
 
-    raycastInputs = {car->leftDistance, car->rightDistance, car->forwardDistance, car->m_vehicle->getCurrentSpeedKmHour()};
+    // Use maximum from front 3 sensors, as per Luigi Cardamone
+    float maxForwardDistance = std::max({car->forwardDistance, car->forwardLeftDistance, car->forwardRightDistance});
+
+    raycastInputs = {car->leftDistance, car->rightDistance, maxForwardDistance, car->m_vehicle->getCurrentSpeedKmHour()};
     networkOutputs = {0, 0, 0};
 
     raceNet.evaluate(raycastInputs, networkOutputs);
@@ -110,8 +119,8 @@ void CarAgent::simulate() {
 
     // If the fitness jumps this much between ticks, we probably reversed over the start line.
     // TODO: Add better logic to prevent this
-    if ((new_fitness - fitness) > 500){
-        dead = true;
+    if (abs(new_fitness - fitness) > 500){
+        dead = droveBack = true;
         return;
     }
 
@@ -144,6 +153,7 @@ int CarAgent::evaluateFitness() {
     }
     // TODO: HACK HACK HACK
     if (closestVroadID == 1363) closestVroadID = 1;
+    if (closestVroadID == 339) closestVroadID = 1;
 
     // Return a number corresponding to the distance driven
     return closestVroadID;

@@ -465,6 +465,14 @@ void Renderer::DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &p
                                          btVector3(2.0f * (car->farDistance - car->forwardDistance),
                                                    2.0f * (car->forwardDistance), 0));
     physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
+                                         Utils::glmToBullet(car->forwardLeftCastPosition),
+                                         btVector3(2.0f * (car->farDistance - car->forwardLeftDistance),
+                                                   2.0f * (car->forwardLeftDistance), 0));
+    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
+                                         Utils::glmToBullet(car->forwardRightCastPosition),
+                                         btVector3(2.0f * (car->farDistance - car->forwardRightDistance),
+                                                   2.0f * (car->forwardRightDistance), 0));
+    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                          Utils::glmToBullet(car->upCastPosition),
                                          btVector3(2.0f * (car->farDistance - car->upDistance),
                                                    2.0f * (car->upDistance),

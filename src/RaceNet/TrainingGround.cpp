@@ -24,7 +24,7 @@ TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, u
 
 void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
     // 5 input, 3 output, 1 bias, can be recurrent
-    pool pool(4, 4, 6, true);
+    pool pool(4, 4, 6, false);
     pool.import_fromfile("generation.dat");
     bool haveWinner = false;
     uint32_t gen_Idx = 0;
@@ -84,7 +84,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
 
             if (specieIter == pool.species.end()) {
                 pool.new_generation();
-                std::string fname = "result/gen";
+                std::string fname = "gen";
                 fname += std::to_string(pool.generation());
                 pool.export_tofile(fname);
                 pool.export_tofile("generation.dat");
@@ -96,7 +96,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             if (specieIter != pool.species.end())
                 for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {
                     // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
-                    CarAgent car_agent((int) i, this->training_car, this->training_track);
+                    CarAgent car_agent((uint16_t) i, this->training_car, this->training_track);
                     car_agent.raceNet.from_genome((*specieIter).genomes[i]);
                     physicsEngine.registerVehicle(car_agent.car);
                     car_agent.reset();

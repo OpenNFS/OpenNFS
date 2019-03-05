@@ -57,11 +57,15 @@ public:
     float getRotY();
 
     // Raycasting Data
-    static constexpr float castDistance = 5.f;
+    static constexpr float castDistance = 2.f;
     static constexpr float farDistance = 10.f;
+    static constexpr float frontRayOffsetDegs = 10.f;
 
-    glm::vec3 forwardCastPosition, upCastPosition, rightCastPosition, leftCastPosition;
+
+    glm::vec3 forwardCastPosition, forwardLeftCastPosition, forwardRightCastPosition, upCastPosition, rightCastPosition, leftCastPosition;
     float forwardDistance = 0.f;
+    float forwardLeftDistance = 0.f;
+    float forwardRightDistance = 0.f;
     float upDistance = 0.f;
     float rightDistance = 0.f;
     float leftDistance = 0.f;

@@ -246,15 +246,13 @@ void PhysicsEngine::cleanSimulation() {
 }
 
 Entity *PhysicsEngine::checkForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted) {
-    glm::vec3 out_origin;
-    glm::vec3 out_direction;
-    ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY,
-                        viewMatrix, projectionMatrix, out_origin, out_direction);
-    glm::vec3 out_end = out_origin + out_direction * 1000.0f;
-    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(out_origin.x, out_origin.y, out_origin.z),
-                                                           btVector3(out_end.x, out_end.y, out_end.z));
+    glm::vec3 outOrigin;
+    glm::vec3 outDirection;
+    ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix, outOrigin, outDirection);
+    glm::vec3 out_end = outOrigin + outDirection * 1000.0f;
+    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(out_end.x, out_end.y, out_end.z));
     RayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
-    dynamicsWorld->rayTest(btVector3(out_origin.x, out_origin.y, out_origin.z),
+    dynamicsWorld->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z),
                            btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
     if (RayCallback.hasHit()) {
         *entityTargeted = true;
@@ -332,8 +330,8 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
                 Entity rightVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, curRightVroadEdge, nextRightVroadEdge);
                 leftVroadBarrier.genPhysicsMesh();
                 rightVroadBarrier.genPhysicsMesh();
-                dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_TRACK, COL_RAY | COL_CAR);
-                dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_TRACK, COL_RAY | COL_CAR);
+                dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_TRACK,  COL_RAY);
+                dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_TRACK, COL_RAY);
 
                 // Keep track of them so can clean up later
                 track->vroadBarriers.emplace_back(leftVroadBarrier);
