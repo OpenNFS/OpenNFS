@@ -64,14 +64,14 @@ public:
     static constexpr uint8_t RIGHT_RAY = 18;
 
     static constexpr uint8_t kNumRangefinders = 19;
-    static constexpr float kCastDistance = 1.f;
-    static constexpr float kFarDistance = 3.f;
+    static constexpr float kFarDistance = 5.f;
     static constexpr float kAngleBetweenRays = 10.f;
+    static constexpr float kCastDistance = 1.f;
 
     float rangefinders[kNumRangefinders];
     glm::vec3 castPositions[kNumRangefinders];
-    glm::vec3 upCastPosition;
-    float upDistance = 0.f;
+    glm::vec3 upCastPosition, downCastPosition;
+    float upDistance = 0.f, downDistance = 0.f;
 
     // Meshes
     std::vector<CarModel> allModels;

@@ -6,6 +6,30 @@
 #include "Car.h"
 #include "../Scene/Entity.h"
 
+// TODO: Put this somewhere nice
+// Forward casts should extend further than L/R
+constexpr static const float kCastDistances[Car::kNumRangefinders] = {
+        1.f,
+        1.f,
+        1.f,
+        1.f,
+        1.f,
+        1.5f,
+        2.f,
+        3.f,
+        5.f,
+        5.f,
+        5.f,
+        3.f,
+        2.f,
+        2.f,
+        1.5f,
+        1.f,
+        1.f,
+        1.f,
+        1.f,
+};
+
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID) : Car(car_meshes, nfs_version, car_name) {
     textureArrayID = car_textureArrayID;
     multitexturedCarModel = true;
@@ -22,7 +46,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     maxEngineForce = 3000.f;
     maxBreakingForce = 1000.f;
     suspensionRestLength = btScalar(0.026);
-    suspensionStiffness = 1000.f;
+    suspensionStiffness = 600.f;
     suspensionDamping = 200.f;
     suspensionCompression = 500.4f;
     wheelFriction = 0.45f;
@@ -342,12 +366,12 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
         // Calculate base vector from -90 + (rangeIdx * kAngleBetweenRays) from car forward vector
         castVectors[rangeIdx] = carForward * glm::normalize(glm::quat(glm::vec3(0, glm::radians(-90.f + (rangeIdx * kAngleBetweenRays)), 0)));
         // Calculate where the ray will cast out to
-        castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistance);
-        rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(castPositions[rangeIdx]* kCastDistance));
-        // Don't Raycast against other opponents for now. Ghost through them.
-        rayCallbacks[rangeIdx]->m_collisionFilterMask = COL_TRACK | COL_DYNAMIC_TRACK;
+        castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistances[rangeIdx]);
+        rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(castPositions[rangeIdx]));
+        // Don't Raycast against other opponents for now. Ghost through them. Only interested in VROAD edge.
+        rayCallbacks[rangeIdx]->m_collisionFilterMask = COL_VROAD;
         // Perform the raycast
-        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(castPositions[rangeIdx] * kCastDistance), *rayCallbacks[rangeIdx]);
+        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(castPositions[rangeIdx]), *rayCallbacks[rangeIdx]);
         // Check whether we hit anything
         if(rayCallbacks[rangeIdx]->hasHit()){
             rangefinders[rangeIdx] = glm::distance(carBodyPosition,  glm::vec3(rayCallbacks[rangeIdx]->m_hitPointWorld.getX(), rayCallbacks[rangeIdx]->m_hitPointWorld.getY(),rayCallbacks[rangeIdx]->m_hitPointWorld.getZ()));
@@ -356,13 +380,22 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
         }
         delete rayCallbacks[rangeIdx];
     }
-
     upCastPosition = (carBodyPosition + (carUp * kCastDistance));
-    btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition* kCastDistance));
+    downCastPosition = (carBodyPosition + (-carUp * kCastDistance));
+    btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition));
+    btCollisionWorld::ClosestRayResultCallback downRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(downCastPosition));
+    upRayCallback.m_collisionFilterMask = downRayCallback.m_collisionFilterMask = COL_TRACK;
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition), upRayCallback);
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(downCastPosition), downRayCallback);
     if(upRayCallback.hasHit()){
         upDistance = glm::distance(carBodyPosition,  glm::vec3(upRayCallback.m_hitPointWorld.getX(), upRayCallback.m_hitPointWorld.getY(),upRayCallback.m_hitPointWorld.getZ()));
     } else {
         upDistance = kFarDistance;
+    }
+    if(downRayCallback.hasHit()){
+        downDistance = glm::distance(carBodyPosition,  glm::vec3(downRayCallback.m_hitPointWorld.getX(), downRayCallback.m_hitPointWorld.getY(),downRayCallback.m_hitPointWorld.getZ()));
+    } else {
+        downDistance = kFarDistance;
     }
 }
 

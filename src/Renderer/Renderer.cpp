@@ -296,6 +296,7 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car
     ImGui::Text("CarCam Yaw: %f Pitch: %f Distance: %f AAC: %f", camera.yaw, camera.pitch, camera.distanceFromCar, camera.angleAroundCar);
     ImGui::Text("Hermite Roll: %f", camera.roll);
     ImGui::Text("Block ID: %d", closestBlockID);
+    ImGui::Text("Vroad ID: %d", CarAgent::getClosestVroad(playerCar, track));
     // ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
     ImGui::Checkbox("Frustum Cull", &userParams.frustumCull);
     ImGui::Checkbox("Raycast Viz", &userParams.drawRaycast);
@@ -464,10 +465,13 @@ void Renderer::DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &p
                                              Utils::glmToBullet(car->castPositions[rangeIdx]),
                                              btVector3(2.0f * (Car::kFarDistance - car->rangefinders[rangeIdx]), 2.0f * (car->rangefinders[rangeIdx]), 0));
     }
-
+    // Draw up and down casts
     physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
                                          Utils::glmToBullet(car->upCastPosition),
                                          btVector3(2.0f * (Car::kFarDistance - car->upDistance), 2.0f * (car->upDistance), 0));
+    physicsEngine.mydebugdrawer.drawLine(Utils::glmToBullet(carBodyPosition),
+                                         Utils::glmToBullet(car->downCastPosition),
+                                         btVector3(2.0f * (Car::kFarDistance - car->downDistance), 2.0f * (car->downDistance), 0));
 }
 
 void Renderer::DrawVroad(PhysicsEngine &physicsEngine) {

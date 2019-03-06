@@ -330,8 +330,8 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
                 Entity rightVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, curRightVroadEdge, nextRightVroadEdge);
                 leftVroadBarrier.genPhysicsMesh();
                 rightVroadBarrier.genPhysicsMesh();
-                dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_TRACK,  COL_RAY);
-                dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_TRACK, COL_RAY);
+                dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody,  COL_VROAD,  COL_RAY | COL_CAR);
+                dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_VROAD, COL_RAY | COL_CAR);
 
                 // Keep track of them so can clean up later
                 track->vroadBarriers.emplace_back(leftVroadBarrier);
@@ -351,7 +351,7 @@ void PhysicsEngine::registerVehicle(std::shared_ptr<Car> &car) {
     btScalar sRestLength = car->getSuspensionRestLength();
 
     dynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->getVehicleRigidBody()->getBroadphaseHandle(), dynamicsWorld->getDispatcher());
-    dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK);
+    dynamicsWorld->addRigidBody(car->getVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD);
     car->m_vehicleRayCaster = new btDefaultVehicleRaycaster(dynamicsWorld);
     car->m_vehicle = new btRaycastVehicle(car->m_tuning, car->getVehicleRigidBody(), car->getRaycaster());
     car->getVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);

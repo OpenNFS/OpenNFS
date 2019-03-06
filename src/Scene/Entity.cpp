@@ -47,7 +47,7 @@ void Entity::genPhysicsMesh() {
         }
         physicsShape = new btBvhTriangleMeshShape(&physicsMesh, true, true);
     } else if (type == VROAD) {
-        float wallHeight = 0.5f;
+        float wallHeight = 1.0f;
         auto *mesh = new btTriangleMesh();
         glm::vec3 triangle = glm::vec3(startPoint.x, startPoint.y - wallHeight, startPoint.z);
         glm::vec3 triangle1 = glm::vec3(startPoint.x, startPoint.y + wallHeight, startPoint.z);
@@ -124,6 +124,8 @@ void Entity::setParameters() {
                     break;
                 case OBJ_POLY:
                 case XOBJ:
+                    collideable = false;
+                    break;
                     switch ((flags >> 4) & 0x7) {
                         case 1: // Hometown shack godray
                             collideable = false;

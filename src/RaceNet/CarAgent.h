@@ -9,7 +9,7 @@
 #include "../Loaders/car_loader.h"
 #include "../Loaders/trk_loader.h"
 
-static const uint32_t STALE_TICK_COUNT = 300;
+static const uint32_t STALE_TICK_COUNT = 70;
 
 class CarAgent {
 private:
@@ -26,13 +26,15 @@ public:
     bool droveBack = false;
 
     CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack); // Training
-    CarAgent(const std::string &racerName, const std::string &networkPath, const shared_ptr<Car> &car); // Racing
+    CarAgent(const std::string &racerName, const std::string &networkPath, const shared_ptr<Car> &car, const shared_ptr<ONFSTrack> &trainingTrack); // Racing
     CarAgent() = default; // std::vector raw impl
 
     static void resetToVroad(int trackBlockIndex, int posIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car);
+    static void resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car);
+
+    static int getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track);
     void reset(); // Wrapper to reset to start of training track
     bool isWinner();
-    int evaluateFitness();
     void simulate();
 };
 
