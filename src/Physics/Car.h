@@ -32,6 +32,7 @@ public:
     NFSVer tag;
     bool multitexturedCarModel = false;
     glm::vec3 colour;
+    std::vector<CarColour> originalColours;
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }

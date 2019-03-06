@@ -20,7 +20,7 @@ using namespace NFS3_4_DATA;
 
 class NFS4 {
 public:
-    static std::shared_ptr<Car> LoadCar(const string &car_base_path); // Car
+    static std::shared_ptr<Car> LoadCar(const std::string &car_base_path); // Car
     static std::shared_ptr<TRACK> LoadTrack(const std::string &track_base_path); // Track
 
 private:

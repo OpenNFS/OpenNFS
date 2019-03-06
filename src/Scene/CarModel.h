@@ -6,7 +6,15 @@
 
 #include "Model.h"
 
-using namespace std;
+class CarColour{
+public:
+    std::string colourName;
+    glm::vec3   colour;
+    CarColour(const std::string &colourName, glm::vec3 colour){
+        this->colourName = colourName;
+        this->colour = colour;
+    }
+};
 
 class CarModel : public Model {
 public:
@@ -24,9 +32,11 @@ public:
     void destroy() override;
     void render() override;
     bool genBuffers() override;
+    // Car Display params
     float specularDamper;
     float specularReflectivity;
     float envReflectivity;
+    std::vector<CarColour> originalColours; // TODO: This belongs in Car class but fce loader return restricts this
 
     // Multitextured Car
     bool isMultiTextured = false;

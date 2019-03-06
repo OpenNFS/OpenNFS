@@ -14,7 +14,7 @@ RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> 
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, shared_ptr<ONFSTrack> &trackToRender) {
+void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, std::shared_ptr<ONFSTrack> &trackToRender) {
     raceNetShader.shaders.UpdatePrograms(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);

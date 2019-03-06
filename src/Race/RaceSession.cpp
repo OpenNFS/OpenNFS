@@ -6,7 +6,7 @@
 
 RaceSession::RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
                          const std::vector<NeedForSpeed> &installedNFS,
-                         const shared_ptr<ONFSTrack> &currentTrack, shared_ptr<Car>
+                         const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car>
                          &currentCar) : window(glWindow), logger(onfsLogger), installedNFSGames(installedNFS),
                                         track(currentTrack), car(currentCar) {
     loadedAssets = {car->tag, car->name, track->tag, track->name};

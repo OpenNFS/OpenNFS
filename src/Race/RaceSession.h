@@ -50,8 +50,8 @@ private:
     std::shared_ptr<Logger> logger;
     std::vector<NeedForSpeed> installedNFSGames;
     AssetData loadedAssets;
-    shared_ptr<ONFSTrack> track;
-    shared_ptr<Car> car;
+    std::shared_ptr<ONFSTrack> track;
+    std::shared_ptr<Car> car;
     std::vector<CarAgent> racers;
     PhysicsEngine physicsEngine;
     Camera mainCamera;
@@ -63,6 +63,6 @@ private:
 
     void SpawnRacers(int nRacers);
 public:
-    RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack, shared_ptr<Car> &currentCar);
+    RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
     AssetData simulate();
 };

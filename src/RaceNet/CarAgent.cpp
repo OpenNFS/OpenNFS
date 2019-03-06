@@ -4,7 +4,7 @@
 
 #include "CarAgent.h"
 
-CarAgent::CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, const shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
+CarAgent::CarAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
     this->populationID = populationID;
     training = true;
     fitness = 0;
@@ -15,7 +15,7 @@ CarAgent::CarAgent(uint16_t populationID, const shared_ptr<Car> &trainingCar, co
     this->car->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
-CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath, const shared_ptr<Car> &car, const shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack) {
+CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack) {
     if (boost::filesystem::exists(networkPath)) {
         raceNet.import_fromfile(networkPath);
     } else {
@@ -33,16 +33,16 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
 
     if (track->tag == NFS_3 || track->tag == NFS_4) {
         // Can move this by trk[trackBlockIndex].nodePositions
-        uint32_t nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
-        int nPositions = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
+        uint32_t nodeNumber = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
+        int nPositions = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
         if (posIndex <= nPositions){
             nodeNumber += posIndex;
         } else {
             // Advance the trackblock until we can get to posIndex
             int nExtra = posIndex - nPositions;
             while(true){
-                nodeNumber = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[++trackBlockIndex].nStartPos;
-                nPositions = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
+                nodeNumber = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[++trackBlockIndex].nStartPos;
+                nPositions = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
                 if(nExtra < nPositions){
                     nodeNumber += nExtra;
                     break;
@@ -52,7 +52,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
             }
         }
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-        COLVROAD resetVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
+        COLVROAD resetVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
         vroadPoint = (rotationMatrix * TrackUtils::pointToVec(resetVroad.refPt)) / 65536.f;
         vroadPoint /= 10.f;
         vroadPoint.y += 0.2;
@@ -87,11 +87,11 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTr
     ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
     if (track->tag == NFS_3 || track->tag == NFS_4) {
-        uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+        uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
         ASSERT(vroadIndex < nVroad, "Requested reset to vroad index: " << vroadIndex << " outside of nVroad: " << nVroad);
 
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-        COLVROAD resetVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroadIndex];
+        COLVROAD resetVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroadIndex];
         vroadPoint = (rotationMatrix * TrackUtils::pointToVec(resetVroad.refPt)) / 65536.f;
         vroadPoint /= 10.f;
         vroadPoint.y += 0.2;
@@ -121,11 +121,11 @@ bool CarAgent::isWinner() {
     if(droveBack) return false;
 
     fitness = getClosestVroad(car, track);
-    return fitness > 500.f;//boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec - 5;
+    return fitness > 500.f;//boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec - 5;
 }
 
 void CarAgent::reset(){
-    resetToVroad(2, 0, 0.f, track, car);
+    resetToVroad(0, 0.f, track, car);
 }
 
 void CarAgent::simulate() {
@@ -175,18 +175,18 @@ void CarAgent::simulate() {
     }
 
     ++tickCount;
-    if (tickCount > STALE_TICK_COUNT || car->upDistance <= 0.1f){
+    if (tickCount > STALE_TICK_COUNT){
         dead = true;
     }
 }
 
 int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) {
-    uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+    uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
     int closestVroadID = 0;
     float lowestDistance = FLT_MAX;
     for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
-        INTPT refPt = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
+        INTPT refPt = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
 

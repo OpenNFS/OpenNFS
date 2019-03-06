@@ -24,7 +24,7 @@ public:
             case NFS_3:
                 break;/*
             case NFS_3:
-                NFS3::FreeTrack(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(trackData));
+                NFS3::FreeTrack(boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData));
                 break;*/
             case UNKNOWN:
                 ASSERT(false, "Unknown track type!");
@@ -35,7 +35,7 @@ public:
 
     NFSVer tag;
     std::string name;
-    typedef boost::variant<shared_ptr<NFS3_4_DATA::TRACK>, shared_ptr<NFS2_DATA::PS1::TRACK>, shared_ptr<NFS2_DATA::PC::TRACK>> track;
+    typedef boost::variant<std::shared_ptr<NFS3_4_DATA::TRACK>, std::shared_ptr<NFS2_DATA::PS1::TRACK>, std::shared_ptr<NFS2_DATA::PC::TRACK>> track;
     track trackData;
 
     std::vector<SHARED::CANPT> cameraAnimations;
@@ -48,5 +48,5 @@ public:
 
 class TrackLoader {
 public:
-    static shared_ptr<ONFSTrack> LoadTrack(NFSVer nfs_version, const std::string &track_name);
+    static std::shared_ptr<ONFSTrack> LoadTrack(NFSVer nfs_version, const std::string &track_name);
 };

@@ -69,7 +69,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
 
     LOG(INFO) << "Parsing PC GEO File located at " << geo_path;
     std::vector<CarModel> car_meshes;
-    ifstream geo(geo_path, ios::in | ios::binary);
+    std::ifstream geo(geo_path, std::ios::in | std::ios::binary);
 
     auto *geoFileHeader = new PC::GEO::HEADER();
     if (geo.read((char *) geoFileHeader, sizeof(PC::GEO::HEADER)).gcount() != sizeof(PC::GEO::HEADER)) {
@@ -81,7 +81,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
     uint32_t part_Idx = -1;
 
     while (true) {
-        streamoff start = geo.tellg();
+       std::streamoff start = geo.tellg();
 
         auto *geoBlockHeader = new PC::GEO::BLOCK_HEADER();
         while (geoBlockHeader->nVerts == 0) {
@@ -111,7 +111,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
         auto *vertices = new PC::GEO::BLOCK_3D[geoBlockHeader->nVerts];
         geo.read((char *) vertices, geoBlockHeader->nVerts * sizeof(PC::GEO::BLOCK_3D));
 
-        streamoff end = geo.tellg();
+       std::streamoff end = geo.tellg();
         // Polygon Table start is aligned on 4 Byte boundary
         if (((end - start) % 4)) {
             LOG(DEBUG) << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: ";
@@ -221,7 +221,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
     LOG(INFO) << "Parsing PC GEO File located at " << geo_path;
     std::vector<CarModel> car_meshes;
 
-    ifstream geo(geo_path, ios::in | ios::binary);
+    std::ifstream geo(geo_path, std::ios::in | std::ios::binary);
 
     auto *geoFileHeader = new PS1::GEO::HEADER();
     if (geo.read((char *) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER)) {
@@ -233,7 +233,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
     int32_t part_Idx = -1;
 
     while (true) {
-        streamoff start = geo.tellg();
+       std::streamoff start = geo.tellg();
         LOG(DEBUG) << "Part " << part_Idx + 1 << " [" << PS1_PART_NAMES[part_Idx + 1] << "]";
         LOG(DEBUG) << "BlockStartOffset:   " << start;
         auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
@@ -315,7 +315,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
                 LOG(DEBUG) << "Unknown block type:  " << geoBlockHeader->unknown1;
         }
 
-        streamoff end = geo.tellg();
+       std::streamoff end = geo.tellg();
         LOG(DEBUG) << "PolyTblStartOffset: " << end << " Size: " << end - start;
         // Polygon Table start is aligned on 4 Byte boundary
         if (((end - start) % 4)) {
@@ -443,7 +443,7 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     boost::filesystem::path p(car_base_path);
     std::string car_name = p.filename().string();
 
-    stringstream geo_path, psh_path, qfs_path, car_out_path;
+    std::stringstream geo_path, psh_path, qfs_path, car_out_path;
     geo_path << car_base_path << ".GEO";
     psh_path << car_base_path << ".PSH";
     qfs_path << car_base_path << ".QFS";
@@ -487,13 +487,13 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
 
 // TRACK
 template<typename Platform>
-shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string &track_base_path) {
+std::shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string &track_base_path) {
     LOG(INFO) << "Loading Track located at " << track_base_path;
-    shared_ptr<typename Platform::TRACK> track(new typename Platform::TRACK());
+    std::shared_ptr<typename Platform::TRACK> track(new typename Platform::TRACK());
 
     boost::filesystem::path p(track_base_path);
     track->name = p.filename().string();
-    stringstream trk_path, col_path, can_path;
+    std::stringstream trk_path, col_path, can_path;
 
     trk_path << track_base_path << ".TRK";
     col_path << track_base_path << ".COL";
@@ -534,9 +534,9 @@ shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::string
 }
 
 template<typename Platform>
-bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Platform::TRACK> &track) {
+bool NFS2<Platform>::LoadTRK(std::string trk_path, const std::shared_ptr<typename Platform::TRACK> &track) {
     LOG(INFO) << "Loading TRK File located at " << trk_path;
-    ifstream trk(trk_path, ios::in | ios::binary);
+    std::ifstream trk(trk_path, std::ios::in | std::ios::binary);
     // TRK file header data
     unsigned char header[4];
     long unknownHeader[5];
@@ -578,7 +578,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
         LOG(DEBUG) << "SuperBlock " << superBlock_Idx + 1 << " of " << track->nSuperBlocks;
         // Get the superblock header
         auto *superblock = &track->superblocks[superBlock_Idx];
-        trk.seekg(superblockOffsets[superBlock_Idx], ios_base::beg);
+        trk.seekg(superblockOffsets[superBlock_Idx], std::ios_base::beg);
         trk.read((char *) &superblock->superBlockSize, sizeof(uint32_t));
         trk.read((char *) &superblock->nBlocks, sizeof(uint32_t));
         trk.read((char *) &superblock->padding, sizeof(uint32_t));
@@ -593,7 +593,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                 auto *trackblock = &superblock->trackBlocks[block_Idx];
                 // Read Header
                 trackblock->header = static_cast<TRKBLOCK_HEADER *>(calloc(1, sizeof(TRKBLOCK_HEADER)));
-                trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx], ios_base::beg);
+                trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx], std::ios_base::beg);
                 trk.read((char *) trackblock->header, sizeof(TRKBLOCK_HEADER));
                 LOG(DEBUG) << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->blockSerial << "]";
 
@@ -616,13 +616,13 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                 }
 
                 // Read Extrablock data
-                trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + 64u + trackblock->header->extraBlockTblOffset, ios_base::beg);
+                trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + 64u + trackblock->header->extraBlockTblOffset, std::ios_base::beg);
                 // Get extrablock offsets (relative to beginning of TrackBlock)
                 uint32_t *extrablockOffsets = (uint32_t *) calloc(trackblock->header->nExtraBlocks, sizeof(uint32_t));
                 trk.read((char *) extrablockOffsets, trackblock->header->nExtraBlocks * sizeof(uint32_t));
 
                 for (uint32_t xblock_Idx = 0; xblock_Idx < trackblock->header->nExtraBlocks; ++xblock_Idx) {
-                    trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + extrablockOffsets[xblock_Idx], ios_base::beg);
+                    trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + extrablockOffsets[xblock_Idx], std::ios_base::beg);
                     auto *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
                     trk.read((char *) xblockHeader, sizeof(EXTRABLOCK_HEADER));
 
@@ -640,7 +640,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                             trackblock->structures = static_cast<typename Platform::GEOM_BLOCK *>(calloc(xblockHeader->nRecords, sizeof(typename Platform::GEOM_BLOCK)));
                             trackblock->nStructures = xblockHeader->nRecords;
                             for (uint32_t structure_Idx = 0; structure_Idx < trackblock->nStructures; ++structure_Idx) {
-                                streamoff padCheck = trk.tellg();
+                               std::streamoff padCheck = trk.tellg();
                                 trk.read((char *) &trackblock->structures[structure_Idx].recSize, sizeof(uint32_t));
                                 trk.read((char *) &trackblock->structures[structure_Idx].nVerts, sizeof(uint16_t));
                                 trk.read((char *) &trackblock->structures[structure_Idx].nPoly, sizeof(uint16_t));
@@ -652,7 +652,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                                 for (uint32_t poly_Idx = 0; poly_Idx < trackblock->structures[structure_Idx].nPoly; ++poly_Idx) {
                                     trk.read((char *) &trackblock->structures[structure_Idx].polygonTable[poly_Idx], sizeof(typename Platform::POLYGONDATA));
                                 }
-                                trk.seekg(trackblock->structures[structure_Idx].recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                                trk.seekg(trackblock->structures[structure_Idx].recSize - (trk.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
                             }
                             break;
                         case 7:
@@ -660,7 +660,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                         case 19:
                             trackblock->nStructureReferences += xblockHeader->nRecords;
                             for (uint32_t structureRef_Idx = 0; structureRef_Idx < trackblock->nStructureReferences; ++structureRef_Idx) {
-                                streamoff padCheck = trk.tellg();
+                               std::streamoff padCheck = trk.tellg();
                                 GEOM_REF_BLOCK structure;
                                 trk.read((char *) &structure.recSize, sizeof(uint16_t));
                                 trk.read((char *) &structure.recType, sizeof(uint8_t));
@@ -683,7 +683,7 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
                                     continue;
                                 }
                                 trackblock->structureRefData.emplace_back(structure);
-                                trk.seekg(structure.recSize - (trk.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                                trk.seekg(structure.recSize - (trk.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
                             }
                             break;
                             // PS1 Specific XBID, Misc purpose
@@ -734,9 +734,9 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const shared_ptr<typename Pla
 }
 
 template<typename Platform>
-bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Platform::TRACK> &track) {
+bool NFS2<Platform>::LoadCOL(std::string col_path, const std::shared_ptr<typename Platform::TRACK> &track) {
     LOG(INFO) << "Loading COL File located at " << col_path;
-    ifstream col(col_path, ios::in | ios::binary);
+    std::ifstream col(col_path, std::ios::in | std::ios::binary);
     // Check we're in a valid TRK file
     unsigned char header[4];
     if (col.read(((char *) header), sizeof(unsigned char) * 4).gcount() != sizeof(unsigned char) * 4) return false;
@@ -746,7 +746,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
     col.read((char *) &version, sizeof(uint32_t));
     if (version != 11) return false;
 
-    streampos colSize;
+    std::streampos colSize;
     col.read((char *) &colSize, sizeof(uint32_t));
 
     uint32_t nExtraBlocks;
@@ -759,7 +759,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
     LOG(DEBUG) << "Parsing COL Extrablocks";
 
     for (uint32_t xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx) {
-        col.seekg(16 + extraBlockOffsets[xBlock_Idx], ios_base::beg);
+        col.seekg(16 + extraBlockOffsets[xBlock_Idx], std::ios_base::beg);
 
         auto *xblockHeader = static_cast<EXTRABLOCK_HEADER *>(calloc(1, sizeof(EXTRABLOCK_HEADER)));
         col.read((char *) xblockHeader, sizeof(EXTRABLOCK_HEADER));
@@ -776,7 +776,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                 track->nColStructures = xblockHeader->nRecords;
                 track->colStructures = static_cast<typename Platform::GEOM_BLOCK *>(calloc(track->nColStructures, sizeof(typename Platform::GEOM_BLOCK)));
                 for (uint32_t structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx) {
-                    streamoff padCheck = col.tellg();
+                   std::streamoff padCheck = col.tellg();
                     col.read((char *) &track->colStructures[structure_Idx].recSize, sizeof(uint32_t));
                     col.read((char *) &track->colStructures[structure_Idx].nVerts, sizeof(uint16_t));
                     col.read((char *) &track->colStructures[structure_Idx].nPoly, sizeof(uint16_t));
@@ -788,13 +788,13 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                     for (uint32_t poly_Idx = 0; poly_Idx < track->colStructures[structure_Idx].nPoly; ++poly_Idx) {
                         col.read((char *) &track->colStructures[structure_Idx].polygonTable[poly_Idx], sizeof(typename Platform::POLYGONDATA));
                     }
-                    col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                    col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
                 }
                 break;
             case 7: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
                 track->nColStructureReferences = xblockHeader->nRecords;
                 for (uint32_t structureRef_Idx = 0; structureRef_Idx < track->nColStructures; ++structureRef_Idx) {
-                    streamoff padCheck = col.tellg();
+                   std::streamoff padCheck = col.tellg();
                     GEOM_REF_BLOCK structure;
                     col.read((char *) &structure.recSize, sizeof(uint16_t));
                     col.read((char *) &structure.recType, sizeof(uint8_t));
@@ -816,7 +816,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
                         LOG(WARNING) << "XBID " << xblockHeader->XBID << " Unknown COL Structure Reference type: " << (int) structure.recType << " Size: " << (int) structure.recSize << " StructRef: " << (int) structure.structureRef;
                     }
                     track->colStructureRefData.emplace_back(structure);
-                    col.seekg(structure.recSize - (col.tellg() - padCheck), ios_base::cur); // Eat possible padding
+                    col.seekg(structure.recSize - (col.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
                 }
                 break;
             case 15:
@@ -835,7 +835,7 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const shared_ptr<typename Pla
 }
 
 template<typename Platform>
-void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typename Platform::TRACK> &track) {
+void NFS2<Platform>::dbgPrintVerts(const std::string &path, const std::shared_ptr<typename Platform::TRACK> &track) {
     std::ofstream obj_dump;
 
     if (!(boost::filesystem::exists(path))) {
@@ -963,7 +963,7 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const shared_ptr<typ
 
 
 template<typename Platform>
-void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &track) {
+void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRACK> &track) {
     LOG(INFO) << "Parsing TRK file into ONFS GL structures";
 
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
@@ -1138,7 +1138,7 @@ void NFS2<Platform>::ParseTRKModels(const shared_ptr<typename Platform::TRACK> &
 }
 
 template<typename Platform>
-std::vector<Entity> NFS2<Platform>::ParseCOLModels(const shared_ptr<typename Platform::TRACK> &track) {
+std::vector<Entity> NFS2<Platform>::ParseCOLModels(const std::shared_ptr<typename Platform::TRACK> &track) {
     LOG(INFO) << "Parsing COL file into ONFS GL structures";
 
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
@@ -1231,7 +1231,7 @@ NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &trac
             ASSERT(false, "Trying to load texture from unknown NFS version");
             break;
     }
-    filename << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texNumber << ".BMP";;
+    filename << track_name << "/textures/" << std::setfill('0') << std::setw(4) << track_texture.texNumber << ".BMP";;
 
     GLubyte *data;
     GLsizei width;

@@ -6,8 +6,8 @@
 #include "Renderer.h"
 
 Renderer::Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
-                   const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack,
-                   shared_ptr<Car> &currentCar) : trackRenderer(currentTrack),
+                   const std::vector<NeedForSpeed> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack,
+                   std::shared_ptr<Car> &currentCar) : trackRenderer(currentTrack),
                                                    skyRenderer(currentTrack), shadowMapRenderer(currentTrack),
                                                    logger(onfsLogger), installedNFSGames(installedNFS),
                                                    window(glWindow), track(currentTrack) {
@@ -371,11 +371,11 @@ std::vector<int> Renderer::CullTrackBlocks(glm::vec3 worldPosition, int blockDra
     // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
     if ((track->tag == NFS_3 || track->tag == NFS_4) && useNeighbourData) {
         for (int i = 0; i < 300; ++i) {
-            if (boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk ==
+            if (boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk ==
                 -1) {
                 break;
             } else {
-                activeTrackBlockIds.emplace_back(boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(
+                activeTrackBlockIds.emplace_back(boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(
                         track->trackData)->trk[closestBlockID].nbdData[i].blk);
             }
         }
@@ -478,12 +478,12 @@ void Renderer::DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &p
 void Renderer::DrawVroad(PhysicsEngine &physicsEngine) {
     if (track->tag == NFS_3 || track->tag == NFS_4) {
         float vRoadDisplayHeight = 0.2f;
-        uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+        uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
         for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
             // Render COL Vroad? Should I use TRK VROAD to work across HS too?
             if (vroad_Idx < nVroad - 1) {
-                COLVROAD curVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
-                COLVROAD nextVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
+                COLVROAD curVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
+                COLVROAD nextVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
 
                 INTPT refPt = curVroad.refPt;
                 INTPT refPtNext = nextVroad.refPt;

@@ -21,9 +21,9 @@ using namespace NFS3_4_DATA;
 
 class NFS3 {
 public:
-    static std::shared_ptr<Car> LoadCar(const string &car_base_path);
+    static std::shared_ptr<Car> LoadCar(const std::string &car_base_path);
     static std::shared_ptr<TRACK> LoadTrack(const std::string &track_base_path);
-    static bool LoadFFN(const string &ffn_path);
+    static bool LoadFFN(const std::string &ffn_path);
     static void FreeTrack(const std::shared_ptr<TRACK> &track);
 
     static void ConvertFCE(const std::string &fce_path, const std::string &obj_out_path);

@@ -104,6 +104,17 @@ void Car::setModels(std::vector<CarModel> loaded_car_models){
     allModels = loaded_car_models;
     uint8_t usedModelCount = 0;
 
+    // Hackily load colours from first mesh, if I put them there in car loader
+    if(!loaded_car_models.empty()){
+        if(!loaded_car_models[0].originalColours.empty()){
+            originalColours = loaded_car_models[0].originalColours;
+            int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) originalColours.size());
+            colour = originalColours[randomColourIdx].colour;
+        } else {
+            colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
+        }
+    }
+
     switch(tag){
         case NFS_1:break;
         case NFS_2_PS1:break;

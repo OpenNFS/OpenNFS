@@ -4,7 +4,7 @@
 
 #include "car_loader.h"
 
-shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_name) {
+std::shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_name) {
     std::stringstream car_path;
     car_path << RESOURCE_PATH << ToString(nfs_version);
 
@@ -46,5 +46,5 @@ shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_na
             break;
     }
 
-    return shared_ptr<Car>();
+    return std::shared_ptr<Car>();
 }

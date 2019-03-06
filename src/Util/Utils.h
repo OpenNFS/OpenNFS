@@ -146,4 +146,8 @@ namespace Utils {
     bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
 
     bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei *width_, GLsizei *height_);
+
+    float HueToRGB(float v1, float v2, float vH);
+
+    glm::vec3 HSLToRGB(glm::vec4 hsl);
 }

@@ -293,11 +293,11 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
         }
     }
     if (track->tag == NFS_3 || track->tag == NFS_4) {
-        uint32_t nVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+        uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
         for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
             if (vroad_Idx < nVroad - 1) {
-                COLVROAD curVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
-                COLVROAD nextVroad = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
+                COLVROAD curVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
+                COLVROAD nextVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
                 INTPT curVroadRefPt = curVroad.refPt;
                 INTPT nextVroadRefPt = nextVroad.refPt;
 

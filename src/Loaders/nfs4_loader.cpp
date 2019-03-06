@@ -24,11 +24,11 @@ std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path) {
 
 std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     std::cout << "--- Loading NFS4 Track ---" << std::endl;
-    auto track = make_shared<TRACK>(TRACK());
+    auto track = std::make_shared<TRACK>(TRACK());
 
     boost::filesystem::path p(track_base_path);
     track->name = p.filename().string();
-    stringstream frd_path, can_path;
+    std::stringstream frd_path, can_path;
 
     frd_path << track_base_path << "/TR.frd";
     can_path << track_base_path << "/TR00A.CAN";
@@ -61,7 +61,7 @@ std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
     std::vector<CarModel> meshes;
     bool isTraffic = fce_path.find("TRAFFIC") != std::string::npos;
 
-    ifstream fce(fce_path, ios::in | ios::binary);
+    std::ifstream fce(fce_path, std::ios::in | std::ios::binary);
 
     auto *fceHeader = new FCE::NFS4::HEADER();
     fce.read((char *) fceHeader, sizeof(FCE::NFS4::HEADER));
@@ -85,19 +85,19 @@ std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
         auto *partNormals = new FLOATPT[fceHeader->partNumVertices[part_Idx]];
         auto *partTriangles = new FCE::TRIANGLE[fceHeader->partNumTriangles[part_Idx]];
 
-        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->vertTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->vertTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), std::ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (uint32_t vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
             vertices.emplace_back(rotationMatrix * glm::vec3(partVertices[vert_Idx].x / 10, partVertices[vert_Idx].y / 10, partVertices[vert_Idx].z / 10));
         }
 
-        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->normTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->normTblOffset + (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), std::ios_base::beg);
         fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (uint32_t normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
             normals.emplace_back(rotationMatrix * glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y, partNormals[normal_Idx].z));
         }
 
-        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
+        fce.seekg(sizeof(FCE::NFS4::HEADER) + fceHeader->triTblOffset + (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), std::ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
         for (uint32_t tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
             polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
@@ -138,7 +138,7 @@ std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
 }
 
 bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, const std::shared_ptr<TRACK> &track) {
-    ifstream ar(frd_path, ios::in | ios::binary);
+    std::ifstream ar(frd_path, std::ios::in | std::ios::binary);
     uint32_t nPos;
     unsigned char ptrspace[44]; // some useless data from HS FRDs
 
@@ -906,11 +906,11 @@ Texture NFS4::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     std::stringstream filename_alpha;
 
     if (track_texture.islane) {
-        filename       << "../resources/sfx/" << setfill('0') << setw(4) << (track_texture.texture - 2048) + 9 << ".BMP";
-        filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << (track_texture.texture - 2048) + 9 << "-a.BMP";
+        filename       << "../resources/sfx/" << std::setfill('0') << std::setw(4) << (track_texture.texture - 2048) + 9 << ".BMP";
+        filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << (track_texture.texture - 2048) + 9 << "-a.BMP";
     } else {
-        filename       << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << setfill('0') << setw(4) << track_texture.texture << "-a.BMP";
+        filename       << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << std::setfill('0') << std::setw(4) << track_texture.texture << ".BMP";
+        filename_alpha << TRACK_PATH << ToString(NFS_4) << "/" << track_name << "/textures/" << std::setfill('0') << std::setw(4) << track_texture.texture << "-a.BMP";
     }
 
     // Width and height data isn't set properly in FRD loader so deduce from bmp

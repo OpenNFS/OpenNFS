@@ -34,10 +34,20 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
 
     std::vector<CarModel> meshes;
 
-    ifstream fce(fce_path, ios::in | ios::binary);
+    std::ifstream fce(fce_path, std::ios::in | std::ios::binary);
 
     auto *fceHeader = new FCE::NFS3::HEADER();
     fce.read((char *) fceHeader, sizeof(FCE::NFS3::HEADER));
+
+    std::vector<CarColour> originalPrimaryColours;
+
+    // Grab colours TODO: Doesn't make sense to return them to every CarModel. Should go straight to parent car.
+    for(uint8_t colourIdx = 0; colourIdx < fceHeader->nPriColours; ++colourIdx){
+        FCE::NFS3::COLOUR primaryColour = fceHeader->primaryColours[colourIdx];
+        // TODO: Read colour names from later in file and pass to constructor, convert char * to string inside.
+        CarColour originalPrimaryColour("NotSetYetBecauseImLazy", Utils::HSLToRGB(glm::vec4(primaryColour.H, primaryColour.S, primaryColour.B, primaryColour.T)));
+        originalPrimaryColours.emplace_back(originalPrimaryColour);
+    }
 
     for (uint32_t part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
         float specularDamper = 0.2f;
@@ -60,7 +70,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         auto *partTriangles = new FCE::TRIANGLE[fceHeader->partNumTriangles[part_Idx]];
 
         fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->vertTblOffset +
-                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), std::ios_base::beg);
         fce.read((char *) partVertices, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (uint32_t vert_Idx = 0; vert_Idx < fceHeader->partNumVertices[part_Idx]; ++vert_Idx) {
             vertices.emplace_back(rotationMatrix *
@@ -69,7 +79,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         }
 
         fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->normTblOffset +
-                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), ios_base::beg);
+                  (fceHeader->partFirstVertIndices[part_Idx] * sizeof(FLOATPT)), std::ios_base::beg);
         fce.read((char *) partNormals, fceHeader->partNumVertices[part_Idx] * sizeof(FLOATPT));
         for (uint32_t normal_Idx = 0; normal_Idx < fceHeader->partNumVertices[part_Idx]; ++normal_Idx) {
             normals.emplace_back(rotationMatrix * glm::vec3(partNormals[normal_Idx].x, partNormals[normal_Idx].y,
@@ -77,7 +87,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
         }
 
         fce.seekg(sizeof(FCE::NFS3::HEADER) + fceHeader->triTblOffset +
-                  (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), ios_base::beg);
+                  (fceHeader->partFirstTriIndices[part_Idx] * sizeof(FCE::TRIANGLE)), std::ios_base::beg);
         fce.read((char *) partTriangles, fceHeader->partNumTriangles[part_Idx] * sizeof(FCE::TRIANGLE));
         for (uint32_t tri_Idx = 0; tri_Idx < fceHeader->partNumTriangles[part_Idx]; ++tri_Idx) {
             polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
@@ -91,8 +101,8 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper,
-                                     specularReflectivity, envReflectivity));
+        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
+        meshes[0].originalColours = originalPrimaryColours;// TODO: Do this better!
         LOG(INFO) << "Loaded Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size()
                   << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: "
                   << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size();
@@ -111,14 +121,14 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
 // TRACK
 std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     LOG(INFO) << "Loading Track located at " << track_base_path;
-    auto track = make_shared<TRACK>(TRACK());
+    auto track = std::make_shared<TRACK>(TRACK());
 
     boost::filesystem::path p(track_base_path);
     track->name = p.filename().string();
-    stringstream frd_path, col_path, can_path, hrz_path;
-    string strip = "k0";
+    std::stringstream frd_path, col_path, can_path, hrz_path;
+    std::string strip = "k0";
     size_t pos = track->name.find(strip);
-    if (pos != string::npos)
+    if (pos != std::string::npos)
         track->name.replace(pos, strip.size(), "");
 
     frd_path << track_base_path << "/" << track->name << ".frd";
@@ -145,8 +155,8 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path) {
     return track;
 }
 
-bool NFS3::LoadFFN(const string &ffn_path) {
-    ifstream ffn(ffn_path, ios::in | ios::binary);
+bool NFS3::LoadFFN(const std::string &ffn_path) {
+    std::ifstream ffn(ffn_path, std::ios::in | std::ios::binary);
 
     if (!ffn.is_open()) {
         return false;
@@ -178,7 +188,7 @@ bool NFS3::LoadFFN(const string &ffn_path) {
     //streamoff readBytes = ffn.tellg();
     //ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
 
-    ffn.seekg(header->fontMapOffset, ios_base::beg);
+    ffn.seekg(header->fontMapOffset, std::ios_base::beg);
     uint32_t *pixels = new uint32_t[header->version * header->numChars];
     uint16_t *paletteColours = new uint16_t[0xFF];
     uint8_t *indexes = new uint8_t[header->version * header->numChars]; // Only used if indexed
@@ -216,7 +226,7 @@ void NFS3::FreeTrack(const std::shared_ptr<TRACK> &track) {
 }
 
 bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, const std::shared_ptr<TRACK> &track) {
-    ifstream ar(frd_path, ios::in | ios::binary);
+    std::ifstream ar(frd_path, std::ios::in | std::ios::binary);
 
     char header[28]; /* file header */
     SAFE_READ(ar, header, 28); // header & numblocks
@@ -274,7 +284,7 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, const st
             SAFE_READ(ar, trackBlock->xobj, 20 * trackBlock->nXobj);
         }
         if (trackBlock->nPolyobj > 0) {
-            ar.seekg(20 * trackBlock->nPolyobj, ios_base::cur);
+            ar.seekg(20 * trackBlock->nPolyobj, std::ios_base::cur);
         }
         trackBlock->nPolyobj = 0;
         if (trackBlock->nSoundsrc > 0) {
@@ -375,7 +385,7 @@ bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, const st
 }
 
 bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
-    ifstream coll(col_path, ios::in | ios::binary);
+    std::ifstream coll(col_path, std::ios::in | std::ios::binary);
 
     COLOBJECT *o;
 
@@ -477,7 +487,7 @@ bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track) {
 }
 
 bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track) {
-    ifstream hrz(hrz_path, ios::in | ios::binary);
+    std::ifstream hrz(hrz_path, std::ios::in | std::ios::binary);
     if (!hrz.is_open()) return false;
     LOG(INFO) << "Loading HRZ File located at " << hrz_path;
 
@@ -832,12 +842,12 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
     std::stringstream filename_alpha;
 
     if (track_texture.islane) {
-        filename << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << ".BMP";
-        filename_alpha << "../resources/sfx/" << setfill('0') << setw(4) << track_texture.texture + 9 << "-a.BMP";
+        filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << track_texture.texture + 9 << ".BMP";
+        filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << track_texture.texture + 9 << "-a.BMP";
     } else {
-        filename << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4)
+        filename << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << std::setfill('0') << std::setw(4)
                  << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << setfill('0') << setw(4)
+        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << std::setfill('0') << std::setw(4)
                        << track_texture.texture << "-a.BMP";
     }
 

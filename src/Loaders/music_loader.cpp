@@ -327,7 +327,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
 	FILE *pcm_file = fopen("stereo.pcm", "wb");
 
     std::cout << "- Parsing MAP File " << std::endl;
-    ifstream map(map_path, ios::in | ios::binary);
+    std::ifstream map(map_path, std::ios::in | std::ios::binary);
 
     // Read the MAP file header
     MAPHeader *mapHeader = static_cast<MAPHeader *>(calloc(1, sizeof(MAPHeader)));
@@ -339,7 +339,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     map.read((char *) sectionDefTable, mapHeader->bNumSections * sizeof(MAPSectionDef));
 
     // Skip over seemlingly useless records
-    map.seekg(mapHeader->bNumRecords * 0x10, ios_base::cur); // bRecordSize may be incorrect, use 0x10 to be safe
+    map.seekg(mapHeader->bNumRecords * 0x10, std::ios_base::cur); // bRecordSize may be incorrect, use 0x10 to be safe
 
     uint32_t *startingPositions = static_cast<uint32_t *>(calloc(mapHeader->bNumSections, sizeof(long)));
 

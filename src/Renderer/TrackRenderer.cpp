@@ -4,7 +4,7 @@
 
 #include "TrackRenderer.h"
 
-TrackRenderer::TrackRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
+TrackRenderer::TrackRenderer(const std::shared_ptr<ONFSTrack> &activeTrack) {
     track = activeTrack;
     trackLightMap = GetContributingLights(activeTrack);
 }
@@ -41,7 +41,7 @@ std::vector<Light> TrackRenderer::GetInterestingLights(const TrackBlock &activeT
     return interestingLights;
 }
 
-std::map<int, std::vector<Light>> TrackRenderer::GetContributingLights(const shared_ptr<ONFSTrack> &activeTrack) {
+std::map<int, std::vector<Light>> TrackRenderer::GetContributingLights(const std::shared_ptr<ONFSTrack> &activeTrack) {
     // Must leave room for sun light to be added.
     ASSERT(LIGHTS_PER_NB_BLOCK * ((2 * NEIGHBOUR_BLOCKS_FOR_LIGHTS) + 1) <= MAX_TRACK_CONTRIB_LIGHTS - 1,
            "With current number of lights being considered from number of neighbouring blocks, more lights will be bound to the shader than can be processed! Increase MAX_TRACK_CONTRIB_LIGHTS");
@@ -115,7 +115,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
     for (auto &global_object : track->globalObjects) {
         if (track->tag == NFS_4 || track->tag == NFS_3) {
             uint32_t globalObjIdx = 4 * track->nBlocks; //Global Objects
-            NFS3_4_DATA::XOBJDATA animObject = boost::get<shared_ptr<NFS3_4_DATA::TRACK>>(
+            NFS3_4_DATA::XOBJDATA animObject = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(
                     track->trackData)->xobj[globalObjIdx].obj[global_object.entityID];
             if (animObject.type3 == 3) {
                 if (animMap[global_object.entityID] < animObject.nAnimLength) {
@@ -137,8 +137,8 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
             }
         } else if (track->tag == NFS_2 || track->tag == NFS_2_SE || track->tag == NFS_3_PS1) {
             std::vector<GEOM_REF_BLOCK> colStructureRefData =
-                    track->tag == NFS_3_PS1 ? boost::get<shared_ptr<NFS2_DATA::PS1::TRACK>>(
-                            track->trackData)->colStructureRefData : boost::get<shared_ptr<NFS2_DATA::PC::TRACK>>(
+                    track->tag == NFS_3_PS1 ? boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(
+                            track->trackData)->colStructureRefData : boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(
                             track->trackData)->colStructureRefData;
             // Find the structure reference that matches this structure, else use block default
             for (auto &structure : colStructureRefData) {

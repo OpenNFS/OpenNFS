@@ -484,7 +484,7 @@ namespace TrackUtils {
     }
 
     bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations) {
-        ifstream can(can_path, ios::in | ios::binary);
+        std::ifstream can(can_path, std::ios::in | std::ios::binary);
 
         if (!can.is_open()) {
             return false;
@@ -510,11 +510,11 @@ namespace TrackUtils {
             cameraAnimations.emplace_back(anim[anim_Idx]);
         }
 
-        streamoff readBytes = can.tellg();
+       std::streamoff readBytes = can.tellg();
 
         ASSERT(readBytes == size, "Missing " << size - readBytes << " bytes from loaded CAN file: " << can_path);
 
-        /*ofstream can_out("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\tracks\\trk000\\tr0000a.can", ios::out | ios::binary);
+        /*ofstream can_out("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\tracks\\trk000\\tr0000a.can", std::ios::out | std::ios::binary);
 
         if (!can_out.is_open()) {
             return false;

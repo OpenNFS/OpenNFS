@@ -78,7 +78,7 @@ void Camera::useSpline(float elapsedTime) {
     );
 }
 
-void Camera::calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
+void Camera::calculateCameraPosition(const std::shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
     float theta =  (target_car->getRotY() +  angleAroundCar);
     float offsetX = horizDistance * sin(glm::radians(theta));
     float offsetZ = horizDistance * cos(glm::radians(theta));
@@ -114,7 +114,7 @@ float Camera::calculateHorizontalDistance() {
     return distanceFromCar * cos(pitch * (SIMD_PI / 180));
 }
 
-void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active){
+void Camera::followCar(const std::shared_ptr<Car> &target_car, bool &window_active){
     if (!window_active)
         return;
     // Bail on the window active status if we hit the escape key

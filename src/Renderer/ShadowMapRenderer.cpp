@@ -4,7 +4,7 @@
 
 #include "ShadowMapRenderer.h"
 
-ShadowMapRenderer::ShadowMapRenderer(const shared_ptr<ONFSTrack> &activeTrack): track(activeTrack) {
+ShadowMapRenderer::ShadowMapRenderer(const std::shared_ptr<ONFSTrack> &activeTrack): track(activeTrack) {
     // -----------------------
     // Configure depth map FBO
     // -----------------------

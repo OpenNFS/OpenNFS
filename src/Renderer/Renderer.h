@@ -29,7 +29,7 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const shared_ptr<ONFSTrack> &currentTrack, shared_ptr<Car> &currentCar);
+    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
     ~Renderer();
     bool Render(float totalTime, float deltaTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine);
     // Data used for culling
@@ -38,7 +38,7 @@ private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
     std::vector<NeedForSpeed> installedNFSGames;
-    shared_ptr<ONFSTrack> track;
+    std::shared_ptr<ONFSTrack> track;
 
     /* Renderers */
     TrackRenderer trackRenderer;

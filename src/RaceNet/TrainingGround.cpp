@@ -5,7 +5,7 @@
 #include "TrainingGround.h"
 
 TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks,
-                               shared_ptr<ONFSTrack> &training_track, shared_ptr<Car> &training_car,
+                               std::shared_ptr<ONFSTrack> &training_track, std::shared_ptr<Car> &training_car,
                                std::shared_ptr<Logger> &logger, GLFWwindow *gl_window) : window(gl_window),
                                                                                          raceNetRenderer(gl_window,
                                                                                                          logger) {

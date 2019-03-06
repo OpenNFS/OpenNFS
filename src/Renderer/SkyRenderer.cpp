@@ -5,7 +5,7 @@
 #include "SkyRenderer.h"
 
 
-SkyRenderer::SkyRenderer(const shared_ptr<ONFSTrack> &activeTrack) {
+SkyRenderer::SkyRenderer(const std::shared_ptr<ONFSTrack> &activeTrack) {
     // Load track HRZ parameters into shader
     loadTextures();
 

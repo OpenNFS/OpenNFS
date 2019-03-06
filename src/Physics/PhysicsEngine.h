@@ -91,7 +91,7 @@ public:
     int numObjects = 0;
     btAlignedObjectArray<btCollisionObject*> m_objectsInFrustum;	// Frustum cull results
 private:
-    shared_ptr<ONFSTrack> currentTrack;
+    std::shared_ptr<ONFSTrack> currentTrack;
     std::vector<std::shared_ptr<Car>> cars;
     /*------- BULLET --------*/
     btBroadphaseInterface *broadphase;

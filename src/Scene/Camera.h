@@ -37,7 +37,7 @@ private:
     void calculateAngleAroundCar();
     float calculateHorizontalDistance();
     float calculateVerticalDistance();
-    void calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance);
+    void calculateCameraPosition(const std::shared_ptr<Car> &target_car, float horizDistance, float vertDistance);
 public:
     Camera(glm::vec3 initial_position, float FoV, float horizontal_angle, float vertical_angle, GLFWwindow *gl_window);
     Camera();
@@ -46,7 +46,7 @@ public:
     void generateSpline(const std::vector<TrackBlock> &trackBlocks);
     void useSpline(float elapsedTime); // Move to position on spline dependent on how long game has been running
     void computeMatricesFromInputs(bool &window_active, float deltaTime);
-    void followCar(const shared_ptr<Car> &target_car, bool &window_active);
+    void followCar(const std::shared_ptr<Car> &target_car, bool &window_active);
     bool playAnimation(glm::vec3 playerCarPosition);
     void setCameraAnimation(const std::vector<SHARED::CANPT> &canPoints);
 

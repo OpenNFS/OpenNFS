@@ -267,6 +267,7 @@ namespace Utils {
             if (fseek(vivfile, filepos, SEEK_SET)) {
                 LOG(WARNING) << "Error while seeking in file.";
                 fclose(vivfile);
+                fclose(outfile);
                 return false;
             }
 
@@ -376,7 +377,7 @@ namespace Utils {
         }
 
         boost::filesystem::create_directories(output_path);
-        ifstream psh(psh_path, ios::in | ios::binary);
+        std::ifstream psh(psh_path, std::ios::in | std::ios::binary);
 
         PS1::PSH::HEADER *pshHeader = new PS1::PSH::HEADER();
 
@@ -403,7 +404,7 @@ namespace Utils {
 
         for (uint32_t image_Idx = 0; image_Idx < pshHeader->nDirectories; ++image_Idx) {
             LOG(INFO) << "Extracting GIMX " << image_Idx << ": " << directoryEntries[image_Idx].imageName[0] << directoryEntries[image_Idx].imageName[1] << directoryEntries[image_Idx].imageName[2] << directoryEntries[image_Idx].imageName[3] << ".BMP";
-            psh.seekg(directoryEntries[image_Idx].imageOffset, ios_base::beg);
+            psh.seekg(directoryEntries[image_Idx].imageOffset, std::ios_base::beg);
             auto *imageHeader = new PS1::PSH::IMAGE_HEADER();
             psh.read(((char *) imageHeader), sizeof(PS1::PSH::IMAGE_HEADER));
 
@@ -457,7 +458,7 @@ namespace Utils {
                         }
                     }
                     if ((x == imageHeader->width - 1) && (isPadded)) {
-                        psh.seekg(1, ios_base::cur); // Skip a byte of padding
+                        psh.seekg(1, std::ios_base::cur); // Skip a byte of padding
                     }
                 }
             }
@@ -469,19 +470,19 @@ namespace Utils {
                 if (paletteHeader->paletteHeight != 1) {
                     // There is padding, search for a '1' in the paletteHeader as this is constant as the height of all paletteHeaders,
                     // then jump backwards by how offset 'height' is into paletteHeader to get proper
-                    psh.seekg(-(signed) sizeof(PS1::PSH::PALETTE_HEADER), ios_base::cur);
+                    psh.seekg(-(signed) sizeof(PS1::PSH::PALETTE_HEADER), std::ios_base::cur);
                     if (paletteHeader->unknown == 1) { //8 bytes early
-                        psh.seekg(-8, ios_base::cur);
+                        psh.seekg(-8, std::ios_base::cur);
                     } else if (paletteHeader->paletteWidth == 1) { // 4 bytes early
-                        psh.seekg(-4, ios_base::cur);
+                        psh.seekg(-4, std::ios_base::cur);
                     } else if (paletteHeader->nPaletteEntries == 1) { // 2 bytes late
-                        psh.seekg(2, ios_base::cur);
+                        psh.seekg(2, std::ios_base::cur);
                     } else if (paletteHeader->unknown2[0] == 1) { // 4 bytes late
-                        psh.seekg(4, ios_base::cur);
+                        psh.seekg(4, std::ios_base::cur);
                     } else if (paletteHeader->unknown2[1] == 1) { // 6 bytes late
-                        psh.seekg(6, ios_base::cur);
+                        psh.seekg(6, std::ios_base::cur);
                     } else if (paletteHeader->unknown2[2] == 1) { //8 bytes late
-                        psh.seekg(8, ios_base::cur);
+                        psh.seekg(8, std::ios_base::cur);
                     } else {
                         ASSERT(false, "Couldn't find palette header for file " << psh_path);
                         // TODO: Well damn. It's padded a lot further out. Do a uint16 '1' search, then for a '16' or '256' imm following
@@ -773,6 +774,54 @@ namespace Utils {
             fclose(fp_a);
         }
         return retval;
+    }
+
+    float HueToRGB(float v1, float v2, float vH) {
+        if (vH < 0)
+            vH += 1;
+
+        if (vH > 1)
+            vH -= 1;
+
+        if ((6 * vH) < 1)
+            return (v1 + (v2 - v1) * 6 * vH);
+
+        if ((2 * vH) < 1)
+            return v2;
+
+        if ((3 * vH) < 2)
+            return (v1 + (v2 - v1) * ((2.0f / 3) - vH) * 6);
+
+        return v1;
+    }
+
+    glm::vec3 HSLToRGB(glm::vec4 hsl) {
+        unsigned char r = 0;
+        unsigned char g = 0;
+        unsigned char b = 0;
+
+        hsl.y /= 100.f;
+        hsl.z /= 100.f;
+
+        // x y z w == H S B(L) T
+        if (hsl.y == 0)
+        {
+            r = g = b = (unsigned char)(hsl.z * 255);
+        }
+        else
+        {
+            float v1, v2;
+            float hue = (float)hsl.x / 360;
+
+            v2 = (hsl.z < 0.5) ? (hsl.z * (1 + hsl.y)) : ((hsl.z + hsl.y) - (hsl.z * hsl.y));
+            v1 = 2 * hsl.z - v2;
+
+            r = (unsigned char)(255 * HueToRGB(v1, v2, hue + (1.0f / 3)));
+            g = (unsigned char)(255 * HueToRGB(v1, v2, hue));
+            b = (unsigned char)(255 * HueToRGB(v1, v2, hue - (1.0f / 3)));
+        }
+
+        return glm::vec3(r/255.f, g/255.f, b/255.f);
     }
 }
 

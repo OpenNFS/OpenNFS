@@ -21,12 +21,12 @@ static const float stepTime = 1 / 60.f;
 
 class TrainingGround {
 public:
-    explicit TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks, shared_ptr<ONFSTrack> &training_track, shared_ptr<Car> &training_car, std::shared_ptr<Logger> &logger, GLFWwindow *gl_window);
+    explicit TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks, std::shared_ptr<ONFSTrack> &training_track, std::shared_ptr<Car> &training_car, std::shared_ptr<Logger> &logger, GLFWwindow *gl_window);
 private:
     void TrainAgents(uint16_t nGenerations, uint32_t nTicks); // Train the agents, returning agent fitness data
     GLFWwindow *window;
-    shared_ptr<ONFSTrack> training_track;
-    shared_ptr<Car> training_car;
+    std::shared_ptr<ONFSTrack> training_track;
+    std::shared_ptr<Car> training_car;
     std::vector<CarAgent> carAgents;
     RaceNetRenderer raceNetRenderer;
     /*------- BULLET --------*/

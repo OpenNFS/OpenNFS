@@ -59,7 +59,7 @@ void main(){
     totalDiffuse = max(totalDiffuse, 0.2f); // Min brightness
 
 	// Output color = color of the texture at the specified UV
-	color = vec4(totalDiffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(totalSpecular, 1.0);
+	color = vec4(totalDiffuse, 1.0) * (carTexColor * vec4(carColour, 1.0) + envReflectivity*envTexColor) + vec4(totalSpecular, 1.0);
 
 	// Apply NFS4 Polygon Flags
 	if(polyFlagged) {

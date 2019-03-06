@@ -14,7 +14,7 @@ void CarRenderer::render(shared_ptr<Car> &car, const Camera &mainCamera, const s
     // This shader state doesnt change during a car renderpass
     carShader.loadProjectionViewMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix);
     carShader.setPolyFlagged(car->hasPolyFlags());
-    carShader.loadCarColor(glm::vec3(1, 1, 1));
+    carShader.loadCarColor(car->colour);
     carShader.loadLights(contributingLights);
     carShader.loadEnvironmentMapTexture();
     // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
