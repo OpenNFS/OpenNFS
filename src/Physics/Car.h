@@ -98,6 +98,7 @@ public:
     float	steeringIncrement;   // Steering speed
     float	steeringClamp;       // Max steering angle
 
+    float   maxSpeed;            // Max speed before stop applying engine force
     float	gEngineForce;        // force to apply to engine
     float	gBreakingForce;      // breaking force
     float	maxEngineForce;      // max engine force to apply

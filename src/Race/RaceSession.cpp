@@ -40,13 +40,9 @@ AssetData RaceSession::simulate() {
         // Update time between engine ticks
         auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
-        // Step the physics simulation and update physics debug view matrices
-        physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
-        physicsEngine.stepSimulation(deltaTime);
-
         //TODO: Refactor to controller class? AND USE SDL
         if (userParams.windowActive && !ImGui::GetIO().MouseDown[1]) {
-            car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
+            car->applyAccelerationForce(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS, glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS);
             car->applyBrakingForce(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
             car->applySteeringRight(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS);
             car->applySteeringLeft(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS);
@@ -61,6 +57,10 @@ AssetData RaceSession::simulate() {
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
             CarAgent::resetToVroad(mainRenderer.closestBlockID, 0, 0.f, track, car);
         }
+
+        // Step the physics simulation and update physics debug view matrices
+        physicsEngine.mydebugdrawer.SetMatrices(mainCamera.ViewMatrix, mainCamera.ProjectionMatrix);
+        physicsEngine.stepSimulation(deltaTime);
 
         bool assetChange = mainRenderer.Render(totalTime, deltaTime, mainCamera, userParams, loadedAssets, car, racers, physicsEngine);
 

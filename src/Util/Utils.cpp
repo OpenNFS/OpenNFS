@@ -85,6 +85,8 @@ namespace Utils {
                 top_right.z = vertex.z;
             }
         }
+        // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
+        bottom_left.y += 0.04f;
 
         return new btBoxShape(btVector3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2, (top_right.z - bottom_left.z) / 2));
     }

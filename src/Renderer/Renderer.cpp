@@ -186,6 +186,7 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s", targetCar->name.c_str());
             ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f", targetCar->upDistance, targetCar->rangefinders[Car::FORWARD_RAY], targetCar->rangefinders[Car::RIGHT_RAY], targetCar->rangefinders[Car::LEFT_RAY]);
+            ImGui::Text("Speed %f", targetCar->m_vehicle->getCurrentSpeedKmHour() / 10.f);
             // Physics Parameters
             ImGui::SliderFloat("Engine Force", &targetCar->gEngineForce, 0, 10000.0f);
             ImGui::SliderFloat("Breaking Force", &targetCar->gBreakingForce, 0, 1000.0f);

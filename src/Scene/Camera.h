@@ -65,7 +65,7 @@ public:
     // Car Camera
     glm::vec3 position;
     float distanceFromCar = 0.7f;
-    float angleAroundCar = 0;
+    float angleAroundCar = 0.f;
     float pitch = 10;
     float yaw = 0;
     float roll = 0;

@@ -57,7 +57,7 @@ void parsePolygonFlags(int triangle, uint32_t polygonFlags) {
 
 std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
     std::vector<CarModel> meshes;
     bool isTraffic = fce_path.find("TRAFFIC") != std::string::npos;
 

@@ -79,7 +79,7 @@ void Camera::useSpline(float elapsedTime) {
 }
 
 void Camera::calculateCameraPosition(const shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
-    float theta =  (target_car->getRotY() +  angleAroundCar) - 180;
+    float theta =  (target_car->getRotY() +  angleAroundCar);
     float offsetX = horizDistance * sin(glm::radians(theta));
     float offsetZ = horizDistance * cos(glm::radians(theta));
     position.x = target_car->carBodyModel.position.x - offsetX;
@@ -128,7 +128,7 @@ void Camera::followCar(const shared_ptr<Car> &target_car, bool &window_active){
     float horizontalDistance = calculateHorizontalDistance();
     float verticalDistance = calculateVerticalDistance();
     calculateCameraPosition(target_car, horizontalDistance, verticalDistance);
-    yaw = 180 - ((target_car->getRotY() +  angleAroundCar)-180);
+    yaw = 180 - ((target_car->getRotY() +  angleAroundCar));
 
     ViewMatrix = glm::mat4(1.0f);
     ViewMatrix = glm::rotate(ViewMatrix, pitch * SIMD_PI/180, glm::vec3(1,0,0));

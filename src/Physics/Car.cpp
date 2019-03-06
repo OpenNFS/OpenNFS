@@ -41,6 +41,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     textureID = LoadTGATexture();
 
     // Load these from Carp.txt
+    maxSpeed = 20.f;
     gEngineForce = 0.f;
     gBreakingForce = 100.f;
     maxEngineForce = 3000.f;
@@ -82,7 +83,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
 
     compound->addChildShape(localTrans,chassisShape);
 
-    float mass = 2000.0f;
+    float mass = 1750.0f;
     btVector3 localInertia(0,0,0);
     compound->calculateLocalInertia(mass,localInertia);
 
@@ -277,8 +278,7 @@ void Car::update(){
     }
 
     for (int i = 0; i <m_vehicle->getNumWheels(); i++) {
-        m_vehicle->updateWheelTransform(i, true);
-        trans = m_vehicle->getWheelInfo(i).m_worldTransform;
+        m_vehicle->updateWheelTransform(i, true);trans = m_vehicle->getWheelInfo(i).m_worldTransform;
         switch(i){
             case 0:
                 leftFrontWheelModel.position = Utils::bulletToGlm(trans.getOrigin());
@@ -357,7 +357,7 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
 
     // Get base vectors
     glm::vec3 carUp = carBodyModel.ModelMatrix * glm::vec4(0,1,0,0);
-    glm::vec3 carForward = carBodyModel.ModelMatrix * glm::vec4(0,0,-1,0);
+    glm::vec3 carForward = Utils::bulletToGlm(m_vehicle->getForwardVector());
 
     btCollisionWorld::ClosestRayResultCallback *rayCallbacks[kNumRangefinders];
     glm::vec3 castVectors[kNumRangefinders];
@@ -402,8 +402,12 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
 void Car::applyAccelerationForce(bool accelerate, bool reverse)
 {
     if (accelerate) {
-        gEngineForce = maxEngineForce;
-        gBreakingForce = 0.f;
+        if(m_vehicle->getCurrentSpeedKmHour() < maxSpeed){
+            gEngineForce = maxEngineForce;
+            gBreakingForce = 0.f;
+        } else {
+            gEngineForce = 0.f;
+        }
     } else if (reverse) {
         gEngineForce = -maxEngineForce;
         gBreakingForce = 0.f;

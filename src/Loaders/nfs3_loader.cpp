@@ -30,8 +30,7 @@ void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_pa
 
 std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
     LOG(INFO) << "Parsing FCE File located at " << fce_path;
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0,
-                                                                  0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
 
     std::vector<CarModel> meshes;
 
@@ -506,8 +505,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
     LOG(INFO) << "Parsing TRK file into ONFS GL structures";
 
     std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0,
-                                                                  0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (uint32_t i = 0; i < track->nBlocks; i++) {

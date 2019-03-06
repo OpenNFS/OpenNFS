@@ -66,7 +66,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
         glm::vec3 normal = TrackUtils::pointToVec(resetVroad.normal) * rotationMatrix;
         carOrientation = glm::conjugate(glm::toQuat(
                 glm::lookAt(vroadPoint,
-                            vroadPoint + forward,
+                            vroadPoint - forward,
                             normal
                 )
         ));
@@ -105,7 +105,7 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTr
         glm::vec3 normal = TrackUtils::pointToVec(resetVroad.normal) * rotationMatrix;
         carOrientation = glm::conjugate(glm::toQuat(
                 glm::lookAt(vroadPoint,
-                            vroadPoint + forward,
+                            vroadPoint - forward,
                             normal
                 )
         ));
@@ -134,7 +134,7 @@ void CarAgent::simulate() {
     }
 
     // If during simulation, car flips, reset
-    if(!training && (car->upDistance <= 0.1f || car->downDistance > 1.f)){
+    if((car->upDistance <= 0.1f || car->downDistance > 1.f)){
         resetToVroad(getClosestVroad(car, track), 0.f, track, car);
     }
 
@@ -144,8 +144,9 @@ void CarAgent::simulate() {
     // Use maximum from front 3 sensors, as per Luigi Cardamone
     float maxForwardDistance = std::max({car->rangefinders[Car::FORWARD_RAY], car->rangefinders[Car::FORWARD_LEFT_RAY], car->rangefinders[Car::FORWARD_RIGHT_RAY]});
 
-    // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed
-    raycastInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], car->m_vehicle->getCurrentSpeedKmHour()};
+    // All inputs roughly between 0 and 5. Speed/10 to bring it into line.
+    // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed/10.f
+    raycastInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], car->m_vehicle->getCurrentSpeedKmHour()/ 10.f};
     networkOutputs = {0, 0, 0};
 
     raceNet.evaluate(raycastInputs, networkOutputs);
