@@ -395,7 +395,8 @@ void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
     downCastPosition = (carBodyPosition + (-carUp * kCastDistance));
     btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition));
     btCollisionWorld::ClosestRayResultCallback downRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(downCastPosition));
-    upRayCallback.m_collisionFilterMask = downRayCallback.m_collisionFilterMask = COL_TRACK;
+    // Up raycast is used to check for flip over, and also whether inside VROAD
+    upRayCallback.m_collisionFilterMask = downRayCallback.m_collisionFilterMask = COL_TRACK | COL_VROAD_CEIL;
     dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition), upRayCallback);
     dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(downCastPosition), downRayCallback);
     if(upRayCallback.hasHit()){

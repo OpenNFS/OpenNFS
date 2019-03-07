@@ -776,52 +776,16 @@ namespace Utils {
         return retval;
     }
 
-    float HueToRGB(float v1, float v2, float vH) {
-        if (vH < 0)
-            vH += 1;
-
-        if (vH > 1)
-            vH -= 1;
-
-        if ((6 * vH) < 1)
-            return (v1 + (v2 - v1) * 6 * vH);
-
-        if ((2 * vH) < 1)
-            return v2;
-
-        if ((3 * vH) < 2)
-            return (v1 + (v2 - v1) * ((2.0f / 3) - vH) * 6);
-
-        return v1;
-    }
-
     glm::vec3 HSLToRGB(glm::vec4 hsl) {
-        float H = hsl.x;
-        float S = hsl.y / 100.f;
-        float L = hsl.z / 100.f;
+        float H = hsl.x / 255.f;
+        float S = hsl.y / 255.f;
+        float L = hsl.z / 255.f;
 
-        unsigned char r = 0;
-        unsigned char g = 0;
-        unsigned char b = 0;
+        glm::vec3 rgb;
 
-        if (S == 0)
-        {
-            r = g = b = (unsigned char)(L * 255);
-        }
-        else
-        {
-            float v1, v2;
-            float hue = H / 360;
+        ImGui::ColorConvertHSVtoRGB(H, S, L, rgb.x, rgb.y, rgb.z);
 
-            v2 = (L < 0.5) ? (L * (1 + S)) : ((L + S) - (L * S));
-            v1 = 2 * L - v2;
-
-            r = (unsigned char)(255 * HueToRGB(v1, v2, hue + (1.0f / 3)));
-            g = (unsigned char)(255 * HueToRGB(v1, v2, hue));
-            b = (unsigned char)(255 * HueToRGB(v1, v2, hue - (1.0f / 3)));
-        }
-
-        return glm::vec3(r/255.f, g/255.f, b/255.f);
+        return rgb;
     }
 }
 

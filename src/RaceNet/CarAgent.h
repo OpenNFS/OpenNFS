@@ -14,7 +14,7 @@ static const uint32_t STALE_TICK_COUNT = 70;
 class CarAgent {
 private:
     std::shared_ptr<ONFSTrack> track;
-    float tickCount = 0;
+    int tickCount = 0;
 public:
     std::shared_ptr<Car> car;
     RaceNet raceNet;
@@ -22,6 +22,8 @@ public:
     uint16_t populationID = UINT16_MAX;
     bool training = false;
     int fitness = 0;
+    int insideVroadCount = 0;
+    float averageSpeed = 0.f;
     bool dead = false;
     bool droveBack = false;
 
@@ -31,8 +33,9 @@ public:
 
     static void resetToVroad(int trackBlockIndex, int posIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car);
     static void resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car);
-
     static int getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track);
+
+    int evaluateFitness(int vroadPosition);
     void reset(); // Wrapper to reset to start of training track
     bool isWinner();
     void simulate();

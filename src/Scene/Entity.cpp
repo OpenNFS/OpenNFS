@@ -22,8 +22,21 @@ Entity::Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_ver
     type = entity_type;
     parentTrackblockID = parent_trackblock_id;
     entityID = entity_id;
-    startPoint = from;
-    endPoint = to;
+    startPointA = from;
+    endPointA = to;
+    setParameters();
+}
+
+Entity::Entity(uint32_t parent_trackblock_id, uint32_t entity_id, NFSVer nfs_version, EntityType entity_type, glm::vec3 fromA, glm::vec3 fromB, glm::vec3 toA, glm::vec3 toB) {
+    ASSERT(entity_type == VROAD_CEIL, "This constructor is purely for VROAD entities");
+    tag = nfs_version;
+    type = entity_type;
+    parentTrackblockID = parent_trackblock_id;
+    entityID = entity_id;
+    startPointA = fromA;
+    startPointB = fromB;
+    endPointA = toA;
+    endPointB = toB;
     setParameters();
 }
 
@@ -49,13 +62,25 @@ void Entity::genPhysicsMesh() {
     } else if (type == VROAD) {
         float wallHeight = 1.0f;
         auto *mesh = new btTriangleMesh();
-        glm::vec3 triangle = glm::vec3(startPoint.x, startPoint.y - wallHeight, startPoint.z);
-        glm::vec3 triangle1 = glm::vec3(startPoint.x, startPoint.y + wallHeight, startPoint.z);
-        glm::vec3 triangle2 = glm::vec3(endPoint.x, endPoint.y + wallHeight, endPoint.z);
+        glm::vec3 triangle = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
+        glm::vec3 triangle1 = glm::vec3(startPointA.x, startPointA.y + wallHeight, startPointA.z);
+        glm::vec3 triangle2 = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
         mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
-        glm::vec3 triangleA = glm::vec3(endPoint.x, endPoint.y - wallHeight, endPoint.z);
-        glm::vec3 triangle1A = glm::vec3(endPoint.x, endPoint.y + wallHeight, endPoint.z);
-        glm::vec3 triangle2A = glm::vec3(startPoint.x, startPoint.y - wallHeight, startPoint.z);
+        glm::vec3 triangleA = glm::vec3(endPointA.x, endPointA.y - wallHeight, endPointA.z);
+        glm::vec3 triangle1A = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
+        glm::vec3 triangle2A = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
+        mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
+        physicsShape = new btConvexTriangleMeshShape(mesh);
+    } else if (type == VROAD_CEIL) {
+        float ceilHeight = 0.5f;
+        auto *mesh = new btTriangleMesh();
+        glm::vec3 triangle   = glm::vec3(startPointA.x, startPointA.y + ceilHeight, startPointA.z);
+        glm::vec3 triangle2  = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
+        glm::vec3 triangle1  = glm::vec3(endPointA.x,   endPointA.y   + ceilHeight, endPointA.z);
+        mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+        glm::vec3 triangleA  = glm::vec3(endPointA.x,   endPointA.y   + ceilHeight, endPointA.z);
+        glm::vec3 triangle1A = glm::vec3(endPointB.x,   endPointB.y   + ceilHeight, endPointB.z);
+        glm::vec3 triangle2A = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
         mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
         physicsShape = new btConvexTriangleMeshShape(mesh);
     } else if (dynamic) {

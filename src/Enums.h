@@ -10,12 +10,13 @@
 
 // Collision masks
 enum collisionTypes {
-    COL_NOTHING = 0, // Collide with nothing
-    COL_RAY = BIT(0), // Collide with rays
-    COL_CAR = BIT(1), // Collide with cars
-    COL_TRACK = BIT(2), // Collide with track
-    COL_VROAD = BIT(3), // Collide with VROAD edge
-    COL_DYNAMIC_TRACK = BIT(4)  // Collide with roadsigns
+    COL_NOTHING = 0,            // Collide with nothing
+    COL_RAY = BIT(0),           // Collide with rays
+    COL_CAR = BIT(1),           // Collide with cars
+    COL_TRACK = BIT(2),         // Collide with track
+    COL_VROAD = BIT(3),         // Collide with VROAD edge
+    COL_VROAD_CEIL = BIT(4),    // Collide with VROAD ceiling
+    COL_DYNAMIC_TRACK = BIT(5)  // Collide with roadsigns
 };
 
 #define X_DEFINE_ENUM_WITH_STRING_CONVERSIONS_TOSTRING_CASE(r, data, elem)    \
@@ -40,4 +41,4 @@ enum collisionTypes {
     }
 
 DEFINE_ENUM_WITH_STRING_CONVERSIONS(NFSVer, (UNKNOWN)(NFS_1)(NFS_2)(NFS_2_PS1)(NFS_2_SE)(NFS_3)(NFS_3_PS1)(NFS_4)(NFS_5));
-DEFINE_ENUM_WITH_STRING_CONVERSIONS(EntityType, (XOBJ)(OBJ_POLY)(LANE)(SOUND)(LIGHT)(ROAD)(GLOBAL)(CAR)(VROAD))
+DEFINE_ENUM_WITH_STRING_CONVERSIONS(EntityType, (XOBJ)(OBJ_POLY)(LANE)(SOUND)(LIGHT)(ROAD)(GLOBAL)(CAR)(VROAD)(VROAD_CEIL))

@@ -117,11 +117,32 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTr
     car->resetCar(vroadPoint, carOrientation);
 }
 
-bool CarAgent::isWinner() {
-    if(droveBack) return false;
+int CarAgent::evaluateFitness(int vroadPosition){
+    // F = C1 − Tout + C2 · s¯+ d, where Tout is the number of game tics the car is outside the track;
+    // ¯s is the average speed (meters for game tic) during the evaluation;
+    // d is the distance (meters) raced by the car during the evaluation;
+    // C1 and C1 are two constants introduced respectively to make sure that the fitness is positive
+    // and to scale the average speed term (both C1 and C2 have been empirically set to 1000 in all the experiment reported) Luigi Cardamone
+    int c1, c2;
+    c1 = c2 = 1000;
 
-    fitness = getClosestVroad(car, track);
-    return fitness > 500.f;//boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec - 5;
+    int timeOutsideVroad = tickCount - insideVroadCount;
+    //int fitness = c1 - timeOutsideVroad + (int) (c2 * averageSpeed) + closestVroad;
+
+    int fitness = insideVroadCount + (int) pow(vroadPosition, 2);
+
+    return fitness;
+}
+
+bool CarAgent::isWinner() {
+    if(droveBack || dead) return false;
+
+    fitness = evaluateFitness(getClosestVroad(car, track));
+
+    int nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+
+    // Have won if have made it near to end of track, and spent 4/5 time inside vroad
+    return fitness > (int) ((Config::get().nTicks * (4.f/5.f)) + pow(nVroad - 5, 2));
 }
 
 void CarAgent::reset(){
@@ -129,12 +150,14 @@ void CarAgent::reset(){
 }
 
 void CarAgent::simulate() {
+    static int vroadPosition;
+
     if (dead && training){
         return ;
     }
 
-    // If during simulation, car flips, reset
-    if((car->upDistance <= 0.1f || car->downDistance > 1.f)){
+    // If during simulation, car flips, reset. Not during simulation!
+    if(!training && (car->upDistance <= 0.1f || car->downDistance > 1.f || car->rangefinders[Car::FORWARD_RAY] < 0.25f)){
         resetToVroad(getClosestVroad(car, track), 0.f, track, car);
     }
 
@@ -143,10 +166,12 @@ void CarAgent::simulate() {
 
     // Use maximum from front 3 sensors, as per Luigi Cardamone
     float maxForwardDistance = std::max({car->rangefinders[Car::FORWARD_RAY], car->rangefinders[Car::FORWARD_LEFT_RAY], car->rangefinders[Car::FORWARD_RIGHT_RAY]});
+    // Feed car speed into network so NN can regulate speed
+    float carSpeed = car->m_vehicle->getCurrentSpeedKmHour();
 
     // All inputs roughly between 0 and 5. Speed/10 to bring it into line.
     // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed/10.f
-    raycastInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], car->m_vehicle->getCurrentSpeedKmHour()/ 10.f};
+    raycastInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], carSpeed/ 10.f};
     networkOutputs = {0, 0, 0};
 
     raceNet.evaluate(raycastInputs, networkOutputs);
@@ -159,25 +184,40 @@ void CarAgent::simulate() {
 
     if(!training) return;
 
-    // Speculatively calculate where we're gonna end up
-    int new_fitness = getClosestVroad(car, track);
+    // Count how long the car has been inside vroad, to evaluate fitness later
+    if(car->upDistance < 0.5f){
+        ++insideVroadCount;
+    }
 
-    // If the fitness jumps this much between ticks, we probably reversed over the start line.
-    // TODO: Add better logic to prevent this
-    if (abs(new_fitness - fitness) > 100){
+    averageSpeed += carSpeed;
+    averageSpeed /= tickCount + 1;
+
+    // Work out whether fitness is regressing
+    int newVroadPosition = getClosestVroad(car, track);
+
+    // If the vroad position jumps this much between ticks, we probably reversed over the start line.
+    if (abs(newVroadPosition - vroadPosition) > 100){
         dead = droveBack = true;
         return;
     }
+
+    if(abs(newVroadPosition - vroadPosition) == 0 && tickCount > 100){
+        dead = true;
+        return;
+    }
+
+    int new_fitness = evaluateFitness(vroadPosition);
 
     if (new_fitness > fitness){
         tickCount = 0;
         fitness = new_fitness;
     }
 
-    ++tickCount;
-    if (tickCount > STALE_TICK_COUNT){
+    if (++tickCount > STALE_TICK_COUNT){
         dead = true;
     }
+
+    vroadPosition = newVroadPosition;
 }
 
 int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) {
