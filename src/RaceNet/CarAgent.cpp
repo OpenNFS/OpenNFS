@@ -151,7 +151,7 @@ void CarAgent::simulate() {
 
     raceNet.evaluate(raycastInputs, networkOutputs);
 
-    car->applyAccelerationForce(false, networkOutputs[0] > 0.1f);
+    car->applyAccelerationForce(networkOutputs[0] > 0.1f, false);
     car->applyBrakingForce(networkOutputs[1] > 0.1f);
     // Mutex steering
     car->applySteeringLeft(networkOutputs[2] > 0.1f && networkOutputs[3] < 0.1f);

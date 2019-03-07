@@ -796,25 +796,25 @@ namespace Utils {
     }
 
     glm::vec3 HSLToRGB(glm::vec4 hsl) {
+        float H = hsl.x;
+        float S = hsl.y / 100.f;
+        float L = hsl.z / 100.f;
+
         unsigned char r = 0;
         unsigned char g = 0;
         unsigned char b = 0;
 
-        hsl.y /= 100.f;
-        hsl.z /= 100.f;
-
-        // x y z w == H S B(L) T
-        if (hsl.y == 0)
+        if (S == 0)
         {
-            r = g = b = (unsigned char)(hsl.z * 255);
+            r = g = b = (unsigned char)(L * 255);
         }
         else
         {
             float v1, v2;
-            float hue = (float)hsl.x / 360;
+            float hue = H / 360;
 
-            v2 = (hsl.z < 0.5) ? (hsl.z * (1 + hsl.y)) : ((hsl.z + hsl.y) - (hsl.z * hsl.y));
-            v1 = 2 * hsl.z - v2;
+            v2 = (L < 0.5) ? (L * (1 + S)) : ((L + S) - (L * S));
+            v1 = 2 * L - v2;
 
             r = (unsigned char)(255 * HueToRGB(v1, v2, hue + (1.0f / 3)));
             g = (unsigned char)(255 * HueToRGB(v1, v2, hue));
