@@ -129,7 +129,7 @@ int CarAgent::evaluateFitness(int vroadPosition){
     int timeOutsideVroad = tickCount - insideVroadCount;
     //int fitness = c1 - timeOutsideVroad + (int) (c2 * averageSpeed) + closestVroad;
 
-    int fitness = insideVroadCount + (int) pow(vroadPosition, 2);
+    int fitness = (int) pow(vroadPosition, 2);
 
     return fitness;
 }
@@ -200,6 +200,7 @@ void CarAgent::simulate() {
         dead = droveBack = true;
         return;
     }
+
 
     if(abs(newVroadPosition - vroadPosition) == 0 && tickCount > 100){
         dead = true;

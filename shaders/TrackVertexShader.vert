@@ -16,6 +16,8 @@ flat out uint debugDataOut;
 out vec3 toLightVector[MAX_TRACK_CONTRIB_LIGHTS];
 out vec3 toCameraVector;
 out vec3 surfaceNormal;
+// Spotlight
+out vec3 toSpotlightVector;
 // Fog
 out vec3 worldPosition;
 out vec4 viewSpace;
@@ -25,6 +27,7 @@ out vec4 lightSpace;
 uniform mat4 projectionMatrix, viewMatrix ,transformationMatrix;
 uniform mat4 lightSpaceMatrix;
 uniform vec3 lightPosition[MAX_TRACK_CONTRIB_LIGHTS];
+uniform vec3 spotlightPosition;
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
@@ -46,6 +49,8 @@ void main(){
     for(int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
         toLightVector[i] = lightPosition[i] - worldPosition.xyz;
     }
+    toSpotlightVector = spotlightPosition - worldPosition.xyz;
+
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 
     // Fog Passout

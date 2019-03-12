@@ -39,6 +39,10 @@ void TrackShader::getAllUniformLocations() {
         lightColourLocation[i] =  getUniformLocation("lightColour[" + std::to_string(i) + "]");
         attenuationLocation[i] = getUniformLocation("attenuation[" + std::to_string(i) + "]");
     }
+    spotlightPositionLocation = getUniformLocation("spotlightPosition");
+    spotlightColourLocation = getUniformLocation("spotlightColour");
+    spotlightDirectionLocation = getUniformLocation("spotlightDirection");
+    spotlightCutOffLocation = getUniformLocation("spotlightCutOff");
 }
 
 void TrackShader::customCleanup(){
@@ -63,6 +67,13 @@ void TrackShader::loadLights(std::vector<Light> lights) {
             loadVec3(attenuationLocation[i], glm::vec3(1,0,0));
         }
     }
+}
+
+void TrackShader::loadSpotlight(Spotlight spotlight){
+    loadVec3(spotlightPositionLocation, spotlight.position);
+    loadVec3(spotlightColourLocation, spotlight.colour);
+    loadVec3(spotlightDirectionLocation, spotlight.direction);
+    loadFloat(spotlightCutOffLocation, spotlight.cutOff);
 }
 
 void TrackShader::setClassic(bool useClassic){

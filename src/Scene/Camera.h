@@ -58,6 +58,7 @@ public:
     float horizontalAngle;
     // Initial vertical angle : none
     float verticalAngle;
+    glm::vec3 direction;
 
     // Cam Spline
     int loopTime;

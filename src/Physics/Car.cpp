@@ -38,7 +38,9 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
 Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
     tag = nfs_version;
     name = car_name;
-    textureID = LoadTGATexture();
+    if(!Config::get().vulkanRender){
+        textureID = LoadTGATexture();
+    }
 
     // Load these from Carp.txt
     maxSpeed = 20.f;

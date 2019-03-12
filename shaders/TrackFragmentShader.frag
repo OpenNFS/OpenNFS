@@ -8,6 +8,8 @@ flat in uint debugDataOut;
 in vec3 surfaceNormal;
 in vec3 toLightVector[MAX_TRACK_CONTRIB_LIGHTS];
 in vec3 toCameraVector;
+// Spotlight
+in vec3 toSpotlightVector;
 
 // Fog
 in vec3 worldPosition;
@@ -24,6 +26,9 @@ uniform sampler2D shadowMap;
 uniform float ambientFactor;
 uniform vec4 lightColour[MAX_TRACK_CONTRIB_LIGHTS];
 uniform vec3 attenuation[MAX_TRACK_CONTRIB_LIGHTS];
+uniform vec3 spotlightColour;
+uniform vec3 spotlightDirection;
+uniform float spotlightCutOff;
 uniform float shineDamper;
 uniform float reflectivity;
 
@@ -137,7 +142,7 @@ void main(){
     if(useClassic){
         color = nfsColor;
     } else {
-    // Lay down summed diffuse and specular on top of NFS fragment colour
+        // Lay down summed diffuse and specular on top of NFS fragment colour
         vec3 unitNormal = normalize(surfaceNormal);
         vec3 unitVectorToCamera = normalize(toCameraVector);
 
@@ -166,10 +171,18 @@ void main(){
         vec3 ambient =  0.4f * nfsColor.rgb;
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
-
         // DEBUG: Stop this debugData buffer from being optimised out
         if(debugDataOut == 32u){
             color.a += 0.01;
+        }
+
+        // Check if lighting is inside the spotlight cone
+        float theta = dot(toSpotlightVector, normalize(spotlightDirection));
+        // Working with angles as cosines instead of degrees so a '>' is used.
+        if(theta > spotlightCutOff) {
+            color.a = 0.0f;
+        } else {
+
         }
     }
 }

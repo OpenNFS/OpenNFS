@@ -18,7 +18,7 @@ void Camera::resetView() {
     position = initialPosition;
     horizontalAngle = 3.14f;
     verticalAngle = 0.0f;
-    glm::vec3 direction(
+    direction = glm::vec3 (
             cos(verticalAngle) * sin(horizontalAngle),
             sin(verticalAngle),
             cos(verticalAngle) * cos(horizontalAngle)
@@ -55,7 +55,7 @@ void Camera::useSpline(float elapsedTime) {
     // Look towards the position that is a few ms away
     float tmodLookAt = tmod + 0.01f;
     glm::vec3 lookAtPos  = cameraSpline.getPointAt(tmodLookAt);
-    glm::vec3 direction = glm::normalize(lookAtPos  - position);
+    direction = glm::normalize(lookAtPos  - position);
 
     // https://github.com/phoboslab/wipeout/blob/master/wipeout.js [Wipeout.prototype.updateSplineCamera]
     // Roll into corners - there's probably an easier way to do this. This
@@ -152,7 +152,7 @@ void Camera::computeMatricesFromInputs(bool &window_active, float deltaTime) {
     glfwSetCursorPos(window, Config::get().resX / 2, Config::get().resY / 2);
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
-    glm::vec3 direction(
+     direction = glm::vec3(
             cos(verticalAngle) * sin(horizontalAngle),
             sin(verticalAngle),
             cos(verticalAngle) * cos(horizontalAngle)
@@ -211,7 +211,7 @@ void Camera::setCameraAnimation(const std::vector<SHARED::CANPT> &canPoints) {
 bool Camera::playAnimation(glm::vec3 playerCarPosition) {
     SHARED::CANPT animPosition = cameraAnimPoints[animationPosition++];
     position = (glm::normalize(glm::quat(glm::vec3(-SIMD_PI/2,0,0))) * glm::vec3((animPosition.x/ 65536.0f) / 10.f, ((animPosition.y/ 65536.0f) / 10.f), (animPosition.z/ 65536.0f) / 10.f)) + initialPosition;
-    glm::vec3 direction = glm::normalize(playerCarPosition - position);
+    direction = glm::normalize(playerCarPosition - position);
     // TODO: Reverse CAN rotation structure
     // glm::quat RotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) * glm::normalize(glm::quat(1.0f - (animPosition.od1/ 65536.0f), 1.0f - (animPosition.od2/ 65536.0f), 1.0f - (animPosition.od3/ 65536.0f), 1.0f - (animPosition.od4/ 65536.0f)));
     // glm::vec3 direction = glm::normalize(position * RotationMatrix);

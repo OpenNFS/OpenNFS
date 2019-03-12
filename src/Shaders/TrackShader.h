@@ -7,6 +7,7 @@
 #include "BaseShader.h"
 #include "../Scene/Track.h"
 #include "../Scene/Light.h"
+#include "../Scene/Spotlight.h"
 #include "../../shaders/ShaderPreamble.h"
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
@@ -22,6 +23,7 @@ public:
     void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
     void loadSpecular(float damper, float reflectivity);
     void loadLights(std::vector<Light> lights);
+    void loadSpotlight(Spotlight spotlight);
     void loadShadowMapTexture(GLuint shadowMapTextureID);
     void loadAmbientFactor(float ambientFactor);
     void setClassic(bool useClassic);
@@ -37,6 +39,10 @@ protected:
     GLint lightPositionLocation[MAX_TRACK_CONTRIB_LIGHTS];
     GLint lightColourLocation[MAX_TRACK_CONTRIB_LIGHTS];
     GLint attenuationLocation[MAX_TRACK_CONTRIB_LIGHTS];
+    GLint spotlightPositionLocation;
+    GLint spotlightColourLocation;
+    GLint spotlightDirectionLocation;
+    GLint spotlightCutOffLocation;
     GLint shineDamperLocation;
     GLint reflectivityLocation;
     GLint useClassicLocation;

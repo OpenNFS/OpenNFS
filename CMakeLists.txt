@@ -136,7 +136,9 @@ set(SOURCE_FILES
         src/RaceNet/CarAgent.cpp
         src/RaceNet/CarAgent.h
         src/Race/RaceSession.cpp
-        src/Race/RaceSession.h)
+        src/Race/RaceSession.h
+        src/Scene/Spotlight.cpp
+        src/Scene/Spotlight.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
