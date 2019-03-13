@@ -177,10 +177,12 @@ void main(){
         }
 
         // Check if lighting is inside the spotlight cone
-        float theta = dot(toSpotlightVector, normalize(spotlightDirection));
+        float theta = dot(normalize(toSpotlightVector), normalize(-spotlightDirection));
         // Working with angles as cosines instead of degrees so a '>' is used.
         if(theta > spotlightCutOff) {
-            color.a = 0.0f;
+            color.r += 0.2f;
+            color.g += 0.2f;
+            color.b += 0.2f;
         } else {
 
         }

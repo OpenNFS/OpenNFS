@@ -55,17 +55,24 @@ void parsePolygonFlags(int triangle, uint32_t polygonFlags) {
     }
 }
 
-std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
+CarData NFS4::LoadFCE(const std::string &fce_path) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
-    std::vector<CarModel> meshes;
     bool isTraffic = fce_path.find("TRAFFIC") != std::string::npos;
 
+    CarData carData;
     std::ifstream fce(fce_path, std::ios::in | std::ios::binary);
 
     auto *fceHeader = new FCE::NFS4::HEADER();
     fce.read((char *) fceHeader, sizeof(FCE::NFS4::HEADER));
 
+    // Grab colours TODO: Doesn't make sense to return them to every CarModel. Should go straight to parent car.
+    for(uint8_t colourIdx = 0; colourIdx < fceHeader->nColours; ++colourIdx){
+        FCE::NFS4::COLOUR primaryColour = fceHeader->primaryColours[colourIdx];
+        // TODO: Read colour names from later in file and pass to constructor, convert char * to string inside.
+        CarColour originalPrimaryColour("NotSetYetBecauseImLazy", Utils::HSLToRGB(glm::vec4(primaryColour.H, primaryColour.S, primaryColour.B, primaryColour.T)));
+        carData.colours.emplace_back(originalPrimaryColour);
+    }
 
     for (uint32_t part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
         float specularDamper = 0.2f;
@@ -118,13 +125,13 @@ std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
             }
         }
 
-        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
-        std::cout << "Mesh: " << meshes[part_Idx].m_name
-                  << " UVs: " << meshes[part_Idx].m_uvs.size()
-                  << " Verts: " << meshes[part_Idx].m_vertices.size()
-                  << " Indices: " << meshes[part_Idx].m_vertex_indices.size()
-                  << " Normals: " << meshes[part_Idx].m_normals.size()
-                  << " PolyFlags: " << meshes[part_Idx].m_polygon_flags.size() << std::endl;
+        carData.meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
+        std::cout << "Mesh: " << carData.meshes[part_Idx].m_name
+                  << " UVs: " << carData.meshes[part_Idx].m_uvs.size()
+                  << " Verts: " << carData.meshes[part_Idx].m_vertices.size()
+                  << " Indices: " << carData.meshes[part_Idx].m_vertex_indices.size()
+                  << " Normals: " << carData.meshes[part_Idx].m_normals.size()
+                  << " PolyFlags: " << carData.meshes[part_Idx].m_polygon_flags.size() << std::endl;
 
         delete[] partNormals;
         delete[] partVertices;
@@ -134,7 +141,7 @@ std::vector<CarModel> NFS4::LoadFCE(const std::string &fce_path) {
     fce.close();
 
     delete fceHeader;
-    return meshes;
+    return carData;
 }
 
 bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, const std::shared_ptr<TRACK> &track) {

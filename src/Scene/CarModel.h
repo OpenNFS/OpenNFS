@@ -16,6 +16,19 @@ public:
     }
 };
 
+class Dummy {
+public:
+    std::string name;
+    glm::vec3 position;
+    Dummy(const char * dummyName, glm::vec3 position){
+        std::string nameTemp(dummyName);
+
+        this->name = nameTemp;
+        this->position = position;
+    }
+};
+
+
 class CarModel : public Model {
 public:
     // Test
@@ -55,4 +68,11 @@ private:
     GLuint polyFlagBuffer;
 
     typedef Model super;
+};
+
+class CarData {
+public:
+    std::vector<Dummy> dummies;
+    std::vector<CarColour> colours;
+    std::vector<CarModel> meshes;
 };

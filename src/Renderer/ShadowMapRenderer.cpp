@@ -33,11 +33,10 @@ ShadowMapRenderer::ShadowMapRenderer(const std::shared_ptr<ONFSTrack> &activeTra
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::vector<int> activeTrackBlockIDs, const std::shared_ptr<Car> &car){
+void ShadowMapRenderer::renderShadowMap(float nearPlane, float farPlane, const glm::mat4 &lightViewMatrix,  std::vector<int> activeTrackBlockIDs, const std::shared_ptr<Car> &car, const std::vector<CarAgent> &racers){
     /* ------- SHADOW MAPPING ------- */
     depthShader.use();
-    float near_plane = 160.0f, far_plane = 280.f;
-    glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
+    glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, nearPlane, farPlane);
     lightSpaceMatrix = lightProjection * lightViewMatrix;
 
     depthShader.loadLightSpaceMatrix(lightSpaceMatrix);
@@ -64,7 +63,7 @@ void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::
         boost::get<Track>(global_object.glMesh).render();
     }
 
-    /* And the Car */
+    /* And the Cars */
     depthShader.bindTextureArray(car->textureArrayID);
     for (auto &misc_model : car->miscModels) {
         depthShader.loadTransformMatrix(misc_model.ModelMatrix);
@@ -80,6 +79,24 @@ void ShadowMapRenderer::renderShadowMap(const glm::mat4 &lightViewMatrix,  std::
     car->rightRearWheelModel.render();
     depthShader.loadTransformMatrix(car->carBodyModel.ModelMatrix);
     car->carBodyModel.render();
+
+    for(auto &racer : racers){
+        depthShader.bindTextureArray(racer.car->textureArrayID);
+        for (auto &misc_model : racer.car->miscModels) {
+            depthShader.loadTransformMatrix(misc_model.ModelMatrix);
+            misc_model.render();
+        }
+        depthShader.loadTransformMatrix(racer.car->leftFrontWheelModel.ModelMatrix);
+        racer.car->leftFrontWheelModel.render();
+        depthShader.loadTransformMatrix(racer.car->leftRearWheelModel.ModelMatrix);
+        racer.car->leftRearWheelModel.render();
+        depthShader.loadTransformMatrix(racer.car->rightFrontWheelModel.ModelMatrix);
+        racer.car->rightFrontWheelModel.render();
+        depthShader.loadTransformMatrix(racer.car->rightRearWheelModel.ModelMatrix);
+        racer.car->rightRearWheelModel.render();
+        depthShader.loadTransformMatrix(racer.car->carBodyModel.ModelMatrix);
+        racer.car->carBodyModel.render();
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

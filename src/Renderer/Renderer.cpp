@@ -81,9 +81,9 @@ bool Renderer::Render(float totalTime, float deltaTime, Camera &camera, ParamDat
     bool nightTime = UpdateGlobalLights(userParams);
     float ambientLightFactor = nightTime ? 0.2f : 0.5f;
 
-    shadowMapRenderer.renderShadowMap(nightTime ? moon.ViewMatrix : sun.ViewMatrix, activeTrackBlockIDs, playerCar);
+    shadowMapRenderer.renderShadowMap(userParams.nearPlane, userParams.farPlane, nightTime ? moon.ViewMatrix : sun.ViewMatrix, activeTrackBlockIDs, playerCar, racers);
     skyRenderer.renderSky(camera, sun, userParams, totalTime);
-    trackRenderer.renderTrack(camera, nightTime ? moon : sun, activeTrackBlockIDs, userParams, shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix, ambientLightFactor);
+    trackRenderer.renderTrack(playerCar, camera, nightTime ? moon : sun, activeTrackBlockIDs, userParams, shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix, ambientLightFactor);
     trackRenderer.renderLights(camera, activeTrackBlockIDs);
 
     // Render the Car and racers
@@ -281,6 +281,8 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
     ImGui::Image((ImTextureID) shadowMapRenderer.depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+    ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
+    ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
     ImGui::End();
     // Draw Logger UI
     logger->onScreenLog.Draw("ONFS Log");
@@ -315,7 +317,7 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);
     if (!userParams.useNbData)
-        ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, track->nBlocks);
+        ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, track->nBlocks/2);
     ImGui::Checkbox("NBData", &userParams.useNbData);
     ImGui::NewLine();
     ImGui::ColorEdit3("Sun Atten", (float *) &userParams.sunAttenuation); // Edit 3 floats representing a color

@@ -482,7 +482,9 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
 
     GLuint texture_array_id = TrackUtils::MakeTextureArray(car_textures, false);
 
-    return std::make_shared<Car>(LoadGEO(geo_path.str(), car_textures, remapped_texture_ids), std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, texture_array_id);
+    CarData carData;
+    carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
+    return std::make_shared<Car>(carData, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, texture_array_id);
 }
 
 // TRACK

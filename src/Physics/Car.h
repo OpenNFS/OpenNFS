@@ -13,14 +13,15 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "../RaceNet/RaceNet.h"
+#include "../Scene/Spotlight.h"
 #include "../Scene/CarModel.h"
 #include "../Util/Utils.h"
 #include "../Enums.h"
 
 class Car {
 public:
-    explicit Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name);
-    Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID); // Multitextured car
+    explicit Car(CarData carData, NFSVer nfs_version, std::string car_name);
+    Car(CarData carData, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID); // Multitextured car
     ~Car();
     void setPosition(glm::vec3 position, glm::quat orientation);
     void update();
@@ -32,7 +33,7 @@ public:
     NFSVer tag;
     bool multitexturedCarModel = false;
     glm::vec3 colour;
-    std::vector<CarColour> originalColours;
+    CarData data;
 
     btDefaultMotionState* getMotionState() { return vehicleMotionState; }
     btRigidBody* getVehicleRigidBody() { return m_carChassis; }
@@ -74,8 +75,10 @@ public:
     glm::vec3 upCastPosition, downCastPosition;
     float upDistance = 0.f, downDistance = 0.f;
 
+    // Headlights
+    Spotlight leftHeadlight;
+    Spotlight rightHeadlight;
     // Meshes
-    std::vector<CarModel> allModels;
     std::vector<CarModel> miscModels;
     CarModel leftFrontWheelModel;
     CarModel rightFrontWheelModel;

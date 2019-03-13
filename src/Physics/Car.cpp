@@ -30,14 +30,13 @@ constexpr static const float kCastDistances[Car::kNumRangefinders] = {
         1.f,
 };
 
-Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID) : Car(car_meshes, nfs_version, car_name) {
+Car::Car(CarData carData, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID) : Car(carData, nfs_version, car_name) {
     textureArrayID = car_textureArrayID;
     multitexturedCarModel = true;
 }
 
-Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_name){
+Car::Car(CarData carData, NFSVer nfs_version, std::string car_name) : name(car_name), data(carData) {
     tag = nfs_version;
-    name = car_name;
     if(!Config::get().vulkanRender){
         textureID = LoadTGATexture();
     }
@@ -48,8 +47,8 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     gBreakingForce = 100.f;
     maxEngineForce = 3000.f;
     maxBreakingForce = 1000.f;
-    suspensionRestLength = btScalar(0.026);
-    suspensionStiffness = 600.f;
+    suspensionRestLength = btScalar(0.020);
+    suspensionStiffness = 750.f;
     suspensionDamping = 200.f;
     suspensionCompression = 500.4f;
     wheelFriction = 0.45f;
@@ -59,7 +58,38 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
     steeringClamp = 0.15f;
     steerRight = steerLeft = false;
 
-    setModels(car_meshes);
+    // Map mesh data to car data
+    setModels(carData.meshes);
+
+    // Go find headlight position data inside dummies
+    if(tag == NFS_3){
+        for(auto &dummy : data.dummies){
+            if(dummy.name.find("HFLO") != std::string::npos){
+                leftHeadlight.cutOff = glm::cos(glm::radians(12.5f));
+                leftHeadlight.position = leftHeadlight.initialPosition = dummy.position;
+                leftHeadlight.colour = glm::vec3(1, 1, 1);
+            }
+            if(dummy.name.find("HFRE") != std::string::npos){
+                rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
+                rightHeadlight.position = rightHeadlight.initialPosition = dummy.position;
+                rightHeadlight.colour = glm::vec3(1, 1, 1);
+            }
+            // TRLN, TRRN for tail lights
+        }
+    } else {
+        leftHeadlight.cutOff = rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
+        leftHeadlight.position =  rightHeadlight.position = carBodyModel.position;
+        leftHeadlight.colour = rightHeadlight.colour = glm::vec3(1, 1, 1);
+    }
+
+    // Set car colour
+    if(!carData.colours.empty()){
+        int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) carData.colours.size());
+        colour = carData.colours[randomColourIdx].colour;
+    } else {
+        colour = glm::vec3(1,1,1);
+        //colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
+    }
 
     glm::vec3 wheelDimensions = Utils::genDimensions(leftFrontWheelModel.m_vertices);
     wheelRadius = wheelDimensions.z;
@@ -103,19 +133,7 @@ Car::Car(std::vector<CarModel> car_meshes, NFSVer nfs_version, std::string car_n
 
 // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
 void Car::setModels(std::vector<CarModel> loaded_car_models){
-    allModels = loaded_car_models;
     uint8_t usedModelCount = 0;
-
-    // Hackily load colours from first mesh, if I put them there in car loader
-    if(!loaded_car_models.empty()){
-        if(!loaded_car_models[0].originalColours.empty()){
-            originalColours = loaded_car_models[0].originalColours;
-            int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) originalColours.size());
-            colour = originalColours[randomColourIdx].colour;
-        } else {
-            colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
-        }
-    }
 
     switch(tag){
         case NFS_1:break;
@@ -290,6 +308,13 @@ void Car::update(){
         misc_model.update();
     }
 
+    // Update headlight direction vectors to match car body
+    leftHeadlight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
+    rightHeadlight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
+    leftHeadlight.position = Utils::bulletToGlm(trans.getOrigin()) + (leftHeadlight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+    rightHeadlight.position = Utils::bulletToGlm(trans.getOrigin()) + (rightHeadlight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+
+    // Lets go update wheel geometry positions based on physics feedback
     for (int i = 0; i <m_vehicle->getNumWheels(); i++) {
         m_vehicle->updateWheelTransform(i, true);trans = m_vehicle->getWheelInfo(i).m_worldTransform;
         switch(i){
@@ -518,3 +543,4 @@ GLuint Car::LoadTGATexture() {
 
     return textureID;
 }
+

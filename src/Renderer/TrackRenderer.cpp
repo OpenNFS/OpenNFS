@@ -72,10 +72,10 @@ std::map<int, std::vector<Light>> TrackRenderer::GetContributingLights(const std
 }
 
 
-void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
+void TrackRenderer::renderTrack(shared_ptr<Car> &car, const Camera &mainCamera, const Light &sunLight,
                                 std::vector<int> activeTrackBlockIDs, const ParamData &userParams,
                                 GLuint depthTextureID, const glm::mat4 &lightSpaceMatrix, float ambientFactor) {
-    Spotlight camLight(mainCamera.position, mainCamera.direction, glm::vec3(0.5, 0.5, 0.5f),  glm::cos(glm::radians(12.5f)));
+    //Spotlight camLight(mainCamera.position, mainCamera.direction, glm::vec3(0.5, 0.5, 0.5f),  glm::cos(glm::radians(12.5f)));
     trackShader.use();
     // This shader state doesnt change during a track renderpass
     trackShader.setClassic(userParams.useClassicGraphics);
@@ -85,7 +85,7 @@ void TrackRenderer::renderTrack(const Camera &mainCamera, const Light &sunLight,
     trackShader.bindTextureArray(track->textureArrayID);
     trackShader.loadShadowMapTexture(depthTextureID);
     trackShader.loadAmbientFactor(ambientFactor);
-    trackShader.loadSpotlight(camLight);
+    trackShader.loadSpotlight(car->leftHeadlight);
 
     std::vector<Light> globalLights;
     globalLights.emplace_back(sunLight);

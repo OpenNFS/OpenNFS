@@ -105,6 +105,8 @@ struct ParamData {
     float timeScaleFactor = 1.f;
     ImVec4 sunAttenuation = ImVec4(0.f, 0.f, 0.f, 1.0f);
     float trackSpecReflectivity = 1;
+    float nearPlane = 160.f;
+    float farPlane = 300.f;
 
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;

@@ -28,25 +28,27 @@ void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_pa
     car->writeObj(obj_out_path);
 }
 
-std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
+CarData NFS3::LoadFCE(const std::string &fce_path) {
     LOG(INFO) << "Parsing FCE File located at " << fce_path;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
 
-    std::vector<CarModel> meshes;
-
+    CarData carData;
     std::ifstream fce(fce_path, std::ios::in | std::ios::binary);
 
     auto *fceHeader = new FCE::NFS3::HEADER();
     fce.read((char *) fceHeader, sizeof(FCE::NFS3::HEADER));
-
-    std::vector<CarColour> originalPrimaryColours;
 
     // Grab colours TODO: Doesn't make sense to return them to every CarModel. Should go straight to parent car.
     for(uint8_t colourIdx = 0; colourIdx < fceHeader->nPriColours; ++colourIdx){
         FCE::NFS3::COLOUR primaryColour = fceHeader->primaryColours[colourIdx];
         // TODO: Read colour names from later in file and pass to constructor, convert char * to string inside.
         CarColour originalPrimaryColour("NotSetYetBecauseImLazy", Utils::HSLToRGB(glm::vec4(primaryColour.H, primaryColour.S, primaryColour.B, primaryColour.T)));
-        originalPrimaryColours.emplace_back(originalPrimaryColour);
+        carData.colours.emplace_back(originalPrimaryColour);
+    }
+
+    for(uint32_t dummyIdx = 0; dummyIdx < fceHeader->nDummies; ++dummyIdx){
+        Dummy dummy(fceHeader->dummyNames[dummyIdx], rotationMatrix * glm::vec3(fceHeader->dummyCoords[dummyIdx].x /10,fceHeader->dummyCoords[dummyIdx].y /10, fceHeader->dummyCoords[dummyIdx].z /10));
+        carData.dummies.emplace_back(dummy);
     }
 
     for (uint32_t part_Idx = 0; part_Idx < fceHeader->nParts; ++part_Idx) {
@@ -101,11 +103,10 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
             uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
         }
 
-        meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
-        meshes[0].originalColours = originalPrimaryColours;// TODO: Do this better!
-        LOG(INFO) << "Loaded Mesh: " << meshes[part_Idx].m_name << " UVs: " << meshes[part_Idx].m_uvs.size()
-                  << " Verts: " << meshes[part_Idx].m_vertices.size() << " Indices: "
-                  << meshes[part_Idx].m_vertex_indices.size() << " Normals: " << meshes[part_Idx].m_normals.size();
+        carData.meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
+        LOG(INFO) << "Loaded Mesh: " << carData.meshes[part_Idx].m_name << " UVs: " << carData.meshes[part_Idx].m_uvs.size()
+                  << " Verts: " << carData.meshes[part_Idx].m_vertices.size() << " Indices: "
+                  << carData.meshes[part_Idx].m_vertex_indices.size() << " Normals: " << carData.meshes[part_Idx].m_normals.size();
 
         delete[] partNormals;
         delete[] partVertices;
@@ -115,7 +116,7 @@ std::vector<CarModel> NFS3::LoadFCE(const std::string &fce_path) {
     fce.close();
 
     delete fceHeader;
-    return meshes;
+    return carData;
 }
 
 // TRACK

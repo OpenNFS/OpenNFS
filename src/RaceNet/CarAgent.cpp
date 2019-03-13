@@ -11,7 +11,7 @@ CarAgent::CarAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCa
     tickCount = 0;
     dead = false;
 
-    this->car = std::make_shared<Car>(trainingCar->allModels, trainingCar->tag, trainingCar->name);
+    this->car = std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->name);
     this->car->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
@@ -22,7 +22,7 @@ CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath,
         LOG(WARNING) << "AI Neural network couldn't be loaded from " << BEST_NETWORK_PATH << ", randomising weights";
     }
     name = racerName;
-    this->car = std::make_shared<Car>(car->allModels, car->tag, car->name);
+    this->car = std::make_shared<Car>(car->data, car->tag, car->name);
 }
 
 void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car) {

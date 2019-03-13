@@ -28,7 +28,7 @@ public:
 
     static void ConvertFCE(const std::string &fce_path, const std::string &obj_out_path);
     // Car (Expose for GA training)
-    static std::vector<CarModel> LoadFCE(const std::string &fce_path);
+    static CarData LoadFCE(const std::string &fce_path);
 private:
     // Track
     static bool LoadFRD(std::string frd_path, const std::string &track_name, const std::shared_ptr<TRACK> &track);
