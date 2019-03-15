@@ -112,10 +112,31 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
         delete[] partVertices;
         delete[] partTriangles;
     }
-
     fce.close();
 
+    // Go get car colours from FEDATA
+
+    boost::filesystem::path fcePath(fce_path);
+    boost::filesystem::path fceBaseDir = fcePath.parent_path();
+
+    std::ifstream fedata(fceBaseDir.string() + "/fedata.eng", std::ios::in | std::ios::binary);
+    // Jump to location of FILEPOS table for car colour names
+    fedata.seekg(0xA7, std::ios::beg);
+    // Read that table in
+    uint32_t colourNameOffsets[fceHeader->nPriColours];
+    fedata.read((char*) colourNameOffsets, fceHeader->nPriColours * sizeof(uint32_t));
+
+    for(uint8_t colourIdx = 0; colourIdx < fceHeader->nPriColours; ++colourIdx){
+        fedata.seekg(colourNameOffsets[colourIdx]);
+        uint32_t colourNameLength = colourIdx < fceHeader->nPriColours ? (colourNameOffsets[colourIdx+1] - colourNameOffsets[colourIdx]) : 32;
+        char colourName[colourNameLength];
+        fedata.read((char*) colourName, colourNameLength);
+
+        std::string colourNameStr(colourName);
+        carData.colours[colourIdx].colourName =colourNameStr;
+    }
     delete fceHeader;
+
     return carData;
 }
 

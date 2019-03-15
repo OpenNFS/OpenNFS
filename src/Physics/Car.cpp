@@ -62,7 +62,7 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string car_name) : name(car_n
     setModels(carData.meshes);
 
     // Go find headlight position data inside dummies
-    if(tag == NFS_3){
+    if(tag == NFS_3 || tag == NFS_4){
         for(auto &dummy : data.dummies){
             if(dummy.name.find("HFLO") != std::string::npos){
                 leftHeadlight.cutOff = glm::cos(glm::radians(12.5f));
