@@ -46,11 +46,11 @@ void vkRenderer::run() {
     {
         //Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar(NFS_3, "diab");
-        for (int model_Idx = 0; model_Idx < car->allModels.size(); ++model_Idx) {
+        for (int model_Idx = 0; model_Idx < car->data.meshes.size(); ++model_Idx) {
             model_vertices.emplace_back(std::vector<Vertex>());
             vertexBuffers.emplace_back(VkBuffer());
             vertexBufferMemory.emplace_back(VkDeviceMemory());
-            for (glm::vec3 vertex : car->allModels[model_Idx].m_vertices) {
+            for (glm::vec3 vertex : car->data.meshes[model_Idx].m_vertices) {
                 Vertex temp;
                 temp.normal = vertex;
                 temp.uv = glm::vec2(0.0f, 0.0f);

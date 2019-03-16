@@ -129,7 +129,7 @@ int CarAgent::evaluateFitness(int vroadPosition){
     int timeOutsideVroad = tickCount - insideVroadCount;
     //int fitness = c1 - timeOutsideVroad + (int) (c2 * averageSpeed) + closestVroad;
 
-    int fitness = (int) pow(vroadPosition, 2);
+    int fitness = (int) pow(vroadPosition, 1);
 
     return fitness;
 }
@@ -237,8 +237,6 @@ int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared
             lowestDistance = distance;
         }
     }
-    // TODO: HACK HACK HACK
-    if (closestVroadID == 1363) closestVroadID = 1;
 
     // Return a number corresponding to the distance driven
     return closestVroadID;

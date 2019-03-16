@@ -115,7 +115,6 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
     fce.close();
 
     // Go get car colours from FEDATA
-
     boost::filesystem::path fcePath(fce_path);
     boost::filesystem::path fceBaseDir = fcePath.parent_path();
 
@@ -128,11 +127,12 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
 
     for(uint8_t colourIdx = 0; colourIdx < fceHeader->nPriColours; ++colourIdx){
         fedata.seekg(colourNameOffsets[colourIdx]);
-        uint32_t colourNameLength = colourIdx < fceHeader->nPriColours ? (colourNameOffsets[colourIdx+1] - colourNameOffsets[colourIdx]) : 32;
+        uint32_t colourNameLength = colourIdx < (fceHeader->nPriColours - 1) ? (colourNameOffsets[colourIdx+1] - colourNameOffsets[colourIdx]) : 32;
         char colourName[colourNameLength];
         fedata.read((char*) colourName, colourNameLength);
 
         std::string colourNameStr(colourName);
+        LOG(DEBUG) << "Colour: " << colourNameStr;
         carData.colours[colourIdx].colourName =colourNameStr;
     }
     delete fceHeader;

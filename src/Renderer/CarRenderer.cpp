@@ -4,9 +4,6 @@
 
 #include "CarRenderer.h"
 
-CarRenderer::CarRenderer() {
-
-}
 
 void CarRenderer::render(shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights) {
     carShader.use();
