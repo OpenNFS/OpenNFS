@@ -30,13 +30,16 @@ constexpr static const float kCastDistances[Car::kNumRangefinders] = {
         1.f,
 };
 
-Car::Car(CarData carData, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID) : Car(carData, nfs_version, car_name) {
+Car::Car(CarData carData, NFSVer nfs_version, std::string carID, GLuint car_textureArrayID) : Car(carData, nfs_version, carID) {
     textureArrayID = car_textureArrayID;
     multitexturedCarModel = true;
 }
 
-Car::Car(CarData carData, NFSVer nfs_version, std::string car_name) : name(car_name), data(carData) {
+Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), data(carData) {
     tag = nfs_version;
+    if(tag == NFS_3 || tag == NFS_4){
+        name = carData.carName;
+    }
     if(!Config::get().vulkanRender){
         textureID = LoadTGATexture();
     }
@@ -59,7 +62,7 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string car_name) : name(car_n
     steerRight = steerLeft = false;
 
     // Map mesh data to car data
-    setModels(carData.meshes);
+    setModels(data.meshes);
 
     // Go find headlight position data inside dummies
     if(tag == NFS_3 || tag == NFS_4){
@@ -83,9 +86,9 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string car_name) : name(car_n
     }
 
     // Set car colour
-    if(!carData.colours.empty()){
-        int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) carData.colours.size());
-        colour = carData.colours[randomColourIdx].colour;
+    if(!data.colours.empty()){
+        int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) data.colours.size());
+        colour = data.colours[randomColourIdx].colour;
     } else {
         colour = glm::vec3(1,1,1);
         //colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
@@ -524,7 +527,7 @@ float Car::getRotY() {
 
 GLuint Car::LoadTGATexture() {
     std::stringstream car_texture_path;
-    car_texture_path << CAR_PATH << ToString(tag) << "/" << name << "/car00.tga";
+    car_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/car00.tga";
 
     NS_TGALOADER::IMAGE texture_loader;
     ASSERT(texture_loader.LoadTGA(car_texture_path.str().c_str()), "Car Texture loading failed!");

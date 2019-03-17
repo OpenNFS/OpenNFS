@@ -72,6 +72,7 @@ private:
 
 class CarData {
 public:
+    std::string carName;
     std::vector<Dummy> dummies;
     std::vector<CarColour> colours;
     std::vector<CarModel> meshes;

@@ -184,7 +184,11 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
         case EntityType::CAR:
             // TODO: Allow adjustment of shader parameters here as well, and car colour
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
-            ImGui::Text("%s", targetCar->name.c_str());
+            ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
+            for(auto &carColour : targetCar->data.colours){
+                ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
+                ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
+            }
             ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f", targetCar->upDistance, targetCar->rangefinders[Car::FORWARD_RAY], targetCar->rangefinders[Car::RIGHT_RAY], targetCar->rangefinders[Car::LEFT_RAY]);
             ImGui::Text("Speed %f", targetCar->m_vehicle->getCurrentSpeedKmHour() / 10.f);
             // Physics Parameters

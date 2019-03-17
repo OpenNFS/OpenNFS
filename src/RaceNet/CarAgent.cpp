@@ -22,7 +22,7 @@ CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath,
         LOG(WARNING) << "AI Neural network couldn't be loaded from " << BEST_NETWORK_PATH << ", randomising weights";
     }
     name = racerName;
-    this->car = std::make_shared<Car>(car->data, car->tag, car->name);
+    this->car = std::make_shared<Car>(car->data, car->tag, car->id);
 }
 
 void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car) {

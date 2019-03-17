@@ -440,6 +440,19 @@ namespace NFS3_4_DATA {
             };
         };
     };
+
+    struct FEDATA {
+        struct NFS4 {
+            static const int COLOUR_TABLE_OFFSET = 0x043C;
+            static const int MENU_NAME_FILEPOS_OFFSET = 0x03C8;
+        };
+
+        struct NFS3 {
+            static const int COLOUR_TABLE_OFFSET = 0xA7;
+            static const int MENU_NAME_FILEPOS_OFFSET = 0x37;
+        };
+
+    };
 #pragma pack(1)
     struct FFN {
         struct HEADER {

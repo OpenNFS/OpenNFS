@@ -20,8 +20,8 @@
 
 class Car {
 public:
-    explicit Car(CarData carData, NFSVer nfs_version, std::string car_name);
-    Car(CarData carData, NFSVer nfs_version, std::string car_name, GLuint car_textureArrayID); // Multitextured car
+    explicit Car(CarData carData, NFSVer nfs_version, std::string carID);
+    Car(CarData carData, NFSVer nfs_version, std::string carID, GLuint car_textureArrayID); // Multitextured car
     ~Car();
     void setPosition(glm::vec3 position, glm::quat orientation);
     void update();
@@ -30,6 +30,7 @@ public:
     void writeObj(const std::string &path);
 
     std::string name;
+    std::string id;
     NFSVer tag;
     bool multitexturedCarModel = false;
     glm::vec3 colour;
