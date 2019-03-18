@@ -51,6 +51,8 @@ public:
     ~MenuRenderer();
     void render();
     void renderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour);
+    // Render resource using original resource scale at current resolution
+    void renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y);
     void renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale);
 };
 

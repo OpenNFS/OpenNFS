@@ -29,7 +29,7 @@ void MenuShader::loadProjectionMatrix(const glm::mat4 &projection) {
 }
 
 void MenuShader::loadLayer(GLint layer){
-    loadFloat(layerLocation, (float) layer/10); // TODO: This only gives me 20 ui layers (Z: -1 to 1)
+    loadFloat(layerLocation, layer == 0 ? -0.999f :(float) (layer - 100)/100);
 }
 
 void MenuShader::loadColour(glm::vec3 colour) {

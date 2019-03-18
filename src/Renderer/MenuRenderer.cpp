@@ -152,16 +152,21 @@ GLuint MenuRenderer::loadImage(const std::string &imagePath, int *width, int *he
 
 void MenuRenderer::render() {
     projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // TODO: Traverse parsed menuLayout JSON to render UI elements, depth sorted by layer back to front
     renderResource("backgroundPattern", 0, 0, 0, Config::get().resX, Config::get().resY, 1.0f);
-    renderResource("leftMenuCurve", 1, 0, 0, menuResources["leftMenuCurve"].width, menuResources["leftMenuCurve"].height, 1.0f);
+    renderResource("leftMenuCurve", 1, 0, 0);
     renderText("Test Menu", 2, Config::get().resX/2, Config::get().resY/2, 1.0f, glm::vec3(0.9, 0.9, 0));
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
 }
 
 void MenuRenderer::renderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
+    ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
     // Allow for hot reload of shader
     fontShader.shaders.UpdatePrograms();
 
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Activate corresponding render state
     fontShader.use();
     fontShader.loadLayer(layer);
@@ -201,9 +206,21 @@ void MenuRenderer::renderText(const std::string &text, GLint layer, GLfloat x, G
     }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+
 
     fontShader.unbind();
+}
+
+void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y) {
+    ASSERT(menuResources.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
+
+    float ratioX = (float) menuResources[resourceID].width / Config::get().resX;
+    float ratioY = (float) menuResources[resourceID].height / Config::get().resY;
+
+    // TODO: Actually implement this rescaling scaling properly
+
+    renderResource(resourceID, layer, x, y, ratioX * menuResources[resourceID].width, ratioY * menuResources[resourceID].height, 1.0f);
 }
 
 void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale){
@@ -249,6 +266,7 @@ void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GL
 
     menuShader.unbind();
 }
+
 
 
 
