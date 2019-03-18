@@ -9,10 +9,9 @@ MenuRenderer::MenuRenderer() {
     ASSERT(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
 
     FT_Face face;
-    ASSERT(!FT_New_Face(ft, "../resources/ui/arial.ttf", 0, &face), "FREETYPE: Failed to load font");
+    ASSERT(!FT_New_Face(ft, "../resources/ui/earth.ttf", 0, &face), "FREETYPE: Failed to load font");
 
     FT_Set_Pixel_Sizes(face, 0, 48);
-    ASSERT(!FT_Load_Char(face, 'X', FT_LOAD_RENDER), "FREETYPE: Failed to load Glyph");
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
 
