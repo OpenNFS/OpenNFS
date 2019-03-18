@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 project(OpenNFS)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 set(DEP_ROOT_DIR ${CMAKE_SOURCE_DIR}/lib)
 
@@ -155,9 +155,7 @@ endif ()
 add_executable(OpenNFS ${SOURCE_FILES})
 
 #[[JSON]]
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(lib/json)
-target_link_libraries(OpenNFS nlohmann_json::nlohmann_json)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")
 #[[STB]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/stb")
 #[[FREETYPE]]

@@ -37,6 +37,3 @@
 [submodule "lib/freetype2"]
 	path = lib/freetype2
 	url = https://github.com/aseprite/freetype2.git
-[submodule "lib/json"]
-	path = lib/json
-	url = https://github.com/nlohmann/json.git
