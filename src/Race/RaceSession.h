@@ -16,6 +16,7 @@
 #include "../Config.h"
 #include "../Renderer/Renderer.h"
 
+
 class RaceSession {
 private:
     // TODO: Read this from file

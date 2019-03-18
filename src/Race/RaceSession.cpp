@@ -9,7 +9,7 @@ RaceSession::RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogg
                          const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car>
                          &currentCar) : window(glWindow), logger(onfsLogger), installedNFSGames(installedNFS),
                                         track(currentTrack), car(currentCar) {
-    loadedAssets = {car->tag, car->name, track->tag, track->name};
+    loadedAssets = {car->tag, car->id, track->tag, track->name};
     mainCamera = Camera(track->trackBlocks[0].center, Config::get().fov, 0.f, 0.f, window);
     mainCamera.generateSpline(track->trackBlocks);
 

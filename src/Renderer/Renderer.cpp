@@ -85,6 +85,7 @@ bool Renderer::Render(float totalTime, float deltaTime, Camera &camera, ParamDat
     skyRenderer.renderSky(camera, sun, userParams, totalTime);
     trackRenderer.renderTrack(playerCar, camera, nightTime ? moon : sun, activeTrackBlockIDs, userParams, shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix, ambientLightFactor);
     trackRenderer.renderLights(camera, activeTrackBlockIDs);
+    menuRenderer.renderText("PoopForSpeed", Config::get().resX/2, Config::get().resY/2, 1.0f, glm::vec3(0.5, 0.f, 0.5));
 
     // Render the Car and racers
     // Get lights that will contribute to car body (currentBlock, a few blocks forward, and a few back (NBData would give weird results, as NBData blocks aren't generally adjacent))

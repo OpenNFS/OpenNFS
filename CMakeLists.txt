@@ -138,7 +138,11 @@ set(SOURCE_FILES
         src/Race/RaceSession.cpp
         src/Race/RaceSession.h
         src/Scene/Spotlight.cpp
-        src/Scene/Spotlight.h)
+        src/Scene/Spotlight.h
+        src/Renderer/MenuRenderer.cpp
+        src/Renderer/MenuRenderer.h
+        src/Shaders/FontShader.cpp
+        src/Shaders/FontShader.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
@@ -148,12 +152,19 @@ endif ()
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
+#[[FREETYPE]]
+add_subdirectory(lib/freetype2)
+include_directories(lib/freetype2/include)
+target_link_libraries(OpenNFS freetype)
 #[[IMGUI]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 #[[TINYOBJLOADER]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BMPREAD]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
+#[[NEAT]]
+#[[include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/NEAT")
+add_subdirectory(lib/NEAT/)]]
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::system Boost::boost)

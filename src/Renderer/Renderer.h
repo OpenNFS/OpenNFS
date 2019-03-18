@@ -26,6 +26,7 @@
 #include "TrackRenderer.h"
 #include "SkyRenderer.h"
 #include "ShadowMapRenderer.h"
+#include "MenuRenderer.h"
 
 class Renderer {
 public:
@@ -45,6 +46,7 @@ private:
     CarRenderer carRenderer;
     SkyRenderer skyRenderer;
     ShadowMapRenderer shadowMapRenderer;
+    MenuRenderer menuRenderer;
 
     /* Scene Objects */
     Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);

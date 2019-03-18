@@ -10,7 +10,7 @@
 
 class Quad : public Model {
 public:
-    Quad(glm::vec3 position, glm::vec3 colour, float size);
+    Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY);
     Quad();
 
     void update() override;

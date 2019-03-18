@@ -49,7 +49,6 @@ public:
     float specularDamper;
     float specularReflectivity;
     float envReflectivity;
-    std::vector<CarColour> originalColours; // TODO: This belongs in Car class but fce loader return restricts this
 
     // Multitextured Car
     bool isMultiTextured = false;

@@ -6,12 +6,12 @@
 #include "../Util/Utils.h"
 
 
-Quad::Quad(glm::vec3 position, glm::vec3 colour, float size) : super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
+Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) : super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
     std::vector<glm::vec3> verts;
-    verts.emplace_back(glm::vec3(-size, -size, 0)); // bottom left corner
-    verts.emplace_back(glm::vec3(-size,  size, 0)); // top left corner
-    verts.emplace_back(glm::vec3( size,  size, 0)); // top right corner
-    verts.emplace_back(glm::vec3( size, -size, 0)); // bottom right corner
+    verts.emplace_back(glm::vec3(fromX, fromY, 0)); // bottom left corner
+    verts.emplace_back(glm::vec3(toY,  fromX, 0)); // top left corner
+    verts.emplace_back(glm::vec3( toX,  toY, 0)); // top right corner
+    verts.emplace_back(glm::vec3( toX, fromY, 0)); // bottom right corner
     unsigned int indices[] = {0,1,2, // first triangle (bottom left - top left - top right)
                               0,2,3}; // second triangle (bottom left - top right - bottom right)
     m_uvs.clear();
