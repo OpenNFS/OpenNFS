@@ -142,7 +142,9 @@ set(SOURCE_FILES
         src/Renderer/MenuRenderer.cpp
         src/Renderer/MenuRenderer.h
         src/Shaders/FontShader.cpp
-        src/Shaders/FontShader.h)
+        src/Shaders/FontShader.h
+        src/Shaders/MenuShader.cpp
+        src/Shaders/MenuShader.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
@@ -152,6 +154,8 @@ endif ()
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
+#[[STB]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/stb")
 #[[FREETYPE]]
 add_subdirectory(lib/freetype2)
 include_directories(lib/freetype2/include)

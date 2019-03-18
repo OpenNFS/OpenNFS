@@ -4,6 +4,9 @@
 
 #include "MenuRenderer.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 MenuRenderer::MenuRenderer() {
     FT_Library ft;
     ASSERT(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
@@ -15,18 +18,16 @@ MenuRenderer::MenuRenderer() {
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
 
-    for (GLubyte c = 0; c < 128; c++)
-    {
+    for (GLubyte c = 0; c < 128; c++) {
         // Load character glyph
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-        {
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
             LOG(WARNING) << "FREETYPE: Failed to load Glyph";
             continue;
         }
         // Generate texture
-        GLuint texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        GLuint textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
@@ -45,7 +46,7 @@ MenuRenderer::MenuRenderer() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         // Now store character for later use
         Character character = {
-                texture,
+                textureID,
                 glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
                 glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
                 (GLuint) face->glyph->advance.x
@@ -88,9 +89,7 @@ void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLf
 
     glBindVertexArray(VAO);
     // Iterate through all characters
-    std::string::const_iterator c;
-    for (c = text.begin(); c != text.end(); c++)
-    {
+    for (std::string::const_iterator c = text.begin(); c != text.end(); ++c) {
         Character ch = Characters[*c];
 
         GLfloat xpos = x + ch.Bearing.x * scale;
@@ -100,13 +99,13 @@ void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLf
         GLfloat h = ch.Size.y * scale;
         // Update VBO for each character
         GLfloat vertices[6][4] = {
-                { xpos,     ypos + h,   0.0, 0.0 },
-                { xpos,     ypos,       0.0, 1.0 },
-                { xpos + w, ypos,       1.0, 1.0 },
+                {xpos,     ypos + h, 0.0, 0.0},
+                {xpos,     ypos,     0.0, 1.0},
+                {xpos + w, ypos,     1.0, 1.0},
 
-                { xpos,     ypos + h,   0.0, 0.0 },
-                { xpos + w, ypos,       1.0, 1.0 },
-                { xpos + w, ypos + h,   1.0, 0.0 }
+                {xpos,     ypos + h, 0.0, 0.0},
+                {xpos + w, ypos,     1.0, 1.0},
+                {xpos + w, ypos + h, 1.0, 0.0}
         };
         // Render glyph texture over quad
         fontShader.loadGlyphTexture(ch.textureID);
@@ -122,4 +121,28 @@ void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLf
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void LoadImage(const std::string &imagePath){
+    GLuint textureID;
+    int w, h, comp;
+
+    unsigned char* image = stbi_load(imagePath.c_str(), &w, &h, &comp, STBI_rgb_alpha);
+    ASSERT(image != nullptr, "Failed to load UI texture " << imagePath);
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    if(comp == 3)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    else if(comp == 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    else {
+        ASSERT(false, "Currently unsupported channel number in source image " << imagePath);
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    stbi_image_free(image);
 }
