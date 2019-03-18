@@ -57,22 +57,34 @@ MenuRenderer::MenuRenderer() {
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
-    // Configure VAO/VBO for texture quads
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // Configure VAO/VBO for font texture quads
+    glGenVertexArrays(1, &fontQuadVAO);
+    glGenBuffers(1, &fontQuadVBO);
+    glBindVertexArray(fontQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, fontQuadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+    // Configure VAO/VBO for menu texture quads
+    glGenVertexArrays(1, &menuQuadVAO);
+    glGenBuffers(1, &menuQuadVBO);
+    glBindVertexArray(menuQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, menuQuadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+    // Reset state
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     LOG(INFO) << "Glyphs loaded successfully";
+
+    testMenuTextureID = LoadImage("../resources/ui/menu/grillPattern.png");
 }
 
 void MenuRenderer::Render() {
-
+    renderText("Test Menu", Config::get().resX/2, Config::get().resY/2, 1.0f, glm::vec3(0.9, 0.9, 0));
+    renderButton(0, 0, Config::get().resX, Config::get().resY, 1.0f);
 }
 
 void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
@@ -80,14 +92,13 @@ void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLf
     // Allow for hot reload of shader
     fontShader.shaders.UpdatePrograms();
 
-    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Activate corresponding render state
     fontShader.use();
     fontShader.loadColour(colour);
     fontShader.loadProjectionMatrix(projectionMatrix);
 
-    glBindVertexArray(VAO);
+    glBindVertexArray(fontQuadVAO);
     // Iterate through all characters
     for (std::string::const_iterator c = text.begin(); c != text.end(); ++c) {
         Character ch = Characters[*c];
@@ -110,7 +121,7 @@ void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLf
         // Render glyph texture over quad
         fontShader.loadGlyphTexture(ch.textureID);
         // Update content of VBO memory
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, fontQuadVBO);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // Render quad
@@ -123,7 +134,48 @@ void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLf
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void LoadImage(const std::string &imagePath){
+void MenuRenderer::renderButton(GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale){
+    glm::mat4 projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
+
+    GLfloat xpos = x;
+    GLfloat ypos = y;
+    // Iterate through all characters
+    GLfloat w = width * scale;
+    GLfloat h = height * scale;
+    // Update VBO
+    GLfloat vertices[6][4] = {
+            {xpos,     ypos + h, 0.0, 0.0},
+            {xpos,     ypos,     0.0, 1.0},
+            {xpos + w, ypos,     1.0, 1.0},
+
+            {xpos,     ypos + h, 0.0, 0.0},
+            {xpos + w, ypos,     1.0, 1.0},
+            {xpos + w, ypos + h, 1.0, 0.0}
+    };
+
+    // Allow for hot reload of shader
+    menuShader.shaders.UpdatePrograms();
+
+    // Activate corresponding render state
+    menuShader.use();
+    menuShader.loadColour(glm::vec3(1,1,1));
+    menuShader.loadProjectionMatrix(projectionMatrix);
+    // Render menu texture over quad
+    menuShader.loadMenuTexture(testMenuTextureID);
+
+    glBindVertexArray(menuQuadVAO);
+    // Update content of VBO memory
+    glBindBuffer(GL_ARRAY_BUFFER, menuQuadVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // Render quad
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    // Reset state
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+GLuint MenuRenderer::LoadImage(const std::string &imagePath){
     GLuint textureID;
     int w, h, comp;
 
@@ -132,8 +184,11 @@ void LoadImage(const std::string &imagePath){
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     if(comp == 3)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -145,4 +200,13 @@ void LoadImage(const std::string &imagePath){
     glBindTexture(GL_TEXTURE_2D, 0);
 
     stbi_image_free(image);
+
+    return textureID;
+}
+
+MenuRenderer::~MenuRenderer() {
+    for(std::map<GLchar, Character>::iterator it = Characters.begin(); it!=Characters.end(); ++it){
+        glDeleteTextures(1, &it->second.textureID);
+    }
+    glDeleteTextures(1, &testMenuTextureID);
 }

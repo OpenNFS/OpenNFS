@@ -13,11 +13,14 @@
 #include FT_FREETYPE_H
 
 #include "../Shaders/FontShader.h"
+#include "../Shaders/MenuShader.h"
 #include "../Util/Logger.h"
 
 class MenuRenderer {
 private:
-    GLuint VAO, VBO;
+    GLuint fontQuadVAO, fontQuadVBO, menuQuadVAO, menuQuadVBO;
+
+    GLuint testMenuTextureID;
 
     struct Character {
         GLuint     textureID;  // ID handle of the glyph texture
@@ -28,10 +31,13 @@ private:
 
     std::map<GLchar, Character> Characters;
     FontShader fontShader;
-    //MenuShader menuShader;
+    MenuShader menuShader;
 public:
     explicit MenuRenderer();
+    ~MenuRenderer();
     void Render();
     void renderText(const std::string &text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour);
+    void renderButton(GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale);
+    static GLuint LoadImage(const std::string &imagePath);
 };
 

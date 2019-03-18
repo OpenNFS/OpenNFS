@@ -20,7 +20,7 @@ void MenuShader::getAllUniformLocations() {
     // Get handles for uniforms
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     colourLocation = getUniformLocation("textColour");
-    textGlyphSamplerLocation = getUniformLocation("textGlyphSampler");
+    menuTextureSamplerLocation = getUniformLocation("menuTextureSampler");
 }
 
 void MenuShader::loadProjectionMatrix(const glm::mat4 &projection) {
@@ -31,8 +31,8 @@ void MenuShader::loadColour(glm::vec3 colour) {
     loadVec3(colourLocation, colour);
 }
 
-void MenuShader::loadGlyphTexture(GLuint textureID){
-    loadSampler2D(textGlyphSamplerLocation, 0);
+void MenuShader::loadMenuTexture(GLuint textureID){
+    loadSampler2D(menuTextureSamplerLocation, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
 }

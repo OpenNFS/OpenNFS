@@ -13,13 +13,13 @@ public:
     explicit MenuShader();
     void loadColour(glm::vec3 colour);
     void loadProjectionMatrix(const glm::mat4 &projection);
-    void loadGlyphTexture(GLuint textureID);
+    void loadMenuTexture(GLuint textureID);
 protected:
     void bindAttributes() override;
     void getAllUniformLocations() override;
     void customCleanup() override;
 
-    GLint textGlyphSamplerLocation;
+    GLint menuTextureSamplerLocation;
     GLint projectionMatrixLocation;
     GLint colourLocation;
 
