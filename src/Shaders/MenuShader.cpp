@@ -19,12 +19,17 @@ void MenuShader::bindAttributes() {
 void MenuShader::getAllUniformLocations() {
     // Get handles for uniforms
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
-    colourLocation = getUniformLocation("textColour");
+    layerLocation = getUniformLocation("layer");
+    colourLocation = getUniformLocation("colour");
     menuTextureSamplerLocation = getUniformLocation("menuTextureSampler");
 }
 
 void MenuShader::loadProjectionMatrix(const glm::mat4 &projection) {
     loadMat4(projectionMatrixLocation, &projection[0][0]);
+}
+
+void MenuShader::loadLayer(GLint layer){
+    loadFloat(layerLocation, (float) layer/10); // TODO: This only gives me 20 ui layers (Z: -1 to 1)
 }
 
 void MenuShader::loadColour(glm::vec3 colour) {

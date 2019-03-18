@@ -11,6 +11,7 @@
 class FontShader : public BaseShader {
 public:
     explicit FontShader();
+    void loadLayer(GLint layer);
     void loadColour(glm::vec3 colour);
     void loadProjectionMatrix(const glm::mat4 &projection);
     void loadGlyphTexture(GLuint textureID);
@@ -21,6 +22,7 @@ protected:
 
     GLint textGlyphSamplerLocation;
     GLint projectionMatrixLocation;
+    GLint layerLocation;
     GLint colourLocation;
 
     typedef BaseShader super;

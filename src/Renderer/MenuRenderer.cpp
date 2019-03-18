@@ -12,7 +12,7 @@ MenuRenderer::MenuRenderer() {
     ASSERT(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
 
     FT_Face face;
-    ASSERT(!FT_New_Face(ft, "../resources/ui/earth.ttf", 0, &face), "FREETYPE: Failed to load font");
+    ASSERT(!FT_New_Face(ft, "../resources/ui/fonts/earth.ttf", 0, &face), "FREETYPE: Failed to load font");
 
     FT_Set_Pixel_Sizes(face, 0, 48);
 
@@ -51,7 +51,7 @@ MenuRenderer::MenuRenderer() {
                 glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
                 (GLuint) face->glyph->advance.x
         };
-        Characters.insert(std::pair<GLchar, Character>(c, character));
+        characters.insert(std::pair<GLchar, Character>(c, character));
     }
     glBindTexture(GL_TEXTURE_2D, 0);
     FT_Done_Face(face);
@@ -79,29 +79,99 @@ MenuRenderer::MenuRenderer() {
 
     LOG(INFO) << "Glyphs loaded successfully";
 
-    testMenuTextureID = LoadImage("../resources/ui/menu/grillPattern.png");
+    menuResources = loadResources("../resources/ui/menu/resources.json");
+    LOG(INFO) << "Menu resources loaded successfully";
 }
 
-void MenuRenderer::Render() {
-    renderText("Test Menu", Config::get().resX/2, Config::get().resY/2, 1.0f, glm::vec3(0.9, 0.9, 0));
-    renderButton(0, 0, Config::get().resX, Config::get().resY, 1.0f);
+MenuRenderer::~MenuRenderer() {
+    // Lets delete all of the loaded textures
+    for(std::map<GLchar, Character>::iterator it = characters.begin(); it != characters.end(); ++it){
+        glDeleteTextures(1, &it->second.textureID);
+    }
+    for(std::map<std::string, MenuResource>::iterator it = menuResources.begin(); it != menuResources.end(); ++it){
+        glDeleteTextures(1, &it->second.textureID);
+    }
 }
 
-void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
-    glm::mat4 projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
+std::map<std::string, MenuResource> MenuRenderer::loadResources(const std::string &resourceFile){
+    // Read the resource JSON file
+    std::ifstream jsonFile(resourceFile);
+    ASSERT(jsonFile.is_open(), "Couldn't open menu resource file " << resourceFile);
+
+    std::map<std::string, MenuResource> resources;
+    json resourcesJson;
+    jsonFile >> resourcesJson;
+
+    for (auto& el : resourcesJson["resources"].items()) {
+        std::string elementName = el.value()["name"];
+
+        // Load the image into the GPU and get corresponding handle
+        int width, height;
+        GLuint textureID = loadImage(el.value()["path"], &width, &height);
+        // Now store menu resource for later use
+        MenuResource menuResource = {
+                textureID,
+                width,
+                height
+        };
+        resources.insert(std::pair<std::string, MenuResource>(elementName, menuResource));
+    }
+    jsonFile.close();
+
+    return resources;
+}
+
+GLuint MenuRenderer::loadImage(const std::string &imagePath, int *width, int *height){
+    GLuint textureID;
+    int comp;
+
+    unsigned char* image = stbi_load(imagePath.c_str(), width, height, &comp, STBI_rgb_alpha);
+    ASSERT(image != nullptr, "Failed to load UI texture " << imagePath);
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    if(comp == 3){
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, *width, *height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    } else if(comp == 4){
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *width, *height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    } else {
+        ASSERT(false, "Currently unsupported channel number in source image " << imagePath);
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    stbi_image_free(image);
+
+    return textureID;
+}
+
+void MenuRenderer::render() {
+    projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
+    renderResource("backgroundPattern", 0, 0, 0, Config::get().resX, Config::get().resY, 1.0f);
+    renderResource("leftMenuCurve", 1, 0, 0, menuResources["leftMenuCurve"].width, menuResources["leftMenuCurve"].height, 1.0f);
+    renderText("Test Menu", 2, Config::get().resX/2, Config::get().resY/2, 1.0f, glm::vec3(0.9, 0.9, 0));
+}
+
+void MenuRenderer::renderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
     // Allow for hot reload of shader
     fontShader.shaders.UpdatePrograms();
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Activate corresponding render state
     fontShader.use();
+    fontShader.loadLayer(layer);
     fontShader.loadColour(colour);
     fontShader.loadProjectionMatrix(projectionMatrix);
 
     glBindVertexArray(fontQuadVAO);
     // Iterate through all characters
     for (std::string::const_iterator c = text.begin(); c != text.end(); ++c) {
-        Character ch = Characters[*c];
+        Character ch = characters[*c];
 
         GLfloat xpos = x + ch.Bearing.x * scale;
         GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
@@ -132,10 +202,12 @@ void MenuRenderer::renderText(const std::string &text, GLfloat x, GLfloat y, GLf
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+    fontShader.unbind();
 }
 
-void MenuRenderer::renderButton(GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale){
-    glm::mat4 projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
+void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale){
+    ASSERT(menuResources.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 
     GLfloat xpos = x;
     GLfloat ypos = y;
@@ -158,10 +230,11 @@ void MenuRenderer::renderButton(GLfloat x, GLfloat y, GLfloat width, GLfloat hei
 
     // Activate corresponding render state
     menuShader.use();
+    menuShader.loadLayer(layer);
     menuShader.loadColour(glm::vec3(1,1,1));
     menuShader.loadProjectionMatrix(projectionMatrix);
     // Render menu texture over quad
-    menuShader.loadMenuTexture(testMenuTextureID);
+    menuShader.loadMenuTexture(menuResources[resourceID].textureID);
 
     glBindVertexArray(menuQuadVAO);
     // Update content of VBO memory
@@ -173,40 +246,10 @@ void MenuRenderer::renderButton(GLfloat x, GLfloat y, GLfloat width, GLfloat hei
     // Reset state
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    menuShader.unbind();
 }
 
-GLuint MenuRenderer::LoadImage(const std::string &imagePath){
-    GLuint textureID;
-    int w, h, comp;
 
-    unsigned char* image = stbi_load(imagePath.c_str(), &w, &h, &comp, STBI_rgb_alpha);
-    ASSERT(image != nullptr, "Failed to load UI texture " << imagePath);
 
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    if(comp == 3)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    else if(comp == 4)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    else {
-        ASSERT(false, "Currently unsupported channel number in source image " << imagePath);
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    stbi_image_free(image);
-
-    return textureID;
-}
-
-MenuRenderer::~MenuRenderer() {
-    for(std::map<GLchar, Character>::iterator it = Characters.begin(); it!=Characters.end(); ++it){
-        glDeleteTextures(1, &it->second.textureID);
-    }
-    glDeleteTextures(1, &testMenuTextureID);
-}

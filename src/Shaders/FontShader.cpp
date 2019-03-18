@@ -19,12 +19,17 @@ void FontShader::bindAttributes() {
 void FontShader::getAllUniformLocations() {
     // Get handles for uniforms
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
+    layerLocation = getUniformLocation("layer");
     colourLocation = getUniformLocation("textColour");
     textGlyphSamplerLocation = getUniformLocation("textGlyphSampler");
 }
 
 void FontShader::loadProjectionMatrix(const glm::mat4 &projection) {
     loadMat4(projectionMatrixLocation, &projection[0][0]);
+}
+
+void FontShader::loadLayer(GLint layer){
+    loadFloat(layerLocation, (float) layer/10); // TODO: This only gives me 20 ui layers (Z: -1 to 1)
 }
 
 void FontShader::loadColour(glm::vec3 colour) {
