@@ -30,10 +30,11 @@ jobs:
       cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
 
 
-#  - task: PublishBuildArtifacts@1
-#    displayName: 'Publish Artifact: drop'
-#    inputs:
-#      PathtoPublish: ./build/OpenNFS
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      pathtoPublish: ./build/OpenNFS
+      artifactName: drop
 
 - job: Windows_gcc
   pool: Hosted VS2017
@@ -51,21 +52,16 @@ jobs:
       cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
 
 
-#  - task: PublishBuildArtifacts@1
-#    displayName: 'Publish Artifact: drop'
-#    inputs:
-#      PathtoPublish: ./build
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      pathtoPublish: ./build/OpenNFS.exe
+      artifactName: drop
 
 - job: Windows_msvc
   pool: Hosted VS2017
 
   steps:
-  - script: |
-      git submodule init
-      git submodule update --remote
-    
-    displayName: 'Command Line Script'
-    
   - script: mkdir build
     displayName: Make build directory
 
@@ -104,10 +100,11 @@ jobs:
       TargetFolder: '$(build.artifactstagingdirectory)'
 
 
-#  - task: PublishBuildArtifacts@1
-#    displayName: 'Publish Artifact: drop'
-#    inputs:
-#      PathtoPublish: '$(build.artifactstagingdirectory)'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      pathtoPublish: '$(build.artifactstagingdirectory)'
+      artifactName: drop
 
 - job: Mac
   pool: Hosted macOS
@@ -125,7 +122,8 @@ jobs:
       cmakeArgs: '--build ./ --target OpenNFS -- -j 4'
 
 
-#  - task: PublishBuildArtifacts@1
-#    displayName: 'Publish Artifact: drop'
-#    inputs:
-#      PathtoPublish: ./build/OpenNFS
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
+    inputs:
+      pathtoPublish: ./build/OpenNFS
+      artifactName: drop
