@@ -224,6 +224,7 @@ void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GL
 }
 
 void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale){
+    ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
     ASSERT(menuResources.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 
     GLfloat xpos = x;

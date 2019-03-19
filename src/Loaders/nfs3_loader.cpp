@@ -133,18 +133,19 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
     // Jump to location of FILEPOS table for car colour names
     fedata.seekg(FEDATA::NFS3::COLOUR_TABLE_OFFSET, std::ios::beg);
     // Read that table in
-    uint32_t colourNameOffsets[fceHeader->nPriColours];
+    auto *colourNameOffsets = new uint32_t[fceHeader->nPriColours];
     fedata.read((char*) colourNameOffsets, fceHeader->nPriColours * sizeof(uint32_t));
 
     for(uint8_t colourIdx = 0; colourIdx < fceHeader->nPriColours; ++colourIdx){
         fedata.seekg(colourNameOffsets[colourIdx]);
         uint32_t colourNameLength = colourIdx < (fceHeader->nPriColours - 1) ? (colourNameOffsets[colourIdx+1] - colourNameOffsets[colourIdx]) : 32;
-        char colourName[colourNameLength];
+        char *colourName = new char[colourNameLength];
         fedata.read((char*) colourName, colourNameLength);
-
         std::string colourNameStr(colourName);
         carData.colours[colourIdx].colourName =colourNameStr;
+        delete []colourName;
     }
+    delete []colourNameOffsets;
     delete fceHeader;
 
     return carData;
