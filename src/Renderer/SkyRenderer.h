@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../../include/TGALoader/TGALoader.h"
+#include "../Util/ImageLoader.h"
 #include "../Loaders/trk_loader.h"
 #include "../Shaders/SkydomeShader.h"
 #include "../Scene/Camera.h"

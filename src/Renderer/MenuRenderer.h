@@ -16,6 +16,7 @@
 #include "../Shaders/FontShader.h"
 #include "../Shaders/MenuShader.h"
 #include "../Util/Logger.h"
+#include "../Util/ImageLoader.h"
 
 using json = nlohmann::json;
 

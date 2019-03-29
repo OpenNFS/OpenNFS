@@ -15,6 +15,7 @@
 #include "../RaceNet/RaceNet.h"
 #include "../Scene/Spotlight.h"
 #include "../Scene/CarModel.h"
+#include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
 #include "../Enums.h"
 
@@ -123,7 +124,6 @@ public:
 private:
     void genRaycasts(btDynamicsWorld* dynamicsWorld);
     void setModels(std::vector<CarModel> car_models);
-    GLuint LoadTGATexture();
 
     // Base Physics objects for car
     btDefaultMotionState* vehicleMotionState;   // Retrieving vehicle location in world

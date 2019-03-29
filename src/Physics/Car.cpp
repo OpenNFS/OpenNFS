@@ -40,8 +40,12 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
     if(tag == NFS_3 || tag == NFS_4){
         name = carData.carName;
     }
+
     if(!Config::get().vulkanRender){
-        textureID = LoadTGATexture();
+        std::stringstream car_texture_path;
+        car_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/car00.tga";
+        int width, height;
+        textureID = ImageLoader::LoadImage(car_texture_path.str(), &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
     }
 
     // Load these from Carp.txt
@@ -523,27 +527,5 @@ void Car::writeObj(const std::string &path) {
 float Car::getRotY() {
     glm::quat orientation = carBodyModel.orientation;
     return glm::degrees(atan2(2*orientation.y*orientation.w - 2*orientation.x*orientation.z, 1 - 2*orientation.y*orientation.y - 2*orientation.z*orientation.z));
-}
-
-GLuint Car::LoadTGATexture() {
-    std::stringstream car_texture_path;
-    car_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/car00.tga";
-
-    NS_TGALOADER::IMAGE texture_loader;
-    ASSERT(texture_loader.LoadTGA(car_texture_path.str().c_str()), "Car Texture loading failed!");
-
-    GLuint textureID;
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_loader.getWidth(), texture_loader.getHeight(), 0, GL_BGRA, GL_UNSIGNED_BYTE, texture_loader.getDataForOpenGL());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    return textureID;
 }
 

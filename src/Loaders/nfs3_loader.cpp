@@ -98,9 +98,9 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
             indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[1]);
             indices.emplace_back(partTriangles[tri_Idx].vertex[2]);
-            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], partTriangles[tri_Idx].uvTable[3]));
-            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], partTriangles[tri_Idx].uvTable[4]));
-            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
+            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], 1.0f- partTriangles[tri_Idx].uvTable[3]));
+            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], 1.0f- partTriangles[tri_Idx].uvTable[4]));
+            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], 1.0f- partTriangles[tri_Idx].uvTable[5]));
         }
 
         carData.meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));

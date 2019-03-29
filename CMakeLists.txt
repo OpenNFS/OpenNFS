@@ -45,7 +45,6 @@ set(SOURCE_FILES
         src/main.cpp
         src/Scene/Camera.cpp
         src/Scene/Model.cpp
-        include/TGALoader/TGALoader.cpp
         src/Physics/PhysicsEngine.cpp
         lib/glew-cmake/src/glew.c
         src/Scene/TrackBlock.cpp
@@ -144,7 +143,9 @@ set(SOURCE_FILES
         src/Shaders/FontShader.cpp
         src/Shaders/FontShader.h
         src/Shaders/MenuShader.cpp
-        src/Shaders/MenuShader.h)
+        src/Shaders/MenuShader.h
+        src/Util/ImageLoader.cpp
+        src/Util/ImageLoader.h)
 
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))

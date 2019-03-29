@@ -4,8 +4,7 @@
 
 #include "MenuRenderer.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+
 
 MenuRenderer::MenuRenderer() {
     FT_Library ft;
@@ -107,7 +106,7 @@ std::map<std::string, MenuResource> MenuRenderer::loadResources(const std::strin
 
         // Load the image into the GPU and get corresponding handle
         int width, height;
-        GLuint textureID = loadImage(el.value()["path"], &width, &height);
+        GLuint textureID = ImageLoader::LoadImage(el.value()["path"], &width, &height, GL_CLAMP_TO_EDGE, GL_LINEAR);
         // Now store menu resource for later use
         MenuResource menuResource = {
                 textureID,
@@ -119,35 +118,6 @@ std::map<std::string, MenuResource> MenuRenderer::loadResources(const std::strin
     jsonFile.close();
 
     return resources;
-}
-
-GLuint MenuRenderer::loadImage(const std::string &imagePath, int *width, int *height){
-    GLuint textureID;
-    int comp;
-
-    unsigned char* image = stbi_load(imagePath.c_str(), width, height, &comp, STBI_rgb_alpha);
-    ASSERT(image != nullptr, "Failed to load UI texture " << imagePath);
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    if(comp == 3){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, *width, *height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    } else if(comp == 4){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *width, *height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    } else {
-        ASSERT(false, "Currently unsupported channel number in source image " << imagePath);
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    stbi_image_free(image);
-
-    return textureID;
 }
 
 void MenuRenderer::render() {
