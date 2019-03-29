@@ -4,6 +4,7 @@
 
 #include "nfs2_loader.h"
 
+using namespace Utils;
 using namespace TrackUtils;
 
 void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
@@ -148,7 +149,10 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
             uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
 
-            glm::vec3 normal = rotationMatrix * calculateQuadNormal(pointToVec(vertices[polygons[poly_Idx].vertex[0]]), pointToVec(vertices[polygons[poly_Idx].vertex[1]]), pointToVec(vertices[polygons[poly_Idx].vertex[2]]), pointToVec(vertices[polygons[poly_Idx].vertex[3]]));
+            glm::vec3 normal = rotationMatrix * CalculateQuadNormal(PointToVec(vertices[polygons[poly_Idx].vertex[0]]),
+                                                                    PointToVec(vertices[polygons[poly_Idx].vertex[1]]),
+                                                                    PointToVec(vertices[polygons[poly_Idx].vertex[2]]),
+                                                                    PointToVec(vertices[polygons[poly_Idx].vertex[3]]));
 
             // Use the R/L flag to flip normals
             if(polygons[poly_Idx].texMapType & 0x4){
@@ -359,10 +363,14 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             indices.emplace_back(polygons[poly_Idx].vertex[0][3]);
 
             // TODO: Use Polygon TexMap type to fix texture mapping, use UV factory in trk utils
-            std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(NFS_3_PS1, CAR, polygons->texMap[0], gl_texture);
+            std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3_PS1, CAR, polygons->texMap[0], gl_texture);
             uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-            glm::vec3 normal = rotationMatrix * calculateQuadNormal(pointToVec(vertices[polygons[poly_Idx].vertex[0][0]]), pointToVec(vertices[polygons[poly_Idx].vertex[0][1]]), pointToVec(vertices[polygons[poly_Idx].vertex[0][2]]), pointToVec(vertices[polygons[poly_Idx].vertex[0][3]]));
+            glm::vec3 normal = rotationMatrix *
+                    CalculateQuadNormal(PointToVec(vertices[polygons[poly_Idx].vertex[0][0]]),
+                                        PointToVec(vertices[polygons[poly_Idx].vertex[0][1]]),
+                                        PointToVec(vertices[polygons[poly_Idx].vertex[0][2]]),
+                                        PointToVec(vertices[polygons[poly_Idx].vertex[0][3]]));
 
             // Use the R/L flag to flip normals
             if(!(polygons[poly_Idx].texMap[0] & 0x4)){
@@ -455,10 +463,10 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
 
     if (std::is_same<Platform, PS1>::value) {
         car_out_path << CAR_PATH << ToString(NFS_3_PS1) << "/" << car_name << "/";
-        Utils::ExtractPSH(psh_path.str(), car_out_path.str());
+        ImageLoader::ExtractPSH(psh_path.str(), car_out_path.str());
     } else {
         car_out_path << CAR_PATH << ToString(NFS_2) << "/" << car_name << "/";
-        Utils::ExtractQFS(qfs_path.str(), car_out_path.str());
+        ImageLoader::ExtractQFS(qfs_path.str(), car_out_path.str());
     }
 
     for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
@@ -469,18 +477,17 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
                 GLubyte *data;
                 GLsizei width;
                 GLsizei height;
-                ASSERT(Utils::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " << itr->path().string() << " did not load succesfully!");
+                ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " << itr->path().string() << " did not load succesfully!");
                 car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
             } else {
                 bmpread_t bmpAttr; // This will leak.
                 ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
-                //bmpAttr = TrackUtils::RemapNFS2CarColours(bmpAttr);
                 car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
             }
         }
     }
 
-    GLuint texture_array_id = TrackUtils::MakeTextureArray(car_textures, false);
+    GLuint texture_array_id = MakeTextureArray(car_textures, false);
 
     CarData carData;
     carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
@@ -509,7 +516,7 @@ std::shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::s
             nfs_version = NFS_2;
         }
         can_path << RESOURCE_PATH << ToString(nfs_version) << "/GAMEDATA/TRACKS/DATA/PC/" << track->name << "00.CAN";
-        ASSERT(TrackUtils::LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
+        ASSERT(LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     } else if (std::is_same<Platform, PS1>::value) {
         nfs_version = NFS_3_PS1;
         std::string ps1_col_path = col_path.str();
@@ -520,14 +527,14 @@ std::shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::s
 
     ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(TrackUtils::ExtractTrackTextures(track_base_path, track->name, nfs_version), "Could not extract " << track->name << " texture pack.");
+    ASSERT(ExtractTrackTextures(track_base_path, track->name, nfs_version), "Could not extract " << track->name << " texture pack.");
 
     // Load up the textures
     for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++) {
         track->textures[track->polyToQFStexTable[tex_Idx].texNumber] = LoadTexture(track->polyToQFStexTable[tex_Idx], track->name, nfs_version);
     }
 
-    track->textureArrayID = TrackUtils::MakeTextureArray(track->textures, false);
+    track->textureArrayID = MakeTextureArray(track->textures, false);
     ParseTRKModels(track);
     track->global_objects = ParseCOLModels(track);
 
@@ -992,7 +999,7 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                 PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) &superblock->trackBlocks[block_Idx]);
                 for (uint32_t j = 0; j < ps1TrackBlock->nUnknownVerts; j++) {
                     glm::vec3 light_center = rotationMatrix * glm::vec3((refCoord->x + (256 * ps1TrackBlock->unknownVerts[j].x)) / scaleFactor, (refCoord->y + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor, (refCoord->z + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor);
-                    current_track_block.lights.emplace_back(Entity(0, j, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, LIGHT, TrackUtils::MakeLight(light_center, 0)));
+                    current_track_block.lights.emplace_back(Entity(0, j, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, LIGHT, MakeLight(light_center, 0)));
                 }
             }
 
@@ -1050,7 +1057,9 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                     debug_data.emplace_back(texture_for_block.alignmentData);
                     debug_data.emplace_back(texture_for_block.alignmentData);
 
-                    std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, XOBJ, texture_for_block.alignmentData, gl_texture);
+                    std::vector<glm::vec2> transformedUVs = GenerateUVs(
+                            std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, XOBJ,
+                            texture_for_block.alignmentData, gl_texture);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1114,7 +1123,9 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                 debug_data.emplace_back(texture_for_block.alignmentData);
                 debug_data.emplace_back(texture_for_block.alignmentData);
 
-                std::vector<glm::vec2> transformedUVs = TrackUtils::nfsUvGenerate(std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, ROAD, texture_for_block.alignmentData, gl_texture);
+                std::vector<glm::vec2> transformedUVs = GenerateUVs(
+                        std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, ROAD, texture_for_block.alignmentData,
+                        gl_texture);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 texture_indices.emplace_back(texture_for_block.texNumber);
@@ -1239,7 +1250,7 @@ NFS2<Platform>::LoadTexture(TEXTURE_BLOCK track_texture, const std::string &trac
     GLsizei width;
     GLsizei height;
 
-    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture " << filename.str() << " did not load succesfully!");
+    ASSERT(ImageLoader::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture " << filename.str() << " did not load succesfully!");
 
     return Texture((unsigned int) track_texture.texNumber, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
 }

@@ -7,7 +7,7 @@
 #include "../Scene/Camera.h"
 #include "../Shaders/TrackShader.h"
 #include "../Shaders/BillboardShader.h"
-#include "../Loaders/trk_loader.h"
+#include "../Loaders/TrackLoader.h"
 #include "../Config.h"
 
 class TrackRenderer {

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../Util/ImageLoader.h"
-#include "../Loaders/trk_loader.h"
+#include "../Loaders/TrackLoader.h"
 #include "../Shaders/SkydomeShader.h"
 #include "../Scene/Camera.h"
 

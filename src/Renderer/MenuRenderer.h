@@ -46,7 +46,6 @@ private:
     MenuShader menuShader;
 
     static std::map<std::string, MenuResource> loadResources(const std::string &resourceFile);
-    static GLuint loadImage(const std::string &imagePath, int *width, int *height);
 public:
     explicit MenuRenderer();
     ~MenuRenderer();

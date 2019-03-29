@@ -14,21 +14,9 @@ CarShader::CarShader() : super(vertexSrc, fragSrc){
 }
 
 void CarShader::loadEnvMapTextureData() {
-    std::stringstream filename;
-    filename << "../resources/misc/sky_textures/CHRD.BMP";
-
+    std::string filename = "../resources/misc/sky_textures/CHRD.BMP";
     int width, height;
-    GLubyte *data;
-
-    ASSERT(Utils::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, 0), "Environment map texture loading failed!");
-
-    glGenTextures(1, &envMapTextureID);
-    glBindTexture(GL_TEXTURE_2D, envMapTextureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) data);
+    envMapTextureID = ImageLoader::LoadImage(filename, &width, &height, GL_CLAMP_TO_EDGE, GL_LINEAR);
 }
 
 void CarShader::bindAttributes() {

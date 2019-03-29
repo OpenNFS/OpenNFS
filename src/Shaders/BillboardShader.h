@@ -5,7 +5,7 @@
 #pragma once
 
 #include "BaseShader.h"
-#include "../Util/Utils.h"
+#include "../Util/ImageLoader.h"
 #include "../Scene/Light.h"
 
 class BillboardShader : public BaseShader {

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include "../Loaders/trk_loader.h"
+#include "../Loaders/TrackLoader.h"
 #include "../RaceNet/CarAgent.h"
 #include "../Shaders/DepthShader.h"
 #include "../Config.h"

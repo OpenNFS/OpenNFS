@@ -8,9 +8,10 @@
 #include <iomanip>
 #include <cstdint>
 #include <cstdlib>
-#include "track_utils.h"
+#include "TrackUtils.h"
 #include "../Physics/Car.h"
 #include "../Config.h"
+#include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
 #include "../Scene/TrackBlock.h"
 #include "../Scene/Light.h"

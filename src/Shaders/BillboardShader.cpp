@@ -56,7 +56,7 @@ void BillboardShader::load_bmp_texture() {
     GLsizei width;
     GLsizei height;
 
-    Utils::LoadBmpWithAlpha("../resources/sfx/0004.BMP", "../resources/sfx/0004-a.BMP", &data, &width, &height);
+    ImageLoader::LoadBmpWithAlpha("../resources/sfx/0004.BMP", "../resources/sfx/0004-a.BMP", &data, &width, &height);
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 

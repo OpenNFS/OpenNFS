@@ -22,9 +22,9 @@
 
 #include "Config.h"
 #include "Util/Logger.h"
-#include "Loaders/trk_loader.h"
-#include "Loaders/car_loader.h"
-#include "Loaders/music_loader.h"
+#include "Loaders/TrackLoader.h"
+#include "Loaders/CarLoader.h"
+#include "Loaders/MusicLoader.h"
 #include "Physics/Car.h"
 #include "Race/RaceSession.h"
 #include "RaceNet/TrainingGround.h"

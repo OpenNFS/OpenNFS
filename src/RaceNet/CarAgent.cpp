@@ -53,7 +53,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
         }
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         COLVROAD resetVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
-        vroadPoint = (rotationMatrix * TrackUtils::pointToVec(resetVroad.refPt)) / 65536.f;
+        vroadPoint = (rotationMatrix * Utils::PointToVec(resetVroad.refPt)) / 65536.f;
         vroadPoint /= 10.f;
         vroadPoint.y += 0.2;
 
@@ -62,8 +62,8 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
         vroadPoint += offset * curVroadRightVec;
 
         rotationMatrix = glm::normalize(glm::quat(glm::vec3(SIMD_PI / 2, 0, 0)));
-        glm::vec3 forward = TrackUtils::pointToVec(resetVroad.forward) * rotationMatrix;
-        glm::vec3 normal = TrackUtils::pointToVec(resetVroad.normal) * rotationMatrix;
+        glm::vec3 forward = Utils::PointToVec(resetVroad.forward) * rotationMatrix;
+        glm::vec3 normal = Utils::PointToVec(resetVroad.normal) * rotationMatrix;
         carOrientation = glm::conjugate(glm::toQuat(
                 glm::lookAt(vroadPoint,
                             vroadPoint - forward,
@@ -71,7 +71,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
                 )
         ));
     } else {
-        vroadPoint = TrackUtils::pointToVec(track->trackBlocks[trackBlockIndex].center);
+        vroadPoint = Utils::PointToVec(track->trackBlocks[trackBlockIndex].center);
         vroadPoint.y += 0.2;
         carOrientation = glm::quat(2, 0, 0, 1);
     }
@@ -92,7 +92,7 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTr
 
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         COLVROAD resetVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroadIndex];
-        vroadPoint = (rotationMatrix * TrackUtils::pointToVec(resetVroad.refPt)) / 65536.f;
+        vroadPoint = (rotationMatrix * Utils::PointToVec(resetVroad.refPt)) / 65536.f;
         vroadPoint /= 10.f;
         vroadPoint.y += 0.2;
 
@@ -101,8 +101,8 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTr
         vroadPoint += offset * curVroadRightVec;
 
         rotationMatrix = glm::normalize(glm::quat(glm::vec3(SIMD_PI / 2, 0, 0)));
-        glm::vec3 forward = TrackUtils::pointToVec(resetVroad.forward) * rotationMatrix;
-        glm::vec3 normal = TrackUtils::pointToVec(resetVroad.normal) * rotationMatrix;
+        glm::vec3 forward = Utils::PointToVec(resetVroad.forward) * rotationMatrix;
+        glm::vec3 normal = Utils::PointToVec(resetVroad.normal) * rotationMatrix;
         carOrientation = glm::conjugate(glm::toQuat(
                 glm::lookAt(vroadPoint,
                             vroadPoint - forward,

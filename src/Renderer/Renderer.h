@@ -14,9 +14,9 @@
 
 #include "../Scene/Camera.h"
 #include "../Scene/Entity.h"
-#include "../Loaders/trk_loader.h"
+#include "../Loaders/TrackLoader.h"
 #include "../Physics/PhysicsEngine.h"
-#include "../Loaders/car_loader.h"
+#include "../Loaders/CarLoader.h"
 #include "../RaceNet/CarAgent.h"
 #include "../Util/Logger.h"
 #include "../Config.h"

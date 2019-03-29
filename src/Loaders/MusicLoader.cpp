@@ -21,7 +21,7 @@
 // http://nfscheats.com/nfstoolbox
 // Additional info on PT header block types. The author of utilities for NFS'x.
 
-#include "music_loader.h"
+#include "MusicLoader.h"
 
 #define SWAPuint32_t(x) ((((x)&0xFF)<<24)+(((x)>>24)&0xFF)+(((x)>>8)&0xFF00)+(((x)<<8)&0xFF0000))
 #define HINIBBLE(byte) ((byte) >> 4)

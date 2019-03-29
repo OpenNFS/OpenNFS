@@ -2,7 +2,7 @@
 // Created by Amrik Sadhra on 19/07/2018.
 //
 
-#include "track_utils.h"
+#include "TrackUtils.h"
 
 namespace TrackUtils {
     Light MakeLight(glm::vec3 light_position, uint32_t light_type) {
@@ -117,19 +117,19 @@ namespace TrackUtils {
 
         if (nfs_version == NFS_3_PS1) {
             output_dir << "/textures/";
-            return Utils::ExtractPSH(tex_archive_path.str(), output_dir.str());
+            return ImageLoader::ExtractPSH(tex_archive_path.str(), output_dir.str());
         } else if (nfs_version == NFS_3) {
             std::stringstream sky_fsh_path;
             sky_fsh_path << full_track_path.substr(0, full_track_path.find_last_of('/')) << "/sky.fsh";
             if (boost::filesystem::exists(sky_fsh_path.str())) {
                 std::stringstream sky_textures_path;
                 sky_textures_path << output_dir.str() << "/sky_textures/";
-                ASSERT(Utils::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from " << sky_fsh_path.str());
+                ASSERT(ImageLoader::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from " << sky_fsh_path.str());
             }
         }
 
         output_dir << "/textures/";
-        return (Utils::ExtractQFS(tex_archive_path.str(), output_dir.str()));
+        return (ImageLoader::ExtractQFS(tex_archive_path.str(), output_dir.str()));
     }
 
     int hsStockTextureIndexRemap(int textureIndex) {
@@ -201,7 +201,7 @@ namespace TrackUtils {
         return texture_name;
     }
 
-    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture) {
+    std::vector<glm::vec2> GenerateUVs(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture) {
         std::bitset<32> textureAlignment(textureFlags);
         std::vector<glm::vec2> uvs;
 
@@ -336,7 +336,8 @@ namespace TrackUtils {
         return uvs;
     }
 
-    std::vector<glm::vec2> nfsUvGenerate(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture, NFS3_4_DATA::TEXTUREBLOCK texture_block) {
+    std::vector<glm::vec2> GenerateUVs(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture,
+                                       NFS3_4_DATA::TEXTUREBLOCK texture_block) {
         std::bitset<32> textureAlignment(textureFlags);
         std::vector<glm::vec2> uvs;
 
@@ -459,30 +460,6 @@ namespace TrackUtils {
         return uvs;
     }
 
-    bmpread_t RemapNFS2CarColours(bmpread_t bmpAttr){
-        glm::vec3 carColour(29, 47, 82);
-        glm::vec3 deltaColour(255/carColour.x, 255/carColour.y, 255/carColour.z);
-
-        bmpread_t remapped = bmpAttr;
-        for (uint16_t y = 0; y < bmpAttr.height; y++) {
-            for (uint16_t x = 0; x < bmpAttr.width; x++) {
-                uint8_t r = bmpAttr.data[x+y*bmpAttr.width];
-                uint8_t g = bmpAttr.data[x+y*bmpAttr.width+1];
-                uint8_t b = bmpAttr.data[x+y*bmpAttr.width+2];
-
-                if(r == g){
-                    if(g == b){
-                        remapped.data[x+y*bmpAttr.width]   *= deltaColour.x;
-                        remapped.data[x+y*bmpAttr.width+1] *= deltaColour.y;
-                        remapped.data[x+y*bmpAttr.width+2] *= deltaColour.z;
-                    }
-                }
-            }
-        }
-
-        return remapped;
-    }
-
     bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations) {
         std::ifstream can(can_path, std::ios::in | std::ios::binary);
 
@@ -545,52 +522,5 @@ namespace TrackUtils {
         can_out.close();*/
 
         return true;
-    }
-
-    glm::vec3 parseRGBString(const std::string &rgb_string) {
-        std::stringstream tempComponent;
-        uint8_t commaCount = 0;
-        glm::vec3 rgbValue;
-
-        for (int char_Idx = 0; char_Idx < rgb_string.length(); ++char_Idx) {
-            if (rgb_string[char_Idx] == ',') {
-                switch (commaCount) {
-                    case 0:
-                        rgbValue.x = (float) stoi(tempComponent.str());
-                        break;
-                    case 1:
-                        rgbValue.y = (float) stoi(tempComponent.str());
-                        break;
-                    case 2:
-                        rgbValue.z = (float) stoi(tempComponent.str());
-                        break;
-                }
-                tempComponent.str("");
-                if (++commaCount >= 3) break;
-            } else {
-                tempComponent << rgb_string[char_Idx];
-            }
-        }
-
-        return rgbValue;
-    }
-
-    glm::vec3 calculateQuadNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4){
-        glm::vec3 triANormal = calculateNormal(p1, p2, p3);
-        glm::vec3 triBNormal = calculateNormal(p1, p3, p4);
-        return glm::normalize(triANormal + triBNormal);
-    }
-
-    glm::vec3 calculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3){
-        glm::vec3 vertexNormal(0,0,0);
-
-        glm::vec3 U = p2 - p1;
-        glm::vec3 V = p3 - p1;
-
-        vertexNormal.x = (U.y * V.z) - (U.z * V.y);
-        vertexNormal.y = (U.z * V.x) - (U.x * V.z);
-        vertexNormal.z = (U.x * V.y) - (U.y * V.x);
-
-        return vertexNormal;
     }
 }

@@ -9,9 +9,10 @@
 #include <bitset>
 #include <boost/filesystem.hpp>
 #include <boost/lambda/bind.hpp>
-#include "track_utils.h"
+#include "TrackUtils.h"
 #include "../Physics/Car.h"
 #include "../Config.h"
+#include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
 #include "../Scene/TrackBlock.h"
 #include "../nfs_data.h"

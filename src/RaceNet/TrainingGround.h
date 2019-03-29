@@ -8,8 +8,8 @@
 #include "stdint.h"
 
 #include "CarAgent.h"
-#include "../Loaders/trk_loader.h"
-#include "../Loaders/car_loader.h"
+#include "../Loaders/TrackLoader.h"
+#include "../Loaders/CarLoader.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../Util/Utils.h"
 #include "../Renderer/Renderer.h"

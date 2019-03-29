@@ -14,7 +14,7 @@
 #include <examples/imgui_impl_opengl3.h>
 
 #include "../Scene/Entity.h"
-#include "../Loaders/trk_loader.h"
+#include "../Loaders/TrackLoader.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
 #include "../Shaders/RaceNetShader.h"

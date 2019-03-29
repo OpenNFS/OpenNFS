@@ -9,7 +9,7 @@
 #include <glm/detail/type_mat4x4.hpp>
 
 #include "../Config.h"
-#include "../Util/Utils.h"
+#include "../Util/ImageLoader.h"
 #include "../Scene/Model.h"
 #include "../Scene/Light.h"
 #include "../Physics/Car.h"

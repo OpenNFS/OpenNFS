@@ -74,25 +74,25 @@ set(SOURCE_FILES
         src/Shaders/BillboardShader.h
         src/Physics/Car.cpp
         src/Physics/Car.h
-        src/Loaders/music_loader.cpp
-        src/Loaders/music_loader.h
+        src/Loaders/MusicLoader.cpp
+        src/Loaders/MusicLoader.h
         src/Config.cpp
         src/Config.h
         src/Loaders/nfs2_loader.cpp
         src/Loaders/nfs2_loader.h
         src/Loaders/nfs3_loader.cpp
         src/Loaders/nfs3_loader.h
-        src/Loaders/trk_loader.cpp
-        src/Loaders/trk_loader.h
+        src/Loaders/TrackLoader.cpp
+        src/Loaders/TrackLoader.h
         src/Loaders/nfs2_loader.cpp
         src/Loaders/nfs4_loader.cpp
         src/Loaders/nfs4_loader.h
         src/Renderer/Renderer.cpp
         src/Renderer/Renderer.h
-        src/Loaders/track_utils.cpp
-        src/Loaders/track_utils.h
-        src/Loaders/car_loader.cpp
-        src/Loaders/car_loader.h
+        src/Loaders/TrackUtils.cpp
+        src/Loaders/TrackUtils.h
+        src/Loaders/CarLoader.cpp
+        src/Loaders/CarLoader.h
         src/Renderer/HermiteCurve.cpp
         src/Renderer/HermiteCurve.h
         src/Scene/Sound.cpp

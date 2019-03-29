@@ -6,8 +6,8 @@
 
 #include "RaceNet.h"
 #include "RaceNEAT.h"
-#include "../Loaders/car_loader.h"
-#include "../Loaders/trk_loader.h"
+#include "../Loaders/CarLoader.h"
+#include "../Loaders/TrackLoader.h"
 
 static const uint32_t STALE_TICK_COUNT = 70;
 

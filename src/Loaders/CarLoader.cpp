@@ -2,7 +2,7 @@
 // Created by Amrik Sadhra on 19/07/2018.
 //
 
-#include "car_loader.h"
+#include "CarLoader.h"
 
 std::shared_ptr<Car> CarLoader::LoadCar(NFSVer nfs_version, const std::string &car_name) {
     std::stringstream car_path;
