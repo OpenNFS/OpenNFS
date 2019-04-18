@@ -78,15 +78,15 @@ set(SOURCE_FILES
         src/Loaders/MusicLoader.h
         src/Config.cpp
         src/Config.h
-        src/Loaders/nfs2_loader.cpp
-        src/Loaders/nfs2_loader.h
-        src/Loaders/nfs3_loader.cpp
-        src/Loaders/nfs3_loader.h
+        src/Loaders/NFS2Loader.cpp
+        src/Loaders/NFS2Loader.h
+        src/Loaders/NFS3Loader.cpp
+        src/Loaders/NFS3Loader.h
         src/Loaders/TrackLoader.cpp
         src/Loaders/TrackLoader.h
-        src/Loaders/nfs2_loader.cpp
-        src/Loaders/nfs4_loader.cpp
-        src/Loaders/nfs4_loader.h
+        src/Loaders/NFS2Loader.cpp
+        src/Loaders/NFS4Loader.cpp
+        src/Loaders/NFS4Loader.h
         src/Renderer/Renderer.cpp
         src/Renderer/Renderer.h
         src/Loaders/TrackUtils.cpp
@@ -145,15 +145,10 @@ set(SOURCE_FILES
         src/Shaders/MenuShader.cpp
         src/Shaders/MenuShader.h
         src/Util/ImageLoader.cpp
-        src/Util/ImageLoader.h)
-
-#[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
-if (NOT (APPLE OR WIN32))
-    set(SOURCE_FILES ${SOURCE_FILES} src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h)
-    add_definitions(-DVULKAN_BUILD)
-endif ()
+        src/Util/ImageLoader.h test/UtilTest.cpp)
 
 add_executable(OpenNFS ${SOURCE_FILES})
+
 
 #[[JSON]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")
@@ -170,8 +165,11 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BMPREAD]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
 #[[NEAT]]
-#[[include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/NEAT")
-add_subdirectory(lib/NEAT/)]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/NEAT")
+FILE(GLOB NEAT_SOURCE_FILES lib/NEAT/*.cpp)
+list(REMOVE_ITEM NEAT_SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/NEAT/neatmain.cpp")
+target_sources(OpenNFS PUBLIC ${NEAT_SOURCE_FILES})
+add_subdirectory(lib/NEAT)
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::system Boost::boost)
@@ -205,12 +203,16 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[Vulkan Configuration]]
+#[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32))
     find_package(Vulkan REQUIRED)
     message("VULKAN FOUND")
     include_directories(${Vulkan_INCLUDE_DIRS})
     target_link_libraries(OpenNFS ${Vulkan_LIBRARIES})
     CompileGLSLToSpirV(OpenNFS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/vk" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/vk")
+    set(VULKAN_SOURCE_FILES src/Renderer/vkRenderer.cpp src/Renderer/vkRenderer.h)
+    target_sources(OpenNFS PUBLIC ${VULKAN_SOURCE_FILES})
+    add_definitions(-DVULKAN_BUILD)
 endif ()
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -218,3 +220,19 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
+#[[Google Test Framework Configuration]]
+add_subdirectory(lib/googletest)
+# Setup testing
+enable_testing()
+include_directories(lib/googletest/googletest/include)
+list(REMOVE_ITEM SOURCE_FILES "src/main.cpp")
+# Add test cpp files
+file(GLOB TEST_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
+# From list of files we'll create tests test_name.cpp -> test_name
+foreach(_test_file ${TEST_SRC_FILES})
+    get_filename_component(_test_name ${_test_file} NAME_WE)
+    add_executable(${_test_name} ${_test_file} ${SOURCE_FILES} ${NEAT_SOURCE_FILES})
+    target_link_libraries(${_test_name} gtest gtest_main freetype Boost::program_options Boost::filesystem Boost::system Boost::boost g3logger BulletDynamics BulletCollision LinearMath Bullet3Common ${OPENGL_LIBRARIES} glfw ${CMAKE_THREAD_LIBS_INIT})
+    add_test(${_test_name} ${_test_name})
+    set_tests_properties(${_test_name} PROPERTIES TIMEOUT 10)
+endforeach()

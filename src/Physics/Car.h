@@ -46,6 +46,7 @@ public:
     void applyBrakingForce(bool apply);
     void applySteeringRight(bool apply);
     void applySteeringLeft(bool apply);
+    void applyAbsoluteSteerAngle(float targetAngle);
 
     float getWheelRadius() { return wheelRadius; }
     float getWheelWidth() { return wheelWidth; }
@@ -103,6 +104,7 @@ public:
     float	gVehicleSteering;
     float	steeringIncrement;   // Steering speed
     float	steeringClamp;       // Max steering angle
+    bool    absoluteSteer;
 
     float   maxSpeed;            // Max speed before stop applying engine force
     float	gEngineForce;        // force to apply to engine

@@ -180,9 +180,9 @@ void main(){
         float theta = dot(normalize(toSpotlightVector), normalize(-spotlightDirection));
         // Working with angles as cosines instead of degrees so a '>' is used.
         if(theta > spotlightCutOff) {
-            color.r += 0.2f;
-            color.g += 0.2f;
-            color.b += 0.2f;
+            //color.r += 0.2f;
+            //color.g += 0.2f;
+            //color.b += 0.2f;
         } else {
 
         }

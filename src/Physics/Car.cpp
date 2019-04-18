@@ -63,7 +63,7 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
     gVehicleSteering = 0.f;
     steeringIncrement = 0.01f;
     steeringClamp = 0.15f;
-    steerRight = steerLeft = false;
+    steerRight = steerLeft = absoluteSteer = false;
 
     // Map mesh data to car data
     setModels(data.meshes);
@@ -360,23 +360,26 @@ void Car::update(){
     m_vehicle->applyEngineForce(gEngineForce,wheelIndex);
     m_vehicle->setBrake(gBreakingForce,wheelIndex);
 
-    // update front wheels steering value
-    if (steerRight)
-    {
-        gVehicleSteering -= steeringIncrement;
-        if (gVehicleSteering < -steeringClamp) gVehicleSteering = -steeringClamp;
-    }
-    else if (steerLeft)
-    {
-        gVehicleSteering += steeringIncrement;
-        if (gVehicleSteering > steeringClamp) gVehicleSteering = steeringClamp;
-    }
-    else
-    {
-        if(gVehicleSteering > 0){
+
+    if(!absoluteSteer){
+        // update front wheels steering value
+        if (steerRight)
+        {
             gVehicleSteering -= steeringIncrement;
-        } else if (gVehicleSteering < 0){
+            if (gVehicleSteering < -steeringClamp) gVehicleSteering = -steeringClamp;
+        }
+        else if (steerLeft)
+        {
             gVehicleSteering += steeringIncrement;
+            if (gVehicleSteering > steeringClamp) gVehicleSteering = steeringClamp;
+        }
+        else
+        {
+            if(gVehicleSteering > 0){
+                gVehicleSteering -= steeringIncrement;
+            } else if (gVehicleSteering < 0){
+                gVehicleSteering += steeringIncrement;
+            }
         }
     }
 
@@ -470,6 +473,15 @@ void Car::applySteeringRight(bool apply)
 void Car::applySteeringLeft(bool apply)
 {
     steerLeft = apply;
+}
+
+void Car::applyAbsoluteSteerAngle(float targetAngle){
+    // Allow the update() method to directly utilise this targetAngle value
+    absoluteSteer = true;
+    // NN will always produce positive value, drop 0.5f from 0 -> 1 step output to allow -0.5 to 0.5
+    float finalSteering = targetAngle - 0.5f;
+    // Clamp value within steering extents
+    gVehicleSteering = std::max(-steeringClamp, std::min(finalSteering, steeringClamp));
 }
 
 void Car::applyBrakingForce(bool apply)

@@ -11,7 +11,7 @@ CarAgent::CarAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCa
     tickCount = 0;
     dead = false;
 
-    this->car = std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->name);
+    this->car = std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->id);
     this->car->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
@@ -178,9 +178,10 @@ void CarAgent::simulate() {
 
     car->applyAccelerationForce(networkOutputs[0] > 0.1f, false);
     car->applyBrakingForce(networkOutputs[1] > 0.1f);
+    car->applyAbsoluteSteerAngle(networkOutputs[2]);
     // Mutex steering
-    car->applySteeringLeft(networkOutputs[2] > 0.1f && networkOutputs[3] < 0.1f);
-    car->applySteeringRight(networkOutputs[3] > 0.1f && networkOutputs[2] < 0.1f);
+    //car->applySteeringLeft(networkOutputs[2] > 0.1f && networkOutputs[3] < 0.1f);
+    //car->applySteeringRight(networkOutputs[3] > 0.1f && networkOutputs[2] < 0.1f);
 
     if(!training) return;
 

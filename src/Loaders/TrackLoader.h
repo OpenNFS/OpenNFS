@@ -6,9 +6,9 @@
 
 #include <memory>
 #include "../nfs_data.h"
-#include "nfs3_loader.h"
-#include "nfs2_loader.h"
-#include "nfs4_loader.h"
+#include "NFS3Loader.h"
+#include "NFS2Loader.h"
+#include "NFS4Loader.h"
 #include <boost/variant.hpp>
 
 class ONFSTrack {

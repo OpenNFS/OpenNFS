@@ -5,9 +5,9 @@
 #pragma once
 
 #include <string>
-#include "nfs2_loader.h"
-#include "nfs3_loader.h"
-#include "nfs4_loader.h"
+#include "NFS2Loader.h"
+#include "NFS3Loader.h"
+#include "NFS4Loader.h"
 #include "../Physics/Car.h"
 
 class CarLoader {

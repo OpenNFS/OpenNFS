@@ -37,3 +37,6 @@
 [submodule "lib/freetype2"]
 	path = lib/freetype2
 	url = https://github.com/aseprite/freetype2.git
+[submodule "lib/googletest"]
+	path = lib/googletest
+	url = https://github.com/google/googletest.git

@@ -2,7 +2,7 @@
 // Created by Amrik Sadhra on 03/07/2018.
 //
 
-#include "nfs4_loader.h"
+#include "NFS4Loader.h"
 #include "../Util/Raytracer.h"
 
 using namespace Utils;
