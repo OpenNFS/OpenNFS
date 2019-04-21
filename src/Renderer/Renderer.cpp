@@ -18,6 +18,72 @@ Renderer::Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
     LOG(DEBUG) << "Renderer Initialised";
 }
 
+GLFWwindow *InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
+    // Initialise GLFW
+    ASSERT(glfwInit(), "GLFW Init failed.\n");
+    glfwSetErrorCallback(&Renderer::GlfwError);
+
+    // TODO: Disable MSAA for now until texture array adds padding
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#else
+    // TODO: If we fail to create a GL context on Windows, fall back to not requesting any (Keiiko Bug #1)
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+#endif
+
+    GLFWwindow *window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
+
+    if (window == nullptr) {
+        LOG(WARNING) << "Failed to create a GLFW window.";
+        getchar();
+        glfwTerminate();
+    }
+    glfwMakeContextCurrent(window);
+
+    glfwSetWindowSizeCallback(window, Renderer::WindowSizeCallback);
+
+    // Initialize GLEW
+    glewExperimental = GL_TRUE; // Needed for core profile
+
+    if (glewInit() != GLEW_OK) {
+        LOG(WARNING) << "Failed to initialize GLEW";
+        getchar();
+        glfwTerminate();
+    }
+
+    // Ensure we can capture the escape key being pressed below
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    // Set the mouse at the center of the screen
+    glfwPollEvents();
+
+    // Dark blue background
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+    // Accept fragment if it closer to the camera than the former one
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+    GLint texture_units, max_array_texture_layers;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
+    glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_array_texture_layers);
+    LOG(DEBUG) << "Max Texture Units: " << texture_units;
+    LOG(DEBUG) << "Max Array Texture Layers: " << max_array_texture_layers;
+    LOG(DEBUG) << "OpenGL Initialisation successful";
+
+    //glfwSwapInterval(1);
+
+    return window;
+}
+
 void Renderer::InitGlobalLights() {
     // Set some light parameters
     moon.attenuation.x = sun.attenuation.x = 0.710f;

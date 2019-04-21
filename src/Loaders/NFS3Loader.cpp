@@ -36,14 +36,13 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
     CarData carData;
     std::ifstream fce(fce_path, std::ios::in | std::ios::binary);
 
-    auto *fceHeader = new FCE::NFS3::HEADER();
-    fce.read((char *) fceHeader, sizeof(FCE::NFS3::HEADER));
+    auto fceHeader = std::make_shared<FCE::NFS3::HEADER>();
+    fce.read((char *) fceHeader.get(), sizeof(FCE::NFS3::HEADER));
 
-    // Grab colours TODO: Doesn't make sense to return them to every CarModel. Should go straight to parent car.
+    // Grab colours
     for(uint8_t colourIdx = 0; colourIdx < fceHeader->nPriColours; ++colourIdx){
         FCE::NFS3::COLOUR primaryColour = fceHeader->primaryColours[colourIdx];
-        // TODO: Read colour names from later in file and pass to constructor, convert char * to string inside.
-        CarColour originalPrimaryColour("NotSetYetBecauseImLazy", HSLToRGB(glm::vec4(primaryColour.H, primaryColour.S, primaryColour.B, primaryColour.T)));
+        CarColour originalPrimaryColour("", HSLToRGB(glm::vec4(primaryColour.H, primaryColour.S, primaryColour.B, primaryColour.T)));
         carData.colours.emplace_back(originalPrimaryColour);
     }
 
@@ -147,7 +146,6 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
         delete []colourName;
     }
     delete []colourNameOffsets;
-    delete fceHeader;
 
     return carData;
 }

@@ -145,7 +145,7 @@ set(SOURCE_FILES
         src/Shaders/MenuShader.cpp
         src/Shaders/MenuShader.h
         src/Util/ImageLoader.cpp
-        src/Util/ImageLoader.h test/UtilTest.cpp)
+        src/Util/ImageLoader.h)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

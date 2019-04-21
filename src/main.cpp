@@ -26,6 +26,7 @@
 #include "Loaders/CarLoader.h"
 #include "Loaders/MusicLoader.h"
 #include "Physics/Car.h"
+#include "Renderer/Renderer.h"
 #include "Race/RaceSession.h"
 #include "RaceNet/TrainingGround.h"
 
@@ -53,7 +54,7 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION), "OpenGL init failed.");
+        GLFWwindow *window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
 
         AssetData loadedAssets = {
                 NFS_3, Config::get().car,
@@ -87,7 +88,7 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION << " (GA Training Mode)";
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        ASSERT(InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)"), "OpenGL init failed.");
+        GLFWwindow *window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)");
 
         AssetData trainingAssets = {
                 NFS_3, Config::get().car,
@@ -109,90 +110,11 @@ public:
     }
 
 private:
-    GLFWwindow *window;
-
     std::shared_ptr<Logger> logger;
 
     std::vector<NeedForSpeed> installedNFS;
 
-    static void glfwError(int id, const char *description) {
-        LOG(WARNING) << description;
-    }
-
-    static void window_size_callback(GLFWwindow *window, int width, int height) {
-        Config::get().resX = width;
-        Config::get().resY = height;
-    }
-
-    bool InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
-        // Initialise GLFW
-        ASSERT(glfwInit(), "GLFW Init failed.\n");
-        glfwSetErrorCallback(&glfwError);
-
-        // TODO: Disable MSAA for now until texture array adds padding
-        glfwWindowHint(GLFW_SAMPLES, 4);
-
-#ifdef __APPLE__
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#else
-        // TODO: If we fail to create a GL context on Windows, fall back to not requesting any (Keiiko Bug #1)
-        //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-#endif
-
-        window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
-
-        if (window == nullptr) {
-            LOG(WARNING) << "Failed to create a GLFW window.";
-            getchar();
-            glfwTerminate();
-            return false;
-        }
-        glfwMakeContextCurrent(window);
-
-        glfwSetWindowSizeCallback(window, window_size_callback);
-
-        // Initialize GLEW
-        glewExperimental = GL_TRUE; // Needed for core profile
-
-        if (glewInit() != GLEW_OK) {
-            LOG(WARNING) << "Failed to initialize GLEW";
-            getchar();
-            glfwTerminate();
-            return false;
-        }
-
-        // Ensure we can capture the escape key being pressed below
-        glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-        // Set the mouse at the center of the screen
-        glfwPollEvents();
-
-        // Dark blue background
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-        // Enable depth test
-        glEnable(GL_DEPTH_TEST);
-        // Accept fragment if it closer to the camera than the former one
-        glDepthFunc(GL_LESS);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-        GLint texture_units, max_array_texture_layers;
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
-        glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_array_texture_layers);
-        LOG(INFO) << "Max Texture Units: " << texture_units;
-        LOG(INFO) << "Max Array Texture Layers: " << max_array_texture_layers;
-        LOG(INFO) << "OpenGL Initialisation successful";
-
-        //glfwSwapInterval(1);
-
-        return true;
-    }
-
-    void InitDirectories() {
+    static void InitDirectories() {
         if (!(boost::filesystem::exists(CAR_PATH))) {
             boost::filesystem::create_directories(CAR_PATH);
         }

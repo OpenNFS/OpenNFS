@@ -32,6 +32,14 @@ class Renderer {
 public:
     Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
     ~Renderer();
+    static void GlfwError(int id, const char *description) {
+        LOG(WARNING) << description;
+    }
+    static void WindowSizeCallback(GLFWwindow *window, int width, int height) {
+        Config::get().resX = width;
+        Config::get().resY = height;
+    }
+    static GLFWwindow *InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName);
     bool Render(float totalTime, float deltaTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine);
     // Data used for culling
     int closestBlockID = 0;
