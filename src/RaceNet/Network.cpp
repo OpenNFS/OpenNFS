@@ -39,30 +39,6 @@ Matrix<double> Network::computeOutput(std::vector<double> input) {
     return H[hiddenLayersCount + 1];
 }
 
-void Network::learn(std::vector<double> expectedOutput) {
-    Y = Matrix<double>({expectedOutput}); // row matrix
-
-    // Error E = 1/2 (expectedOutput - computedOutput)^2
-    // Then, we need to calculate the partial derivative of E with respect to W and B
-
-    // compute gradients
-    dEdB[hiddenLayersCount] = H[hiddenLayersCount + 1].subtract(Y).multiply(
-            H[hiddenLayersCount].dot(W[hiddenLayersCount]).add(B[hiddenLayersCount]).applyFunction(sigmoidePrime));
-    for (int i = hiddenLayersCount - 1; i >= 0; i--) {
-        dEdB[i] = dEdB[i + 1].dot(W[i + 1].transpose()).multiply(H[i].dot(W[i]).add(B[i]).applyFunction(sigmoidePrime));
-    }
-
-    for (int i = 0; i < hiddenLayersCount + 1; i++) {
-        dEdW[i] = H[i].transpose().dot(dEdB[i]);
-    }
-
-    // update weights
-    for (int i = 0; i < hiddenLayersCount + 1; i++) {
-        W[i] = W[i].subtract(dEdW[i].multiply(learningRate));
-        B[i] = B[i].subtract(dEdB[i].multiply(learningRate));
-    }
-}
-
 void Network::printToFile(Matrix<double> &m, std::ofstream &file) {
     int h = m.getHeight();
     int w = m.getWidth();

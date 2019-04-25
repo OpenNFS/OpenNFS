@@ -4,14 +4,12 @@
 
 #include "CarAgent.h"
 
-CarAgent::CarAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
+CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack) : car(std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->id)), track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
     this->populationID = populationID;
     training = true;
     fitness = 0;
     tickCount = 0;
     dead = false;
-
-    this->car = std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->id);
     this->car->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
@@ -117,6 +115,27 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTr
     car->resetCar(vroadPoint, carOrientation);
 }
 
+int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) {
+    uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+
+    int closestVroadID = 0;
+    float lowestDistance = FLT_MAX;
+    for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
+        INTPT refPt = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
+        glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+        glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
+
+        float distance = glm::distance(car->rightFrontWheelModel.position, vroadPoint);
+        if (distance < lowestDistance) {
+            closestVroadID = vroad_Idx;
+            lowestDistance = distance;
+        }
+    }
+
+    // Return a number corresponding to the distance driven
+    return closestVroadID;
+}
+
 int CarAgent::evaluateFitness(int vroadPosition){
     // F = C1 − Tout + C2 · s¯+ d, where Tout is the number of game tics the car is outside the track;
     // ¯s is the average speed (meters for game tic) during the evaluation;
@@ -142,7 +161,7 @@ bool CarAgent::isWinner() {
     int nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
     // Have won if have made it near to end of track, and spent 4/5 time inside vroad
-    return fitness > (int) ((Config::get().nTicks * (4.f/5.f)) + pow(nVroad - 5, 2));
+    return fitness > pow(nVroad - 30, 1);
 }
 
 void CarAgent::reset(){
@@ -156,13 +175,10 @@ void CarAgent::simulate() {
         return ;
     }
 
-    // If during simulation, car flips, reset. Not during simulation!
-    if(!training && (car->upDistance <= 0.1f || car->downDistance > 1.f || car->rangefinders[Car::FORWARD_RAY] < 0.25f)){
+    // If during simulation, car flips, reset. Not during training!
+    if((car->upDistance <= 0.1f || car->downDistance > 1.f || car->rangefinders[Car::FORWARD_RAY] < 0.25f)){
         resetToVroad(getClosestVroad(car, track), 0.f, track, car);
     }
-
-    std::vector<double> raycastInputs;
-    std::vector<double> networkOutputs;
 
     // Use maximum from front 3 sensors, as per Luigi Cardamone
     float maxForwardDistance = std::max({car->rangefinders[Car::FORWARD_RAY], car->rangefinders[Car::FORWARD_LEFT_RAY], car->rangefinders[Car::FORWARD_RIGHT_RAY]});
@@ -171,17 +187,17 @@ void CarAgent::simulate() {
 
     // All inputs roughly between 0 and 5. Speed/10 to bring it into line.
     // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed/10.f
-    raycastInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], carSpeed/ 10.f};
-    networkOutputs = {0, 0, 0};
+    std::vector<double> networkInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], carSpeed/ 10.f};
+    std::vector<double> networkOutputs = {0, 0, 0};
 
-    raceNet.evaluate(raycastInputs, networkOutputs);
+    raceNet.evaluate(networkInputs, networkOutputs);
 
     car->applyAccelerationForce(networkOutputs[0] > 0.1f, false);
     car->applyBrakingForce(networkOutputs[1] > 0.1f);
-    car->applyAbsoluteSteerAngle(networkOutputs[2]);
+    //car->applyAbsoluteSteerAngle(networkOutputs[2]);
     // Mutex steering
-    //car->applySteeringLeft(networkOutputs[2] > 0.1f && networkOutputs[3] < 0.1f);
-    //car->applySteeringRight(networkOutputs[3] > 0.1f && networkOutputs[2] < 0.1f);
+    car->applySteeringLeft(networkOutputs[2] > 0.1f && networkOutputs[3] < 0.1f);
+    car->applySteeringRight(networkOutputs[3] > 0.1f && networkOutputs[2] < 0.1f);
 
     if(!training) return;
 
@@ -222,26 +238,6 @@ void CarAgent::simulate() {
     vroadPosition = newVroadPosition;
 }
 
-int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) {
-    uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
-
-    int closestVroadID = 0;
-    float lowestDistance = FLT_MAX;
-    for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
-        INTPT refPt = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
-        glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-        glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
-
-        float distance = glm::distance(car->rightFrontWheelModel.position, vroadPoint);
-        if (distance < lowestDistance) {
-            closestVroadID = vroad_Idx;
-            lowestDistance = distance;
-        }
-    }
-
-    // Return a number corresponding to the distance driven
-    return closestVroadID;
-}
 
 
 

@@ -18,7 +18,7 @@ Renderer::Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
     LOG(DEBUG) << "Renderer Initialised";
 }
 
-GLFWwindow *InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
+GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
     // Initialise GLFW
     ASSERT(glfwInit(), "GLFW Init failed.\n");
     glfwSetErrorCallback(&Renderer::GlfwError);
@@ -633,4 +633,5 @@ void Renderer::UpdateShaders() {
     skyRenderer.skydomeShader.shaders.UpdatePrograms();
     shadowMapRenderer.depthShader.shaders.UpdatePrograms();
 }
+
 

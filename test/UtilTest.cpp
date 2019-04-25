@@ -17,9 +17,9 @@ public:
     virtual void SetUp()
     {
         // Initialise Logging
-        std::shared_ptr<Logger> logger = std::make_shared<Logger>();
+        auto logger = std::make_shared<Logger>();
         // And OpenGL
-        GLFWwindow *window = Renderer::InitOpenGL(10, 10, "OpenNFS v" + ONFS_VERSION + " Test");
+        auto *window = Renderer::InitOpenGL(10, 10, "OpenNFS v" + ONFS_VERSION + " Test");
     }
 
     virtual void TearDown() {

@@ -27,7 +27,7 @@ public:
     bool dead = false;
     bool droveBack = false;
 
-    CarAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack); // Training
+    CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack); // Training
     CarAgent(const std::string &racerName, const std::string &networkPath, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &trainingTrack); // Racing
     CarAgent() = default; // std::vector raw impl
 
