@@ -1,0 +1,11 @@
+{
+  "resources": [{
+    "name": "backgroundPattern",
+    "path": "../resources/ui/menu/images/bgGrillePattern.png"
+  },
+    {
+      "name": "leftMenuCurve",
+      "path": "../resources/ui/menu/images/leftMenuCurve.png"
+    }
+  ]
+}

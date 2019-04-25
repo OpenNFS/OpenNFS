@@ -1,0 +1,74 @@
+--------------------------------------------
+PSH File Format - RonHayter of Xentax forums
+--------------------------------------------
+
+The PSH file format used in this game (which is ReBoot, by the way) is very simple. All values are little-endian. 
+
+First, the 16-byte header:
+
+char {4} - "SHPP"
+uint32 {4} - Length of the PSH file, including this header
+uint32 {4} - Number of directory entries
+char {4} - "GIMX"
+
+Following this are the N directory entries, each 8 bytes long:
+Code:
+char {4} - Image name
+uint32 {4} - Offset to start of the image
+
+The length of each image is implied by the starting offset of the next one or, in the case of the last image, by the end of the PSH file.
+
+Each image begins with a 16-byte header:
+Code:
+byte {1} - Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0
+byte {3} - Unknown
+uint16 {2} - Width
+uint16 {2} - Height
+uint16 {2} - Unknown
+uint16 {2} - Unknown
+uint16 {2} - Unknown
+uint16 {2} - Unknown
+
+Immediately after the header are the pixels.
+
+The bottom 2 bits of the image type byte specify the bit depth of the image:
+
+0 - 4-bit indexed colour
+2 - 16-bit direct colour
+3 - 24-bit direct colour
+
+There aren't any images of type 0x41 in any of the PSH files in this game but presumably they would be 8-bit indexed colour.
+
+If the bottom 2 bits also specify the bit depth of type 0xC0 images, these should be 4-bit indexed colour. As I mentioned in my previous post, type 0xC0 images are smaller than expected, so perhaps the 0x80 bit means they are compressed.
+
+The pixels are arranged in left-to-right, top-to-bottom order. Each row of pixels must occupy an even number of bytes, so there may be a pad byte at the end of a row, depending on the bit depth and image width.
+
+For 4-bit pixels, there are, of course, two pixels per byte. Each 4-bit value is used as an index into a palette of 16-bit colours. The pixel in the low 4 bits of the byte appears to the left of the pixel in the high 4 bits of the byte. As an example, here is the pixel ordering and row padding of an image that is 5 pixels wide:
+
+10 32 X4 XX
+
+The row is 4 bytes long. Half of the third byte is unused, and the fourth byte is needed to make the row an even number of bytes long. Each X is generally zero.
+
+16-bit pixels and palette entries share a common format. The high bit of the little-endian uint16 specifies transparency (T). The next 5 bits are for blue, the next 5 for green, and the low 5 for red.
+
+The transparency bit is a little odd. If the colour is black (R=0, G=0, B=0) and T=0, the pixel is transparent. If the colour is not black, the pixel is transparent if T is not 0. In other words, by default (i.e., T=0), black is transparent and every other colour is not. When T=1, every colour is transparent, except black.
+
+For 24-bit pixels, the 3 bytes are red, green, and blue, respectively. From the single 24-bit example we have, it appears that black is transparent, as with 16-bit colours. If the image width is odd, there is a pad byte at the end of each row.
+
+In the case of 4-bit pixels (and also, presumably, 8-bit pixels), there is a palette following the pixel values. Sometimes the palette immediately follows the pixels but sometimes there are 2, 4, or 6 unknown bytes in between. The palette header is distinctive, so ExplodePSH searches for it.
+
+The palette in type 0x40 images begins with a 16-byte header:
+Code:
+uint32 {4} - Unknown
+uint16 {2} - Palette width (always 16)
+uint16 {2} - Palette height (always 1)
+uint16 {2} - Number of palette entries (always 16)
+uint16 {2} - Unknown (always 0)
+uint16 {2} - Unknown (always 0)
+uint16 {2} - Unknown (often 240, sometimes 0)
+
+Following the header are the 16 uint16 colours as described above.
+
+In many images, there are no bytes after the pixels and, in type 0x40 images, the palette. In roughly half of the images, however, there are extra bytes whose purpose is unknown. Often there are only a few extra bytes but there are some images with hundreds of bytes added.
+
+Ron

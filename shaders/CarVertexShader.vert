@@ -1,0 +1,51 @@
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec2 vertexUV;
+layout(location = 2) in vec3 normal;
+layout(location = 3) in uint textureIndex;
+layout(location = 4) in uint polygonFlag;
+
+// Output data ; will be interpolated for each fragment.
+out vec2 UV;
+out vec2 envUV;
+out vec3 surfaceNormal;
+out vec3 toLightVector[MAX_CAR_CONTRIB_LIGHTS];
+out vec3 toCameraVector;
+flat out uint texIndex;
+flat out uint polyFlag;
+
+// Values that stay constant for the whole mesh.
+uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
+uniform vec3 lightPosition[MAX_CAR_CONTRIB_LIGHTS];
+
+void main(){
+    vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
+
+    // Pass through texture Index (Used for NFS2 car multitex)
+    texIndex = textureIndex;
+    // Pass through polygon Flag (Used for NFS4)
+    polyFlag = polygonFlag;
+
+	// Output position of the vertex, in clip space : MVP * position
+	gl_Position =  projectionMatrix * viewMatrix * worldPosition;
+
+    surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
+
+    // Diffuse and Specular passout
+    for(int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i){
+        toLightVector[i] = lightPosition[i] - worldPosition.xyz;
+    }
+    toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+
+    vec3 envReflectVector = reflect( toCameraVector, surfaceNormal);
+    float m = 2. * sqrt(
+        pow( envReflectVector.x, 2. ) +
+        pow( envReflectVector.y, 2. ) +
+        pow( envReflectVector.z + 1., 2. )
+      );
+    envUV = envReflectVector.xy / m + .5;
+
+	// UV of the vertex. No special space for this one.
+	UV = vertexUV;
+}
+

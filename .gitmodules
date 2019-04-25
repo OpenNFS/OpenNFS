@@ -1,0 +1,42 @@
+[submodule "lib/boost-cmake"]
+	path = lib/boost-cmake
+	url = https://github.com/Orphis/boost-cmake.git
+[submodule "lib/glm"]
+	path = lib/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "lib/glfw"]
+	path = lib/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "lib/bullet3"]
+	path = lib/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
+[submodule "lib/glew-cmake"]
+	path = lib/glew-cmake
+	url = https://github.com/Perlmint/glew-cmake.git
+[submodule "include/imgui"]
+	path = include/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "include/tinyobjloader"]
+	path = include/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git
+[submodule "g3log"]
+	path = lib/g3log
+	url = https://github.com/AmrikSadhra/g3log.git
+[submodule "lib/soloud"]
+	path = lib/soloud
+	url = https://github.com/jarikomppa/soloud.git
+[submodule "include/ImGuiColorTextEdit"]
+	path = include/ImGuiColorTextEdit
+	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
+[submodule "lib/libzmq"]
+	path = lib/libzmq
+	url = https://github.com/zeromq/libzmq.git
+[submodule "lib/tinyai"]
+	path = lib/tinyai
+	url = https://github.com/hav4ik/tinyai.git
+[submodule "lib/freetype2"]
+	path = lib/freetype2
+	url = https://github.com/aseprite/freetype2.git
+[submodule "lib/googletest"]
+	path = lib/googletest
+	url = https://github.com/google/googletest.git
