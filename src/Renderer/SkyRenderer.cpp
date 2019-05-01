@@ -1,7 +1,3 @@
-//
-// Created by SYSTEM on 09/10/2018.
-//
-
 #include "SkyRenderer.h"
 
 
