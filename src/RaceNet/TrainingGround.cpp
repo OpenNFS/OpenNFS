@@ -1,11 +1,11 @@
 #include "TrainingGround.h"
 
-TrainingGround::TrainingGround(uint16_t populationSize, uint16_t nGenerations, uint32_t nTicks,
+TrainingGround::TrainingGround(uint16_t nGenerations, uint32_t nTicks,
                                std::shared_ptr<ONFSTrack> &training_track, std::shared_ptr<Car> &training_car,
                                std::shared_ptr<Logger> &logger, GLFWwindow *gl_window) : window(gl_window),
                                                                                          raceNetRenderer(gl_window,
                                                                                                          logger) {
-    LOG(INFO) << "Beginning GA evolution session. Population Size: " << populationSize << " nGenerations Cap: "
+    LOG(INFO) << "Beginning GA evolution session. nGenerations Cap: "
               << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " ("
               << ToString(training_track->tag) << ")";
 
@@ -58,6 +58,8 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             }
         }
 
+        // If every Car Agent has died during simulation, iterate through them to find the Agent with the best fitness
+        // And export a representation of it's ANN network configuration for inference later
         if (allDead) {
             if (specieIter != pool.species.end()) {
                 int best_id = -1;
@@ -73,6 +75,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
                 }
             }
 
+            // Change to a new species, and remove all current car agents operating with genome
             specieIter++;
             specieCounter++;
             for(auto &carAgent : carAgents){
@@ -80,6 +83,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             }
             carAgents.clear();
 
+            // If TinyAI has gone through all of the species in the pool, begin a new generation
             if (specieIter == pool.species.end()) {
                 pool.new_generation();
                 std::string fname = "gen";
@@ -91,6 +95,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
                 specieCounter = 0;
             }
 
+            // Generate new Car Agents from the latest species and corresponding genome
             if (specieIter != pool.species.end())
                 for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {
                     // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks

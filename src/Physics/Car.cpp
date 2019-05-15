@@ -392,7 +392,6 @@ void Car::update(btDynamicsWorld* dynamicsWorld) {
     genRaycasts(dynamicsWorld);
 }
 
-
 void Car::genRaycasts(btDynamicsWorld* dynamicsWorld){
     btTransform trans;
     vehicleMotionState->getWorldTransform(trans);

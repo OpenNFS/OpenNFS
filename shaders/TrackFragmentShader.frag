@@ -65,19 +65,6 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     return shadow;
 }
 
-bool isGrayScale(vec4 colour) {
-    float diff = 0;
-
-    float rg = abs(colour.r - colour.g);
-    float rb = abs(colour.r - colour.b);
-    float gb = abs(colour.g - colour.b);
-    diff += rg + rb + gb;
-
-    diff /= 3.f;
-
-    return (diff > 0.1f) ? false : true;
-}
-
 void main(){
     vec4 tempColor = texture(texture_array, vec3(UV, texIndex)).rgba;
 
@@ -98,18 +85,15 @@ void main(){
     vec4 nfsColor = 0.7 *(tempColor + vec4(nfsDataOut.xyz, 1.0f));
     vec4 trackColor = mix(fogColor, nfsColor, fogFactor);*/
 
-    bool shadingDataIsGrayScale = isGrayScale(nfsDataOut);
-    vec4 nfsDataOutShadowRem = shadingDataIsGrayScale ? nfsDataOut : nfsDataOut; // TODO: This is never going to work, need to do some proper image processing to mux out shadows
-
     // NFS PS2.0 Port
-    vec4 v0 = nfsDataOutShadowRem; // Something done to this? (Add diffuse and specular components)
+    vec4 v0 = nfsDataOut; // Something done to this? (Add diffuse and specular components)
     vec4 v1 = vec4(0.08f); // Fog factor (read from HRZ?)
     vec4 c5 = vec4(0.0f);
     vec4 c6 = vec4(1.0f);
     vec4 c7 = vec4(0.314f, 0.216f, 0.000f, 1.000f);
     vec4 r0 = vec4(0.0f, 0.0f, 0.0f, 0.0f); // Black mip sample (Possibly incorrect)
     vec4 r1 = tempColor;
-    vec4 r10 = nfsDataOutShadowRem;
+    vec4 r10 = nfsDataOut;
     vec4 r2 = c5;
     vec4 r3 = r0;
     vec4 r4;

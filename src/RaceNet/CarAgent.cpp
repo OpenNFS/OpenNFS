@@ -156,7 +156,7 @@ bool CarAgent::isWinner() {
 
     int nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
-    // Have won if have made it near to end of track, and spent 4/5 time inside vroad
+    // Have won if have made it near to end of track
     return fitness > pow(nVroad - 30, 1);
 }
 
@@ -165,8 +165,10 @@ void CarAgent::reset(){
 }
 
 void CarAgent::simulate() {
+    // Track our old position
     static int vroadPosition;
 
+    // If the agent is dead, there is no need to simulate it.
     if (dead && training){
         return ;
     }
@@ -184,10 +186,12 @@ void CarAgent::simulate() {
     // All inputs roughly between 0 and 5. Speed/10 to bring it into line.
     // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed/10.f
     std::vector<double> networkInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], carSpeed/ 10.f};
-    std::vector<double> networkOutputs = {0, 0, 0};
+    std::vector<double> networkOutputs = {0, 0, 0, 0};
 
+    // Inference on the network
     raceNet.evaluate(networkInputs, networkOutputs);
 
+    // Control the vehicle with the neural network outputs
     car->applyAccelerationForce(networkOutputs[0] > 0.1f, false);
     car->applyBrakingForce(networkOutputs[1] > 0.1f);
     //car->applyAbsoluteSteerAngle(networkOutputs[2]);
@@ -202,6 +206,7 @@ void CarAgent::simulate() {
         ++insideVroadCount;
     }
 
+    // Update the running average speed of the vehicle for eventual fitness calculation
     averageSpeed += carSpeed;
     averageSpeed /= tickCount + 1;
 
@@ -214,23 +219,27 @@ void CarAgent::simulate() {
         return;
     }
 
-
+    // If not moved in more than 100 ticks of the game engine, we're dead
     if(abs(newVroadPosition - vroadPosition) == 0 && tickCount > 100){
         dead = true;
         return;
     }
 
-    int new_fitness = evaluateFitness(vroadPosition);
+    // Calculate new fitness after moving
+    int newFitness = evaluateFitness(vroadPosition);
 
-    if (new_fitness > fitness){
+    // The fitness has increased, set it to the new value and reset the stale tick count
+    if (newFitness > fitness){
         tickCount = 0;
-        fitness = new_fitness;
+        fitness = newFitness;
     }
 
+    // If the fitness has not increased within the STALE_TICK_COUNT, we should die
     if (++tickCount > STALE_TICK_COUNT){
         dead = true;
     }
 
+    // Our current position is the new position
     vroadPosition = newVroadPosition;
 }
 

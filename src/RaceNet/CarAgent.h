@@ -1,4 +1,4 @@
-#pragma once
+C#pragma once
 
 #include "RaceNet.h"
 #include "RaceNEAT.h"

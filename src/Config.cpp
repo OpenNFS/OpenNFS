@@ -22,7 +22,6 @@ void Config::InitFromCommandLine(int argc, char **argv) {
                 ("train", bool_switch(&trainingMode), "Launch ONFS in AI training mode")
                 ("fullv", bool_switch(&useFullVroad), "Allow AI to drive whole track")
                 ("nracers", value(&nRacers), "Number of AI Racers on track")
-                ("popsize", value(&populationSize), "Number of AI agents to place in a GA generation (training mode)")
                 ("ngens", value(&nGenerations), "Number of generations to allow AI to develop for (training mode)")
                 ("nticks", value(&nTicks), "Number of ticks to allow AI agents to simulate in, per generation (training mode)")
                 ("car,c", value(&car), "Name of desired car")
@@ -39,7 +38,6 @@ void Config::InitFromCommandLine(int argc, char **argv) {
             std::terminate();
         }
 
-        option_dependency(storedConfig, "train", "popsize");
         option_dependency(storedConfig, "train", "ngens");
         option_dependency(storedConfig, "train", "nticks");
     }

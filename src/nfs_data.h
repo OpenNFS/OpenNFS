@@ -253,7 +253,7 @@ namespace NFS3_4_DATA {
 
     struct COLVROAD {
         INTPT refPt;
-        uint32_t unknown;  // flags ?
+        uint32_t unknown;  // Unknown data
         COLVECTOR normal, forward, right;
         uint32_t leftWall, rightWall;
     };
@@ -267,21 +267,21 @@ namespace NFS3_4_DATA {
     };
 
     struct COLFILE {
-        char collID[4]; // 'COLL'
-        uint32_t version;   // 11
-        uint32_t fileLength;
-        uint32_t nBlocks;
-        uint32_t xbTable[5];
-        XBHEAD textureHead;
-        COLTEXTUREINFO *texture;
-        XBHEAD struct3DHead;
-        COLSTRUCT3D *struct3D;
-        XBHEAD objectHead;
-        COLOBJECT *object;
-        XBHEAD object2Head;
-        COLOBJECT *object2;
-        XBHEAD vroadHead;
-        COLVROAD *vroad;
+        char collID[4]; // Header of file 'COLL'
+        uint32_t version;   // Version number 11
+        uint32_t fileLength; // File length in bytes
+        uint32_t nBlocks; // Number of Xtra blocks in file
+        uint32_t xbTable[5]; // Offsets of Xtra blocks
+        XBHEAD textureHead; // Record detailing texture table data
+        COLTEXTUREINFO *texture; // Texture table
+        XBHEAD struct3DHead; // Record detailing struct3D table data
+        COLSTRUCT3D *struct3D; // Struct 3D table
+        XBHEAD objectHead; // Record detailing object table data
+        COLOBJECT *object; // Object table
+        XBHEAD object2Head; // Record detailing extra object data
+        COLOBJECT *object2; // Extra object data
+        XBHEAD vroadHead; // Unknown Record detailing unknown table data
+        COLVROAD *vroad;  // Unknown table
         uint32_t *hs_extra; // for the extra HS data in COLVROAD
     };
 

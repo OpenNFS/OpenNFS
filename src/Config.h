@@ -88,7 +88,6 @@ public:
     uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
     /* -- Training Params -- */
     bool trainingMode = false;
-    uint16_t populationSize = 0;
     uint16_t nGenerations = 0;
     uint32_t nTicks;
 private:
