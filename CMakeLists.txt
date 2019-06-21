@@ -215,6 +215,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
 #[[Google Test Framework Configuration]]
+#[[
 add_subdirectory(lib/googletest)
 # Setup testing
 enable_testing()
@@ -229,4 +230,4 @@ foreach(_test_file ${TEST_SRC_FILES})
     target_link_libraries(${_test_name} gtest gtest_main freetype Boost::program_options Boost::filesystem Boost::system Boost::boost g3logger BulletDynamics BulletCollision LinearMath Bullet3Common ${OPENGL_LIBRARIES} glfw ${CMAKE_THREAD_LIBS_INIT})
     add_test(${_test_name} ${_test_name})
     set_tests_properties(${_test_name} PROPERTIES TIMEOUT 10)
-endforeach()
+endforeach()]]
