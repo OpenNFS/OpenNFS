@@ -164,12 +164,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 #[[BMPREAD]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
-#[[NEAT]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/NEAT")
-FILE(GLOB NEAT_SOURCE_FILES lib/NEAT/*.cpp)
-list(REMOVE_ITEM NEAT_SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/NEAT/neatmain.cpp")
-target_sources(OpenNFS PUBLIC ${NEAT_SOURCE_FILES})
-add_subdirectory(lib/NEAT)
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::system Boost::boost)

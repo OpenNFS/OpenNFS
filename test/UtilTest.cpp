@@ -68,6 +68,7 @@ TEST_F(UtilTest, ExtractVIV){
 }
 
 // Test car moves in physics world when acceleration applied for severl physics ticks
+/*
 TEST_F(UtilTest, CarMoveTest){
     // Get physics Engine
     PhysicsEngine physicsEngine;
@@ -272,4 +273,4 @@ TEST_F(UtilTest, RaceSessionTest){
     // Ensure the loaded assets are correct
     ASSERT_TRUE(race.car.carID == trainingAssets.carTag && race.track.name == trainingAssets.track) << "ONFS RaceSession"
                                                                                                        "loaded wrong assets!";
-}
+}*/
