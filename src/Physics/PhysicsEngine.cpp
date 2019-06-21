@@ -287,7 +287,7 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
             dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
         }
     }
-    if (track->tag == NFS_3 || track->tag == NFS_4) {
+    if ((track->tag == NFS_3 || track->tag == NFS_4) && !Config::get().sparkMode) {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
         for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
             if (vroad_Idx < nVroad - 1) {

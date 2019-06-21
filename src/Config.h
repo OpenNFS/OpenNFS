@@ -81,6 +81,7 @@ public:
     int nRacers = DEFAULT_NUM_RACERS;
     /* -- Physics/AI Params -- */
     bool useFullVroad = false;
+    bool sparkMode = false;
     /* -- Render Params -- */
     bool vulkanRender = false;
     bool headless = false;

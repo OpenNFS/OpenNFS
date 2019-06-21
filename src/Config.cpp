@@ -17,6 +17,7 @@ void Config::InitFromCommandLine(int argc, char **argv) {
         desc.add_options()
                 // Option name/short name, parameter to option, description
                 ("help,h", "Print OpenNFS command-line parameters")
+                ("spark", bool_switch(&sparkMode), "Ignore Virual Road boundaries")
                 ("vulkan", bool_switch(&vulkanRender), "Use the Vulkan renderer instead of GL default")
                 ("headless", bool_switch(&headless), "Launch ONFS without a window")
                 ("train", bool_switch(&trainingMode), "Launch ONFS in AI training mode")
