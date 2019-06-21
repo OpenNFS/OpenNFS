@@ -24,7 +24,7 @@ public:
     void update();
     void update(btDynamicsWorld* dynamicsWorld);
     void resetCar(glm::vec3 reset_position, glm::quat reset_orientation);
-    void writeObj(const std::string &path);
+    void writeObj(const std::string &path, std::vector<CarModel> modelsToExport);
 
     std::string name;
     std::string id;

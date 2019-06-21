@@ -22,7 +22,7 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
 
 void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_path) {
     std::shared_ptr<Car> car(new Car(LoadFCE(fce_path), NFS_3, "Converted"));
-    car->writeObj(obj_out_path);
+    car->writeObj(obj_out_path, car->data.meshes);
 }
 
 CarData NFS3::LoadFCE(const std::string &fce_path) {

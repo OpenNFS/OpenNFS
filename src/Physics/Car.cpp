@@ -504,14 +504,16 @@ void Car::resetCar(glm::vec3 reset_position, glm::quat reset_orientation)
     }
 }
 
-void Car::writeObj(const std::string &path) {
+void Car::writeObj(const std::string &path, std::vector<CarModel> modelsToExport) {
     std::cout << "Writing Meshes to " << path << std::endl;
 
     std::ofstream obj_dump;
     obj_dump.open(path);
 
-    /*for (Model &mesh : carBodyModel) {
-        *//* Print Part name*//*
+    uint32_t nIndices = 0;
+
+    for (auto mesh : modelsToExport) {
+        // Print Part name
         obj_dump << "o " << mesh.m_name << std::endl;
         //Dump Vertices
         for (auto vertex : mesh.m_vertices) {
@@ -523,9 +525,10 @@ void Car::writeObj(const std::string &path) {
         }
         //Dump Indices
         for (auto vert_index : mesh.m_vertex_indices) {
-            obj_dump << "f " << vert_index << std::endl;
+            obj_dump << "f " << vert_index + nIndices << std::endl;
         }
-    }*/
+        nIndices = mesh.m_vertex_indices.size();
+    }
 
     obj_dump.close();
 }

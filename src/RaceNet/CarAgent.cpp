@@ -174,7 +174,7 @@ void CarAgent::simulate() {
     }
 
     // If during simulation, car flips, reset. Not during training!
-    if((car->upDistance <= 0.1f || car->downDistance > 1.f || car->rangefinders[Car::FORWARD_RAY] < 0.25f)){
+    if(!training && ((car->upDistance <= 0.1f || car->downDistance > 1.f || car->rangefinders[Car::FORWARD_RAY] < 0.25f))){
         resetToVroad(getClosestVroad(car, track), 0.f, track, car);
     }
 

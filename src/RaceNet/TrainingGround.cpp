@@ -143,9 +143,10 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             carAgents[winnerIdx].raceNet.export_tofile(BEST_NETWORK_PATH);
         }
         // Display the fitnesses
-        LOG(INFO) << "Generation: " << pool.generation() << " Specie number: " << specieCounter
-                  << " Genomes in specie: " << carAgents.size() << " Global max fitness: " << globalMaxFitness
-                  << " Current specie max: " << localMaxFitness;
+        //LOG(INFO) << "Generation: " << pool.generation() << " Specie number: " << specieCounter
+        //          << " Genomes in specie: " << carAgents.size() << " Global max fitness: " << globalMaxFitness
+        //          << " Current specie max: " << localMaxFitness;
+        LOG(INFO) << gen_Idx << ", " << localMaxFitness << ", ";
     }
 }
 
