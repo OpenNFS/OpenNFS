@@ -79,6 +79,21 @@ namespace NFS5_DATA {
             uint32_t offset; // Relative from current article offset * 16. Points to a PART_TABLE
         };
 
+        enum PartType {
+            MiscPart,
+            MaterialPart,
+            FshPart,
+            BasePart,
+            NamePart,
+            CullingPart,
+            TransformationPart,
+            VertexPart,
+            NormalPart,
+            UVPart,
+            TrianglePart,
+            EffectPart
+        };
+
         // Offset: Header Size + Article table length, Length: nMiscData * Size of MISC_DATA
         struct MISC_PART {
             uint32_t identifier;
@@ -101,21 +116,6 @@ namespace NFS5_DATA {
             LENGTH_INFO lengthInfo;
             uint32_t nFshFiles; // Seems to always be 0x01?
             uint32_t offset; // Relative from current FSH_PART offset
-        };
-
-        enum PartType {
-            MiscPart,
-            MaterialPart,
-            FshPart,
-            BasePart,
-            NamePart,
-            CullingPart,
-            TransformationPart,
-            VertexPart,
-            NormalPart,
-            UVPart,
-            TrianglePart,
-            EffectPart
         };
 
         struct PART_INFO_A {
@@ -257,11 +257,23 @@ namespace NFS5_DATA {
                 } else if ((strncmp(effectPart.identifier, "fe", 2) == 0) || strncmp(effectPart.identifier, "ef", 2) == 0){
                     return PartType::EffectPart;
                 } else {
-                    // Is it a Misc Part
                     return PartType::MiscPart;
-                    //ASSERT(false, "Unsupported part has been parsed");
                 }
             }
+        };
+
+        struct ARTICLE_DATA {
+            ARTICLE_DATA() {};
+            std::vector<BASE_PART> baseParts;
+            std::vector<NAME_PART> nameParts;
+            std::vector<CULLING_PART> cullingParts;
+            std::vector<TRANSFORMATION_PART> transformationParts;
+            std::vector<VERTEX_PART> vertexParts;
+            std::vector<NORMAL_PART> normalParts;
+            std::vector<UV_PART> uvParts;
+            std::vector<TRIANGLE_PART> triangleParts;
+            std::vector<EFFECT_PART> effectParts;
+            std::vector<MISC_PART> miscParts;
         };
     };
 };

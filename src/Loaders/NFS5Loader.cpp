@@ -70,19 +70,61 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
         }
     }
 
-    // Each article points to a part table, so lets go get them
+    // Each article has its own set of parts
+    std::vector<CRP::ARTICLE_DATA> articleData;
+    // Each article points to a part table, so lets go get them and store into articleData
     for(uint32_t articleIdx = 0; articleIdx < crpFileHeader->headerInfo.getNumParts(); ++articleIdx){
         //std::streamoff crpOffset = crp.tellg();
         //ASSERT(((articleTable[articleIdx].offset * 16)+ 16) == crpOffset, "Article table offset mismatch with current read offset");
         // TODO: Do I seekg to the offset indicated by the article table?
         CRP::GENERIC_PART *partTable = new CRP::GENERIC_PART[articleTable[articleIdx].partTableLength];
         crp.read((char *) partTable, sizeof(CRP::GENERIC_PART) * (articleTable[articleIdx].partTableLength));
+
+        CRP::ARTICLE_DATA articleContents;
+
+        for(uint32_t partIdx = 0; partIdx < articleTable[articleIdx].partTableLength; ++partIdx){
+            switch(partTable[partIdx].getPartType()){
+                // TODO: Why is this here
+                case CRP::MiscPart:
+                    articleContents.miscParts.emplace_back(partTable[partIdx].miscPart);
+                    break;
+                // These should be :)
+                case CRP::BasePart:
+                    articleContents.baseParts.emplace_back(partTable[partIdx].basePart);
+                    break;
+                case CRP::NamePart:
+                    articleContents.nameParts.emplace_back(partTable[partIdx].namePart);
+                    break;
+                case CRP::CullingPart:
+                    articleContents.cullingParts.emplace_back(partTable[partIdx].cullingPart);
+                    break;
+                case CRP::TransformationPart:
+                    articleContents.transformationParts.emplace_back(partTable[partIdx].transformationPart);
+                    break;
+                case CRP::VertexPart:
+                    articleContents.vertexParts.emplace_back(partTable[partIdx].vertexPart);
+                    break;
+                case CRP::NormalPart:
+                    articleContents.normalParts.emplace_back(partTable[partIdx].normalPart);
+                    break;
+                case CRP::UVPart:
+                    articleContents.uvParts.emplace_back(partTable[partIdx].uvPart);
+                    break;
+                case CRP::TrianglePart:
+                    articleContents.triangleParts.emplace_back(partTable[partIdx].trianglePart);
+                    break;
+                case CRP::EffectPart:
+                    articleContents.effectParts.emplace_back(partTable[partIdx].effectPart);
+                    break;
+                default:
+                    ASSERT(false, "Unknown miscellaneous part type in CRP part table!");
+            }
+        }
+        articleData.emplace_back(articleContents);
     }
 
-    // TODO: Gen vectors of parts, write
-
     DumpCrpTextures(crp, crpPath, fshParts);
-    LOG(INFO) << "OHNO";
+    LOG(INFO) << "Done.";
 
     // Clean up
     delete[] articleTable;
