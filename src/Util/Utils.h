@@ -73,6 +73,8 @@ namespace Utils {
 
     glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices);
 
+    uint32_t SwapEndian(uint32_t x);
+
     // TODO: Move to resource handling class
     std::vector<CarModel> LoadOBJ(std::string obj_path);
 

@@ -44,6 +44,9 @@ const std::string NFS_3_CAR_PATH  = "/gamedata/carmodel/";
 const std::string NFS_4_TRACK_PATH = "/DATA/TRACKS/";
 const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
 
+const std::string NFS_5_TRACK_PATH = "/GameData/Track/";
+const std::string NFS_5_CAR_PATH = "/GameData/CarModel/";
+
 // ----- Graphics -----
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
 const uint32_t DEFAULT_X_RESOLUTION = 1920;

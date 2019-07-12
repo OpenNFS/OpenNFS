@@ -8,7 +8,7 @@
 #include <vector>
 #include "Scene/TrackBlock.h"
 
-// ---- NFS2/3 GL Structures -----
+// ---- NFS2/3/4 GL Structures -----
 class Texture {
 public:
     unsigned int texture_id, width, height, layer;
@@ -40,6 +40,98 @@ namespace SHARED {
         int16_t od1, od2, od3, od4;
     };
 }
+
+// Derived from Arushans collated Addict and Jesper-Juul Mortensen notes
+namespace NFS5_DATA {
+    struct CRP {
+        struct HEADER_INFO {
+            uint32_t data; // First 5 bits unknown (0x1A), last 27 bits == Num Parts
+            uint32_t getNumParts() {
+                return data >> 5;
+            }
+            uint32_t getUnknown() {
+                return data & 0x0000001F;
+            }
+        };
+
+        struct LENGTH_INFO {
+            uint32_t data;
+            uint8_t getUnknown() {
+                return data >> 24;
+            }
+            uint32_t getLength() {
+                return data >> 8;
+            }
+        };
+
+        struct HEADER {
+            char identifier[4]; // (cars: ' raC'/'Car '; tracks: 'karT'/'Trak')
+            HEADER_INFO headerInfo;
+            uint32_t nMiscData;
+            uint32_t articleTableOffset; // * 16
+        };
+
+        // Offset: Header Size, Length: nArticles from Header headerInfo
+        struct ARTICLE {
+            char identifier[4]; // ('itrA'/'Arti')
+            HEADER_INFO headerInfo;
+            uint32_t partTableLength; // (* 16)
+            uint32_t offset; // Relative from current article offset * 16. Points to a PART_TABLE
+        };
+
+        // Offset: Header Size + Article table length, Length: nMiscData * Size of MISC_DATA
+        struct MISC_PART {
+            uint32_t identifier;
+            LENGTH_INFO lengthInfo;
+            uint32_t unknown;
+            uint32_t offset; // Relative from current MISC_PART offset
+        };
+
+        struct MATERIAL_PART {
+            uint16_t index;
+            char identifier[2]; // ('tm'/'mt')
+            LENGTH_INFO lengthInfo;
+            uint32_t unknown; // Always seems to be 0x34
+            uint32_t offset; // Relative from current MATERIAL_PART offset
+        };
+
+        struct FSH_PART {
+            uint16_t index;
+            char identifier[2]; // ('fs'/'sf')
+            LENGTH_INFO lengthInfo;
+            uint32_t nFshFiles; // Seems to always be 0x01?
+            uint32_t offset; // Relative from current FSH_PART offset
+        };
+
+        enum PartType {
+            MiscPart,
+            MaterialPart,
+            FshPart
+        };
+
+        union BASE_PART {
+            MISC_PART miscPart;
+            MATERIAL_PART materialPart;
+            FSH_PART fshPart;
+            PartType getPartType(){
+                if((strncmp(materialPart.identifier, "tm", 2) == 0) || strncmp(materialPart.identifier, "mt", 2) == 0){
+                    // Reading a material part
+                    return PartType::MaterialPart;
+                } else if ((strncmp(fshPart.identifier, "fs", 2) == 0) || strncmp(fshPart.identifier, "sf", 2) == 0){
+                    // Reading a fsh part
+                    return PartType::FshPart;
+                } else {
+                    // Reading a misc part
+                    return PartType::MiscPart;
+                }
+            }
+        };
+
+        struct PART {
+
+        };
+    };
+};
 
 namespace NFS3_4_DATA {
     struct FLOATPT {

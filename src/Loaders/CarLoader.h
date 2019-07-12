@@ -4,6 +4,7 @@
 #include "NFS2Loader.h"
 #include "NFS3Loader.h"
 #include "NFS4Loader.h"
+#include "NFS5Loader.h"
 #include "../Physics/Car.h"
 
 class CarLoader {

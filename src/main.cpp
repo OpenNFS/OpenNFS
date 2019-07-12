@@ -50,7 +50,7 @@ public:
         GLFWwindow *window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
 
         AssetData loadedAssets = {
-                NFS_3, Config::get().car,
+                NFS_5, "gt1", //TODO: Restore default load, Config::get().car,
                 NFS_3, Config::get().track
         };
 
@@ -61,10 +61,10 @@ public:
         /*------- Render --------*/
         while (loadedAssets.trackTag != UNKNOWN) {
             /*------ ASSET LOAD ------*/
-            //Load Track Data
-            std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
             //Load Car data from unpacked NFS files
             std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+            //Load Track Data
+            std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
 
             //Load Music
             //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
@@ -260,6 +260,30 @@ private:
                 carBasePathStream << itr->path().string() << NFS_4_CAR_PATH << "TRAFFIC/" << "PURSUIT/";
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
+                }
+            } else if (itr->path().filename().string().find(ToString(NFS_5)) != std::string::npos) {
+                currentNFS.tag = NFS_5;
+
+                std::stringstream trackBasePathStream;
+                trackBasePathStream << itr->path().string() << NFS_5_TRACK_PATH;
+                std::string trackBasePath(trackBasePathStream.str());
+                ASSERT(exists(trackBasePath), "NFS 5 track folder: " << trackBasePath << " is missing.");
+
+                for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
+                    if (trackItr->path().filename().string().find(".crp") != std::string::npos) {
+                        currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
+                    }
+                }
+
+                std::stringstream carBasePathStream;
+                carBasePathStream << itr->path().string() << NFS_5_CAR_PATH;
+                std::string carBasePath(carBasePathStream.str());
+                ASSERT(exists(carBasePath), "NFS 5 car folder: " << carBasePath << " is missing.");
+
+                for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
+                    if (carItr->path().filename().string().find(".crp") != std::string::npos) {
+                        currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
+                    }
                 }
             } else if (itr->path().filename().string().find("lanes") != std::string::npos) {
                 hasLanes = true;
