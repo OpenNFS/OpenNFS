@@ -40,9 +40,9 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
 
     std::streamoff articleTableEnd = crp.tellg();
 
-    // Work out whether we're parsing a MISC_PART, MATERIAL_PART or FSH_PART, then parse
-    CRP::BASE_PART *miscPartTable = new CRP::BASE_PART[crpFileHeader->nMiscData];
-    crp.read((char *) miscPartTable, sizeof(CRP::BASE_PART) * crpFileHeader->nMiscData);
+    // Work out whether we're parsing a MISC_PART, MATERIAL_PART or FSH_PART. Read into generic table then sort.
+    CRP::GENERIC_PART *miscPartTable = new CRP::GENERIC_PART[crpFileHeader->nMiscData];
+    crp.read((char *) miscPartTable, sizeof(CRP::GENERIC_PART) * crpFileHeader->nMiscData);
 
     std::vector<CRP::MISC_PART> miscParts;
     std::vector<CRP::MATERIAL_PART> materialParts;
@@ -70,33 +70,18 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
         }
     }
 
-    std::streamoff endRead = crp.tellg();
-
-    // Lets dump the FSH's quickly so I can be sure this parser is coming along well
-    for (auto &fshPart : fshParts) {
-        // Build the output FSH file path
-        std::stringstream fshPath, fshOutputPath;
-        boost::filesystem::path outputPath(crpPath);
-        fshPath << outputPath.parent_path().string() << "/" << outputPath.filename().replace_extension("").string() << fshPart.index << ".fsh";
-        fshOutputPath << outputPath.parent_path().string() << "/textures/" << outputPath.filename().replace_extension("").string() << fshPart.index << "/";
-
-        // Lets go dump that fsh..
-        char *fileBuffer = new char[fshPart.lengthInfo.getLength()];
-
-        // Read it in
-        crp.seekg(fshPart.offset, std::ios::beg);
-        crp.read(fileBuffer, fshPart.lengthInfo.getLength());
-
-        // Dump it out
-        std::ofstream fsh(fshPath.str(), std::ios::out | std::ios::binary);
-        fsh.write(fileBuffer, fshPart.lengthInfo.getLength());
-        fsh.close();
-        delete[] fileBuffer;
-
-        // And lets extract that badboy
-        ImageLoader::ExtractQFS(fshPath.str(), fshOutputPath.str());
+    // Each article points to a part table, so lets go get them
+    for(uint32_t articleIdx = 0; articleIdx < crpFileHeader->headerInfo.getNumParts(); ++articleIdx){
+        //std::streamoff crpOffset = crp.tellg();
+        //ASSERT(((articleTable[articleIdx].offset * 16)+ 16) == crpOffset, "Article table offset mismatch with current read offset");
+        // TODO: Do I seekg to the offset indicated by the article table?
+        CRP::GENERIC_PART *partTable = new CRP::GENERIC_PART[articleTable[articleIdx].partTableLength];
+        crp.read((char *) partTable, sizeof(CRP::GENERIC_PART) * (articleTable[articleIdx].partTableLength));
     }
 
+    // TODO: Gen vectors of parts, write
+
+    DumpCrpTextures(crp, crpPath, fshParts);
     LOG(INFO) << "OHNO";
 
     // Clean up
@@ -243,4 +228,31 @@ bool NFS5::DecompressCRP(const std::string &compressedCrpPath, const std::string
     delete[] data;
 
     return true;
+}
+
+void NFS5::DumpCrpTextures(std::ifstream &crp, const std::string &crpPath, std::vector<CRP::FSH_PART> fshParts) {
+    // Lets dump the FSH's quickly so I can be sure this parser is coming along well
+    for (auto &fshPart : fshParts) {
+        // Build the output FSH file path
+        std::stringstream fshPath, fshOutputPath;
+        boost::filesystem::path outputPath(crpPath);
+        fshPath << outputPath.parent_path().string() << "/" << outputPath.filename().replace_extension("").string() << fshPart.index << ".fsh";
+        fshOutputPath << outputPath.parent_path().string() << "/textures/" << outputPath.filename().replace_extension("").string() << fshPart.index << "/";
+
+        // Lets go dump that fsh..
+        char *fileBuffer = new char[fshPart.lengthInfo.getLength()];
+
+        // Read it in
+        crp.seekg(fshPart.offset, std::ios::beg);
+        crp.read(fileBuffer, fshPart.lengthInfo.getLength());
+
+        // Dump it out
+        std::ofstream fsh(fshPath.str(), std::ios::out | std::ios::binary);
+        fsh.write(fileBuffer, fshPart.lengthInfo.getLength());
+        fsh.close();
+        delete[] fileBuffer;
+
+        // And lets extract that badboy
+        ImageLoader::ExtractQFS(fshPath.str(), fshOutputPath.str());
+    }
 }

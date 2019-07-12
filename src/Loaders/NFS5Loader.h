@@ -6,7 +6,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 
-
 #include "../Physics/Car.h"
 #include "../nfs_data.h"
 #include "../Util/ImageLoader.h"
@@ -19,6 +18,7 @@ public:
     static CarData LoadCRP(const std::string &crpPath);
 private:
     static bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath);
+    static void DumpCrpTextures(std::ifstream &crp, const std::string &crpPath, std::vector<CRP::FSH_PART> fshParts);
 };
 
 

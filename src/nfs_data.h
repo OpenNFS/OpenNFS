@@ -106,29 +106,162 @@ namespace NFS5_DATA {
         enum PartType {
             MiscPart,
             MaterialPart,
-            FshPart
+            FshPart,
+            BasePart,
+            NamePart,
+            CullingPart,
+            TransformationPart,
+            VertexPart,
+            NormalPart,
+            UVPart,
+            TrianglePart,
+            EffectPart
         };
 
-        union BASE_PART {
-            MISC_PART miscPart;
-            MATERIAL_PART materialPart;
-            FSH_PART fshPart;
-            PartType getPartType(){
-                if((strncmp(materialPart.identifier, "tm", 2) == 0) || strncmp(materialPart.identifier, "mt", 2) == 0){
-                    // Reading a material part
-                    return PartType::MaterialPart;
-                } else if ((strncmp(fshPart.identifier, "fs", 2) == 0) || strncmp(fshPart.identifier, "sf", 2) == 0){
-                    // Reading a fsh part
-                    return PartType::FshPart;
-                } else {
-                    // Reading a misc part
-                    return PartType::MiscPart;
-                }
+        struct PART_INFO_A {
+            uint16_t data;
+            // TODO: DO THESE
+            // 4 bits
+            uint8_t getLOD(){
+                return data;
+            }
+            // 8 bits
+            uint16_t getAnimationIndex(){
+                return data;
+            }
+            // 4 bits
+            uint8_t getDamageSwitch(){
+                return data;
             }
         };
 
-        struct PART {
+        struct PART_INFO_B {
+            uint16_t data;
+            // TODO: DO THESE
+            // 12 bits
+            uint16_t getPartIndex(){
+                return data;
+            }
+            // 4 bits
+            uint8_t getLOD(){
+                return data;
+            }
+        };
 
+        struct BASE_PART {
+            char identifier[4]; // ('esaB'/'Base')
+            LENGTH_INFO lengthInfo; // Length
+            uint32_t unknown; // (seems always to be 0x00000000)
+            uint32_t offset; // Relative from current BASE_PART offset
+        };
+
+        struct NAME_PART {
+            char identifier[4]; // ('emaN'/'Name')
+            LENGTH_INFO lengthInfo; // Text length
+            uint32_t unknown; // (seems always to be 0x00000000)
+            uint32_t offset; // Relative from current NAME_PART offset
+        };
+
+        struct CULLING_PART {
+            PART_INFO_A partInfo;
+            char identifier[2]; // ('n$'/'$n')
+            LENGTH_INFO lengthInfo;
+            uint32_t nCullingParts; // (seems always to be 0x00000000)
+            uint32_t offset; // Relative from current CULLING_PART offset
+        };
+
+        struct TRANSFORMATION_PART {
+            PART_INFO_A partInfo;
+            char identifier[2]; // ('rt'/'tr')
+            LENGTH_INFO lengthInfo;
+            uint32_t nTransformMatrices; // Always 1
+            uint32_t offset; // Relative from current TRANSFORMATION_PART offset
+        };
+
+        struct VERTEX_PART {
+            PART_INFO_A partInfo;
+            char identifier[2]; // ('tv'/'vt')
+            LENGTH_INFO lengthInfo;
+            uint32_t nVertices;
+            uint32_t offset; // Relative from current VERTEX_PART offset
+        };
+
+        struct NORMAL_PART {
+            PART_INFO_A partInfo;
+            char identifier[2]; // (('mn'/'nm')
+            LENGTH_INFO lengthInfo;
+            uint32_t nNormals;
+            uint32_t offset; // Relative from current NORMAL_PART offset
+        };
+
+        struct UV_PART {
+            PART_INFO_A partInfo;
+            char identifier[2]; // ('vu'/'uv')
+            LENGTH_INFO lengthInfo;
+            uint32_t nUVS;
+            uint32_t offset; // Relative from current UV_PART offset
+        };
+
+        struct TRIANGLE_PART {
+            PART_INFO_B partInfo;
+            char identifier[2]; // ('rp'/'pr')
+            LENGTH_INFO lengthInfo;
+            uint32_t nIndices;
+            uint32_t offset; // Relative from current TRIANGLE_PART offset
+        };
+
+        struct EFFECT_PART {
+            PART_INFO_A partInfo;
+            char identifier[2]; // ('fe'/'ef')
+            LENGTH_INFO lengthInfo;
+            uint32_t nEffects;
+            uint32_t offset; // Relative from current EFFECT_PART offset
+        };
+
+        union GENERIC_PART {
+            // Misc Parts
+            MISC_PART miscPart;
+            MATERIAL_PART materialPart;
+            FSH_PART fshPart;
+            // Part table parts
+            BASE_PART basePart;
+            NAME_PART namePart;
+            CULLING_PART cullingPart;
+            TRANSFORMATION_PART transformationPart;
+            VERTEX_PART vertexPart;
+            NORMAL_PART normalPart;
+            UV_PART uvPart;
+            TRIANGLE_PART trianglePart;
+            EFFECT_PART effectPart;
+            PartType getPartType(){
+                if((strncmp(materialPart.identifier, "tm", 2) == 0) || strncmp(materialPart.identifier, "mt", 2) == 0){
+                    return PartType::MaterialPart;
+                } else if ((strncmp(fshPart.identifier, "fs", 2) == 0) || strncmp(fshPart.identifier, "sf", 2) == 0){
+                    return PartType::FshPart;
+                } else if((strncmp(basePart.identifier, "esaB", 4) == 0) || strncmp(basePart.identifier, "Base", 4) == 0){
+                    return PartType::BasePart;
+                } else if ((strncmp(namePart.identifier, "emaN", 4) == 0) || strncmp(namePart.identifier, "Name", 4) == 0){
+                    return PartType::NamePart;
+                } else if ((strncmp(cullingPart.identifier, "n$", 2) == 0) || strncmp(cullingPart.identifier, "$n", 2) == 0){
+                    return PartType::CullingPart;
+                } else if ((strncmp(transformationPart.identifier, "rt", 2) == 0) || strncmp(transformationPart.identifier, "tr", 2) == 0){
+                    return PartType::TransformationPart;
+                } else if ((strncmp(vertexPart.identifier, "tv", 2) == 0) || strncmp(vertexPart.identifier, "vt", 2) == 0){
+                    return PartType::VertexPart;
+                } else if ((strncmp(normalPart.identifier, "mn", 2) == 0) || strncmp(normalPart.identifier, "nm", 2) == 0){
+                    return PartType::NormalPart;
+                } else if ((strncmp(uvPart.identifier, "vu", 2) == 0) || strncmp(uvPart.identifier, "uv", 2) == 0){
+                    return PartType::UVPart;
+                } else if ((strncmp(trianglePart.identifier, "rp", 2) == 0) || strncmp(trianglePart.identifier, "pr", 2) == 0){
+                    return PartType::TrianglePart;
+                } else if ((strncmp(effectPart.identifier, "fe", 2) == 0) || strncmp(effectPart.identifier, "ef", 2) == 0){
+                    return PartType::EffectPart;
+                } else {
+                    // Is it a Misc Part
+                    return PartType::MiscPart;
+                    //ASSERT(false, "Unsupported part has been parsed");
+                }
+            }
         };
     };
 };
