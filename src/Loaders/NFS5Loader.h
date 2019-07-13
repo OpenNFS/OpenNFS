@@ -19,6 +19,7 @@ public:
 private:
     static bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath);
     static void DumpCrpTextures(std::ifstream &crp, const std::string &crpPath, std::vector<CRP::FSH_PART> fshParts);
+    static void DumpArticleVertsToObj(CRP::ARTICLE_DATA article);
 };
 
 

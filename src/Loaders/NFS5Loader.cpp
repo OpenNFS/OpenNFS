@@ -41,7 +41,7 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
     std::streamoff articleTableEnd = crp.tellg();
 
     // Work out whether we're parsing a MISC_PART, MATERIAL_PART or FSH_PART. Read into generic table then sort.
-    CRP::GENERIC_PART *miscPartTable = new CRP::GENERIC_PART[crpFileHeader->nMiscData];
+    auto *miscPartTable = new CRP::GENERIC_PART[crpFileHeader->nMiscData];
     crp.read((char *) miscPartTable, sizeof(CRP::GENERIC_PART) * crpFileHeader->nMiscData);
 
     std::vector<CRP::MISC_PART> miscParts;
@@ -74,46 +74,58 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
     std::vector<CRP::ARTICLE_DATA> articleData;
     // Each article points to a part table, so lets go get them and store into articleData
     for(uint32_t articleIdx = 0; articleIdx < crpFileHeader->headerInfo.getNumParts(); ++articleIdx){
-        //std::streamoff crpOffset = crp.tellg();
-        //ASSERT(((articleTable[articleIdx].offset * 16)+ 16) == crpOffset, "Article table offset mismatch with current read offset");
+        std::streamoff crpOffset = crp.tellg();
+        ASSERT(((articleTable[articleIdx].offset * 16)+ 16) == crpOffset, "Article table offset mismatch with current read offset");
         // TODO: Do I seekg to the offset indicated by the article table?
-        CRP::GENERIC_PART *partTable = new CRP::GENERIC_PART[articleTable[articleIdx].partTableLength];
+        auto *partTable = new CRP::GENERIC_PART[articleTable[articleIdx].partTableLength];
         crp.read((char *) partTable, sizeof(CRP::GENERIC_PART) * (articleTable[articleIdx].partTableLength));
 
-        CRP::ARTICLE_DATA articleContents;
+        CRP::ARTICLE_DATA articleContents(articleIdx);
 
         for(uint32_t partIdx = 0; partIdx < articleTable[articleIdx].partTableLength; ++partIdx){
+            // Calculate the offset of each part from file beginning, so the part offsets are directly seekable
+            uint32_t currentCrpOffset = ((articleTable[articleIdx].offset * 16)+ 16) + (partIdx * 16);
             switch(partTable[partIdx].getPartType()){
-                // TODO: Why is this here
+                // TODO: Why is this here, it shouldn't be
                 case CRP::MiscPart:
+                    partTable[partIdx].miscPart.offset += currentCrpOffset;
                     articleContents.miscParts.emplace_back(partTable[partIdx].miscPart);
                     break;
                 // These should be :)
                 case CRP::BasePart:
+                    partTable[partIdx].basePart.offset += currentCrpOffset;
                     articleContents.baseParts.emplace_back(partTable[partIdx].basePart);
                     break;
                 case CRP::NamePart:
+                    partTable[partIdx].namePart.offset += currentCrpOffset;
                     articleContents.nameParts.emplace_back(partTable[partIdx].namePart);
                     break;
                 case CRP::CullingPart:
+                    partTable[partIdx].cullingPart.offset += currentCrpOffset;
                     articleContents.cullingParts.emplace_back(partTable[partIdx].cullingPart);
                     break;
                 case CRP::TransformationPart:
+                    partTable[partIdx].transformationPart.offset += currentCrpOffset;
                     articleContents.transformationParts.emplace_back(partTable[partIdx].transformationPart);
                     break;
                 case CRP::VertexPart:
+                    partTable[partIdx].vertexPart.offset += currentCrpOffset;
                     articleContents.vertexParts.emplace_back(partTable[partIdx].vertexPart);
                     break;
                 case CRP::NormalPart:
+                    partTable[partIdx].normalPart.offset += currentCrpOffset;
                     articleContents.normalParts.emplace_back(partTable[partIdx].normalPart);
                     break;
                 case CRP::UVPart:
+                    partTable[partIdx].uvPart.offset += currentCrpOffset;
                     articleContents.uvParts.emplace_back(partTable[partIdx].uvPart);
                     break;
                 case CRP::TrianglePart:
+                    partTable[partIdx].trianglePart.offset += currentCrpOffset;
                     articleContents.triangleParts.emplace_back(partTable[partIdx].trianglePart);
                     break;
                 case CRP::EffectPart:
+                    partTable[partIdx].effectPart.offset += currentCrpOffset;
                     articleContents.effectParts.emplace_back(partTable[partIdx].effectPart);
                     break;
                 default:
@@ -121,6 +133,25 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
             }
         }
         articleData.emplace_back(articleContents);
+    }
+
+    // For every article, go and get the data pointed to by the parts
+    for(auto &article : articleData){
+        // Vertices first
+        for(auto &vertex : article.vertexParts){
+            std::vector<glm::vec3> vertices;
+            for(uint32_t vertIdx = 0; vertIdx < vertex.nVertices; ++vertIdx){
+                auto vertexRaw = new CRP::VERTEX();
+                crp.seekg(vertex.offset, std::ios::beg);
+                crp.read((char *) vertexRaw, sizeof(CRP::VERTEX));
+                glm::vec3 vertexData(vertexRaw->x, vertexRaw->y, vertexRaw->z);
+                vertices.emplace_back(vertexData);
+                delete vertexRaw;
+            }
+            article.vertPartTableData.emplace_back(vertices);
+        }
+        // Dump for debug
+        DumpArticleVertsToObj(article);
     }
 
     DumpCrpTextures(crp, crpPath, fshParts);
@@ -296,5 +327,26 @@ void NFS5::DumpCrpTextures(std::ifstream &crp, const std::string &crpPath, std::
 
         // And lets extract that badboy
         ImageLoader::ExtractQFS(fshPath.str(), fshOutputPath.str());
+    }
+}
+
+// Debug
+void NFS5::DumpArticleVertsToObj(CRP::ARTICLE_DATA article) {
+    for(uint32_t vertexTableIdx = 0; vertexTableIdx < article.vertPartTableData.size(); ++vertexTableIdx){
+        std::ofstream obj;
+        std::stringstream objPath;
+        objPath << "./assets/nfs5_test/gt1_crp_arti_" << article.index << "_vpart_" << vertexTableIdx << ".obj";
+        obj.open(objPath.str());
+
+        // Print Part name
+        obj << "o " << "NFS5_Test_VertPart_" << vertexTableIdx << std::endl;
+        // And then the verts
+        for (uint32_t vertIdx = 0; vertIdx < article.vertPartTableData[vertexTableIdx].size(); ++vertIdx) {
+            obj << "v " <<
+            article.vertPartTableData[vertexTableIdx][vertIdx].x << " "
+            << article.vertPartTableData[vertexTableIdx][vertIdx].y << " "
+            << article.vertPartTableData[vertexTableIdx][vertIdx].z << std::endl;
+        }
+        obj.close();
     }
 }

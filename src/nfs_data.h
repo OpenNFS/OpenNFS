@@ -262,8 +262,12 @@ namespace NFS5_DATA {
             }
         };
 
+        // ONFS Helper structure
+        // TODO: It's probably time to get OOP with this...
         struct ARTICLE_DATA {
-            ARTICLE_DATA() {};
+            explicit ARTICLE_DATA(uint32_t articleIdx) : index(articleIdx) {};
+            uint32_t index;
+            // Raw CRP Part Data
             std::vector<BASE_PART> baseParts;
             std::vector<NAME_PART> nameParts;
             std::vector<CULLING_PART> cullingParts;
@@ -274,6 +278,13 @@ namespace NFS5_DATA {
             std::vector<TRIANGLE_PART> triangleParts;
             std::vector<EFFECT_PART> effectParts;
             std::vector<MISC_PART> miscParts;
+            // ONFS Data pointed to by raw CRP Parts
+            std::vector<std::vector<glm::vec3>> vertPartTableData;
+        };
+
+        struct VERTEX {
+            float x, y, z;
+            float unknown; // Always 0x3F80000
         };
     };
 };
