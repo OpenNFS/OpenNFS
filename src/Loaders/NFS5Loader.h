@@ -8,17 +8,21 @@
 
 #include "../Physics/Car.h"
 #include "../nfs_data.h"
+#include "../Util/Utils.h"
 #include "../Util/ImageLoader.h"
+#include "../../include/CrpLib/Lib.h"
 
 using namespace NFS5_DATA;
+using namespace CrpLib;
+using namespace Utils;
 
 class NFS5 {
 public:
     static std::shared_ptr<Car> LoadCar(const std::string &carBasePath);
     static CarData LoadCRP(const std::string &crpPath);
 private:
-    static bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath);
-    static void DumpCrpTextures(std::ifstream &crp, const std::string &crpPath, std::vector<CRP::FSH_PART> fshParts);
+    // OpenNFS derived method of dumping FSH textures. To be Deprecated eventually in favour of CrpLib mechanisms
+    static void DumpCrpTextures(const std::string &crpPath);
     static void DumpArticleVertsToObj(CRP::ARTICLE_DATA article);
 };
 

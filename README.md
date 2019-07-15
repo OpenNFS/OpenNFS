@@ -29,12 +29,12 @@ An attempt to recreate the classic Need for Speed Games (1-6), unpacking their o
   * Custom(izable) menu
   * Importing tool to easily import CD or iso (maybe even from internet)
   * Customizable music sets (oh look new album from Spacetime Miscalculation from Rom Di Prisco)
-  * GUI and console tools build in onfs exe:
+  * GUI and console tools built into OpenNFS:
     * Music decoder (encoder)
     * qfs/fsh (de)compiler
     * Video demuxer
-    * car/track exporter
-  * Track editor
+    * Car/Track exporter
+  * Track Editor
 and others
 
 ## Current Loadable Assets

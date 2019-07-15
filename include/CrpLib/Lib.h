@@ -1,0 +1,15 @@
+#pragma once
+
+#include "Interfaces.h"
+#include "CrpFile.h"
+#include "Entry.h"
+#include "Part.h"
+#include "RawData.h"
+#include "Matrix.h"
+#include "Effect.h"
+#include "Vector2.h"
+#include "Vector4.h"
+#include "Base.h"
+#include "BPlanes.h"
+#include "Common.h"
+#include "Material.h"

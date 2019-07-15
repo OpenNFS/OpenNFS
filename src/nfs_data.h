@@ -42,6 +42,7 @@ namespace SHARED {
 }
 
 // Derived from Arushans collated Addict and Jesper-Juul Mortensen notes
+// Deprecated in favour of CrpLib
 namespace NFS5_DATA {
     struct CRP {
         struct HEADER_INFO {
@@ -285,6 +286,17 @@ namespace NFS5_DATA {
         struct VERTEX {
             float x, y, z;
             float unknown; // Always 0x3F80000
+        };
+
+        struct TRIANGLE_DATA {
+            uint16_t fillMode;
+            uint16_t transformInfo;
+            uint16_t material;
+            uint16_t unknown;
+            glm::vec4 boundingSphere;
+            glm::vec4 unknown1;
+            uint32_t nInfoRows;
+            uint32_t nIndexRows;
         };
     };
 };

@@ -80,6 +80,8 @@ namespace Utils {
 
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir);
 
+    bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath);
+
     glm::vec3 HSLToRGB(glm::vec4 hsl);
 
     glm::vec3 ParseRGBString(const std::string &rgb_string);
