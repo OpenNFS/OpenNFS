@@ -50,7 +50,7 @@ public:
         GLFWwindow *window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
 
         AssetData loadedAssets = {
-                NFS_5, "gt1", //TODO: Restore default load, Config::get().car,
+                NFS_3, Config::get().car,
                 NFS_3, Config::get().track
         };
 

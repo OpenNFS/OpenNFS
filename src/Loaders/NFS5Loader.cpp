@@ -21,8 +21,7 @@ std::shared_ptr<Car> NFS5::LoadCar(const std::string &carBasePath) {
 
     DumpCrpTextures(decompressedCrpPath.str());
 
-    LoadCRP(decompressedCrpPath.str());
-    //return std::make_shared<Car>();//LoadFCE(fce_path.str()), NFS_3, car_name);
+    return std::make_shared<Car>(LoadCRP(decompressedCrpPath.str()), NFS_5, "gt1");
 }
 
 // Hook into CrpLib using ZModeler Import.cpp mechanism
@@ -115,29 +114,32 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                     }
                 } while (enPr != NULL);
 
-                /*tObject* pObj = new tObject(partName, vtCount, inCount/3);
+                // Lets build an ONFS CarModel from CRP data
+                std::vector<uint32_t> indices;
+                std::vector<uint32_t> polygonFlags;
+                std::vector<glm::vec3> vertices;
+                std::vector<glm::vec3> normals;
+                std::vector<glm::vec2> uvs;
 
-                for (int j=0; j<vtCount; j++) {
-                    pObj->VertTable->Table[j].X = vt[j].x;
-                    pObj->VertTable->Table[j].Y = vt[j].y;
-                    pObj->VertTable->Table[j].Z = vt[j].z;
+                // TODO: Set center properly
+                std::string part_name(partName);
+                glm::vec3 center(0,0,0);
+                float specularDamper = 0.2f;
+                float specularReflectivity = 0.02f;
+                float envReflectivity = 0.4f;
+
+                for (int j = 0; j < vtCount; j++) {
+                    vertices.emplace_back(glm::vec3(vt[j].x, vt[j].y, vt[j].z));
                     if (nm != NULL) {
-                        pObj->VertTable->Table[j].NormalX = nm[j].x;
-                        pObj->VertTable->Table[j].NormalY = nm[j].y;
-                        pObj->VertTable->Table[j].NormalZ = nm[j].z;
+                        normals.emplace_back(glm::vec3(nm[j].x, nm[j].y, nm[j].z));
                     }
                 }
 
-
                 CEntry* tr = (CEntry*)arti->GetDataEntry(ID_TRANSFORM, lev);
                 if (tr!=NULL) {
-
                     CMatrix* deTr = (CMatrix*)tr->GetData();
-                    tMATRIX mat = ConvertMatrix(deTr);
-
-                    pObj->Transform(mat);
-                    pObj->mTransform = mat;
-
+                    // TODO: Get the transformation matrix into GLM style to generate part center
+                    //glm::mat4 mat(deTr->)
                 }
 
                 int k=0, l=0;
@@ -153,7 +155,7 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
 
                     CEntry* enMt = crp->GetMisc(ID_MATERIAL, pr->GetMaterial());
                     CMaterial* mt = (CMaterial*)enMt->GetData();
-                    int mtrl = GetMaterial(mt->GetTpgIndex(),filetitle,pD3D);
+                    //int mtrl = GetMaterial(mt->GetTpgIndex(),filetitle,pD3D);
 
                     int vtOff = pr->GetIndex(pr->FindIndex(ID_INDEX_VERTEX))->Offset;
                     int vtAdj = pr->GetInfo(pr->FindInfo(ID_INFO_VERTEX))->GetOffsetIndex();
@@ -165,29 +167,22 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                         uvAdj = pr->GetInfo(pr->FindInfo(ID_INFO_UV))->GetOffsetIndex();
                     }
 
-                    unsigned char* indices = pr->GetIndices(0);
+                    unsigned char* indicesRaw = pr->GetIndices(0);
 
                     for (k=0; k<(enPr->GetCount()/3); k++) {
-
-                        pObj->FaceTable->Table[l].I1 = indices[vtOff+k*3+0] + vtAdj;
-                        pObj->FaceTable->Table[l].I2 = indices[vtOff+k*3+1] + vtAdj;
-                        pObj->FaceTable->Table[l].I3 = indices[vtOff+k*3+2] + vtAdj;
+                        indices.emplace_back(indicesRaw[vtOff+k*3+0] + vtAdj);
+                        indices.emplace_back(indicesRaw[vtOff+k*3+1] + vtAdj);
+                        indices.emplace_back(indicesRaw[vtOff+k*3+2] + vtAdj);
 
                         if (uv != NULL) {
-                            pObj->FaceTable->Table[l].U1 = uv[indices[uvOff+k*3+0]+uvAdj].u;
-                            pObj->FaceTable->Table[l].V1 = uv[indices[uvOff+k*3+0]+uvAdj].v;
-                            pObj->FaceTable->Table[l].U2 = uv[indices[uvOff+k*3+1]+uvAdj].u;
-                            pObj->FaceTable->Table[l].V2 = uv[indices[uvOff+k*3+1]+uvAdj].v;
-                            pObj->FaceTable->Table[l].U3 = uv[indices[uvOff+k*3+2]+uvAdj].u;
-                            pObj->FaceTable->Table[l].V3 = uv[indices[uvOff+k*3+2]+uvAdj].v;
+                            uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff+k*3+0]+uvAdj].u, uv[indicesRaw[uvOff+k*3+0]+uvAdj].v));
+                            uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff+k*3+1]+uvAdj].u, uv[indicesRaw[uvOff+k*3+1]+uvAdj].v));
+                            uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff+k*3+2]+uvAdj].u, uv[indicesRaw[uvOff+k*3+2]+uvAdj].v));
                         }
-
-                        pObj->FaceTable->Table[l].Material = mtrl;
+                        //pObj->FaceTable->Table[l].Material = mtrl;
 
                         l++;
-
                     }
-
                 }
 
                 // hide all driver parts
@@ -195,15 +190,15 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                 //	pObj->Hide(true);
                 // show only level(0) part and typeindex=0 parts
                 //else
-                if (v==0 && base->GetBaseInfo()->TypeIndex==0)
-                    pObj->Hide(false);
-                else
-                    pObj->Hide(true);
 
                 if (doNotAdd == false)
-                    Objects->AddObject(pObj);
+                    carData.meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
 
-                delete pObj;*/
+                if (v==0 && base->GetBaseInfo()->TypeIndex==0)
+                    carData.meshes.back().enabled = true;
+                else
+                    carData.meshes.back().enabled = false;
+
             }
         } else {
             /*CEffect* ef = (CEffect*)enEf->GetData();
@@ -292,6 +287,8 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
     }
 
     delete crp;
+
+    return carData;
 }
 
 void NFS5::DumpCrpTextures(const std::string &crpPath) {

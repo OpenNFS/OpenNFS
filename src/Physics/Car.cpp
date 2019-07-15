@@ -25,6 +25,25 @@ constexpr static const float kCastDistances[Car::kNumRangefinders] = {
         1.f,
 };
 
+// Debug
+void DumpVertsToObj(std::vector<glm::vec3> vertices) {
+    std::ofstream obj;
+    std::stringstream objPath;
+    objPath << "./assets/nfs5_test/gt2.obj";
+    obj.open(objPath.str());
+
+    // Print Part name
+    obj << "o " << "CarBody" << std::endl;
+    // And then the verts
+    for (uint32_t vertIdx = 0; vertIdx < vertices.size(); ++vertIdx) {
+        obj << "v " <<
+            vertices[vertIdx].x << " "
+            << vertices[vertIdx].y << " "
+            << vertices[vertIdx].z << std::endl;
+    }
+    obj.close();
+}
+
 Car::Car(CarData carData, NFSVer nfs_version, std::string carID, GLuint car_textureArrayID) : Car(carData, nfs_version,
                                                                                                   carID) {
     textureArrayID = car_textureArrayID;
@@ -35,6 +54,8 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
     tag = nfs_version;
     if (tag == NFS_3 || tag == NFS_4) {
         name = carData.carName;
+    } else {
+        name = "Sabzi";
     }
 
     if (!Config::get().vulkanRender) {
@@ -293,6 +314,28 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
         case UNKNOWN:
             break;
         case NFS_5:
+            for (auto &car_model : loaded_car_models) {
+                if (car_model.m_name.find("Body_ig1") != std::string::npos) {
+                    car_model.enable();
+                    carBodyModel = car_model;
+                    DumpVertsToObj(car_model.m_vertices);
+                } else if (car_model.m_name.find("WheelRear_fe1") != std::string::npos) {
+                    car_model.enable();
+                    leftFrontWheelModel = car_model;
+                } else if (car_model.m_name.find("WheelRear_fe2") != std::string::npos) {
+                    car_model.enable();
+                    rightFrontWheelModel = car_model;
+                } else if (car_model.m_name.find("WheelRear_ig1") != std::string::npos) {
+                    car_model.enable();
+                    leftRearWheelModel = car_model;
+                } else if (car_model.m_name.find("WheelRear_ig2") != std::string::npos) {
+                    car_model.enable();
+                    rightRearWheelModel = car_model;
+                } else {
+                    continue;
+                    miscModels.emplace_back(car_model);
+                }
+            }
             break;
     }
 }

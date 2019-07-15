@@ -246,6 +246,7 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
         case EntityType::SOUND:
             break;
         case EntityType::CAR:
+            break;
             // TODO: Allow adjustment of shader parameters here as well, and car colour
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
@@ -331,7 +332,6 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
         case NFSVer::NFS_3_PS1:
             break;
         case NFSVer::NFS_5:
-            ASSERT(false, "Unimplemented");
             break;
     }
     ImGui::End();
