@@ -21,7 +21,10 @@ endif ()
 
 set(OpenGL_GL_PREFERENCE LEGACY)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
-add_compile_options("-Wno-enum-compare")
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_compile_options("-Wno-enum-compare")
+endif()
 
 file(GLOB CRP_LIB_SOURCES
         include/CrpLib/*.h
