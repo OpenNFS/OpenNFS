@@ -47,7 +47,7 @@ namespace CrpLib {
     }
 
     void CMatrix::SetValues(float *values) {
-        memcpy(m_Items, values, 4 * 16);
+        std::memcpy(m_Items, values, 4 * 16);
     }
 
 } // namespace

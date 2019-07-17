@@ -171,7 +171,7 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
 
                 int k=0, l=0;
                 bool doNotAdd = false;
-                for (int j=0; j<=maxPr; j++) {
+                for (int j=0; j <= maxPr; j++) {
                     enPr = arti->GetPartEntry(lev, j);
                     CPart* pr = (CPart*)enPr->GetData();
 
@@ -182,7 +182,9 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
 
                     CEntry* enMt = crp->GetMisc(ID_MATERIAL, pr->GetMaterial());
                     CMaterial* mt = (CMaterial*)enMt->GetData();
-                    //int mtrl = GetMaterial(mt->GetTpgIndex(),filetitle,pD3D);
+                    if(mt->GetTpgIndex() < 4){
+                        LOG(INFO) << partName << " TP: " << mt->GetTpgIndex() << " TN: " << enMt->GetIndex();
+                    }
 
                     int vtOff = pr->GetIndex(pr->FindIndex(ID_INDEX_VERTEX))->Offset;
                     int vtAdj = pr->GetInfo(pr->FindInfo(ID_INFO_VERTEX))->GetOffsetIndex();
@@ -196,7 +198,7 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
 
                     unsigned char* indicesRaw = pr->GetIndices(0);
 
-                    for (k=0; k<(enPr->GetCount()/3); k++) {
+                    for (k = 0; k <(enPr->GetCount()/3); k++, l++) {
                         polygonFlags.emplace_back(0);
                         polygonFlags.emplace_back(0);
                         polygonFlags.emplace_back(0);
@@ -208,9 +210,6 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                             uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff+k*3+1]+uvAdj].u, uv[indicesRaw[uvOff+k*3+1]+uvAdj].v));
                             uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff+k*3+2]+uvAdj].u, uv[indicesRaw[uvOff+k*3+2]+uvAdj].v));
                         }
-                        //pObj->FaceTable->Table[l].Material = mtrl;
-
-                        l++;
                     }
                 }
 

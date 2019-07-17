@@ -2,6 +2,7 @@
 
 #include "Interfaces.h"
 
+#include <cstring>
 #include <fstream>
 
 namespace CrpLib {

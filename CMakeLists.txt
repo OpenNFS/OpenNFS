@@ -15,7 +15,7 @@ include(cmake/CompileGLSLToSPIRV.cmake)
 MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 
 #[[Static linking broken under Mac OSX]]
-if (WIN32)
+if (NOT APPLE)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 
