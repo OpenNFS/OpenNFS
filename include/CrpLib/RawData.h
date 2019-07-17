@@ -27,9 +27,8 @@ namespace CrpLib {
         int GetEntryCount();
         bool ReadFromFile(std::string filename);
         bool WriteToFile(std::string filename);
-        // TODO: Cba with writing MMAP equivalent to CMemFile. Commented out for now.
-        // void ParseFrom(ICrpEntry *entry);
-        // void ParseTo(ICrpEntry *entry);
+        void ParseFrom(ICrpEntry *entry);
+        void ParseTo(ICrpEntry *entry);
 
         // accessors and modifiers
         void SetData(char *pData, int length);

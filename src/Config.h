@@ -118,9 +118,9 @@ struct ParamData {
     bool attachCamToCar = true;
     bool frustumCull = false;
     bool drawVroad = false;
-    bool drawCAN = true;
+    bool drawCAN = false;
 
-    bool drawRaycast = true;
+    bool drawRaycast = false;
     bool simulateCars = false;
 };
 

@@ -52,13 +52,14 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID, GLuint car_text
 
 Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), data(carData) {
     tag = nfs_version;
+
     if (tag == NFS_3 || tag == NFS_4) {
         name = carData.carName;
     } else {
-        name = "Sabzi";
+        name = id;
     }
 
-    if (!Config::get().vulkanRender) {
+    if (!Config::get().vulkanRender && tag != NFS_5) {
         std::stringstream car_texture_path;
         car_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/car00.tga";
         int width, height;
@@ -318,21 +319,21 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
                 if (car_model.m_name.find("Body_ig1") != std::string::npos) {
                     car_model.enable();
                     carBodyModel = car_model;
-                    DumpVertsToObj(car_model.m_vertices);
-                } else if (car_model.m_name.find("WheelRear_fe1") != std::string::npos) {
+                } else if (car_model.m_name.find("WheelFront_fe1") != std::string::npos) {
                     car_model.enable();
                     leftFrontWheelModel = car_model;
-                } else if (car_model.m_name.find("WheelRear_fe2") != std::string::npos) {
+                } else if (car_model.m_name.find("WheelFront_ig1") != std::string::npos) {
                     car_model.enable();
                     rightFrontWheelModel = car_model;
-                } else if (car_model.m_name.find("WheelRear_ig1") != std::string::npos) {
+                } else if (car_model.m_name.find("WheelRear_fe1") != std::string::npos) {
                     car_model.enable();
                     leftRearWheelModel = car_model;
-                } else if (car_model.m_name.find("WheelRear_ig2") != std::string::npos) {
+                } else if (car_model.m_name.find("WheelRear_ig1") != std::string::npos) {
                     car_model.enable();
                     rightRearWheelModel = car_model;
                 } else {
-                    continue;
+                    // Enable all High LOD ig1 models
+                    car_model.enabled = ((car_model.m_name.find("ig1") != std::string::npos) && (car_model.m_name.find("Shadow") == std::string::npos));
                     miscModels.emplace_back(car_model);
                 }
             }

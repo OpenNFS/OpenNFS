@@ -74,15 +74,16 @@ namespace CrpLib {
         short Id;        // INFOROW_ID
         short Level, IndexRowRef;
 
+        //TODO: These might *need* to be cast as INDEX_ROW
         int GetCount() {
-            if ((INDEXROW_ID) Id == ID_INFO_UV)
+            if ((INFOROW_ID) Id == ID_INFO_UV)
                 return (Length / 8);
             else
                 return (Length / 16);
         }
 
         void SetCount(int value) {
-            if ((INDEXROW_ID) Id == ID_INFO_UV)
+            if ((INFOROW_ID) Id == ID_INFO_UV)
                 Length = (short) (value * 8);
             else
                 Length = (short) (value * 16);
@@ -90,19 +91,18 @@ namespace CrpLib {
 
 
         int GetOffsetIndex() {
-            if ((INDEXROW_ID) Id == ID_INFO_UV)
+            if ((INFOROW_ID) Id == ID_INFO_UV)
                 return (Offset / 8);
             else
                 return (Offset / 16);
         }
 
         void SetOffsetIndex(int value) {
-            if ((INDEXROW_ID) Id == ID_INFO_UV)
+            if ((INFOROW_ID) Id == ID_INFO_UV)
                 Offset = value * 8;
             else
                 Offset = value * 16;
         }
-
     };
 
     enum GLARE_TYPE {

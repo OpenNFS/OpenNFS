@@ -22,10 +22,6 @@ endif ()
 set(OpenGL_GL_PREFERENCE LEGACY)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  add_compile_options("-Wno-enum-compare")
-endif()
-
 file(GLOB CRP_LIB_SOURCES
         include/CrpLib/*.h
         include/CrpLib/*.cpp
@@ -179,6 +175,7 @@ target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::sy
 #[[G3Log (Because Boost-cmake logging won't build]]
 set(G3_SHARED_LIB OFF CACHE BOOL "Compile g3log as static library")
 set(ADD_FATAL_EXAMPLE OFF CACHE BOOL "Don't bother compiling invalid code in g3log")
+set(ENABLE_VECTORED_EXCEPTIONHANDLING ON CACHE BOOL "Turn off to handoff exception to system debugger")
 add_subdirectory("${CMAKE_SOURCE_DIR}/lib/g3log")
 include_directories(${DEP_ROOT_DIR}/${G3LOG_NAME}/src)
 target_include_directories(OpenNFS INTERFACE g3logger)

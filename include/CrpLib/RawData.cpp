@@ -85,37 +85,45 @@ namespace CrpLib {
     }
 
 
-    /*void CRawData::ParseFrom(ICrpEntry *entry) {
-        CMemFile *mfile = new CMemFile();
-        mfile->SetLength(((CEntry *) entry)->GetLength());
+    void CRawData::ParseFrom(ICrpEntry *entry) {
+        std::fstream *mfile = new fstream();
+        // No fstream setLength mechanism like CMemFile so emulate by padding file to size of length
+        uint32_t length = ((CEntry *) entry)->GetLength();
+        char *padBytes = new char[length];
+        mfile->write(padBytes, length);
+        // TODO: Does CMemFile move the file pointer? If it doesn't, must rewind
+        mfile->seekg(0, std::ios::beg);
 
         ICrpData *data = ((CEntry *) entry)->GetData();
 
         data->Write(mfile);
 
-        mfile->Seek(0, CMemFile::begin);
+        mfile->seekg(0, std::ios::beg);
 
         this->Read(mfile, entry);
 
         delete mfile;
-
+        delete []padBytes;
     }
 
     void CRawData::ParseTo(ICrpEntry *entry) {
-
-        CMemFile *mfile = new CMemFile();
-        mfile->SetLength(this->m_Length);
+        std::fstream *mfile = new fstream();
+        uint32_t length = ((CEntry *) entry)->GetLength();
+        char *padBytes = new char[length];
+        mfile->write(padBytes, length);
+        mfile->seekg(0, std::ios::beg);
 
         ICrpData *data = ((CEntry *) entry)->GetData();
 
         this->Write(mfile);
 
-        mfile->Seek(0, CMemFile::begin);
+        mfile->seekg(0, std::ios::beg);
 
         data->Read(mfile, entry);
 
         delete mfile;
-    }*/
+        delete []padBytes;
+    }
 
 
     // accessors and modifiers

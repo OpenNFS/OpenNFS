@@ -33,6 +33,8 @@ namespace CrpLib {
 
         void SetItem(int row, int col, float value);
 
+        float *GetValues();
+
         void SetValues(float *values);
 
     };

@@ -246,7 +246,6 @@ void Renderer::DrawNFS34Metadata(Entity *targetEntity) {
         case EntityType::SOUND:
             break;
         case EntityType::CAR:
-            break;
             // TODO: Allow adjustment of shader parameters here as well, and car colour
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
@@ -395,7 +394,9 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car
     ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
 
     if (ImGui::TreeNode("Car Models")) {
-        ImGui::Checkbox(playerCar->carBodyModel.m_name.c_str(), &playerCar->carBodyModel.enabled);
+        char meshDetailBuf[200];
+        sprintf(meshDetailBuf, "%s (V: %d)", playerCar->carBodyModel.m_name.c_str(), playerCar->carBodyModel.m_vertices.size());
+        ImGui::Checkbox(meshDetailBuf, &playerCar->carBodyModel.enabled);
         ImGui::Checkbox(playerCar->leftFrontWheelModel.m_name.c_str(), &playerCar->leftFrontWheelModel.enabled);
         ImGui::Checkbox(playerCar->leftRearWheelModel.m_name.c_str(), &playerCar->leftRearWheelModel.enabled);
         ImGui::Checkbox(playerCar->rightFrontWheelModel.m_name.c_str(), &playerCar->rightFrontWheelModel.enabled);
@@ -403,7 +404,8 @@ void Renderer::DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car
         ImGui::TreePop();
         if (ImGui::TreeNode("Misc Models")) {
             for (auto &mesh : playerCar->miscModels) {
-                ImGui::Checkbox(mesh.m_name.c_str(), &mesh.enabled);
+                sprintf(meshDetailBuf, "%s (V: %d)", mesh.m_name.c_str(), mesh.m_vertices.size());
+                ImGui::Checkbox(meshDetailBuf, &mesh.enabled);
             }
             ImGui::TreePop();
         }

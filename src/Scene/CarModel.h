@@ -67,6 +67,7 @@ private:
 
 class CarData {
 public:
+    CarData() : carName("Unset"){};
     std::string carName;
     std::vector<Dummy> dummies;
     std::vector<CarColour> colours;

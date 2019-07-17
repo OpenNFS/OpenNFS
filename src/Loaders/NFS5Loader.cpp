@@ -21,7 +21,33 @@ std::shared_ptr<Car> NFS5::LoadCar(const std::string &carBasePath) {
 
     DumpCrpTextures(decompressedCrpPath.str());
 
-    return std::make_shared<Car>(LoadCRP(decompressedCrpPath.str()), NFS_5, "gt1");
+    // Let's make an NFS5 car texture array
+    // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
+    std::map<unsigned int, Texture> car_textures;
+    std::map<std::string, uint32_t> remapped_texture_ids;
+    uint32_t remappedTextureID = 0;
+
+    /*for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
+        if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
+            // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
+            remapped_texture_ids[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
+            if (std::is_same<Platform, PS1>::value) {
+                GLubyte *data;
+                GLsizei width;
+                GLsizei height;
+                ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " << itr->path().string() << " did not load succesfully!");
+                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+            } else {
+                bmpread_t bmpAttr; // This will leak.
+                ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
+                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
+            }
+        }
+    }
+
+    GLuint texture_array_id = MakeTextureArray(car_textures, false);*/
+
+    return std::make_shared<Car>(LoadCRP(decompressedCrpPath.str()), NFS_5, carName);
 }
 
 // Hook into CrpLib using ZModeler Import.cpp mechanism
@@ -129,7 +155,7 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                 float envReflectivity = 0.4f;
 
                 for (int j = 0; j < vtCount; j++) {
-                    vertices.emplace_back(glm::vec3(vt[j].x, vt[j].y, vt[j].z));
+                    vertices.emplace_back(glm::vec3(vt[j].x/5, vt[j].y/5, vt[j].z/5));
                     if (nm != NULL) {
                         normals.emplace_back(glm::vec3(nm[j].x, nm[j].y, nm[j].z));
                     }
@@ -138,8 +164,9 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                 CEntry* tr = (CEntry*)arti->GetDataEntry(ID_TRANSFORM, lev);
                 if (tr!=NULL) {
                     CMatrix* deTr = (CMatrix*)tr->GetData();
-                    // TODO: Get the transformation matrix into GLM style to generate part center
-                    //glm::mat4 mat(deTr->)
+                    glm::mat4 mat = glm::make_mat4(deTr->GetValues());
+                    center = mat[3];
+                    center /= 5;
                 }
 
                 int k=0, l=0;
@@ -170,10 +197,12 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                     unsigned char* indicesRaw = pr->GetIndices(0);
 
                     for (k=0; k<(enPr->GetCount()/3); k++) {
+                        polygonFlags.emplace_back(0);
+                        polygonFlags.emplace_back(0);
+                        polygonFlags.emplace_back(0);
                         indices.emplace_back(indicesRaw[vtOff+k*3+0] + vtAdj);
                         indices.emplace_back(indicesRaw[vtOff+k*3+1] + vtAdj);
                         indices.emplace_back(indicesRaw[vtOff+k*3+2] + vtAdj);
-
                         if (uv != NULL) {
                             uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff+k*3+0]+uvAdj].u, uv[indicesRaw[uvOff+k*3+0]+uvAdj].v));
                             uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff+k*3+1]+uvAdj].u, uv[indicesRaw[uvOff+k*3+1]+uvAdj].v));
@@ -191,27 +220,24 @@ CarData NFS5::LoadCRP(const std::string &crpPath) {
                 // show only level(0) part and typeindex=0 parts
                 //else
 
-                if (doNotAdd == false)
+                if (!doNotAdd)
                     carData.meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
 
-                if (v==0 && base->GetBaseInfo()->TypeIndex==0)
-                    carData.meshes.back().enabled = true;
-                else
+                if (v != 0 || base->GetBaseInfo()->TypeIndex != 0)
                     carData.meshes.back().enabled = false;
-
             }
         } else {
-            /*CEffect* ef = (CEffect*)enEf->GetData();
+            CEffect* ef = (CEffect*)enEf->GetData();
             CMatrix* enTr = (CMatrix*)arti->GetSubEntry(ID_TRANSFORM)->GetData();
 
-            tMATRIX mat = ConvertMatrix(ef->GetTransform());
-            *//*
+            /*tMATRIX mat = ConvertMatrix(ef->GetTransform());
+
             if (enTr!=NULL) {
                 tMATRIX mat2 = ConvertMatrix(enTr);
                 mat._41 += mat2._41;
                 mat._42 += mat2._42;
                 mat._43 += mat2._43;
-            }*//*
+            }
 
             tObject* pObj = CreatePyramid(mat._41, mat._42, mat._43, partNameOrig, false);
             Objects->AddObject(pObj);
@@ -330,7 +356,6 @@ void NFS5::DumpCrpTextures(const std::string &crpPath) {
     delete[] articleTable;
     delete[] miscPartTable;
     delete crpFileHeader;
-    crp.close();
 
     // Lets dump the FSH's quickly so I can be sure this parser is coming along well
     for (auto &fshPart : fshParts) {
@@ -356,6 +381,7 @@ void NFS5::DumpCrpTextures(const std::string &crpPath) {
         // And lets extract that badboy
         ImageLoader::ExtractQFS(fshPath.str(), fshOutputPath.str());
     }
+    crp.close();
     LOG(INFO) << "Done.";
 }
 

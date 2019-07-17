@@ -42,6 +42,10 @@ namespace CrpLib {
         m_Items[row * 4 + col] = value;
     }
 
+    float *CMatrix::GetValues(){
+        return m_Items;
+    }
+
     void CMatrix::SetValues(float *values) {
         memcpy(m_Items, values, 4 * 16);
     }
