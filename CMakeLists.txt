@@ -160,6 +160,12 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")
 #[[STB]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/stb")
 #[[FREETYPE]]
+if(DEFINED ENV{Agent.Name})
+    set(CMAKE_DISABLE_FIND_PACKAGE_ZLIB TRUE)
+    set(CMAKE_DISABLE_FIND_PACKAGE_BZip2 TRUE)
+    set(CMAKE_DISABLE_FIND_PACKAGE_PNG TRUE)
+    set(CMAKE_DISABLE_FIND_PACKAGE_HarfBuzz TRUE)
+endif()
 add_subdirectory(lib/freetype2)
 include_directories(lib/freetype2/include)
 target_link_libraries(OpenNFS freetype)
