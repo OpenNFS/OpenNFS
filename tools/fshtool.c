@@ -1798,7 +1798,9 @@ int fsh_main(int argc,char **argv)
     FILE *f;
     char *outfn,*p;
     unsigned char *tmpbuf;
-    int i,j,choice;
+    int i = 0;
+    int j = 0;
+    int choice = 0;
 
     printf("===========================================================================\n");
     printf("FSHTOOL version 1.22 - (c) Denis Auroux 2002 - auroux@math.polytechnique.fr\n");

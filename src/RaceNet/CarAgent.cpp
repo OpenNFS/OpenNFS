@@ -112,24 +112,31 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTr
 }
 
 int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) {
-    uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
-
     int closestVroadID = 0;
-    float lowestDistance = FLT_MAX;
-    for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
-        INTPT refPt = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
-        glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-        glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
+    if(track-> tag == NFS_3 || track->tag == NFS_4){
+        uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
-        float distance = glm::distance(car->rightFrontWheelModel.position, vroadPoint);
-        if (distance < lowestDistance) {
-            closestVroadID = vroad_Idx;
-            lowestDistance = distance;
+
+        float lowestDistance = FLT_MAX;
+        for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
+            INTPT refPt = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
+            glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+            glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
+
+            float distance = glm::distance(car->rightFrontWheelModel.position, vroadPoint);
+            if (distance < lowestDistance) {
+                closestVroadID = vroad_Idx;
+                lowestDistance = distance;
+            }
         }
+    } else {
+        // TODO: Implement this for NFS_2 and 3_PS1
+        closestVroadID = 0;
     }
 
     // Return a number corresponding to the distance driven
     return closestVroadID;
+
 }
 
 int CarAgent::evaluateFitness(int vroadPosition){
