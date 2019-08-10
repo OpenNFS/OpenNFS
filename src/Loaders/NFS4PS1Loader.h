@@ -6,6 +6,14 @@
 
 #include "stdint.h"
 
+struct VECTOR // hashcode: 0xCB78D6DC (dec: -881273124)
+{
+    long vx; // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
+    long vy; // size=0, offset=4 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
+    long vz; // size=0, offset=8 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
+    long pad; // size=0, offset=12 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
+};
+
 struct coorddef // hashcode: 0x29F67CAF (dec: 704019631)
 {
     int x; // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct coorddef', parent hashcode: 0x00000000 (dec: 0)
