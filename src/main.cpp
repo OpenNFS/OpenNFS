@@ -18,6 +18,7 @@
 #include "Loaders/TrackLoader.h"
 #include "Loaders/CarLoader.h"
 #include "Loaders/MusicLoader.h"
+#include "Loaders/NFS4PS1Loader.h"
 #include "Physics/Car.h"
 #include "Renderer/Renderer.h"
 #include "Race/RaceSession.h"
@@ -44,6 +45,7 @@ public:
     }
 
     void run() {
+        /*NFS4PS1Loader::LoadCar();*/
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
@@ -128,7 +130,7 @@ private:
             NeedForSpeed currentNFS;
             currentNFS.tag = UNKNOWN;
 
-            if (itr->path().filename().string().find(ToString(NFS_2_SE)) != std::string::npos) {
+            if (itr->path().filename().string() == ToString(NFS_2_SE)) {
                 currentNFS.tag = NFS_2_SE;
 
                 std::stringstream trackBasePathStream;
@@ -148,7 +150,7 @@ private:
                 ASSERT(exists(carBasePath), "NFS 2 Special Edition car folder: " << carBasePath << " is missing.");
 
                 // TODO: Work out where NFS2 SE Cars are stored
-            } else if (itr->path().filename().string().find(ToString(NFS_2)) != std::string::npos) {
+            } else if (itr->path().filename().string() == ToString(NFS_2)) {
                 currentNFS.tag = NFS_2;
 
                 std::stringstream trackBasePathStream;
@@ -172,7 +174,7 @@ private:
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string().find(ToString(NFS_3_PS1)) != std::string::npos) {
+            } else if (itr->path().filename().string() == ToString(NFS_3_PS1)) {
                 currentNFS.tag = NFS_3_PS1;
 
                 for (directory_iterator trackItr(itr->path().string()); trackItr != directory_iterator(); ++trackItr) {
@@ -186,7 +188,7 @@ private:
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string().find(ToString(NFS_3)) != std::string::npos) {
+            } else if (itr->path().filename().string() == ToString(NFS_3)) {
                 currentNFS.tag = NFS_3;
 
                 std::stringstream trackBasePathStream;
@@ -220,7 +222,7 @@ private:
                         currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                     }
                 }
-            } else if (itr->path().filename().string().find(ToString(NFS_4)) != std::string::npos) {
+            } else if (itr->path().filename().string() == ToString(NFS_4)) {
                 currentNFS.tag = NFS_4;
 
                 std::stringstream trackBasePathStream;
@@ -261,7 +263,7 @@ private:
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
                 }
-            } else if (itr->path().filename().string().find(ToString(NFS_5)) != std::string::npos) {
+            } else if (itr->path().filename().string() == ToString(NFS_5)) {
                 currentNFS.tag = NFS_5;
 
                 std::stringstream trackBasePathStream;
@@ -285,13 +287,13 @@ private:
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string().find("lanes") != std::string::npos) {
+            } else if (itr->path().filename().string() == "lanes") {
                 hasLanes = true;
                 continue;
-            } else if (itr->path().filename().string().find("misc") != std::string::npos) {
+            } else if (itr->path().filename().string() == "misc") {
                 hasMisc = true;
                 continue;
-            } else if (itr->path().filename().string().find("sfx") != std::string::npos) {
+            } else if (itr->path().filename().string() == "sfx") {
                 hasSfx = true;
                 continue;
             } else {

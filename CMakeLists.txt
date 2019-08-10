@@ -150,7 +150,7 @@ set(SOURCE_FILES
         src/Shaders/MenuShader.cpp
         src/Shaders/MenuShader.h
         src/Util/ImageLoader.cpp
-        src/Util/ImageLoader.h src/Loaders/NFS5Loader.cpp src/Loaders/NFS5Loader.h)
+        src/Util/ImageLoader.h src/Loaders/NFS5Loader.cpp src/Loaders/NFS5Loader.h src/Loaders/NFS4PS1Loader.cpp src/Loaders/NFS4PS1Loader.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 
@@ -226,6 +226,9 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
+#[[Noesis]]
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/Noesis")
+target_link_libraries(OpenNFS "${CMAKE_CURRENT_SOURCE_DIR}/lib/Noesis/Noesis.lib")
 #[[Google Test Framework Configuration]]
 #[[
 add_subdirectory(lib/googletest)
