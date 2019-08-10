@@ -8,6 +8,65 @@
 #include "NFS4PS1Loader.h"
 #include "../Util/Logger.h"
 
+uint8_t R3DCar_ObjectInfo[57][6] = {
+        0x00,0x00,0x00,0x00,0x01,0x00,
+        0x20,0x02,0x01,0x01,0x00,0x00,
+        0x30,0x00,0x01,0x01,0x00,0x00,
+        0xF8,0x00,0x00,0x00,0x01,0x00,
+        0xF0,0x08,0x0A,0x0A,0x00,0x00,
+        0xE0,0x00,0x0C,0x00,0x00,0x00,
+        0xE0,0x00,0x00,0x0C,0x00,0x00,
+        0xEC,0x89,0x0B,0x0B,0x00,0x0B,
+        0xF0,0x88,0x0B,0x0B,0x00,0x0B,
+        0xEC,0x89,0x0C,0x0C,0x00,0x0C,
+        0xF0,0x88,0x0C,0x0C,0x00,0x0C,
+        0xE8,0x00,0x01,0x00,0x00,0x00,
+        0xE8,0x00,0x00,0x01,0x00,0x00,
+        0xD4,0x00,0x11,0x00,0x00,0x00,
+        0xD4,0x00,0x11,0x00,0x00,0x00,
+        0xE1,0x08,0x01,0x00,0x00,0x00,
+        0xE1,0x08,0x00,0x01,0x00,0x00,
+        0xD4,0x00,0x12,0x12,0x12,0x00,
+        0xE2,0x00,0x01,0x00,0x00,0x00,
+        0xE2,0x00,0x00,0x01,0x00,0x00,
+        0xD4,0x00,0x13,0x13,0x13,0x00,
+        0xE2,0x18,0x0F,0x10,0x00,0x00,
+        0xE2,0x08,0x00,0x01,0x00,0x00,
+        0xD4,0x10,0x14,0x14,0x14,0x00,
+        0xE2,0x18,0x0F,0x10,0x00,0x00,
+        0xE2,0x08,0x00,0x01,0x00,0x00,
+        0xD4,0x10,0x15,0x15,0x15,0x00,
+        0xE8,0x08,0x01,0x00,0x00,0x00,
+        0xE8,0x08,0x00,0x01,0x00,0x00,
+        0xD4,0x00,0x16,0x16,0x16,0x00,
+        0xD8,0x00,0x01,0x01,0x00,0x00,
+        0xF4,0x00,0x0D,0x00,0x00,0x00,
+        0xF4,0x00,0x0E,0x00,0x00,0x00,
+        0xD4,0x00,0x11,0x00,0x00,0x00,
+        0x30,0x00,0x02,0x01,0x00,0x00,
+        0x28,0x02,0x03,0x00,0x00,0x03,
+        0x28,0x02,0x03,0x00,0x00,0x03,
+        0x26,0x02,0x04,0x00,0x00,0x00,
+        0x24,0x02,0x04,0x00,0x00,0x04,
+        0x24,0x02,0x04,0x00,0x00,0x04,
+        0x00,0x49,0x01,0x00,0x00,0x01,
+        0x00,0x49,0x01,0x00,0x00,0x01,
+        0xF0,0x80,0x05,0x00,0x00,0x05,
+        0xF0,0x80,0x06,0x00,0x00,0x06,
+        0xE8,0x89,0x07,0x07,0x00,0x07,
+        0xE8,0x89,0x08,0x08,0x00,0x08,
+        0x1F,0x00,0x01,0x01,0x00,0x00,
+        0x1F,0x00,0x01,0x01,0x00,0x00,
+        0x20,0x00,0x01,0x00,0x00,0x00,
+        0x20,0x00,0x01,0x00,0x00,0x00,
+        0x20,0x00,0x09,0x01,0x00,0x00,
+        0x20,0x00,0x09,0x01,0x00,0x00,
+        0x20,0x00,0x01,0x00,0x00,0x00,
+        0x20,0x00,0x01,0x00,0x00,0x00,
+        0x20,0x00,0x09,0x01,0x00,0x00,
+        0x20,0x00,0x09,0x01,0x00,0x00,
+};
+
 /*Transformer_zScene * R3DCar_ReadInCarData(char *filename, Car_tObj *carObj)
 {
     int iVar4;
@@ -167,7 +226,11 @@ void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
     int fileOffset = 0x24c;
     Transformer_zScene *scene = reinterpret_cast<Transformer_zScene *>(mem);
 
-    for(uint8_t partIdx = 0; partIdx < 57; ++partIdx){
+    // These are special numbers from NFS4 PS1 runtime/The parent NFS4 PS1 Car_tObj object that affect parsing
+    /*int palCopyNum = (int)(carObj->render).palCopyNum[0xd];*/
+    uint8_t *objectInfo = *R3DCar_ObjectInfo;
+
+    for(uint8_t partIdx = 0; partIdx < 57; ++partIdx, objectInfo += 6){
         Transformer_zObj *Nobj = reinterpret_cast<Transformer_zObj *>(mem + fileOffset);
         fileOffset += sizeof(Transformer_zObj);
         scene->obj[partIdx] = Nobj;
@@ -178,7 +241,6 @@ void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
             Nobj->translation.x += 0x7ae;
         }
 
-        LOG(INFO) << "[Part " << (int) partIdx << "] NVerts: " << (int) Nobj->numVertex << " NFacets: " << (int) Nobj->numFacet;
         if (Nobj->numVertex != 0) {
             Nobj->vertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
             fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
@@ -186,30 +248,35 @@ void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
             if (Nobj->numVertex % 2) {
                 fileOffset += 2;
             }
-            Nobj->Nvertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
-            fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
-            if (Nobj->numVertex % 2) {
-                fileOffset += 2;
-            }
-            int translateX = Nobj->translation.x;
-            int translateY = Nobj->translation.y;
-            int translateZ = Nobj->translation.z;
-            // Get vertices, calculate normals
-            for(uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
-                 VECTOR vt = {
-                        (int) *(short *) ((int) &Nobj->vertex->x + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateX >> 8),
-                        (int) *(short *) ((int) &Nobj->vertex->y + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateY >> 8),
-                        (int) (*(short *)((int) &Nobj->vertex->z + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateZ >> 8)) >> 2,
-                        0
-                };
-                VECTOR nm = {
-                        (int) *(short *) ((int) &Nobj->Nvertex->x + (vertIdx * sizeof(COORD16))),
-                        (int) *(short *) ((int) &Nobj->Nvertex->y + (vertIdx * sizeof(COORD16))),
-                        (int) *(short *) ((int) &Nobj->Nvertex->z + (vertIdx * sizeof(COORD16))),
-                        0
-                };
-                 LOG(INFO) << vt.vx << " " << " " << vt.vy << " " << vt.vz;
-                // Normal calculation here
+            // TODO: This objectInfo array must be wrong?
+            if((Nobj->numVertex != 0) && ((objectInfo[1] & 1) != 0)){
+                Nobj->Nvertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
+                fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
+                // Alignment again
+                if (Nobj->numVertex % 2) {
+                    fileOffset += 2;
+                }
+                int translateX = Nobj->translation.x;
+                int translateY = Nobj->translation.y;
+                int translateZ = Nobj->translation.z;
+                // Get vertices, calculate normals
+                for(uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
+                    VECTOR vt = {
+                            (int) *(short *) ((int) &Nobj->vertex->x + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateX >> 8),
+                            (int) *(short *) ((int) &Nobj->vertex->y + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateY >> 8),
+                            (int) (*(short *)((int) &Nobj->vertex->z + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateZ >> 8)) >> 2,
+                            0
+                    };
+                    if ((objectInfo[1] & 0x40) != 0) {
+                        VECTOR nm = {
+                                (int) *(short *) ((int) &Nobj->Nvertex->x + (vertIdx * sizeof(COORD16))),
+                                (int) *(short *) ((int) &Nobj->Nvertex->y + (vertIdx * sizeof(COORD16))),
+                                (int) *(short *) ((int) &Nobj->Nvertex->z + (vertIdx * sizeof(COORD16))),
+                                0
+                        };
+                    }
+                    // Normal calculation here
+                }
             }
         }
         if (Nobj->numFacet != 0) {
