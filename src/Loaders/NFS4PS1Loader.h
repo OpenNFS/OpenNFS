@@ -79,5 +79,5 @@ struct SerializedGroup // hashcode: 0x60C96239 (dec: 1623810617)
 
 class NFS4PS1Loader {
 public:
-    static void LoadCar();
+    static void LoadCar(const std::string &carGeoPath);
 };

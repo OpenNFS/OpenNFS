@@ -155,79 +155,71 @@
 #include <fcntl.h>
 #include <memory.h>
 
-void NFS4PS1Loader::LoadCar() {
+void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
+    // Build a buffer of the file in memory
     struct stat fstat;
-    stat("../resources/NFS_4_PS1/ZZDIAB.GEO", &fstat);
-    int size = fstat.st_size;
-    char *mem = (char *) malloc(size + 1);
+    stat(carGeoPath.c_str(), &fstat);
+    char *mem = (char *) malloc(fstat.st_size + 1);
 
-    FILE *geo = fopen("../resources/NFS_4_PS1/ZZDIAB.GEO", "rb");
-    ASSERT((int) fread(mem, 1, size, geo) == size, "WEWPS");
-
-    Transformer_zScene *scene = (Transformer_zScene *) mem;
+    FILE *geo = fopen(carGeoPath.c_str(), "rb");
+    ASSERT((int) fread(mem, 1, fstat.st_size, geo) == fstat.st_size, "WEWPS");
 
     int fileOffset = 0x24c;
-    int partIdx = 0;
-    while (partIdx < 57) {
-        Transformer_zObj *Nobj = (Transformer_zObj *) ((int) scene->obj + fileOffset);
-        fileOffset += 0x1c;
+    Transformer_zScene *scene = reinterpret_cast<Transformer_zScene *>(mem);
+
+    for(uint8_t partIdx = 0; partIdx < 57; ++partIdx){
+        Transformer_zObj *Nobj = reinterpret_cast<Transformer_zObj *>(mem + fileOffset);
+        fileOffset += sizeof(Transformer_zObj);
         scene->obj[partIdx] = Nobj;
         // Apply some part specific translation offsets
-        if (partIdx == 0x27) {
-            (Nobj->translation).x = (Nobj->translation).x + -0x7ae;
+        if (partIdx == 39) {
+            Nobj->translation.x -= 0x7ae;
+        } else if (partIdx == 40) {
+            Nobj->translation.x += 0x7ae;
         }
-        if (partIdx == 0x28) {
-            (Nobj->translation).x = (Nobj->translation).x + 0x7ae;
-        }
-        uint16_t vertNum = Nobj->numVertex;
 
-        std::ofstream obj;
-        std::stringstream objPath;
-        objPath << "./assets/test.obj";
-        obj.open(objPath.str());
-
-        // Print Part name
-        obj << "o " << "Part" << partIdx << std::endl;
-
-        if (vertNum != 0) {
-            Nobj->vertex = (COORD16 *) ((int) scene->obj + fileOffset);
-            fileOffset = fileOffset + (uint32_t) vertNum * 6;
+        LOG(INFO) << "[Part " << (int) partIdx << "] NVerts: " << (int) Nobj->numVertex << " NFacets: " << (int) Nobj->numFacet;
+        if (Nobj->numVertex != 0) {
+            Nobj->vertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
+            fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
             // Alignment
-            if ((vertNum & 1) != 0) {
+            if (Nobj->numVertex % 2) {
                 fileOffset += 2;
             }
-            Nobj->Nvertex = (COORD16 *) ((int) scene->obj + fileOffset);
-            fileOffset = fileOffset + (uint32_t) Nobj->numVertex * 6;
-            if ((Nobj->numVertex & 1) != 0) {
+            Nobj->Nvertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
+            fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
+            if (Nobj->numVertex % 2) {
                 fileOffset += 2;
             }
-            int vertIdx = 0;
-            int translateX = (short) ((uint32_t) (Nobj->translation).x >> 8);
-            int translateY = (Nobj->translation).y;
-            int translateZ = (Nobj->translation).z;
-            int j = 0;
+            int translateX = Nobj->translation.x;
+            int translateY = Nobj->translation.y;
+            int translateZ = Nobj->translation.z;
             // Get vertices, calculate normals
-            while (vertIdx < (int) (uint32_t) Nobj->numVertex) {
-                struct VECTOR vt = {
-                        (int) *(short *) ((int) &Nobj->vertex->x + j) + (int) translateX,
-                        (int) *(short *) ((int) &Nobj->vertex->y + j) + (int) (short) ((uint32_t) translateY >> 8),
-                        (int) (*(short *) ((int) &Nobj->vertex->z + j) + (int) (short) ((uint32_t) translateZ >> 8)) >> 2,
+            for(uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
+                 VECTOR vt = {
+                        (int) *(short *) ((int) &Nobj->vertex->x + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateX >> 8),
+                        (int) *(short *) ((int) &Nobj->vertex->y + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateY >> 8),
+                        (int) (*(short *)((int) &Nobj->vertex->z + (vertIdx * sizeof(COORD16))) + (int) (short) ((uint32_t) translateZ >> 8)) >> 2,
                         0
                 };
-                obj << "v " <<
-                    vt.vx << " "
-                    << vt.vy << " "
-                    << vt.vz << std::endl;
+                VECTOR nm = {
+                        (int) *(short *) ((int) &Nobj->Nvertex->x + (vertIdx * sizeof(COORD16))),
+                        (int) *(short *) ((int) &Nobj->Nvertex->y + (vertIdx * sizeof(COORD16))),
+                        (int) *(short *) ((int) &Nobj->Nvertex->z + (vertIdx * sizeof(COORD16))),
+                        0
+                };
+                 LOG(INFO) << vt.vx << " " << " " << vt.vy << " " << vt.vz;
                 // Normal calculation here
-                ++vertIdx;
-                j += 6;
             }
-            obj.close();
         }
         if (Nobj->numFacet != 0) {
-            Nobj->facet = (Transformer_zFacet *) ((int) scene->obj + fileOffset);
-            fileOffset += (uint32_t) Nobj->numFacet * 0xc;
+            Nobj->facet = reinterpret_cast<Transformer_zFacet *>(mem + fileOffset);
+            fileOffset += (uint32_t) Nobj->numFacet * sizeof(Transformer_zFacet);
         }
-        ++partIdx;
+        int expectedOffset = sizeof(Transformer_zObj) + (2*(sizeof(COORD16) * Nobj->numVertex)) + (sizeof(Transformer_zFacet) * Nobj->numFacet);
+        LOG(INFO) << expectedOffset;
+        // TODO: We start to read garbage, quickly. PartIDX 2 and up.
     }
+    fclose(geo);
+    free(mem);
 }
