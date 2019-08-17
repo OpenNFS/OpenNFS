@@ -9,6 +9,7 @@
 #include "../Util/Logger.h"
 
 static uint8_t R3DCar_ObjectInfo[57][6] = {
+        0x00, 0x49, 0x00, 0x01, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
         0x20, 0x02, 0x01, 0x01, 0x00, 0x00,
         0x30, 0x00, 0x01, 0x01, 0x00, 0x00,
@@ -64,7 +65,7 @@ static uint8_t R3DCar_ObjectInfo[57][6] = {
         0x20, 0x00, 0x01, 0x00, 0x00, 0x00,
         0x20, 0x00, 0x01, 0x00, 0x00, 0x00,
         0x20, 0x00, 0x09, 0x01, 0x00, 0x00,
-        0x20, 0x00, 0x09, 0x01, 0x00, 0x00,
+        0x20, 0x00, 0x09, 0x01, 0x00, 0x00
 };
 
 /*Transformer_zScene * R3DCar_ReadInCarData(char *filename, Car_tObj *carObj)
@@ -227,21 +228,22 @@ void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
     Transformer_zScene *scene = reinterpret_cast<Transformer_zScene *>(mem);
 
     // These are special numbers from NFS4 PS1 runtime/The parent NFS4 PS1 Car_tObj object that affect parsing
-    /*int palCopyNum = (int)(carObj->render).palCopyNum[0xd];*/
-    uint8_t *objectInfo = *R3DCar_ObjectInfo;
-    bool skipNormals = false;
+    // Diablo == 0x0D
+    int carType = 0; //(int)(carObj->render).palCopyNum[0xd];
+    // palCopyNum[0xD] = car type
+    /* int eScaleX = (&R3DCar_EnvMapInfo)[local_50].eScaleX;
+    int eScaleY = (&R3DCar_EnvMapInfo)[local_50].eScaleY;
+    *(int *)(carObj->render).signalLight = (&R3DCar_EnvMapInfo)[local_50].rideHeight << 7;
+    *(int *)&(carObj->render).currentCarType = (&R3DCar_EnvMapInfo)[local_50].upgradeHeight << 7;*/
 
-    std::ofstream obj_dump;
-    std::stringstream obj_name;
-    obj_name << "./assets/testa2.obj";
-    obj_dump.open(obj_name.str());
-    /* Print Part name*/
-    obj_dump << "o " << "PS1_Test" << std::endl;
-    int DUMP_PART_IDX = -1;
+    for (uint8_t partIdx = 0; partIdx < 57; ++partIdx) {
+        std::ofstream obj_dump;
+        std::stringstream obj_name;
+        obj_name << "./assets/diab" << (int) partIdx << ".obj";
+        obj_dump.open(obj_name.str());
+        /* Print Part name*/
+        obj_dump << "o " << "Diab" << (int) partIdx << std::endl;
 
-    for (uint8_t partIdx = 0; partIdx < 57; ++partIdx, objectInfo += 6) {
-        fail:
-        int objOffset = fileOffset;
         Transformer_zObj *Nobj = reinterpret_cast<Transformer_zObj *>(mem + fileOffset);
         fileOffset += sizeof(Transformer_zObj);
         scene->obj[partIdx] = Nobj;
@@ -260,21 +262,19 @@ void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
                 fileOffset += 2;
             }
             // Lets get those verts, regardless of whether normals are packed in the file
-            if (partIdx == DUMP_PART_IDX) {
-                for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
-                    VECTOR vt = {
-                            (int) *(short *) ((int) &Nobj->vertex->x + (vertIdx * sizeof(COORD16))) +
-                            (int) (short) ((uint32_t) Nobj->translation.x >> 8),
-                            (int) *(short *) ((int) &Nobj->vertex->y + (vertIdx * sizeof(COORD16))) +
-                            (int) (short) ((uint32_t) Nobj->translation.y >> 8),
-                            (int) (*(short *) ((int) &Nobj->vertex->z + (vertIdx * sizeof(COORD16))) +
-                            (int) (short) ((uint32_t) Nobj->translation.z >> 8)) >> 2,
-                            0
-                    };
-                    obj_dump << "v " << vt.vx << " " << vt.vy << " " << vt.vz << std::endl;
-                }
+            for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
+                VECTOR vt = {
+                        (int) *(short *) ((int) &Nobj->vertex->x + (vertIdx * sizeof(COORD16))) +
+                        (int) (short) ((uint32_t) Nobj->translation.x >> 8),
+                        (int) *(short *) ((int) &Nobj->vertex->y + (vertIdx * sizeof(COORD16))) +
+                        (int) (short) ((uint32_t) Nobj->translation.y >> 8),
+                        (int) (*(short *) ((int) &Nobj->vertex->z + (vertIdx * sizeof(COORD16))) +
+                        (int) (short) ((uint32_t) Nobj->translation.z >> 8)),
+                        0
+                };
+                obj_dump << "v " << vt.vx << " " << vt.vy << " " << vt.vz << std::endl;
             }
-            if (!skipNormals) {
+            if ((R3DCar_ObjectInfo[partIdx][1] & 1U) != 0 && carType < 0x1c) {
                 Nobj->Nvertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
                 fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
                 // Alignment again
@@ -290,30 +290,22 @@ void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
                             0
                     };
                 }
+                // I think we're only good to write out these as normals if this is true? Refer to disasm. Not important for now
+                // Will just manually calculate them!
+                // if ((objectInfo[partIdx][1] & 0x40U) != 0) {
             }
         }
         if (Nobj->numFacet != 0) {
             Nobj->facet = reinterpret_cast<Transformer_zFacet *>(mem + fileOffset);
             fileOffset += (uint32_t) Nobj->numFacet * sizeof(Transformer_zFacet);
-            if (partIdx == DUMP_PART_IDX) {
-                for (uint32_t i = 0; i < Nobj->numFacet; ++i) {
-                    obj_dump << "f " << (Nobj->facet + i)->vertexId0 + 1
-                             << " " << (Nobj->facet + i)->vertexId1 + 1 << " "
-                             << (Nobj->facet + i)->vertexId2 + 1 << std::endl;
-                }
-                obj_dump.close();
+            for (uint32_t i = 0; i < Nobj->numFacet; ++i) {
+                obj_dump << "f " << (Nobj->facet + i)->vertexId0 + 1
+                         << " " << (Nobj->facet + i)->vertexId1 + 1
+                         << " " << (Nobj->facet + i)->vertexId2 + 1
+                         << std::endl;
             }
         }
-        // TODO: We start to read garbage, quickly.
-        // If the next object is corrupt, shouldn't have read vert norms, let's jump back and skip them?
-        Transformer_zObj *corruptCheck = reinterpret_cast<Transformer_zObj *>(mem + fileOffset);
-        if (corruptCheck->numFacet + corruptCheck->numVertex > 1000) {
-            LOG(INFO) << "Part " << (int) partIdx << " didn't have normals!";
-            fileOffset = objOffset;
-            skipNormals = !skipNormals;
-            goto fail;
-        }
-        skipNormals = false;
+        obj_dump.close();
     }
     fclose(geo);
     free(mem);
