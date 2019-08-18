@@ -222,6 +222,14 @@ private:
                         currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                     }
                 }
+            } else if (itr->path().filename().string() == ToString(NFS_4_PS1)) {
+                currentNFS.tag = NFS_4_PS1;
+
+                for (directory_iterator carItr(itr->path().string()); carItr != directory_iterator(); ++carItr) {
+                    if (carItr->path().filename().string().find("ZZZ") == 0 && carItr->path().filename().string().find(".VIV") != std::string::npos) {
+                        currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
+                    }
+                }
             } else if (itr->path().filename().string() == ToString(NFS_4)) {
                 currentNFS.tag = NFS_4;
 

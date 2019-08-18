@@ -15,9 +15,9 @@ include(cmake/CompileGLSLToSPIRV.cmake)
 MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 
 #[[Static linking broken under Mac OSX]]
-if (NOT APPLE)
+#[[if (NOT APPLE)
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
-endif ()
+endif ()]]
 
 set(OpenGL_GL_PREFERENCE LEGACY)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
@@ -150,7 +150,11 @@ set(SOURCE_FILES
         src/Shaders/MenuShader.cpp
         src/Shaders/MenuShader.h
         src/Util/ImageLoader.cpp
-        src/Util/ImageLoader.h src/Loaders/NFS5Loader.cpp src/Loaders/NFS5Loader.h src/Loaders/NFS4PS1Loader.cpp src/Loaders/NFS4PS1Loader.h)
+        src/Util/ImageLoader.h
+        src/Loaders/NFS5Loader.cpp
+        src/Loaders/NFS5Loader.h
+        src/Loaders/NFS4PS1Loader.cpp
+        src/Loaders/NFS4PS1Loader.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 
@@ -160,12 +164,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")
 #[[STB]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/stb")
 #[[FREETYPE]]
-if(DEFINED ENV{Agent.Name})
-    set(CMAKE_DISABLE_FIND_PACKAGE_ZLIB TRUE)
-    set(CMAKE_DISABLE_FIND_PACKAGE_BZip2 TRUE)
-    set(CMAKE_DISABLE_FIND_PACKAGE_PNG TRUE)
-    set(CMAKE_DISABLE_FIND_PACKAGE_HarfBuzz TRUE)
-endif()
 add_subdirectory(lib/freetype2)
 include_directories(lib/freetype2/include)
 target_link_libraries(OpenNFS freetype)
@@ -210,7 +208,7 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
 #[[Vulkan Configuration]]
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
-if (NOT (APPLE OR WIN32))
+if (NOT (APPLE OR WIN32 OR UNIX))
     find_package(Vulkan REQUIRED)
     message("VULKAN FOUND")
     include_directories(${Vulkan_INCLUDE_DIRS})
@@ -227,8 +225,8 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
 #[[Noesis]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/Noesis")
-target_link_libraries(OpenNFS "${CMAKE_CURRENT_SOURCE_DIR}/lib/Noesis/Noesis.lib")
+#[[include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/Noesis")
+target_link_libraries(OpenNFS "${CMAKE_CURRENT_SOURCE_DIR}/lib/Noesis/Noesis.lib")]]
 #[[Google Test Framework Configuration]]
 #[[
 add_subdirectory(lib/googletest)

@@ -27,8 +27,6 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             globalObjects = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
             break;
         case NFS_3:
-            // TODO: Remove this code that tests FFN Load
-            //NFS3::LoadFFN("G:/NFS3/nfs3_modern_base_eng_font_fuckery/fedata/text/sci20.ffn.ori");
             track_path << NFS_3_TRACK_PATH << track_name;
             trackData = NFS3::LoadTrack(track_path.str());
             nBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
@@ -39,7 +37,7 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             break;
         case NFS_3_PS1:
             track_path << "/" << track_name;
-            trackData = NFS2<PS1>::LoadTrack(track_path.str());
+            trackData = NFS2<NFS2_DATA::PS1>::LoadTrack(track_path.str());
             nBlocks = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->nBlocks;
             cameraAnimations = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->cameraAnimation;
             textureArrayID =  boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->textureArrayID;

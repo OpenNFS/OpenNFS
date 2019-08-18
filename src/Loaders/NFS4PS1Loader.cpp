@@ -1,251 +1,88 @@
-//
-// Created by Amrik on 09/08/2019.
-//
-
-#include <cstring>
-#include <fstream>
-
 #include "NFS4PS1Loader.h"
-#include "../Util/Logger.h"
 
-static uint8_t R3DCar_ObjectInfo[57][6] = {
-        0x00, 0x49, 0x00, 0x01, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
-        0x20, 0x02, 0x01, 0x01, 0x00, 0x00,
-        0x30, 0x00, 0x01, 0x01, 0x00, 0x00,
-        0xF8, 0x00, 0x00, 0x00, 0x01, 0x00,
-        0xF0, 0x08, 0x0A, 0x0A, 0x00, 0x00,
-        0xE0, 0x00, 0x0C, 0x00, 0x00, 0x00,
-        0xE0, 0x00, 0x00, 0x0C, 0x00, 0x00,
-        0xEC, 0x89, 0x0B, 0x0B, 0x00, 0x0B,
-        0xF0, 0x88, 0x0B, 0x0B, 0x00, 0x0B,
-        0xEC, 0x89, 0x0C, 0x0C, 0x00, 0x0C,
-        0xF0, 0x88, 0x0C, 0x0C, 0x00, 0x0C,
-        0xE8, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0xE8, 0x00, 0x00, 0x01, 0x00, 0x00,
-        0xD4, 0x00, 0x11, 0x00, 0x00, 0x00,
-        0xD4, 0x00, 0x11, 0x00, 0x00, 0x00,
-        0xE1, 0x08, 0x01, 0x00, 0x00, 0x00,
-        0xE1, 0x08, 0x00, 0x01, 0x00, 0x00,
-        0xD4, 0x00, 0x12, 0x12, 0x12, 0x00,
-        0xE2, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0xE2, 0x00, 0x00, 0x01, 0x00, 0x00,
-        0xD4, 0x00, 0x13, 0x13, 0x13, 0x00,
-        0xE2, 0x18, 0x0F, 0x10, 0x00, 0x00,
-        0xE2, 0x08, 0x00, 0x01, 0x00, 0x00,
-        0xD4, 0x10, 0x14, 0x14, 0x14, 0x00,
-        0xE2, 0x18, 0x0F, 0x10, 0x00, 0x00,
-        0xE2, 0x08, 0x00, 0x01, 0x00, 0x00,
-        0xD4, 0x10, 0x15, 0x15, 0x15, 0x00,
-        0xE8, 0x08, 0x01, 0x00, 0x00, 0x00,
-        0xE8, 0x08, 0x00, 0x01, 0x00, 0x00,
-        0xD4, 0x00, 0x16, 0x16, 0x16, 0x00,
-        0xD8, 0x00, 0x01, 0x01, 0x00, 0x00,
-        0xF4, 0x00, 0x0D, 0x00, 0x00, 0x00,
-        0xF4, 0x00, 0x0E, 0x00, 0x00, 0x00,
-        0xD4, 0x00, 0x11, 0x00, 0x00, 0x00,
-        0x30, 0x00, 0x02, 0x01, 0x00, 0x00,
-        0x28, 0x02, 0x03, 0x00, 0x00, 0x03,
-        0x28, 0x02, 0x03, 0x00, 0x00, 0x03,
-        0x26, 0x02, 0x04, 0x00, 0x00, 0x00,
-        0x24, 0x02, 0x04, 0x00, 0x00, 0x04,
-        0x24, 0x02, 0x04, 0x00, 0x00, 0x04,
-        0x00, 0x49, 0x01, 0x00, 0x00, 0x01,
-        0x00, 0x49, 0x01, 0x00, 0x00, 0x01,
-        0xF0, 0x80, 0x05, 0x00, 0x00, 0x05,
-        0xF0, 0x80, 0x06, 0x00, 0x00, 0x06,
-        0xE8, 0x89, 0x07, 0x07, 0x00, 0x07,
-        0xE8, 0x89, 0x08, 0x08, 0x00, 0x08,
-        0x1F, 0x00, 0x01, 0x01, 0x00, 0x00,
-        0x1F, 0x00, 0x01, 0x01, 0x00, 0x00,
-        0x20, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0x20, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0x20, 0x00, 0x09, 0x01, 0x00, 0x00,
-        0x20, 0x00, 0x09, 0x01, 0x00, 0x00,
-        0x20, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0x20, 0x00, 0x01, 0x00, 0x00, 0x00,
-        0x20, 0x00, 0x09, 0x01, 0x00, 0x00,
-        0x20, 0x00, 0x09, 0x01, 0x00, 0x00
-};
 
-/*Transformer_zScene * R3DCar_ReadInCarData(char *filename, Car_tObj *carObj)
-{
-    int iVar4;
-    int iVar5;
-    int iVar7;
-    short sVar8;
-    int iVar9;
-    int iVar10;
-    extern char **objectInfo;
-    uint32_t uVar14;
-    char infilename [16];
-    int local_70;
-    int local_6c;
-    int local_68;
-    uint16_t local_60;
-    uint16_t local_5e;
-    short local_5c;
-    int datasize;
-    short local_40;
-    int *local_38;
-    uint16_t *local_34;
-    int local_30;
-
-    strcpy(infilename,filename);
-    strcat(infilename,".geo");
-    iVar10 = 0x24c;
-
-    local_38 = &local_70;
-    local_34 = &local_60;
-    local_30 = 0x7e07e07f;
-    SerializedGroup *geoVivEntry = locatebig(0,infilename);
-    // No VIV entry gets unpacked, the file just gets located and datasize returns start offset in VIV?
-    locatebigentry(0,infilename,0,0,&datasize);
-    Transformer_zScene *scene = (Transformer_zScene *)reservememadr(infilename,datasize,0);
-    Transformer_zScene *sceneCopy = scene;
-    // Move GEO block to Transformer_zScene, size of GEO
-    blockmove(geoVivEntry, scene, datasize);
-    // This is obviously a special number
-    int palCopyNum = (int)(carObj->render).palCopyNum[0xd];
-    // LUT of Environment map info
-    int local_4c = (&R3DCar_EnvMapInfo)[palCopyNum * 4];
-    int local_48 = (&DAT_80116dc0)[palCopyNum * 4];
-
-    // These probably don't matter
-    *(Cars_tRenderInfo *)(carObj->render).signalLight = (&DAT_80116dc4)[palCopyNum * 4] << 7;
-    objectInfo = &R3DCar_ObjectInfo;
-    *(Cars_tRenderInfo *)&(carObj->render).currentCarType = (&DAT_80116dc8)[palCopyNum * 4] << 7;
-
-    int partIdx = 0;
-    while (partIdx < 0x39) {
-        Transformer_zObj *Nobj = (Transformer_zObj *)((int)scene->obj + iVar10);
-        // 28?
-        iVar10 = iVar10 + 0x1c;
-        sceneCopy->obj[partIdx] = Nobj;
-        // Apply some part specific translation offsets
-        if (partIdx == 0x27) {
-            (Nobj->translation).x = (Nobj->translation).x + -0x7ae;
-        }
-        if (partIdx == 0x28) {
-            (Nobj->translation).x = (Nobj->translation).x + 0x7ae;
-        }
-        uint16_t vertNum = Nobj->numVertex;
-        if (vertNum != 0) {
-            Nobj->vertex = (COORD16 *)((int)scene->obj + iVar10);
-            iVar10 = iVar10 + (uint32_t)vertNum * 6;
-            if ((vertNum & 1) != 0) {
-                iVar10 = iVar10 + 2;
-            }
-            if (((vertNum != 0) && ((objectInfo[1] & 1) != 0)) && (palCopyNum < 0x1c)) {
-                Nobj->Nvertex = (COORD16 *)((int)scene->obj + iVar10);
-                iVar10 = iVar10 + (uint32_t)Nobj->numVertex * 6;
-                if ((Nobj->numVertex & 1) != 0) {
-                    iVar10 = iVar10 + 2;
-                }
-                int vertIdx = 0;
-                local_40 = (short)((uint32_t)(Nobj->translation).x >> 8);
-                iVar4 = (Nobj->translation).y;
-                iVar7 = (Nobj->translation).z;
-                iVar9 = 0;
-                while (vertIdx < (int)(uint32_t)Nobj->numVertex) {
-                    local_70 = (int)*(short *)((int)&Nobj->vertex->x + iVar9) + (int)local_40;
-                    local_6c = (int)*(short *)((int)&Nobj->vertex->y + iVar9) + (int)(short)((uint32_t)iVar4 >> 8);
-                    local_68 = (int)*(short *)((int)&Nobj->vertex->z + iVar9) + (int)(short)((uint32_t)iVar7 >> 8) >> 2;
-                    VectorNormalS(local_38,local_34);
-                    if ((objectInfo[1] & 0x40) != 0) {
-                        local_70 = (int)*(short *)((int)&Nobj->Nvertex->x + iVar9) + (int)(short)local_60;
-                        local_6c = (int)*(short *)((int)&Nobj->Nvertex->y + iVar9) + (int)(short)local_5e;
-                        local_68 = (int)*(short *)((int)&Nobj->Nvertex->z + iVar9) + (int)local_5c;
-                        VectorNormalS(local_38,local_34);
-                    }
-                    iVar5 = (int)((uint32_t)local_60 << 0x10) >> 0x10;
-                    sVar8 = (short)(iVar5 / local_4c);
-
-                    ASSERT(local_4c, "Fuck knows but EA says this is bad so");
-                    ASSERT((local_4c != -1) && (iVar5 != -0x80000000) , "Fuck knows but EA says this is bad so");
-                    ASSERT(local_48, "Fuck knows but EA says this is bad so");
-                    ASSERT((local_48 != -1) && ((int)(short)local_5e != -0x80000000) , "Fuck knows but EA says this is bad so");
-
-                    iVar5 = (int)((long long)iVar5 * (long long)local_30 >> 0x25) - ((int)((uint32_t) local_60 << 0x10) >> 0x1f);
-                    uVar14 = ((int)(short)local_5e / local_48) * iVar5;
-                    local_60 = (uint16_t)iVar5;
-                    local_5c = (short)(int)((long long)(int) local_5c * (long long)local_30 >> 0x25) -
-                            (local_5c >> 0xf);
-                    local_5e = (uint16_t)uVar14;
-                    if (((int)(uVar14 * 0x10000) < 0) && ((uVar14 & 0xff) != 0)) {
-                        local_5e = local_5e + 0x100;
-                    }
-                    uVar14 = (uint32_t)local_5e;
-                    local_5e = (short)local_5e >> 8;
-                    if (sVar8 < -0x3f) {
-                        sVar8 = -0x3f;
-                    }
-                    if (0x3f < sVar8) {
-                        sVar8 = 0x3f;
-                    }
-                    if ((int)(uVar14 << 0x10) >> 0x18 < -0x3f) {
-                        local_5e = -0x3f;
-                    }
-                    if (0x3f < (short)local_5e) {
-                        local_5e = 0x3f;
-                    }
-                    vertIdx = vertIdx + 1;
-                    local_5e = sVar8 - local_5e;
-                    *(uint16_t *)((int)&Nobj->Nvertex->x + iVar9) = local_60;
-                    *(short *)((int)&Nobj->Nvertex->y + iVar9) = local_5e;
-                    *(short *)((int)&Nobj->Nvertex->z + iVar9) = local_5c;
-                    iVar9 = iVar9 + 6;
-                }
-            }
-        }
-        if (Nobj->numFacet != 0) {
-            Nobj->facet = (Transformer_zFacet *)((int)scene->obj + iVar10);
-            iVar10 = iVar10 + (uint32_t)Nobj->numFacet * 0xc;
-        }
-        objectInfo = objectInfo + 6;
-        partIdx = partIdx + 1;
+std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath) {
+    boost::filesystem::path p(carVivPath);
+    std::string vivName = p.filename().string();
+    std::string carName = vivName.substr(3, vivName.size() - 7);
+    for (char &letter : carName) {
+        if (letter <= 'Z' && letter >= 'A') letter -= ('Z' - 'z');
     }
-    return sceneCopy;
-}*/
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <memory.h>
+    std::stringstream carOutPath, geoPath, pshPath;
+    carOutPath << CAR_PATH << ToString(NFS_4_PS1) << "/" << carName << "/";
+    geoPath << CAR_PATH << ToString(NFS_4_PS1) << "/" << carName << "/zz" << carName << ".geo";
+    pshPath << CAR_PATH << ToString(NFS_4_PS1) << "/" << carName << "/zz" << carName << ".psh";
 
-void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
+    ASSERT(Utils::ExtractVIV(carVivPath, carOutPath.str()),
+           "Unable to extract " << carVivPath << " to " << carOutPath.str());
+
+    // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
+    std::map<unsigned int, Texture> carTextures;
+    std::map<std::string, uint32_t> remappedTextureIds;
+    uint32_t remappedTextureID = 0;
+    carOutPath << "Textures/";
+
+    ImageLoader::ExtractPSH(pshPath.str(), carOutPath.str());
+
+    for (boost::filesystem::directory_iterator itr(carOutPath.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
+        if (itr->path().filename().string().find("BMP") != std::string::npos &&
+            itr->path().filename().string().find("-a") == std::string::npos) {
+            // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
+            remappedTextureIds[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
+            GLubyte *data;
+            GLsizei width;
+            GLsizei height;
+            ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u),
+                   "Texture " << itr->path().string() << " did not load succesfully!");
+            carTextures[remappedTextureIds[itr->path().filename().replace_extension("").string()]] = Texture(
+                    remappedTextureIds[itr->path().filename().replace_extension("").string()], data,
+                    static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+        }
+    }
+
+    GLuint textureArrayId = TrackUtils::MakeTextureArray(carTextures, false);
+
+    CarData carData;
+    carData.meshes = LoadGEO(geoPath.str(), carTextures);
+    return std::make_shared<Car>(carData, NFS_4_PS1, carName, textureArrayId);
+}
+
+std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsigned int, Texture> carTextures) {
+    // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f))));
+    LOG(INFO) << "Parsing NFS4 PS1 GEO File located at " << geoPath;
+    std::vector<CarModel> carMeshes;
+
     // Build a buffer of the file in memory
-    struct stat fstat;
-    stat(carGeoPath.c_str(), &fstat);
-    char *mem = (char *) malloc(fstat.st_size + 1);
+    struct stat fstat{};
+    stat(geoPath.c_str(), &fstat);
+    char *mem = (char *) malloc(static_cast<size_t>(fstat.st_size + 1));
 
-    FILE *geo = fopen(carGeoPath.c_str(), "rb");
-    ASSERT((int) fread(mem, 1, fstat.st_size, geo) == fstat.st_size, "WEWPS");
+    FILE *geo = fopen(geoPath.c_str(), "rb");
+    ASSERT((int) fread(mem, 1, fstat.st_size, geo) == fstat.st_size, "Couldn't allocate buffer for " << geoPath);
 
     int fileOffset = 0x24c;
-    Transformer_zScene *scene = reinterpret_cast<Transformer_zScene *>(mem);
+    auto *scene = reinterpret_cast<PS1::Transformer_zScene *>(mem);
 
     // These are special numbers from NFS4 PS1 runtime/The parent NFS4 PS1 Car_tObj object that affect parsing
     // Diablo == 0x0D
     int carType = 0; //(int)(carObj->render).palCopyNum[0xd];
-    // palCopyNum[0xD] = car type
-    /* int eScaleX = (&R3DCar_EnvMapInfo)[local_50].eScaleX;
-    int eScaleY = (&R3DCar_EnvMapInfo)[local_50].eScaleY;
-    *(int *)(carObj->render).signalLight = (&R3DCar_EnvMapInfo)[local_50].rideHeight << 7;
-    *(int *)&(carObj->render).currentCarType = (&R3DCar_EnvMapInfo)[local_50].upgradeHeight << 7;*/
 
     for (uint8_t partIdx = 0; partIdx < 57; ++partIdx) {
-        std::ofstream obj_dump;
-        std::stringstream obj_name;
-        obj_name << "./assets/diab" << (int) partIdx << ".obj";
-        obj_dump.open(obj_name.str());
-        /* Print Part name*/
-        obj_dump << "o " << "Diab" << (int) partIdx << std::endl;
-
-        Transformer_zObj *Nobj = reinterpret_cast<Transformer_zObj *>(mem + fileOffset);
-        fileOffset += sizeof(Transformer_zObj);
+        // Prep the ONFS CarModel data
+        float specularDamper = 0.2f;
+        float specularReflectivity = 0.02f;
+        float envReflectivity = 0.4f;
+        std::vector<uint32_t> indices;
+        std::vector<uint32_t> polygonFlags;
+        std::vector<glm::vec3> vertices;
+        std::vector<glm::vec3> normals;
+        std::vector<glm::vec2> uvs;
+        std::vector<unsigned int> textureIndices;
+        // Start reading the file
+        auto *Nobj = reinterpret_cast<PS1::Transformer_zObj *>(mem + fileOffset);
+        fileOffset += sizeof(PS1::Transformer_zObj);
         scene->obj[partIdx] = Nobj;
         // Apply some part specific translation offsets
         if (partIdx == 39) {
@@ -254,59 +91,72 @@ void NFS4PS1Loader::LoadCar(const std::string &carGeoPath) {
             Nobj->translation.x += 0x7ae;
         }
 
+        glm::vec3 center = rotationMatrix * glm::vec3{
+                Nobj->translation.x >> 8,
+                Nobj->translation.y >> 8,
+                Nobj->translation.z >> 8
+        };
+
         if (Nobj->numVertex != 0) {
-            Nobj->vertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
-            fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
+            Nobj->vertex = reinterpret_cast<PS1::COORD16 *>(mem + fileOffset);
+            fileOffset += (uint32_t) Nobj->numVertex * sizeof(PS1::COORD16);
             // Alignment
             if (Nobj->numVertex % 2) {
                 fileOffset += 2;
             }
             // Lets get those verts, regardless of whether normals are packed in the file
             for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
-                VECTOR vt = {
-                        (int) *(short *) ((int) &Nobj->vertex->x + (vertIdx * sizeof(COORD16))) +
-                        (int) (short) ((uint32_t) Nobj->translation.x >> 8),
-                        (int) *(short *) ((int) &Nobj->vertex->y + (vertIdx * sizeof(COORD16))) +
-                        (int) (short) ((uint32_t) Nobj->translation.y >> 8),
-                        (int) (*(short *) ((int) &Nobj->vertex->z + (vertIdx * sizeof(COORD16))) +
-                        (int) (short) ((uint32_t) Nobj->translation.z >> 8)),
-                        0
-                };
-                obj_dump << "v " << vt.vx << " " << vt.vy << " " << vt.vz << std::endl;
+                vertices.emplace_back(glm::vec3((int) *(&Nobj->vertex->x + (vertIdx * sizeof(PS1::COORD16))),
+                                                (int) *(&Nobj->vertex->y + (vertIdx * sizeof(PS1::COORD16))),
+                                                (int) *(&Nobj->vertex->z + (vertIdx * sizeof(PS1::COORD16)))));
             }
             if ((R3DCar_ObjectInfo[partIdx][1] & 1U) != 0 && carType < 0x1c) {
-                Nobj->Nvertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
-                fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
+                Nobj->Nvertex = reinterpret_cast<PS1::COORD16 *>(mem + fileOffset);
+                fileOffset += (uint32_t) Nobj->numVertex * sizeof(PS1::COORD16);
                 // Alignment again
                 if (Nobj->numVertex % 2) {
                     fileOffset += 2;
                 }
                 // Get normals
-                for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
-                    VECTOR nm = {
-                            (int) *(short *) ((int) &Nobj->Nvertex->x + (vertIdx * sizeof(COORD16))),
-                            (int) *(short *) ((int) &Nobj->Nvertex->y + (vertIdx * sizeof(COORD16))),
-                            (int) *(short *) ((int) &Nobj->Nvertex->z + (vertIdx * sizeof(COORD16))),
-                            0
-                    };
-                }
-                // I think we're only good to write out these as normals if this is true? Refer to disasm. Not important for now
-                // Will just manually calculate them!
+                // I think we're only good to write out these as normals if this is true?
+                // Refer to disasm. Not important for now. Will just manually calculate them!
                 // if ((objectInfo[partIdx][1] & 0x40U) != 0) {
+                for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
+                    normals.emplace_back(glm::vec3((int) *(&Nobj->Nvertex->x + (vertIdx * sizeof(PS1::COORD16))),
+                                                   (int) *(&Nobj->Nvertex->y + (vertIdx * sizeof(PS1::COORD16))),
+                                                   (int) *(&Nobj->Nvertex->z + (vertIdx * sizeof(PS1::COORD16)))));
+                }
             }
         }
         if (Nobj->numFacet != 0) {
-            Nobj->facet = reinterpret_cast<Transformer_zFacet *>(mem + fileOffset);
-            fileOffset += (uint32_t) Nobj->numFacet * sizeof(Transformer_zFacet);
-            for (uint32_t i = 0; i < Nobj->numFacet; ++i) {
-                obj_dump << "f " << (Nobj->facet + i)->vertexId0 + 1
-                         << " " << (Nobj->facet + i)->vertexId1 + 1
-                         << " " << (Nobj->facet + i)->vertexId2 + 1
-                         << std::endl;
+            Nobj->facet = reinterpret_cast<PS1::Transformer_zFacet *>(mem + fileOffset);
+            fileOffset += (uint32_t) Nobj->numFacet * sizeof(PS1::Transformer_zFacet);
+            for (uint32_t facetIdx = 0; facetIdx < Nobj->numFacet; ++facetIdx) {
+                Texture glTexture = carTextures[(Nobj->facet + facetIdx)->textureIndex];
+                polygonFlags.emplace_back((Nobj->facet + facetIdx)->flag);
+                polygonFlags.emplace_back((Nobj->facet + facetIdx)->flag);
+                polygonFlags.emplace_back((Nobj->facet + facetIdx)->flag);
+                textureIndices.emplace_back((Nobj->facet + facetIdx)->textureIndex);
+                textureIndices.emplace_back((Nobj->facet + facetIdx)->textureIndex);
+                textureIndices.emplace_back((Nobj->facet + facetIdx)->textureIndex);
+                indices.emplace_back((Nobj->facet + facetIdx)->vertexId0);
+                indices.emplace_back((Nobj->facet + facetIdx)->vertexId1);
+                indices.emplace_back((Nobj->facet + facetIdx)->vertexId2);
+                uvs.emplace_back(glm::vec2((Nobj->facet + facetIdx)->uv0.u * glTexture.max_u, (Nobj->facet + facetIdx)->uv0.v) * glTexture.max_v);
+                uvs.emplace_back(glm::vec2((Nobj->facet + facetIdx)->uv1.u * glTexture.max_u, (Nobj->facet + facetIdx)->uv1.v) * glTexture.max_v);
+                uvs.emplace_back(glm::vec2((Nobj->facet + facetIdx)->uv2.u * glTexture.max_u, (Nobj->facet + facetIdx)->uv2.v) * glTexture.max_v);
             }
         }
-        obj_dump.close();
+        // TODO: No polygonFlags for now
+        if (Nobj->numVertex && Nobj->numFacet && (R3DCar_ObjectInfo[partIdx][1] & 1U) != 0) {
+            carMeshes.emplace_back(
+                    CarModel(std::string(geoPartNames[partIdx]), vertices, uvs, textureIndices, normals, indices,
+                             center, specularDamper,
+                             specularReflectivity, envReflectivity));
+        }
     }
     fclose(geo);
     free(mem);
+
+    return carMeshes;
 }

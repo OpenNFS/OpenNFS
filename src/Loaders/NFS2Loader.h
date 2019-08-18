@@ -19,8 +19,6 @@
 
 using namespace NFS2_DATA;
 
-void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons);
-
 template <typename Platform>  class NFS2 {
 public:
     static std::shared_ptr<typename Platform::TRACK> LoadTrack(const std::string &track_base_path);

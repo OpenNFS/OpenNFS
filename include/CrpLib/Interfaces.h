@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <cstring>
 
 namespace CrpLib {
 

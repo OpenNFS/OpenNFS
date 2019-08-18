@@ -3,26 +3,6 @@
 using namespace Utils;
 using namespace TrackUtils;
 
-void DumpToObj(int block_Idx, PS1::GEO::BLOCK_HEADER *geoBlockHeader, PS1::GEO::BLOCK_3D *vertices, PS1::GEO::BLOCK_3D *normals, PS1::GEO::POLY_3D *polygons) {
-    std::ofstream obj_dump;
-    std::stringstream obj_name;
-    obj_name << "./assets/psx_test/ps1_geo_" << block_Idx << ".obj";
-    obj_dump.open(obj_name.str());
-
-    /* Print Part name*/
-    obj_dump << "o " << "PS1_Test" << std::endl;
-    for (uint32_t i = 0; i < geoBlockHeader->nVerts; ++i) {
-        obj_dump << "v " << vertices[i].x << " " << vertices[i].y << " " << vertices[i].z << std::endl;
-    }
-
-    // TODO: How can these be normals if there aren't enough for Per vertex? On PSX they're likely per polygon
-    for (uint32_t i = 0; i < geoBlockHeader->nNormals; ++i) {
-        obj_dump << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z << std::endl;
-    }
-
-    obj_dump.close();
-}
-
 template<>
 std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids) {
     // Mike Thompson CarEd disasm parts table for NFS2 Cars
