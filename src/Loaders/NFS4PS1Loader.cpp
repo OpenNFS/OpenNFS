@@ -1,5 +1,6 @@
 #include "NFS4PS1Loader.h"
 
+constexpr float carScaleFactor = 1000.f;
 
 std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath) {
     boost::filesystem::path p(carVivPath);
@@ -12,7 +13,7 @@ std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath) {
     std::stringstream carOutPath, geoPath, pshPath;
     carOutPath << CAR_PATH << ToString(NFS_4_PS1) << "/" << carName << "/";
     geoPath << CAR_PATH << ToString(NFS_4_PS1) << "/" << carName << "/zz" << carName << ".geo";
-    pshPath << CAR_PATH << ToString(NFS_4_PS1) << "/" << carName << "/zz" << carName << ".psh";
+    pshPath << CAR_PATH << ToString(NFS_4_PS1) << "/" << carName << "/zz" << carName << "d.psh";
 
     ASSERT(Utils::ExtractVIV(carVivPath, carOutPath.str()),
            "Unable to extract " << carVivPath << " to " << carOutPath.str());
@@ -25,7 +26,8 @@ std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath) {
 
     ImageLoader::ExtractPSH(pshPath.str(), carOutPath.str());
 
-    for (boost::filesystem::directory_iterator itr(carOutPath.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
+    for (boost::filesystem::directory_iterator itr(carOutPath.str());
+         itr != boost::filesystem::directory_iterator(); ++itr) {
         if (itr->path().filename().string().find("BMP") != std::string::npos &&
             itr->path().filename().string().find("-a") == std::string::npos) {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
@@ -96,6 +98,7 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
                 Nobj->translation.y >> 8,
                 Nobj->translation.z >> 8
         };
+        center /= carScaleFactor;
 
         if (Nobj->numVertex != 0) {
             Nobj->vertex = reinterpret_cast<PS1::COORD16 *>(mem + fileOffset);
@@ -106,9 +109,11 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
             }
             // Lets get those verts, regardless of whether normals are packed in the file
             for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
-                vertices.emplace_back(glm::vec3((int) *(&Nobj->vertex->x + (vertIdx * sizeof(PS1::COORD16))),
-                                                (int) *(&Nobj->vertex->y + (vertIdx * sizeof(PS1::COORD16))),
-                                                (int) *(&Nobj->vertex->z + (vertIdx * sizeof(PS1::COORD16)))));
+                glm::vec3 vertex = glm::vec3(Nobj->vertex[vertIdx].x,
+                                             Nobj->vertex[vertIdx].y,
+                                             Nobj->vertex[vertIdx].z);
+                vertex /= carScaleFactor;
+                vertices.emplace_back(vertex);
             }
             if ((R3DCar_ObjectInfo[partIdx][1] & 1U) != 0 && carType < 0x1c) {
                 Nobj->Nvertex = reinterpret_cast<PS1::COORD16 *>(mem + fileOffset);
@@ -121,11 +126,11 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
                 // I think we're only good to write out these as normals if this is true?
                 // Refer to disasm. Not important for now. Will just manually calculate them!
                 // if ((objectInfo[partIdx][1] & 0x40U) != 0) {
-                for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
-                    normals.emplace_back(glm::vec3((int) *(&Nobj->Nvertex->x + (vertIdx * sizeof(PS1::COORD16))),
-                                                   (int) *(&Nobj->Nvertex->y + (vertIdx * sizeof(PS1::COORD16))),
-                                                   (int) *(&Nobj->Nvertex->z + (vertIdx * sizeof(PS1::COORD16)))));
-                }
+                /*for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {*/
+                /*    normals.emplace_back(glm::vec3((int) *(&Nobj->Nvertex->x + (vertIdx * sizeof(PS1::COORD16))),*/
+                /*                                   (int) *(&Nobj->Nvertex->y + (vertIdx * sizeof(PS1::COORD16))),*/
+                /*                                   (int) *(&Nobj->Nvertex->z + (vertIdx * sizeof(PS1::COORD16)))));*/
+                /*}*/
             }
         }
         if (Nobj->numFacet != 0) {
@@ -133,22 +138,40 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
             fileOffset += (uint32_t) Nobj->numFacet * sizeof(PS1::Transformer_zFacet);
             for (uint32_t facetIdx = 0; facetIdx < Nobj->numFacet; ++facetIdx) {
                 Texture glTexture = carTextures[(Nobj->facet + facetIdx)->textureIndex];
-                polygonFlags.emplace_back((Nobj->facet + facetIdx)->flag);
-                polygonFlags.emplace_back((Nobj->facet + facetIdx)->flag);
-                polygonFlags.emplace_back((Nobj->facet + facetIdx)->flag);
-                textureIndices.emplace_back((Nobj->facet + facetIdx)->textureIndex);
-                textureIndices.emplace_back((Nobj->facet + facetIdx)->textureIndex);
-                textureIndices.emplace_back((Nobj->facet + facetIdx)->textureIndex);
-                indices.emplace_back((Nobj->facet + facetIdx)->vertexId0);
-                indices.emplace_back((Nobj->facet + facetIdx)->vertexId1);
-                indices.emplace_back((Nobj->facet + facetIdx)->vertexId2);
-                uvs.emplace_back(glm::vec2((Nobj->facet + facetIdx)->uv0.u * glTexture.max_u, (Nobj->facet + facetIdx)->uv0.v) * glTexture.max_v);
-                uvs.emplace_back(glm::vec2((Nobj->facet + facetIdx)->uv1.u * glTexture.max_u, (Nobj->facet + facetIdx)->uv1.v) * glTexture.max_v);
-                uvs.emplace_back(glm::vec2((Nobj->facet + facetIdx)->uv2.u * glTexture.max_u, (Nobj->facet + facetIdx)->uv2.v) * glTexture.max_v);
+
+                polygonFlags.emplace_back(Nobj->facet[facetIdx].flag);
+                polygonFlags.emplace_back(Nobj->facet[facetIdx].flag);
+                polygonFlags.emplace_back(Nobj->facet[facetIdx].flag);
+                textureIndices.emplace_back(Nobj->facet[facetIdx].textureIndex);
+                textureIndices.emplace_back(Nobj->facet[facetIdx].textureIndex);
+                textureIndices.emplace_back(Nobj->facet[facetIdx].textureIndex);
+                indices.emplace_back(Nobj->facet[facetIdx].vertexId0);
+                indices.emplace_back(Nobj->facet[facetIdx].vertexId1);
+                indices.emplace_back(Nobj->facet[facetIdx].vertexId2);
+                uvs.emplace_back(
+                        glm::vec2(Nobj->facet[facetIdx].uv0.u * glTexture.max_u, Nobj->facet[facetIdx].uv0.v) *
+                        glTexture.max_v);
+                uvs.emplace_back(
+                        glm::vec2(Nobj->facet[facetIdx].uv1.u * glTexture.max_u, Nobj->facet[facetIdx].uv1.v) *
+                        glTexture.max_v);
+                uvs.emplace_back(
+                        glm::vec2(Nobj->facet[facetIdx].uv2.u * glTexture.max_u, Nobj->facet[facetIdx].uv2.v) *
+                        glTexture.max_v);
+                // If no normals were packed in the file, lets generate some
+                // TODO: For now generate them always
+                //if ((R3DCar_ObjectInfo[partIdx][1] & 1U) == 0) {
+                    glm::vec3 normal =
+                            rotationMatrix * Utils::CalculateNormal(vertices[Nobj->facet[facetIdx].vertexId0],
+                                                                    vertices[Nobj->facet[facetIdx].vertexId1],
+                                                                    vertices[Nobj->facet[facetIdx].vertexId2]);
+                    normals.emplace_back(normal);
+                    normals.emplace_back(normal);
+                    normals.emplace_back(normal);
+                //}
             }
         }
         // TODO: No polygonFlags for now
-        if (Nobj->numVertex && Nobj->numFacet && (R3DCar_ObjectInfo[partIdx][1] & 1U) != 0) {
+        if (Nobj->numVertex && Nobj->numFacet) {
             carMeshes.emplace_back(
                     CarModel(std::string(geoPartNames[partIdx]), vertices, uvs, textureIndices, normals, indices,
                              center, specularDamper,

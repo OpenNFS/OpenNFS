@@ -293,26 +293,28 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
                 }
             }
             break;
-        // TODO: Update to reflect a proper car part name table
         case NFS_4_PS1:
             for (auto &car_model : loaded_car_models) {
-                if (car_model.m_name.find(":HB") != std::string::npos) {
+                if (car_model.m_name.find("Right Body High") != std::string::npos) {
                     car_model.enable();
                     carBodyModel = car_model;
-                } else if (car_model.m_name.find(":HLRW") != std::string::npos) {
+                } else if (car_model.m_name.find("Rear Left Wheel") != std::string::npos) {
                     car_model.enable();
                     leftRearWheelModel = car_model;
-                } else if (car_model.m_name.find(":HLFW") != std::string::npos) {
+                } else if (car_model.m_name.find("Front Left Tire") != std::string::npos) {
                     car_model.enable();
                     leftFrontWheelModel = car_model;
-                } else if (car_model.m_name.find(":HRRW") != std::string::npos) {
+                } else if (car_model.m_name.find("Rear Right Wheel") != std::string::npos) {
                     car_model.enable();
                     rightRearWheelModel = car_model;
-                } else if (car_model.m_name.find(":HRFW") != std::string::npos) {
+                } else if (car_model.m_name.find("Front Right Tire") != std::string::npos) {
                     car_model.enable();
                     rightFrontWheelModel = car_model;
-                } else {
+                } else if (car_model.m_name.find("Left Body High") != std::string::npos) {
                     car_model.enable();
+                    miscModels.emplace_back(car_model);
+                }
+                else {
                     miscModels.emplace_back(car_model);
                 }
             }
