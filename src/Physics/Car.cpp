@@ -209,64 +209,22 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
                 }
             }
             break;
-        case NFS_3: {
-            int nLoadedModels = 0;
-            if (loaded_car_models.size() < 5) {
-                carBodyModel = loaded_car_models[0];
-                carBodyModel.enable();
-                for (auto &car_model : loaded_car_models) {
-                    if (car_model.m_name.find("medium l front wheel") != std::string::npos) {
-                        car_model.enable();
-                        leftFrontWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else if (car_model.m_name.find("medium r front wheel") != std::string::npos) {
-                        car_model.enable();
-                        rightFrontWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else if (car_model.m_name.find("medium l rear wheel") != std::string::npos) {
-                        car_model.enable();
-                        leftRearWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else if (car_model.m_name.find("medium r rear wheel") != std::string::npos) {
-                        car_model.enable();
-                        rightRearWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else {
-                        if (car_model.m_name != loaded_car_models[0].m_name) {
-                            miscModels.emplace_back(car_model);
-                        }
-                    }
-                }
-            } else {
-                for (auto &car_model : loaded_car_models) {
-                    if (car_model.m_name == "high body") {
-                        car_model.enable();
-                        carBodyModel = car_model;
-                        ++nLoadedModels;
-                    } else if (car_model.m_name.find("left front wheel") != std::string::npos) {
-                        car_model.enable();
-                        leftFrontWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else if (car_model.m_name.find("right front wheel") != std::string::npos) {
-                        car_model.enable();
-                        rightFrontWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else if (car_model.m_name.find("left rear wheel") != std::string::npos) {
-                        car_model.enable();
-                        leftRearWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else if (car_model.m_name.find("right rear wheel") != std::string::npos) {
-                        car_model.enable();
-                        rightRearWheelModel = car_model;
-                        ++nLoadedModels;
-                    } else {
-                        miscModels.emplace_back(car_model);
-                    }
+        case NFS_3:
+            carBodyModel = loaded_car_models[0];
+            carBodyModel.enable();
+            leftFrontWheelModel = loaded_car_models[1];
+            leftFrontWheelModel.enable();
+            rightFrontWheelModel = loaded_car_models[2];
+            rightFrontWheelModel.enable();
+            leftRearWheelModel = loaded_car_models[3];
+            leftRearWheelModel.enable();
+            rightRearWheelModel = loaded_car_models[4];
+            rightRearWheelModel.enable();
+            if (loaded_car_models.size() >= 5) {
+                for (uint8_t partIdx = 5; partIdx < loaded_car_models.size(); ++partIdx) {
+                    miscModels.emplace_back(loaded_car_models[partIdx]);
                 }
             }
-            ASSERT(nLoadedModels >= 5,
-                   "Unable to assign all necessary physics objects to available FCE meshes. Inconsistent naming in loaded vehicle is responsible for this");
-        }
             break;
         case NFS_4:
             for (auto &car_model : loaded_car_models) {
@@ -313,8 +271,7 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
                 } else if (car_model.m_name.find("Left Body High") != std::string::npos) {
                     car_model.enable();
                     miscModels.emplace_back(car_model);
-                }
-                else {
+                } else {
                     miscModels.emplace_back(car_model);
                 }
             }
@@ -340,7 +297,8 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
                     rightRearWheelModel = car_model;
                 } else {
                     // Enable all High LOD ig1 models
-                    car_model.enabled = ((car_model.m_name.find("ig1") != std::string::npos) && (car_model.m_name.find("Shadow") == std::string::npos));
+                    car_model.enabled = ((car_model.m_name.find("ig1") != std::string::npos) &&
+                                         (car_model.m_name.find("Shadow") == std::string::npos));
                     miscModels.emplace_back(car_model);
                 }
             }
@@ -388,9 +346,11 @@ void Car::update() {
     leftHeadlight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
     rightHeadlight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
     leftHeadlight.position = Utils::bulletToGlm(trans.getOrigin()) +
-                             (leftHeadlight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+                             (leftHeadlight.initialPosition *
+                              glm::inverse(Utils::bulletToGlm(trans.getRotation())));
     rightHeadlight.position = Utils::bulletToGlm(trans.getOrigin()) +
-                              (rightHeadlight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+                              (rightHeadlight.initialPosition *
+                               glm::inverse(Utils::bulletToGlm(trans.getRotation())));
 
     // Lets go update wheel geometry positions based on physics feedback
     for (int i = 0; i < m_vehicle->getNumWheels(); i++) {
@@ -510,10 +470,12 @@ void Car::genRaycasts(btDynamicsWorld *dynamicsWorld) {
     // Up raycast is used to check for flip over, and also whether inside VROAD
     upRayCallback.m_collisionFilterMask = downRayCallback.m_collisionFilterMask = COL_TRACK | COL_VROAD_CEIL;
     dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition), upRayCallback);
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(downCastPosition), downRayCallback);
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(downCastPosition),
+                           downRayCallback);
     if (upRayCallback.hasHit()) {
         upDistance = glm::distance(carBodyPosition,
-                                   glm::vec3(upRayCallback.m_hitPointWorld.getX(), upRayCallback.m_hitPointWorld.getY(),
+                                   glm::vec3(upRayCallback.m_hitPointWorld.getX(),
+                                             upRayCallback.m_hitPointWorld.getY(),
                                              upRayCallback.m_hitPointWorld.getZ()));
     } else {
         upDistance = kFarDistance;
