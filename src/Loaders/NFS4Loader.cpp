@@ -26,7 +26,11 @@ std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path, NFSVer vers
     ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
     if(version == MCO){
-        ImageLoader::ExtractQFS(fsh_path.str(), car_out_path.str() + "/Textures/");
+        if(boost::filesystem::exists( fsh_path.str()) ) {
+            ImageLoader::ExtractQFS(fsh_path.str(), car_out_path.str() + "/Textures/");
+        } else {
+            LOG(INFO) << "Can't find MCO car texture at " << fsh_path.str() << " (More work needed to identify when certain fsh's are used)";
+        }
     }
 
     return std::make_shared<Car>(LoadFCE(fce_path.str(), version), version, car_name);
