@@ -5,42 +5,6 @@ using namespace TrackUtils;
 
 template<>
 std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids) {
-    // Mike Thompson CarEd disasm parts table for NFS2 Cars
-    std::string PC_PART_NAMES[32]{
-            "High Additional Body Part",
-            "High Main Body Part",
-            "High Ground Part",
-            "High Front Part",
-            "High Back Part",
-            "High Left Side Part",
-            "High Right Side Part",
-            "High Additional Left Side Part",
-            "High Additional Right Side Part",
-            "High Spoiler Part",
-            "High Additional Part",
-            "High Backlights",
-            "High Front Right Wheel",
-            "High Front Right Wheel Part",
-            "High Front Left Wheel",
-            "High Front Left Wheel Part",
-            "High Rear Right Wheel",
-            "High Rear Right Wheel Part",
-            "High Rear Left Wheel",
-            "High Rear Left Wheel Part",
-            "Medium Additional Body Part",
-            "Medium Main Body Part",
-            "Medium Ground Part",
-            "Low Wheel Part",
-            "Low Main Part",
-            "Low Side Part",
-            "Reserved",
-            "Reserved",
-            "Reserved",
-            "Reserved",
-            "Reserved",
-            "Reserved",
-    };
-
     float carScaleFactor = 2000.f;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
@@ -91,7 +55,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
        std::streamoff end = geo.tellg();
         // Polygon Table start is aligned on 4 Byte boundary
         if (((end - start) % 4)) {
-            LOG(DEBUG) << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: ";
+            LOG(DEBUG) << "Part " << part_Idx << " [" << PC::GEO::PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: ";
             uint16_t *pad = new uint16_t[3];
             geo.read((char *) pad, sizeof(uint16_t) * 3);
             for (uint32_t i = 0; i < 3; ++i) {
@@ -150,7 +114,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.f) / carScaleFactor, (geoBlockHeader->position[1] / 256.f) / carScaleFactor, (geoBlockHeader->position[2] / 256.f) / carScaleFactor);
-        car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
+        car_meshes.emplace_back(CarModel(PC::GEO::PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         delete geoBlockHeader;
         delete[] vertices;
@@ -160,41 +124,6 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
 
 template<>
 std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids) {
-    std::string PS1_PART_NAMES[33]{
-            "High Additional Body Part",
-            "High Main Body Part",
-            "High Ground Part",
-            "High Front Part",
-            "High Rear Part",
-            "High Left Side Part",
-            "High Right Side Part",
-            "High Additional Left Side Part",
-            "High Additional Right Side Part",
-            "High Front Rear Grilles",
-            "High Extra Side Parts",
-            "High Spoiler Part",
-            "High Additional Part",
-            "High Backlights",
-            "High Front Right Wheel",
-            "High Front Right Wheel Part",
-            "High Front Left Wheel",
-            "High Front Left Wheel Part",
-            "High Rear Right Wheel",
-            "High Rear Right Wheel Part",
-            "High Rear Left Wheel",
-            "High Rear Left Wheel Part",
-            "Medium Additional Body Part",
-            "Medium Main Body Part",
-            "Medium Ground Part",
-            "Wheel Positions",
-            "Medium/Low Side Parts",
-            "Low Main Part",
-            "Low Side Part",
-            "Headlight Positions",
-            "Backlight Positions",
-            "Reserved",
-            "Reserved"
-    };
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0)));
     float carScaleFactor = 2000.f;
 
@@ -214,7 +143,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
 
     while (true) {
        std::streamoff start = geo.tellg();
-        LOG(DEBUG) << "Part " << part_Idx + 1 << " [" << PS1_PART_NAMES[part_Idx + 1] << "]";
+        LOG(DEBUG) << "Part " << part_Idx + 1 << " [" << PS1::GEO::PART_NAMES[part_Idx + 1] << "]";
         LOG(DEBUG) << "BlockStartOffset:   " << start;
         auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
         while (geoBlockHeader->nVerts == 0) {
@@ -368,7 +297,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.0f) / carScaleFactor, (geoBlockHeader->position[1] / 256.0f) / carScaleFactor, (geoBlockHeader->position[2] / 256.0f) / carScaleFactor);
-        car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
+        car_meshes.emplace_back(CarModel(PS1::GEO::PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         // Dump GeoBlock data for correlating with geometry/LOD's/Special Cases
         LOG(DEBUG) << "nVerts:    " << geoBlockHeader->nVerts << std::endl;
@@ -423,7 +352,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
 }
 
 template<typename Platform>
-std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
+std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path, NFSVer version) {
     boost::filesystem::path p(car_base_path);
     std::string car_name = p.filename().string();
 
@@ -437,37 +366,51 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path) {
     std::map<std::string, uint32_t> remapped_texture_ids;
     uint32_t remappedTextureID = 0;
 
-    if (std::is_same<Platform, PS1>::value) {
-        car_out_path << CAR_PATH << ToString(NFS_3_PS1) << "/" << car_name << "/";
-        ImageLoader::ExtractPSH(psh_path.str(), car_out_path.str());
-    } else {
-        car_out_path << CAR_PATH << ToString(NFS_2) << "/" << car_name << "/";
-        ImageLoader::ExtractQFS(qfs_path.str(), car_out_path.str());
+    switch(version){
+        case NFS_3_PS1:
+        case NFS_2_PS1:
+            car_out_path << CAR_PATH << ToString(version) << "/" << car_name << "/";
+            ImageLoader::ExtractPSH(psh_path.str(), car_out_path.str());
+            break;
+        case NFS_2:
+        case NFS_2_SE:
+            car_out_path << CAR_PATH << ToString(version) << "/" << car_name << "/";
+            ImageLoader::ExtractQFS(qfs_path.str(), car_out_path.str());
+            break;
+        default:
+            ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it.");
     }
 
     for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
         if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
             remapped_texture_ids[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
-            if (std::is_same<Platform, PS1>::value) {
-                GLubyte *data;
-                GLsizei width;
-                GLsizei height;
-                ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " << itr->path().string() << " did not load succesfully!");
-                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
-            } else {
-                bmpread_t bmpAttr; // This will leak.
-                ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
-                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
+            switch(version){
+                case NFS_3_PS1:
+                case NFS_2_PS1:
+                    GLubyte *data;
+                    GLsizei width;
+                    GLsizei height;
+                    ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " << itr->path().string() << " did not load succesfully!");
+                    car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+                    break;
+                case NFS_2:
+                case NFS_2_SE:
+                    bmpread_t bmpAttr; // This will leak.
+                    ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
+                    car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] = Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
+                    break;
+                default:
+                    ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it.");
             }
         }
     }
 
-    GLuint texture_array_id = MakeTextureArray(car_textures, false);
-
+    // This must run before geometry load, as it will affect UV's
+    GLint textureArrayID = MakeTextureArray(car_textures, false);
     CarData carData;
     carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
-    return std::make_shared<Car>(carData, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, car_name, texture_array_id);
+    return std::make_shared<Car>(carData, version, car_name, textureArrayID);
 }
 
 // TRACK

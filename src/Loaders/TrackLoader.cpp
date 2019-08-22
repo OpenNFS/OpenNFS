@@ -53,6 +53,11 @@ ONFSTrack::ONFSTrack(NFSVer nfs_version, const std::string &track_name) {
             trackBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
             globalObjects = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
             break;
+        case NFS_4_PS1:
+            track_path << "/" << track_name << ".GRP";
+            trackData = NFS4PS1::LoadTrack(track_path.str());
+            ASSERT(false, "Implement!");
+            break;
         case UNKNOWN:
             ASSERT(false, "Unknown track type!");
         default:

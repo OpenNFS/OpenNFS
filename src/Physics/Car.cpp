@@ -40,12 +40,29 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
         name = id;
     }
 
-    if (!Config::get().vulkanRender && (tag == NFS_3 || tag == NFS_4)) {
+    if (!Config::get().vulkanRender) {
         std::stringstream car_texture_path;
-        car_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/car00.tga";
         int width, height;
-        textureID = ImageLoader::LoadImage(car_texture_path.str(), &width, &height, GL_CLAMP_TO_BORDER,
-                                           GL_LINEAR_MIPMAP_LINEAR);
+        car_texture_path << CAR_PATH << ToString(tag) << "/" << id;
+        if (tag == NFS_3 || tag == NFS_4) {
+            car_texture_path << "/car00.tga";
+            textureID = ImageLoader::LoadImage(car_texture_path.str(), &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
+        } else if (tag == MCO) {
+            std::stringstream car_alpha_texture_path;
+            car_texture_path << "/Textures/0000.BMP";
+            car_alpha_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/Textures/0000-a.BMP";
+            GLubyte *imageData;
+            ImageLoader::LoadBmpWithAlpha(car_texture_path.str().c_str(), car_alpha_texture_path.str().c_str(), &imageData, &width, &height);
+            glGenTextures(1, &textureID);
+            glBindTexture(GL_TEXTURE_2D, textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
     }
 
     // Load these from Carp.txt
@@ -112,7 +129,7 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
     localTrans.setIdentity();
 
     //Shift center of Mass (by 0 for now)
-    if (tag == NFS_3 || tag == NFS_4) {
+    if (tag == NFS_3 || tag == NFS_4 || tag == MCO) {
         localTrans.setOrigin(btVector3(0.0, 0.0, 0));
     } else if (tag == NFS_3_PS1) {
         localTrans.setOrigin(btVector3(0.0, 0.1f, 0));
@@ -148,7 +165,6 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
         case NFS_1:
             break;
         case NFS_2_PS1:
-            break;
         case NFS_2_SE:
         case NFS_2:
         case NFS_3_PS1:
@@ -160,28 +176,6 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
                 rightRearWheelModel = loaded_car_models[0];
                 loaded_car_models[1].enable();
                 carBodyModel = loaded_car_models[1];
-            } else if (loaded_car_models.size() < 20) {
-                loaded_car_models[2].enable();
-                leftFrontWheelModel = loaded_car_models[2];
-                rightFrontWheelModel = loaded_car_models[2];
-                leftRearWheelModel = loaded_car_models[2];
-                rightRearWheelModel = loaded_car_models[2];
-                for (auto &car_model : loaded_car_models) {
-                    if (car_model.m_name == "Medium Main Body Part") {
-                        car_model.enable();
-                        carBodyModel = car_model;
-                    } else if (car_model.m_name.find("Medium") != std::string::npos &&
-                               car_model.m_name.find("Wheel") == std::string::npos) {
-                        if (car_model.m_name != loaded_car_models[2].m_name) {
-                            car_model.enable();
-                            miscModels.emplace_back(car_model);
-                        }
-                    } else {
-                        if (car_model.m_name != loaded_car_models[2].m_name) {
-                            miscModels.emplace_back(car_model);
-                        }
-                    }
-                }
             } else {
                 for (auto &car_model : loaded_car_models) {
                     if (car_model.m_name == "High Main Body Part") {
@@ -269,6 +263,31 @@ void Car::setModels(std::vector<CarModel> loaded_car_models) {
                     car_model.enable();
                     rightFrontWheelModel = car_model;
                 } else if (car_model.m_name.find("Left Body High") != std::string::npos) {
+                    car_model.enable();
+                    miscModels.emplace_back(car_model);
+                } else {
+                    miscModels.emplace_back(car_model);
+                }
+            }
+            break;
+        case MCO:
+            for (auto &car_model : loaded_car_models) {
+                if (car_model.m_name == ":Hbody") {
+                    car_model.enable();
+                    carBodyModel = car_model;
+                } else if (car_model.m_name == ":PPLRwheel") {
+                    car_model.enable();
+                    leftRearWheelModel = car_model;
+                } else if (car_model.m_name == ":PPLFwheel") {
+                    car_model.enable();
+                    leftFrontWheelModel = car_model;
+                } else if (car_model.m_name == ":PPRRwheel") {
+                    car_model.enable();
+                    rightRearWheelModel = car_model;
+                } else if (car_model.m_name == ":PPRFwheel") {
+                    car_model.enable();
+                    rightFrontWheelModel = car_model;
+                } else if (car_model.m_name.find(":H") != std::string::npos) {
                     car_model.enable();
                     miscModels.emplace_back(car_model);
                 } else {

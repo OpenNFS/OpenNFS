@@ -5,18 +5,31 @@ using namespace Utils;
 using namespace TrackUtils;
 
 // CAR
-std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path) {
+std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path, NFSVer version) {
     boost::filesystem::path p(car_base_path);
-    std::string car_name = p.filename().string();
+    std::string car_name = p.filename().replace_extension("").string();
 
-    std::stringstream viv_path, car_out_path, fce_path;
-    viv_path << car_base_path << "/car.viv";
-    car_out_path << CAR_PATH << ToString(NFS_4) << "/" << car_name << "/";
-    fce_path << CAR_PATH << ToString(NFS_4) << "/" << car_name << "/car.fce";
+    std::stringstream viv_path, car_out_path, fce_path, fsh_path;
+    viv_path << car_base_path;
+    fce_path << CAR_PATH << ToString(version) << "/" << car_name;
+    car_out_path << CAR_PATH << ToString(version) << "/" << car_name << "/";
 
+    if(version == NFS_4){
+        viv_path << "/car.viv";
+        fce_path << "/car.fce";
+    } else {
+        // MCO
+        viv_path << ".viv";
+        fce_path << "/part.fce";
+        fsh_path << "../resources/MCO/Data/skins/" << car_name.substr(0, car_name.size()-1) << "dec.fsh";
+    }
     ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
-    return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_4, car_name);
+    if(version == MCO){
+        ImageLoader::ExtractQFS(fsh_path.str(), car_out_path.str() + "/Textures/");
+    }
+
+    return std::make_shared<Car>(LoadFCE(fce_path.str(), version), version, car_name);
 }
 
 std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
@@ -52,7 +65,7 @@ void parsePolygonFlags(int triangle, uint32_t polygonFlags) {
     }
 }
 
-CarData NFS4::LoadFCE(const std::string &fce_path) {
+CarData NFS4::LoadFCE(const std::string &fce_path, NFSVer version) {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
     bool isTraffic = fce_path.find("TRAFFIC") != std::string::npos;
@@ -116,9 +129,9 @@ CarData NFS4::LoadFCE(const std::string &fce_path) {
                 uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], partTriangles[tri_Idx].uvTable[4]));
                 uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
             } else {
-                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], partTriangles[tri_Idx].uvTable[3]));
-                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], partTriangles[tri_Idx].uvTable[4]));
-                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], partTriangles[tri_Idx].uvTable[5]));
+                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], version == MCO ? 1.0f - partTriangles[tri_Idx].uvTable[3] : partTriangles[tri_Idx].uvTable[3]));
+                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], version == MCO ? 1.0f - partTriangles[tri_Idx].uvTable[4] : partTriangles[tri_Idx].uvTable[4]));
+                uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], version == MCO ? 1.0f - partTriangles[tri_Idx].uvTable[5] : partTriangles[tri_Idx].uvTable[5]));
             }
         }
 
@@ -134,41 +147,41 @@ CarData NFS4::LoadFCE(const std::string &fce_path) {
         delete[] partVertices;
         delete[] partTriangles;
     }
-
     fce.close();
 
     // Go get car colours from FEDATA
-    boost::filesystem::path fcePath(fce_path);
-    boost::filesystem::path fceBaseDir = fcePath.parent_path();
+    if(version == NFS_4){
+        boost::filesystem::path fcePath(fce_path);
+        boost::filesystem::path fceBaseDir = fcePath.parent_path();
+        std::ifstream fedata(fceBaseDir.string() + "/fedata.eng", std::ios::in | std::ios::binary);
+        // Go get the offset of car name
+        fedata.seekg(FEDATA::NFS4::MENU_NAME_FILEPOS_OFFSET, std::ios::beg);
+        uint32_t menuNameOffset = 0;
+        fedata.read((char*) &menuNameOffset, sizeof(uint32_t));
+        fedata.seekg(menuNameOffset, std::ios::beg);
+        char carMenuName[64];
+        fedata.read((char*) carMenuName, 64u);
+        std::string carMenuNameStr(carMenuName);
+        carData.carName = carMenuNameStr;
 
-    std::ifstream fedata(fceBaseDir.string() + "/fedata.eng", std::ios::in | std::ios::binary);
-    // Go get the offset of car name
-    fedata.seekg(FEDATA::NFS4::MENU_NAME_FILEPOS_OFFSET, std::ios::beg);
-    uint32_t menuNameOffset = 0;
-    fedata.read((char*) &menuNameOffset, sizeof(uint32_t));
-    fedata.seekg(menuNameOffset, std::ios::beg);
-    char carMenuName[64];
-    fedata.read((char*) carMenuName, 64u);
-    std::string carMenuNameStr(carMenuName);
-    carData.carName = carMenuNameStr;
+        // Jump to location of FILEPOS table for car colour names
+        fedata.seekg(FEDATA::NFS4::COLOUR_TABLE_OFFSET, std::ios::beg);
+        // Read that table in
+        auto *colourNameOffsets = new uint32_t[fceHeader->nColours];
+        fedata.read((char*) colourNameOffsets, fceHeader->nColours * sizeof(uint32_t));
 
-    // Jump to location of FILEPOS table for car colour names
-    fedata.seekg(FEDATA::NFS4::COLOUR_TABLE_OFFSET, std::ios::beg);
-    // Read that table in
-    auto *colourNameOffsets = new uint32_t[fceHeader->nColours];
-    fedata.read((char*) colourNameOffsets, fceHeader->nColours * sizeof(uint32_t));
-
-    for(uint8_t colourIdx = 0; colourIdx < fceHeader->nColours; ++colourIdx){
-        fedata.seekg(colourNameOffsets[colourIdx]);
-        uint32_t colourNameLength = colourIdx < (fceHeader->nColours - 1) ? (colourNameOffsets[colourIdx+1] - colourNameOffsets[colourIdx]) : 32;
-        char *colourName = new char[colourNameLength];
-        fedata.read((char*) colourName, colourNameLength);
-        std::string colourNameStr(colourName);
-        carData.colours[colourIdx].colourName = colourNameStr;
-        delete []colourName;
+        for(uint8_t colourIdx = 0; colourIdx < fceHeader->nColours; ++colourIdx){
+            fedata.seekg(colourNameOffsets[colourIdx]);
+            uint32_t colourNameLength = colourIdx < (fceHeader->nColours - 1) ? (colourNameOffsets[colourIdx+1] - colourNameOffsets[colourIdx]) : 32;
+            char *colourName = new char[colourNameLength];
+            fedata.read((char*) colourName, colourNameLength);
+            std::string colourNameStr(colourName);
+            carData.colours[colourIdx].colourName = colourNameStr;
+            delete []colourName;
+        }
+        delete []colourNameOffsets;
+        delete fceHeader;
     }
-    delete []colourNameOffsets;
-    delete fceHeader;
 
     return carData;
 }

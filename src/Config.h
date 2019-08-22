@@ -44,6 +44,9 @@ const std::string NFS_3_CAR_PATH  = "/gamedata/carmodel/";
 const std::string NFS_4_TRACK_PATH = "/DATA/TRACKS/";
 const std::string NFS_4_CAR_PATH = "/DATA/CARS/";
 
+const std::string MCO_TRACK_PATH = "/Data/Tracks/";
+const std::string MCO_CAR_PATH = "/Data/models/";
+
 const std::string NFS_5_TRACK_PATH = "/GameData/Track/";
 const std::string NFS_5_CAR_PATH = "/GameData/CarModel/";
 
@@ -62,6 +65,8 @@ const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks
 // ----- Defaults -----
 const std::string DEFAULT_CAR = "diab";
 const std::string DEFAULT_TRACK = "trk000";
+const std::string DEFAULT_CAR_NFS_VER = ToString(NFS_3);
+const std::string DEFAULT_TRACK_NFS_VER = ToString(NFS_3);
 const int         DEFAULT_NUM_RACERS = 0;
 
 /* --------------- ONFS Runtime parameters here -----------------*/
@@ -81,6 +86,7 @@ public:
     };
     // Better named parameters instead of using var_map with command-line arg name
     std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
+    std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
     int nRacers = DEFAULT_NUM_RACERS;
     /* -- Physics/AI Params -- */
     bool useFullVroad = false;

@@ -48,11 +48,10 @@ Below is a table better describing the current level of asset load into OpenNFS:
 | NFS4 PC  | 90%  | 90%    |       |
 | NFS4 PS1 | 50%  |        |       |
 | NFS3 PC  | 100% | 100%   | 95%   |
-| NFS3 PS1 | 40%  | 100%   | 95%   |
+| NFS3 PS1 | 40%  | 90%    | 95%   |
 | NFS2 SE  | 90%  | 90%    |       |
 | NFS2 PC  | 90%  | 90%    |       |
-| NFS2 PC  | 90%  | 90%    |       |
-| NFS2 PS1 | 10%  | 10%    |       |
+| NFS2 PS1 | 90%  | 10%    |       |
 | NFS1     |      |        |       |
 
 ![Screenshot](../master/doc/BuildProgress.png)

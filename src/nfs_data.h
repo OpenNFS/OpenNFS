@@ -737,7 +737,7 @@ namespace NFS3_4_DATA {
     };
 #pragma pack()
 
-    struct PS1 {
+    namespace PS1 {
         struct VECTOR // hashcode: 0xCB78D6DC (dec: -881273124)
         {
             long vx; // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
@@ -801,6 +801,9 @@ namespace NFS3_4_DATA {
             struct Transformer_zOverlay overlay[90]; // size=360, offset=228 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zScene', parent hashcode: 0x00000000 (dec: 0)
         };
 
+        struct TRACK {
+            std::string name;
+        };
     };
 };
 
@@ -1010,6 +1013,42 @@ namespace NFS2_DATA {
                 uint8_t vertex[4];
                 char texName[4];
             };
+
+            // Mike Thompson CarEd disasm parts table for NFS2 Cars
+            static constexpr char PART_NAMES[32][32] = {
+                    "High Additional Body Part",
+                    "High Main Body Part",
+                    "High Ground Part",
+                    "High Front Part",
+                    "High Back Part",
+                    "High Left Side Part",
+                    "High Right Side Part",
+                    "High Additional Left Side Part",
+                    "High Additional Right Side Part",
+                    "High Spoiler Part",
+                    "High Additional Part",
+                    "High Backlights",
+                    "High Front Right Wheel",
+                    "High Front Right Wheel Part",
+                    "High Front Left Wheel",
+                    "High Front Left Wheel Part",
+                    "High Rear Right Wheel",
+                    "High Rear Right Wheel Part",
+                    "High Rear Left Wheel",
+                    "High Rear Left Wheel Part",
+                    "Medium Additional Body Part",
+                    "Medium Main Body Part",
+                    "Medium Ground Part",
+                    "Low Wheel Part",
+                    "Low Main Part",
+                    "Low Side Part",
+                    "Reserved",
+                    "Reserved",
+                    "Reserved",
+                    "Reserved",
+                    "Reserved",
+                    "Reserved",
+            };
         };
     };
 
@@ -1180,6 +1219,41 @@ namespace NFS2_DATA {
                 int16_t unknown[9];
             };
 #pragma pack(pop)
+            static constexpr char PART_NAMES[33][32]{
+                    "High Additional Body Part",
+                    "High Main Body Part",
+                    "High Ground Part",
+                    "High Front Part",
+                    "High Rear Part",
+                    "High Left Side Part",
+                    "High Right Side Part",
+                    "High Additional Left Side Part",
+                    "High Additional Right Side Part",
+                    "High Front Rear Grilles",
+                    "High Extra Side Parts",
+                    "High Spoiler Part",
+                    "High Additional Part",
+                    "High Backlights",
+                    "High Front Right Wheel",
+                    "High Front Right Wheel Part",
+                    "High Front Left Wheel",
+                    "High Front Left Wheel Part",
+                    "High Rear Right Wheel",
+                    "High Rear Right Wheel Part",
+                    "High Rear Left Wheel",
+                    "High Rear Left Wheel Part",
+                    "Medium Additional Body Part",
+                    "Medium Main Body Part",
+                    "Medium Ground Part",
+                    "Wheel Positions",
+                    "Medium/Low Side Parts",
+                    "Low Main Part",
+                    "Low Side Part",
+                    "Headlight Positions",
+                    "Backlight Positions",
+                    "Reserved",
+                    "Reserved"
+            };
         };
     };
 }

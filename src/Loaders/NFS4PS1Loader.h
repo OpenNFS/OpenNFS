@@ -12,13 +12,14 @@
 #include <cstring>
 #include <boost/filesystem.hpp>
 #include "TrackUtils.h"
+#include "SerializedGroupOps.h"
 #include "../Util/Logger.h"
 #include "../Physics/Car.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
 #include "../nfs_data.h"
 
-using namespace NFS3_4_DATA;
+using namespace NFS3_4_DATA::PS1;
 
 // Dumped from IDA, [column 1] % 2 is used to check for part normal presence
 static constexpr uint8_t R3DCar_ObjectInfo[57][6] = {
@@ -144,10 +145,11 @@ static constexpr char geoPartNames[57][32] = {
 
 class NFS4PS1 {
 public:
-    static std::shared_ptr<Car> LoadCar(const std::string &carVivPath); // Car
-
+    static std::shared_ptr<Car> LoadCar(const std::string &carVivPath);
+    static std::shared_ptr<NFS3_4_DATA::PS1::TRACK> LoadTrack(const std::string &trackGrpPath);
 private:
     static std::vector<CarModel> LoadGEO(const std::string &geoPath, std::map<unsigned int, Texture> carTextures);
+    static void LoadGRP(const std::string &grpPath);
 };
 
 

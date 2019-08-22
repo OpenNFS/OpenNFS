@@ -143,18 +143,19 @@ set(SOURCE_FILES
         src/Race/RaceSession.h
         src/Scene/Spotlight.cpp
         src/Scene/Spotlight.h
-        src/Renderer/MenuRenderer.cpp
-        src/Renderer/MenuRenderer.h
+        #[[src/Renderer/MenuRenderer.cpp
+        src/Renderer/MenuRenderer.h]]
         src/Shaders/FontShader.cpp
         src/Shaders/FontShader.h
         src/Shaders/MenuShader.cpp
         src/Shaders/MenuShader.h
         src/Util/ImageLoader.cpp
+        src/Util/ImageLoader.cpp
         src/Util/ImageLoader.h
         src/Loaders/NFS5Loader.cpp
         src/Loaders/NFS5Loader.h
         src/Loaders/NFS4PS1Loader.cpp
-        src/Loaders/NFS4PS1Loader.h)
+        src/Loaders/NFS4PS1Loader.h src/Loaders/SerializedGroupOps.cpp src/Loaders/SerializedGroupOps.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 
@@ -163,10 +164,6 @@ add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")
 #[[STB]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/stb")
-#[[FREETYPE]]
-add_subdirectory(lib/freetype2)
-include_directories(lib/freetype2/include)
-target_link_libraries(OpenNFS freetype)
 #[[IMGUI]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
 #[[TINYOBJLOADER]]

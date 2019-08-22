@@ -22,7 +22,7 @@ using namespace NFS2_DATA;
 template <typename Platform>  class NFS2 {
 public:
     static std::shared_ptr<typename Platform::TRACK> LoadTrack(const std::string &track_base_path);
-    static std::shared_ptr<Car> LoadCar(const std::string &car_base_path);
+    static std::shared_ptr<Car> LoadCar(const std::string &car_base_path, NFSVer version);
 
     static void dbgPrintVerts(const std::string &path, const std::shared_ptr<typename Platform::TRACK> &track);
 private:

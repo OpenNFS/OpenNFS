@@ -28,7 +28,9 @@ void Config::InitFromCommandLine(int argc, char **argv) {
                 ("ngens", value(&nGenerations), "Number of generations to allow AI to develop for (training mode)")
                 ("nticks", value(&nTicks), "Number of ticks to allow AI agents to simulate in, per generation (training mode)")
                 ("car,c", value(&car), "Name of desired car")
+                ("carv,cv", value(&carTag), "NFS Version containing desired car (NFS_2, NFS_3, NFS_3_PS1, NFS_4, NFS_4_PS1, NFS_5")
                 ("track,t", value(&track), "Name of desired track")
+                ("trackv,tv", value(&trackTag), "NFS Version containing desired track (NFS_2, NFS_3, NFS_3_PS1, NFS_4, NFS_4_PS1, NFS_5")
                 ("resX,x", value<uint32_t>(&resX), "Horizontal screen resolution")
                 ("resY,y", value<uint32_t>(&resY), "Vertical screen resolution");
 
@@ -43,6 +45,8 @@ void Config::InitFromCommandLine(int argc, char **argv) {
 
         option_dependency(storedConfig, "train", "ngens");
         option_dependency(storedConfig, "train", "nticks");
+        option_dependency(storedConfig, "car", "carv");
+        option_dependency(storedConfig, "track", "trackv");
     }
     catch (std::exception &e) {
         std::cerr << e.what() << "\n";

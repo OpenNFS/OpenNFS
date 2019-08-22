@@ -52,13 +52,12 @@ public:
         GLFWwindow *window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
 
         AssetData loadedAssets = {
-                NFS_3, Config::get().car,
-                NFS_3, Config::get().track
+                getEnum(Config::get().carTag), Config::get().car,
+                getEnum(Config::get().trackTag), Config::get().track
         };
 
-        if (Config::get().car != DEFAULT_CAR) {
-            loadedAssets.carTag = FindCarByName(Config::get().car);
-        }
+        // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
+        ASSERT(loadedAssets.trackTag != UNKNOWN, "Unknown track type!");
 
         /*------- Render --------*/
         while (loadedAssets.trackTag != UNKNOWN) {
@@ -86,13 +85,9 @@ public:
         GLFWwindow *window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION + " (GA Training Mode)");
 
         AssetData trainingAssets = {
-                NFS_3, Config::get().car,
-                NFS_3, Config::get().track
+                getEnum(Config::get().carTag), Config::get().car,
+                getEnum(Config::get().trackTag), Config::get().track
         };
-
-        if (Config::get().car != DEFAULT_CAR) {
-            trainingAssets.carTag = FindCarByName(Config::get().car);
-        }
 
         /*------ ASSET LOAD ------*/
         //Load Track Data
@@ -125,6 +120,7 @@ private:
         bool hasLanes = false;
         bool hasMisc = false;
         bool hasSfx = false;
+        bool hasUI = false;
 
         for (directory_iterator itr(basePath); itr != directory_iterator(); ++itr) {
             NeedForSpeed currentNFS;
@@ -170,6 +166,20 @@ private:
                 ASSERT(exists(carBasePath), "NFS 2 car folder: " << carBasePath << " is missing.");
 
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
+                    if (carItr->path().filename().string().find(".GEO") != std::string::npos) {
+                        currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
+                    }
+                }
+            } else if (itr->path().filename().string() == ToString(NFS_2_PS1)) {
+                currentNFS.tag = NFS_2_PS1;
+
+                for (directory_iterator trackItr(itr->path().string()); trackItr != directory_iterator(); ++trackItr) {
+                    if (trackItr->path().filename().string().find(".TRK") != std::string::npos) {
+                        currentNFS.tracks.emplace_back(trackItr->path().filename().replace_extension("").string());
+                    }
+                }
+
+                for (directory_iterator carItr(itr->path().string()); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find(".GEO") != std::string::npos) {
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
@@ -225,9 +235,11 @@ private:
             } else if (itr->path().filename().string() == ToString(NFS_4_PS1)) {
                 currentNFS.tag = NFS_4_PS1;
 
-                for (directory_iterator carItr(itr->path().string()); carItr != directory_iterator(); ++carItr) {
-                    if (carItr->path().filename().string().find("ZZZ") == 0 && carItr->path().filename().string().find(".VIV") != std::string::npos) {
-                        currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
+                for (directory_iterator dirItr(itr->path().string()); dirItr != directory_iterator(); ++dirItr) {
+                    if (dirItr->path().filename().string().find("ZZZ") == 0 && dirItr->path().filename().string().find(".VIV") != std::string::npos) {
+                        currentNFS.cars.emplace_back(dirItr->path().filename().replace_extension("").string());
+                    } else if (dirItr->path().filename().string().find("ZTR") == 0 && dirItr->path().filename().string().find(".GRP") != std::string::npos){
+                        currentNFS.tracks.emplace_back(dirItr->path().filename().replace_extension("").string());
                     }
                 }
             } else if (itr->path().filename().string() == ToString(NFS_4)) {
@@ -271,6 +283,21 @@ private:
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("TRAFFIC/PURSUIT/" + carItr->path().filename().string());
                 }
+            }  else if (itr->path().filename().string() == ToString(MCO)) {
+                currentNFS.tag = MCO;
+
+                std::string trackBasePath = itr->path().string() + MCO_TRACK_PATH;
+                ASSERT(exists(trackBasePath), "Motor City Online track folder: " << trackBasePath << " is missing.");
+
+                for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
+                    currentNFS.tracks.emplace_back(trackItr->path().filename().string());
+                }
+
+                std::string carBasePath = itr->path().string() + MCO_CAR_PATH;
+                ASSERT(exists(carBasePath), "Motor City Online car folder: " << carBasePath << " is missing.");
+                for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
+                    currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
+                }
             } else if (itr->path().filename().string() == ToString(NFS_5)) {
                 currentNFS.tag = NFS_5;
 
@@ -304,6 +331,11 @@ private:
             } else if (itr->path().filename().string() == "sfx") {
                 hasSfx = true;
                 continue;
+            } else if (itr->path().filename().string() == "ui") {
+                hasUI = true;
+                continue;
+            } else if (itr->path().filename().string() == "asset") {
+                continue;
             } else {
                 LOG(WARNING) << "Unknown folder in resources directory: " << itr->path().filename().string();
                 continue;
@@ -314,42 +346,12 @@ private:
         ASSERT(hasLanes, "Missing \'lanes\' folder in resources directory");
         ASSERT(hasMisc, "Missing \'misc\' folder in resources directory");
         ASSERT(hasSfx, "Missing \'sfx\' folder in resources directory");
+        ASSERT(hasUI, "Missing \'ui\' folder in resources directory");
         ASSERT(installedNFS.size(), "No Need for Speed games detected in resources directory");
 
         for (auto nfs : installedNFS) {
             LOG(INFO) << "Detected: " << ToString(nfs.tag);
         }
-    }
-
-    NFSVer FindCarByName(const std::string &car_name) {
-        std::vector<NFSVer> possibleNFS;
-        NFSVer carNFSVersion;
-
-        for (auto nfs : installedNFS) {
-            for (const auto &car : nfs.cars) {
-                if (car == car_name) {
-                    possibleNFS.emplace_back(nfs.tag);
-                }
-            }
-        }
-
-        ASSERT(possibleNFS.size(), "Specified car '" << car_name << "' does not exist across any NFS.");
-
-        if (possibleNFS.size() == 1) {
-            carNFSVersion = possibleNFS[0];
-        } else {
-            LOG(INFO) << "Selected car exists in multiple NFS versions. Please select desired version: ";
-            for (uint8_t nfs_Idx = 0; nfs_Idx < possibleNFS.size(); ++nfs_Idx) {
-                LOG(INFO) << (int) nfs_Idx << ". " << ToString(possibleNFS[nfs_Idx]);
-            }
-            std::string line;
-            int choice = 0;
-            while ((std::cin >> choice)&&!(choice >= 0 && choice < possibleNFS.size())) {
-                LOG(INFO) << "Invalid selection, try again.";
-            }
-            carNFSVersion = possibleNFS[choice];
-        }
-        return carNFSVersion;
     }
 };
 

@@ -148,7 +148,6 @@ bool Renderer::Render(float totalTime, float deltaTime, Camera &camera, ParamDat
     skyRenderer.renderSky(camera, sun, userParams, totalTime);
     trackRenderer.renderTrack(playerCar, camera, nightTime ? moon : sun, activeTrackBlockIDs, userParams, shadowMapRenderer.depthTextureID, shadowMapRenderer.lightSpaceMatrix, ambientLightFactor);
     trackRenderer.renderLights(camera, activeTrackBlockIDs);
-    //menuRenderer.render();
 
     // Render the Car and racers
     // Get lights that will contribute to car body (currentBlock, a few blocks forward, and a few back (NBData would give weird results, as NBData blocks aren't generally adjacent))
@@ -321,12 +320,8 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
             ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_2:
-            break;
         case NFSVer::NFS_2_PS1:
-            ASSERT(false, "Unimplemented");
-            break;
         case NFSVer::NFS_2_SE:
-            ASSERT(false, "Unimplemented");
             break;
         case NFSVer::NFS_3_PS1:
             break;

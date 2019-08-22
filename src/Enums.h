@@ -36,5 +36,20 @@ enum collisionTypes {
         }                                                                     \
     }
 
-DEFINE_ENUM_WITH_STRING_CONVERSIONS(NFSVer, (UNKNOWN)(NFS_1)(NFS_2)(NFS_2_PS1)(NFS_2_SE)(NFS_3)(NFS_3_PS1)(NFS_4)(NFS_4_PS1)(NFS_5));
-DEFINE_ENUM_WITH_STRING_CONVERSIONS(EntityType, (XOBJ)(OBJ_POLY)(LANE)(SOUND)(LIGHT)(ROAD)(GLOBAL)(CAR)(VROAD)(VROAD_CEIL))
+DEFINE_ENUM_WITH_STRING_CONVERSIONS(NFSVer,(UNKNOWN)(NFS_1)(NFS_2)(NFS_2_PS1)(NFS_2_SE)(NFS_3)(NFS_3_PS1)(NFS_4)(NFS_4_PS1)(MCO)(NFS_5));
+DEFINE_ENUM_WITH_STRING_CONVERSIONS(EntityType,(XOBJ)(OBJ_POLY)(LANE)(SOUND)(LIGHT)(ROAD)(GLOBAL)(CAR)(VROAD)(VROAD_CEIL))
+
+// TODO: Use BOOST_PP to automate this
+inline NFSVer getEnum(const std::string &nfsVerString) {
+    if (nfsVerString == "NFS_1") return NFS_1;
+    else if (nfsVerString == "NFS_2") return NFS_2;
+    else if (nfsVerString == "NFS_2_PS1") return NFS_2_PS1;
+    else if (nfsVerString == "NFS_2_SE") return NFS_2_SE;
+    else if (nfsVerString == "NFS_3") return NFS_3;
+    else if (nfsVerString == "NFS_3_PS1") return NFS_3_PS1;
+    else if (nfsVerString == "NFS_4") return NFS_4;
+    else if (nfsVerString == "NFS_4_PS1") return NFS_4_PS1;
+    else if (nfsVerString == "MCO") return MCO;
+    else if (nfsVerString == "NFS_5") return NFS_2;
+    else return UNKNOWN;
+}

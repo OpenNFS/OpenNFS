@@ -5,6 +5,7 @@
 #include "NFS3Loader.h"
 #include "NFS2Loader.h"
 #include "NFS4Loader.h"
+#include "NFS4PS1Loader.h"
 #include <boost/variant.hpp>
 
 class ONFSTrack {
@@ -31,7 +32,7 @@ public:
 
     NFSVer tag;
     std::string name;
-    typedef boost::variant<std::shared_ptr<NFS3_4_DATA::TRACK>, std::shared_ptr<NFS2_DATA::PS1::TRACK>, std::shared_ptr<NFS2_DATA::PC::TRACK>> track;
+    typedef boost::variant<std::shared_ptr<NFS3_4_DATA::TRACK>, std::shared_ptr<NFS3_4_DATA::PS1::TRACK>, std::shared_ptr<NFS2_DATA::PS1::TRACK>, std::shared_ptr<NFS2_DATA::PC::TRACK>> track;
     track trackData;
 
     std::vector<SHARED::CANPT> cameraAnimations;
