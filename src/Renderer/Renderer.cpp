@@ -19,19 +19,11 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     glfwSetErrorCallback(&Renderer::GlfwError);
 
     // TODO: Disable MSAA for now until texture array adds padding
-    //lfwWindowHint(GLFW_SAMPLES, 2);
-
-#ifdef __APPLE__
+    // glfwWindowHint(GLFW_SAMPLES, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#else
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    // TODO: If we fail to create a GL context on Windows, fall back to not requesting any (Keiiko Bug #1)
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#endif
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
 
     GLFWwindow *window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
 
@@ -41,12 +33,10 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
         glfwTerminate();
     }
     glfwMakeContextCurrent(window);
-
     glfwSetWindowSizeCallback(window, Renderer::WindowSizeCallback);
 
     // Initialize GLEW
     glewExperimental = GL_TRUE; // Needed for core profile
-
     if (glewInit() != GLEW_OK) {
         LOG(WARNING) << "Failed to initialize GLEW";
         getchar();
@@ -57,15 +47,12 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     // Set the mouse at the center of the screen
     glfwPollEvents();
-
     // Dark blue background
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -75,7 +62,6 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     LOG(DEBUG) << "Max Texture Units: " << texture_units;
     LOG(DEBUG) << "Max Array Texture Layers: " << max_array_texture_layers;
     LOG(DEBUG) << "OpenGL Initialisation successful";
-
     //glfwSwapInterval(1);
 
     return window;
