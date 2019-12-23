@@ -1,15 +1,7 @@
 #include "PhysicsEngine.h"
 
-void ScreenPosToWorldRay(
-        int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
-        int screenWidth, int screenHeight,  // Window size, in pixels
-        glm::mat4 ViewMatrix,               // Camera position and orientation
-        glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
-        glm::vec3 &out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.Reall
-        glm::vec3 &out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
-) {
-
-    // The ray Start and End positions, in Normalized Device Coordinates (Have you read Tutorial 4 ?)
+WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screenHeight, glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix) {
+    // The ray Start and End positions, in Normalized Device Coordinates
     glm::vec4 lRayStart_NDC(
             ((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
             ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f,
@@ -23,7 +15,6 @@ void ScreenPosToWorldRay(
             1.0f
     );
 
-
     // The Projection matrix goes from Camera Space to NDC.
     // So inverse(ProjectionMatrix) goes from NDC to Camera Space.
     glm::mat4 InverseProjectionMatrix = glm::inverse(ProjectionMatrix);
@@ -32,169 +23,36 @@ void ScreenPosToWorldRay(
     // So inverse(ViewMatrix) goes from Camera Space to World Space.
     glm::mat4 InverseViewMatrix = glm::inverse(ViewMatrix);
 
-    glm::vec4 lRayStart_camera = InverseProjectionMatrix * lRayStart_NDC;
-    lRayStart_camera /= lRayStart_camera.w;
-    glm::vec4 lRayStart_world = InverseViewMatrix * lRayStart_camera;
-    lRayStart_world /= lRayStart_world.w;
-    glm::vec4 lRayEnd_camera = InverseProjectionMatrix * lRayEnd_NDC;
-    lRayEnd_camera /= lRayEnd_camera.w;
-    glm::vec4 lRayEnd_world = InverseViewMatrix * lRayEnd_camera;
-    lRayEnd_world /= lRayEnd_world.w;
-
-
     // Faster way (just one inverse)
-    //glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
-    //glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
-    //glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
+    glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
+    glm::vec4 lRayStart_world = M * lRayStart_NDC; lRayStart_world/=lRayStart_world.w;
+    glm::vec4 lRayEnd_world   = M * lRayEnd_NDC  ; lRayEnd_world  /=lRayEnd_world.w;
 
     glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
     lRayDir_world = glm::normalize(lRayDir_world);
 
+    WorldRay worldRay;
+    worldRay.origin = glm::vec3(lRayStart_world);
+    worldRay.direction - glm::normalize(lRayDir_world);
 
-    out_origin = glm::vec3(lRayStart_world);
-    out_direction = glm::normalize(lRayDir_world);
+    return worldRay;
 }
 
-btCollisionShape *PhysicsEngine::buildFrustumShape() {
-    float m_ScreenHeight = 768;
-    float m_ScreenWidth = 1024;
-
-    const btScalar nearPlane = 1.0f;
-    const btScalar farPlane = 1000.0;
-
-    const btScalar planesFraction = farPlane / nearPlane;
-    const btScalar centralPlane = (farPlane - nearPlane) * 0.5;    // Actually it's the center of the collision shape.
-    btScalar left, right, bottom, top, farLeft, farRight, farBottom, farTop;
-    const btScalar aspect = (btScalar) m_ScreenWidth / (btScalar) m_ScreenHeight;
-    if (m_ScreenWidth > m_ScreenHeight) {
-        left = -aspect;
-        right = aspect;
-        bottom = -1.0;
-        top = 1.0;
-    } else {
-        left = -1.0;
-        right = 1.0;
-        bottom = -aspect;
-        top = aspect;
-    }
-    farLeft = left * planesFraction;
-    farRight = right * planesFraction;
-    farBottom = bottom * planesFraction;
-    farTop = top * planesFraction;
-
-    btConvexHullShape *shape = new btConvexHullShape();
-
-    // Add the frustum points
-    {
-        btVector3 points[8] = {
-                btVector3(left, top, centralPlane),
-                btVector3(right, top, centralPlane),
-                btVector3(left, bottom, centralPlane),
-                btVector3(right, bottom, centralPlane),
-
-                btVector3(farLeft, farTop, -centralPlane),
-                btVector3(farRight, farTop, -centralPlane),
-                btVector3(farLeft, farBottom, -centralPlane),
-                btVector3(farRight, farBottom, -centralPlane),
-        };
-
-        for (int t = 0; t < 8; t++) {
-            shape->addPoint(points[t]);
-        }
-    }
-
-    // Crashes OpenNFS with a frustum thats actually frustum shaped, use a box for now.
-    /*btCompoundShape *frustumShape = new btCompoundShape();
-    const btVector3 v(0., 0., -(nearPlane + centralPlane));
-    const btQuaternion q = btQuaternion::getIdentity();// = btQuaternion::getIdentity();//(btVector3(0.,1.,0.),btRadians(180));
-    btTransform T(q, v);
-    frustumShape->addChildShape(T.inverse(), shape);  */
-    btBoxShape *frustumShape = new btBoxShape(btVector3(2, 2, 2));
-
-    return frustumShape;
-}
-
-void PhysicsEngine::destroyGhostObject() {
-    if (!m_ghostObject) return;
-    // Remove From World:
-    dynamicsWorld->removeCollisionObject(m_ghostObject);
-    // Delete Collision Shapes:
-    {
-        btCollisionShape *mainShape = m_ghostObject->getCollisionShape();
-        delete mainShape;
-        mainShape = NULL;
-    }
-    // Delete Ghost Object:
-    delete m_ghostObject;
-    m_ghostObject = NULL;
-}
-
-void PhysicsEngine::buildGhostObject() {
-    btCollisionShape *shape = buildFrustumShape();
-    destroyGhostObject();
-
-    if (!m_ghostPairCallback) {
-        m_ghostPairCallback = new btGhostPairCallback();
-        dynamicsWorld->getBroadphase()->getOverlappingPairCache()->setInternalGhostPairCallback(m_ghostPairCallback);
-    }
-
-    m_ghostObject = new btPairCachingGhostObject();
-    m_ghostObject->setCollisionShape(shape);
-    m_ghostObject->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
-    dynamicsWorld->addCollisionObject(m_ghostObject, btBroadphaseProxy::AllFilter,
-                                      COL_TRACK); // btBroadphaseProxy::StaticFilter);
-}
-
-void PhysicsEngine::updateFrustrum(glm::mat4 viewMatrix) {
-    if (m_ghostObject) m_ghostObject->setWorldTransform(Utils::glmToBullet(viewMatrix).inverse());
-    else buildGhostObject();
-    checkForFrustumIntersect();
-}
-
-void PhysicsEngine::checkForFrustumIntersect() {
-    m_objectsInFrustum.resize(0);
-    dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(m_ghostObject->getOverlappingPairCache(),
-                                                              dynamicsWorld->getDispatchInfo(),
-                                                              dynamicsWorld->getDispatcher());
-
-    btBroadphasePairArray &collisionPairs = m_ghostObject->getOverlappingPairCache()->getOverlappingPairArray();    //New
-    numObjects = collisionPairs.size();
-    static btManifoldArray m_manifoldArray;
-    for (int i = 0; i < numObjects; i++) {
-        const btBroadphasePair &collisionPair = collisionPairs[i];
-        m_manifoldArray.resize(0);
-        if (collisionPair.m_algorithm) collisionPair.m_algorithm->getAllContactManifolds(m_manifoldArray);
-        else
-            std::cerr
-                    << "No collisionPair.m_algorithm - probably m_dynamicsWorld->getDispatcher()->dispatchAllCollisionPairs(...) must be missing."
-                    << std::endl;
-        for (int j = 0; j < m_manifoldArray.size(); j++) {
-            btPersistentManifold *manifold = m_manifoldArray[j];
-            if (manifold->getNumContacts() > 0) {
-                m_objectsInFrustum.push_back(
-                        (btCollisionObject *) (manifold->getBody0() == m_ghostObject ? manifold->getBody1()
-                                                                                     : manifold->getBody0()));
-                break;
-            }
-        }
-    }
-}
-
-void PhysicsEngine::initSimulation() {
+void PhysicsEngine::InitSimulation() {
     /*------- BULLET --------*/
-    broadphase = new btDbvtBroadphase();
+    m_broadphase = new btDbvtBroadphase();
     // Set up the collision configuration and dispatcher
     collisionConfiguration = new btDefaultCollisionConfiguration();
     dispatcher = new btCollisionDispatcher(collisionConfiguration);
     // The actual physics solver
     solver = new btSequentialImpulseConstraintSolver;
     // The world.
-    dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+    dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, m_broadphase, solver, collisionConfiguration);
     dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
-    dynamicsWorld->setDebugDrawer(&mydebugdrawer);
+    dynamicsWorld->setDebugDrawer(&m_debugDrawer);
 }
 
-void PhysicsEngine::stepSimulation(float time) {
+void PhysicsEngine::StepSimulation(float time) {
     dynamicsWorld->stepSimulation(time, 100);
     for (auto &car : cars) {
         car->update(dynamicsWorld);
@@ -207,66 +65,28 @@ void PhysicsEngine::stepSimulation(float time) {
     }
 }
 
-void PhysicsEngine::cleanSimulation() {
-    for (auto &car : cars) {
-        dynamicsWorld->removeRigidBody(car->getVehicleRigidBody());
-    }
-    for (auto &trackBlock : currentTrack->trackBlocks) {
-        for (auto &road : trackBlock.track) {
-            dynamicsWorld->removeRigidBody(road.rigidBody);
-            delete road.rigidBody->getMotionState();
-            delete road.rigidBody;
-        }
-        for (auto &object : trackBlock.objects) {
-            dynamicsWorld->removeRigidBody(object.rigidBody);
-            delete object.rigidBody->getMotionState();
-            delete object.rigidBody;
-        }
-        for (auto &light : trackBlock.lights) {
-            dynamicsWorld->removeRigidBody(light.rigidBody);
-            delete light.rigidBody->getMotionState();
-            delete light.rigidBody;
-        }
-    }
-    for(auto &vroadBarrier : currentTrack->vroadBarriers){
-        dynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
-        delete vroadBarrier.rigidBody->getMotionState();
-        delete vroadBarrier.rigidBody;
-    }
-    delete dynamicsWorld;
-    delete solver;
-    delete dispatcher;
-    delete collisionConfiguration;
-    delete broadphase;
-}
-
-Entity *PhysicsEngine::checkForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted) {
-    glm::vec3 outOrigin;
-    glm::vec3 outDirection;
-    ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix, outOrigin, outDirection);
-    glm::vec3 out_end = outOrigin + outDirection * 1000.0f;
-    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(out_end.x, out_end.y, out_end.z));
-    RayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
-    dynamicsWorld->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z),
-                           btVector3(out_end.x, out_end.y, out_end.z), RayCallback);
-    if (RayCallback.hasHit()) {
+Entity *PhysicsEngine::CheckForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted) {
+    WorldRay worldRayFromScreenPosition = ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix);
+    glm::vec3 outEnd = worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f;
+    btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd));
+    rayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
+    dynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd), rayCallback);
+    if (rayCallback.hasHit()) {
         *entityTargeted = true;
-        return static_cast<Entity *>(RayCallback.m_collisionObject->getUserPointer());
+        return static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer());
     } else {
         *entityTargeted = false;
         return nullptr;
     }
 }
 
-void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
+void PhysicsEngine::RegisterTrack(const std::shared_ptr<ONFSTrack> &track) {
     currentTrack = track;
     for (auto &trackBlock : track->trackBlocks) {
         for (auto &road : trackBlock.track) {
-            road.genPhysicsMesh();
             dynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
         }
         for (auto &object : trackBlock.objects) {
-            object.genPhysicsMesh();
             int collisionMask = COL_RAY;
             // Set collision masks
             if (object.collideable) {
@@ -283,7 +103,6 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
             dynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }
         for (auto &light : trackBlock.lights) {
-            light.genPhysicsMesh();
             dynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
         }
     }
@@ -321,12 +140,9 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
                 glm::vec3 nextRightVroadEdge = nextVroadPoint   + (useFullVroad ? nextVroadRightWall : nextVroadRightVec);
 
                 // Add them to the physics world
-                Entity leftVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, curLeftVroadEdge, nextLeftVroadEdge);
-                Entity rightVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, curRightVroadEdge, nextRightVroadEdge);
-                Entity vroadCeiling = Entity(99, 99, NFSVer::NFS_3, VROAD_CEIL, curLeftVroadEdge, nextLeftVroadEdge, curRightVroadEdge, nextRightVroadEdge);
-                leftVroadBarrier.genPhysicsMesh();
-                rightVroadBarrier.genPhysicsMesh();
-                vroadCeiling.genPhysicsMesh();
+                Entity leftVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, nullptr, 0, curLeftVroadEdge, nextLeftVroadEdge);
+                Entity rightVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, nullptr, 0, curRightVroadEdge, nextRightVroadEdge);
+                Entity vroadCeiling = Entity(99, 99, NFSVer::NFS_3, VROAD_CEIL, nullptr, 0, curLeftVroadEdge, nextLeftVroadEdge, curRightVroadEdge, nextRightVroadEdge);
                 dynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody,  COL_VROAD,  COL_RAY | COL_CAR);
                 dynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_VROAD, COL_RAY | COL_CAR);
                 dynamicsWorld->addRigidBody(vroadCeiling.rigidBody, COL_VROAD_CEIL, COL_RAY);
@@ -340,7 +156,7 @@ void PhysicsEngine::registerTrack(const std::shared_ptr<ONFSTrack> &track) {
     }
 }
 
-void PhysicsEngine::registerVehicle(std::shared_ptr<Car> &car) {
+void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> &car) {
     cars.emplace_back(car);
 
     btVector3 wheelDirectionCS0(0, -1, 0);
@@ -384,6 +200,39 @@ void PhysicsEngine::registerVehicle(std::shared_ptr<Car> &car) {
 }
 
 PhysicsEngine::PhysicsEngine() {
-    initSimulation();
+    InitSimulation();
+}
+
+PhysicsEngine::~PhysicsEngine() {
+    for (auto &car : cars) {
+        dynamicsWorld->removeRigidBody(car->getVehicleRigidBody());
+    }
+    for (auto &trackBlock : currentTrack->trackBlocks) {
+        for (auto &road : trackBlock.track) {
+            dynamicsWorld->removeRigidBody(road.rigidBody);
+            delete road.rigidBody->getMotionState();
+            delete road.rigidBody;
+        }
+        for (auto &object : trackBlock.objects) {
+            dynamicsWorld->removeRigidBody(object.rigidBody);
+            delete object.rigidBody->getMotionState();
+            delete object.rigidBody;
+        }
+        for (auto &light : trackBlock.lights) {
+            dynamicsWorld->removeRigidBody(light.rigidBody);
+            delete light.rigidBody->getMotionState();
+            delete light.rigidBody;
+        }
+    }
+    for(auto &vroadBarrier : currentTrack->vroadBarriers){
+        dynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
+        delete vroadBarrier.rigidBody->getMotionState();
+        delete vroadBarrier.rigidBody;
+    }
+    delete dynamicsWorld;
+    delete solver;
+    delete dispatcher;
+    delete collisionConfiguration;
+    delete m_broadphase;
 }
 

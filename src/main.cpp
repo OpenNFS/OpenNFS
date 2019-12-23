@@ -71,7 +71,7 @@ public:
             //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
 
             RaceSession race(window, logger, installedNFS, track, car);
-            loadedAssets = race.simulate();
+            loadedAssets = race.Simulate();
         }
 
         // Close OpenGL window and terminate GLFW
@@ -102,7 +102,7 @@ public:
 private:
     std::shared_ptr<Logger> logger;
 
-    std::vector<NeedForSpeed> installedNFS;
+    std::vector<NfsAssetList> installedNFS;
 
     static void InitDirectories() {
         if (!(boost::filesystem::exists(CAR_PATH))) {
@@ -123,7 +123,7 @@ private:
         bool hasUI = false;
 
         for (directory_iterator itr(basePath); itr != directory_iterator(); ++itr) {
-            NeedForSpeed currentNFS;
+            NfsAssetList currentNFS;
             currentNFS.tag = UNKNOWN;
 
             if (itr->path().filename().string() == ToString(NFS_2_SE)) {

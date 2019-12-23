@@ -69,6 +69,34 @@ const std::string DEFAULT_CAR_NFS_VER = ToString(NFS_3);
 const std::string DEFAULT_TRACK_NFS_VER = ToString(NFS_3);
 const int         DEFAULT_NUM_RACERS = 0;
 
+// TODO: Read this from file
+inline char const *RACER_NAMES[23] =
+        {
+                "DumbPanda",
+                "Spark198rus",
+                "Keiiko",
+                "N/A",
+                "Patas De Pavo",
+                "Dopamine Flint",
+                "Oh Hansssss",
+                "scaryred24",
+                "MaximilianVeers",
+                "Keith",
+                "AJ_Lethal",
+                "Sirius-R",
+                "Ewil",
+                "Zipper",
+                "heyitsleo",
+                "MADMAN_nfs",
+                "Wild One",
+                "Gotcha",
+                "Mulligan",
+                "Lead Foot",
+                "Ace",
+                "Dead Beat",
+                "Ram Rod"
+        };
+
 /* --------------- ONFS Runtime parameters here -----------------*/
 class Config
 {
@@ -87,7 +115,7 @@ public:
     // Better named parameters instead of using var_map with command-line arg name
     std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
     std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
-    int nRacers = DEFAULT_NUM_RACERS;
+    uint8_t nRacers = DEFAULT_NUM_RACERS;
     /* -- Physics/AI Params -- */
     bool useFullVroad = false;
     bool sparkMode = false;
@@ -113,7 +141,6 @@ struct ParamData {
     float trackSpecReflectivity = 1;
     float nearPlane = 160.f;
     float farPlane = 300.f;
-
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;
     bool windowActive = true;
@@ -125,7 +152,6 @@ struct ParamData {
     bool frustumCull = false;
     bool drawVroad = false;
     bool drawCAN = false;
-
     bool drawRaycast = false;
     bool simulateCars = false;
 };
@@ -137,7 +163,7 @@ struct AssetData {
     std::string track;
 };
 
-struct NeedForSpeed {
+struct NfsAssetList {
     NFSVer tag;
     std::vector<std::string> tracks;
     std::vector<std::string> cars;

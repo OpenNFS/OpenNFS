@@ -43,7 +43,7 @@ void SkydomeShader::loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix
     loadMat3(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
 }
 
-void SkydomeShader::loadSunPosition(const Light &sun){
+void SkydomeShader::loadSunPosition(const GlobalLight &sun){
     loadVec3(sunPositionLocation, sun.position);
 }
 

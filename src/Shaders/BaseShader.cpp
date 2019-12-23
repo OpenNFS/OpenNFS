@@ -5,24 +5,24 @@
 
 BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path) {
     // Prepended to shaders
-    shaders.SetVersion(ONFS_GL_VERSION);
+    shaderSet.SetVersion(ONFS_GL_VERSION);
 
     // File prepended to shaders (after #version)
-    shaders.SetPreambleFile(SHADER_PREAMBLE_PATH);
+    shaderSet.SetPreambleFile(SHADER_PREAMBLE_PATH);
 
-    ProgramID = shaders.AddProgramFromExts({vertex_file_path, fragment_file_path});
-    shaders.UpdatePrograms();
+    ProgramID = shaderSet.AddProgramFromExts({vertex_file_path, fragment_file_path});
+    shaderSet.UpdatePrograms();
 }
 
 BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &geometry_file_path, const std::string &fragment_file_path) {
     // Prepended to shaders
-    shaders.SetVersion(ONFS_GL_VERSION);
+    shaderSet.SetVersion(ONFS_GL_VERSION);
 
     // File prepended to shaders (after #version)
-    shaders.SetPreambleFile(SHADER_PREAMBLE_PATH);
+    shaderSet.SetPreambleFile(SHADER_PREAMBLE_PATH);
 
-    ProgramID = shaders.AddProgramFromExts({vertex_file_path, geometry_file_path, fragment_file_path});
-    shaders.UpdatePrograms();
+    ProgramID = shaderSet.AddProgramFromExts({vertex_file_path, geometry_file_path, fragment_file_path});
+    shaderSet.UpdatePrograms();
 }
 
 void BaseShader::loadSampler2D(GLint location, GLint textureUnit){

@@ -11,7 +11,7 @@ TrainingGround::TrainingGround(uint16_t nGenerations, uint32_t nTicks,
 
     this->training_track = training_track;
     this->training_car = training_car;
-    physicsEngine.registerTrack(this->training_track);
+    physicsEngine.RegisterTrack(this->training_track);
 
     TrainAgents(nGenerations, nTicks);
 
@@ -36,7 +36,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
             carAgents.emplace_back(i, this->training_car, this->training_track);
             carAgents[i].raceNet.from_genome((*specieIter).genomes[i]);
-            physicsEngine.registerVehicle(carAgents[i].car);
+            physicsEngine.RegisterVehicle(carAgents[i].car);
             carAgents[i].reset();
         }
     }
@@ -79,7 +79,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             specieIter++;
             specieCounter++;
             for(auto &carAgent : carAgents){
-                physicsEngine.getDynamicsWorld()->removeRigidBody(carAgent.car->getVehicleRigidBody());
+                physicsEngine.dynamicsWorld->removeRigidBody(carAgent.car->getVehicleRigidBody());
             }
             carAgents.clear();
 
@@ -101,7 +101,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
                     // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
                     CarAgent car_agent((uint16_t) i, this->training_car, this->training_track);
                     car_agent.raceNet.from_genome((*specieIter).genomes[i]);
-                    physicsEngine.registerVehicle(car_agent.car);
+                    physicsEngine.RegisterVehicle(car_agent.car);
                     car_agent.reset();
                     carAgents.emplace_back(car_agent);
                 }
@@ -115,7 +115,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
 
                 car_agent.simulate();
 
-                physicsEngine.stepSimulation(stepTime);
+                physicsEngine.StepSimulation(stepTime);
 
                 if (!Config::get().headless) {
                     raceNetRenderer.Render(tick_Idx, carAgents, training_track);

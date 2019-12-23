@@ -3,7 +3,7 @@
 
 // TODO: Put this somewhere nice
 // Forward casts should extend further than L/R
-constexpr static const float kCastDistances[Car::kNumRangefinders] = {
+constexpr static float kCastDistances[Car::kNumRangefinders] = {
         1.f,
         1.f,
         1.f,
@@ -112,16 +112,23 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
         int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) data.colours.size());
         colour = data.colours[randomColourIdx].colour;
     } else {
-        colour = glm::vec3(1, 1, 1);
-        //colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
+        colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
     }
 
-    glm::vec3 wheelDimensions = Utils::genDimensions(leftFrontWheelModel.m_vertices);
-    wheelRadius = wheelDimensions.z;
-    wheelWidth = wheelDimensions.x;
+    DimensionData wheelDimensions = Utils::GenDimensions(leftFrontWheelModel.m_vertices);
+    glm::vec3 wheelSize = glm::vec3((wheelDimensions.topRight.x - wheelDimensions.bottomLeft.x) / 2,
+            (wheelDimensions.topRight.y - wheelDimensions.bottomLeft.y) / 2,
+                     (wheelDimensions.topRight.z - wheelDimensions.bottomLeft.z) / 2);
+    wheelRadius = wheelSize.z;
+    wheelWidth = wheelSize.x;
 
     // the chassis collision shape
-    btCollisionShape *chassisShape = Utils::genCollisionBox(carBodyModel.m_vertices);
+    DimensionData chassisDimensions = Utils::GenDimensions(carBodyModel.m_vertices);
+    // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
+    chassisDimensions.bottomLeft.y += 0.04f;
+    btCollisionShape *chassisShape =  new btBoxShape(btVector3((chassisDimensions.topRight.x - chassisDimensions.bottomLeft.x) / 2,
+            (chassisDimensions.topRight.y - chassisDimensions.bottomLeft.y) / 2,
+            (chassisDimensions.topRight.z - chassisDimensions.bottomLeft.z) / 2));
     m_collisionShapes.push_back(chassisShape);
 
     btCompoundShape *compound = new btCompoundShape();
@@ -152,7 +159,7 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
     m_carChassis = new btRigidBody(cInfo);
 
     // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
-    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, this));
+    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, this, 0));
     m_carChassis->setDamping(0.2, 0.2);
     m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
     m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
@@ -343,6 +350,7 @@ Car::~Car() {
     for (auto &car_model : miscModels) {
         car_model.destroy();
     }
+    m_collisionShapes.clear();
     glDeleteTextures(1, &textureID);
 }
 
@@ -562,35 +570,6 @@ void Car::resetCar(glm::vec3 reset_position, glm::quat reset_orientation) {
             m_vehicle->updateWheelTransform(i, true);
         }
     }
-}
-
-void Car::writeObj(const std::string &path, std::vector<CarModel> modelsToExport) {
-    std::cout << "Writing Meshes to " << path << std::endl;
-
-    std::ofstream obj_dump;
-    obj_dump.open(path);
-
-    uint32_t nIndices = 0;
-
-    for (auto mesh : modelsToExport) {
-        // Print Part name
-        obj_dump << "o " << mesh.m_name << std::endl;
-        //Dump Vertices
-        for (auto vertex : mesh.m_vertices) {
-            obj_dump << "v " << vertex[0] << " " << vertex[1] << " " << vertex[2] << std::endl;
-        }
-        //Dump UVs
-        for (auto uv : mesh.m_uvs) {
-            obj_dump << "vt " << uv[0] << " " << uv[1] << std::endl;
-        }
-        //Dump Indices
-        for (auto vert_index : mesh.m_vertex_indices) {
-            obj_dump << "f " << vert_index + nIndices << std::endl;
-        }
-        nIndices = mesh.m_vertex_indices.size();
-    }
-
-    obj_dump.close();
 }
 
 float Car::getRotY() {

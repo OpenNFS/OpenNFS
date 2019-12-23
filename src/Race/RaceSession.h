@@ -12,54 +12,25 @@
 #include "../Config.h"
 #include "../Renderer/Renderer.h"
 
-
 class RaceSession {
-private:
-    // TODO: Read this from file
-    char const *racerNames[23] =
-            {
-                    "DumbPanda",
-                    "Spark198rus",
-                    "Keiiko",
-                    "N/A",
-                    "Patas De Pavo",
-                    "Dopamine Flint",
-                    "Oh Hansssss",
-                    "scaryred24",
-                    "MaximilianVeers",
-                    "Keith",
-                    "AJ_Lethal",
-                    "Sirius-R",
-                    "Ewil",
-                    "Zipper",
-                    "heyitsleo",
-                    "MADMAN_nfs",
-                    "Wild One",
-                    "Gotcha",
-                    "Mulligan",
-                    "Lead Foot",
-                    "Ace",
-                    "Dead Beat",
-                    "Ram Rod"
-            };
-
-    GLFWwindow *window;
-    std::shared_ptr<Logger> logger;
-    std::vector<NeedForSpeed> installedNFSGames;
-    AssetData loadedAssets;
-    std::shared_ptr<ONFSTrack> track;
-    std::shared_ptr<Car> car;
-    std::vector<CarAgent> racers;
-    PhysicsEngine physicsEngine;
-    Camera mainCamera;
-    ParamData userParams;
-    Renderer mainRenderer = Renderer(window, logger, installedNFSGames, track, car);
-
-    uint64_t ticks = 0; // Engine ticks elapsed
-    float totalTime = 0;
-
-    void SpawnRacers(int nRacers);
 public:
-    RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
-    AssetData simulate();
+    RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
+    AssetData Simulate();
+private:
+    void SpawnRacers(uint8_t nRacers);
+
+    GLFWwindow *m_window;
+    AssetData m_loadedAssets;
+
+    std::shared_ptr<ONFSTrack> m_track;
+    std::shared_ptr<Car> m_playerCar;
+    std::vector<CarAgent> m_racerCars;
+
+    PhysicsEngine m_physicsEngine;
+    Renderer m_renderer;
+    Camera m_mainCamera;
+
+    ParamData m_userParams;
+    uint64_t m_ticks = 0; // Engine ticks elapsed
+    float m_totalTime = 0;
 };

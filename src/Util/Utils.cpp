@@ -55,65 +55,33 @@ namespace Utils {
         return m;
     }
 
-    btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices) {
-        glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
-        glm::vec3 top_right = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
+    DimensionData GenDimensions(std::vector<glm::vec3> vertices) {
+        DimensionData modelDimensions;
+        modelDimensions.topRight = glm::vec3(vertices[0].x, vertices[0].y, vertices[0].z);
+        modelDimensions.bottomLeft = glm::vec3(vertices[0].x, vertices[0].y, vertices[0].z);
 
-
-        for (auto &vertex : model_vertices) {
-            if (vertex.x < bottom_left.x) {
-                bottom_left.x = vertex.x;
+        for (auto &vertex : vertices) {
+            if (vertex.x < modelDimensions.bottomLeft.x) {
+                modelDimensions.bottomLeft.x = vertex.x;
             }
-            if (vertex.y < bottom_left.y) {
-                bottom_left.y = vertex.y;
+            if (vertex.y < modelDimensions.bottomLeft.y) {
+                modelDimensions.bottomLeft.y = vertex.y;
             }
-            if (vertex.z < bottom_left.z) {
-                bottom_left.z = vertex.z;
+            if (vertex.z < modelDimensions.bottomLeft.z) {
+                modelDimensions.bottomLeft.z = vertex.z;
             }
-            if (vertex.x > top_right.x) {
-                top_right.x = vertex.x;
+            if (vertex.x > modelDimensions.topRight.x) {
+                modelDimensions.topRight.x = vertex.x;
             }
-            if (vertex.y > top_right.y) {
-                top_right.y = vertex.y;
+            if (vertex.y > modelDimensions.topRight.y) {
+                modelDimensions.topRight.y = vertex.y;
             }
-            if (vertex.z > top_right.z) {
-                top_right.z = vertex.z;
-            }
-        }
-        // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
-        bottom_left.y += 0.04f;
-
-        return new btBoxShape(btVector3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2, (top_right.z - bottom_left.z) / 2));
-    }
-
-    glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices) {
-        glm::vec3 bottom_left = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
-        glm::vec3 top_right = glm::vec3(model_vertices[0].x, model_vertices[0].y, model_vertices[0].z);
-
-
-        for (auto &vertex : model_vertices) {
-            if (vertex.x < bottom_left.x) {
-                bottom_left.x = vertex.x;
-            }
-            if (vertex.y < bottom_left.y) {
-                bottom_left.y = vertex.y;
-            }
-            if (vertex.z < bottom_left.z) {
-                bottom_left.z = vertex.z;
-            }
-            if (vertex.x > top_right.x) {
-                top_right.x = vertex.x;
-            }
-            if (vertex.y > top_right.y) {
-                top_right.y = vertex.y;
-            }
-            if (vertex.z > top_right.z) {
-                top_right.z = vertex.z;
+            if (vertex.z > modelDimensions.topRight.z) {
+                modelDimensions.topRight.z = vertex.z;
             }
         }
 
-        return glm::vec3((top_right.x - bottom_left.x) / 2, (top_right.y - bottom_left.y) / 2,
-                         (top_right.z - bottom_left.z) / 2);
+        return modelDimensions;
     }
 
     uint32_t SwapEndian(uint32_t x) {

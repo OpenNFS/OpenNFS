@@ -5,7 +5,7 @@ void CarRenderer::render(shared_ptr<Car> &car, const Camera &mainCamera, const s
     carShader.use();
 
     // This shader state doesnt change during a car renderpass
-    carShader.loadProjectionViewMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix);
+    carShader.loadProjectionViewMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix);
     carShader.setPolyFlagged(car->hasPolyFlags());
     carShader.loadCarColor(glm::vec3(1,1,1));
     carShader.loadLights(contributingLights);

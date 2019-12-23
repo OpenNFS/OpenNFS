@@ -26,7 +26,7 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NeedForSpeed> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
+    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
     ~Renderer();
     static void GlfwError(int id, const char *description) {
         LOG(WARNING) << description;
@@ -42,7 +42,7 @@ public:
 private:
     GLFWwindow *window;
     std::shared_ptr<Logger> logger;
-    std::vector<NeedForSpeed> installedNFSGames;
+    std::vector<NfsAssetList> installedNFSGames;
     std::shared_ptr<ONFSTrack> track;
 
     /* Renderers */
@@ -52,28 +52,14 @@ private:
     ShadowMapRenderer shadowMapRenderer;
     /*MenuRenderer menuRenderer;*/
 
-    /* Scene Objects */
-    Light sun = Light(glm::vec3(0, 200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
-    Light moon = Light(glm::vec3(0, -200, 0), glm::vec4(255, 255, 255, 255), 0, 0, 0, 0, 0);
-
     /* State */
-    bool cameraAnimationPlayed = false;
     /* Entity Targeting */
     bool entityTargeted = false;
     Entity *targetedEntity = nullptr;
 
     // ------- Helper Functions ------
     void InitialiseIMGUI();
-    void InitGlobalLights();
     void NewFrame(ParamData &userParams);
-    void UpdateShaders();
-    bool UpdateGlobalLights(ParamData &userParams);
-    std::vector<int> CullTrackBlocks(glm::vec3 worldPosition, int blockDrawDistance, bool useNeighbourData);
-    void SetCulling(bool toCull);
-    void DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine);
-    void DrawVroad(PhysicsEngine &physicsEngine);
-    void DrawCameraAnimation(Camera &camera, PhysicsEngine &physicsEngine);
-    void DrawDebugCube(PhysicsEngine &physicsEngine, glm::vec3 position);
     void DrawMetadata(Entity *targetEntity);
     void DrawNFS34Metadata(Entity *targetEntity);
     bool DrawMenuBar(AssetData &loadedAssets);

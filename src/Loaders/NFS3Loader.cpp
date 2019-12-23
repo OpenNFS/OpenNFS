@@ -20,11 +20,6 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &car_base_path) {
     return std::make_shared<Car>(LoadFCE(fce_path.str()), NFS_3, car_name);
 }
 
-void NFS3::ConvertFCE(const std::string &fce_path, const std::string &obj_out_path) {
-    std::shared_ptr<Car> car(new Car(LoadFCE(fce_path), NFS_3, "Converted"));
-    car->writeObj(obj_out_path, car->data.meshes);
-}
-
 CarData NFS3::LoadFCE(const std::string &fce_path) {
     LOG(INFO) << "Parsing FCE File located at " << fce_path;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
@@ -144,6 +139,32 @@ CarData NFS3::LoadFCE(const std::string &fce_path) {
     delete []colourNameOffsets;
 
     return carData;
+}
+
+void DumpMeshes(CarData car, const std::string &objFilePath){
+    // Make the directories if they're not there
+    if (!(boost::filesystem::exists(objFilePath))) {
+        boost::filesystem::create_directories(objFilePath);
+    }
+
+    // Open up the obj file for writing
+    std::ofstream obj_dump(objFilePath);
+    ASSERT(obj_dump.is_open(), "Couldn't open obj file at " << objFilePath);
+
+    // For every part
+    for(auto &part : car.meshes){
+        // Write the name into the file
+        obj_dump << "o " << part.m_name << std::endl;
+        // And all of its vertices
+        for(auto &vertex : part.m_vertices){
+            obj_dump << "v " << vertex.x << " " << vertex.y << " " << vertex.z << std::endl;
+        }
+        // You can do the indices spark!
+        for(auto &index : part.m_vertex_indices){
+            // Same as before, but follow obj format. 'v' should be 'f'
+        }
+    }
+    obj_dump.close();
 }
 
 // TRACK
@@ -561,7 +582,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                                                                 (trk_block.lightsrc[j].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.lightsrc[j].refpoint.z / 65536.0) / 10);
             current_track_block.lights.emplace_back(
-                    Entity(i, j, NFS_3, LIGHT, MakeLight(light_center, trk_block.lightsrc[j].type)));
+                    Entity(i, j, NFS_3, LIGHT, MakeLight(light_center, trk_block.lightsrc[j].type), 0));
         }
 
         for (uint32_t s = 0; s < trk_block.nSoundsrc; s++) {
@@ -569,7 +590,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                                                                 (trk_block.soundsrc[s].refpoint.y / 65536.0) / 10,
                                                                 (trk_block.soundsrc[s].refpoint.z / 65536.0) / 10);
             current_track_block.sounds.emplace_back(
-                    Entity(i, s, NFS_3, SOUND, Sound(sound_center, trk_block.soundsrc[s].type)));
+                    Entity(i, s, NFS_3, SOUND, Sound(sound_center, trk_block.soundsrc[s].type), 0));
         }
 
         // Get Object vertices
@@ -860,7 +881,7 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {
                                                         static_cast<float>(o->ptRef.y / 65536.0) / 10,
                                                         static_cast<float>(o->ptRef.z / 65536.0) / 10);
         col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL,
-                                         Track(verts, norms, uvs, texture_indices, indices, shading_data, position)));
+                                         Track(verts, norms, uvs, texture_indices, indices, shading_data, position), 0));
     }
     return col_entities;
 }

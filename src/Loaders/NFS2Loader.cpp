@@ -918,7 +918,7 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                 PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) &superblock->trackBlocks[block_Idx]);
                 for (uint32_t j = 0; j < ps1TrackBlock->nUnknownVerts; j++) {
                     glm::vec3 light_center = rotationMatrix * glm::vec3((refCoord->x + (256 * ps1TrackBlock->unknownVerts[j].x)) / scaleFactor, (refCoord->y + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor, (refCoord->z + (256 * ps1TrackBlock->unknownVerts[j].y)) / scaleFactor);
-                    current_track_block.lights.emplace_back(Entity(0, j, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, LIGHT, MakeLight(light_center, 0)));
+                    current_track_block.lights.emplace_back(Entity(0, j, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, LIGHT, MakeLight(light_center, 0), 0));
                 }
             }
 
@@ -997,7 +997,7 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                 }
                 std::stringstream xobj_name;
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
-                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, shading_verts, debug_data, glm::vec3(0, 0, 0))));
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, shading_verts, debug_data, glm::vec3(0, 0, 0)), 0));
             }
 
             // Mesh Data
@@ -1061,7 +1061,7 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
             }
-            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0))));
+            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0)), 0));
 
             track->track_blocks.emplace_back(current_track_block);
         }
@@ -1136,7 +1136,7 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const std::shared_ptr<typenam
             texture_indices.emplace_back(texture_for_block.texNumber);
         }
         glm::vec3 position = rotationMatrix * glm::vec3(structureReferenceCoordinates->x / scaleFactor, structureReferenceCoordinates->y / scaleFactor, structureReferenceCoordinates->z / scaleFactor);
-        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, shading_data, position)));
+        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, Track(verts, uvs, texture_indices, indices, shading_data, position), 0));
         //free(structureReferenceCoordinates);
     }
     return col_entities;

@@ -1,5 +1,4 @@
-#ifndef OPENNFS3_BASESHADER_H
-#define OPENNFS3_BASESHADER_H
+#pragma once
 
 #include <cstdio>
 #include <string>
@@ -26,7 +25,7 @@ public:
     void unbind();
     void cleanup();
 
-    ShaderSet shaders;
+    ShaderSet shaderSet;
     GLuint *ProgramID;
 protected:
     void loadMat4(GLint location, const GLfloat *value);
@@ -43,6 +42,3 @@ protected:
     virtual void getAllUniformLocations()= 0;
     virtual void customCleanup() = 0;
 };
-
-
-#endif //OPENNFS3_BASESHADER_H

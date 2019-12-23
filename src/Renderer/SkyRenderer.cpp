@@ -1,9 +1,9 @@
 #include "SkyRenderer.h"
 
 
-SkyRenderer::SkyRenderer(const std::shared_ptr<ONFSTrack> &activeTrack) {
+SkyRenderer::SkyRenderer() {
     // Load track HRZ parameters into shader
-    loadTextures();
+    LoadTextures();
 
     // Load OBJ Model
     tinyobj::attrib_t attrib;
@@ -43,7 +43,7 @@ SkyRenderer::SkyRenderer(const std::shared_ptr<ONFSTrack> &activeTrack) {
     skydome.update();
 }
 
-void SkyRenderer::loadTextures() {
+void SkyRenderer::LoadTextures() {
     std::string clouds1_texture_path("../resources/misc/skydome/clouds1.tga");
     std::string clouds2_texture_path("../resources/misc/skydome/clouds2.tga");
     std::string sun_texture_path("../resources/misc/skydome/sun.tga");
@@ -59,17 +59,18 @@ void SkyRenderer::loadTextures() {
     tint2TextureID = ImageLoader::LoadImage(tint2_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
 }
 
-void SkyRenderer::renderSky(const Camera &mainCamera, const Light &sun, const ParamData &userParams, float elapsedTime) {
+void SkyRenderer::Render(const Camera &mainCamera, const GlobalLight &sun, float elapsedTime) {
     skydomeShader.use();
     skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
     skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(SIMD_PI,SIMD_PI,0))))); // No star rotation
-    skydomeShader.loadMatrices(mainCamera.ProjectionMatrix, mainCamera.ViewMatrix, skydome.ModelMatrix);
+    skydomeShader.loadMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix, skydome.ModelMatrix);
     skydomeShader.loadSunPosition(sun);
     skydomeShader.loadTime(elapsedTime);
     skydomeShader.loadWeatherMixFactor(1.0f);
     // Bind the sphere model
     skydome.render();
     skydomeShader.unbind();
+    skydomeShader.shaderSet.UpdatePrograms();
 }
 
 SkyRenderer::~SkyRenderer() {

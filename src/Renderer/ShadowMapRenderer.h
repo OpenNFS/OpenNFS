@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
+#include "../Scene/GlobalLight.h"
 #include "../Loaders/TrackLoader.h"
 #include "../RaceNet/CarAgent.h"
 #include "../Shaders/DepthShader.h"
@@ -8,15 +9,13 @@
 
 class ShadowMapRenderer {
 public:
-    explicit ShadowMapRenderer(const std::shared_ptr<ONFSTrack> &activeTrack);
+    ShadowMapRenderer();
     ~ShadowMapRenderer();
-    void renderShadowMap(float nearPlane, float farPlane, const glm::mat4 &lightViewMatrix,  std::vector<int> activeTrackBlockIDs, const std::shared_ptr<Car> &car, const std::vector<CarAgent> &racers);
+    void Render(float nearPlane, float farPlane, const GlobalLight &light, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car, const std::vector<CarAgent> &racers);
 
-    GLuint depthTextureID = 0;
-    glm::mat4 lightSpaceMatrix;
-    DepthShader depthShader;
+    GLuint m_depthTextureID = 0;
+    DepthShader m_depthShader;
 private:
-    std::shared_ptr<ONFSTrack> track;
-    GLuint depthMapFBO = 0;
+    GLuint m_fboDepthMap = 0;
 };
 

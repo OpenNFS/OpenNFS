@@ -30,6 +30,12 @@
 
 #define SAFE_READ(file, structure, size)  if((file).read((char *) (structure), (size)).gcount() != (size)) return false
 
+struct DimensionData
+{
+    glm::vec3 bottomLeft;
+    glm::vec3 topRight;
+};
+
 namespace Utils {
     class Timer {
     public:
@@ -69,9 +75,7 @@ namespace Utils {
 
     glm::mat4 bulletToGlm(const btTransform& t);
 
-    btBoxShape *genCollisionBox(std::vector<glm::vec3> model_vertices);
-
-    glm::vec3 genDimensions(std::vector<glm::vec3> model_vertices);
+    DimensionData GenDimensions(std::vector<glm::vec3> vertices);
 
     uint32_t SwapEndian(uint32_t x);
 

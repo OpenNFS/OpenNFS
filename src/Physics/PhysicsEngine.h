@@ -25,7 +25,6 @@
 #include "../Loaders/TrackLoader.h"
 #include "Car.h"
 
-
 class BulletDebugDrawer_DeprecatedOpenGL : public btIDebugDraw {
 public:
     void SetMatrices(glm::mat4 pViewMatrix, glm::mat4 pProjectionMatrix) {
@@ -59,45 +58,31 @@ public:
     int m;
 };
 
-void ScreenPosToWorldRay(
-        int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
-        int screenWidth, int screenHeight,  // Window size, in pixels
-        glm::mat4 ViewMatrix,               // Camera position and orientation
-        glm::mat4 ProjectionMatrix,         // Camera parameters (ratio, field of view, near and far planes)
-        glm::vec3 &out_origin,              // Ouput : Origin of the ray. /!\ Starts at the near plane, so if you want the ray to start at the camera's position instead, ignore this.
-        glm::vec3 &out_direction            // Ouput : Direction, in world space, of the ray that goes "through" the mouse.
-);
+struct WorldRay
+{
+    glm::vec3 origin;
+    glm::vec3 direction;
+};
 
 class PhysicsEngine{
 public:
     PhysicsEngine();
-    ~PhysicsEngine(){ cleanSimulation(); }
-    void initSimulation();
-    void stepSimulation(float time);
-    void cleanSimulation();
-    btDynamicsWorld* getDynamicsWorld() { return dynamicsWorld; }
-    void registerVehicle(std::shared_ptr<Car> &car);
-    void registerTrack(const std::shared_ptr<ONFSTrack> &track);
+    ~PhysicsEngine();
+    void InitSimulation();
+    void StepSimulation(float time);
+    void RegisterVehicle(std::shared_ptr<Car> &car);
+    void RegisterTrack(const std::shared_ptr<ONFSTrack> &track);
 
-    BulletDebugDrawer_DeprecatedOpenGL mydebugdrawer;
-    Entity *checkForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted);
-    void checkForFrustumIntersect();
-    void updateFrustrum(glm::mat4 viewMatrix);
-    void destroyGhostObject();
-    int numObjects = 0;
-    btAlignedObjectArray<btCollisionObject*> m_objectsInFrustum;	// Frustum cull results
+    BulletDebugDrawer_DeprecatedOpenGL m_debugDrawer;
+    Entity *CheckForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted);
+
+    btDiscreteDynamicsWorld *dynamicsWorld;
 private:
     std::shared_ptr<ONFSTrack> currentTrack;
     std::vector<std::shared_ptr<Car>> cars;
     /*------- BULLET --------*/
-    btBroadphaseInterface *broadphase;
+    btBroadphaseInterface *m_broadphase;
     btDefaultCollisionConfiguration *collisionConfiguration;
     btCollisionDispatcher *dispatcher;
     btSequentialImpulseConstraintSolver *solver;
-    btDiscreteDynamicsWorld *dynamicsWorld;
-    // Frustum Culling
-    btPairCachingGhostObject* m_ghostObject = nullptr;
-    btOverlappingPairCallback*	m_ghostPairCallback = nullptr;
-    btCollisionShape* buildFrustumShape();
-    void buildGhostObject();
 };

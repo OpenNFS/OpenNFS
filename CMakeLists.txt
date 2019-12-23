@@ -16,7 +16,7 @@ MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 
 #[[Static linking broken under Mac OSX]]
 if (NOT APPLE)
-    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
+   #[[ set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")]]
 endif ()
 
 set(OpenGL_GL_PREFERENCE LEGACY)
@@ -155,7 +155,7 @@ set(SOURCE_FILES
         src/Loaders/NFS5Loader.cpp
         src/Loaders/NFS5Loader.h
         src/Loaders/NFS4PS1Loader.cpp
-        src/Loaders/NFS4PS1Loader.h src/Loaders/SerializedGroupOps.cpp src/Loaders/SerializedGroupOps.h)
+        src/Loaders/NFS4PS1Loader.h src/Loaders/SerializedGroupOps.cpp src/Loaders/SerializedGroupOps.h src/Scene/GlobalLight.cpp src/Scene/GlobalLight.h src/Physics/AABB.h src/Physics/AABBTree.h src/Physics/AABBTree.cpp src/Physics/IAABB.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 
@@ -221,9 +221,6 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
-#[[Noesis]]
-#[[include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/Noesis")
-target_link_libraries(OpenNFS "${CMAKE_CURRENT_SOURCE_DIR}/lib/Noesis/Noesis.lib")]]
 #[[Google Test Framework Configuration]]
 #[[
 add_subdirectory(lib/googletest)
