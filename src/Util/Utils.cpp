@@ -56,29 +56,18 @@ namespace Utils {
     }
 
     DimensionData GenDimensions(std::vector<glm::vec3> vertices) {
-        DimensionData modelDimensions;
-        modelDimensions.topRight = glm::vec3(vertices[0].x, vertices[0].y, vertices[0].z);
-        modelDimensions.bottomLeft = glm::vec3(vertices[0].x, vertices[0].y, vertices[0].z);
+        DimensionData modelDimensions = {};
+        modelDimensions.maxVertex = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+        modelDimensions.minVertex = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
 
         for (auto &vertex : vertices) {
-            if (vertex.x < modelDimensions.bottomLeft.x) {
-                modelDimensions.bottomLeft.x = vertex.x;
-            }
-            if (vertex.y < modelDimensions.bottomLeft.y) {
-                modelDimensions.bottomLeft.y = vertex.y;
-            }
-            if (vertex.z < modelDimensions.bottomLeft.z) {
-                modelDimensions.bottomLeft.z = vertex.z;
-            }
-            if (vertex.x > modelDimensions.topRight.x) {
-                modelDimensions.topRight.x = vertex.x;
-            }
-            if (vertex.y > modelDimensions.topRight.y) {
-                modelDimensions.topRight.y = vertex.y;
-            }
-            if (vertex.z > modelDimensions.topRight.z) {
-                modelDimensions.topRight.z = vertex.z;
-            }
+            modelDimensions.minVertex.x = glm::min(modelDimensions.minVertex.x, vertex.x);
+            modelDimensions.minVertex.y = glm::min(modelDimensions.minVertex.y, vertex.y);
+            modelDimensions.minVertex.z = glm::min(modelDimensions.minVertex.z, vertex.z);
+
+            modelDimensions.maxVertex.x = glm::max(modelDimensions.maxVertex.x, vertex.x);
+            modelDimensions.maxVertex.y = glm::max(modelDimensions.maxVertex.y, vertex.y);
+            modelDimensions.maxVertex.z = glm::max(modelDimensions.maxVertex.z, vertex.z);
         }
 
         return modelDimensions;

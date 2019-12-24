@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <glm/glm.hpp>
 
 struct AABB
 {
@@ -14,12 +15,18 @@ public:
     float maxY;
     float maxZ;
     float surfaceArea;
+    glm::vec3 position;
 
     AABB() : minX(0.0f), minY(0.0f), minZ(0.0f), maxX(0.0f), maxY(0.0f), maxZ(0.0f), surfaceArea(0.0f) { }
     AABB(unsigned minX, unsigned minY, unsigned minZ, unsigned maxX, unsigned maxY, unsigned maxZ) :
             AABB(static_cast<float>(minX), static_cast<float>(minY), static_cast<float>(minZ), static_cast<float>(maxX), static_cast<float>(maxY), static_cast<float>(maxZ)) { }
     AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
             minX(minX), minY(minY), minZ(minZ), maxX(maxX), maxY(maxY), maxZ(maxZ)
+    {
+        surfaceArea = calculateSurfaceArea();
+    }
+    AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition) :
+            minX(minVertex.x), minY(minVertex.y), minZ(minVertex.z), maxX(maxVertex.x), maxY(maxVertex.y), maxZ(maxVertex.z), position(centerPosition)
     {
         surfaceArea = calculateSurfaceArea();
     }

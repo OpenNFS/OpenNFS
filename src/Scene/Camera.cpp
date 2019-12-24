@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include <glm/gtx/quaternion.hpp>
 
 Camera::Camera(glm::vec3 initialPosition, HermiteCurve trackCenterSpline, GLFWwindow *window) {
     m_window = window;
@@ -8,7 +7,7 @@ Camera::Camera(glm::vec3 initialPosition, HermiteCurve trackCenterSpline, GLFWwi
     position = initialPosition;
     m_initialPosition = initialPosition;
     // Projection matrix : 45deg Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    projectionMatrix = glm::perspective(glm::radians(m_fov), 4.0f / 3.0f, 0.1f, 1000.0f);
+    projectionMatrix = glm::perspective(glm::radians(m_fov), 4.0f / 3.0f, 0.01f, 1000.0f);
     // Pull in track spline for easy access
     m_trackCameraRail = trackCenterSpline;
     m_loopTime = static_cast<int>(m_trackCameraRail.GetLength()) * 100;
@@ -65,65 +64,8 @@ void Camera::UseSpline(float elapsedTime) {
             position + m_direction, // and looks here : at the same position, plus "direction"
             up
     );
-}
 
-void Camera::CalculateCameraPosition(const std::shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
-    float theta =  (target_car->getRotY() + m_angleAroundCar);
-    float offsetX = horizDistance * sin(glm::radians(theta));
-    float offsetZ = horizDistance * cos(glm::radians(theta));
-    position.x = target_car->carBodyModel.position.x - offsetX;
-    position.z = target_car->carBodyModel.position.z - offsetZ;
-    position.y = target_car->carBodyModel.position.y + vertDistance;
-}
-
-void Camera::CalculateZoom() {
-    float zoomLevel = ImGui::GetIO().MouseWheel * 0.1f;
-    m_distanceFromCar -= zoomLevel;
-}
-
-void Camera::CalculatePitch() {
-    if (ImGui::GetIO().MouseDown[1]) {
-        float pitchChange = ImGui::GetIO().MouseDelta.y * 0.1f;
-        m_pitch -= pitchChange;
-    }
-}
-
-void Camera::CalculateAngleAroundCar() {
-    if (ImGui::GetIO().MouseDown[0]) {
-        float angleChange = ImGui::GetIO().MouseDelta.x * 0.3f;
-        m_angleAroundCar -= angleChange;
-    }
-}
-
-float Camera::CalculateVerticalDistance() {
-    return m_distanceFromCar * sin(m_pitch * (SIMD_PI / 180.0f));
-}
-
-float Camera::CalculateHorizontalDistance() {
-    return m_distanceFromCar * cos(m_pitch * (SIMD_PI / 180));
-}
-
-void Camera::FollowCar(const std::shared_ptr<Car> &targetCar, bool &windowActive){
-    if (!windowActive)
-        return;
-    // Bail on the window active status if we hit the escape key
-    windowActive = (glfwGetKey(m_window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
-    ImGui::GetIO().MouseDrawCursor = true;
-
-    // Blessed be ThinMatrix
-    CalculateZoom();
-    CalculatePitch();
-    CalculateAngleAroundCar();
-    float horizontalDistance = CalculateHorizontalDistance();
-    float verticalDistance = CalculateVerticalDistance();
-    CalculateCameraPosition(targetCar, horizontalDistance, verticalDistance);
-    m_yaw = 180 - ((targetCar->getRotY() + m_angleAroundCar));
-
-    viewMatrix = glm::mat4(1.0f);
-    viewMatrix = glm::rotate(viewMatrix, m_pitch * SIMD_PI / 180, glm::vec3(1, 0, 0));
-    viewMatrix = glm::rotate(viewMatrix, m_yaw * SIMD_PI / 180, glm::vec3(0, 1, 0));
-    glm::vec3 negativeCameraPos(-position);
-    viewMatrix = glm::translate(viewMatrix, negativeCameraPos);
+    this->_UpdateFrustum();
 }
 
 void Camera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) {
@@ -141,10 +83,10 @@ void Camera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) {
     glfwSetCursorPos(m_window, Config::get().resX / 2, Config::get().resY / 2);
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
-     m_direction = glm::vec3(
-             cos(m_verticalAngle) * sin(m_horizontalAngle),
+    m_direction = glm::vec3(
+            cos(m_verticalAngle) * sin(m_horizontalAngle),
             sin(m_verticalAngle),
-             cos(m_verticalAngle) * cos(m_horizontalAngle)
+            cos(m_verticalAngle) * cos(m_horizontalAngle)
     );
 
     // Right vector
@@ -189,7 +131,71 @@ void Camera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) {
             position + m_direction, // and looks here : at the same position, plus "direction"
             up                  // Head is up (set to 0,-1,0 to look upside-down)
     );
+
+    this->_UpdateFrustum();
 }
 
-Camera::Camera() = default;
+void Camera::FollowCar(const std::shared_ptr<Car> &targetCar, bool &windowActive){
+    if (!windowActive)
+        return;
+
+    // Bail on the window active status if we hit the escape key
+    windowActive = (glfwGetKey(m_window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
+    ImGui::GetIO().MouseDrawCursor = true;
+
+    // Blessed be ThinMatrix
+    this->_CalculateZoom();
+    this->_CalculatePitch();
+    this->_CalculateAngleAroundCar();
+    this->_CalculateCameraPosition(targetCar, this->_CalculateHorizontalDistance(), this->_CalculateVerticalDistance());
+    m_yaw = 180 - ((targetCar->getRotY() + m_angleAroundCar));
+
+    viewMatrix = glm::mat4(1.0f);
+    viewMatrix = glm::rotate(viewMatrix, m_pitch * SIMD_PI / 180, glm::vec3(1, 0, 0));
+    viewMatrix = glm::rotate(viewMatrix, m_yaw * SIMD_PI / 180, glm::vec3(0, 1, 0));
+    glm::vec3 negativeCameraPos(-position);
+    viewMatrix = glm::translate(viewMatrix, negativeCameraPos);
+
+    this->_UpdateFrustum();
+}
+
+void Camera::_CalculateCameraPosition(const std::shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
+    float theta =  (target_car->getRotY() + m_angleAroundCar);
+    float offsetX = horizDistance * sin(glm::radians(theta));
+    float offsetZ = horizDistance * cos(glm::radians(theta));
+    position.x = target_car->carBodyModel.position.x - offsetX;
+    position.z = target_car->carBodyModel.position.z - offsetZ;
+    position.y = target_car->carBodyModel.position.y + vertDistance;
+}
+
+void Camera::_CalculateZoom() {
+    float zoomLevel = ImGui::GetIO().MouseWheel * 0.1f;
+    m_distanceFromCar -= zoomLevel;
+}
+
+void Camera::_CalculatePitch() {
+    if (ImGui::GetIO().MouseDown[1]) {
+        float pitchChange = ImGui::GetIO().MouseDelta.y * 0.1f;
+        m_pitch -= pitchChange;
+    }
+}
+
+void Camera::_CalculateAngleAroundCar() {
+    if (ImGui::GetIO().MouseDown[0]) {
+        float angleChange = ImGui::GetIO().MouseDelta.x * 0.3f;
+        m_angleAroundCar -= angleChange;
+    }
+}
+
+float Camera::_CalculateVerticalDistance() {
+    return m_distanceFromCar * sin(m_pitch * (SIMD_PI / 180.0f));
+}
+
+float Camera::_CalculateHorizontalDistance() {
+    return m_distanceFromCar * cos(m_pitch * (SIMD_PI / 180));
+}
+
+void Camera::_UpdateFrustum() {
+    viewFrustum.Update(viewMatrix * projectionMatrix);
+}
 

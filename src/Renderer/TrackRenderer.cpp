@@ -1,7 +1,6 @@
 #include "TrackRenderer.h"
 
-void TrackRenderer::Render(shared_ptr<Car> &car, const Camera &mainCamera, const GlobalLight &light,
-                                const shared_ptr<ONFSTrack> &track, const ParamData &userParams,
+void TrackRenderer::Render(shared_ptr<Car> &car, const Camera &mainCamera, const GlobalLight &light, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams,
                                 GLuint depthTextureID, float ambientFactor) {
     trackShader.use();
     // This shader state doesnt change during a track renderpass
@@ -9,28 +8,22 @@ void TrackRenderer::Render(shared_ptr<Car> &car, const Camera &mainCamera, const
     trackShader.loadProjectionViewMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix);
     trackShader.loadLightSpaceMatrix(light.lightSpaceMatrix);
     trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
-    trackShader.bindTextureArray(track->textureArrayID);
+    trackShader.bindTextureArray(trackTextureArrayID);
     trackShader.loadShadowMapTexture(depthTextureID);
     trackShader.loadAmbientFactor(ambientFactor);
     trackShader.loadSpotlight(car->leftHeadlight);
 
     // Render the per-trackblock data
-    for (auto &trackBlock : track->trackBlocks) {
-        // trackShader.loadLights(trackBlock.lights);
-        for (auto &track_block_entity : trackBlock.track) {
-            trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-            boost::get<Track>(track_block_entity.glMesh).render();
+    for (auto &entity : visibleEntities) {
+        /*std::vector<Light> lights;
+        for(auto &lightEntity : trackBlock.lights)
+        {
+            // TODO: This is super silly.
+            lights.emplace_back(boost::get<Light>(lightEntity.glMesh));
         }
-        for (auto &track_block_entity : trackBlock.objects) {
-            trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-            boost::get<Track>(track_block_entity.glMesh).render();
-        }
-        // Could render Lanes with a simpler shader set, straight vert MVP transform w/ one texture sample on bound lane texture
-        // Probably not worth the overhead of switching GL state
-        for (auto &track_block_entity : trackBlock.lanes) {
-            trackShader.loadTransformMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-            boost::get<Track>(track_block_entity.glMesh).render();
-        }
+        trackShader.loadLights(lights);*/
+        trackShader.loadTransformMatrix(boost::get<Track>(entity->glMesh).ModelMatrix);
+        boost::get<Track>(entity->glMesh).render();
     }
 
     trackShader.unbind();

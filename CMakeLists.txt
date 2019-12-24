@@ -155,7 +155,7 @@ set(SOURCE_FILES
         src/Loaders/NFS5Loader.cpp
         src/Loaders/NFS5Loader.h
         src/Loaders/NFS4PS1Loader.cpp
-        src/Loaders/NFS4PS1Loader.h src/Loaders/SerializedGroupOps.cpp src/Loaders/SerializedGroupOps.h src/Scene/GlobalLight.cpp src/Scene/GlobalLight.h src/Physics/AABB.h src/Physics/AABBTree.h src/Physics/AABBTree.cpp src/Physics/IAABB.h)
+        src/Loaders/NFS4PS1Loader.h src/Loaders/SerializedGroupOps.cpp src/Loaders/SerializedGroupOps.h src/Scene/GlobalLight.cpp src/Scene/GlobalLight.h src/Physics/AABB.h src/Physics/AABBTree.h src/Physics/AABBTree.cpp src/Physics/IAABB.h src/Physics/Frustum.cpp src/Physics/Frustum.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

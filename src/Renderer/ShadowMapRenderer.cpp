@@ -7,13 +7,11 @@ ShadowMapRenderer::ShadowMapRenderer()
     // Create depth texture
     glGenTextures(1, &m_depthTextureID);
     glBindTexture(GL_TEXTURE_2D, m_depthTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     // Attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, m_fboDepthMap);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0);
@@ -25,30 +23,20 @@ ShadowMapRenderer::ShadowMapRenderer()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapRenderer::Render(float nearPlane, float farPlane, const GlobalLight &light,  const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car, const std::vector<CarAgent> &racers){
+void ShadowMapRenderer::Render(float nearPlane, float farPlane, const GlobalLight &light,  GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const std::shared_ptr<Car> &car, const std::vector<CarAgent> &racers){
     /* ------- SHADOW MAPPING ------- */
     m_depthShader.use();
     m_depthShader.loadLightSpaceMatrix(light.lightSpaceMatrix);
-    m_depthShader.bindTextureArray(track->textureArrayID);
+    m_depthShader.bindTextureArray(trackTextureArrayID);
 
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, m_fboDepthMap);
     glClear(GL_DEPTH_BUFFER_BIT);
 
     /* Render the track using this simple shader to get depth texture to test against during draw */
-    for (auto &trackBlock : track->trackBlocks) {
-        for (auto &trackEntity : trackBlock.track) {
-            m_depthShader.loadTransformMatrix(boost::get<Track>(trackEntity.glMesh).ModelMatrix);
-            boost::get<Track>(trackEntity.glMesh).render();
-        }
-        for (auto &trackObject : trackBlock.objects) {
-            m_depthShader.loadTransformMatrix(boost::get<Track>(trackObject.glMesh).ModelMatrix);
-            boost::get<Track>(trackObject.glMesh).render();
-        }
-    }
-    for (auto &global_object : track->globalObjects) {
-        m_depthShader.loadTransformMatrix(boost::get<Track>(global_object.glMesh).ModelMatrix);
-        boost::get<Track>(global_object.glMesh).render();
+    for (auto &entity : visibleEntities) {
+        m_depthShader.loadTransformMatrix(boost::get<Track>(entity->glMesh).ModelMatrix);
+        boost::get<Track>(entity->glMesh).render();
     }
 
     /* And the Cars */

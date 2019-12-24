@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "../Util/Utils.h"
-#include "../Scene/TrackBlock.h"
 #include "../Loaders/TrackLoader.h"
 #include "Car.h"
 
@@ -72,15 +71,13 @@ public:
     void StepSimulation(float time);
     void RegisterVehicle(std::shared_ptr<Car> &car);
     void RegisterTrack(const std::shared_ptr<ONFSTrack> &track);
-
-    BulletDebugDrawer_DeprecatedOpenGL m_debugDrawer;
     Entity *CheckForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted);
 
+    BulletDebugDrawer_DeprecatedOpenGL debugDrawer;
     btDiscreteDynamicsWorld *dynamicsWorld;
 private:
     std::shared_ptr<ONFSTrack> currentTrack;
-    std::vector<std::shared_ptr<Car>> cars;
-    /*------- BULLET --------*/
+    std::vector<std::shared_ptr<Car>> m_activeVehicles;
     btBroadphaseInterface *m_broadphase;
     btDefaultCollisionConfiguration *collisionConfiguration;
     btCollisionDispatcher *dispatcher;

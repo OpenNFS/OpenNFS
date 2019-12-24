@@ -32,8 +32,8 @@
 
 struct DimensionData
 {
-    glm::vec3 bottomLeft;
-    glm::vec3 topRight;
+    glm::vec3 minVertex;
+    glm::vec3 maxVertex;
 };
 
 namespace Utils {

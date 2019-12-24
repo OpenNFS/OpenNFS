@@ -185,12 +185,13 @@ AABB Entity::getAABB() const
         case LANE:
         case ROAD:
         case LIGHT:
+        case GLOBAL:
         {
+            glm::vec3 centerPosition = boost::get<Track>(glMesh).initialPosition;
             DimensionData meshDimensions = Utils::GenDimensions(boost::get<Track>(glMesh).m_vertices);
-            return AABB(meshDimensions.bottomLeft.x, meshDimensions.bottomLeft.y, meshDimensions.bottomLeft.z, meshDimensions.topRight.x, meshDimensions.topRight.y, meshDimensions.topRight.z);
+            return AABB(meshDimensions.minVertex, meshDimensions.maxVertex, centerPosition);
         }
         case SOUND:
-        case GLOBAL:
         case CAR:
         case VROAD:
         case VROAD_CEIL:
@@ -198,5 +199,4 @@ AABB Entity::getAABB() const
             ASSERT(false, "Shouldn't be adding a " << ToString(type) << " entity to the AABB tree!");
             break;
     }
-    return AABB();
 }

@@ -1,4 +1,5 @@
 #include "AABBTree.h"
+
 #include <cassert>
 #include <stack>
 
@@ -80,11 +81,10 @@ void AABBTree::updateObject(const std::shared_ptr<IAABB>& object)
     updateLeaf(nodeIndex, object->getAABB());
 }
 
-std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(const std::shared_ptr<IAABB>& object) const
+std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(const Frustum &frustum) const
 {
     std::forward_list<std::shared_ptr<IAABB>> overlaps;
     std::stack<unsigned> stack;
-    AABB testAabb = object->getAABB();
 
     stack.push(_rootNodeIndex);
     while(!stack.empty())
@@ -95,9 +95,9 @@ std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(const std::sha
         if (nodeIndex == AABB_NULL_NODE) continue;
 
         const AABBNode& node = _nodes[nodeIndex];
-        if (node.aabb.overlaps(testAabb))
+        if (frustum.CheckIntersection(node.aabb))
         {
-            if (node.isLeaf() && node.object != object)
+            if (node.isLeaf())
             {
                 overlaps.push_front(node.object);
             }

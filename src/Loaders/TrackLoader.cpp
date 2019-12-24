@@ -1,9 +1,9 @@
 #include "TrackLoader.h"
-#include "../Physics/AABBTree.h"
+
 
 #include <memory>
 
-ONFSTrack::ONFSTrack(NFSVer trackVersion, const std::string &trackName)
+ONFSTrack::ONFSTrack(NFSVer trackVersion, const std::string &trackName) : cullTree(4000)
 {
     tag = trackVersion;
     name = trackName;
@@ -86,21 +86,20 @@ void ONFSTrack::_GenerateSpline()
 
 void ONFSTrack::_GenerateAabbTree()
 {
-    AABBTree cullTree(trackBlocks.size() * 30);
-    // Render the per-trackblock data
+    // Build an optimised BvH of AABB's so that culling for render becomes cheap
     for (auto &trackBlock : trackBlocks)
     {
         for (auto &baseTrackEntity : trackBlock.track)
         {
-            //cullTree.insertObject(baseTrackEntity);
+            cullTree.insertObject(std::make_shared<Entity>(baseTrackEntity));
         }
         for (auto &trackObjectEntity : trackBlock.objects)
         {
-            //cullTree.insertObject(trackObjectEntity);
+            cullTree.insertObject(std::make_shared<Entity>(trackObjectEntity));
         }
         for (auto &trackLaneEntity : trackBlock.lanes)
         {
-            //cullTree.insertObject(trackLaneEntity);
+            cullTree.insertObject(std::make_shared<Entity>(trackLaneEntity));
         }
     }
 }

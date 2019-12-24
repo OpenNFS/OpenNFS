@@ -1,9 +1,12 @@
 #pragma once
-#include "AABB.h"
+
 #include <memory>
 #include <vector>
 #include <map>
 #include <forward_list>
+
+#include "AABB.h"
+#include "Frustum.h"
 #include "IAABB.h"
 
 #define AABB_NULL_NODE 0xffffffff
@@ -52,6 +55,6 @@ public:
     void insertObject(const std::shared_ptr<IAABB>& object);
     void removeObject(const std::shared_ptr<IAABB>& object);
     void updateObject(const std::shared_ptr<IAABB>& object);
-    std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const std::shared_ptr<IAABB>& object) const;
+    std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const Frustum &frustum) const;
 };
 

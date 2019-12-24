@@ -49,18 +49,21 @@ void PhysicsEngine::InitSimulation() {
     // The world.
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, m_broadphase, solver, collisionConfiguration);
     dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
-    dynamicsWorld->setDebugDrawer(&m_debugDrawer);
+    dynamicsWorld->setDebugDrawer(&debugDrawer);
 }
 
 void PhysicsEngine::StepSimulation(float time) {
     dynamicsWorld->stepSimulation(time, 100);
-    for (auto &car : cars) {
+    for (auto &car : m_activeVehicles) {
         car->update(dynamicsWorld);
     }
-    // TODO: Track updates should only propagate for active track blocks. Active list should be based upon track blocks cars are on
-    for (auto &track_block : currentTrack->trackBlocks) {
-        for (auto &objects : track_block.objects) {
-            //objects.update();
+    if(currentTrack.get() != nullptr)
+    {
+        // TODO: Track updates should only propagate for active track blocks. Active list should be based upon track blocks cars are on
+        for (auto &track_block : currentTrack->trackBlocks) {
+            for (auto &objects : track_block.objects) {
+                //objects.update();
+            }
         }
     }
 }
@@ -157,7 +160,7 @@ void PhysicsEngine::RegisterTrack(const std::shared_ptr<ONFSTrack> &track) {
 }
 
 void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> &car) {
-    cars.emplace_back(car);
+    m_activeVehicles.emplace_back(car);
 
     btVector3 wheelDirectionCS0(0, -1, 0);
     btVector3 wheelAxleCS(-1, 0, 0);
@@ -204,7 +207,7 @@ PhysicsEngine::PhysicsEngine() {
 }
 
 PhysicsEngine::~PhysicsEngine() {
-    for (auto &car : cars) {
+    for (auto &car : m_activeVehicles) {
         dynamicsWorld->removeRigidBody(car->getVehicleRigidBody());
     }
     for (auto &trackBlock : currentTrack->trackBlocks) {

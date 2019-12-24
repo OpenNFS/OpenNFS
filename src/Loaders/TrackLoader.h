@@ -7,7 +7,9 @@
 #include "NFS2Loader.h"
 #include "NFS4Loader.h"
 #include "NFS4PS1Loader.h"
+
 #include "../nfs_data.h"
+#include "../Physics/AABBTree.h"
 #include "../Renderer/HermiteCurve.h"
 
 class ONFSTrack {
@@ -42,6 +44,7 @@ public:
     uint32_t nBlocks;
     GLuint textureArrayID;
     HermiteCurve centerSpline;
+    AABBTree cullTree;
 
 private:
     void _GenerateSpline();

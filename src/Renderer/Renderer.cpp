@@ -76,24 +76,32 @@ bool Renderer::Render(float totalTime, float deltaTime, Camera &camera, ParamDat
         camera.ComputeMatricesFromInputs(userParams.windowActive, deltaTime);
     }
 
-    // TODO: Move to an orbital manager
+    // Perform primitive frustum culling
+    std::vector<std::shared_ptr<Entity>> visibleEntities;
+    auto aabbCollisions = track->cullTree.queryOverlaps(camera.viewFrustum);
+    for(auto &collision : aabbCollisions)
+    {
+        visibleEntities.emplace_back(std::static_pointer_cast<Entity>(collision));
+    }
+
+    // TODO: Move sun to an orbital manager class so the sunsets can look lit af
     GlobalLight sun;
 
-    shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, sun, track, playerCar, racers);
+    shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, sun, track->textureArrayID, visibleEntities, playerCar, racers);
     skyRenderer.Render(camera, sun, totalTime);
-    trackRenderer.Render(playerCar, camera, sun, track, userParams, shadowMapRenderer.m_depthTextureID, 0.5f);
+    trackRenderer.Render(playerCar, camera, sun, track->textureArrayID, visibleEntities, userParams, shadowMapRenderer.m_depthTextureID, 0.5f);
     trackRenderer.RenderLights(camera, track);
 
     // Render the Car and racers
-    std::vector<Light> carBodyContributingLights;
-    carRenderer.render(playerCar, camera, carBodyContributingLights);
-    for(auto &racer : racers){
-        carRenderer.render(racer.car, camera, carBodyContributingLights);
-    }
+    //std::vector<Light> carBodyContributingLights;
+    //carRenderer.render(playerCar, camera, carBodyContributingLights);
+    //for(auto &racer : racers){
+    //    carRenderer.render(racer.car, camera, carBodyContributingLights);
+    //}
 
-    if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
-        targetedEntity = physicsEngine.CheckForPicking(camera.viewMatrix, camera.projectionMatrix, &entityTargeted);
-    }
+    //if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
+    //    targetedEntity = physicsEngine.CheckForPicking(camera.viewMatrix, camera.projectionMatrix, &entityTargeted);
+    //}
 
     if (entityTargeted) {
         DrawMetadata(targetedEntity);

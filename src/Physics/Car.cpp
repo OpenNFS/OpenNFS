@@ -116,19 +116,19 @@ Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), da
     }
 
     DimensionData wheelDimensions = Utils::GenDimensions(leftFrontWheelModel.m_vertices);
-    glm::vec3 wheelSize = glm::vec3((wheelDimensions.topRight.x - wheelDimensions.bottomLeft.x) / 2,
-            (wheelDimensions.topRight.y - wheelDimensions.bottomLeft.y) / 2,
-                     (wheelDimensions.topRight.z - wheelDimensions.bottomLeft.z) / 2);
+    glm::vec3 wheelSize = glm::vec3((wheelDimensions.maxVertex.x - wheelDimensions.minVertex.x) / 2,
+                                    (wheelDimensions.maxVertex.y - wheelDimensions.minVertex.y) / 2,
+                                    (wheelDimensions.maxVertex.z - wheelDimensions.minVertex.z) / 2);
     wheelRadius = wheelSize.z;
     wheelWidth = wheelSize.x;
 
     // the chassis collision shape
     DimensionData chassisDimensions = Utils::GenDimensions(carBodyModel.m_vertices);
     // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
-    chassisDimensions.bottomLeft.y += 0.04f;
-    btCollisionShape *chassisShape =  new btBoxShape(btVector3((chassisDimensions.topRight.x - chassisDimensions.bottomLeft.x) / 2,
-            (chassisDimensions.topRight.y - chassisDimensions.bottomLeft.y) / 2,
-            (chassisDimensions.topRight.z - chassisDimensions.bottomLeft.z) / 2));
+    chassisDimensions.minVertex.y += 0.04f;
+    btCollisionShape *chassisShape =  new btBoxShape(btVector3((chassisDimensions.maxVertex.x - chassisDimensions.minVertex.x) / 2,
+                                                               (chassisDimensions.maxVertex.y - chassisDimensions.minVertex.y) / 2,
+                                                               (chassisDimensions.maxVertex.z - chassisDimensions.minVertex.z) / 2));
     m_collisionShapes.push_back(chassisShape);
 
     btCompoundShape *compound = new btCompoundShape();

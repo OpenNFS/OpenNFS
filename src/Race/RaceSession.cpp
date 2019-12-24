@@ -40,8 +40,8 @@ AssetData RaceSession::Simulate() {
         }
 
         // Step the physics simulation and update physics debug view matrices
-        m_physicsEngine.m_debugDrawer.SetMatrices(m_mainCamera.viewMatrix, m_mainCamera.projectionMatrix);
-        m_physicsEngine.StepSimulation(deltaTime);
+        m_physicsEngine.debugDrawer.SetMatrices(m_mainCamera.viewMatrix, m_mainCamera.projectionMatrix);
+        //m_physicsEngine.StepSimulation(deltaTime);
 
         bool assetChange = m_renderer.Render(m_totalTime, deltaTime, m_mainCamera, m_userParams, m_loadedAssets, m_playerCar, m_racerCars, m_physicsEngine);
 
