@@ -73,10 +73,9 @@ void ShadowMapRenderer::Render(float nearPlane, float farPlane, const GlobalLigh
         m_depthShader.loadTransformMatrix(racer.car->carBodyModel.ModelMatrix);
         racer.car->carBodyModel.render();
     }
-
-    m_depthShader.unbind();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, Config::get().resX, Config::get().resY);
+    m_depthShader.unbind();
     m_depthShader.shaderSet.UpdatePrograms();
 }
 

@@ -14,9 +14,9 @@ void Frustum::Update(const glm::mat4 &viewProjectionMatrix) {
     // Bottom Frustum Plane: Add second column of the matrix to the fourth column
     frustumPlanes[FrustumPlane::BOTTOM] = viewProjectionMatrix[1] + viewProjectionMatrix[3];
     // Near Frustum Plane: Third column is the near plane
-    frustumPlanes[FrustumPlane::NEAR] = viewProjectionMatrix[2];
+    frustumPlanes[FrustumPlane::NEAR_P] = viewProjectionMatrix[2];
     // Far Frustum Plane: Subtract third column of matrix from the fourth column
-    frustumPlanes[FrustumPlane::FAR] = viewProjectionMatrix[3] - viewProjectionMatrix[2];
+    frustumPlanes[FrustumPlane::FAR_P] = viewProjectionMatrix[3] - viewProjectionMatrix[2];
 
     // Normalise the planes
     for(uint8_t planeIdx = 0; planeIdx < FrustumPlane::Length; ++planeIdx)
@@ -33,6 +33,7 @@ void Frustum::Update(const glm::mat4 &viewProjectionMatrix) {
 
 bool Frustum::CheckIntersection(const AABB &other) const
 {
+    return true;
     // Loop through each frustum plane
     for (uint8_t planeIdx = 0; planeIdx < FrustumPlane::Length; ++planeIdx)
     {

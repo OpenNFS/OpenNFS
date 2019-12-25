@@ -187,9 +187,8 @@ AABB Entity::getAABB() const
         case LIGHT:
         case GLOBAL:
         {
-            glm::vec3 centerPosition = boost::get<Track>(glMesh).initialPosition;
             DimensionData meshDimensions = Utils::GenDimensions(boost::get<Track>(glMesh).m_vertices);
-            return AABB(meshDimensions.minVertex, meshDimensions.maxVertex, centerPosition);
+            return AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<Track>(glMesh).initialPosition);
         }
         case SOUND:
         case CAR:

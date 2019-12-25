@@ -15,6 +15,7 @@
 
 using namespace NFS3_4_DATA;
 
+const float NFS3_SCALE_FACTOR = 10.f;
 
 class NFS3 {
 public:

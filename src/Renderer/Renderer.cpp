@@ -92,6 +92,7 @@ bool Renderer::Render(float totalTime, float deltaTime, Camera &camera, ParamDat
     trackRenderer.Render(playerCar, camera, sun, track->textureArrayID, visibleEntities, userParams, shadowMapRenderer.m_depthTextureID, 0.5f);
     trackRenderer.RenderLights(camera, track);
 
+
     // Render the Car and racers
     //std::vector<Light> carBodyContributingLights;
     //carRenderer.render(playerCar, camera, carBodyContributingLights);
@@ -375,7 +376,7 @@ Renderer::~Renderer() {
 }
 
 void Renderer::NewFrame(ParamData &userParams) {
-    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClearColor(0.1f, 0.f, 0.5f, 1.f);
     glfwPollEvents();
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

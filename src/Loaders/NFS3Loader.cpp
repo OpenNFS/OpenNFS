@@ -563,248 +563,272 @@ bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track) {
 std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track) {
     LOG(INFO) << "Parsing TRK file into ONFS GL structures";
 
-    std::vector<TrackBlock> track_blocks = std::vector<TrackBlock>();
+    std::vector<TrackBlock> trackBlocks = std::vector<TrackBlock>();
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (uint32_t i = 0; i < track->nBlocks; i++) {
         // Get Verts from Trk block, indices from associated polygon block
-        TRKBLOCK trk_block = track->trk[i];
-        POLYGONBLOCK polygon_block = track->poly[i];
-        TrackBlock current_track_block(i, rotationMatrix *
-                                          glm::vec3(trk_block.ptCentre.x / 10, trk_block.ptCentre.y / 10,
-                                                    trk_block.ptCentre.z / 10));
-        glm::vec3 trk_block_center = rotationMatrix * glm::vec3(0, 0, 0);
+        TRKBLOCK rawTrackBlock = track->trk[i];
+        POLYGONBLOCK trackPolygonBlock = track->poly[i];
 
-        // Light sources
-        for (uint32_t j = 0; j < trk_block.nLightsrc; j++) {
-            glm::vec3 light_center = rotationMatrix * glm::vec3((trk_block.lightsrc[j].refpoint.x / 65536.0) / 10,
-                                                                (trk_block.lightsrc[j].refpoint.y / 65536.0) / 10,
-                                                                (trk_block.lightsrc[j].refpoint.z / 65536.0) / 10);
-            current_track_block.lights.emplace_back(
-                    Entity(i, j, NFS_3, LIGHT, MakeLight(light_center, trk_block.lightsrc[j].type), 0));
+        glm::vec3 rawTrackBlockCenter =  rotationMatrix * (Utils::PointToVec(rawTrackBlock.ptCentre) / NFS3_SCALE_FACTOR);
+        std::vector<glm::vec3> trackBlockVerts;
+        std::vector<glm::vec4> trackBlockShadingData;
+
+        TrackBlock trackBlock(i, rawTrackBlockCenter);
+
+        // Light and sound sources
+        for (uint32_t lightNum = 0; lightNum < rawTrackBlock.nLightsrc; ++lightNum)
+        {
+            glm::vec3 lightCenter = rotationMatrix * (Utils::PointToVec(rawTrackBlock.lightsrc[lightNum].refpoint) / 65536.f) / NFS3_SCALE_FACTOR;
+            trackBlock.lights.emplace_back(Entity(i, lightNum, NFS_3, LIGHT, MakeLight(lightCenter, rawTrackBlock.lightsrc[lightNum].type), 0));
+        }
+        for (uint32_t soundNum = 0; soundNum < rawTrackBlock.nSoundsrc; ++soundNum)
+        {
+            glm::vec3 soundCenter = rotationMatrix * (Utils::PointToVec(rawTrackBlock.soundsrc[soundNum].refpoint) / 65536.f) / NFS3_SCALE_FACTOR;
+            trackBlock.sounds.emplace_back(Entity(i, soundNum, NFS_3, SOUND, Sound(soundCenter, rawTrackBlock.soundsrc[soundNum].type), 0));
         }
 
-        for (uint32_t s = 0; s < trk_block.nSoundsrc; s++) {
-            glm::vec3 sound_center = rotationMatrix * glm::vec3((trk_block.soundsrc[s].refpoint.x / 65536.0) / 10,
-                                                                (trk_block.soundsrc[s].refpoint.y / 65536.0) / 10,
-                                                                (trk_block.soundsrc[s].refpoint.z / 65536.0) / 10);
-            current_track_block.sounds.emplace_back(
-                    Entity(i, s, NFS_3, SOUND, Sound(sound_center, trk_block.soundsrc[s].type), 0));
+        // Get Trackblock roadVertices and per-vertex shading data
+        for (uint32_t vertIdx = 0; vertIdx < rawTrackBlock.nObjectVert; ++vertIdx)
+        {
+            glm::vec3 trackBlockVertex =  (rotationMatrix * (Utils::PointToVec(rawTrackBlock.vert[vertIdx]) / NFS3_SCALE_FACTOR)) - rawTrackBlockCenter;
+            trackBlockVerts.emplace_back(trackBlockVertex);
+
+            // Packed RGBA per vertex colour data for baked lighting
+            uint32_t trackBlockVertexShadingRaw = rawTrackBlock.unknVertices[vertIdx];
+            // Break uint32_t of RGB into 4 normalised floats and store into vec4
+            glm::vec4 trackBlockVertexShadingColour = glm::vec4(((trackBlockVertexShadingRaw >> 16) & 0xFF) / 255.0f,
+                                                                ((trackBlockVertexShadingRaw >>  8) & 0xFF) / 255.0f,
+                                                                 (trackBlockVertexShadingRaw        & 0xFF) / 255.0f,
+                                                                   ((trackBlockVertexShadingRaw >> 24) & 0xFF) / 255.0f);
+            trackBlockShadingData.emplace_back(trackBlockVertexShadingColour);
         }
 
-        // Get Object vertices
-        std::vector<glm::vec3> obj_verts;
-        std::vector<glm::vec4> obj_shading_verts;
-        for (uint32_t v = 0; v < trk_block.nObjectVert; v++) {
-            obj_verts.emplace_back(rotationMatrix * glm::vec3(trk_block.vert[v].x / 10, trk_block.vert[v].y / 10,
-                                                              trk_block.vert[v].z / 10));
-            uint32_t shading_data = trk_block.unknVertices[v];
-            obj_shading_verts.emplace_back(
-                    glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
-                              (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
-        }
         // 4 OBJ Poly blocks
-        for (uint32_t j = 0; j < 4; j++) {
-            OBJPOLYBLOCK obj_polygon_block = polygon_block.obj[j];
-            if (obj_polygon_block.n1 > 0) {
+        for (uint32_t j = 0; j < 4; j++)
+        {
+            OBJPOLYBLOCK polygonBlock = trackPolygonBlock.obj[j];
+
+            if (polygonBlock.n1 > 0)
+            {
                 // Iterate through objects in objpoly block up to num objects
-                for (uint32_t k = 0; k < obj_polygon_block.nobj; k++) {
-                    //TODO: Animated objects here, obj_polygon_block.types
-                    // Mesh Data
-                    std::vector<unsigned int> vertex_indices;
-                    std::vector<glm::vec2> uvs;
-                    std::vector<unsigned int> texture_indices;
-                    std::vector<glm::vec3> norms;
-                    uint32_t accumulatedObjectFlags = 0u;
+                for (uint32_t objectIdx = 0; objectIdx < polygonBlock.nobj; ++objectIdx)
+                {
                     // Get Polygons in object
-                    LPPOLYGONDATA object_polys = obj_polygon_block.poly[k];
-                    for (uint32_t p = 0; p < obj_polygon_block.numpoly[k]; p++) {
-                        TEXTUREBLOCK texture_for_block = track->texture[object_polys[p].texture];
-                        Texture gl_texture = track->textures[texture_for_block.texture];
+                    LPPOLYGONDATA objectPolygons = polygonBlock.poly[objectIdx];
 
+                    // Mesh Data
+                    std::vector<unsigned int> vertexIndices;
+                    std::vector<unsigned int> textureIndices;
+                    std::vector<glm::vec2> uvs;
+                    std::vector<glm::vec3> normals;
+                    uint32_t accumulatedObjectFlags = 0u;
+
+                    for (uint32_t polyIdx = 0; polyIdx < polygonBlock.numpoly[objectIdx]; polyIdx++)
+                    {
+                        // Texture for this polygon and it's loaded OpenGL equivalent
+                        TEXTUREBLOCK polygonTexture = track->texture[objectPolygons[polyIdx].texture];
+                        Texture glTexture = track->textures[polygonTexture.texture];
+
+                        // Calculate the normal, as the provided data is a little suspect
                         glm::vec3 normal = rotationMatrix *
-                                CalculateQuadNormal(PointToVec(trk_block.vert[object_polys[p].vertex[0]]),
-                                                    PointToVec(trk_block.vert[object_polys[p].vertex[1]]),
-                                                    PointToVec(trk_block.vert[object_polys[p].vertex[2]]),
-                                                    PointToVec(trk_block.vert[object_polys[p].vertex[3]]));
-                        norms.emplace_back(normal);
-                        norms.emplace_back(normal);
-                        norms.emplace_back(normal);
-                        norms.emplace_back(normal);
-                        norms.emplace_back(normal);
-                        norms.emplace_back(normal);
+                                CalculateQuadNormal(PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[0]]),
+                                                    PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[1]]),
+                                                    PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[2]]),
+                                                    PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[3]]));
 
-                        vertex_indices.emplace_back(object_polys[p].vertex[0]);
-                        vertex_indices.emplace_back(object_polys[p].vertex[1]);
-                        vertex_indices.emplace_back(object_polys[p].vertex[2]);
-                        vertex_indices.emplace_back(object_polys[p].vertex[0]);
-                        vertex_indices.emplace_back(object_polys[p].vertex[2]);
-                        vertex_indices.emplace_back(object_polys[p].vertex[3]);
+                        normals.emplace_back(normal);
+                        normals.emplace_back(normal);
+                        normals.emplace_back(normal);
+                        normals.emplace_back(normal);
+                        normals.emplace_back(normal);
+                        normals.emplace_back(normal);
 
+                        vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[0]);
+                        vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[1]);
+                        vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[2]);
+                        vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[0]);
+                        vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[2]);
+                        vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[3]);
+
+                        // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
                         std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, OBJ_POLY,
-                                                                            object_polys[p].hs_texflags, gl_texture,
-                                                                            texture_for_block);
+                                                                            objectPolygons[polyIdx].hs_texflags, glTexture,
+                                                                            polygonTexture);
                         uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
-                        texture_indices.emplace_back(texture_for_block.texture);
+                        textureIndices.emplace_back(polygonTexture.texture);
+                        textureIndices.emplace_back(polygonTexture.texture);
+                        textureIndices.emplace_back(polygonTexture.texture);
+                        textureIndices.emplace_back(polygonTexture.texture);
+                        textureIndices.emplace_back(polygonTexture.texture);
+                        textureIndices.emplace_back(polygonTexture.texture);
 
-                        accumulatedObjectFlags |= object_polys[p].flags;
+                        accumulatedObjectFlags |= objectPolygons[polyIdx].flags;
                     }
-                    current_track_block.objects.emplace_back(Entity(i, (j + 1) * (k + 1), NFS_3, OBJ_POLY,
-                                                                    Track(obj_verts, norms, uvs, texture_indices,
-                                                                          vertex_indices, obj_shading_verts,
-                                                                          trk_block_center), accumulatedObjectFlags));
+                    Track trackBlockModel = Track(trackBlockVerts, normals, uvs, textureIndices, vertexIndices, trackBlockShadingData, rawTrackBlockCenter);
+                    Entity trackBlockEntity = Entity(i, (j + 1) * (objectIdx + 1), NFS_3, OBJ_POLY, trackBlockModel , accumulatedObjectFlags);
+                    trackBlock.objects.emplace_back(trackBlockEntity);
                 }
             }
         }
 
         /* XOBJS - EXTRA OBJECTS */
-        for (uint32_t l = (i * 4); l < (i * 4) + 4; l++) {
-            for (uint32_t j = 0; j < track->xobj[l].nobj; j++) {
-                XOBJDATA *x = &(track->xobj[l].obj[j]);
-                if (x->crosstype == 4) { // basic objects
-                } else if (x->crosstype == 3) { // animated objects
-                }
-                // common part : vertices & polygons
-                std::vector<glm::vec3> verts;
-                std::vector<glm::vec4> xobj_shading_verts;
-                for (uint32_t k = 0; k < x->nVertices; k++, x->vert++) {
-                    verts.emplace_back(rotationMatrix * glm::vec3(x->vert->x / 10, x->vert->y / 10, x->vert->z / 10));
-                    uint32_t shading_data = x->unknVertices[k];
-                    //RGBA
-                    xobj_shading_verts.emplace_back(
-                            glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
-                                      (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
-                }
-                std::vector<unsigned int> vertex_indices;
+        for (uint32_t l = (i * 4); l < (i * 4) + 4; l++)
+        {
+            for (uint32_t j = 0; j < track->xobj[l].nobj; j++)
+            {
+                // Get the Extra object data for this trackblock object from the global xobj table
+                XOBJDATA *pExtraObjectData = &(track->xobj[l].obj[j]);
+
+                // Mesh Data
+                std::vector<glm::vec3> extraObjectVerts;
+                std::vector<glm::vec4> extraObjectShadingData;
+                std::vector<unsigned int> vertexIndices;
+                std::vector<unsigned int> textureIndices;
                 std::vector<glm::vec2> uvs;
-                std::vector<unsigned int> texture_indices;
-                std::vector<glm::vec3> norms;
+                std::vector<glm::vec3> normals;
                 uint32_t accumulatedObjectFlags = 0u;
-                for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
-                    TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
+
+                for (uint32_t vertIdx = 0; vertIdx < pExtraObjectData->nVertices; vertIdx++, pExtraObjectData->vert++)
+                {
+                    glm::vec3 extraObjectVertex =  rotationMatrix * (glm::vec3(pExtraObjectData->vert->x, pExtraObjectData->vert->y, pExtraObjectData->vert->z) / NFS3_SCALE_FACTOR);
+                    extraObjectVerts.emplace_back(extraObjectVertex);
+
+                    uint32_t extraObjectVertexShadingRaw = pExtraObjectData->unknVertices[vertIdx];
+                    glm::vec4 extraObjectVertexShadingColour = glm::vec4(((extraObjectVertexShadingRaw >> 16) & 0xFF) / 255.0f,
+                                                                        ((extraObjectVertexShadingRaw >>  8) & 0xFF) / 255.0f,
+                                                                        (extraObjectVertexShadingRaw        & 0xFF) / 255.0f,
+                                                                        ((extraObjectVertexShadingRaw >> 24) & 0xFF) / 255.0f);
+                    extraObjectShadingData.emplace_back(extraObjectVertexShadingColour);
+                }
+
+                for (uint32_t k = 0; k < pExtraObjectData->nPolygons; k++, pExtraObjectData->polyData++) {
+                    TEXTUREBLOCK texture_for_block = track->texture[pExtraObjectData->polyData->texture];
                     Texture gl_texture = track->textures[texture_for_block.texture];
 
-                    glm::vec3 normal = rotationMatrix * CalculateQuadNormal(PointToVec(verts[x->polyData->vertex[0]]),
-                                                                            PointToVec(verts[x->polyData->vertex[1]]),
-                                                                            PointToVec(verts[x->polyData->vertex[2]]),
-                                                                            PointToVec(verts[x->polyData->vertex[3]]));
-                    norms.emplace_back(normal);
-                    norms.emplace_back(normal);
-                    norms.emplace_back(normal);
-                    norms.emplace_back(normal);
-                    norms.emplace_back(normal);
-                    norms.emplace_back(normal);
+                    glm::vec3 normal = rotationMatrix * CalculateQuadNormal(PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[0]]),
+                                                                            PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[1]]),
+                                                                            PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[2]]),
+                                                                            PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[3]]));
+                    normals.emplace_back(normal);
+                    normals.emplace_back(normal);
+                    normals.emplace_back(normal);
+                    normals.emplace_back(normal);
+                    normals.emplace_back(normal);
+                    normals.emplace_back(normal);
 
-                    vertex_indices.emplace_back(x->polyData->vertex[0]);
-                    vertex_indices.emplace_back(x->polyData->vertex[1]);
-                    vertex_indices.emplace_back(x->polyData->vertex[2]);
-                    vertex_indices.emplace_back(x->polyData->vertex[0]);
-                    vertex_indices.emplace_back(x->polyData->vertex[2]);
-                    vertex_indices.emplace_back(x->polyData->vertex[3]);
+                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[0]);
+                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[1]);
+                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[2]);
+                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[0]);
+                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[2]);
+                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[3]);
 
-                    std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, XOBJ, x->polyData->hs_texflags,
+                    std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, XOBJ, pExtraObjectData->polyData->hs_texflags,
                                                                         gl_texture, texture_for_block);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
-                    texture_indices.emplace_back(texture_for_block.texture);
+                    textureIndices.emplace_back(texture_for_block.texture);
+                    textureIndices.emplace_back(texture_for_block.texture);
+                    textureIndices.emplace_back(texture_for_block.texture);
+                    textureIndices.emplace_back(texture_for_block.texture);
+                    textureIndices.emplace_back(texture_for_block.texture);
+                    textureIndices.emplace_back(texture_for_block.texture);
 
-                    accumulatedObjectFlags |= x->polyData->flags;
+                    accumulatedObjectFlags |= pExtraObjectData->polyData->flags;
                 }
-                glm::vec3 xobj_center = rotationMatrix * glm::vec3(x->ptRef.x / 10, x->ptRef.y / 10, x->ptRef.z / 10);
-                current_track_block.objects.emplace_back(Entity(i, l, NFS_3, XOBJ,
-                                                                Track(verts, norms, uvs, texture_indices,
-                                                                      vertex_indices, xobj_shading_verts, xobj_center),
-                                                                accumulatedObjectFlags));
+                glm::vec3 extraObjectCenter = rotationMatrix * Utils::PointToVec(pExtraObjectData->ptRef) / NFS3_SCALE_FACTOR;
+                Track extraObjectModel = Track(extraObjectVerts, normals, uvs, textureIndices,vertexIndices, extraObjectShadingData, extraObjectCenter);
+                Entity extraObjectEntity = Entity(i, l, NFS_3, XOBJ, extraObjectModel, accumulatedObjectFlags);
+                trackBlock.objects.emplace_back(extraObjectEntity);
             }
         }
 
-        // Mesh Data
-        std::vector<unsigned int> vertex_indices;
+        // Road Mesh data
+        std::vector<glm::vec3> roadVertices;
+        std::vector<glm::vec4> roadShadingData;
+        std::vector<unsigned int> vertexIndices;
+        std::vector<unsigned int> textureIndices;
         std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
-        std::vector<glm::vec3> verts;
-        std::vector<glm::vec4> trk_block_shading_verts;
-        std::vector<glm::vec3> norms;
+        std::vector<glm::vec3> normals;
         uint32_t accumulatedObjectFlags = 0u;
-        for (int32_t j = 0; j < trk_block.nVertices; j++) {
-            verts.emplace_back(rotationMatrix *
-                               glm::vec3(trk_block.vert[j].x / 10, trk_block.vert[j].y / 10, trk_block.vert[j].z / 10));
-            // Break uint32_t of RGB into 4 normalised floats and store into vec4
-            uint32_t shading_data = trk_block.unknVertices[j];
-            trk_block_shading_verts.emplace_back(
-                    glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f,
-                              (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
+
+        for (uint32_t vertIdx = 0; vertIdx < rawTrackBlock.nVertices; ++vertIdx)
+        {
+            glm::vec3 roadVertex =  (rotationMatrix * (Utils::PointToVec(rawTrackBlock.vert[vertIdx]) / NFS3_SCALE_FACTOR)) - rawTrackBlockCenter;
+            roadVertices.emplace_back(roadVertex);
+
+            uint32_t roadVertexShadingRaw = rawTrackBlock.unknVertices[vertIdx];
+            glm::vec4 roadVertexShadingColour = glm::vec4(((roadVertexShadingRaw >> 16) & 0xFF) / 255.0f,
+                                                                ((roadVertexShadingRaw >>  8) & 0xFF) / 255.0f,
+                                                                (roadVertexShadingRaw        & 0xFF) / 255.0f,
+                                                                ((roadVertexShadingRaw >> 24) & 0xFF) / 255.0f);
+            roadShadingData.emplace_back(roadVertexShadingColour);
         }
         // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
-        for (uint32_t chnk = 4; chnk <= 6; chnk++) {
-            if ((chnk == 6) && (trk_block.nVertices <= trk_block.nHiResVert))
+        for (uint32_t lodChunkIdx = 4; lodChunkIdx <= 6; lodChunkIdx++)
+        {
+            // If there are no lane markers in the lane chunk, skip
+            if ((lodChunkIdx == 6) && (rawTrackBlock.nVertices <= rawTrackBlock.nHiResVert))
                 continue;
-            LPPOLYGONDATA poly_chunk = polygon_block.poly[chnk];
-            for (uint32_t k = 0; k < polygon_block.sz[chnk]; k++) {
-                TEXTUREBLOCK texture_for_block = track->texture[poly_chunk[k].texture];
-                Texture gl_texture = track->textures[texture_for_block.texture];
+
+            // Get the polygon data for this road section
+            LPPOLYGONDATA chunkPolygonData = trackPolygonBlock.poly[lodChunkIdx];
+
+            for (uint32_t polyIdx = 0; polyIdx < trackPolygonBlock.sz[lodChunkIdx]; polyIdx++)
+            {
+                TEXTUREBLOCK polygonTexture = track->texture[chunkPolygonData[polyIdx].texture];
+                Texture gl_texture = track->textures[polygonTexture.texture];
 
                 glm::vec3 normal = rotationMatrix *
-                        CalculateQuadNormal(PointToVec(trk_block.vert[poly_chunk[k].vertex[0]]),
-                                            PointToVec(trk_block.vert[poly_chunk[k].vertex[1]]),
-                                            PointToVec(trk_block.vert[poly_chunk[k].vertex[2]]),
-                                            PointToVec(trk_block.vert[poly_chunk[k].vertex[3]]));
-                norms.emplace_back(normal);
-                norms.emplace_back(normal);
-                norms.emplace_back(normal);
-                norms.emplace_back(normal);
-                norms.emplace_back(normal);
-                norms.emplace_back(normal);
+                        CalculateQuadNormal(PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[0]]),
+                                            PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[1]]),
+                                            PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[2]]),
+                                            PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[3]]));
 
-                vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
-                vertex_indices.emplace_back(poly_chunk[k].vertex[1]);
-                vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
-                vertex_indices.emplace_back(poly_chunk[k].vertex[0]);
-                vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
-                vertex_indices.emplace_back(poly_chunk[k].vertex[3]);
+                normals.emplace_back(normal);
+                normals.emplace_back(normal);
+                normals.emplace_back(normal);
+                normals.emplace_back(normal);
+                normals.emplace_back(normal);
+                normals.emplace_back(normal);
 
-                std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, chnk == 6 ? LANE : ROAD,
-                                                                    poly_chunk[k].hs_texflags, gl_texture,
-                                                                    texture_for_block);
+                vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[0]);
+                vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[1]);
+                vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[2]);
+                vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[0]);
+                vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[2]);
+                vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[3]);
+
+                std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, lodChunkIdx == 6 ? LANE : ROAD,
+                                                                    chunkPolygonData[polyIdx].hs_texflags, gl_texture,
+                                                                    polygonTexture);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
-                texture_indices.emplace_back(texture_for_block.texture);
+                textureIndices.emplace_back(polygonTexture.texture);
+                textureIndices.emplace_back(polygonTexture.texture);
+                textureIndices.emplace_back(polygonTexture.texture);
+                textureIndices.emplace_back(polygonTexture.texture);
+                textureIndices.emplace_back(polygonTexture.texture);
+                textureIndices.emplace_back(polygonTexture.texture);
 
-                accumulatedObjectFlags |= poly_chunk[k].flags;
+                accumulatedObjectFlags |= chunkPolygonData[polyIdx].flags;
             }
-
-            if (chnk == 6) {
-                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_3, LANE,
-                                                              Track(verts, norms, uvs, texture_indices, vertex_indices,
-                                                                    trk_block_shading_verts, trk_block_center),
-                                                              accumulatedObjectFlags));
+            Track roadModel =  Track(roadVertices, normals, uvs, textureIndices, vertexIndices, roadShadingData, rawTrackBlockCenter);
+            if (lodChunkIdx == 6) {
+                Entity laneEntity = Entity(i, -1, NFS_3, LANE, roadModel, accumulatedObjectFlags);
+                trackBlock.lanes.emplace_back(laneEntity);
             } else {
-                current_track_block.track.emplace_back(Entity(i, -1, NFS_3, ROAD,
-                                                              Track(verts, norms, uvs, texture_indices, vertex_indices,
-                                                                    trk_block_shading_verts, trk_block_center),
-                                                              accumulatedObjectFlags));
+                Entity roadEntity = Entity(i, -1, NFS_3, ROAD, roadModel, accumulatedObjectFlags);
+                trackBlock.track.emplace_back(roadEntity);
             }
         }
-        track_blocks.emplace_back(current_track_block);
+        trackBlocks.emplace_back(trackBlock);
     }
-    return track_blocks;
+    return trackBlocks;
 }
 
 std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track) {

@@ -13,7 +13,7 @@
 
 class Camera {
 public:
-    Camera(glm::vec3 initialPosition, HermiteCurve trackCenterSpline, GLFWwindow *window);
+    Camera(glm::vec3 initialPosition, const HermiteCurve &trackCenterSpline, GLFWwindow *window);
     Camera() = default;
     void ResetView();
     void UseSpline(float elapsedTime); // Move to position on spline dependent on how long game has been running

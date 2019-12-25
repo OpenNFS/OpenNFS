@@ -10,7 +10,7 @@ namespace CrpLib {
     CRawData::CRawData(void) {
         m_Init = false;
         m_pData = NULL;
-        m_Length = NULL;
+        m_Length = 0;
     }
 
     CRawData::CRawData(char *pData, int length) {

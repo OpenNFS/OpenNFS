@@ -148,7 +148,7 @@ struct ParamData {
     bool useClassicGraphics = false;
     bool attachCamToHermite = false;
     bool useNbData = true;
-    bool attachCamToCar = true;
+    bool attachCamToCar = false;
     bool frustumCull = false;
     bool drawVroad = false;
     bool drawCAN = false;
