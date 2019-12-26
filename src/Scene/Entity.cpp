@@ -13,6 +13,7 @@ Entity::Entity(uint32_t parentTrackblockID, uint32_t entityID, NFSVer nfsVersion
     this->endPointB = toB;
     this->_SetCollisionParameters();
     this->_GenCollisionMesh();
+    this->_GenBoundingBox();
 }
 
 void Entity::_GenCollisionMesh() {
@@ -106,6 +107,31 @@ void Entity::_GenCollisionMesh() {
     rigidBody->setUserPointer(this);
 }
 
+void Entity::_GenBoundingBox()
+{
+    switch(type)
+    {
+        case XOBJ:
+        case OBJ_POLY:
+        case LANE:
+        case ROAD:
+        case GLOBAL:
+        {
+            DimensionData meshDimensions = Utils::GenDimensions(boost::get<Track>(glMesh).m_vertices);
+            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<Track>(glMesh).initialPosition);
+        }
+        case LIGHT:
+        case SOUND:
+        case CAR:
+        case VROAD:
+        case VROAD_CEIL:
+            return;
+        default:
+            ASSERT(false, "Shouldn't be adding a " << ToString(type) << " entity to the AABB tree!");
+            break;
+    }
+}
+
 void Entity::Update() {
     // We don't want to update Entities that aren't dynamic
     if (!((type == OBJ_POLY || type == XOBJ) && dynamic)) {
@@ -176,26 +202,20 @@ void Entity::_SetCollisionParameters() {
     }
 }
 
-AABB Entity::getAABB() const
+AABB Entity::GetAABB() const
 {
     switch(type)
     {
-        case XOBJ:
-        case OBJ_POLY:
-        case LANE:
-        case ROAD:
         case LIGHT:
-        case GLOBAL:
-        {
-            DimensionData meshDimensions = Utils::GenDimensions(boost::get<Track>(glMesh).m_vertices);
-            return AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<Track>(glMesh).initialPosition);
-        }
         case SOUND:
         case CAR:
         case VROAD:
         case VROAD_CEIL:
-        default:
             ASSERT(false, "Shouldn't be adding a " << ToString(type) << " entity to the AABB tree!");
             break;
+        default:
+            break;
     }
+
+    return m_boundingBox;
 }

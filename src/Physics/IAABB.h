@@ -5,5 +5,5 @@ class IAABB
 {
 public:
     virtual ~IAABB() = default;
-    [[nodiscard]] virtual AABB getAABB() const = 0;
+    [[nodiscard]] virtual AABB GetAABB() const = 0;
 };

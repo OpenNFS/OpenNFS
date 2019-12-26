@@ -5,16 +5,38 @@
 
 #include "AABB.h"
 
-enum FrustumPlane : uint8_t { LEFT, RIGHT, TOP, BOTTOM, NEAR_P, FAR_P, Length };
+enum FrustumPlanes : uint8_t
+{
+    LEFT,
+    RIGHT,
+    BOTTOM,
+    TOP,
+    NEAR_P,
+    FAR_P,
+    Length,
+    Combinations = Length * (Length - 1) / 2
+};
 
 class Frustum
 {
 public:
     Frustum() = default;
-    explicit Frustum(const glm::mat4 &viewProjectionMatrix);
-    void Update(const glm::mat4 &viewProjectionMatrix);
+    void Update(const glm::mat4 &projectionViewMatrix);
     bool CheckIntersection(const AABB &other) const;
+    std::array<glm::vec3, 8> points;
 
 private:
-    std::array<glm::vec4, static_cast<uint8_t>(FrustumPlane::Length)> frustumPlanes;
+    template<FrustumPlanes i, FrustumPlanes j>
+    struct ij2k
+    {
+        enum { k = i * (9 - i) / 2 + j - 1 };
+    };
+
+    template<FrustumPlanes a, FrustumPlanes b, FrustumPlanes c>
+    glm::vec3 GetPlaneIntersection(const glm::vec3* crosses) const;
+
+    void _ExtractPlanes(const glm::mat4 &projectionViewMatrix);
+    void _CalculatePlaneIntersections();
+
+    std::array<glm::vec4, FrustumPlanes::Length> m_planes;
 };

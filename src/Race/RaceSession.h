@@ -3,19 +3,25 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "../Scene/Camera.h"
+#include "../Camera/FreeCamera.h"
+#include "../Camera/HermiteCamera.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../Loaders/CarLoader.h"
 #include "../Loaders/TrackLoader.h"
+#include "../Renderer/Renderer.h"
 #include "../RaceNet/CarAgent.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
-#include "../Renderer/Renderer.h"
 
 class RaceSession {
 public:
-    RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
+    RaceSession(GLFWwindow *glWindow,
+                std::shared_ptr<Logger> &onfsLogger,
+                const std::vector<NfsAssetList> &installedNFS,
+                const std::shared_ptr<ONFSTrack> &currentTrack,
+                std::shared_ptr<Car> &currentCar);
     AssetData Simulate();
+
 private:
     void SpawnRacers(uint8_t nRacers);
 
@@ -28,7 +34,8 @@ private:
 
     PhysicsEngine m_physicsEngine;
     Renderer m_renderer;
-    Camera m_mainCamera;
+    FreeCamera m_mainCamera;
+    HermiteCamera m_hermiteCamera;
 
     ParamData m_userParams;
     uint64_t m_ticks = 0; // Engine ticks elapsed

@@ -8,7 +8,8 @@
 #include <examples/imgui_impl_glfw.h>
 #include <examples/imgui_impl_opengl3.h>
 
-#include "../Scene/Camera.h"
+#include "../Camera/FreeCamera.h"
+#include "../Camera/HermiteCamera.h"
 #include "../Scene/Entity.h"
 #include "../Loaders/TrackLoader.h"
 #include "../Physics/PhysicsEngine.h"
@@ -36,32 +37,42 @@ public:
         Config::get().resY = height;
     }
     static GLFWwindow *InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName);
-    bool Render(float totalTime, float deltaTime, Camera &camera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine);
-    // Data used for culling
-    int closestBlockID = 0;
-private:
-    GLFWwindow *window;
-    std::shared_ptr<Logger> logger;
-    std::vector<NfsAssetList> installedNFSGames;
-    std::shared_ptr<ONFSTrack> track;
+    bool Render(float totalTime,
+                float deltaTime,
+                FreeCamera &freeCamera,
+                HermiteCamera &hermiteCamera,
+                ParamData &userParams,
+                AssetData &loadedAssets,
+                std::shared_ptr<Car> &playerCar,
+                std::vector<CarAgent> racers,
+                PhysicsEngine &physicsEngine);
 
-    /* Renderers */
-    TrackRenderer trackRenderer;
-    CarRenderer carRenderer;
-    SkyRenderer skyRenderer;
-    ShadowMapRenderer shadowMapRenderer;
+private:
+    void _InitialiseIMGUI();
+    void _NewFrame(ParamData &userParams);
+    void _SetCamera(ParamData &userParams);
+    void _DrawMetadata(Entity *targetEntity);
+    void _DrawNFS34Metadata(Entity *targetEntity);
+    bool _DrawMenuBar(AssetData &loadedAssets);
+    void _DrawUI(ParamData &userParams, FreeCamera &freeCamera, std::shared_ptr<Car> &playerCar);
+    static void _DrawAABB(const AABB &aabb, PhysicsEngine &physicsEngine);
+    void _DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine);
+
+    GLFWwindow *m_pWindow;
+    std::shared_ptr<Logger> m_logger;
+    std::vector<NfsAssetList> m_nfsAssetList;
+    std::shared_ptr<ONFSTrack> m_track;
+
+    TrackRenderer m_trackRenderer;
+    CarRenderer m_carRenderer;
+    SkyRenderer m_skyRenderer;
+    ShadowMapRenderer m_shadowMapRenderer;
     /*MenuRenderer menuRenderer;*/
 
     /* State */
-    /* Entity Targeting */
-    bool entityTargeted = false;
-    Entity *targetedEntity = nullptr;
-
-    // ------- Helper Functions ------
-    void InitialiseIMGUI();
-    void NewFrame(ParamData &userParams);
-    void DrawMetadata(Entity *targetEntity);
-    void DrawNFS34Metadata(Entity *targetEntity);
-    bool DrawMenuBar(AssetData &loadedAssets);
-    void DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar);
+    CameraMode m_activeCameraMode; // TODO: Change to a Camera base object
+    bool m_entityTargeted = false;
+    Entity *m_pTargetedEntity = nullptr;
+    // Data used for culling
+    int m_closestBlockID = 0;
 };

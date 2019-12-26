@@ -3,9 +3,12 @@
 RaceSession::RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList > &installedNFS,
                          const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car>
                          &currentCar) : m_window(glWindow), m_track(currentTrack), m_playerCar(currentCar),
-                                        m_renderer(glWindow, onfsLogger, installedNFS, m_track, m_playerCar){
+                                        m_renderer(glWindow, onfsLogger, installedNFS, m_track, m_playerCar) {
+
     m_loadedAssets = {m_playerCar->tag, m_playerCar->id, m_track->tag, m_track->name};
-    m_mainCamera = Camera(m_track->trackBlocks[0].center, m_track->centerSpline, m_window);
+
+    m_mainCamera = FreeCamera(m_track->trackBlocks[0].center, m_window);
+    m_hermiteCamera = HermiteCamera(m_track->centerSpline, m_track->trackBlocks[0].center, m_window);
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
@@ -43,7 +46,7 @@ AssetData RaceSession::Simulate() {
         m_physicsEngine.debugDrawer.SetMatrices(m_mainCamera.viewMatrix, m_mainCamera.projectionMatrix);
         //m_physicsEngine.StepSimulation(deltaTime);
 
-        bool assetChange = m_renderer.Render(m_totalTime, deltaTime, m_mainCamera, m_userParams, m_loadedAssets, m_playerCar, m_racerCars, m_physicsEngine);
+        bool assetChange = m_renderer.Render(m_totalTime, deltaTime, m_mainCamera, m_hermiteCamera,m_userParams, m_loadedAssets, m_playerCar, m_racerCars, m_physicsEngine);
 
         if (assetChange)
         {

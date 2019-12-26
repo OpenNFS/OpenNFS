@@ -1,0 +1,73 @@
+#include "FreeCamera.h"
+
+FreeCamera::FreeCamera(glm::vec3 initialPosition, GLFWwindow *window) : Camera(CameraMode::FREE_LOOK, initialPosition, window){
+
+}
+
+void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) {
+    if (!windowActive)
+        return;
+
+    // Bail on the window active status if we hit the escape key
+    windowActive = (glfwGetKey(m_window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
+    ImGui::GetIO().MouseDrawCursor = true;
+
+    // Get mouse position and compute new orientation with it
+    m_horizontalAngle += m_mouseSpeedDamper * (Config::get().resX / 2 - ImGui::GetIO().MousePos.x);
+    m_verticalAngle += m_mouseSpeedDamper * (Config::get().resY / 2 - ImGui::GetIO().MousePos.y);
+
+    // Reset mouse position for next frame
+    glfwSetCursorPos(m_window, Config::get().resX / 2, Config::get().resY / 2);
+
+    // Direction : Spherical coordinates to Cartesian coordinates conversion
+    direction = glm::vec3(
+            cos(m_verticalAngle) * sin(m_horizontalAngle),
+            sin(m_verticalAngle),
+            cos(m_verticalAngle) * cos(m_horizontalAngle)
+    );
+
+    // Right vector
+    glm::vec3 right = glm::vec3(
+            sin(m_horizontalAngle - 3.14f / 2.0f),
+            0,
+            cos(m_horizontalAngle - 3.14f / 2.0f)
+    );
+
+    // Up vector
+    glm::vec3 up = glm::cross(right, direction);
+
+    // Speed boost
+    if (ImGui::GetIO().KeyShift) {
+        m_speed = 100.0f;
+    } else {
+        m_speed = 3.0f;
+    }
+
+    if (ImGui::GetIO().MouseDown[1]) {
+        // Move forward
+        if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS) {
+            position += direction * deltaTime * m_speed;
+        }
+        // Move backward
+        if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS) {
+            position -= direction * deltaTime * m_speed;
+        }
+        // Strafe right
+        if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS) {
+            position += right * deltaTime * m_speed;
+        }
+        // Strafe left
+        if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS) {
+            position -= right * deltaTime * m_speed;
+        }
+    }
+
+    // Camera matrix
+    viewMatrix = glm::lookAt(
+            position,           // Camera is here
+            position + direction, // and looks here : at the same position, plus "direction"
+            up                  // Head is up (set to 0,-1,0 to look upside-down)
+    );
+
+    this->_UpdateFrustum();
+}

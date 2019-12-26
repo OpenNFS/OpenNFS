@@ -6,7 +6,8 @@
 struct AABB
 {
 private:
-    float calculateSurfaceArea() const { return 2.0f * (getWidth() * getHeight() + getWidth()*getDepth() + getHeight()*getDepth()); }
+    float _CalculateSurfaceArea() const { return 2.0f * (GetWidth() * GetHeight() + GetWidth() * GetDepth() +
+                                                         GetHeight() * GetDepth()); }
 
 public:
     float minX;
@@ -24,15 +25,15 @@ public:
     AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
             minX(minX), minY(minY), minZ(minZ), maxX(maxX), maxY(maxY), maxZ(maxZ)
     {
-        surfaceArea = calculateSurfaceArea();
+        surfaceArea = this->_CalculateSurfaceArea();
     }
     AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition) :
             minX(minVertex.x), minY(minVertex.y), minZ(minVertex.z), maxX(maxVertex.x), maxY(maxVertex.y), maxZ(maxVertex.z), position(centerPosition)
     {
-        surfaceArea = calculateSurfaceArea();
+        surfaceArea = this->_CalculateSurfaceArea();
     }
 
-    bool overlaps(const AABB& other) const
+    bool Overlaps(const AABB& other) const
     {
         // y is deliberately first in the list of checks below as it is seen as more likely than things
         // collide on x,z but not on y than they do on y thus we drop out sooner on a y fail
@@ -44,7 +45,7 @@ public:
                minZ < other.maxZ;
     }
 
-    bool contains(const AABB& other) const
+    bool Contains(const AABB& other) const
     {
         return other.minX >= minX &&
                other.maxX <= maxX &&
@@ -54,7 +55,7 @@ public:
                other.maxZ <= maxZ;
     }
 
-    AABB merge(const AABB& other) const
+    AABB Merge(const AABB& other) const
     {
         return AABB(
                 std::min(minX, other.minX), std::min(minY, other.minY), std::min(minZ, other.minZ),
@@ -62,7 +63,7 @@ public:
         );
     }
 
-    AABB intersection(const AABB& other) const
+    AABB Intersection(const AABB& other) const
     {
         return AABB(
                 std::max(minX, other.minX), std::max(minY, other.minY), std::max(minZ, other.minZ),
@@ -70,7 +71,7 @@ public:
         );
     }
 
-    float getWidth() const { return maxX - minX; }
-    float getHeight() const { return maxY - minY; }
-    float getDepth() const { return maxZ - minZ; }
+    float GetWidth() const { return maxX - minX; }
+    float GetHeight() const { return maxY - minY; }
+    float GetDepth() const { return maxZ - minZ; }
 };

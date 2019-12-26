@@ -60,7 +60,7 @@ void AABBTree::insertObject(const std::shared_ptr<IAABB>& object)
     unsigned nodeIndex = allocateNode();
     AABBNode& node = _nodes[nodeIndex];
 
-    node.aabb = object->getAABB();
+    node.aabb = object->GetAABB();
     node.object = object;
 
     insertLeaf(nodeIndex);
@@ -78,7 +78,7 @@ void AABBTree::removeObject(const std::shared_ptr<IAABB>& object)
 void AABBTree::updateObject(const std::shared_ptr<IAABB>& object)
 {
     unsigned nodeIndex = _objectNodeIndexMap[object];
-    updateLeaf(nodeIndex, object->getAABB());
+    updateLeaf(nodeIndex, object->GetAABB());
 }
 
 std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(const Frustum &frustum) const
@@ -139,7 +139,7 @@ void AABBTree::insertLeaf(unsigned leafNodeIndex)
         const AABBNode& leftNode = _nodes[leftNodeIndex];
         const AABBNode& rightNode = _nodes[rightNodeIndex];
 
-        AABB combinedAabb = treeNode.aabb.merge(leafNode.aabb);
+        AABB combinedAabb = treeNode.aabb.Merge(leafNode.aabb);
 
         float newParentNodeCost = 2.0f * combinedAabb.surfaceArea;
         float minimumPushDownCost = 2.0f * (combinedAabb.surfaceArea - treeNode.aabb.surfaceArea);
@@ -149,20 +149,20 @@ void AABBTree::insertLeaf(unsigned leafNodeIndex)
         float costRight;
         if (leftNode.isLeaf())
         {
-            costLeft = leafNode.aabb.merge(leftNode.aabb).surfaceArea + minimumPushDownCost;
+            costLeft = leafNode.aabb.Merge(leftNode.aabb).surfaceArea + minimumPushDownCost;
         }
         else
         {
-            AABB newLeftAabb = leafNode.aabb.merge(leftNode.aabb);
+            AABB newLeftAabb = leafNode.aabb.Merge(leftNode.aabb);
             costLeft = (newLeftAabb.surfaceArea - leftNode.aabb.surfaceArea) + minimumPushDownCost;
         }
         if (rightNode.isLeaf())
         {
-            costRight = leafNode.aabb.merge(rightNode.aabb).surfaceArea + minimumPushDownCost;
+            costRight = leafNode.aabb.Merge(rightNode.aabb).surfaceArea + minimumPushDownCost;
         }
         else
         {
-            AABB newRightAabb = leafNode.aabb.merge(rightNode.aabb);
+            AABB newRightAabb = leafNode.aabb.Merge(rightNode.aabb);
             costRight = (newRightAabb.surfaceArea - rightNode.aabb.surfaceArea) + minimumPushDownCost;
         }
 
@@ -192,7 +192,7 @@ void AABBTree::insertLeaf(unsigned leafNodeIndex)
     unsigned newParentIndex = allocateNode();
     AABBNode& newParent = _nodes[newParentIndex];
     newParent.parentNodeIndex = oldParentIndex;
-    newParent.aabb = leafNode.aabb.merge(leafSibling.aabb); // the new parents aabb is the leaf aabb combined with it's siblings aabb
+    newParent.aabb = leafNode.aabb.Merge(leafSibling.aabb); // the new parents aabb is the leaf aabb combined with it's siblings aabb
     newParent.leftNodeIndex = leafSiblingIndex;
     newParent.rightNodeIndex = leafNodeIndex;
     leafNode.parentNodeIndex = newParentIndex;
@@ -276,7 +276,7 @@ void AABBTree::updateLeaf(unsigned leafNodeIndex, const AABB& newAaab)
     // if the node contains the new aabb then we just leave things
     // TODO: when we add velocity this check should kick in as often an update will lie within the velocity fattened initial aabb
     // to support this we might need to differentiate between velocity fattened aabb and actual aabb
-    if (node.aabb.contains(newAaab)) return;
+    if (node.aabb.Contains(newAaab)) return;
 
     removeLeaf(leafNodeIndex);
     node.aabb = newAaab;
@@ -296,7 +296,7 @@ void AABBTree::fixUpwardsTree(unsigned treeNodeIndex)
         // fix height and area
         const AABBNode& leftNode = _nodes[treeNode.leftNodeIndex];
         const AABBNode& rightNode = _nodes[treeNode.rightNodeIndex];
-        treeNode.aabb = leftNode.aabb.merge(rightNode.aabb);
+        treeNode.aabb = leftNode.aabb.Merge(rightNode.aabb);
 
         treeNodeIndex = treeNode.parentNodeIndex;
     }

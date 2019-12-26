@@ -3,7 +3,23 @@
 
 SkyRenderer::SkyRenderer() {
     // Load track HRZ parameters into shader
-    LoadTextures();
+    this->_LoadAssets();
+}
+
+void SkyRenderer::_LoadAssets() {
+    std::string clouds1_texture_path("../resources/misc/skydome/clouds1.tga");
+    std::string clouds2_texture_path("../resources/misc/skydome/clouds2.tga");
+    std::string sun_texture_path("../resources/misc/skydome/sun.tga");
+    std::string moon_texture_path("../resources/misc/skydome/moon.tga");
+    std::string tint_texture_path("../resources/misc/skydome/tint.tga");
+    std::string tint2_texture_path("../resources/misc/skydome/tint2.tga");
+    int width, height;
+    clouds1TextureID = ImageLoader::LoadImage(clouds1_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
+    clouds2TextureID = ImageLoader::LoadImage(clouds2_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
+    sunTextureID = ImageLoader::LoadImage(sun_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
+    moonTextureID = ImageLoader::LoadImage(moon_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
+    tintTextureID = ImageLoader::LoadImage(tint_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
+    tint2TextureID = ImageLoader::LoadImage(tint2_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
 
     // Load OBJ Model
     tinyobj::attrib_t attrib;
@@ -36,41 +52,25 @@ SkyRenderer::SkyRenderer() {
             // per-face material
             shapes[s].mesh.material_ids[f];
         }
-        skydome = CarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01f, 0.0f, 0.5f);
+        m_skydomeModel = CarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01f, 0.0f, 0.5f);
         break;
     }
-    skydome.enable();
-    skydome.update();
+    m_skydomeModel.enable();
+    m_skydomeModel.update();
 }
 
-void SkyRenderer::LoadTextures() {
-    std::string clouds1_texture_path("../resources/misc/skydome/clouds1.tga");
-    std::string clouds2_texture_path("../resources/misc/skydome/clouds2.tga");
-    std::string sun_texture_path("../resources/misc/skydome/sun.tga");
-    std::string moon_texture_path("../resources/misc/skydome/moon.tga");
-    std::string tint_texture_path("../resources/misc/skydome/tint.tga");
-    std::string tint2_texture_path("../resources/misc/skydome/tint2.tga");
-    int width, height;
-    clouds1TextureID = ImageLoader::LoadImage(clouds1_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-    clouds2TextureID = ImageLoader::LoadImage(clouds2_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-    sunTextureID = ImageLoader::LoadImage(sun_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-    moonTextureID = ImageLoader::LoadImage(moon_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-    tintTextureID = ImageLoader::LoadImage(tint_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-    tint2TextureID = ImageLoader::LoadImage(tint2_texture_path, &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-}
-
-void SkyRenderer::Render(const Camera &mainCamera, const GlobalLight &sun, float elapsedTime) {
-    skydomeShader.use();
-    skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
-    skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(SIMD_PI,SIMD_PI,0))))); // No star rotation
-    skydomeShader.loadMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix, skydome.ModelMatrix);
-    skydomeShader.loadSunPosition(sun);
-    skydomeShader.loadTime(elapsedTime);
-    skydomeShader.loadWeatherMixFactor(1.0f);
+void SkyRenderer::Render(const Camera &camera, const GlobalLight &sun, float elapsedTime) {
+    m_skydomeShader.use();
+    m_skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
+    m_skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(SIMD_PI, SIMD_PI, 0))))); // No star rotation
+    m_skydomeShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, m_skydomeModel.ModelMatrix);
+    m_skydomeShader.loadSunPosition(sun);
+    m_skydomeShader.loadTime(elapsedTime);
+    m_skydomeShader.loadWeatherMixFactor(1.0f);
     // Bind the sphere model
-    skydome.render();
-    skydomeShader.unbind();
-    skydomeShader.shaderSet.UpdatePrograms();
+    m_skydomeModel.render();
+    m_skydomeShader.unbind();
+    m_skydomeShader.shaderSet.UpdatePrograms();
 }
 
 SkyRenderer::~SkyRenderer() {
@@ -80,7 +80,7 @@ SkyRenderer::~SkyRenderer() {
     glDeleteTextures(1, &moonTextureID);
     glDeleteTextures(1, &tintTextureID);
     glDeleteTextures(1, &tint2TextureID);
-    skydomeShader.cleanup();
+    m_skydomeShader.cleanup();
 }
 
 

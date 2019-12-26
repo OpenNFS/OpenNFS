@@ -1,56 +1,55 @@
 #include "CarRenderer.h"
 
-
-void CarRenderer::render(shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights) {
-    carShader.use();
+void CarRenderer::Render(shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights) {
+    m_carShader.use();
 
     // This shader state doesnt change during a car renderpass
-    carShader.loadProjectionViewMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix);
-    carShader.setPolyFlagged(car->hasPolyFlags());
-    carShader.loadCarColor(glm::vec3(1,1,1));
-    carShader.loadLights(contributingLights);
-    carShader.loadEnvironmentMapTexture();
+    m_carShader.loadProjectionViewMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix);
+    m_carShader.setPolyFlagged(car->hasPolyFlags());
+    m_carShader.loadCarColor(glm::vec3(1, 1, 1));
+    m_carShader.loadLights(contributingLights);
+    m_carShader.loadEnvironmentMapTexture();
     // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
-    carShader.setMultiTextured(car->isMultitextured());
+    m_carShader.setMultiTextured(car->isMultitextured());
     if(car->isMultitextured()){
-        carShader.bindTextureArray(car->textureArrayID);
+        m_carShader.bindTextureArray(car->textureArrayID);
     } else {
-        carShader.loadCarTexture(car->textureID);
+        m_carShader.loadCarTexture(car->textureID);
     }
 
     // Render the Car models
     for (auto &misc_model : car->miscModels) {
-        carShader.loadTransformationMatrix(misc_model.ModelMatrix);
-        carShader.loadSpecular(misc_model.specularDamper, 0, 0);
+        m_carShader.loadTransformationMatrix(misc_model.ModelMatrix);
+        m_carShader.loadSpecular(misc_model.specularDamper, 0, 0);
         misc_model.render();
     }
 
-    carShader.loadTransformationMatrix(car->leftFrontWheelModel.ModelMatrix);
-    carShader.loadSpecular(car->leftFrontWheelModel.specularDamper, 0, 0);
+    m_carShader.loadTransformationMatrix(car->leftFrontWheelModel.ModelMatrix);
+    m_carShader.loadSpecular(car->leftFrontWheelModel.specularDamper, 0, 0);
     car->leftFrontWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->leftRearWheelModel.ModelMatrix);
-    carShader.loadSpecular(car->leftRearWheelModel.specularDamper, 0, 0);
+    m_carShader.loadTransformationMatrix(car->leftRearWheelModel.ModelMatrix);
+    m_carShader.loadSpecular(car->leftRearWheelModel.specularDamper, 0, 0);
     car->leftRearWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->rightFrontWheelModel.ModelMatrix);
-    carShader.loadSpecular(car->rightFrontWheelModel.specularDamper, 0, 0);
+    m_carShader.loadTransformationMatrix(car->rightFrontWheelModel.ModelMatrix);
+    m_carShader.loadSpecular(car->rightFrontWheelModel.specularDamper, 0, 0);
     car->rightFrontWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->rightRearWheelModel.ModelMatrix);
-    carShader.loadSpecular(car->rightRearWheelModel.specularDamper, 0, 0);
+    m_carShader.loadTransformationMatrix(car->rightRearWheelModel.ModelMatrix);
+    m_carShader.loadSpecular(car->rightRearWheelModel.specularDamper, 0, 0);
     car->rightRearWheelModel.render();
 
-    carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
-    carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity, car->carBodyModel.envReflectivity);
-    carShader.loadCarColor(car->colour); // The colour should only apply to the car body
+    m_carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
+    m_carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity, car->carBodyModel.envReflectivity);
+    m_carShader.loadCarColor(car->colour); // The colour should only apply to the car body
     car->carBodyModel.render();
 
-    carShader.unbind();
+    m_carShader.unbind();
 }
 
 CarRenderer::~CarRenderer() {
     // Cleanup VBOs and shaders
-    carShader.cleanup();
+    m_carShader.cleanup();
 }
 

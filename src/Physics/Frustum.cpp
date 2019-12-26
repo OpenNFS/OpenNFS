@@ -1,62 +1,35 @@
 #include "Frustum.h"
 
-Frustum::Frustum(const glm::mat4 &viewProjectionMatrix) {
-    this->Update(viewProjectionMatrix);
-}
-
-void Frustum::Update(const glm::mat4 &viewProjectionMatrix) {
-    // Left Frustum Plane: Add first column of the matrix to the fourth column
-    frustumPlanes[FrustumPlane::LEFT] = viewProjectionMatrix[0] + viewProjectionMatrix[3];
-    // Right Frustum Plane: Subtract first column of matrix from the fourth column
-    frustumPlanes[FrustumPlane::RIGHT] = viewProjectionMatrix[3] - viewProjectionMatrix[0];
-    // Top Frustum Plane: Subtract second column of matrix from the fourth column
-    frustumPlanes[FrustumPlane::TOP] = viewProjectionMatrix[3] - viewProjectionMatrix[1];
-    // Bottom Frustum Plane: Add second column of the matrix to the fourth column
-    frustumPlanes[FrustumPlane::BOTTOM] = viewProjectionMatrix[1] + viewProjectionMatrix[3];
-    // Near Frustum Plane: Third column is the near plane
-    frustumPlanes[FrustumPlane::NEAR_P] = viewProjectionMatrix[2];
-    // Far Frustum Plane: Subtract third column of matrix from the fourth column
-    frustumPlanes[FrustumPlane::FAR_P] = viewProjectionMatrix[3] - viewProjectionMatrix[2];
-
-    // Normalise the planes
-    for(uint8_t planeIdx = 0; planeIdx < FrustumPlane::Length; ++planeIdx)
-    {
-        //frustumPlanes[planeIdx] = glm::normalize(frustumPlanes[planeIdx]);
-        // Ignore W component for length calculation
-        float length = glm::length(glm::vec3(frustumPlanes[planeIdx]));
-        frustumPlanes[planeIdx].x /= length;
-        frustumPlanes[planeIdx].y /= length;
-        frustumPlanes[planeIdx].z /= length;
-        frustumPlanes[planeIdx].w /= length;
-    }
-}
-
-bool Frustum::CheckIntersection(const AABB &other) const
+void Frustum::Update(const glm::mat4 &projectionViewMatrix)
 {
-    return true;
+    this->_ExtractPlanes(projectionViewMatrix);
+    this->_CalculatePlaneIntersections();
+}
+
+bool Frustum::CheckIntersection(const AABB &other) const {
     // Loop through each frustum plane
-    for (uint8_t planeIdx = 0; planeIdx < FrustumPlane::Length; ++planeIdx)
+    for (uint8_t planeIdx = 0; planeIdx < FrustumPlanes::Length; ++planeIdx)
     {
-        auto planeNormal = glm::vec3(frustumPlanes[planeIdx]);
-        float planeConstant = frustumPlanes[planeIdx].w;
+        auto planeNormal = glm::vec3(m_planes[planeIdx]);
+        float planeConstant = m_planes[planeIdx].w;
 
         // Check each axis (x,y,z) to get the AABB vertex furthest away from the direction the plane is facing (plane normal)
         glm::vec3 axisVert;
 
         // X-axis
-        if (frustumPlanes[planeIdx].x < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the x axis
+        if (m_planes[planeIdx].x < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the x axis
             axisVert.x = other.minX + other.position.x; // min x plus entity position x
         else
             axisVert.x = other.maxX + other.position.x; // max x plus entity position x
 
         // Y-axis
-        if (frustumPlanes[planeIdx].y < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the y axis
+        if (m_planes[planeIdx].y < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the y axis
             axisVert.y = other.minY + other.position.y; // min y plus entity position y
         else
             axisVert.y = other.maxY + other.position.y; // max y plus entity position y
 
         // Z-axis
-        if (frustumPlanes[planeIdx].z < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the z axis
+        if (m_planes[planeIdx].z < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the z axis
             axisVert.z = other.minZ + other.position.z; // min z plus entity position z
         else
             axisVert.z = other.maxZ + other.position.z; // max z plus entity position z
@@ -72,3 +45,68 @@ bool Frustum::CheckIntersection(const AABB &other) const
     return true;
 }
 
+template<FrustumPlanes a, FrustumPlanes b, FrustumPlanes c>
+inline glm::vec3 Frustum::GetPlaneIntersection(const glm::vec3* crosses) const
+{
+    float D = glm::dot(glm::vec3(m_planes[a]), crosses[ij2k<b, c>::k]);
+    glm::vec3 res = glm::mat3(crosses[ij2k<b, c>::k], -crosses[ij2k<a, c>::k], crosses[ij2k<a, b>::k]) *
+                    glm::vec3(m_planes[a].w, m_planes[b].w, m_planes[c].w);
+    return res * (-1.0f / D);
+}
+
+void Frustum::_ExtractPlanes(const glm::mat4 &projectionViewMatrix)
+{
+    // Transpose for Column-Major ordering, cleans up indexing
+    glm::mat4 projViewMatrixT = glm::transpose(projectionViewMatrix);
+
+    // Left Frustum Plane: Add first column of the matrix to the fourth column
+    m_planes[FrustumPlanes::LEFT]   = projViewMatrixT[3] + projViewMatrixT[0];
+    // Right Frustum Plane: Subtract first column of matrix from the fourth column
+    m_planes[FrustumPlanes::RIGHT]  = projViewMatrixT[3] - projViewMatrixT[0];
+    // Top Frustum Plane: Subtract second column of matrix from the fourth column
+    m_planes[FrustumPlanes::TOP]    = projViewMatrixT[3] - projViewMatrixT[1];
+    // Bottom Frustum Plane: Add second column of the matrix to the fourth column
+    m_planes[FrustumPlanes::BOTTOM] = projViewMatrixT[3] + projViewMatrixT[1];
+    // Near Frustum Plane: Add third column of the matrix to the fourth column
+    m_planes[FrustumPlanes::NEAR_P] = projViewMatrixT[3] + projViewMatrixT[2];
+    // Far Frustum Plane: Subtract third column of matrix from the fourth column
+    m_planes[FrustumPlanes::FAR_P]  = projViewMatrixT[3] - projViewMatrixT[2];
+
+    // Normalise the planes
+    for (uint8_t planeIdx = 0; planeIdx < FrustumPlanes::Length; ++planeIdx) {
+        float length = glm::length(glm::vec3(m_planes[planeIdx]));
+        m_planes[planeIdx] /= length;
+    }
+
+}
+
+void Frustum::_CalculatePlaneIntersections()
+{
+    glm::vec3 crosses[Combinations] = {
+            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[RIGHT])),
+            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[BOTTOM])),
+            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[TOP])),
+            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[NEAR_P])),
+            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[FAR_P])),
+            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[BOTTOM])),
+            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[TOP])),
+            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[NEAR_P])),
+            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[FAR_P])),
+            glm::cross(glm::vec3(m_planes[BOTTOM]), glm::vec3(m_planes[TOP])),
+            glm::cross(glm::vec3(m_planes[BOTTOM]), glm::vec3(m_planes[NEAR_P])),
+            glm::cross(glm::vec3(m_planes[BOTTOM]), glm::vec3(m_planes[FAR_P])),
+            glm::cross(glm::vec3(m_planes[TOP]),    glm::vec3(m_planes[NEAR_P])),
+            glm::cross(glm::vec3(m_planes[TOP]),    glm::vec3(m_planes[FAR_P])),
+            glm::cross(glm::vec3(m_planes[NEAR_P]), glm::vec3(m_planes[FAR_P]))
+    };
+
+    // Calculate intersection point across 6 frustum planes for viz
+    points[0] = GetPlaneIntersection<LEFT, TOP, FAR_P>(crosses);
+    points[1] = GetPlaneIntersection<RIGHT, TOP, FAR_P>(crosses);
+    points[2] = GetPlaneIntersection<RIGHT, BOTTOM, FAR_P>(crosses);
+    points[3] = GetPlaneIntersection<LEFT, BOTTOM, FAR_P>(crosses);
+    points[4] = GetPlaneIntersection<LEFT, TOP, NEAR_P>(crosses);
+    points[5] = GetPlaneIntersection<RIGHT, TOP, NEAR_P>(crosses);
+    points[6] = GetPlaneIntersection<RIGHT, BOTTOM, NEAR_P>(crosses);
+    points[7] = GetPlaneIntersection<LEFT, BOTTOM, NEAR_P>(crosses);
+}

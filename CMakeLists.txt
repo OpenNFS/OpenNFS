@@ -48,7 +48,7 @@ set(SOURCE_FILES
         include/ImGuiColorTextEdit/TextEditor.h]]
         resources/asset/icon.rc
         src/main.cpp
-        src/Scene/Camera.cpp
+        src/Camera/Camera.cpp
         src/Scene/Model.cpp
         src/Physics/PhysicsEngine.cpp
         lib/glew-cmake/src/glew.c
@@ -57,8 +57,8 @@ set(SOURCE_FILES
         src/nfs_data.h
         src/Scene/Light.cpp
         src/Scene/Light.h
-        src/Scene/Camera.cpp
-        src/Scene/Camera.h
+        src/Camera/Camera.cpp
+        src/Camera/Camera.h
         src/Shaders/TrackShader.cpp
         src/Shaders/TrackShader.h
         src/Shaders/CarShader.cpp
@@ -155,7 +155,7 @@ set(SOURCE_FILES
         src/Loaders/NFS5Loader.cpp
         src/Loaders/NFS5Loader.h
         src/Loaders/NFS4PS1Loader.cpp
-        src/Loaders/NFS4PS1Loader.h src/Loaders/SerializedGroupOps.cpp src/Loaders/SerializedGroupOps.h src/Scene/GlobalLight.cpp src/Scene/GlobalLight.h src/Physics/AABB.h src/Physics/AABBTree.h src/Physics/AABBTree.cpp src/Physics/IAABB.h src/Physics/Frustum.cpp src/Physics/Frustum.h)
+        src/Loaders/NFS4PS1Loader.h src/Loaders/SerializedGroupOps.cpp src/Loaders/SerializedGroupOps.h src/Scene/GlobalLight.cpp src/Scene/GlobalLight.h src/Physics/AABB.h src/Physics/AABBTree.h src/Physics/AABBTree.cpp src/Physics/IAABB.h src/Physics/Frustum.cpp src/Physics/Frustum.h src/Camera/HermiteCamera.cpp src/Camera/HermiteCamera.h src/Camera/CarCamera.cpp src/Camera/CarCamera.h src/Camera/FreeCamera.cpp src/Camera/FreeCamera.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 
