@@ -15,10 +15,10 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
 
     // TODO: Disable MSAA for now until texture array adds padding
     // glfwWindowHint(GLFW_SAMPLES, 2);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
 
     GLFWwindow *window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
 
@@ -71,11 +71,16 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     // TODO: Move sun to an orbital manager class so the sunsets can look lit af
     GlobalLight sun;
 
+    // DEBUG
+    this->_DrawFrustum(hermiteCamera, physicsEngine);
+    this->_DrawTrackCollision(m_track, physicsEngine);
+
     // Render the environment
     m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, sun, m_track->textureArrayID, visibleEntities, playerCar, racers);
     m_skyRenderer.Render(activeCamera, sun, totalTime);
     m_trackRenderer.Render(playerCar, activeCamera, sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
     m_trackRenderer.RenderLights(activeCamera, m_track);
+    physicsEngine.debugDrawer.Render(activeCamera);
 
     // Render the Car and racers
     //std::vector<Light> carBodyContributingLights;
@@ -87,10 +92,6 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     //if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
     //    targetedEntity = physicsEngine.CheckForPicking(camera.viewMatrix, camera.projectionMatrix, &entityTargeted);
     //}
-
-    // DEBUG
-    // this->_DrawFrustum(hermiteCamera, physicsEngine);
-    // this->_DrawTrackCollision(m_track, physicsEngine);
 
     if (m_entityTargeted) {
         this->_DrawMetadata(m_pTargetedEntity);
@@ -438,7 +439,7 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Ca
 {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
-    ImGui::Image((ImTextureID) m_shadowMapRenderer.m_depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+    ImGui::Image(reinterpret_cast<ImTextureID>(m_shadowMapRenderer.m_depthTextureID), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
     ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
     ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
     ImGui::End();

@@ -171,7 +171,11 @@ set(SOURCE_FILES
         src/Camera/CarCamera.cpp
         src/Camera/CarCamera.h
         src/Camera/FreeCamera.cpp
-        src/Camera/FreeCamera.h)
+        src/Camera/FreeCamera.h
+        src/Renderer/BulletDebugDrawer.cpp
+        src/Renderer/BulletDebugDrawer.h
+        src/Shaders/BulletShader.cpp
+        src/Shaders/BulletShader.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

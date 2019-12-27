@@ -47,6 +47,4 @@ private:
     ParamData m_userParams;
     uint64_t m_ticks = 0; // Engine ticks elapsed
     float m_totalTime = 0;
-
-
 };
