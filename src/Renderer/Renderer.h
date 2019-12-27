@@ -49,12 +49,12 @@ public:
 
 private:
     void _InitialiseIMGUI();
-    void _SetCamera(ParamData &userParams, FreeCamera &freeCamera, HermiteCamera &hermiteCamera, CarCamera &carCamera);
     void _DrawMetadata(Entity *targetEntity);
     void _DrawNFS34Metadata(Entity *targetEntity);
     bool _DrawMenuBar(AssetData &loadedAssets);
     void _DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar);
-    static std::vector<std::shared_ptr<Entity>> _FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera);
+    static std::vector<int> _GetLocalTrackBlocks(const shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams);
+    static std::vector<std::shared_ptr<Entity>> _FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams);
 
     // TODO: Move to debug Renderer class
     static void _DrawTrackCollision(std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
@@ -78,6 +78,7 @@ private:
     /* State */
     bool m_entityTargeted = false;
     Entity *m_pTargetedEntity = nullptr;
-    // Data used for culling
-    int m_closestBlockID = 0;
+
+    // TODO: Move sun to an orbital manager class so the sunsets can look lit af
+    GlobalLight m_sun;
 };

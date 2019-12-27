@@ -66,19 +66,22 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     bool newAssetSelected = false;
 
     // Perform frustum culling to get visible entities, from perspective of active camera
-    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, hermiteCamera);
+    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, hermiteCamera, userParams);
 
-    // TODO: Move sun to an orbital manager class so the sunsets can look lit af
-    GlobalLight sun;
+    if(userParams.drawHermiteFrustum)
+    {
+        this->_DrawFrustum(hermiteCamera, physicsEngine);
+    }
 
-    // DEBUG
-    this->_DrawFrustum(hermiteCamera, physicsEngine);
-    this->_DrawTrackCollision(m_track, physicsEngine);
+    if(userParams.drawTrackAABB)
+    {
+        this->_DrawTrackCollision(m_track, physicsEngine);
+    }
 
     // Render the environment
-    m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, sun, m_track->textureArrayID, visibleEntities, playerCar, racers);
-    m_skyRenderer.Render(activeCamera, sun, totalTime);
-    m_trackRenderer.Render(playerCar, activeCamera, sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
+    m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, m_sun, m_track->textureArrayID, visibleEntities, playerCar, racers);
+    m_skyRenderer.Render(activeCamera, m_sun, totalTime);
+    m_trackRenderer.Render(playerCar, activeCamera, m_sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
     m_trackRenderer.RenderLights(activeCamera, m_track);
     physicsEngine.debugDrawer.Render(activeCamera);
 
@@ -102,44 +105,93 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     };
 
     this->_DrawUI(userParams, activeCamera, playerCar);
+
     glfwSwapBuffers(m_pWindow);
 
     return newAssetSelected;
 }
 
-std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera)
+std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams)
 {
     // Only update the frustum of the camera when actually culling, to save some performance
     camera.UpdateFrustum();
 
-    // Perform frustum culling using the active camera frustum HI_DEBUG
+    // Perform frustum culling on the current camera, on local trackblocks
     std::vector<std::shared_ptr<Entity>> visibleEntities;
-    for(auto &trackblock : track->trackBlocks)
+    for(auto &trackBlockID : _GetLocalTrackBlocks(track, camera, userParams))
     {
-        for(auto &trackEntity : trackblock.track)
+        for(auto &trackEntity : track->trackBlocks[trackBlockID].track)
         {
             if(camera.viewFrustum.CheckIntersection(trackEntity.GetAABB()))
             {
                 visibleEntities.emplace_back(std::make_shared<Entity>(trackEntity));
             }
         }
-        for(auto &objectEntity : trackblock.objects)
+        for(auto &objectEntity : track->trackBlocks[trackBlockID].objects)
         {
             if(camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
             {
                 visibleEntities.emplace_back(std::make_shared<Entity>(objectEntity));
             }
         }
+        for(auto &laneEntity : track->trackBlocks[trackBlockID].lanes)
+        {
+            // It's not worth checking for Lane AABB intersections
+            //if(camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
+            {
+                visibleEntities.emplace_back(std::make_shared<Entity>(laneEntity));
+            }
+        }
     }
 
     // TODO: Fix the AABB tree
-    //auto aabbCollisions = m_track->cullTree.queryOverlaps(hermiteCamera.viewFrustum);
+    //auto aabbCollisions = track->cullTree.queryOverlaps(camera.viewFrustum);
     //for(auto &collision : aabbCollisions)
     //{
     //    visibleEntities.emplace_back(std::static_pointer_cast<Entity>(collision));
     //}
 
     return visibleEntities;
+}
+
+std::vector<int> Renderer::_GetLocalTrackBlocks(const std::shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams) {
+    std::vector<int> activeTrackBlockIds;
+    uint32_t closestBlockID;
+
+    float lowestDistance = FLT_MAX;
+
+    //Primitive Draw distance
+    for (auto &trackblock :  track->trackBlocks)
+    {
+        float distance = glm::distance(camera.position, trackblock.center);
+        if (distance < lowestDistance) {
+            closestBlockID = trackblock.blockId;
+            lowestDistance = distance;
+        }
+    }
+
+    // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
+    if ((track->tag == NFS_3 || track->tag == NFS_4) && userParams.useNbData) {
+        for (int i = 0; i < 300; ++i) {
+            if (boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk == -1)
+            {
+                break;
+            }
+            else
+            {
+                activeTrackBlockIds.emplace_back(boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk);
+            }
+        }
+    } else {
+        // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
+        for (int block_Idx = closestBlockID - userParams.blockDrawDistance; block_Idx < closestBlockID + userParams.blockDrawDistance; ++block_Idx)
+        {
+            int activeBlock = block_Idx < 0 ? ((int) track->trackBlocks.size() + block_Idx) : (block_Idx % (int) track->trackBlocks.size());
+            activeTrackBlockIds.emplace_back(activeBlock);
+        }
+    }
+
+    return std::vector<int>(activeTrackBlockIds.rbegin(), activeTrackBlockIds.rend());
 }
 
 void Renderer::_InitialiseIMGUI() {
@@ -455,10 +507,11 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Ca
     ImGui::Checkbox("Car Cam", &userParams.attachCamToCar);
     std::stringstream world_position_string;
     ImGui::Text("X %f Y %f Z %f", camera.position.x, camera.position.y, camera.position.z);
-    ImGui::Text("Block ID: %d", m_closestBlockID);
+    // ImGui::Text("Block ID: %d", m_closestBlockID);
     ImGui::Text("Vroad ID: %d", CarAgent::getClosestVroad(playerCar, m_track));
-    // ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
     ImGui::Checkbox("Frustum Cull", &userParams.frustumCull);
+    ImGui::Checkbox("Draw Herm Frustum", &userParams.drawHermiteFrustum);
+    ImGui::Checkbox("Draw Track AABBs", &userParams.drawTrackAABB);
     ImGui::Checkbox("Raycast Viz", &userParams.drawRaycast);
     ImGui::Checkbox("AI Sim", &userParams.simulateCars);
     ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);

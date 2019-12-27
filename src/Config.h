@@ -144,6 +144,8 @@ struct ParamData {
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;
     bool physicsDebugView = false;
+    bool drawHermiteFrustum = false;
+    bool drawTrackAABB = false;
     bool useClassicGraphics = false;
     bool attachCamToHermite = false;
     bool useNbData = true;
