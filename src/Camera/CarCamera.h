@@ -8,7 +8,7 @@ class CarCamera : public Camera {
 public:
     explicit CarCamera() = default;
     CarCamera(glm::vec3 initialPosition, GLFWwindow *window);
-    void FollowCar(const std::shared_ptr<Car> &targetCar, bool &windowActive);
+    void FollowCar(const std::shared_ptr<Car> &targetCar);
 
 private:
     void _CalculateZoom();

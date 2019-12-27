@@ -5,14 +5,8 @@ CarCamera::CarCamera(glm::vec3 initialPosition, GLFWwindow *window) : Camera(Cam
 }
 
 
-void CarCamera::FollowCar(const std::shared_ptr<Car> &targetCar, bool &windowActive){
-    if (!windowActive)
-        return;
-
-    // Bail on the window active status if we hit the escape key
-    windowActive = (glfwGetKey(m_window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
-    ImGui::GetIO().MouseDrawCursor = true;
-
+void CarCamera::FollowCar(const std::shared_ptr<Car> &targetCar)
+{
     // Blessed be ThinMatrix
     this->_CalculateZoom();
     this->_CalculatePitch();

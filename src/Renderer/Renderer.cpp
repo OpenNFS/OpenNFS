@@ -62,14 +62,11 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     return window;
 }
 
-
-
-bool Renderer::Render(float totalTime, Camera &activeCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, const std::vector<CarAgent> &racers, PhysicsEngine &physicsEngine) {
+bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, const std::vector<CarAgent> &racers, PhysicsEngine &physicsEngine) {
     bool newAssetSelected = false;
-    this->_NewFrame(userParams);
 
     // Perform frustum culling to get visible entities, from perspective of active camera
-    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, activeCamera);
+    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, hermiteCamera);
 
     // TODO: Move sun to an orbital manager class so the sunsets can look lit af
     GlobalLight sun;
@@ -562,20 +559,4 @@ Renderer::~Renderer()
     glfwSetCharCallback(m_pWindow, nullptr);
 }
 
-void Renderer::_NewFrame(ParamData &userParams)
-{
-    glClearColor(0.1f, 0.f, 0.5f, 1.f);
-    glfwPollEvents();
-    // Clear the screen
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-    userParams.windowActive = userParams.windowActive ? userParams.windowActive : (
-            (glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse));
-    if (!userParams.windowActive) {
-        ImGui::GetIO().MouseDrawCursor = false;
-    }
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
 

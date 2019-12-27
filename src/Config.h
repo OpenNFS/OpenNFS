@@ -143,7 +143,6 @@ struct ParamData {
     float farPlane = 300.f;
     float trackSpecDamper = 10;
     int blockDrawDistance = 15;
-    bool windowActive = true;
     bool physicsDebugView = false;
     bool useClassicGraphics = false;
     bool attachCamToHermite = false;

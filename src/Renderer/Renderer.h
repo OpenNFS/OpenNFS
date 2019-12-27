@@ -40,6 +40,7 @@ public:
     static GLFWwindow *InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName);
     bool Render(float totalTime,
                 Camera &activeCamera,
+                HermiteCamera &hermiteCamera,
                 ParamData &userParams,
                 AssetData &loadedAssets,
                 std::shared_ptr<Car> &playerCar,
@@ -48,7 +49,6 @@ public:
 
 private:
     void _InitialiseIMGUI();
-    void _NewFrame(ParamData &userParams);
     void _SetCamera(ParamData &userParams, FreeCamera &freeCamera, HermiteCamera &hermiteCamera, CarCamera &carCamera);
     void _DrawMetadata(Entity *targetEntity);
     void _DrawNFS34Metadata(Entity *targetEntity);

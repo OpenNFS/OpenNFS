@@ -4,20 +4,13 @@ FreeCamera::FreeCamera(glm::vec3 initialPosition, GLFWwindow *window) : Camera(C
 
 }
 
-void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) {
-    if (!windowActive)
-        return;
-
-    // Bail on the window active status if we hit the escape key
-    windowActive = (glfwGetKey(m_window, GLFW_KEY_ESCAPE) != GLFW_PRESS);
-    ImGui::GetIO().MouseDrawCursor = true;
-
+void FreeCamera::ComputeMatricesFromInputs(float deltaTime) {
     // Get mouse position and compute new orientation with it
     m_horizontalAngle += m_mouseSpeedDamper * (Config::get().resX / 2 - ImGui::GetIO().MousePos.x);
     m_verticalAngle += m_mouseSpeedDamper * (Config::get().resY / 2 - ImGui::GetIO().MousePos.y);
 
     // Reset mouse position for next frame
-    glfwSetCursorPos(m_window, Config::get().resX / 2, Config::get().resY / 2);
+    glfwSetCursorPos(m_pWindow, Config::get().resX / 2, Config::get().resY / 2);
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
     m_direction = glm::vec3(
@@ -45,19 +38,19 @@ void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) 
 
     if (ImGui::GetIO().MouseDown[1]) {
         // Move forward
-        if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS) {
+        if (glfwGetKey(m_pWindow, GLFW_KEY_W) == GLFW_PRESS) {
             position += m_direction * deltaTime * m_speed;
         }
         // Move backward
-        if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS) {
+        if (glfwGetKey(m_pWindow, GLFW_KEY_S) == GLFW_PRESS) {
             position -= m_direction * deltaTime * m_speed;
         }
         // Strafe right
-        if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS) {
+        if (glfwGetKey(m_pWindow, GLFW_KEY_D) == GLFW_PRESS) {
             position += right * deltaTime * m_speed;
         }
         // Strafe left
-        if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS) {
+        if (glfwGetKey(m_pWindow, GLFW_KEY_A) == GLFW_PRESS) {
             position -= right * deltaTime * m_speed;
         }
     }

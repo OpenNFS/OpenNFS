@@ -8,6 +8,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 
+enum WindowStatus : uint8_t
+{
+    UI,
+    GAME
+};
+
 enum CameraMode : uint8_t
 {
     FOLLOW_CAR,
@@ -17,7 +23,7 @@ enum CameraMode : uint8_t
 
 class Camera {
 public:
-    Camera(CameraMode mode, glm::vec3 initialPosition, GLFWwindow *window);
+    Camera(CameraMode mode, glm::vec3 initialPosition, GLFWwindow *pWindow);
     Camera() = default;
     void UpdateFrustum();
     void ResetView();
@@ -29,7 +35,7 @@ public:
     Frustum viewFrustum;
 
 protected:
-    GLFWwindow* m_window;
+    GLFWwindow* m_pWindow;
     CameraMode m_mode;
     glm::vec3 m_direction;
     float m_fov;

@@ -24,12 +24,14 @@ public:
     AssetData Simulate();
 
 private:
-    void _SpawnRacers(uint8_t nRacers);
     Camera _GetCamera();
     void _UpdateCameras(float deltaTime);
+    void _SpawnRacers(uint8_t nRacers);
+    void _GetInputsAndClear();
 
-    GLFWwindow *m_window;
+    GLFWwindow *m_pWindow;
     AssetData m_loadedAssets;
+    WindowStatus m_windowStatus = WindowStatus::UI;
 
     std::shared_ptr<ONFSTrack> m_track;
     std::shared_ptr<Car> m_playerCar;
@@ -45,4 +47,6 @@ private:
     ParamData m_userParams;
     uint64_t m_ticks = 0; // Engine ticks elapsed
     float m_totalTime = 0;
+
+
 };
