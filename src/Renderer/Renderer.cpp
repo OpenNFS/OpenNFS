@@ -62,50 +62,23 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     return window;
 }
 
-void Renderer::_SetCamera(ParamData &userParams)
-{
-    if (userParams.attachCamToHermite) {
-        m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
-    } else if (userParams.attachCamToCar) {
-        m_activeCameraMode = CameraMode::FOLLOW_CAR;
-    } else {
-        m_activeCameraMode = CameraMode::FREE_LOOK;
-    }
-}
 
-bool Renderer::Render(float totalTime, float deltaTime, FreeCamera &freeCamera, HermiteCamera &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, const std::vector<CarAgent> &racers, PhysicsEngine &physicsEngine) {
+
+bool Renderer::Render(float totalTime, Camera &activeCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, const std::vector<CarAgent> &racers, PhysicsEngine &physicsEngine) {
     bool newAssetSelected = false;
     this->_NewFrame(userParams);
 
-    // Update Cameras
-    hermiteCamera.UseSpline(totalTime);
-    // Compute MVP from keyboard and mouse, centered around a target car
-    //m_carCamera.FollowCar(playerCar, userParams.windowActive);
-    // Compute the MVP matrix from keyboard and mouse input
-    freeCamera.ComputeMatricesFromInputs(userParams.windowActive, deltaTime);
-
-    // Set the active camera dependent upon user input
-    this->_SetCamera(userParams);
-
-    // DEBUG
-    this->_DrawFrustum(hermiteCamera, physicsEngine);
-    this->_DrawTrackCollision(m_track, physicsEngine);
-
-    // Perform primitive frustum culling using the hermite frustum HI_DEBUG
-    std::vector<std::shared_ptr<Entity>> visibleEntities;
-    auto aabbCollisions = m_track->cullTree.queryOverlaps(hermiteCamera.viewFrustum);
-    for(auto &collision : aabbCollisions)
-    {
-        visibleEntities.emplace_back(std::static_pointer_cast<Entity>(collision));
-    }
+    // Perform frustum culling to get visible entities, from perspective of active camera
+    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, activeCamera);
 
     // TODO: Move sun to an orbital manager class so the sunsets can look lit af
     GlobalLight sun;
 
+    // Render the environment
     m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, sun, m_track->textureArrayID, visibleEntities, playerCar, racers);
-    m_skyRenderer.Render(freeCamera, sun, totalTime);
-    m_trackRenderer.Render(playerCar, freeCamera, sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
-    m_trackRenderer.RenderLights(freeCamera, m_track);
+    m_skyRenderer.Render(activeCamera, sun, totalTime);
+    m_trackRenderer.Render(playerCar, activeCamera, sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
+    m_trackRenderer.RenderLights(activeCamera, m_track);
 
     // Render the Car and racers
     //std::vector<Light> carBodyContributingLights;
@@ -118,6 +91,10 @@ bool Renderer::Render(float totalTime, float deltaTime, FreeCamera &freeCamera, 
     //    targetedEntity = physicsEngine.CheckForPicking(camera.viewMatrix, camera.projectionMatrix, &entityTargeted);
     //}
 
+    // DEBUG
+    // this->_DrawFrustum(hermiteCamera, physicsEngine);
+    // this->_DrawTrackCollision(m_track, physicsEngine);
+
     if (m_entityTargeted) {
         this->_DrawMetadata(m_pTargetedEntity);
     }
@@ -126,10 +103,45 @@ bool Renderer::Render(float totalTime, float deltaTime, FreeCamera &freeCamera, 
         newAssetSelected = true;
     };
 
-    this->_DrawUI(userParams, freeCamera, playerCar);
+    this->_DrawUI(userParams, activeCamera, playerCar);
     glfwSwapBuffers(m_pWindow);
 
     return newAssetSelected;
+}
+
+std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera)
+{
+    // Only update the frustum of the camera when actually culling, to save some performance
+    camera.UpdateFrustum();
+
+    // Perform frustum culling using the active camera frustum HI_DEBUG
+    std::vector<std::shared_ptr<Entity>> visibleEntities;
+    for(auto &trackblock : track->trackBlocks)
+    {
+        for(auto &trackEntity : trackblock.track)
+        {
+            if(camera.viewFrustum.CheckIntersection(trackEntity.GetAABB()))
+            {
+                visibleEntities.emplace_back(std::make_shared<Entity>(trackEntity));
+            }
+        }
+        for(auto &objectEntity : trackblock.objects)
+        {
+            if(camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
+            {
+                visibleEntities.emplace_back(std::make_shared<Entity>(objectEntity));
+            }
+        }
+    }
+
+    // TODO: Fix the AABB tree
+    //auto aabbCollisions = m_track->cullTree.queryOverlaps(hermiteCamera.viewFrustum);
+    //for(auto &collision : aabbCollisions)
+    //{
+    //    visibleEntities.emplace_back(std::static_pointer_cast<Entity>(collision));
+    //}
+
+    return visibleEntities;
 }
 
 void Renderer::_InitialiseIMGUI() {
@@ -189,7 +201,8 @@ void Renderer::_DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine)
     physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[7]), Utils::glmToBullet(frustumDebugVizPoints[3]), colour);
 }
 
-void Renderer::_DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine) {
+void Renderer::_DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine)
+{
     glm::vec3 carBodyPosition = car->carBodyModel.position;
 
     for(uint8_t rangeIdx = 0; rangeIdx < Car::kNumRangefinders; ++rangeIdx){
@@ -206,7 +219,8 @@ void Renderer::_DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &
                                          btVector3(2.0f * (Car::kFarDistance - car->downDistance), 2.0f * (car->downDistance), 0));
 }
 
-void Renderer::_DrawVroad(const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine) {
+void Renderer::_DrawVroad(const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine)
+{
     if (track->tag == NFS_3 || track->tag == NFS_4)
     {
         float vRoadDisplayHeight = 0.2f;
@@ -253,7 +267,8 @@ void Renderer::_DrawVroad(const std::shared_ptr<ONFSTrack> track, PhysicsEngine 
     }
 }
 
-void Renderer::_DrawCameraAnimation(Camera &camera, const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine) {
+void Renderer::_DrawCameraAnimation(Camera &camera, const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine)
+{
     if (track->tag != NFS_3_PS1)
     {
         for (uint8_t can_Idx = 0; can_Idx < track->cameraAnimations.size(); ++can_Idx)
@@ -292,8 +307,10 @@ void Renderer::_DrawCameraAnimation(Camera &camera, const std::shared_ptr<ONFSTr
     }
 }
 
-void Renderer::_DrawNFS34Metadata(Entity *targetEntity) {
-    switch (targetEntity->type) {
+void Renderer::_DrawNFS34Metadata(Entity *targetEntity)
+{
+    switch (targetEntity->type)
+    {
         case EntityType::VROAD:
             break;
         case EntityType::OBJ_POLY:
@@ -381,7 +398,8 @@ void Renderer::_DrawNFS34Metadata(Entity *targetEntity) {
     ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
 }
 
-void Renderer::_DrawMetadata(Entity *targetEntity) {
+void Renderer::_DrawMetadata(Entity *targetEntity)
+{
     ImGui::Begin("Engine Entity");
     ImGui::Text("%s", ToString(targetEntity->tag));
     ImGui::Text("%s", ToString(targetEntity->type));
@@ -395,7 +413,8 @@ void Renderer::_DrawMetadata(Entity *targetEntity) {
     ImGui::Separator();
 
     // Traverse the loader structures and print pretty with IMGUI
-    switch (targetEntity->tag) {
+    switch (targetEntity->tag)
+    {
         case NFSVer::NFS_3:
         case NFSVer::NFS_4:
             _DrawNFS34Metadata(targetEntity);
@@ -418,7 +437,8 @@ void Renderer::_DrawMetadata(Entity *targetEntity) {
     ImGui::End();
 }
 
-void Renderer::_DrawUI(ParamData &userParams, FreeCamera &freeCamera, std::shared_ptr<Car> &playerCar) {
+void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar)
+{
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
     ImGui::Image((ImTextureID) m_shadowMapRenderer.m_depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
@@ -436,7 +456,7 @@ void Renderer::_DrawUI(ParamData &userParams, FreeCamera &freeCamera, std::share
     ImGui::Checkbox("Hermite Curve Cam", &userParams.attachCamToHermite);
     ImGui::Checkbox("Car Cam", &userParams.attachCamToCar);
     std::stringstream world_position_string;
-    ImGui::Text("X %f Y %f Z %f", freeCamera.position.x, freeCamera.position.y, freeCamera.position.z);
+    ImGui::Text("X %f Y %f Z %f", camera.position.x, camera.position.y, camera.position.z);
     ImGui::Text("Block ID: %d", m_closestBlockID);
     ImGui::Text("Vroad ID: %d", CarAgent::getClosestVroad(playerCar, m_track));
     // ImGui::Text("Frustrum Objects: %d", physicsEngine.numObjects);
@@ -447,7 +467,7 @@ void Renderer::_DrawUI(ParamData &userParams, FreeCamera &freeCamera, std::share
     ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
 
     if (ImGui::Button("Reset View")) {
-        freeCamera.ResetView();
+        camera.ResetView();
     };
     ImGui::SameLine(0, -1.0f);
     if (ImGui::Button("Reset Car to Start")) {
@@ -491,7 +511,8 @@ void Renderer::_DrawUI(ParamData &userParams, FreeCamera &freeCamera, std::share
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-bool Renderer::_DrawMenuBar(AssetData &loadedAssets) {
+bool Renderer::_DrawMenuBar(AssetData &loadedAssets)
+{
     bool assetChange = false;
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Track")) {
@@ -529,7 +550,8 @@ bool Renderer::_DrawMenuBar(AssetData &loadedAssets) {
     return assetChange;
 }
 
-Renderer::~Renderer() {
+Renderer::~Renderer()
+{
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -540,7 +562,8 @@ Renderer::~Renderer() {
     glfwSetCharCallback(m_pWindow, nullptr);
 }
 
-void Renderer::_NewFrame(ParamData &userParams) {
+void Renderer::_NewFrame(ParamData &userParams)
+{
     glClearColor(0.1f, 0.f, 0.5f, 1.f);
     glfwPollEvents();
     // Clear the screen

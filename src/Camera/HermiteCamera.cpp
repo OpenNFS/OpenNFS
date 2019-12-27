@@ -36,6 +36,4 @@ void HermiteCamera::UseSpline(float elapsedTime) {
             position + m_direction, // and looks here : at the same position, plus "direction"
             up
     );
-
-    this->_UpdateFrustum();
 }

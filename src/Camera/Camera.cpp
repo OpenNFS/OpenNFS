@@ -29,7 +29,7 @@ void Camera::ResetView() {
     viewMatrix = glm::lookAt(position, position + m_direction, glm::cross(right, m_direction));
 }
 
-void Camera::_UpdateFrustum() {
+void Camera::UpdateFrustum() {
     viewFrustum.Update(projectionMatrix * viewMatrix);
 }
 

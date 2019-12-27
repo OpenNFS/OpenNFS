@@ -25,8 +25,6 @@ void CarCamera::FollowCar(const std::shared_ptr<Car> &targetCar, bool &windowAct
     viewMatrix = glm::rotate(viewMatrix, m_yaw * SIMD_PI / 180, glm::vec3(0, 1, 0));
     glm::vec3 negativeCameraPos(-position);
     viewMatrix = glm::translate(viewMatrix, negativeCameraPos);
-
-    this->_UpdateFrustum();
 }
 
 void CarCamera::_CalculateCameraPosition(const std::shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {

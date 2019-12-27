@@ -7,8 +7,10 @@ RaceSession::RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogg
 
     m_loadedAssets = {m_playerCar->tag, m_playerCar->id, m_track->tag, m_track->name};
 
-    m_mainCamera = FreeCamera(m_track->trackBlocks[0].center, m_window);
+    // Set up the cameras
+    m_freeCamera = FreeCamera(m_track->trackBlocks[0].center, m_window);
     m_hermiteCamera = HermiteCamera(m_track->centerSpline, m_track->trackBlocks[0].center, m_window);
+    m_carCamera = CarCamera(m_playerCar->carBodyModel.position, m_window);
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
@@ -21,7 +23,30 @@ RaceSession::RaceSession(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogg
 
     // Reset player character to start
     CarAgent::resetToVroad(0, 0, 0.25f, m_track, m_playerCar);
-    SpawnRacers(Config::get().nRacers);
+    this->_SpawnRacers(Config::get().nRacers);
+}
+
+void RaceSession::_UpdateCameras(float deltaTime)
+{
+    m_hermiteCamera.UseSpline(m_totalTime);
+    // Compute MVP from keyboard and mouse, centered around a target car
+    m_carCamera.FollowCar(m_playerCar, m_userParams.windowActive);
+    // Compute the MVP matrix from keyboard and mouse input
+    m_freeCamera.ComputeMatricesFromInputs(m_userParams.windowActive, deltaTime);
+}
+
+Camera RaceSession::_GetCamera()
+{
+    if (m_userParams.attachCamToHermite) {
+        m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
+        return m_hermiteCamera;
+    } else if (m_userParams.attachCamToCar) {
+        m_activeCameraMode = CameraMode::FOLLOW_CAR;
+        return m_carCamera;
+    } else {
+        m_activeCameraMode = CameraMode::FREE_LOOK;
+        return m_freeCamera;
+    }
 }
 
 AssetData RaceSession::Simulate() {
@@ -42,11 +67,16 @@ AssetData RaceSession::Simulate() {
             }
         }
 
+        // Update Cameras
+        this->_UpdateCameras(deltaTime);
+        // Set the active camera dependent upon user input
+        Camera activeCamera = this->_GetCamera();
+
         // Step the physics simulation and update physics debug view matrices
-        m_physicsEngine.debugDrawer.SetMatrices(m_mainCamera.viewMatrix, m_mainCamera.projectionMatrix);
+        m_physicsEngine.debugDrawer.SetMatrices(activeCamera.viewMatrix, activeCamera.projectionMatrix);
         //m_physicsEngine.StepSimulation(deltaTime);
 
-        bool assetChange = m_renderer.Render(m_totalTime, deltaTime, m_mainCamera, m_hermiteCamera,m_userParams, m_loadedAssets, m_playerCar, m_racerCars, m_physicsEngine);
+        bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_userParams, m_loadedAssets, m_playerCar, m_racerCars, m_physicsEngine);
 
         if (assetChange)
         {
@@ -65,7 +95,7 @@ AssetData RaceSession::Simulate() {
     return m_loadedAssets;
 }
 
-void RaceSession::SpawnRacers(uint8_t nRacers) {
+void RaceSession::_SpawnRacers(uint8_t nRacers) {
     float racerSpawnOffset = -0.25f;
     for (uint8_t racerIdx = 0; racerIdx < nRacers; ++racerIdx)
     {

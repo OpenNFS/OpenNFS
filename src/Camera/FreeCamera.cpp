@@ -68,6 +68,4 @@ void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) 
             position + m_direction, // and looks here : at the same position, plus "direction"
             up                  // Head is up (set to 0,-1,0 to look upside-down)
     );
-
-    this->_UpdateFrustum();
 }

@@ -10,6 +10,7 @@
 
 #include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
+#include "../Camera/CarCamera.h"
 #include "../Scene/Entity.h"
 #include "../Loaders/TrackLoader.h"
 #include "../Physics/PhysicsEngine.h"
@@ -38,9 +39,7 @@ public:
     }
     static GLFWwindow *InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName);
     bool Render(float totalTime,
-                float deltaTime,
-                FreeCamera &freeCamera,
-                HermiteCamera &hermiteCamera,
+                Camera &activeCamera,
                 ParamData &userParams,
                 AssetData &loadedAssets,
                 std::shared_ptr<Car> &playerCar,
@@ -50,11 +49,12 @@ public:
 private:
     void _InitialiseIMGUI();
     void _NewFrame(ParamData &userParams);
-    void _SetCamera(ParamData &userParams);
+    void _SetCamera(ParamData &userParams, FreeCamera &freeCamera, HermiteCamera &hermiteCamera, CarCamera &carCamera);
     void _DrawMetadata(Entity *targetEntity);
     void _DrawNFS34Metadata(Entity *targetEntity);
     bool _DrawMenuBar(AssetData &loadedAssets);
-    void _DrawUI(ParamData &userParams, FreeCamera &freeCamera, std::shared_ptr<Car> &playerCar);
+    void _DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar);
+    static std::vector<std::shared_ptr<Entity>> _FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera);
 
     // TODO: Move to debug Renderer class
     static void _DrawTrackCollision(std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
@@ -76,7 +76,6 @@ private:
     /*MenuRenderer menuRenderer;*/
 
     /* State */
-    CameraMode m_activeCameraMode; // TODO: Change to a Camera base object
     bool m_entityTargeted = false;
     Entity *m_pTargetedEntity = nullptr;
     // Data used for culling

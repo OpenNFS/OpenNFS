@@ -5,6 +5,7 @@
 
 #include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
+#include "../Camera/CarCamera.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../Loaders/CarLoader.h"
 #include "../Loaders/TrackLoader.h"
@@ -23,7 +24,9 @@ public:
     AssetData Simulate();
 
 private:
-    void SpawnRacers(uint8_t nRacers);
+    void _SpawnRacers(uint8_t nRacers);
+    Camera _GetCamera();
+    void _UpdateCameras(float deltaTime);
 
     GLFWwindow *m_window;
     AssetData m_loadedAssets;
@@ -34,8 +37,10 @@ private:
 
     PhysicsEngine m_physicsEngine;
     Renderer m_renderer;
-    FreeCamera m_mainCamera;
+    CameraMode m_activeCameraMode;
+    FreeCamera m_freeCamera;
     HermiteCamera m_hermiteCamera;
+    CarCamera m_carCamera;
 
     ParamData m_userParams;
     uint64_t m_ticks = 0; // Engine ticks elapsed

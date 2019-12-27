@@ -7,7 +7,7 @@
 
 enum FrustumPlanes : uint8_t
 {
-    LEFT,
+    LEFT = 0,
     RIGHT,
     BOTTOM,
     TOP,
