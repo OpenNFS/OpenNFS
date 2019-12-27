@@ -24,7 +24,7 @@ public:
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
     glm::vec3 position;
-    glm::vec3 direction;
+    glm::vec3 initialPosition;
     Frustum viewFrustum;
 
 protected:
@@ -32,7 +32,7 @@ protected:
 
     GLFWwindow* m_window;
     CameraMode m_mode;
-    glm::vec3 m_initialPosition;
+    glm::vec3 m_direction;
     float m_fov;
     float m_horizontalAngle = 0.f;  // Initial horizontal angle : toward -Z
     float m_verticalAngle = 0.f;    // Initial vertical angle : none

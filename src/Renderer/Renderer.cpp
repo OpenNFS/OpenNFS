@@ -73,7 +73,7 @@ void Renderer::_SetCamera(ParamData &userParams)
     }
 }
 
-bool Renderer::Render(float totalTime, float deltaTime, FreeCamera &freeCamera, HermiteCamera &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, std::vector<CarAgent> racers, PhysicsEngine &physicsEngine) {
+bool Renderer::Render(float totalTime, float deltaTime, FreeCamera &freeCamera, HermiteCamera &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, const std::vector<CarAgent> &racers, PhysicsEngine &physicsEngine) {
     bool newAssetSelected = false;
     this->_NewFrame(userParams);
 
@@ -89,14 +89,7 @@ bool Renderer::Render(float totalTime, float deltaTime, FreeCamera &freeCamera, 
 
     // DEBUG
     this->_DrawFrustum(hermiteCamera, physicsEngine);
-
-    for(auto &trackblock : m_track->trackBlocks)
-    {
-        for(auto &trackEntity : trackblock.track)
-        {
-            this->_DrawAABB(trackEntity.GetAABB(), physicsEngine);
-        }
-    }
+    this->_DrawTrackCollision(m_track, physicsEngine);
 
     // Perform primitive frustum culling using the hermite frustum HI_DEBUG
     std::vector<std::shared_ptr<Entity>> visibleEntities;
@@ -147,12 +140,25 @@ void Renderer::_InitialiseIMGUI() {
     ImGui::StyleColorsDark();
 }
 
+void Renderer::_DrawTrackCollision(const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine)
+{
+    for(auto &trackblock : track->trackBlocks)
+    {
+        for(auto &trackEntity : trackblock.track)
+        {
+            _DrawAABB(trackEntity.GetAABB(), physicsEngine);
+        }
+        for(auto &objectEntity : trackblock.objects)
+        {
+            _DrawAABB(objectEntity.GetAABB(), physicsEngine);
+        }
+    }
+}
+
 void Renderer::_DrawAABB(const AABB &aabb, PhysicsEngine &physicsEngine)
 {
-    glm::vec3 minPosition = aabb.position + glm::vec3(aabb.minX, aabb.minY, aabb.minZ);
-    glm::vec3 maxPosition = aabb.position + glm::vec3(aabb.maxX, aabb.maxY, aabb.maxZ);
     btVector3 colour = btVector3(0, 0, 0);
-    physicsEngine.debugDrawer.drawBox(Utils::glmToBullet(minPosition), Utils::glmToBullet(maxPosition), colour);
+    physicsEngine.debugDrawer.drawBox(Utils::glmToBullet(aabb.position + aabb.min), Utils::glmToBullet(aabb.position + aabb.max), colour);
 }
 
 void Renderer::_DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine)
@@ -181,6 +187,109 @@ void Renderer::_DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine)
     physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[5]), Utils::glmToBullet(frustumDebugVizPoints[1]), colour);
     physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[6]), Utils::glmToBullet(frustumDebugVizPoints[2]), colour);
     physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[7]), Utils::glmToBullet(frustumDebugVizPoints[3]), colour);
+}
+
+void Renderer::_DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine) {
+    glm::vec3 carBodyPosition = car->carBodyModel.position;
+
+    for(uint8_t rangeIdx = 0; rangeIdx < Car::kNumRangefinders; ++rangeIdx){
+        physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(carBodyPosition),
+                                             Utils::glmToBullet(car->castPositions[rangeIdx]),
+                                             btVector3(2.0f * (Car::kFarDistance - car->rangefinders[rangeIdx]), 2.0f * (car->rangefinders[rangeIdx]), 0));
+    }
+    // Draw up and down casts
+    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(carBodyPosition),
+                                         Utils::glmToBullet(car->upCastPosition),
+                                         btVector3(2.0f * (Car::kFarDistance - car->upDistance), 2.0f * (car->upDistance), 0));
+    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(carBodyPosition),
+                                         Utils::glmToBullet(car->downCastPosition),
+                                         btVector3(2.0f * (Car::kFarDistance - car->downDistance), 2.0f * (car->downDistance), 0));
+}
+
+void Renderer::_DrawVroad(const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine) {
+    if (track->tag == NFS_3 || track->tag == NFS_4)
+    {
+        float vRoadDisplayHeight = 0.2f;
+        uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
+        for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
+        {
+            // Render COL Vroad? Should I use TRK VROAD to work across HS too?
+            if (vroad_Idx < nVroad - 1)
+            {
+                COLVROAD curVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
+                COLVROAD nextVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
+
+                INTPT refPt = curVroad.refPt;
+                INTPT refPtNext = nextVroad.refPt;
+
+                glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+
+                // Transform NFS3/4 coords into ONFS 3d space
+                glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
+                glm::vec3 vroadPointNext = rotationMatrix * glm::vec3((refPtNext.x / 65536.0f) / 10.f, ((refPtNext.y / 65536.0f) / 10.f), (refPtNext.z / 65536.0f) / 10.f);
+
+                // Add a little vertical offset so it's not clipping through track geometry
+                vroadPoint.y += vRoadDisplayHeight;
+                vroadPointNext.y += vRoadDisplayHeight;
+                physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
+                physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
+
+                glm::vec3 curVroadRightVec = rotationMatrix* glm::vec3(curVroad.right.x/128.f, curVroad.right.y/128.f, curVroad.right.z/128.f);
+
+                if(Config::get().useFullVroad)
+                {
+                    glm::vec3 leftWall = ((curVroad.leftWall/65536.0f) / 10.f) * curVroadRightVec;
+                    glm::vec3 rightWall = ((curVroad.rightWall/65536.0f) / 10.f) * curVroadRightVec;
+
+                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - leftWall), btVector3(1, 0, 0.5f));
+                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + rightWall), btVector3(1, 0, 0.5f));
+                } else
+                    {
+                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroadRightVec), btVector3(1, 0, 0.5f));
+                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroadRightVec), btVector3(1, 0, 0.5f));
+                }
+            }
+        }
+    }
+}
+
+void Renderer::_DrawCameraAnimation(Camera &camera, const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine) {
+    if (track->tag != NFS_3_PS1)
+    {
+        for (uint8_t can_Idx = 0; can_Idx < track->cameraAnimations.size(); ++can_Idx)
+        {
+            if (can_Idx < track->cameraAnimations.size() - 1)
+            {
+                // Draw CAN positions
+                SHARED::CANPT refPt = track->cameraAnimations[can_Idx];
+                SHARED::CANPT refPtNext = track->cameraAnimations[can_Idx + 1];
+                glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
+                                       glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f),
+                                                 (refPt.z / 65536.0f) / 10.f);
+                glm::vec3 vroadPointNext = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
+                                           glm::vec3((refPtNext.x / 65536.0f) / 10.f,
+                                                     ((refPtNext.y / 65536.0f) / 10.f),
+                                                     (refPtNext.z / 65536.0f) / 10.f);
+                vroadPoint.y += 0.2f;
+                vroadPointNext.y += 0.2f;
+                physicsEngine.debugDrawer.drawLine(
+                        Utils::glmToBullet(vroadPoint + camera.initialPosition),
+                        Utils::glmToBullet(vroadPointNext + camera.initialPosition), btVector3(0, 1, 1));
+
+                // Draw Rotations
+                glm::quat RotationMatrix =
+                        glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) *
+                        glm::normalize(
+                                glm::quat(refPt.od1 / 65536.0f, refPt.od2 / 65536.0f, refPt.od3 / 65536.0f,
+                                          refPt.od4 / 65536.0f));
+                glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
+                physicsEngine.debugDrawer.drawLine(
+                        Utils::glmToBullet(vroadPoint + camera.initialPosition),
+                        Utils::glmToBullet(vroadPoint + camera.initialPosition + direction),
+                        btVector3(0, 0.5, 0.5));
+            }
+        }
+    }
 }
 
 void Renderer::_DrawNFS34Metadata(Entity *targetEntity) {

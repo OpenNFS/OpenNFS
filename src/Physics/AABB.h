@@ -3,75 +3,51 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-struct AABB
+class AABB
 {
 private:
-    float _CalculateSurfaceArea() const { return 2.0f * (GetWidth() * GetHeight() + GetWidth() * GetDepth() +
-                                                         GetHeight() * GetDepth()); }
+    float _CalculateSurfaceArea() const
+    {
+        return 2.0f * (GetWidth() * GetHeight() + GetWidth() * GetDepth() + GetHeight() * GetDepth());
+    }
 
 public:
-    float minX;
-    float minY;
-    float minZ;
-    float maxX;
-    float maxY;
-    float maxZ;
+    glm::vec3 min;
+    glm::vec3 max;
     float surfaceArea;
     glm::vec3 position;
 
-    AABB() : minX(0.0f), minY(0.0f), minZ(0.0f), maxX(0.0f), maxY(0.0f), maxZ(0.0f), surfaceArea(0.0f) { }
-    AABB(unsigned minX, unsigned minY, unsigned minZ, unsigned maxX, unsigned maxY, unsigned maxZ) :
-            AABB(static_cast<float>(minX), static_cast<float>(minY), static_cast<float>(minZ), static_cast<float>(maxX), static_cast<float>(maxY), static_cast<float>(maxZ)) { }
-    AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
-            minX(minX), minY(minY), minZ(minZ), maxX(maxX), maxY(maxY), maxZ(maxZ)
-    {
-        surfaceArea = this->_CalculateSurfaceArea();
-    }
-    AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition) :
-            minX(minVertex.x), minY(minVertex.y), minZ(minVertex.z), maxX(maxVertex.x), maxY(maxVertex.y), maxZ(maxVertex.z), position(centerPosition)
+    explicit AABB() = default;
+
+    AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition) : min(minVertex), max(maxVertex), position(centerPosition)
     {
         surfaceArea = this->_CalculateSurfaceArea();
     }
 
     bool Overlaps(const AABB& other) const
     {
-        // y is deliberately first in the list of checks below as it is seen as more likely than things
-        // collide on x,z but not on y than they do on y thus we drop out sooner on a y fail
-        return maxX > other.minX &&
-               minX < other.maxX &&
-               maxY > other.minY &&
-               minY < other.maxY &&
-               maxZ > other.minZ &&
-               minZ < other.maxZ;
+        return max.x > other.min.x && min.x < other.max.x &&
+               max.y > other.min.y && min.y < other.max.y &&
+               max.z > other.min.z && min.z < other.max.z;
     }
 
     bool Contains(const AABB& other) const
     {
-        return other.minX >= minX &&
-               other.maxX <= maxX &&
-               other.minY >= minY &&
-               other.maxY <= maxY &&
-               other.minZ >= minZ &&
-               other.maxZ <= maxZ;
+        return other.min.x >= min.x && other.max.x <= max.x &&
+               other.min.y >= min.y && other.max.y <= max.y &&
+               other.min.z >= min.z && other.max.z <= max.z;
     }
 
     AABB Merge(const AABB& other) const
     {
         return AABB(
-                std::min(minX, other.minX), std::min(minY, other.minY), std::min(minZ, other.minZ),
-                std::max(maxX, other.maxX), std::max(maxY, other.maxY), std::max(maxZ, other.maxZ)
+                glm::vec3(std::min(min.x, other.min.x), std::min(min.y, other.min.y), std::min(min.z, other.min.z)),
+                glm::vec3(std::max(max.x, other.max.x), std::max(max.y, other.max.y), std::max(max.z, other.max.z)),
+                (position + other.position)/2.f
         );
     }
 
-    AABB Intersection(const AABB& other) const
-    {
-        return AABB(
-                std::max(minX, other.minX), std::max(minY, other.minY), std::max(minZ, other.minZ),
-                std::min(maxX, other.maxX), std::min(maxY, other.maxY), std::min(maxZ, other.maxZ)
-        );
-    }
-
-    float GetWidth() const { return maxX - minX; }
-    float GetHeight() const { return maxY - minY; }
-    float GetDepth() const { return maxZ - minZ; }
+    float GetWidth() const { return max.x - min.x; }
+    float GetHeight() const { return max.y - min.y; }
+    float GetDepth() const { return max.z - min.z; }
 };

@@ -20,7 +20,7 @@ void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) 
     glfwSetCursorPos(m_window, Config::get().resX / 2, Config::get().resY / 2);
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
-    direction = glm::vec3(
+    m_direction = glm::vec3(
             cos(m_verticalAngle) * sin(m_horizontalAngle),
             sin(m_verticalAngle),
             cos(m_verticalAngle) * cos(m_horizontalAngle)
@@ -34,7 +34,7 @@ void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) 
     );
 
     // Up vector
-    glm::vec3 up = glm::cross(right, direction);
+    glm::vec3 up = glm::cross(right, m_direction);
 
     // Speed boost
     if (ImGui::GetIO().KeyShift) {
@@ -46,11 +46,11 @@ void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) 
     if (ImGui::GetIO().MouseDown[1]) {
         // Move forward
         if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS) {
-            position += direction * deltaTime * m_speed;
+            position += m_direction * deltaTime * m_speed;
         }
         // Move backward
         if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS) {
-            position -= direction * deltaTime * m_speed;
+            position -= m_direction * deltaTime * m_speed;
         }
         // Strafe right
         if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS) {
@@ -65,7 +65,7 @@ void FreeCamera::ComputeMatricesFromInputs(bool &windowActive, float deltaTime) 
     // Camera matrix
     viewMatrix = glm::lookAt(
             position,           // Camera is here
-            position + direction, // and looks here : at the same position, plus "direction"
+            position + m_direction, // and looks here : at the same position, plus "direction"
             up                  // Head is up (set to 0,-1,0 to look upside-down)
     );
 

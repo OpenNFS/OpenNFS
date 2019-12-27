@@ -6,7 +6,8 @@ void Frustum::Update(const glm::mat4 &projectionViewMatrix)
     this->_CalculatePlaneIntersections();
 }
 
-bool Frustum::CheckIntersection(const AABB &other) const {
+bool Frustum::CheckIntersection(const AABB &other) const
+{
     // Loop through each frustum plane
     for (uint8_t planeIdx = 0; planeIdx < FrustumPlanes::Length; ++planeIdx)
     {
@@ -18,21 +19,21 @@ bool Frustum::CheckIntersection(const AABB &other) const {
 
         // X-axis
         if (m_planes[planeIdx].x < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the x axis
-            axisVert.x = other.minX + other.position.x; // min x plus entity position x
+            axisVert.x = other.min.x + other.position.x; // min x plus entity position x
         else
-            axisVert.x = other.maxX + other.position.x; // max x plus entity position x
+            axisVert.x = other.max.x + other.position.x; // max x plus entity position x
 
         // Y-axis
         if (m_planes[planeIdx].y < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the y axis
-            axisVert.y = other.minY + other.position.y; // min y plus entity position y
+            axisVert.y = other.min.y + other.position.y; // min y plus entity position y
         else
-            axisVert.y = other.maxY + other.position.y; // max y plus entity position y
+            axisVert.y = other.max.y + other.position.y; // max y plus entity position y
 
         // Z-axis
         if (m_planes[planeIdx].z < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the z axis
-            axisVert.z = other.minZ + other.position.z; // min z plus entity position z
+            axisVert.z = other.min.z + other.position.z; // min z plus entity position z
         else
-            axisVert.z = other.maxZ + other.position.z; // max z plus entity position z
+            axisVert.z = other.max.z + other.position.z; // max z plus entity position z
 
         // Now we get the signed distance from the AABB vertex that's furthest down the frustum planes normal,
         // and if the signed distance is negative, then the entire bounding box is behind the frustum plane, which means

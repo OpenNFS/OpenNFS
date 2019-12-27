@@ -44,7 +44,7 @@ public:
                 ParamData &userParams,
                 AssetData &loadedAssets,
                 std::shared_ptr<Car> &playerCar,
-                std::vector<CarAgent> racers,
+                const std::vector<CarAgent> &racers,
                 PhysicsEngine &physicsEngine);
 
 private:
@@ -55,8 +55,14 @@ private:
     void _DrawNFS34Metadata(Entity *targetEntity);
     bool _DrawMenuBar(AssetData &loadedAssets);
     void _DrawUI(ParamData &userParams, FreeCamera &freeCamera, std::shared_ptr<Car> &playerCar);
+
+    // TODO: Move to debug Renderer class
+    static void _DrawTrackCollision(std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
     static void _DrawAABB(const AABB &aabb, PhysicsEngine &physicsEngine);
-    void _DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine);
+    static void _DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine);
+    static void _DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine);
+    static void _DrawVroad(std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
+    static void _DrawCameraAnimation(Camera &camera, std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
 
     GLFWwindow *m_pWindow;
     std::shared_ptr<Logger> m_logger;
