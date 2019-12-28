@@ -71,7 +71,7 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     bool newAssetSelected = false;
 
     // Perform frustum culling to get visible entities, from perspective of active camera
-    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, hermiteCamera, userParams);
+    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, activeCamera, userParams);
 
     if (userParams.drawHermiteFrustum)
     {
@@ -273,43 +273,34 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
         case EntityType::CAR:
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
-            for (auto &carColour : targetCar->data.colours)
+            for (auto &carColour : targetCar->assetData.colours)
             {
                 ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
                 ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
             }
             ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f",
-                    targetCar->upDistance,
-                    targetCar->rangefinders[Car::FORWARD_RAY],
-                    targetCar->rangefinders[Car::RIGHT_RAY],
-                    targetCar->rangefinders[Car::LEFT_RAY]);
-            ImGui::Text("Speed %f", targetCar->m_vehicle->getCurrentSpeedKmHour() / 10.f);
+                    targetCar->rangefinderInfo.upDistance,
+                    targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD],
+                    targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT],
+                    targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT]);
+            ImGui::Text("Speed %f", targetCar->GetVehicle()->getCurrentSpeedKmHour() / 10.f);
             // Physics Parameters
-            ImGui::SliderFloat("Engine Force", &targetCar->gEngineForce, 0, 10000.0f);
-            ImGui::SliderFloat("Breaking Force", &targetCar->gBreakingForce, 0, 1000.0f);
-            ImGui::SliderFloat("Max Engine Force", &targetCar->maxEngineForce, 0, 10000.0f);
-            ImGui::SliderFloat("Max Breaking Force", &targetCar->maxBreakingForce, 0, 1000.0f);
-            ImGui::SliderFloat("Susp Rest.", &targetCar->suspensionRestLength, 0, 0.1f); // btScalar(0.030);
-            ImGui::SliderFloat("Susp Stiff.", &targetCar->suspensionStiffness, 0, 1000.f);
-            ImGui::SliderFloat("Susp Damp.", &targetCar->suspensionDamping, 0, 1000.f);
-            ImGui::SliderFloat("Susp Compr.", &targetCar->suspensionCompression, 0, 1000.f);
-            ImGui::SliderFloat("Friction.", &targetCar->wheelFriction, 0, 1.f);
-            ImGui::SliderFloat("Roll Infl.", &targetCar->rollInfluence, 0, 0.5);
-            ImGui::SliderFloat("Steer Incr.", &targetCar->steeringIncrement, 0.f, 0.1f);
-            ImGui::SliderFloat("Steer Clamp", &targetCar->steeringClamp, 0.f, 0.5f);
+            ImGui::SliderFloat("Engine Force", &targetCar->vehicleState.gEngineForce, 0, 10000.0f);
+            ImGui::SliderFloat("Breaking Force", &targetCar->vehicleState.gBreakingForce, 0, 1000.0f);
+            ImGui::SliderFloat("Max Engine Force", &targetCar->vehicleProperties.maxEngineForce, 0, 10000.0f);
+            ImGui::SliderFloat("Max Breaking Force", &targetCar->vehicleProperties.maxBreakingForce, 0, 1000.0f);
+            ImGui::SliderFloat("Susp Rest.", &targetCar->vehicleProperties.suspensionRestLength, 0, 0.1f); // btScalar(0.030);
+            ImGui::SliderFloat("Susp Stiff.", &targetCar->vehicleProperties.suspensionStiffness, 0, 1000.f);
+            ImGui::SliderFloat("Susp Damp.", &targetCar->vehicleProperties.suspensionDamping, 0, 1000.f);
+            ImGui::SliderFloat("Susp Compr.", &targetCar->vehicleProperties.suspensionCompression, 0, 1000.f);
+            ImGui::SliderFloat("Friction.", &targetCar->vehicleProperties.wheelFriction, 0, 1.f);
+            ImGui::SliderFloat("Roll Infl.", &targetCar->vehicleProperties.rollInfluence, 0, 0.5);
+            ImGui::SliderFloat("Steer Incr.", &targetCar->vehicleProperties.steeringIncrement, 0.f, 0.1f);
+            ImGui::SliderFloat("Steer Clamp", &targetCar->vehicleProperties.steeringClamp, 0.f, 0.5f);
             ImGui::Text("Roll (deg) x: %f y: %f z: %f",
                         glm::eulerAngles(targetCar->carBodyModel.orientation).x * 180 / SIMD_PI,
                         glm::eulerAngles(targetCar->carBodyModel.orientation).y * 180 / SIMD_PI,
                         glm::eulerAngles(targetCar->carBodyModel.orientation).z * 180 / SIMD_PI);
-            for (int i = 0; i < targetCar->getRaycast()->getNumWheels(); i++)
-            {
-                btWheelInfo &wheel = targetCar->getRaycast()->getWheelInfo(i);
-                wheel.m_suspensionStiffness = targetCar->getSuspensionStiffness();
-                wheel.m_wheelsDampingRelaxation = targetCar->getSuspensionDamping();
-                wheel.m_wheelsDampingCompression = targetCar->getSuspensionCompression();
-                wheel.m_frictionSlip = targetCar->getWheelFriction();
-                wheel.m_rollInfluence = targetCar->getRollInfluence();
-            }
             break;
     }
     ImGui::Text("Object Flags: %d", targetEntity->flags);

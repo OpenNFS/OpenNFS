@@ -12,7 +12,7 @@ void CarCamera::FollowCar(const std::shared_ptr<Car> &targetCar)
     this->_CalculatePitch();
     this->_CalculateAngleAroundCar();
     this->_CalculateCameraPosition(targetCar, this->_CalculateHorizontalDistance(), this->_CalculateVerticalDistance());
-    m_yaw = 180 - ((targetCar->getRotY() + m_angleAroundCar));
+    m_yaw = 180 - ((targetCar->GetCarBodyOrientation() + m_angleAroundCar));
 
     viewMatrix = glm::mat4(1.0f);
     viewMatrix = glm::rotate(viewMatrix, m_pitch * SIMD_PI / 180, glm::vec3(1, 0, 0));
@@ -22,7 +22,7 @@ void CarCamera::FollowCar(const std::shared_ptr<Car> &targetCar)
 }
 
 void CarCamera::_CalculateCameraPosition(const std::shared_ptr<Car> &target_car, float horizDistance, float vertDistance) {
-    float theta =  (target_car->getRotY() + m_angleAroundCar);
+    float theta =  (target_car->GetCarBodyOrientation() + m_angleAroundCar);
     float offsetX = horizDistance * sin(glm::radians(theta));
     float offsetZ = horizDistance * cos(glm::radians(theta));
     position.x = target_car->carBodyModel.position.x - offsetX;

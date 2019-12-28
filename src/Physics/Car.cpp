@@ -1,369 +1,181 @@
 #include "Car.h"
+
 #include "../Scene/Entity.h"
 
-// TODO: Put this somewhere nice
-// Forward casts should extend further than L/R
-constexpr static float kCastDistances[Car::kNumRangefinders] = {
-        1.f,
-        1.f,
-        1.f,
-        1.f,
-        1.f,
-        1.5f,
-        2.f,
-        3.f,
-        5.f,
-        5.f,
-        5.f,
-        3.f,
-        2.f,
-        2.f,
-        1.5f,
-        1.f,
-        1.f,
-        1.f,
-        1.f,
-};
-
-Car::Car(CarData carData, NFSVer nfs_version, std::string carID, GLuint car_textureArrayID) : Car(carData, nfs_version,
-                                                                                                  carID) {
-    textureArrayID = car_textureArrayID;
-    multitexturedCarModel = true;
+Car::Car(CarData carData, NFSVer nfsVersion, std::string carID, GLuint textureArrayID) : Car(carData, nfsVersion, carID)
+{
+    renderInfo.textureArrayID = textureArrayID;
+    renderInfo.isMultitexturedModel = true;
 }
 
-Car::Car(CarData carData, NFSVer nfs_version, std::string carID) : id(carID), data(carData) {
-    tag = nfs_version;
-
-    if (tag == NFS_3 || tag == NFS_4) {
+Car::Car(CarData carData, NFSVer nfsVersion, std::string carID) : id(carID), assetData(carData), tag(nfsVersion)
+{
+    if (tag == NFS_3 || tag == NFS_4)
+    {
         name = carData.carName;
-    } else {
+    }
+    else
+    {
         name = id;
     }
 
-    if (!Config::get().vulkanRender) {
-        std::stringstream car_texture_path;
-        int width, height;
-        car_texture_path << CAR_PATH << ToString(tag) << "/" << id;
-        if (tag == NFS_3 || tag == NFS_4) {
-            car_texture_path << "/car00.tga";
-            textureID = ImageLoader::LoadImage(car_texture_path.str(), &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-        } else if (tag == MCO) {
-            std::stringstream car_alpha_texture_path;
-            car_texture_path << "/Textures/0000.BMP";
-            car_alpha_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/Textures/0000-a.BMP";
-            GLubyte *imageData;
-            if(ImageLoader::LoadBmpWithAlpha(car_texture_path.str().c_str(), car_alpha_texture_path.str().c_str(), &imageData, &width, &height)){
-                glGenTextures(1, &textureID);
-                glBindTexture(GL_TEXTURE_2D, textureID);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-                glGenerateMipmap(GL_TEXTURE_2D);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-        }
+    // Load in vehicle texture data to OpenGL
+    if (!Config::get().vulkanRender)
+    {
+        this->_LoadTextures();
     }
 
-    // Load these from Carp.txt
-    maxSpeed = 20.f;
-    gEngineForce = 0.f;
-    gBreakingForce = 100.f;
-    maxEngineForce = 3000.f;
-    maxBreakingForce = 1000.f;
-    suspensionRestLength = btScalar(0.020);
-    suspensionStiffness = 750.f;
-    suspensionDamping = 200.f;
-    suspensionCompression = 500.4f;
-    wheelFriction = 0.45f;
-    rollInfluence = 0.04f;
-    gVehicleSteering = 0.f;
-    steeringIncrement = 0.01f;
-    steeringClamp = 0.15f;
-    steerRight = steerLeft = absoluteSteer = false;
+    // Configure performance data
+    this->_SetVehicleProperties();
 
     // Map mesh data to car data
-    setModels(data.meshes);
+    this->_SetModels(assetData.meshes);
 
-    // Go find headlight position data inside dummies
-    if (tag == NFS_3 || tag == NFS_4) {
-        for (auto &dummy : data.dummies) {
-            if (dummy.name.find("HFLO") != std::string::npos) {
-                leftHeadlight.cutOff = glm::cos(glm::radians(12.5f));
-                leftHeadlight.position = leftHeadlight.initialPosition = dummy.position;
-                leftHeadlight.colour = glm::vec3(1, 1, 1);
-            }
-            if (dummy.name.find("HFRE") != std::string::npos) {
-                rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
-                rightHeadlight.position = rightHeadlight.initialPosition = dummy.position;
-                rightHeadlight.colour = glm::vec3(1, 1, 1);
-            }
-            // TRLN, TRRN for tail lights
-        }
-    } else {
-        leftHeadlight.cutOff = rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
-        leftHeadlight.position = rightHeadlight.position = carBodyModel.position;
-        leftHeadlight.colour = rightHeadlight.colour = glm::vec3(1, 1, 1);
-    }
-
-    // Set car colour
-    if (!data.colours.empty()) {
-        int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) data.colours.size());
-        colour = data.colours[randomColourIdx].colour;
-    } else {
-        colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
-    }
-
-    DimensionData wheelDimensions = Utils::GenDimensions(leftFrontWheelModel.m_vertices);
-    glm::vec3 wheelSize = glm::vec3((wheelDimensions.maxVertex.x - wheelDimensions.minVertex.x) / 2,
-                                    (wheelDimensions.maxVertex.y - wheelDimensions.minVertex.y) / 2,
-                                    (wheelDimensions.maxVertex.z - wheelDimensions.minVertex.z) / 2);
-    wheelRadius = wheelSize.z;
-    wheelWidth = wheelSize.x;
-
-    // the chassis collision shape
-    DimensionData chassisDimensions = Utils::GenDimensions(carBodyModel.m_vertices);
-    // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
-    chassisDimensions.minVertex.y += 0.04f;
-    btCollisionShape *chassisShape =  new btBoxShape(btVector3((chassisDimensions.maxVertex.x - chassisDimensions.minVertex.x) / 2,
-                                                               (chassisDimensions.maxVertex.y - chassisDimensions.minVertex.y) / 2,
-                                                               (chassisDimensions.maxVertex.z - chassisDimensions.minVertex.z) / 2));
-    m_collisionShapes.push_back(chassisShape);
-
-    btCompoundShape *compound = new btCompoundShape();
-    m_collisionShapes.push_back(compound);
-    btTransform localTrans;
-    localTrans.setIdentity();
-
-    //Shift center of Mass (by 0 for now)
-    if (tag == NFS_3 || tag == NFS_4 || tag == MCO) {
-        localTrans.setOrigin(btVector3(0.0, 0.0, 0));
-    } else if (tag == NFS_3_PS1) {
-        localTrans.setOrigin(btVector3(0.0, 0.1f, 0));
-    } else {
-        localTrans.setOrigin(btVector3(0.0, 0.05f, 0));
-    }
-
-    compound->addChildShape(localTrans, chassisShape);
-
-    float mass = 1750.0f;
-    btVector3 localInertia(0, 0, 0);
-    compound->calculateLocalInertia(mass, localInertia);
-
-    // set initial location of vehicle in the world
-    vehicleMotionState = new btDefaultMotionState(
-            btTransform(btQuaternion(Utils::glmToBullet(carBodyModel.orientation)),
-                        btVector3(Utils::glmToBullet(carBodyModel.position))));
-    btRigidBody::btRigidBodyConstructionInfo cInfo(mass, vehicleMotionState, compound, localInertia);
-    m_carChassis = new btRigidBody(cInfo);
-
-    // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
-    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, this, 0));
-    m_carChassis->setDamping(0.2, 0.2);
-    m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
-    m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
+    // Build the Bullet physics representation of the vehicle
+    this->_GenPhysicsModel();
 }
 
-// Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
-void Car::setModels(std::vector<CarModel> loaded_car_models) {
-    uint8_t usedModelCount = 0;
-
-    switch (tag) {
-        case NFS_1:
-            break;
-        case NFS_2_PS1:
-        case NFS_2_SE:
-        case NFS_2:
-        case NFS_3_PS1:
-            if (loaded_car_models.size() < 3) {
-                loaded_car_models[0].enable();
-                leftFrontWheelModel = loaded_car_models[0];
-                rightFrontWheelModel = loaded_car_models[0];
-                leftRearWheelModel = loaded_car_models[0];
-                rightRearWheelModel = loaded_car_models[0];
-                loaded_car_models[1].enable();
-                carBodyModel = loaded_car_models[1];
-            } else {
-                for (auto &car_model : loaded_car_models) {
-                    if (car_model.m_name == "High Main Body Part") {
-                        car_model.enable();
-                        carBodyModel = car_model;
-                    } else if (car_model.m_name.find("High Front Left Wheel Part") != std::string::npos) {
-                        car_model.enable();
-                        leftFrontWheelModel = car_model;
-                    } else if (car_model.m_name.find("High Front Right Wheel Part") != std::string::npos) {
-                        car_model.enable();
-                        rightFrontWheelModel = car_model;
-                    } else if (car_model.m_name.find("High Rear Left Wheel Part") != std::string::npos) {
-                        car_model.enable();
-                        leftRearWheelModel = car_model;
-                    } else if (car_model.m_name.find("High Rear Right Wheel Part") != std::string::npos) {
-                        car_model.enable();
-                        rightRearWheelModel = car_model;
-                    } else if (car_model.m_name.find("High") !=
-                               std::string::npos) { // Everything with "High" in the name is an extra body part, enable it
-                        car_model.enable();
-                        miscModels.emplace_back(car_model);
-                    } else {
-                        miscModels.emplace_back(car_model);
-                    }
-                }
-            }
-            break;
-        case NFS_3:
-            carBodyModel = loaded_car_models[0];
-            carBodyModel.enable();
-            leftFrontWheelModel = loaded_car_models[1];
-            leftFrontWheelModel.enable();
-            rightFrontWheelModel = loaded_car_models[2];
-            rightFrontWheelModel.enable();
-            leftRearWheelModel = loaded_car_models[3];
-            leftRearWheelModel.enable();
-            rightRearWheelModel = loaded_car_models[4];
-            rightRearWheelModel.enable();
-            if (loaded_car_models.size() >= 5) {
-                for (uint8_t partIdx = 5; partIdx < loaded_car_models.size(); ++partIdx) {
-                    miscModels.emplace_back(loaded_car_models[partIdx]);
-                }
-            }
-            break;
-        case NFS_4:
-            for (auto &car_model : loaded_car_models) {
-                if (car_model.m_name == ":HB") {
-                    car_model.enable();
-                    carBodyModel = car_model;
-                } else if (car_model.m_name == ":HLRW") {
-                    car_model.enable();
-                    leftRearWheelModel = car_model;
-                } else if (car_model.m_name == ":HLFW") {
-                    car_model.enable();
-                    leftFrontWheelModel = car_model;
-                } else if (car_model.m_name == ":HRRW") {
-                    car_model.enable();
-                    rightRearWheelModel = car_model;
-                } else if (car_model.m_name == ":HRFW") {
-                    car_model.enable();
-                    rightFrontWheelModel = car_model;
-                } else if (car_model.m_name.find("O") != std::string::npos) {
-                    car_model.enable();
-                    miscModels.emplace_back(car_model);
-                } else {
-                    miscModels.emplace_back(car_model);
-                }
-            }
-            break;
-        case NFS_4_PS1:
-            for (auto &car_model : loaded_car_models) {
-                if (car_model.m_name.find("Right Body High") != std::string::npos) {
-                    car_model.enable();
-                    carBodyModel = car_model;
-                } else if (car_model.m_name.find("Rear Left Wheel") != std::string::npos) {
-                    car_model.enable();
-                    leftRearWheelModel = car_model;
-                } else if (car_model.m_name.find("Front Left Tire") != std::string::npos) {
-                    car_model.enable();
-                    leftFrontWheelModel = car_model;
-                } else if (car_model.m_name.find("Rear Right Wheel") != std::string::npos) {
-                    car_model.enable();
-                    rightRearWheelModel = car_model;
-                } else if (car_model.m_name.find("Front Right Tire") != std::string::npos) {
-                    car_model.enable();
-                    rightFrontWheelModel = car_model;
-                } else if (car_model.m_name.find("Left Body High") != std::string::npos) {
-                    car_model.enable();
-                    miscModels.emplace_back(car_model);
-                } else {
-                    miscModels.emplace_back(car_model);
-                }
-            }
-            break;
-        case MCO:
-            for (auto &car_model : loaded_car_models) {
-                if (car_model.m_name == ":Hbody") {
-                    car_model.enable();
-                    carBodyModel = car_model;
-                } else if (car_model.m_name == ":PPLRwheel") {
-                    car_model.enable();
-                    leftRearWheelModel = car_model;
-                } else if (car_model.m_name == ":PPLFwheel") {
-                    car_model.enable();
-                    leftFrontWheelModel = car_model;
-                } else if (car_model.m_name == ":PPRRwheel") {
-                    car_model.enable();
-                    rightRearWheelModel = car_model;
-                } else if (car_model.m_name == ":PPRFwheel") {
-                    car_model.enable();
-                    rightFrontWheelModel = car_model;
-                } else if (car_model.m_name.find(":H") != std::string::npos) {
-                    car_model.enable();
-                    miscModels.emplace_back(car_model);
-                } else {
-                    miscModels.emplace_back(car_model);
-                }
-            }
-            break;
-        case UNKNOWN:
-            break;
-        case NFS_5:
-            for (auto &car_model : loaded_car_models) {
-                if (car_model.m_name.find("Body_ig1") != std::string::npos) {
-                    car_model.enable();
-                    carBodyModel = car_model;
-                } else if (car_model.m_name.find("WheelFront_fe1") != std::string::npos) {
-                    car_model.enable();
-                    leftFrontWheelModel = car_model;
-                } else if (car_model.m_name.find("WheelFront_ig1") != std::string::npos) {
-                    car_model.enable();
-                    rightFrontWheelModel = car_model;
-                } else if (car_model.m_name.find("WheelRear_fe1") != std::string::npos) {
-                    car_model.enable();
-                    leftRearWheelModel = car_model;
-                } else if (car_model.m_name.find("WheelRear_ig1") != std::string::npos) {
-                    car_model.enable();
-                    rightRearWheelModel = car_model;
-                } else {
-                    // Enable all High LOD ig1 models
-                    car_model.enabled = ((car_model.m_name.find("ig1") != std::string::npos) &&
-                                         (car_model.m_name.find("Shadow") == std::string::npos));
-                    miscModels.emplace_back(car_model);
-                }
-            }
-            break;
-    }
-}
-
-void Car::setPosition(glm::vec3 position, glm::quat orientation) {
+void Car::SetPosition(glm::vec3 position, glm::quat orientation)
+{
+    // Create bullet transform of new positional and directional data
     btTransform initialTransform;
     initialTransform.setOrigin(Utils::glmToBullet(position));
     initialTransform.setRotation(Utils::glmToBullet(orientation));
     m_carChassis->setWorldTransform(initialTransform);
-    update();
+
+    // Update mesh positions to match new chassis transform
+    this->_UpdateMeshesToMatchPhysics();
 }
 
-Car::~Car() {
+Car::~Car()
+{
+    // Clean up the vehicle meshes
     leftFrontWheelModel.destroy();
     rightFrontWheelModel.destroy();
     leftRearWheelModel.destroy();
     rightRearWheelModel.destroy();
     carBodyModel.destroy();
-    for (auto &car_model : miscModels) {
-        car_model.destroy();
+    for (auto &miscModel : miscModels)
+    {
+        miscModel.destroy();
     }
+    // And bullet collision shapes on heap
     m_collisionShapes.clear();
-    glDeleteTextures(1, &textureID);
+    // And the loaded GL textures
+    if(renderInfo.isMultitexturedModel)
+    {
+        // TODO: Store number of textures so can pass correct parameter here
+        glDeleteTextures(1, &renderInfo.textureArrayID);
+    }
+    else
+    {
+        glDeleteTextures(1, &renderInfo.textureID);
+    }
 }
 
-void Car::update() {
+void Car::Update(btDynamicsWorld *dynamicsWorld)
+{
+    // Update car
+    this->_UpdateMeshesToMatchPhysics();
+    // Apply user input
+    this->_ApplyInputs();
+    // Update raycasts
+    this->_GenRaycasts(dynamicsWorld);
+}
+
+void Car::ApplyAccelerationForce(bool accelerate, bool reverse)
+{
+    if (accelerate)
+    {
+        if (m_vehicle->getCurrentSpeedKmHour() < vehicleProperties.maxSpeed)
+        {
+            vehicleState.gEngineForce = vehicleProperties.maxEngineForce;
+            vehicleState.gBreakingForce = 0.f;
+        }
+        else
+        {
+            vehicleState.gEngineForce = 0.f;
+        }
+    }
+    else if (reverse)
+    {
+        vehicleState.gEngineForce = -vehicleProperties.maxEngineForce;
+        vehicleState.gBreakingForce = 0.f;
+    }
+    else
+    {
+        vehicleState.gEngineForce = 0.f;
+    }
+}
+
+void Car::ApplySteeringRight(bool apply)
+{
+    vehicleState.steerRight = apply;
+}
+
+void Car::ApplySteeringLeft(bool apply)
+{
+    vehicleState.steerLeft = apply;
+}
+
+void Car::ApplyAbsoluteSteerAngle(float targetAngle)
+{
+    // Allow the update() method to directly utilise this targetAngle value
+    vehicleProperties.absoluteSteer = true;
+    // NN will always produce positive value, drop 0.5f from 0 -> 1 step output to allow -0.5 to 0.5
+    float finalSteering = targetAngle - 0.5f;
+    // Clamp value within steering extents
+    vehicleState.gVehicleSteering = std::max(-vehicleProperties.steeringClamp, std::min(finalSteering, vehicleProperties.steeringClamp));
+}
+
+void Car::ApplyBrakingForce(bool apply)
+{
+    if (apply)
+    {
+        vehicleState.gBreakingForce = vehicleProperties.maxBreakingForce;
+    }
+    else
+    {
+        vehicleState.gBreakingForce = 0.f;
+    }
+}
+
+void Car::ResetCar(glm::vec3 reset_position, glm::quat reset_orientation)
+{
+    SetPosition(reset_position, reset_orientation);
+    if (m_vehicle)
+    {
+        m_carChassis->clearForces();
+        m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
+        m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
+        m_vehicle->resetSuspension();
+        for (int i = 0; i < m_vehicle->getNumWheels(); i++)
+        {
+            //synchronize the wheels with the (interpolated) chassis worldtransform
+            m_vehicle->updateWheelTransform(i, true);
+        }
+    }
+}
+
+float Car::GetCarBodyOrientation()
+{
+    glm::quat orientation = carBodyModel.orientation;
+    return glm::degrees(atan2(2 * orientation.y * orientation.w - 2 * orientation.x * orientation.z,
+                              1 - 2 * orientation.y * orientation.y - 2 * orientation.z * orientation.z));
+}
+
+void Car::_UpdateMeshesToMatchPhysics()
+{
     btTransform trans;
-    vehicleMotionState->getWorldTransform(trans);
+    m_vehicleMotionState->getWorldTransform(trans);
     carBodyModel.position = Utils::bulletToGlm(trans.getOrigin()) +
                             (carBodyModel.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
     carBodyModel.orientation = Utils::bulletToGlm(trans.getRotation());
     carBodyModel.update();
 
     // Might as well apply the body transform to the Miscellaneous models
-    for (auto &misc_model : miscModels) {
+    for (auto &misc_model : miscModels)
+    {
         misc_model.position = Utils::bulletToGlm(trans.getOrigin()) +
                               (misc_model.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
         misc_model.orientation = Utils::bulletToGlm(trans.getRotation());
@@ -381,10 +193,12 @@ void Car::update() {
                                glm::inverse(Utils::bulletToGlm(trans.getRotation())));
 
     // Lets go update wheel geometry positions based on physics feedback
-    for (int i = 0; i < m_vehicle->getNumWheels(); i++) {
+    for (int i = 0; i < m_vehicle->getNumWheels(); i++)
+    {
         m_vehicle->updateWheelTransform(i, true);
         trans = m_vehicle->getWheelInfo(i).m_worldTransform;
-        switch (i) {
+        switch (i)
+        {
             case 0:
                 leftFrontWheelModel.position = Utils::bulletToGlm(trans.getOrigin());
                 leftFrontWheelModel.orientation = Utils::bulletToGlm(trans.getRotation());
@@ -410,51 +224,143 @@ void Car::update() {
                 break;
         }
     }
+}
 
-    // Set back wheels steering value
-    int wheelIndex = 2;
-    m_vehicle->applyEngineForce(gEngineForce, wheelIndex);
-    m_vehicle->setBrake(gBreakingForce, wheelIndex);
-
-    wheelIndex = 3;
-    m_vehicle->applyEngineForce(gEngineForce, wheelIndex);
-    m_vehicle->setBrake(gBreakingForce, wheelIndex);
-
-
-    if (!absoluteSteer) {
+void Car::_ApplyInputs()
+{
+    if (!vehicleProperties.absoluteSteer)
+    {
         // update front wheels steering value
-        if (steerRight) {
-            gVehicleSteering -= steeringIncrement;
-            if (gVehicleSteering < -steeringClamp) gVehicleSteering = -steeringClamp;
-        } else if (steerLeft) {
-            gVehicleSteering += steeringIncrement;
-            if (gVehicleSteering > steeringClamp) gVehicleSteering = steeringClamp;
-        } else {
-            if (gVehicleSteering > 0) {
-                gVehicleSteering -= steeringIncrement;
-            } else if (gVehicleSteering < 0) {
-                gVehicleSteering += steeringIncrement;
+        if (vehicleState.steerRight)
+        {
+            vehicleState.gVehicleSteering -= vehicleProperties.steeringIncrement;
+            if (vehicleState.gVehicleSteering < -vehicleProperties.steeringClamp)
+            {
+                vehicleState.gVehicleSteering = -vehicleProperties.steeringClamp;
+            }
+        }
+        else if (vehicleState.steerLeft)
+        {
+            vehicleState.gVehicleSteering += vehicleProperties.steeringIncrement;
+            if (vehicleState.gVehicleSteering > vehicleProperties.steeringClamp)
+            {
+                vehicleState.gVehicleSteering = vehicleProperties.steeringClamp;
+            }
+        }
+        else
+        {
+            if (vehicleState.gVehicleSteering > 0)
+            {
+                vehicleState.gVehicleSteering -= vehicleProperties.steeringIncrement;
+            }
+            else if (vehicleState.gVehicleSteering < 0)
+            {
+                vehicleState.gVehicleSteering += vehicleProperties.steeringIncrement;
             }
         }
     }
 
     // Set front wheels steering value
-    wheelIndex = 0;
-    m_vehicle->setSteeringValue(gVehicleSteering, wheelIndex);
-    wheelIndex = 1;
-    m_vehicle->setSteeringValue(gVehicleSteering, wheelIndex);
+    m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, Wheels::FRONT_LEFT);
+    m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, Wheels::FRONT_RIGHT);
+    // Apply engine force to rear wheels (RWD only)
+    m_vehicle->applyEngineForce(vehicleState.gEngineForce, Wheels::REAR_LEFT);
+    m_vehicle->setBrake(vehicleState.gBreakingForce, Wheels::REAR_LEFT);
+    m_vehicle->applyEngineForce(vehicleState.gEngineForce, Wheels::REAR_RIGHT);
+    m_vehicle->setBrake(vehicleState.gBreakingForce, Wheels::REAR_RIGHT);
 }
 
-void Car::update(btDynamicsWorld *dynamicsWorld) {
-    // Update car
-    update();
-    // Update raycasts
-    genRaycasts(dynamicsWorld);
+void Car::_LoadTextures()
+{
+    std::stringstream carTexturePath;
+    int width, height;
+    carTexturePath << CAR_PATH << ToString(tag) << "/" << id;
+
+    if (tag == NFS_3 || tag == NFS_4)
+    {
+        carTexturePath << "/car00.tga";
+        renderInfo.textureID = ImageLoader::LoadImage(carTexturePath.str(), &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
+    }
+    else if (tag == MCO)
+    {
+        std::stringstream car_alpha_texture_path;
+        carTexturePath << "/Textures/0000.BMP";
+        car_alpha_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/Textures/0000-a.BMP";
+        GLubyte *imageData;
+        if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(), &imageData, &width, &height))
+        {
+            glGenTextures(1, &renderInfo.textureID);
+            glBindTexture(GL_TEXTURE_2D, renderInfo.textureID);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+            glGenerateMipmap(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+    }
+
 }
 
-void Car::genRaycasts(btDynamicsWorld *dynamicsWorld) {
+void Car::_GenPhysicsModel()
+{
+    // Get the size of a wheel
+    DimensionData wheelDimensions = Utils::GenDimensions(leftFrontWheelModel.m_vertices);
+    glm::vec3 wheelSize = glm::vec3((wheelDimensions.maxVertex.x - wheelDimensions.minVertex.x) / 2,
+                                    (wheelDimensions.maxVertex.y - wheelDimensions.minVertex.y) / 2,
+                                    (wheelDimensions.maxVertex.z - wheelDimensions.minVertex.z) / 2);
+    vehicleProperties.wheelRadius = wheelSize.z;
+    vehicleProperties.wheelWidth = wheelSize.x;
+
+    // Generate the chassis collision mesh
+    DimensionData chassisDimensions = Utils::GenDimensions(carBodyModel.m_vertices);
+    // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
+    chassisDimensions.minVertex.y += 0.04f;
+    btCollisionShape *chassisShape = new btBoxShape(btVector3((chassisDimensions.maxVertex.x - chassisDimensions.minVertex.x) / 2,
+                                                              (chassisDimensions.maxVertex.y - chassisDimensions.minVertex.y) / 2,
+                                                              (chassisDimensions.maxVertex.z - chassisDimensions.minVertex.z) / 2));
+    m_collisionShapes.push_back(chassisShape);
+
+    auto *compound = new btCompoundShape();
+    btTransform localTrans;
+    localTrans.setIdentity();
+
+    //Shift center of Mass (by 0 for now)
+    if (tag == NFS_3 || tag == NFS_4 || tag == MCO)
+    {
+        localTrans.setOrigin(btVector3(0.0, 0.0, 0));
+    }
+    else if (tag == NFS_3_PS1)
+    {
+        localTrans.setOrigin(btVector3(0.0, 0.1f, 0));
+    }
+    else
+    {
+        localTrans.setOrigin(btVector3(0.0, 0.05f, 0));
+    }
+    compound->addChildShape(localTrans, chassisShape);
+
+    btVector3 localInertia(0, 0, 0);
+    compound->calculateLocalInertia(vehicleProperties.mass, localInertia);
+    m_collisionShapes.push_back(compound);
+
+    // Set initial location of vehicle in the world
+    m_vehicleMotionState = new btDefaultMotionState(btTransform(btQuaternion(Utils::glmToBullet(carBodyModel.orientation)), Utils::glmToBullet(carBodyModel.position)));
+    btRigidBody::btRigidBodyConstructionInfo cInfo(vehicleProperties.mass, m_vehicleMotionState, compound, localInertia);
+    m_carChassis = new btRigidBody(cInfo);
+
+    // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
+    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, this, 0));
+    m_carChassis->setDamping(0.2, 0.2);
+    m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
+    m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
+}
+
+void Car::_GenRaycasts(btDynamicsWorld *dynamicsWorld)
+{
     btTransform trans;
-    vehicleMotionState->getWorldTransform(trans);
+    m_vehicleMotionState->getWorldTransform(trans);
     glm::vec3 carBodyPosition = Utils::bulletToGlm(trans.getOrigin());
 
     // Get base vectors
@@ -464,117 +370,355 @@ void Car::genRaycasts(btDynamicsWorld *dynamicsWorld) {
     btCollisionWorld::ClosestRayResultCallback *rayCallbacks[kNumRangefinders];
     glm::vec3 castVectors[kNumRangefinders];
 
-    for (uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx) {
+    for (uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx)
+    {
         // Calculate base vector from -90 + (rangeIdx * kAngleBetweenRays) from car forward vector
-        castVectors[rangeIdx] = carForward * glm::normalize(
-                glm::quat(glm::vec3(0, glm::radians(-90.f + (rangeIdx * kAngleBetweenRays)), 0)));
+        castVectors[rangeIdx] = carForward * glm::normalize(glm::quat(glm::vec3(0, glm::radians(-90.f + (rangeIdx * kAngleBetweenRays)), 0)));
         // Calculate where the ray will cast out to
-        castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistances[rangeIdx]);
-        rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(Utils::glmToBullet(carBodyPosition),
-                                                                                Utils::glmToBullet(
-                                                                                        castPositions[rangeIdx]));
+        rangefinderInfo.castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistances[rangeIdx]);
+        rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]));
         // Don't Raycast against other opponents for now. Ghost through them. Only interested in VROAD edge.
         rayCallbacks[rangeIdx]->m_collisionFilterMask = COL_VROAD;
         // Perform the raycast
-        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(castPositions[rangeIdx]),
+        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]),
                                *rayCallbacks[rangeIdx]);
         // Check whether we hit anything
-        if (rayCallbacks[rangeIdx]->hasHit()) {
-            rangefinders[rangeIdx] = glm::distance(carBodyPosition,
-                                                   glm::vec3(rayCallbacks[rangeIdx]->m_hitPointWorld.getX(),
-                                                             rayCallbacks[rangeIdx]->m_hitPointWorld.getY(),
-                                                             rayCallbacks[rangeIdx]->m_hitPointWorld.getZ()));
-        } else {
-            rangefinders[rangeIdx] = kFarDistance;
+        if (rayCallbacks[rangeIdx]->hasHit())
+        {
+            rangefinderInfo.rangefinders[rangeIdx] = glm::distance(carBodyPosition, Utils::bulletToGlm(rayCallbacks[rangeIdx]->m_hitPointWorld));
+        }
+        else
+        {
+            rangefinderInfo.rangefinders[rangeIdx] = kFarDistance;
         }
         delete rayCallbacks[rangeIdx];
     }
-    upCastPosition = (carBodyPosition + (carUp * kCastDistance));
-    downCastPosition = (carBodyPosition + (-carUp * kCastDistance));
-    btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition),
-                                                             Utils::glmToBullet(upCastPosition));
-    btCollisionWorld::ClosestRayResultCallback downRayCallback(Utils::glmToBullet(carBodyPosition),
-                                                               Utils::glmToBullet(downCastPosition));
+    rangefinderInfo.upCastPosition = (carBodyPosition + (carUp * kCastDistance));
+    rangefinderInfo.downCastPosition = (carBodyPosition + (-carUp * kCastDistance));
+
+    btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.upCastPosition));
+    btCollisionWorld::ClosestRayResultCallback downRayCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.downCastPosition));
     // Up raycast is used to check for flip over, and also whether inside VROAD
     upRayCallback.m_collisionFilterMask = downRayCallback.m_collisionFilterMask = COL_TRACK | COL_VROAD_CEIL;
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(upCastPosition), upRayCallback);
-    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(downCastPosition),
-                           downRayCallback);
-    if (upRayCallback.hasHit()) {
-        upDistance = glm::distance(carBodyPosition,
-                                   glm::vec3(upRayCallback.m_hitPointWorld.getX(),
-                                             upRayCallback.m_hitPointWorld.getY(),
-                                             upRayCallback.m_hitPointWorld.getZ()));
-    } else {
-        upDistance = kFarDistance;
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.upCastPosition), upRayCallback);
+    dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.downCastPosition), downRayCallback);
+
+    if (upRayCallback.hasHit())
+    {
+        rangefinderInfo.upDistance = glm::distance(carBodyPosition, Utils::bulletToGlm(upRayCallback.m_hitPointWorld));
     }
-    if (downRayCallback.hasHit()) {
-        downDistance = glm::distance(carBodyPosition, glm::vec3(downRayCallback.m_hitPointWorld.getX(),
-                                                                downRayCallback.m_hitPointWorld.getY(),
-                                                                downRayCallback.m_hitPointWorld.getZ()));
-    } else {
-        downDistance = kFarDistance;
+    else
+    {
+        rangefinderInfo.upDistance = kFarDistance;
+    }
+    if (downRayCallback.hasHit())
+    {
+        rangefinderInfo.downDistance = glm::distance(carBodyPosition, Utils::bulletToGlm(downRayCallback.m_hitPointWorld));
+    }
+    else
+    {
+        rangefinderInfo.downDistance = kFarDistance;
     }
 }
 
-void Car::applyAccelerationForce(bool accelerate, bool reverse) {
-    if (accelerate) {
-        if (m_vehicle->getCurrentSpeedKmHour() < maxSpeed) {
-            gEngineForce = maxEngineForce;
-            gBreakingForce = 0.f;
-        } else {
-            gEngineForce = 0.f;
+// Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
+void Car::_SetModels(std::vector<CarModel> carModels)
+{
+    switch (tag)
+    {
+        case NFS_1:
+            break;
+        case NFS_2_PS1:
+        case NFS_2_SE:
+        case NFS_2:
+        case NFS_3_PS1:
+            if (carModels.size() < 3)
+            {
+                carModels[0].enable();
+                leftFrontWheelModel = carModels[0];
+                rightFrontWheelModel = carModels[0];
+                leftRearWheelModel = carModels[0];
+                rightRearWheelModel = carModels[0];
+                carModels[1].enable();
+                carBodyModel = carModels[1];
+            }
+            else
+            {
+                for (auto &car_model : carModels)
+                {
+                    if (car_model.m_name == "High Main Body Part")
+                    {
+                        car_model.enable();
+                        carBodyModel = car_model;
+                    }
+                    else if (car_model.m_name.find("High Front Left Wheel Part") != std::string::npos)
+                    {
+                        car_model.enable();
+                        leftFrontWheelModel = car_model;
+                    }
+                    else if (car_model.m_name.find("High Front Right Wheel Part") != std::string::npos)
+                    {
+                        car_model.enable();
+                        rightFrontWheelModel = car_model;
+                    }
+                    else if (car_model.m_name.find("High Rear Left Wheel Part") != std::string::npos)
+                    {
+                        car_model.enable();
+                        leftRearWheelModel = car_model;
+                    }
+                    else if (car_model.m_name.find("High Rear Right Wheel Part") != std::string::npos)
+                    {
+                        car_model.enable();
+                        rightRearWheelModel = car_model;
+                    }
+                    else if (car_model.m_name.find("High") !=
+                             std::string::npos)
+                    { // Everything with "High" in the name is an extra body part, enable it
+                        car_model.enable();
+                        miscModels.emplace_back(car_model);
+                    }
+                    else
+                    {
+                        miscModels.emplace_back(car_model);
+                    }
+                }
+            }
+            break;
+        case NFS_3:
+            carBodyModel = carModels[0];
+            carBodyModel.enable();
+            leftFrontWheelModel = carModels[1];
+            leftFrontWheelModel.enable();
+            rightFrontWheelModel = carModels[2];
+            rightFrontWheelModel.enable();
+            leftRearWheelModel = carModels[3];
+            leftRearWheelModel.enable();
+            rightRearWheelModel = carModels[4];
+            rightRearWheelModel.enable();
+            if (carModels.size() >= 5)
+            {
+                for (uint8_t partIdx = 5; partIdx < carModels.size(); ++partIdx)
+                {
+                    miscModels.emplace_back(carModels[partIdx]);
+                }
+            }
+            break;
+        case NFS_4:
+            for (auto &car_model : carModels)
+            {
+                if (car_model.m_name == ":HB")
+                {
+                    car_model.enable();
+                    carBodyModel = car_model;
+                }
+                else if (car_model.m_name == ":HLRW")
+                {
+                    car_model.enable();
+                    leftRearWheelModel = car_model;
+                }
+                else if (car_model.m_name == ":HLFW")
+                {
+                    car_model.enable();
+                    leftFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name == ":HRRW")
+                {
+                    car_model.enable();
+                    rightRearWheelModel = car_model;
+                }
+                else if (car_model.m_name == ":HRFW")
+                {
+                    car_model.enable();
+                    rightFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("O") != std::string::npos)
+                {
+                    car_model.enable();
+                    miscModels.emplace_back(car_model);
+                }
+                else
+                {
+                    miscModels.emplace_back(car_model);
+                }
+            }
+            break;
+        case NFS_4_PS1:
+            for (auto &car_model : carModels)
+            {
+                if (car_model.m_name.find("Right Body High") != std::string::npos)
+                {
+                    car_model.enable();
+                    carBodyModel = car_model;
+                }
+                else if (car_model.m_name.find("Rear Left Wheel") != std::string::npos)
+                {
+                    car_model.enable();
+                    leftRearWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("Front Left Tire") != std::string::npos)
+                {
+                    car_model.enable();
+                    leftFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("Rear Right Wheel") != std::string::npos)
+                {
+                    car_model.enable();
+                    rightRearWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("Front Right Tire") != std::string::npos)
+                {
+                    car_model.enable();
+                    rightFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("Left Body High") != std::string::npos)
+                {
+                    car_model.enable();
+                    miscModels.emplace_back(car_model);
+                }
+                else
+                {
+                    miscModels.emplace_back(car_model);
+                }
+            }
+            break;
+        case MCO:
+            for (auto &car_model : carModels)
+            {
+                if (car_model.m_name == ":Hbody")
+                {
+                    car_model.enable();
+                    carBodyModel = car_model;
+                }
+                else if (car_model.m_name == ":PPLRwheel")
+                {
+                    car_model.enable();
+                    leftRearWheelModel = car_model;
+                }
+                else if (car_model.m_name == ":PPLFwheel")
+                {
+                    car_model.enable();
+                    leftFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name == ":PPRRwheel")
+                {
+                    car_model.enable();
+                    rightRearWheelModel = car_model;
+                }
+                else if (car_model.m_name == ":PPRFwheel")
+                {
+                    car_model.enable();
+                    rightFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name.find(":H") != std::string::npos)
+                {
+                    car_model.enable();
+                    miscModels.emplace_back(car_model);
+                }
+                else
+                {
+                    miscModels.emplace_back(car_model);
+                }
+            }
+            break;
+        case UNKNOWN:
+            break;
+        case NFS_5:
+            for (auto &car_model : carModels)
+            {
+                if (car_model.m_name.find("Body_ig1") != std::string::npos)
+                {
+                    car_model.enable();
+                    carBodyModel = car_model;
+                }
+                else if (car_model.m_name.find("WheelFront_fe1") != std::string::npos)
+                {
+                    car_model.enable();
+                    leftFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("WheelFront_ig1") != std::string::npos)
+                {
+                    car_model.enable();
+                    rightFrontWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("WheelRear_fe1") != std::string::npos)
+                {
+                    car_model.enable();
+                    leftRearWheelModel = car_model;
+                }
+                else if (car_model.m_name.find("WheelRear_ig1") != std::string::npos)
+                {
+                    car_model.enable();
+                    rightRearWheelModel = car_model;
+                }
+                else
+                {
+                    // Enable all High LOD ig1 models
+                    car_model.enabled = ((car_model.m_name.find("ig1") != std::string::npos) &&
+                                         (car_model.m_name.find("Shadow") == std::string::npos));
+                    miscModels.emplace_back(car_model);
+                }
+            }
+            break;
+    }
+
+    // Go find headlight position data inside dummies
+    if (tag == NFS_3 || tag == NFS_4)
+    {
+        for (auto &dummy : assetData.dummies)
+        {
+            if (dummy.name.find("HFLO") != std::string::npos)
+            {
+                leftHeadlight.cutOff = glm::cos(glm::radians(12.5f));
+                leftHeadlight.position = leftHeadlight.initialPosition = dummy.position;
+                leftHeadlight.colour = glm::vec3(1, 1, 1);
+            }
+            if (dummy.name.find("HFRE") != std::string::npos)
+            {
+                rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
+                rightHeadlight.position = rightHeadlight.initialPosition = dummy.position;
+                rightHeadlight.colour = glm::vec3(1, 1, 1);
+            }
+            // TRLN, TRRN for tail lights
         }
-    } else if (reverse) {
-        gEngineForce = -maxEngineForce;
-        gBreakingForce = 0.f;
-    } else {
-        gEngineForce = 0.f;
+    }
+    else
+    {
+        leftHeadlight.cutOff = rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
+        leftHeadlight.position = rightHeadlight.position = carBodyModel.position;
+        leftHeadlight.colour = rightHeadlight.colour = glm::vec3(1, 1, 1);
     }
 }
 
-void Car::applySteeringRight(bool apply) {
-    steerRight = apply;
-}
-
-void Car::applySteeringLeft(bool apply) {
-    steerLeft = apply;
-}
-
-void Car::applyAbsoluteSteerAngle(float targetAngle) {
-    // Allow the update() method to directly utilise this targetAngle value
-    absoluteSteer = true;
-    // NN will always produce positive value, drop 0.5f from 0 -> 1 step output to allow -0.5 to 0.5
-    float finalSteering = targetAngle - 0.5f;
-    // Clamp value within steering extents
-    gVehicleSteering = std::max(-steeringClamp, std::min(finalSteering, steeringClamp));
-}
-
-void Car::applyBrakingForce(bool apply) {
-    if (apply) {
-        gBreakingForce = maxBreakingForce;
-    } else {
-        gBreakingForce = 0.f;
+void Car::_SetVehicleProperties()
+{
+    // Load these from Carp.txt
+    vehicleProperties.mass = 1750.f;
+    vehicleProperties.maxSpeed = 20.f;
+    vehicleProperties.maxEngineForce = 3000.f;
+    vehicleProperties.maxBreakingForce = 1000.f;
+    vehicleProperties.suspensionRestLength = btScalar(0.020);
+    vehicleProperties.suspensionStiffness = 750.f;
+    vehicleProperties.suspensionDamping = 200.f;
+    vehicleProperties.suspensionCompression = 500.4f;
+    vehicleProperties.wheelFriction = 0.45f;
+    vehicleProperties.rollInfluence = 0.04f;
+    vehicleProperties.steeringIncrement = 0.01f;
+    vehicleProperties.steeringClamp = 0.15f;
+    vehicleProperties.absoluteSteer = false;
+    // Set car colour
+    if (!assetData.colours.empty())
+    {
+        int randomColourIdx = (int) Utils::RandomFloat(0.f, (float) assetData.colours.size());
+        vehicleProperties.colour = assetData.colours[randomColourIdx].colour;
     }
-}
-
-void Car::resetCar(glm::vec3 reset_position, glm::quat reset_orientation) {
-    setPosition(reset_position, reset_orientation);
-    if (m_vehicle) {
-        m_carChassis->clearForces();
-        m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
-        m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
-        m_vehicle->resetSuspension();
-        for (int i = 0; i < m_vehicle->getNumWheels(); i++) {
-            //synchronize the wheels with the (interpolated) chassis worldtransform
-            m_vehicle->updateWheelTransform(i, true);
-        }
+    else
+    {
+        vehicleProperties.colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
     }
-}
 
-float Car::getRotY() {
-    glm::quat orientation = carBodyModel.orientation;
-    return glm::degrees(atan2(2 * orientation.y * orientation.w - 2 * orientation.x * orientation.z,
-                              1 - 2 * orientation.y * orientation.y - 2 * orientation.z * orientation.z));
+    // State
+    vehicleState.gEngineForce = 0.f;
+    vehicleState.gBreakingForce = 100.f;
+    vehicleState.gVehicleSteering = 0.f;
+    vehicleState.steerRight = vehicleState.steerLeft = false;
 }
-

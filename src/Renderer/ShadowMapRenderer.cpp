@@ -40,7 +40,7 @@ void ShadowMapRenderer::Render(float nearPlane, float farPlane, const GlobalLigh
     }
 
     /* And the Cars */
-    m_depthShader.bindTextureArray(car->textureArrayID);
+    m_depthShader.bindTextureArray(car->renderInfo.textureArrayID);
     for (auto &misc_model : car->miscModels) {
         m_depthShader.loadTransformMatrix(misc_model.ModelMatrix);
         misc_model.render();
@@ -57,7 +57,7 @@ void ShadowMapRenderer::Render(float nearPlane, float farPlane, const GlobalLigh
     car->carBodyModel.render();
 
     for(auto &racer : racers){
-        m_depthShader.bindTextureArray(racer.car->textureArrayID);
+        m_depthShader.bindTextureArray(racer.car->renderInfo.textureArrayID);
         for (auto &misc_model : racer.car->miscModels) {
             m_depthShader.loadTransformMatrix(misc_model.ModelMatrix);
             misc_model.render();

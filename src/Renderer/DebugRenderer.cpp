@@ -56,17 +56,17 @@ void DebugRenderer::DrawFrustum(Camera &camera)
 void DebugRenderer::DrawCarRaycasts(const std::shared_ptr<Car> &car)
 {
     glm::vec3 carBodyPosition = car->carBodyModel.position;
-    for (uint8_t rangeIdx = 0; rangeIdx < Car::kNumRangefinders; ++rangeIdx)
+    for (uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx)
     {
-        m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->castPositions[rangeIdx]),
-                                      btVector3(2.0f * (Car::kFarDistance - car->rangefinders[rangeIdx]), 2.0f * (car->rangefinders[rangeIdx]), 0));
+        m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->rangefinderInfo.castPositions[rangeIdx]),
+                                      btVector3(2.0f * (kFarDistance - car->rangefinderInfo.rangefinders[rangeIdx]), 2.0f * (car->rangefinderInfo.rangefinders[rangeIdx]), 0));
     }
 
     // Draw up and down casts
-    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->upCastPosition),
-                                  btVector3(2.0f * (Car::kFarDistance - car->upDistance), 2.0f * (car->upDistance), 0));
-    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->downCastPosition),
-                                  btVector3(2.0f * (Car::kFarDistance - car->downDistance), 2.0f * (car->downDistance), 0));
+    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->rangefinderInfo.upCastPosition),
+                                  btVector3(2.0f * (kFarDistance - car->rangefinderInfo.upDistance), 2.0f * (car->rangefinderInfo.upDistance), 0));
+    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->rangefinderInfo.downCastPosition),
+                                  btVector3(2.0f * (kFarDistance - car->rangefinderInfo.downDistance), 2.0f * (car->rangefinderInfo.downDistance), 0));
 }
 
 void DebugRenderer::DrawVroad(const std::shared_ptr<ONFSTrack> &track)

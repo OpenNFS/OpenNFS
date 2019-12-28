@@ -5,16 +5,16 @@ void CarRenderer::Render(shared_ptr<Car> &car, const Camera &mainCamera, const s
 
     // This shader state doesnt change during a car renderpass
     m_carShader.loadProjectionViewMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix);
-    m_carShader.setPolyFlagged(car->hasPolyFlags());
+    m_carShader.setPolyFlagged(car->carBodyModel.hasPolyFlags);
     m_carShader.loadCarColor(glm::vec3(1, 1, 1));
     m_carShader.loadLights(contributingLights);
     m_carShader.loadEnvironmentMapTexture();
     // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
-    m_carShader.setMultiTextured(car->isMultitextured());
-    if(car->isMultitextured()){
-        m_carShader.bindTextureArray(car->textureArrayID);
+    m_carShader.setMultiTextured(car->renderInfo.isMultitexturedModel);
+    if(car->renderInfo.isMultitexturedModel){
+        m_carShader.bindTextureArray(car->renderInfo.textureArrayID);
     } else {
-        m_carShader.loadCarTexture(car->textureID);
+        m_carShader.loadCarTexture(car->renderInfo.textureID);
     }
 
     // Render the Car models
@@ -42,7 +42,7 @@ void CarRenderer::Render(shared_ptr<Car> &car, const Camera &mainCamera, const s
 
     m_carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
     m_carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity, car->carBodyModel.envReflectivity);
-    m_carShader.loadCarColor(car->colour); // The colour should only apply to the car body
+    m_carShader.loadCarColor(car->vehicleProperties.colour); // The colour should only apply to the car body
     car->carBodyModel.render();
 
     m_carShader.unbind();

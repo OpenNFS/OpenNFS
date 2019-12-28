@@ -1,46 +1,61 @@
 #include "CarAgent.h"
 
-CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, std::shared_ptr<ONFSTrack> trainingTrack) : car(std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->id)), track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
+CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, std::shared_ptr<ONFSTrack> trainingTrack) : car(
+        std::make_shared<Car>(trainingCar->assetData, trainingCar->tag, trainingCar->id)), track(trainingTrack), name("TrainingAgent" + std::to_string(populationID))
+{
     this->populationID = populationID;
     training = true;
     fitness = 0;
     tickCount = 0;
     dead = false;
-    this->car->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
+    this->car->vehicleProperties.colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
-CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> trainingTrack) : track(trainingTrack) {
-    if (boost::filesystem::exists(networkPath)) {
+CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> trainingTrack) : track(trainingTrack)
+{
+    if (boost::filesystem::exists(networkPath))
+    {
         raceNet.import_fromfile(networkPath);
-    } else {
+    }
+    else
+    {
         LOG(WARNING) << "AI Neural network couldn't be loaded from " << BEST_NETWORK_PATH << ", randomising weights";
     }
     name = racerName;
-    this->car = std::make_shared<Car>(car->data, car->tag, car->id);
+    this->car = std::make_shared<Car>(car->assetData, car->tag, car->id);
 }
 
-void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car) {
+void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car)
+{
     glm::vec3 vroadPoint;
     glm::quat carOrientation;
 
     ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
-    if (track->tag == NFS_3 || track->tag == NFS_4) {
+    if (track->tag == NFS_3 || track->tag == NFS_4)
+    {
         // Can move this by trk[trackBlockIndex].nodePositions
         uint32_t nodeNumber = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nStartPos;
         int nPositions = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
-        if (posIndex <= nPositions){
+        if (posIndex <= nPositions)
+        {
             nodeNumber += posIndex;
-        } else {
+        }
+        else
+        {
             // Advance the trackblock until we can get to posIndex
             int nExtra = posIndex - nPositions;
-            while(true){
+            while (true)
+            {
                 nodeNumber = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[++trackBlockIndex].nStartPos;
                 nPositions = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[trackBlockIndex].nPositions;
-                if(nExtra < nPositions){
+                if (nExtra < nPositions)
+                {
                     nodeNumber += nExtra;
                     break;
-                } else {
+                }
+                else
+                {
                     nExtra -= nPositions;
                 }
             }
@@ -64,23 +79,27 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, con
                             normal
                 )
         ));
-    } else {
+    }
+    else
+    {
         vroadPoint = Utils::PointToVec(track->trackBlocks[trackBlockIndex].center);
         vroadPoint.y += 0.2;
         carOrientation = glm::quat(2, 0, 0, 1);
     }
 
     // Go and find the Vroad Data to reset to
-    car->resetCar(vroadPoint, carOrientation);
+    car->ResetCar(vroadPoint, carOrientation);
 }
 
-void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car)  {
+void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car)
+{
     glm::vec3 vroadPoint;
     glm::quat carOrientation;
 
     ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
-    if (track->tag == NFS_3 || track->tag == NFS_4) {
+    if (track->tag == NFS_3 || track->tag == NFS_4)
+    {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
         ASSERT(vroadIndex < nVroad, "Requested reset to vroad index: " << vroadIndex << " outside of nVroad: " << nVroad);
 
@@ -103,33 +122,41 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<
                             normal
                 )
         ));
-    } else {
+    }
+    else
+    {
         ASSERT(false, "Vroad Index based reset not available outside NFS3 for now.");
     }
 
     // Go and find the Vroad Data to reset to
-    car->resetCar(vroadPoint, carOrientation);
+    car->ResetCar(vroadPoint, carOrientation);
 }
 
-int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) {
+int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track)
+{
     int closestVroadID = 0;
-    if(track-> tag == NFS_3 || track->tag == NFS_4){
+    if (track->tag == NFS_3 || track->tag == NFS_4)
+    {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
 
         float lowestDistance = FLT_MAX;
-        for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx) {
+        for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
+        {
             INTPT refPt = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
             glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
             glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
 
             float distance = glm::distance(car->rightFrontWheelModel.position, vroadPoint);
-            if (distance < lowestDistance) {
+            if (distance < lowestDistance)
+            {
                 closestVroadID = vroad_Idx;
                 lowestDistance = distance;
             }
         }
-    } else {
+    }
+    else
+    {
         // TODO: Implement this for NFS_2 and 3_PS1
         closestVroadID = 0;
     }
@@ -139,7 +166,8 @@ int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared
 
 }
 
-int CarAgent::evaluateFitness(int vroadPosition){
+int CarAgent::evaluateFitness(int vroadPosition)
+{
     // F = C1 − Tout + C2 · s¯+ d, where Tout is the number of game tics the car is outside the track;
     // ¯s is the average speed (meters for game tic) during the evaluation;
     // d is the distance (meters) raced by the car during the evaluation;
@@ -156,8 +184,10 @@ int CarAgent::evaluateFitness(int vroadPosition){
     return fitness;
 }
 
-bool CarAgent::isWinner() {
-    if(droveBack || dead) return false;
+bool CarAgent::isWinner()
+{
+    if (droveBack || dead)
+    { return false; }
 
     fitness = evaluateFitness(getClosestVroad(car, track));
 
@@ -167,49 +197,57 @@ bool CarAgent::isWinner() {
     return fitness > pow(nVroad - 30, 1);
 }
 
-void CarAgent::reset(){
+void CarAgent::reset()
+{
     resetToVroad(0, 0.f, track, car);
 }
 
-void CarAgent::simulate() {
+void CarAgent::simulate()
+{
     // Track our old position
     static int vroadPosition;
 
     // If the agent is dead, there is no need to simulate it.
-    if (dead && training){
-        return ;
+    if (dead && training)
+    {
+        return;
     }
 
     // If during simulation, car flips, reset. Not during training!
-    if(!training && ((car->upDistance <= 0.1f || car->downDistance > 1.f || car->rangefinders[Car::FORWARD_RAY] < 0.25f))){
+    if (!training && ((car->rangefinderInfo.upDistance <= 0.1f || car->rangefinderInfo.downDistance > 1.f || car->rangefinderInfo.rangefinders[RayDirection::FORWARD] < 0.25f)))
+    {
         resetToVroad(getClosestVroad(car, track), 0.f, track, car);
     }
 
     // Use maximum from front 3 sensors, as per Luigi Cardamone
-    float maxForwardDistance = std::max({car->rangefinders[Car::FORWARD_RAY], car->rangefinders[Car::FORWARD_LEFT_RAY], car->rangefinders[Car::FORWARD_RIGHT_RAY]});
+    float maxForwardDistance = std::max(
+            {car->rangefinderInfo.rangefinders[RayDirection::FORWARD], car->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT], car->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT]});
     // Feed car speed into network so NN can regulate speed
     float carSpeed = car->m_vehicle->getCurrentSpeedKmHour();
 
     // All inputs roughly between 0 and 5. Speed/10 to bring it into line.
     // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed/10.f
-    std::vector<double> networkInputs = {car->rangefinders[Car::LEFT_RAY], car->rangefinders[3], car->rangefinders[6], maxForwardDistance, car->rangefinders[12], car->rangefinders[15], car->rangefinders[Car::RIGHT_RAY], carSpeed/ 10.f};
+    std::vector<double> networkInputs = {car->rangefinderInfo.rangefinders[RayDirection::LEFT], car->rangefinderInfo.rangefinders[3], car->rangefinderInfo.rangefinders[6], maxForwardDistance,
+                                         car->rangefinderInfo.rangefinders[12], car->rangefinderInfo.rangefinders[15], car->rangefinderInfo.rangefinders[RayDirection::RIGHT], carSpeed / 10.f};
     std::vector<double> networkOutputs = {0, 0, 0, 0};
 
     // Inference on the network
     raceNet.evaluate(networkInputs, networkOutputs);
 
     // Control the vehicle with the neural network outputs
-    car->applyAccelerationForce(networkOutputs[0] > 0.1f, false);
-    car->applyBrakingForce(networkOutputs[1] > 0.1f);
+    car->ApplyAccelerationForce(networkOutputs[0] > 0.1f, false);
+    car->ApplyBrakingForce(networkOutputs[1] > 0.1f);
     //car->applyAbsoluteSteerAngle(networkOutputs[2]);
     // Mutex steering
-    car->applySteeringLeft(networkOutputs[2] > 0.1f && networkOutputs[3] < 0.1f);
-    car->applySteeringRight(networkOutputs[3] > 0.1f && networkOutputs[2] < 0.1f);
+    car->ApplySteeringLeft(networkOutputs[2] > 0.1f && networkOutputs[3] < 0.1f);
+    car->ApplySteeringRight(networkOutputs[3] > 0.1f && networkOutputs[2] < 0.1f);
 
-    if(!training) return;
+    if (!training)
+    { return; }
 
     // Count how long the car has been inside vroad, to evaluate fitness later
-    if(car->upDistance < 0.5f){
+    if (car->rangefinderInfo.upDistance < 0.5f)
+    {
         ++insideVroadCount;
     }
 
@@ -221,13 +259,15 @@ void CarAgent::simulate() {
     int newVroadPosition = getClosestVroad(car, track);
 
     // If the vroad position jumps this much between ticks, we probably reversed over the start line.
-    if (abs(newVroadPosition - vroadPosition) > 100){
+    if (abs(newVroadPosition - vroadPosition) > 100)
+    {
         dead = droveBack = true;
         return;
     }
 
     // If not moved in more than 100 ticks of the game engine, we're dead
-    if(abs(newVroadPosition - vroadPosition) == 0 && tickCount > 100){
+    if (abs(newVroadPosition - vroadPosition) == 0 && tickCount > 100)
+    {
         dead = true;
         return;
     }
@@ -236,13 +276,15 @@ void CarAgent::simulate() {
     int newFitness = evaluateFitness(vroadPosition);
 
     // The fitness has increased, set it to the new value and reset the stale tick count
-    if (newFitness > fitness){
+    if (newFitness > fitness)
+    {
         tickCount = 0;
         fitness = newFitness;
     }
 
     // If the fitness has not increased within the STALE_TICK_COUNT, we should die
-    if (++tickCount > STALE_TICK_COUNT){
+    if (++tickCount > STALE_TICK_COUNT)
+    {
         dead = true;
     }
 

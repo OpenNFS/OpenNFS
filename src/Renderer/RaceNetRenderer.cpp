@@ -44,7 +44,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, std:
             std::swap(car_agent.car->carBodyModel.orientation.y, car_agent.car->carBodyModel.orientation.z);
             car_agent.car->carBodyModel.update();
 
-            raceNetShader.loadColor(car_agent.car->colour);
+            raceNetShader.loadColor(car_agent.car->vehicleProperties.colour);
             raceNetShader.loadTransformationMatrix(car_agent.car->carBodyModel.ModelMatrix);
             car_agent.car->carBodyModel.render();
         }

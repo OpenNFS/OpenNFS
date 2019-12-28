@@ -38,7 +38,7 @@ public:
     void StepSimulation(float time);
     void RegisterVehicle(std::shared_ptr<Car> car);
     void RegisterTrack(std::shared_ptr<ONFSTrack> track);
-    Entity *CheckForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted);
+    Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted);
     btDiscreteDynamicsWorld *GetDynamicsWorld();
 
     BulletDebugDrawer debugDrawer;
