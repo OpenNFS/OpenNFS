@@ -79,7 +79,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             specieIter++;
             specieCounter++;
             for(auto &carAgent : carAgents){
-                physicsEngine.dynamicsWorld->removeRigidBody(carAgent.car->getVehicleRigidBody());
+                //physicsEngine.m_pDynamicsWorld->removeRigidBody(carAgent.car->getVehicleRigidBody());
             }
             carAgents.clear();
 

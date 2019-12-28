@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -18,14 +19,10 @@
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
-#include <vector>
-
 #include "../Util/Utils.h"
 #include "../Loaders/TrackLoader.h"
 #include "../Renderer/BulletDebugDrawer.h"
 #include "Car.h"
-
-
 
 struct WorldRay
 {
@@ -39,17 +36,22 @@ public:
     ~PhysicsEngine();
     void InitSimulation();
     void StepSimulation(float time);
-    void RegisterVehicle(std::shared_ptr<Car> &car);
-    void RegisterTrack(const std::shared_ptr<ONFSTrack> &track);
+    void RegisterVehicle(std::shared_ptr<Car> car);
+    void RegisterTrack(std::shared_ptr<ONFSTrack> track);
     Entity *CheckForPicking(glm::mat4 viewMatrix, glm::mat4 projectionMatrix, bool *entityTargeted);
+    btDiscreteDynamicsWorld *GetDynamicsWorld();
 
     BulletDebugDrawer debugDrawer;
-    btDiscreteDynamicsWorld *dynamicsWorld;
+
 private:
-    std::shared_ptr<ONFSTrack> currentTrack;
+    void _GenerateVroadBarriers();
+
+    std::shared_ptr<ONFSTrack> m_track;
     std::vector<std::shared_ptr<Car>> m_activeVehicles;
-    btBroadphaseInterface *m_broadphase;
-    btDefaultCollisionConfiguration *collisionConfiguration;
-    btCollisionDispatcher *dispatcher;
-    btSequentialImpulseConstraintSolver *solver;
+
+    btBroadphaseInterface *m_pBroadphase;
+    btDefaultCollisionConfiguration *m_pCollisionConfiguration;
+    btCollisionDispatcher *m_pDispatcher;
+    btSequentialImpulseConstraintSolver *m_pSolver;
+    btDiscreteDynamicsWorld *m_pDynamicsWorld;
 };

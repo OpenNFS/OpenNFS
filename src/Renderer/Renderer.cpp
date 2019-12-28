@@ -1,14 +1,15 @@
 #include "Renderer.h"
 
 Renderer::Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger,
-                   const std::vector<NfsAssetList> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack,
-                   std::shared_ptr<Car> &currentCar) : m_logger(onfsLogger), m_nfsAssetList(installedNFS),
-                                                       m_pWindow(glWindow), m_track(currentTrack) {
+                   const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, std::shared_ptr<BulletDebugDrawer> debugDrawer) :
+        m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_pWindow(glWindow), m_track(currentTrack), m_debugRenderer(debugDrawer)
+{
     this->_InitialiseIMGUI();
     LOG(DEBUG) << "Renderer Initialised";
 }
 
-GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName) {
+GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName)
+{
     // Initialise GLFW
     ASSERT(glfwInit(), "GLFW Init failed.\n");
     glfwSetErrorCallback(&Renderer::GlfwError);
@@ -22,7 +23,8 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
 
     GLFWwindow *window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
 
-    if (window == nullptr) {
+    if (window == nullptr)
+    {
         LOG(WARNING) << "Failed to create a GLFW window.";
         getchar();
         glfwTerminate();
@@ -32,7 +34,8 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
 
     // Initialize GLEW
     glewExperimental = GL_TRUE; // Needed for core profile
-    if (glewInit() != GLEW_OK) {
+    if (glewInit() != GLEW_OK)
+    {
         LOG(WARNING) << "Failed to initialize GLEW";
         getchar();
         glfwTerminate();
@@ -62,20 +65,22 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     return window;
 }
 
-bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar, const std::vector<CarAgent> &racers, PhysicsEngine &physicsEngine) {
+bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar,
+                      const std::vector<CarAgent> &racers)
+{
     bool newAssetSelected = false;
 
     // Perform frustum culling to get visible entities, from perspective of active camera
     std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, hermiteCamera, userParams);
 
-    if(userParams.drawHermiteFrustum)
+    if (userParams.drawHermiteFrustum)
     {
-        this->_DrawFrustum(hermiteCamera, physicsEngine);
+        m_debugRenderer.DrawFrustum(hermiteCamera);
     }
 
-    if(userParams.drawTrackAABB)
+    if (userParams.drawTrackAABB)
     {
-        this->_DrawTrackCollision(m_track, physicsEngine);
+        m_debugRenderer.DrawTrackCollision(m_track);
     }
 
     // Render the environment
@@ -83,7 +88,7 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     m_skyRenderer.Render(activeCamera, m_sun, totalTime);
     m_trackRenderer.Render(playerCar, activeCamera, m_sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
     m_trackRenderer.RenderLights(activeCamera, m_track);
-    physicsEngine.debugDrawer.Render(activeCamera);
+    m_debugRenderer.Render(activeCamera);
 
     // Render the Car and racers
     //std::vector<Light> carBodyContributingLights;
@@ -96,13 +101,15 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     //    targetedEntity = physicsEngine.CheckForPicking(camera.viewMatrix, camera.projectionMatrix, &entityTargeted);
     //}
 
-    if (m_entityTargeted) {
+    if (m_entityTargeted)
+    {
         this->_DrawMetadata(m_pTargetedEntity);
     }
 
-    if (this->_DrawMenuBar(loadedAssets)) {
+    if (this->_DrawMenuBar(loadedAssets))
+    {
         newAssetSelected = true;
-    };
+    }
 
     this->_DrawUI(userParams, activeCamera, playerCar);
 
@@ -111,30 +118,30 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     return newAssetSelected;
 }
 
-std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams)
+std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams)
 {
     // Only update the frustum of the camera when actually culling, to save some performance
     camera.UpdateFrustum();
 
     // Perform frustum culling on the current camera, on local trackblocks
     std::vector<std::shared_ptr<Entity>> visibleEntities;
-    for(auto &trackBlockID : _GetLocalTrackBlocks(track, camera, userParams))
+    for (auto &trackBlockID : _GetLocalTrackBlockIDs(track, camera, userParams))
     {
-        for(auto &trackEntity : track->trackBlocks[trackBlockID].track)
+        for (auto &trackEntity : track->trackBlocks[trackBlockID].track)
         {
-            if(camera.viewFrustum.CheckIntersection(trackEntity.GetAABB()))
+            if (camera.viewFrustum.CheckIntersection(trackEntity.GetAABB()))
             {
                 visibleEntities.emplace_back(std::make_shared<Entity>(trackEntity));
             }
         }
-        for(auto &objectEntity : track->trackBlocks[trackBlockID].objects)
+        for (auto &objectEntity : track->trackBlocks[trackBlockID].objects)
         {
-            if(camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
+            if (camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
             {
                 visibleEntities.emplace_back(std::make_shared<Entity>(objectEntity));
             }
         }
-        for(auto &laneEntity : track->trackBlocks[trackBlockID].lanes)
+        for (auto &laneEntity : track->trackBlocks[trackBlockID].lanes)
         {
             // It's not worth checking for Lane AABB intersections
             //if(camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
@@ -154,47 +161,54 @@ std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_pt
     return visibleEntities;
 }
 
-std::vector<int> Renderer::_GetLocalTrackBlocks(const std::shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams) {
-    std::vector<int> activeTrackBlockIds;
-    uint32_t closestBlockID;
+std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams)
+{
+    std::vector<uint32_t> activeTrackBlockIds;
+    uint32_t closestBlockID = 0;
 
     float lowestDistance = FLT_MAX;
 
-    //Primitive Draw distance
+    // Get closest track block to camera position
     for (auto &trackblock :  track->trackBlocks)
     {
         float distance = glm::distance(camera.position, trackblock.center);
-        if (distance < lowestDistance) {
+        if (distance < lowestDistance)
+        {
             closestBlockID = trackblock.blockId;
             lowestDistance = distance;
         }
     }
 
     // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
-    if ((track->tag == NFS_3 || track->tag == NFS_4) && userParams.useNbData) {
-        for (int i = 0; i < 300; ++i) {
-            if (boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk == -1)
+    if ((track->tag == NFS_3 || track->tag == NFS_4) && userParams.useNbData)
+    {
+        for (auto &neighbourBlockData : boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData)
+        {
+            if (neighbourBlockData.blk == -1)
             {
                 break;
             }
             else
             {
-                activeTrackBlockIds.emplace_back(boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData[i].blk);
+                activeTrackBlockIds.emplace_back(neighbourBlockData.blk);
             }
         }
-    } else {
+    }
+    else
+    {
         // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
-        for (int block_Idx = closestBlockID - userParams.blockDrawDistance; block_Idx < closestBlockID + userParams.blockDrawDistance; ++block_Idx)
+        for (auto trackblockIdx = closestBlockID - userParams.blockDrawDistance; trackblockIdx < closestBlockID + userParams.blockDrawDistance; ++trackblockIdx)
         {
-            int activeBlock = block_Idx < 0 ? ((int) track->trackBlocks.size() + block_Idx) : (block_Idx % (int) track->trackBlocks.size());
+            uint32_t activeBlock = trackblockIdx < 0 ? ((uint32_t) track->trackBlocks.size() + trackblockIdx) : (trackblockIdx % (uint32_t) track->trackBlocks.size());
             activeTrackBlockIds.emplace_back(activeBlock);
         }
     }
 
-    return std::vector<int>(activeTrackBlockIds.rbegin(), activeTrackBlockIds.rend());
+    return activeTrackBlockIds;
 }
 
-void Renderer::_InitialiseIMGUI() {
+void Renderer::_InitialiseIMGUI()
+{
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(m_pWindow, true);
     const std::string glVersion = "#version " + ONFS_GL_VERSION;
@@ -202,163 +216,23 @@ void Renderer::_InitialiseIMGUI() {
     ImGui::StyleColorsDark();
 }
 
-void Renderer::_DrawTrackCollision(const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine)
+void Renderer::_DrawMetadata(Entity *targetEntity)
 {
-    for(auto &trackblock : track->trackBlocks)
+    ImGui::Begin("Engine Entity");
+    ImGui::Text("%s", ToString(targetEntity->tag));
+    ImGui::Text("%s", ToString(targetEntity->type));
+    // Only display these if they're relevant
+    if (targetEntity->parentTrackblockID != -1)
     {
-        for(auto &trackEntity : trackblock.track)
-        {
-            _DrawAABB(trackEntity.GetAABB(), physicsEngine);
-        }
-        for(auto &objectEntity : trackblock.objects)
-        {
-            _DrawAABB(objectEntity.GetAABB(), physicsEngine);
-        }
+        ImGui::Text("TrkBlk: %d", targetEntity->parentTrackblockID);
     }
-}
-
-void Renderer::_DrawAABB(const AABB &aabb, PhysicsEngine &physicsEngine)
-{
-    btVector3 colour = btVector3(0, 0, 0);
-    physicsEngine.debugDrawer.drawBox(Utils::glmToBullet(aabb.position + aabb.min), Utils::glmToBullet(aabb.position + aabb.max), colour);
-}
-
-void Renderer::_DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine)
-{
-    std::array<glm::vec3, 8> frustumDebugVizPoints = camera.viewFrustum.points;
-
-    btVector3 colour(0, 1, 0);
-    // FAR PLANE (TL to BR)
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[0]), Utils::glmToBullet(frustumDebugVizPoints[2]), colour);
-    // NEAR ID (TR to BL)
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[5]), Utils::glmToBullet(frustumDebugVizPoints[7]), colour);
-
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[0]), Utils::glmToBullet(frustumDebugVizPoints[1]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[1]), Utils::glmToBullet(frustumDebugVizPoints[2]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[2]), Utils::glmToBullet(frustumDebugVizPoints[3]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[3]), Utils::glmToBullet(frustumDebugVizPoints[0]), colour);
-
-    // NEAR PLANE
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[4]), Utils::glmToBullet(frustumDebugVizPoints[5]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[5]), Utils::glmToBullet(frustumDebugVizPoints[6]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[6]), Utils::glmToBullet(frustumDebugVizPoints[7]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[7]), Utils::glmToBullet(frustumDebugVizPoints[4]), colour);
-
-    // NEAR TO FAR
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[4]), Utils::glmToBullet(frustumDebugVizPoints[0]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[5]), Utils::glmToBullet(frustumDebugVizPoints[1]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[6]), Utils::glmToBullet(frustumDebugVizPoints[2]), colour);
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(frustumDebugVizPoints[7]), Utils::glmToBullet(frustumDebugVizPoints[3]), colour);
-}
-
-void Renderer::_DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine)
-{
-    glm::vec3 carBodyPosition = car->carBodyModel.position;
-
-    for(uint8_t rangeIdx = 0; rangeIdx < Car::kNumRangefinders; ++rangeIdx){
-        physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                             Utils::glmToBullet(car->castPositions[rangeIdx]),
-                                             btVector3(2.0f * (Car::kFarDistance - car->rangefinders[rangeIdx]), 2.0f * (car->rangefinders[rangeIdx]), 0));
-    }
-    // Draw up and down casts
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                         Utils::glmToBullet(car->upCastPosition),
-                                         btVector3(2.0f * (Car::kFarDistance - car->upDistance), 2.0f * (car->upDistance), 0));
-    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(carBodyPosition),
-                                         Utils::glmToBullet(car->downCastPosition),
-                                         btVector3(2.0f * (Car::kFarDistance - car->downDistance), 2.0f * (car->downDistance), 0));
-}
-
-void Renderer::_DrawVroad(const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine)
-{
-    if (track->tag == NFS_3 || track->tag == NFS_4)
+    if (targetEntity->entityID != -1)
     {
-        float vRoadDisplayHeight = 0.2f;
-        uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
-        for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
-        {
-            // Render COL Vroad? Should I use TRK VROAD to work across HS too?
-            if (vroad_Idx < nVroad - 1)
-            {
-                COLVROAD curVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx];
-                COLVROAD nextVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx + 1];
-
-                INTPT refPt = curVroad.refPt;
-                INTPT refPtNext = nextVroad.refPt;
-
-                glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-
-                // Transform NFS3/4 coords into ONFS 3d space
-                glm::vec3 vroadPoint = rotationMatrix * glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f), (refPt.z / 65536.0f) / 10.f);
-                glm::vec3 vroadPointNext = rotationMatrix * glm::vec3((refPtNext.x / 65536.0f) / 10.f, ((refPtNext.y / 65536.0f) / 10.f), (refPtNext.z / 65536.0f) / 10.f);
-
-                // Add a little vertical offset so it's not clipping through track geometry
-                vroadPoint.y += vRoadDisplayHeight;
-                vroadPointNext.y += vRoadDisplayHeight;
-                physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
-                physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
-
-                glm::vec3 curVroadRightVec = rotationMatrix* glm::vec3(curVroad.right.x/128.f, curVroad.right.y/128.f, curVroad.right.z/128.f);
-
-                if(Config::get().useFullVroad)
-                {
-                    glm::vec3 leftWall = ((curVroad.leftWall/65536.0f) / 10.f) * curVroadRightVec;
-                    glm::vec3 rightWall = ((curVroad.rightWall/65536.0f) / 10.f) * curVroadRightVec;
-
-                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - leftWall), btVector3(1, 0, 0.5f));
-                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + rightWall), btVector3(1, 0, 0.5f));
-                } else
-                    {
-                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroadRightVec), btVector3(1, 0, 0.5f));
-                    physicsEngine.debugDrawer.drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroadRightVec), btVector3(1, 0, 0.5f));
-                }
-            }
-        }
+        ImGui::Text("ID: %d", targetEntity->entityID);
     }
-}
+    ImGui::Separator();
 
-void Renderer::_DrawCameraAnimation(Camera &camera, const std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine)
-{
-    if (track->tag != NFS_3_PS1)
-    {
-        for (uint8_t can_Idx = 0; can_Idx < track->cameraAnimations.size(); ++can_Idx)
-        {
-            if (can_Idx < track->cameraAnimations.size() - 1)
-            {
-                // Draw CAN positions
-                SHARED::CANPT refPt = track->cameraAnimations[can_Idx];
-                SHARED::CANPT refPtNext = track->cameraAnimations[can_Idx + 1];
-                glm::vec3 vroadPoint = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
-                                       glm::vec3((refPt.x / 65536.0f) / 10.f, ((refPt.y / 65536.0f) / 10.f),
-                                                 (refPt.z / 65536.0f) / 10.f);
-                glm::vec3 vroadPointNext = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) *
-                                           glm::vec3((refPtNext.x / 65536.0f) / 10.f,
-                                                     ((refPtNext.y / 65536.0f) / 10.f),
-                                                     (refPtNext.z / 65536.0f) / 10.f);
-                vroadPoint.y += 0.2f;
-                vroadPointNext.y += 0.2f;
-                physicsEngine.debugDrawer.drawLine(
-                        Utils::glmToBullet(vroadPoint + camera.initialPosition),
-                        Utils::glmToBullet(vroadPointNext + camera.initialPosition), btVector3(0, 1, 1));
-
-                // Draw Rotations
-                glm::quat RotationMatrix =
-                        glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) *
-                        glm::normalize(
-                                glm::quat(refPt.od1 / 65536.0f, refPt.od2 / 65536.0f, refPt.od3 / 65536.0f,
-                                          refPt.od4 / 65536.0f));
-                glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
-                physicsEngine.debugDrawer.drawLine(
-                        Utils::glmToBullet(vroadPoint + camera.initialPosition),
-                        Utils::glmToBullet(vroadPoint + camera.initialPosition + direction),
-                        btVector3(0, 0.5, 0.5));
-            }
-        }
-    }
-}
-
-void Renderer::_DrawNFS34Metadata(Entity *targetEntity)
-{
+    // Traverse the loader structures and print pretty with IMGUI
     switch (targetEntity->type)
     {
         case EntityType::VROAD:
@@ -369,19 +243,17 @@ void Renderer::_DrawNFS34Metadata(Entity *targetEntity)
             break;
         case EntityType::LANE:
             break;
-        case EntityType::LIGHT: {
+        case EntityType::LIGHT:
+        {
             Light *targetLight = &boost::get<Light>(targetEntity->glMesh);
-            ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z,
-                               targetLight->colour.w);
-            ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z,
-                                    0.0f);
+            ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z, targetLight->colour.w);
+            ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z,0.0f);
             // Colour, type, attenuation, position and NFS unknowns
             ImGui::ColorEdit4("Light Colour", (float *) &lightColour); // Edit 3 floats representing a color
             targetLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
             ImGui::SliderFloat3("Attenuation (A, B, C)", (float *) &lightAttenuation, 0, 10.0f);
             targetLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
-            ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y,
-                        targetLight->position.z);
+            ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y, targetLight->position.z);
             ImGui::Separator();
             ImGui::Text("NFS Data");
             ImGui::Text("Type: %ld", targetLight->type);
@@ -399,14 +271,18 @@ void Renderer::_DrawNFS34Metadata(Entity *targetEntity)
         case EntityType::SOUND:
             break;
         case EntityType::CAR:
-            // TODO: Allow adjustment of shader parameters here as well, and car colour
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
-            for(auto &carColour : targetCar->data.colours){
+            for (auto &carColour : targetCar->data.colours)
+            {
                 ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
                 ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
             }
-            ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f", targetCar->upDistance, targetCar->rangefinders[Car::FORWARD_RAY], targetCar->rangefinders[Car::RIGHT_RAY], targetCar->rangefinders[Car::LEFT_RAY]);
+            ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f",
+                    targetCar->upDistance,
+                    targetCar->rangefinders[Car::FORWARD_RAY],
+                    targetCar->rangefinders[Car::RIGHT_RAY],
+                    targetCar->rangefinders[Car::LEFT_RAY]);
             ImGui::Text("Speed %f", targetCar->m_vehicle->getCurrentSpeedKmHour() / 10.f);
             // Physics Parameters
             ImGui::SliderFloat("Engine Force", &targetCar->gEngineForce, 0, 10000.0f);
@@ -414,7 +290,6 @@ void Renderer::_DrawNFS34Metadata(Entity *targetEntity)
             ImGui::SliderFloat("Max Engine Force", &targetCar->maxEngineForce, 0, 10000.0f);
             ImGui::SliderFloat("Max Breaking Force", &targetCar->maxBreakingForce, 0, 1000.0f);
             ImGui::SliderFloat("Susp Rest.", &targetCar->suspensionRestLength, 0, 0.1f); // btScalar(0.030);
-            // TODO: When this is modified, the connection points of the wheels need changing
             ImGui::SliderFloat("Susp Stiff.", &targetCar->suspensionStiffness, 0, 1000.f);
             ImGui::SliderFloat("Susp Damp.", &targetCar->suspensionDamping, 0, 1000.f);
             ImGui::SliderFloat("Susp Compr.", &targetCar->suspensionCompression, 0, 1000.f);
@@ -422,17 +297,12 @@ void Renderer::_DrawNFS34Metadata(Entity *targetEntity)
             ImGui::SliderFloat("Roll Infl.", &targetCar->rollInfluence, 0, 0.5);
             ImGui::SliderFloat("Steer Incr.", &targetCar->steeringIncrement, 0.f, 0.1f);
             ImGui::SliderFloat("Steer Clamp", &targetCar->steeringClamp, 0.f, 0.5f);
-            // Graphics Parameters
-            /*ImGui::ColorEdit3("Car Colour", (float *) &userParams.car_color);
-            ImGui::SliderFloat("Car Specular Damper", &userParams.carSpecDamper, 0, 100);
-            ImGui::SliderFloat("Car Specular Reflectivity", &userParams.carSpecReflectivity, 0, 10);*/
             ImGui::Text("Roll (deg) x: %f y: %f z: %f",
                         glm::eulerAngles(targetCar->carBodyModel.orientation).x * 180 / SIMD_PI,
                         glm::eulerAngles(targetCar->carBodyModel.orientation).y * 180 / SIMD_PI,
                         glm::eulerAngles(targetCar->carBodyModel.orientation).z * 180 / SIMD_PI);
-
-            // TODO: Only do this on a change
-            for (int i = 0; i < targetCar->getRaycast()->getNumWheels(); i++) {
+            for (int i = 0; i < targetCar->getRaycast()->getNumWheels(); i++)
+            {
                 btWheelInfo &wheel = targetCar->getRaycast()->getWheelInfo(i);
                 wheel.m_suspensionStiffness = targetCar->getSuspensionStiffness();
                 wheel.m_wheelsDampingRelaxation = targetCar->getSuspensionDamping();
@@ -440,54 +310,15 @@ void Renderer::_DrawNFS34Metadata(Entity *targetEntity)
                 wheel.m_frictionSlip = targetCar->getWheelFriction();
                 wheel.m_rollInfluence = targetCar->getRollInfluence();
             }
-
             break;
     }
     ImGui::Text("Object Flags: %d", targetEntity->flags);
     ImGui::Text("Collideable: %s", targetEntity->collideable ? "Yes" : "No");
     ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
-}
-
-void Renderer::_DrawMetadata(Entity *targetEntity)
-{
-    ImGui::Begin("Engine Entity");
-    ImGui::Text("%s", ToString(targetEntity->tag));
-    ImGui::Text("%s", ToString(targetEntity->type));
-    // Only display these if they're relevant
-    if (targetEntity->parentTrackblockID != -1) {
-        ImGui::Text("TrkBlk: %d", targetEntity->parentTrackblockID);
-    }
-    if (targetEntity->entityID != -1) {
-        ImGui::Text("ID: %d", targetEntity->entityID);
-    }
-    ImGui::Separator();
-
-    // Traverse the loader structures and print pretty with IMGUI
-    switch (targetEntity->tag)
-    {
-        case NFSVer::NFS_3:
-        case NFSVer::NFS_4:
-            _DrawNFS34Metadata(targetEntity);
-            break;
-        case NFSVer::UNKNOWN:
-            //ASSERT(false, "Unimplemented");
-            break;
-        case NFSVer::NFS_1:
-            ASSERT(false, "Unimplemented");
-            break;
-        case NFSVer::NFS_2:
-        case NFSVer::NFS_2_PS1:
-        case NFSVer::NFS_2_SE:
-            break;
-        case NFSVer::NFS_3_PS1:
-            break;
-        case NFSVer::NFS_5:
-            break;
-    }
     ImGui::End();
 }
 
-void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar)
+void Renderer::_DrawUI(ParamData &userParams, Camera &camera, const std::shared_ptr<Car> &playerCar)
 {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
@@ -517,17 +348,21 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Ca
     ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
     ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
 
-    if (ImGui::Button("Reset View")) {
+    if (ImGui::Button("Reset View"))
+    {
         camera.ResetView();
     };
     ImGui::SameLine(0, -1.0f);
-    if (ImGui::Button("Reset Car to Start")) {
+    if (ImGui::Button("Reset Car to Start"))
+    {
         CarAgent::resetToVroad(0, 0, 0.f, m_track, playerCar);
     };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);
     if (!userParams.useNbData)
+    {
         ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, m_track->nBlocks / 2);
+    }
     ImGui::Checkbox("NBData", &userParams.useNbData);
     ImGui::NewLine();
     ImGui::ColorEdit3("Sun Atten", (float *) &userParams.sunAttenuation); // Edit 3 floats representing a color
@@ -536,7 +371,8 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Ca
     ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
     ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
 
-    if (ImGui::TreeNode("Car Models")) {
+    if (ImGui::TreeNode("Car Models"))
+    {
         char meshDetailBuf[200];
         sprintf(meshDetailBuf, "%s (V: %zu)", playerCar->carBodyModel.m_name.c_str(), playerCar->carBodyModel.m_vertices.size());
         ImGui::Checkbox(meshDetailBuf, &playerCar->carBodyModel.enabled);
@@ -545,8 +381,10 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Ca
         ImGui::Checkbox(playerCar->rightFrontWheelModel.m_name.c_str(), &playerCar->rightFrontWheelModel.enabled);
         ImGui::Checkbox(playerCar->rightRearWheelModel.m_name.c_str(), &playerCar->rightRearWheelModel.enabled);
         ImGui::TreePop();
-        if (ImGui::TreeNode("Misc Models")) {
-            for (auto &mesh : playerCar->miscModels) {
+        if (ImGui::TreeNode("Misc Models"))
+        {
+            for (auto &mesh : playerCar->miscModels)
+            {
                 sprintf(meshDetailBuf, "%s (V: %zu)", mesh.m_name.c_str(), mesh.m_vertices.size());
                 ImGui::Checkbox(meshDetailBuf, &mesh.enabled);
             }
@@ -565,12 +403,18 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Ca
 bool Renderer::_DrawMenuBar(AssetData &loadedAssets)
 {
     bool assetChange = false;
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("Track")) {
-            for (auto &installedNFS : m_nfsAssetList) {
-                if (ImGui::BeginMenu(ToString(installedNFS.tag))) {
-                    for (auto &track : installedNFS.tracks) {
-                        if (ImGui::MenuItem(track.c_str())) {
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("Track"))
+        {
+            for (auto &installedNFS : m_nfsAssetList)
+            {
+                if (ImGui::BeginMenu(ToString(installedNFS.tag)))
+                {
+                    for (auto &track : installedNFS.tracks)
+                    {
+                        if (ImGui::MenuItem(track.c_str()))
+                        {
                             loadedAssets.trackTag = installedNFS.tag;
                             loadedAssets.track = track;
                             assetChange = true;
@@ -581,11 +425,16 @@ bool Renderer::_DrawMenuBar(AssetData &loadedAssets)
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Car")) {
-            for (auto &installedNFS : m_nfsAssetList) {
-                if (ImGui::BeginMenu(ToString(installedNFS.tag))) {
-                    for (auto &car : installedNFS.cars) {
-                        if (ImGui::MenuItem(car.c_str())) {
+        if (ImGui::BeginMenu("Car"))
+        {
+            for (auto &installedNFS : m_nfsAssetList)
+            {
+                if (ImGui::BeginMenu(ToString(installedNFS.tag)))
+                {
+                    for (auto &car : installedNFS.cars)
+                    {
+                        if (ImGui::MenuItem(car.c_str()))
+                        {
                             loadedAssets.carTag = installedNFS.tag;
                             loadedAssets.car = car;
                             assetChange = true;
@@ -612,5 +461,3 @@ Renderer::~Renderer()
     glfwSetKeyCallback(m_pWindow, nullptr);
     glfwSetCharCallback(m_pWindow, nullptr);
 }
-
-

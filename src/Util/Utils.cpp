@@ -84,6 +84,11 @@ namespace Utils {
         return static_cast<uint32_t>(swapped);
     }
 
+    glm::vec3 FixedToFloat(glm::vec3 fixedPoint)
+    {
+        return fixedPoint / 65536.0f;
+    }
+
     // Move these to a native resource handler class
     std::vector<CarModel> LoadOBJ(std::string obj_path) {
         std::vector<CarModel> meshes;

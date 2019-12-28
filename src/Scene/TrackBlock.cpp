@@ -1,6 +1,7 @@
 #include "TrackBlock.h"
 
-TrackBlock::TrackBlock(int blockID, glm::vec3 center_pos) {
+TrackBlock::TrackBlock(uint32_t blockID, glm::vec3 centerPosition)
+{
     blockId = blockID;
-    center = center_pos;
+    center = centerPosition;
 }

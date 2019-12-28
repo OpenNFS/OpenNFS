@@ -19,7 +19,7 @@ public:
     RaceSession(GLFWwindow *glWindow,
                 std::shared_ptr<Logger> &onfsLogger,
                 const std::vector<NfsAssetList> &installedNFS,
-                const std::shared_ptr<ONFSTrack> &currentTrack,
+                std::shared_ptr<ONFSTrack> currentTrack,
                 std::shared_ptr<Car> &currentCar);
     AssetData Simulate();
 

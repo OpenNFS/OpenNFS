@@ -1,6 +1,6 @@
 #include "CarAgent.h"
 
-CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack) : car(std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->id)), track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
+CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, std::shared_ptr<ONFSTrack> trainingTrack) : car(std::make_shared<Car>(trainingCar->data, trainingCar->tag, trainingCar->id)), track(trainingTrack), name("TrainingAgent" + std::to_string(populationID)) {
     this->populationID = populationID;
     training = true;
     fitness = 0;
@@ -9,7 +9,7 @@ CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, cons
     this->car->colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
-CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &trainingTrack) : track(trainingTrack) {
+CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> trainingTrack) : track(trainingTrack) {
     if (boost::filesystem::exists(networkPath)) {
         raceNet.import_fromfile(networkPath);
     } else {
@@ -19,7 +19,7 @@ CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath,
     this->car = std::make_shared<Car>(car->data, car->tag, car->id);
 }
 
-void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car) {
+void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car) {
     glm::vec3 vroadPoint;
     glm::quat carOrientation;
 
@@ -74,7 +74,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, std
     car->resetCar(vroadPoint, carOrientation);
 }
 
-void CarAgent::resetToVroad(int vroadIndex, float offset, std::shared_ptr<ONFSTrack> &track, std::shared_ptr<Car> &car)  {
+void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car)  {
     glm::vec3 vroadPoint;
     glm::quat carOrientation;
 

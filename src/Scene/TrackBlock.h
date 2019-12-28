@@ -1,19 +1,16 @@
 #pragma once
 
-#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
-#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
-#include "Track.h"
-#include "Light.h"
-#include "Sound.h"
+#include <cstdint>
+#include <vector>
+
 #include "Entity.h"
 
 class TrackBlock  {
 public:
-    TrackBlock(int blockID, glm::vec3 center_pos);
+    TrackBlock(uint32_t blockID, glm::vec3 centerPosition);
 
     glm::vec3 center;
-    int blockId;
-
+    uint32_t blockId;
     std::vector<Entity> track;
     std::vector<Entity> objects;
     std::vector<Entity> lanes;

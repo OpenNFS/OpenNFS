@@ -24,11 +24,12 @@
 #include "TrackRenderer.h"
 #include "SkyRenderer.h"
 #include "ShadowMapRenderer.h"
+#include "DebugRenderer.h"
 /*#include "MenuRenderer.h"*/
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, const std::shared_ptr<ONFSTrack> &currentTrack, std::shared_ptr<Car> &currentCar);
+    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, std::shared_ptr<BulletDebugDrawer> debugDrawer);
     ~Renderer();
     static void GlfwError(int id, const char *description) {
         LOG(WARNING) << description;
@@ -44,25 +45,15 @@ public:
                 ParamData &userParams,
                 AssetData &loadedAssets,
                 std::shared_ptr<Car> &playerCar,
-                const std::vector<CarAgent> &racers,
-                PhysicsEngine &physicsEngine);
+                const std::vector<CarAgent> &racers);
 
 private:
     void _InitialiseIMGUI();
-    void _DrawMetadata(Entity *targetEntity);
-    void _DrawNFS34Metadata(Entity *targetEntity);
+    static void _DrawMetadata(Entity *targetEntity);
     bool _DrawMenuBar(AssetData &loadedAssets);
-    void _DrawUI(ParamData &userParams, Camera &camera, std::shared_ptr<Car> &playerCar);
-    static std::vector<int> _GetLocalTrackBlocks(const shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams);
-    static std::vector<std::shared_ptr<Entity>> _FrustumCull(const std::shared_ptr<ONFSTrack> track, Camera &camera, ParamData &userParams);
-
-    // TODO: Move to debug Renderer class
-    static void _DrawTrackCollision(std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
-    static void _DrawAABB(const AABB &aabb, PhysicsEngine &physicsEngine);
-    static void _DrawFrustum(Camera &camera, PhysicsEngine &physicsEngine);
-    static void _DrawCarRaycasts(const std::shared_ptr<Car> &car, PhysicsEngine &physicsEngine);
-    static void _DrawVroad(std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
-    static void _DrawCameraAnimation(Camera &camera, std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
+    void _DrawUI(ParamData &userParams, Camera &camera, const std::shared_ptr<Car> &playerCar);
+    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams);
+    static std::vector<std::shared_ptr<Entity>> _FrustumCull(const std::shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams);
 
     GLFWwindow *m_pWindow;
     std::shared_ptr<Logger> m_logger;
@@ -73,6 +64,7 @@ private:
     CarRenderer m_carRenderer;
     SkyRenderer m_skyRenderer;
     ShadowMapRenderer m_shadowMapRenderer;
+    DebugRenderer m_debugRenderer;
     /*MenuRenderer menuRenderer;*/
 
     /* State */

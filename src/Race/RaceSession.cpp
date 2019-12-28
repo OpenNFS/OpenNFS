@@ -5,10 +5,10 @@
 RaceSession::RaceSession(GLFWwindow *glWindow,
         std::shared_ptr<Logger> &onfsLogger,
         const std::vector<NfsAssetList > &installedNFS,
-        const std::shared_ptr<ONFSTrack> &currentTrack,
+        std::shared_ptr<ONFSTrack> currentTrack,
         std::shared_ptr<Car> &currentCar) :
         m_pWindow(glWindow), m_track(currentTrack), m_playerCar(currentCar),
-        m_renderer(glWindow, onfsLogger, installedNFS, m_track, m_playerCar)
+        m_renderer(glWindow, onfsLogger, installedNFS, m_track, std::make_shared<BulletDebugDrawer>(m_physicsEngine.debugDrawer))
 {
 
     m_loadedAssets = {m_playerCar->tag, m_playerCar->id, m_track->tag, m_track->name};
@@ -20,16 +20,14 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
-    m_physicsEngine.RegisterVehicle(m_playerCar);
+    //m_physicsEngine.RegisterVehicle(m_playerCar);
 
-    if (m_track->tag == NFS_2_SE || m_track->tag == NFS_2 || m_track->tag == NFS_3_PS1)
-    {
-        m_userParams.useNbData = false;
-    }
+    // No neighbour data for anything except NFS3
+    m_userParams.useNbData = !(m_track->tag == NFS_2_SE || m_track->tag == NFS_2 || m_track->tag == NFS_3_PS1);
 
     // Reset player character to start
-    CarAgent::resetToVroad(0, 0, 0.25f, m_track, m_playerCar);
-    this->_SpawnRacers(Config::get().nRacers);
+    //CarAgent::resetToVroad(0, 0, 0.25f, m_track, m_playerCar);
+    //this->_SpawnRacers(Config::get().nRacers);
 }
 
 void RaceSession::_UpdateCameras(float deltaTime)
@@ -69,6 +67,13 @@ AssetData RaceSession::Simulate() {
         // Update time between engine ticks
         auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
+        this->_GetInputsAndClear();
+
+        // Update Cameras
+        this->_UpdateCameras(deltaTime);
+        // Set the active camera dependent upon user input
+        Camera activeCamera = this->_GetCamera();
+
         if (m_userParams.simulateCars)
         {
             for (auto &racer : m_racerCars)
@@ -77,18 +82,11 @@ AssetData RaceSession::Simulate() {
             }
         }
 
+        // Step the physics simulation
+        m_physicsEngine.StepSimulation(deltaTime);
+        if(m_userParams.physicsDebugView) m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
 
-        this->_GetInputsAndClear();
-
-        // Update Cameras
-        this->_UpdateCameras(deltaTime);
-        // Set the active camera dependent upon user input
-        Camera activeCamera = this->_GetCamera();
-
-        // Step the physics simulation and update physics debug view matrices
-        //m_physicsEngine.StepSimulation(deltaTime);
-
-        bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_userParams, m_loadedAssets, m_playerCar, m_racerCars, m_physicsEngine);
+        bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_userParams, m_loadedAssets, m_playerCar, m_racerCars);
 
         if (assetChange)
         {

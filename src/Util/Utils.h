@@ -79,6 +79,8 @@ namespace Utils {
 
     uint32_t SwapEndian(uint32_t x);
 
+    glm::vec3 FixedToFloat(glm::vec3 fixedPoint);
+
     // TODO: Move to resource handling class
     std::vector<CarModel> LoadOBJ(std::string obj_path);
 
