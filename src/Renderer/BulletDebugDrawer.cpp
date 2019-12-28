@@ -1,6 +1,5 @@
 #include "BulletDebugDrawer.h"
 
-
 BulletDebugDrawer::BulletDebugDrawer()
 {
     // Configure VAO for line render data
@@ -11,7 +10,7 @@ BulletDebugDrawer::BulletDebugDrawer()
     glGenBuffers(1, &m_lineVertexVBO);
     glBindBuffer(GL_ARRAY_BUFFER, m_lineVertexVBO);
     glBufferData(GL_ARRAY_BUFFER, INITIAL_LINE_BUF_SIZE * sizeof(BulletLine), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(0);
 
     // And a separate VBO for line colours

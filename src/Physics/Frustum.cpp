@@ -9,7 +9,7 @@ void Frustum::Update(const glm::mat4 &projectionViewMatrix)
 bool Frustum::CheckIntersection(const AABB &other) const
 {
     // Loop through each frustum plane, checking box is outside of frustum for early rejection
-    for (uint8_t planeIdx = 0; planeIdx < FrustumPlanes::Length; planeIdx++)
+    for (uint8_t planeIdx = 0; planeIdx < FrustumPlanes::Length; ++planeIdx)
     {
         // Check each axis (x,y,z) to get the AABB vertex furthest away from the direction the plane is facing (plane normal)
         float planeConstant = m_planes[planeIdx].w;
@@ -75,15 +75,15 @@ void Frustum::_ExtractPlanes(const glm::mat4 &projectionViewMatrix)
 void Frustum::_CalculatePlaneIntersections()
 {
     glm::vec3 crosses[FrustumPlanes::Combinations] = {
-            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[RIGHT])),
-            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[BOTTOM])),
-            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[TOP])),
-            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[NEAR_P])),
-            glm::cross(glm::vec3(m_planes[LEFT]),   glm::vec3(m_planes[FAR_P])),
-            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[BOTTOM])),
-            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[TOP])),
-            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[NEAR_P])),
-            glm::cross(glm::vec3(m_planes[RIGHT]),  glm::vec3(m_planes[FAR_P])),
+            glm::cross(glm::vec3(m_planes[LEFT]), glm::vec3(m_planes[RIGHT])),
+            glm::cross(glm::vec3(m_planes[LEFT]), glm::vec3(m_planes[BOTTOM])),
+            glm::cross(glm::vec3(m_planes[LEFT]), glm::vec3(m_planes[TOP])),
+            glm::cross(glm::vec3(m_planes[LEFT]), glm::vec3(m_planes[NEAR_P])),
+            glm::cross(glm::vec3(m_planes[LEFT]), glm::vec3(m_planes[FAR_P])),
+            glm::cross(glm::vec3(m_planes[RIGHT]), glm::vec3(m_planes[BOTTOM])),
+            glm::cross(glm::vec3(m_planes[RIGHT]), glm::vec3(m_planes[TOP])),
+            glm::cross(glm::vec3(m_planes[RIGHT]), glm::vec3(m_planes[NEAR_P])),
+            glm::cross(glm::vec3(m_planes[RIGHT]), glm::vec3(m_planes[FAR_P])),
             glm::cross(glm::vec3(m_planes[BOTTOM]), glm::vec3(m_planes[TOP])),
             glm::cross(glm::vec3(m_planes[BOTTOM]), glm::vec3(m_planes[NEAR_P])),
             glm::cross(glm::vec3(m_planes[BOTTOM]), glm::vec3(m_planes[FAR_P])),

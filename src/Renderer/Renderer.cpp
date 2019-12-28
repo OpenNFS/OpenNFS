@@ -71,7 +71,7 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     bool newAssetSelected = false;
 
     // Perform frustum culling to get visible entities, from perspective of active camera
-    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, activeCamera, userParams);
+    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, hermiteCamera, userParams);
 
     if (userParams.drawHermiteFrustum)
     {
@@ -91,11 +91,11 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     m_debugRenderer.Render(activeCamera);
 
     // Render the Car and racers
-    //std::vector<Light> carBodyContributingLights;
-    //carRenderer.render(playerCar, camera, carBodyContributingLights);
-    //for(auto &racer : racers){
-    //    carRenderer.render(racer.car, camera, carBodyContributingLights);
-    //}
+    std::vector<Light> carBodyContributingLights;
+    m_carRenderer.Render(playerCar, activeCamera, carBodyContributingLights);
+    for(auto &racer : racers){
+        m_carRenderer.Render(racer.car, activeCamera, carBodyContributingLights);
+    }
 
     //if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
     //    targetedEntity = physicsEngine.CheckForPicking(camera.viewMatrix, camera.projectionMatrix, &entityTargeted);
@@ -270,6 +270,8 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
             break;
         case EntityType::SOUND:
             break;
+        case EntityType::VROAD_CEIL:
+            break;
         case EntityType::CAR:
             Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
             ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
@@ -280,9 +282,9 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
             }
             ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f",
                     targetCar->rangefinderInfo.upDistance,
-                    targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD],
-                    targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT],
-                    targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT]);
+                    targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY],
+                    targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT_RAY],
+                    targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT_RAY]);
             ImGui::Text("Speed %f", targetCar->GetVehicle()->getCurrentSpeedKmHour() / 10.f);
             // Physics Parameters
             ImGui::SliderFloat("Engine Force", &targetCar->vehicleState.gEngineForce, 0, 10000.0f);

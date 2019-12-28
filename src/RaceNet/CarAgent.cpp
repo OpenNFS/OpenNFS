@@ -88,7 +88,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, con
     }
 
     // Go and find the Vroad Data to reset to
-    car->ResetCar(vroadPoint, carOrientation);
+    car->SetPosition(vroadPoint, carOrientation);
 }
 
 void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Car> &car)
@@ -105,12 +105,12 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<
 
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
         COLVROAD resetVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroadIndex];
-        vroadPoint = (rotationMatrix * Utils::PointToVec(resetVroad.refPt)) / 65536.f;
+        vroadPoint = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(resetVroad.refPt));
         vroadPoint /= 10.f;
         vroadPoint.y += 0.2;
 
         // Get VROAD right vector
-        glm::vec3 curVroadRightVec = rotationMatrix * glm::vec3(resetVroad.right.x / 128.f, resetVroad.right.y / 128.f, resetVroad.right.z / 128.f);
+        glm::vec3 curVroadRightVec = rotationMatrix *Utils::PointToVec(resetVroad.right) / 128.f;
         vroadPoint += offset * curVroadRightVec;
 
         rotationMatrix = glm::normalize(glm::quat(glm::vec3(SIMD_PI / 2, 0, 0)));
@@ -129,7 +129,7 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<
     }
 
     // Go and find the Vroad Data to reset to
-    car->ResetCar(vroadPoint, carOrientation);
+    car->SetPosition(vroadPoint, carOrientation);
 }
 
 int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track)
@@ -138,7 +138,6 @@ int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared
     if (track->tag == NFS_3 || track->tag == NFS_4)
     {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
-
 
         float lowestDistance = FLT_MAX;
         for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
@@ -214,21 +213,22 @@ void CarAgent::simulate()
     }
 
     // If during simulation, car flips, reset. Not during training!
-    if (!training && ((car->rangefinderInfo.upDistance <= 0.1f || car->rangefinderInfo.downDistance > 1.f || car->rangefinderInfo.rangefinders[RayDirection::FORWARD] < 0.25f)))
+    if (!training && ((car->rangefinderInfo.upDistance <= 0.1f || car->rangefinderInfo.downDistance > 1.f || car->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY] < 0.25f)))
     {
         resetToVroad(getClosestVroad(car, track), 0.f, track, car);
     }
 
     // Use maximum from front 3 sensors, as per Luigi Cardamone
-    float maxForwardDistance = std::max(
-            {car->rangefinderInfo.rangefinders[RayDirection::FORWARD], car->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT], car->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT]});
+    float maxForwardDistance = std::max({car->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY],
+                                         car->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY],
+                                         car->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY]});
     // Feed car speed into network so NN can regulate speed
-    float carSpeed = car->m_vehicle->getCurrentSpeedKmHour();
+    float carSpeed = car->GetVehicle()->getCurrentSpeedKmHour();
 
     // All inputs roughly between 0 and 5. Speed/10 to bring it into line.
     // -90, -60, -30, maxForwardDistance {-10, 0, 10}, 30, 60, 90, currentSpeed/10.f
-    std::vector<double> networkInputs = {car->rangefinderInfo.rangefinders[RayDirection::LEFT], car->rangefinderInfo.rangefinders[3], car->rangefinderInfo.rangefinders[6], maxForwardDistance,
-                                         car->rangefinderInfo.rangefinders[12], car->rangefinderInfo.rangefinders[15], car->rangefinderInfo.rangefinders[RayDirection::RIGHT], carSpeed / 10.f};
+    std::vector<double> networkInputs = {car->rangefinderInfo.rangefinders[RayDirection::LEFT_RAY], car->rangefinderInfo.rangefinders[3], car->rangefinderInfo.rangefinders[6], maxForwardDistance,
+                                         car->rangefinderInfo.rangefinders[12], car->rangefinderInfo.rangefinders[15], car->rangefinderInfo.rangefinders[RayDirection::RIGHT_RAY], carSpeed / 10.f};
     std::vector<double> networkOutputs = {0, 0, 0, 0};
 
     // Inference on the network

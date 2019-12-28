@@ -1,6 +1,6 @@
 #include "CarRenderer.h"
 
-void CarRenderer::Render(shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights) {
+void CarRenderer::Render(const shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights) {
     m_carShader.use();
 
     // This shader state doesnt change during a car renderpass

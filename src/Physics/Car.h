@@ -18,11 +18,11 @@
 // Raycasting Data
 enum RayDirection : uint8_t
 {
-    LEFT = 0,
-    FORWARD_LEFT = 8,
-    FORWARD = 9,
-    FORWARD_RIGHT = 10,
-    RIGHT = 18,
+    LEFT_RAY = 0,
+    FORWARD_LEFT_RAY = 8,
+    FORWARD_RAY = 9,
+    FORWARD_RIGHT_RAY = 10,
+    RIGHT_RAY = 18,
 };
 constexpr uint8_t kNumRangefinders = 19;
 constexpr float kFarDistance = 5.f;
@@ -120,12 +120,11 @@ struct RenderInfo
 
 class Car {
 public:
-    explicit Car(CarData carData, NFSVer nfsVersion, std::string carID);
-    Car(CarData carData, NFSVer nfsVersion, std::string carID, GLuint textureArrayID); // Multitextured car
+    explicit Car(const CarData &carData, NFSVer nfsVersion, const std::string &carID);
+    Car(const CarData &carData, NFSVer nfsVersion, const std::string &carID, GLuint textureArrayID); // Multitextured car
     ~Car();
-    void SetPosition(glm::vec3 position, glm::quat orientation);
     void Update(btDynamicsWorld* dynamicsWorld);
-    void ResetCar(glm::vec3 reset_position, glm::quat reset_orientation);
+    void SetPosition(glm::vec3 position, glm::quat orientation);
     void ApplyAccelerationForce(bool accelerate, bool reverse);
     void ApplyBrakingForce(bool apply);
     void ApplySteeringRight(bool apply);
@@ -148,8 +147,8 @@ public:
     // Car configuration data
     VehicleProperties vehicleProperties{};
     VehicleState vehicleState{};
-    RangefinderInfo rangefinderInfo;
-    RenderInfo renderInfo;
+    RangefinderInfo rangefinderInfo{};
+    RenderInfo renderInfo{};
 
     // Meshes and Headlights
     Spotlight leftHeadlight{};

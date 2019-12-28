@@ -41,7 +41,7 @@ WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screen
     return worldRay;
 }
 
-void PhysicsEngine::InitSimulation()
+PhysicsEngine::PhysicsEngine()
 {
     m_pBroadphase = new btDbvtBroadphase();
     // Set up the collision configuration and dispatcher
@@ -62,7 +62,7 @@ void PhysicsEngine::StepSimulation(float time)
     {
         car->Update(m_pDynamicsWorld);
     }
-    if (m_track.get() != nullptr)
+    if (m_track != nullptr)
     {
         // TODO: Track updates should only propagate for active track blocks. Active list should be based upon track blocks cars are on
         for (auto &track_block : m_track->trackBlocks)
@@ -109,7 +109,7 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
         }
         for (auto &object : trackBlock.objects)
         {
-            int collisionMask = COL_RAY;
+            uint32_t collisionMask = COL_RAY;
             // Set collision masks
             if (object.collideable)
             {
@@ -120,9 +120,7 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
                 collisionMask |= COL_TRACK;
             }
             // Move Rigid body to correct place in world
-            btTransform initialTransform;
-            initialTransform.setOrigin(Utils::glmToBullet(boost::get<Track>(object.glMesh).initialPosition));
-            initialTransform.setRotation(Utils::glmToBullet(boost::get<Track>(object.glMesh).orientation));
+            btTransform initialTransform = Utils::MakeTransform(boost::get<Track>(object.glMesh).initialPosition, boost::get<Track>(object.glMesh).orientation);
             object.rigidBody->setWorldTransform(initialTransform);
             m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }
@@ -137,15 +135,13 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
 
 void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> car)
 {
-    m_activeVehicles.emplace_back(car);
-
     m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(), m_pDynamicsWorld->getDispatcher());
     m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD);
 
     car->SetRaycaster(new btDefaultVehicleRaycaster(m_pDynamicsWorld));
     car->SetVehicle( new btRaycastVehicle(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
     car->GetVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
-    m_pDynamicsWorld->addVehicle(car->m_vehicle);
+    m_pDynamicsWorld->addVehicle(car->GetVehicle());
     car->GetVehicle()->setCoordinateSystem(0, 1, 2);
 
     // Wire up the wheels
@@ -154,15 +150,11 @@ void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> car)
     btVector3 wheelDirectionCS0(0, -1, 0);
     btVector3 wheelAxleCS(-1, 0, 0);
     // Fronties
-    btVector3 connectionPointCS0(Utils::glmToBullet(car->leftFrontWheelModel.position));
-    car->GetVehicle()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->rightFrontWheelModel.position));
-    car->GetVehicle()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
+    car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
+    car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightFrontWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
     // Rearies
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->leftRearWheelModel.position));
-    car->GetVehicle()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
-    connectionPointCS0 = btVector3(Utils::glmToBullet(car->rightRearWheelModel.position));
-    car->GetVehicle()->addWheel(connectionPointCS0, wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
+    car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
+    car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
 
     for (uint8_t wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx)
     {
@@ -173,6 +165,9 @@ void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> car)
         wheel.m_frictionSlip = car->vehicleProperties.wheelFriction;
         wheel.m_rollInfluence =  car->vehicleProperties.rollInfluence;
     }
+
+    // Add vehicle to active vehicles list so they can be updated on step of physics engine
+    m_activeVehicles.emplace_back(car);
 }
 
 btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld()
@@ -180,16 +175,11 @@ btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld()
     return m_pDynamicsWorld;
 }
 
-PhysicsEngine::PhysicsEngine()
-{
-    InitSimulation();
-}
-
 PhysicsEngine::~PhysicsEngine()
 {
     for (auto &car : m_activeVehicles)
     {
-        m_pDynamicsWorld->removeVehicle(car->m_vehicle);
+        m_pDynamicsWorld->removeVehicle(car->GetVehicle());
     }
     for (auto &trackBlock : m_track->trackBlocks)
     {

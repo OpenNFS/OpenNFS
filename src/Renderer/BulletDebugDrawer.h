@@ -8,7 +8,7 @@
 #include "../Util/Utils.h"
 #include "../Util/Logger.h"
 
-const uint32_t INITIAL_LINE_BUF_SIZE = 1024 * 50;
+const uint32_t INITIAL_LINE_BUF_SIZE = 1024 * 1000;
 
 class BulletLine {
     glm::vec3 from;
@@ -30,24 +30,24 @@ public:
 
     void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) override;
 
-    virtual void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &) {}
+    void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &) override {}
 
-    virtual void reportErrorWarning(const char *warningString)
+    void reportErrorWarning(const char *warningString) override
     {
         LOG(WARNING) << warningString;
     }
 
-    virtual void draw3dText(const btVector3 &location, const char *textString)
+    void draw3dText(const btVector3 &location, const char *textString) override
     {
         // TODO: Bring in MenuRenderer
         LOG(WARNING) << textString;
     }
 
-    virtual void setDebugMode(int p) {
+    void setDebugMode(int p) override {
         m = p;
     }
 
-    int getDebugMode(void) const { return 3; }
+    int getDebugMode(void) const override { return 3; }
 
     int m{};
 

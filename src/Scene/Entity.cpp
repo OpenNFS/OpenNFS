@@ -1,6 +1,8 @@
 #include "Entity.h"
 
-Entity::Entity(uint32_t parentTrackblockID, uint32_t entityID, NFSVer nfsVersion, EntityType entityType,  EngineModel glMesh, uint32_t flags, glm::vec3 fromA, glm::vec3 fromB, glm::vec3 toA, glm::vec3 toB) {
+Entity::Entity(uint32_t parentTrackblockID, uint32_t entityID, NFSVer nfsVersion, EntityType entityType, EngineModel glMesh, uint32_t flags, glm::vec3 fromA, glm::vec3 fromB, glm::vec3 toA,
+               glm::vec3 toB)
+{
     tag = nfsVersion;
     type = entityType;
     this->glMesh = glMesh;
@@ -16,91 +18,110 @@ Entity::Entity(uint32_t parentTrackblockID, uint32_t entityID, NFSVer nfsVersion
     this->_GenBoundingBox();
 }
 
-void Entity::_GenCollisionMesh() {
-    if(type == CAR || type == SOUND) {
-        return;
-    }
-    else if (type == LIGHT)
+void Entity::_GenCollisionMesh()
+{
+    switch (type)
     {
-        // Light mesh billboarded, generated AABB too large. Divide verts by scale factor to make smaller.
-        std::vector<glm::vec3> vertices = boost::get<Light>(glMesh).m_vertices;
-        glm::vec3 lightPosition = boost::get<Light>(glMesh).position;
-        float lightBoundScaleF = 10.f;
-        for (int i = 0; i < vertices.size() - 2; i += 3) {
-            glm::vec3 triangle = glm::vec3((vertices[i].x / lightBoundScaleF) + lightPosition.x,
-                                           (vertices[i].y / lightBoundScaleF) + lightPosition.y,
-                                           (vertices[i].z / lightBoundScaleF) + lightPosition.z);
-            glm::vec3 triangle1 = glm::vec3((vertices[i + 1].x / lightBoundScaleF) + lightPosition.x,
-                                            (vertices[i + 1].y / lightBoundScaleF) + lightPosition.y,
-                                            (vertices[i + 1].z / lightBoundScaleF) + lightPosition.z);
-            glm::vec3 triangle2 = glm::vec3((vertices[i + 2].x / lightBoundScaleF) + lightPosition.x,
-                                            (vertices[i + 2].y / lightBoundScaleF) + lightPosition.y,
-                                            (vertices[i + 2].z / lightBoundScaleF) + lightPosition.z);
-            m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
-        }
-        m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
-    }
-    else if (type == VROAD)
-    {
-        float wallHeight = 1.0f;
-        auto *mesh = new btTriangleMesh();
-        glm::vec3 triangle = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
-        glm::vec3 triangle1 = glm::vec3(startPointA.x, startPointA.y + wallHeight, startPointA.z);
-        glm::vec3 triangle2 = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
-        mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
-        glm::vec3 triangleA = glm::vec3(endPointA.x, endPointA.y - wallHeight, endPointA.z);
-        glm::vec3 triangle1A = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
-        glm::vec3 triangle2A = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
-        mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
-        m_collisionShape = new btConvexTriangleMeshShape(mesh);
-    }
-    else if (type == VROAD_CEIL)
-    {
-        float ceilHeight = 0.5f;
-        auto *mesh = new btTriangleMesh();
-        glm::vec3 triangle   = glm::vec3(startPointA.x, startPointA.y + ceilHeight, startPointA.z);
-        glm::vec3 triangle2  = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
-        glm::vec3 triangle1  = glm::vec3(endPointA.x,   endPointA.y   + ceilHeight, endPointA.z);
-        mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
-        glm::vec3 triangleA  = glm::vec3(endPointA.x,   endPointA.y   + ceilHeight, endPointA.z);
-        glm::vec3 triangle1A = glm::vec3(endPointB.x,   endPointB.y   + ceilHeight, endPointB.z);
-        glm::vec3 triangle2A = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
-        mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
-        m_collisionShape = new btConvexTriangleMeshShape(mesh);
-    }
-    else if (dynamic)
-    {
-        // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
-        auto *mesh = new btTriangleMesh();
-        std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
-        for (int i = 0; i < vertices.size() - 2; i += 3)
+        case SOUND:
+        case CAR:
+        case LANE:
+            return;
+        case LIGHT:
         {
-            glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
-            glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
-            glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
-            mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1),
-                              Utils::glmToBullet(triangle2), false);
+            // Light mesh billboarded, generated (Bullet) AABB too large. Divide verts by scale factor to make smaller.
+            std::vector<glm::vec3> vertices = boost::get<Light>(glMesh).m_vertices;
+            glm::vec3 lightPosition = boost::get<Light>(glMesh).position;
+            float lightBoundScaleF = 10.f;
+            for (int i = 0; i < vertices.size() - 2; i += 3)
+            {
+                glm::vec3 triangle = glm::vec3((vertices[i].x / lightBoundScaleF) + lightPosition.x,
+                                               (vertices[i].y / lightBoundScaleF) + lightPosition.y,
+                                               (vertices[i].z / lightBoundScaleF) + lightPosition.z);
+                glm::vec3 triangle1 = glm::vec3((vertices[i + 1].x / lightBoundScaleF) + lightPosition.x,
+                                                (vertices[i + 1].y / lightBoundScaleF) + lightPosition.y,
+                                                (vertices[i + 1].z / lightBoundScaleF) + lightPosition.z);
+                glm::vec3 triangle2 = glm::vec3((vertices[i + 2].x / lightBoundScaleF) + lightPosition.x,
+                                                (vertices[i + 2].y / lightBoundScaleF) + lightPosition.y,
+                                                (vertices[i + 2].z / lightBoundScaleF) + lightPosition.z);
+                m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+            }
+            m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
         }
-        m_collisionShape = new btConvexTriangleMeshShape(mesh);
-    }
-    else
-    {
-        std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
-        // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
-        for (int i = 0; i < vertices.size() - 2; i += 3)
+            break;
+        case VROAD:
         {
-            glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
-            glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
-            glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
-            m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+            float wallHeight = 1.0f;
+            auto *mesh = new btTriangleMesh();
+            glm::vec3 triangle = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
+            glm::vec3 triangle1 = glm::vec3(startPointA.x, startPointA.y + wallHeight, startPointA.z);
+            glm::vec3 triangle2 = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
+            mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+            glm::vec3 triangleA = glm::vec3(endPointA.x, endPointA.y - wallHeight, endPointA.z);
+            glm::vec3 triangle1A = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
+            glm::vec3 triangle2A = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
+            mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
+            m_collisionShape = new btConvexTriangleMeshShape(mesh);
         }
-        m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
+            break;
+        case VROAD_CEIL:
+        {
+            float ceilHeight = 0.5f;
+            auto *mesh = new btTriangleMesh();
+            glm::vec3 triangle = glm::vec3(startPointA.x, startPointA.y + ceilHeight, startPointA.z);
+            glm::vec3 triangle2 = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
+            glm::vec3 triangle1 = glm::vec3(endPointA.x, endPointA.y + ceilHeight, endPointA.z);
+            mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+            glm::vec3 triangleA = glm::vec3(endPointA.x, endPointA.y + ceilHeight, endPointA.z);
+            glm::vec3 triangle1A = glm::vec3(endPointB.x, endPointB.y + ceilHeight, endPointB.z);
+            glm::vec3 triangle2A = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
+            mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
+            m_collisionShape = new btConvexTriangleMeshShape(mesh);
+        }
+            break;
+        case ROAD:
+        case GLOBAL:
+        case XOBJ:
+        case OBJ_POLY:
+        {
+            if (dynamic)
+            {
+                // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
+                auto *mesh = new btTriangleMesh();
+                std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
+                for (int i = 0; i < vertices.size() - 2; i += 3)
+                {
+                    glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
+                    glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
+                    glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
+                    mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1),
+                                      Utils::glmToBullet(triangle2), false);
+                }
+                m_collisionShape = new btConvexTriangleMeshShape(mesh);
+            }
+            else
+            {
+                std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
+                // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
+                for (int i = 0; i < vertices.size() - 2; i += 3)
+                {
+                    glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
+                    glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
+                    glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
+                    m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+                }
+                m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
+            }
+        }
+            break;
     }
+
     float entityMass = dynamic ? 100.f : 0.f;
     btVector3 localInertia;
-    if (dynamic) {
+    if (dynamic)
+    {
         m_collisionShape->calculateLocalInertia(entityMass, localInertia);
     }
+
     m_motionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
     rigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState, m_collisionShape, localInertia));
     rigidBody->setFriction(btScalar(1.f));
@@ -109,7 +130,7 @@ void Entity::_GenCollisionMesh() {
 
 void Entity::_GenBoundingBox()
 {
-    switch(type)
+    switch (type)
     {
         case XOBJ:
         case OBJ_POLY:
@@ -132,9 +153,11 @@ void Entity::_GenBoundingBox()
     }
 }
 
-void Entity::Update() {
+void Entity::Update()
+{
     // We don't want to update Entities that aren't dynamic
-    if (!((type == OBJ_POLY || type == XOBJ) && dynamic)) {
+    if (!((type == OBJ_POLY || type == XOBJ) && dynamic))
+    {
         return;
     }
     btTransform trans;
@@ -144,10 +167,13 @@ void Entity::Update() {
     boost::get<Track>(glMesh).update();
 }
 
-void Entity::_SetCollisionParameters() {
-    switch (tag) {
+void Entity::_SetCollisionParameters()
+{
+    switch (tag)
+    {
         case NFS_3:
-            switch (type) {
+            switch (type)
+            {
                 case VROAD:
                     collideable = true;
                     dynamic = false;
@@ -166,7 +192,8 @@ void Entity::_SetCollisionParameters() {
                 case XOBJ:
                     collideable = false;
                     break;
-                    switch ((flags >> 4) & 0x7) {
+                    switch ((flags >> 4) & 0x7)
+                    {
                         case 1: // Hometown shack godray
                             collideable = false;
                             dynamic = false;
@@ -204,7 +231,7 @@ void Entity::_SetCollisionParameters() {
 
 AABB Entity::GetAABB() const
 {
-    switch(type)
+    switch (type)
     {
         case LIGHT:
         case SOUND:

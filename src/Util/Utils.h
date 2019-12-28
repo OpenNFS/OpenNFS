@@ -96,6 +96,8 @@ namespace Utils {
 
     glm::vec3 CalculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
 
+    btTransform MakeTransform(glm::vec3 position, glm::quat orientation);
+
     // Easily convert propietary and platform specific Vertices to glm::vec3. NFS2_DATA::PC::GEO::BLOCK_3D, NFS2_DATA::PS1::GEO::BLOCK_3D, NFS3_4_DATA::FLOATPT etc.
     template <class NFSVertexStruct>
     glm::vec3 PointToVec(NFSVertexStruct block_3d){
