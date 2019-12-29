@@ -3,10 +3,10 @@
 #include <imgui.h>
 
 RaceSession::RaceSession(GLFWwindow *glWindow,
-        std::shared_ptr<Logger> &onfsLogger,
-        const std::vector<NfsAssetList > &installedNFS,
-        std::shared_ptr<ONFSTrack> currentTrack,
-        std::shared_ptr<Car> &currentCar) :
+                         std::shared_ptr<Logger> &onfsLogger,
+                         const std::vector<NfsAssetList> &installedNFS,
+                         std::shared_ptr<ONFSTrack> currentTrack,
+                         std::shared_ptr<Car> &currentCar) :
         m_pWindow(glWindow), m_track(currentTrack), m_playerCar(currentCar),
         m_renderer(glWindow, onfsLogger, installedNFS, m_track, std::make_shared<BulletDebugDrawer>(m_physicsEngine.debugDrawer))
 {
@@ -34,7 +34,7 @@ void RaceSession::_UpdateCameras(float deltaTime)
 {
     m_hermiteCamera.UseSpline(m_totalTime);
 
-    if(m_windowStatus == WindowStatus::GAME)
+    if (m_windowStatus == WindowStatus::GAME)
     {
         // Compute MVP from keyboard and mouse, centered around a target car
         m_carCamera.FollowCar(m_playerCar);
@@ -45,19 +45,25 @@ void RaceSession::_UpdateCameras(float deltaTime)
 
 Camera RaceSession::_GetCamera()
 {
-    if (m_userParams.attachCamToHermite) {
+    if (m_userParams.attachCamToHermite)
+    {
         m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
         return m_hermiteCamera;
-    } else if (m_userParams.attachCamToCar) {
+    }
+    else if (m_userParams.attachCamToCar)
+    {
         m_activeCameraMode = CameraMode::FOLLOW_CAR;
         return m_carCamera;
-    } else {
+    }
+    else
+    {
         m_activeCameraMode = CameraMode::FREE_LOOK;
         return m_freeCamera;
     }
 }
 
-AssetData RaceSession::Simulate() {
+AssetData RaceSession::Simulate()
+{
     while (!glfwWindowShouldClose(m_pWindow))
     {
         // glfwGetTime is called only once, the first time this function is called
@@ -76,15 +82,13 @@ AssetData RaceSession::Simulate() {
 
         if (m_userParams.simulateCars)
         {
-            for (auto &racer : m_racerCars)
-            {
-                racer.simulate();
-            }
+            this->_SimulateRacers();
         }
 
         // Step the physics simulation
         m_physicsEngine.StepSimulation(deltaTime);
-        if(m_userParams.physicsDebugView) m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
+        if (m_userParams.physicsDebugView)
+        { m_physicsEngine.GetDynamicsWorld()->debugDrawWorld(); }
 
         bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_userParams, m_loadedAssets, m_playerCar, m_racerCars);
 
@@ -105,15 +109,24 @@ AssetData RaceSession::Simulate() {
     return m_loadedAssets;
 }
 
-void RaceSession::_SpawnRacers(uint8_t nRacers) {
+void RaceSession::_SpawnRacers(uint8_t nRacers)
+{
     float racerSpawnOffset = -0.25f;
     for (uint8_t racerIdx = 0; racerIdx < nRacers; ++racerIdx)
     {
-        CarAgent racer(RACER_NAMES[racerIdx % 23], BEST_NETWORK_PATH, m_playerCar, m_track);
+        CarAgent racer(racerIdx % 23, BEST_NETWORK_PATH, m_playerCar, m_track);
         m_physicsEngine.RegisterVehicle(racer.car);
         CarAgent::resetToVroad(0, racerIdx + 1, racerSpawnOffset, m_track, racer.car);
         m_racerCars.emplace_back(racer);
         racerSpawnOffset = -racerSpawnOffset;
+    }
+}
+
+void RaceSession::_SimulateRacers()
+{
+    for (auto &racer : m_racerCars)
+    {
+        racer.simulate();
     }
 }
 
@@ -125,12 +138,12 @@ void RaceSession::_GetInputsAndClear()
     glfwPollEvents();
 
     // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-    if((glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse))
+    if ((glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse))
     {
         m_windowStatus = WindowStatus::GAME;
         ImGui::GetIO().MouseDrawCursor = false;
     }
-    else if(glfwGetKey(m_pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    else if (glfwGetKey(m_pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         m_windowStatus = WindowStatus::UI;
         ImGui::GetIO().MouseDrawCursor = true;

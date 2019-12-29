@@ -1,9 +1,10 @@
 #pragma once
-struct AABB;
+
+class AABB;
 
 class IAABB
 {
 public:
     virtual ~IAABB() = default;
-    [[nodiscard]] virtual AABB GetAABB() const = 0;
+    virtual AABB GetAABB() const = 0;
 };

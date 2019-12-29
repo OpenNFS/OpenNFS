@@ -27,6 +27,7 @@ private:
     Camera _GetCamera();
     void _UpdateCameras(float deltaTime);
     void _SpawnRacers(uint8_t nRacers);
+    void _SimulateRacers();
     void _GetInputsAndClear();
 
     GLFWwindow *m_pWindow;

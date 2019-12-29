@@ -1,5 +1,33 @@
 #include "CarAgent.h"
 
+// TODO: Read this from file
+char const *RACER_NAMES[23] =
+        {
+                "DumbPanda",
+                "Spark198rus",
+                "Keiiko",
+                "N/A",
+                "Patas De Pavo",
+                "Dopamine Flint",
+                "Oh Hansssss",
+                "scaryred24",
+                "MaximilianVeers",
+                "Keith",
+                "AJ_Lethal",
+                "Sirius-R",
+                "Ewil",
+                "Zipper",
+                "heyitsleo",
+                "MADMAN_nfs",
+                "Wild One",
+                "Gotcha",
+                "Mulligan",
+                "Lead Foot",
+                "Ace",
+                "Dead Beat",
+                "Ram Rod"
+        };
+
 CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, std::shared_ptr<ONFSTrack> trainingTrack) : car(
         std::make_shared<Car>(trainingCar->assetData, trainingCar->tag, trainingCar->id)), track(trainingTrack), name("TrainingAgent" + std::to_string(populationID))
 {
@@ -11,7 +39,7 @@ CarAgent::CarAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, std:
     this->car->vehicleProperties.colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
 }
 
-CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> trainingTrack) : track(trainingTrack)
+CarAgent::CarAgent(uint16_t racerID, const std::string &networkPath, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> trainingTrack) : track(trainingTrack)
 {
     if (boost::filesystem::exists(networkPath))
     {
@@ -21,7 +49,7 @@ CarAgent::CarAgent(const std::string &racerName, const std::string &networkPath,
     {
         LOG(WARNING) << "AI Neural network couldn't be loaded from " << BEST_NETWORK_PATH << ", randomising weights";
     }
-    name = racerName;
+    name = RACER_NAMES[racerID];
     this->car = std::make_shared<Car>(car->assetData, car->tag, car->id);
 }
 

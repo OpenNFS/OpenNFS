@@ -24,33 +24,11 @@ enum RayDirection : uint8_t
     FORWARD_RIGHT_RAY = 10,
     RIGHT_RAY = 18,
 };
+
 constexpr uint8_t kNumRangefinders = 19;
 constexpr float kFarDistance = 5.f;
 constexpr float kAngleBetweenRays = 10.f;
 constexpr float kCastDistance = 1.f;
-
-// Forward casts should extend further than L/R
-inline constexpr float kCastDistances[kNumRangefinders] = {
-        1.f,
-        1.f,
-        1.f,
-        1.f,
-        1.f,
-        1.5f,
-        2.f,
-        3.f,
-        5.f,
-        5.f,
-        5.f,
-        3.f,
-        2.f,
-        2.f,
-        1.5f,
-        1.f,
-        1.f,
-        1.f,
-        1.f,
-};
 
 enum Wheels : uint8_t
 {

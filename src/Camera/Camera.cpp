@@ -32,3 +32,4 @@ void Camera::ResetView() {
 void Camera::UpdateFrustum() {
     viewFrustum.Update(projectionMatrix * viewMatrix);
 }
+

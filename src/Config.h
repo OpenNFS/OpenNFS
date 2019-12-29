@@ -69,34 +69,6 @@ const std::string DEFAULT_CAR_NFS_VER = ToString(NFS_3);
 const std::string DEFAULT_TRACK_NFS_VER = ToString(NFS_3);
 const int         DEFAULT_NUM_RACERS = 0;
 
-// TODO: Read this from file
-inline char const *RACER_NAMES[23] =
-        {
-                "DumbPanda",
-                "Spark198rus",
-                "Keiiko",
-                "N/A",
-                "Patas De Pavo",
-                "Dopamine Flint",
-                "Oh Hansssss",
-                "scaryred24",
-                "MaximilianVeers",
-                "Keith",
-                "AJ_Lethal",
-                "Sirius-R",
-                "Ewil",
-                "Zipper",
-                "heyitsleo",
-                "MADMAN_nfs",
-                "Wild One",
-                "Gotcha",
-                "Mulligan",
-                "Lead Foot",
-                "Ace",
-                "Dead Beat",
-                "Ram Rod"
-        };
-
 /* --------------- ONFS Runtime parameters here -----------------*/
 class Config
 {
