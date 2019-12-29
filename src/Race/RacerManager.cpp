@@ -1,17 +1,16 @@
 #include "RacerManager.h"
 
-RacerManager::RacerManager(PlayerAgent &playerAgent, std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine) : m_currentTrack(track)
+RacerManager::RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<ONFSTrack> &track, PhysicsEngine &physicsEngine) : m_currentTrack(track)
 {
-    // Add the player vehicle into the list of racers
-    racers.emplace_back(playerAgent);
-    this->_SpawnRacers(Config::get().nRacers, physicsEngine);
+    this->_InitialisePlayerVehicle(playerAgent, physicsEngine);
+    this->_SpawnRacers(physicsEngine);
 }
 
 void RacerManager::Simulate()
 {
     for (auto &racer : racers)
     {
-        racer.Simulate();
+        racer->Simulate();
     }
 }
 
@@ -22,21 +21,30 @@ std::vector<uint32_t> RacerManager::GetRacerActiveTrackblocks()
 
     for (auto &racer : racers)
     {
-        activeTrackblockIDs.insert(racer.nearestTrackblockID);
+        activeTrackblockIDs.insert(racer->nearestTrackblockID);
     }
 
     return std::vector<uint32_t>(activeTrackblockIDs.begin(), activeTrackblockIDs.end());
 }
 
-void RacerManager::_SpawnRacers(uint8_t nRacers, PhysicsEngine &physicsEngine)
+// Reset player character to start and add the player vehicle into the list of racers
+void RacerManager::_InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsEngine &physicsEngine)
+{
+    physicsEngine.RegisterVehicle(playerAgent->vehicle);
+    playerAgent->ResetToIndexInTrackblock(0, 0, 0.25f);
+    racers.emplace_back(playerAgent);
+}
+
+// Spawn racers onto the track along Vroad positions at alternating offsets
+void RacerManager::_SpawnRacers(PhysicsEngine &physicsEngine)
 {
     std::shared_ptr<Car> racerVehicle = CarLoader::LoadCar(NFSVer::NFS_3, "f355");
     float racerSpawnOffset = -0.25f;
-    for (uint8_t racerIdx = 0; racerIdx < nRacers; ++racerIdx)
+    for (uint8_t racerIdx = 0; racerIdx < Config::get().nRacers; ++racerIdx)
     {
-        RacerAgent racer(racerIdx % 23, BEST_NETWORK_PATH, racerVehicle, m_currentTrack);
-        physicsEngine.RegisterVehicle(racer.vehicle);
-        racer.ResetToIndexInTrackblock(0, racerIdx + 1, racerSpawnOffset);
+        std::shared_ptr<RacerAgent> racer = std::make_shared<RacerAgent>(racerIdx % 23, BEST_NETWORK_PATH, racerVehicle, m_currentTrack);
+        physicsEngine.RegisterVehicle(racer->vehicle);
+        racer->ResetToIndexInTrackblock(0, racerIdx + 1, racerSpawnOffset);
         racerSpawnOffset = -racerSpawnOffset;
         racers.emplace_back(racer);
     }

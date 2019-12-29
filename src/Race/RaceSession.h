@@ -34,7 +34,7 @@ private:
     WindowStatus m_windowStatus = WindowStatus::UI;
 
     std::shared_ptr<ONFSTrack> m_track;
-    PlayerAgent m_playerAgent;
+    std::shared_ptr<PlayerAgent> m_playerAgent;
 
     PhysicsEngine m_physicsEngine;
     Renderer m_renderer;

@@ -84,7 +84,7 @@ public:
     // Better named parameters instead of using var_map with command-line arg name
     std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
     std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
-    uint8_t nRacers = DEFAULT_NUM_RACERS;
+    uint16_t nRacers = DEFAULT_NUM_RACERS;
     /* -- Physics/AI Params -- */
     bool useFullVroad = false;
     bool sparkMode = false;

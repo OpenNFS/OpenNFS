@@ -12,13 +12,14 @@ class RacerManager
 {
 public:
     explicit RacerManager() = default;
-    RacerManager(PlayerAgent &playerAgent, std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine);
+    RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<ONFSTrack> &track, PhysicsEngine &physicsEngine);
     void Simulate();
     std::vector<uint32_t> GetRacerActiveTrackblocks();
 
-    std::vector<CarAgent> racers;
+    std::vector<std::shared_ptr<CarAgent>> racers;
 private:
-    void _SpawnRacers(uint8_t nRacers, PhysicsEngine &physicsEngine);
+    void _InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsEngine &physicsEngine);
+    void _SpawnRacers(PhysicsEngine &physicsEngine);
 
     std::shared_ptr<ONFSTrack> m_currentTrack;
 };

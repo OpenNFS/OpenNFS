@@ -7,29 +7,25 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
                          const std::vector<NfsAssetList> &installedNFS,
                          std::shared_ptr<ONFSTrack> currentTrack,
                          std::shared_ptr<Car> &currentCar) :
-        m_pWindow(glWindow), m_track(currentTrack), m_playerAgent(currentCar, currentTrack),
+        m_pWindow(glWindow), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(glWindow, currentCar, currentTrack)),
         m_renderer(glWindow, onfsLogger, installedNFS, m_track, std::make_shared<BulletDebugDrawer>(m_physicsEngine.debugDrawer))
 {
 
-    m_loadedAssets = {m_playerAgent.vehicle->tag, m_playerAgent.vehicle->id, m_track->tag, m_track->name};
+    m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->tag, m_track->name};
 
     // Set up the cameras
     m_freeCamera = std::make_shared<FreeCamera>(m_track->trackBlocks[0].center, m_pWindow);
     m_hermiteCamera =  std::make_shared<HermiteCamera>(m_track->centerSpline, m_track->trackBlocks[0].center, m_pWindow);
-    m_carCamera =  std::make_shared<CarCamera>(m_playerAgent.vehicle->carBodyModel.position, m_pWindow);
+    m_carCamera =  std::make_shared<CarCamera>(m_playerAgent->vehicle->carBodyModel.position, m_pWindow);
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
-    //m_physicsEngine.RegisterVehicle(m_playerCar);
 
-    // Set up the Racer Manager
+    // Set up the Racer Manager to spawn vehicles on track
     m_racerManager = RacerManager(m_playerAgent, m_track, m_physicsEngine);
 
     // No neighbour data for anything except NFS3
     m_userParams.useNbData = !(m_track->tag == NFS_2_SE || m_track->tag == NFS_2 || m_track->tag == NFS_3_PS1);
-
-    // Reset player character to start
-    m_playerAgent.ResetToIndexInTrackblock(0, 0, 0.25f);
 }
 
 void RaceSession::_UpdateCameras(float deltaTime)
@@ -39,7 +35,7 @@ void RaceSession::_UpdateCameras(float deltaTime)
     if (m_windowStatus == WindowStatus::GAME)
     {
         // Compute MVP from keyboard and mouse, centered around a target car
-        m_carCamera->FollowCar(m_playerAgent.vehicle);
+        m_carCamera->FollowCar(m_playerAgent->vehicle);
         // Compute the MVP matrix from keyboard and mouse input
         m_freeCamera->ComputeMatricesFromInputs(deltaTime);
     }

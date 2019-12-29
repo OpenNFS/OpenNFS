@@ -151,10 +151,10 @@ void Car::SetPosition(glm::vec3 position, glm::quat orientation)
     m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
     m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
     m_vehicle->resetSuspension();
-    for (int i = 0; i < m_vehicle->getNumWheels(); i++)
+    for (int wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx)
     {
-        //synchronize the wheels with the (interpolated) chassis worldtransform
-        m_vehicle->updateWheelTransform(i, true);
+        // Synchronize the wheels with the (interpolated) chassis worldt ransform
+        m_vehicle->updateWheelTransform(wheelIdx, true);
     }
 
     // Create bullet transform of new positional and directional data
@@ -326,8 +326,8 @@ void Car::_GenPhysicsModel()
     btTransform localTrans;
     localTrans.setIdentity();
 
-    //Shift center of Mass (by 0 for now)
-    float centerOfMassShiftY = 0.f;
+    //Shift center of Mass
+    float centerOfMassShiftY;
     switch(tag)
     {
         case NFS_3:

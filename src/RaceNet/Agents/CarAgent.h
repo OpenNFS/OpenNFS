@@ -15,6 +15,7 @@ enum AgentType : uint8_t
 class CarAgent
 {
 public:
+    CarAgent(AgentType agentType, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> track);
     void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset);
     void ResetToVroad(int vroadIndex, float offset);
     virtual void Simulate() = 0;
@@ -25,7 +26,6 @@ public:
     uint32_t nearestTrackblockID = 0;
 
 protected:
-    CarAgent(AgentType agentType, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> track);
     void _UpdateNearestTrackblock();
     void _UpdateNearestVroad();
 

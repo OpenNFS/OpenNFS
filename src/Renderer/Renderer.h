@@ -28,7 +28,7 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *glWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, std::shared_ptr<BulletDebugDrawer> debugDrawer);
+    Renderer(GLFWwindow *pWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, std::shared_ptr<BulletDebugDrawer> debugDrawer);
     ~Renderer();
     static void GlfwError(int id, const char *description) {
         LOG(WARNING) << description;
@@ -43,7 +43,7 @@ public:
                 const std::shared_ptr<HermiteCamera> &hermiteCamera,
                 ParamData &userParams,
                 AssetData &loadedAssets,
-                const std::vector<CarAgent> &racers);
+                const std::vector<std::shared_ptr<CarAgent>> &racers);
 
 private:
     void _InitialiseIMGUI();
