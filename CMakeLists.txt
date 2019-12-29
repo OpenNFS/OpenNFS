@@ -18,8 +18,8 @@ if (NOT (APPLE OR UNIX))
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 #[[Acknowledge VS2017 Aligned Storage Binary-Compar Breaking fix]]
-if(WIN32)
-    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+if(MSVC)
+    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_CRT_SECURE_NO_WARNINGS)
 endif ()
 
 set(OpenGL_GL_PREFERENCE GLVND)

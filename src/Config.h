@@ -1,6 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cert-err58-cpp"
-
 #pragma once
 
 #include <imgui.h>
@@ -141,4 +138,3 @@ struct NfsAssetList {
     std::vector<std::string> tracks;
     std::vector<std::string> cars;
 };
-#pragma clang diagnostic pop

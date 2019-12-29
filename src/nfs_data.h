@@ -1,6 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-
 #pragma once
 
 #include <cstdint>
@@ -1223,8 +1220,4 @@ namespace Music {
         uint16_t lCurSampleRight;
         uint16_t lPrevSampleRight;
     };
-
-
 }
-
-#pragma clang diagnostic pop
