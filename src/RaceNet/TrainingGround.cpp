@@ -34,10 +34,10 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
     if (specieIter != pool.species.end()) {
         for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {
             // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
-            carAgents.emplace_back(i, this->training_car, this->training_track);
-            carAgents[i].raceNet.from_genome((*specieIter).genomes[i]);
-            physicsEngine.RegisterVehicle(carAgents[i].car);
-            carAgents[i].reset();
+            trainingAgents.emplace_back(i, this->training_car, this->training_track);
+            trainingAgents[i].raceNet.from_genome((*specieIter).genomes[i]);
+            physicsEngine.RegisterVehicle(trainingAgents[i].vehicle);
+            trainingAgents[i].Reset();
         }
     }
     LOG(INFO) << "Agents initialised";
@@ -52,8 +52,8 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
 
         bool allDead = true;
 
-        for (auto &car_agent : carAgents) {
-            if (!car_agent.dead) {
+        for (auto &car_agent : trainingAgents) {
+            if (!car_agent.isDead) {
                 allDead = false;
             }
         }
@@ -64,24 +64,24 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             if (specieIter != pool.species.end()) {
                 size_t best_id = -1;
                 for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {
-                    (*specieIter).genomes[i].fitness = carAgents[i].fitness;
+                    (*specieIter).genomes[i].fitness = trainingAgents[i].fitness;
                     if ((*specieIter).genomes[i].fitness > globalMaxFitness) {
                         globalMaxFitness = (*specieIter).genomes[i].fitness;
                         best_id = i;
                     }
                 }
                 if (best_id != -1) {
-                    carAgents[best_id].raceNet.export_tofile("best_network");
+                    trainingAgents[best_id].raceNet.export_tofile("best_network");
                 }
             }
 
             // Change to a new species, and remove all current car agents operating with genome
             specieIter++;
             specieCounter++;
-            for(auto &carAgent : carAgents){
+            for(auto &carAgent : trainingAgents){
                 //physicsEngine.m_pDynamicsWorld->removeRigidBody(carAgent.car->getVehicleRigidBody());
             }
-            carAgents.clear();
+            trainingAgents.clear();
 
             // If TinyAI has gone through all of the species in the pool, begin a new generation
             if (specieIter == pool.species.end()) {
@@ -99,48 +99,48 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             if (specieIter != pool.species.end())
                 for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {
                     // Create new cars from models loaded in training_car to avoid VIV extract again, each with new RaceNetworks
-                    CarAgent car_agent((uint16_t) i, this->training_car, this->training_track);
-                    car_agent.raceNet.from_genome((*specieIter).genomes[i]);
-                    physicsEngine.RegisterVehicle(car_agent.car);
-                    car_agent.reset();
-                    carAgents.emplace_back(car_agent);
+                    TrainingAgent trainingAgent((uint16_t) i, this->training_car, this->training_track);
+                    trainingAgent.raceNet.from_genome((*specieIter).genomes[i]);
+                    physicsEngine.RegisterVehicle(trainingAgent.vehicle);
+                    trainingAgent.Reset();
+                    trainingAgents.emplace_back(trainingAgent);
                 }
         }
 
         for (uint32_t tick_Idx = 0; tick_Idx < nTicks; ++tick_Idx) {
             // Simulate the population
-            for (auto &car_agent : carAgents) {
-                if (car_agent.dead)
+            for (auto &car_agent : trainingAgents) {
+                if (car_agent.isDead)
                     continue;
 
-                car_agent.simulate();
+                car_agent.Simulate();
 
                 physicsEngine.StepSimulation(stepTime);
 
                 if (!Config::get().headless) {
-                    raceNetRenderer.Render(tick_Idx, carAgents, training_track);
+                    raceNetRenderer.Render(tick_Idx, trainingAgents, training_track);
                 }
                 if (glfwWindowShouldClose(window)) break;
             }
         }
 
         int localMaxFitness = 0;
-        for (auto &carAgent : carAgents) {
+        for (auto &carAgent : trainingAgents) {
             if (carAgent.fitness > localMaxFitness) {
                 localMaxFitness = carAgent.fitness;
             }
         }
 
         size_t winnerIdx;
-        for (size_t i = 0; i < carAgents.size(); i++)
-            if (carAgents[i].isWinner()) {
+        for (size_t i = 0; i < trainingAgents.size(); i++)
+            if (trainingAgents[i].IsWinner()) {
                 haveWinner = true;
                 winnerIdx = i;
             }
 
         if (haveWinner) {
             LOG(INFO) << "WINNER: Saving best agent network to " << BEST_NETWORK_PATH;
-            carAgents[winnerIdx].raceNet.export_tofile(BEST_NETWORK_PATH);
+            trainingAgents[winnerIdx].raceNet.export_tofile(BEST_NETWORK_PATH);
         }
         // Display the fitnesses
         //LOG(INFO) << "Generation: " << pool.generation() << " Specie number: " << specieCounter

@@ -5,13 +5,14 @@
 #include "../Shaders/TrackShader.h"
 #include "../Shaders/BillboardShader.h"
 #include "../Loaders/TrackLoader.h"
+#include "../RaceNet/Agents/CarAgent.h"
 #include "../Config.h"
 
 class TrackRenderer {
 public:
     explicit TrackRenderer() = default;
     ~TrackRenderer();
-    void Render(shared_ptr<Car> &car, const std::shared_ptr<Camera> &camera, const GlobalLight &light,  GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams, GLuint depthTextureID, float ambientFactor);
+    void Render(const std::vector<CarAgent> &racers, const std::shared_ptr<Camera> &camera, const GlobalLight &light,  GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams, GLuint depthTextureID, float ambientFactor);
     void RenderLights(const std::shared_ptr<Camera> &camera, const shared_ptr<ONFSTrack> &track);
 
 private:

@@ -10,7 +10,7 @@
 #include "../Loaders/CarLoader.h"
 #include "../Loaders/TrackLoader.h"
 #include "../Renderer/Renderer.h"
-#include "../RaceNet/CarAgent.h"
+#include "../RaceNet/Agents/PlayerAgent.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
 #include "RacerManager.h"
@@ -34,13 +34,12 @@ private:
     WindowStatus m_windowStatus = WindowStatus::UI;
 
     std::shared_ptr<ONFSTrack> m_track;
-    std::shared_ptr<Car> m_playerCar;
-    std::vector<CarAgent> m_racerCars;
+    PlayerAgent m_playerAgent;
 
     PhysicsEngine m_physicsEngine;
     Renderer m_renderer;
     RacerManager m_racerManager;
-    CameraMode m_activeCameraMode;
+    CameraMode m_activeCameraMode = CameraMode::FREE_LOOK;
     std::shared_ptr<FreeCamera> m_freeCamera;
     std::shared_ptr<HermiteCamera> m_hermiteCamera;
     std::shared_ptr<CarCamera> m_carCamera;

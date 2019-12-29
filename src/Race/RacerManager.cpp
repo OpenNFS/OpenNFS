@@ -1,16 +1,31 @@
 #include "RacerManager.h"
 
-RacerManager::RacerManager(std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine) : m_currentTrack(track)
+RacerManager::RacerManager(PlayerAgent &playerAgent, std::shared_ptr<ONFSTrack> track, PhysicsEngine &physicsEngine) : m_currentTrack(track)
 {
+    // Add the player vehicle into the list of racers
+    racers.emplace_back(playerAgent);
     this->_SpawnRacers(Config::get().nRacers, physicsEngine);
 }
 
 void RacerManager::Simulate()
 {
-    for (auto &racer : m_racers)
+    for (auto &racer : racers)
     {
-        racer.simulate();
+        racer.Simulate();
     }
+}
+
+// Return a list of trackblocks on which racers directly reside
+std::vector<uint32_t> RacerManager::GetRacerActiveTrackblocks()
+{
+    std::unordered_set<uint32_t> activeTrackblockIDs;
+
+    for (auto &racer : racers)
+    {
+        activeTrackblockIDs.insert(racer.nearestTrackblockID);
+    }
+
+    return std::vector<uint32_t>(activeTrackblockIDs.begin(), activeTrackblockIDs.end());
 }
 
 void RacerManager::_SpawnRacers(uint8_t nRacers, PhysicsEngine &physicsEngine)
@@ -19,12 +34,10 @@ void RacerManager::_SpawnRacers(uint8_t nRacers, PhysicsEngine &physicsEngine)
     float racerSpawnOffset = -0.25f;
     for (uint8_t racerIdx = 0; racerIdx < nRacers; ++racerIdx)
     {
-        CarAgent racer(racerIdx % 23, BEST_NETWORK_PATH, racerVehicle, m_currentTrack);
-        physicsEngine.RegisterVehicle(racer.car);
-
-        //CarAgent::resetToVroad(0, racerIdx + 1, racerSpawnOffset, m_currentTrack, racer.car);
+        RacerAgent racer(racerIdx % 23, BEST_NETWORK_PATH, racerVehicle, m_currentTrack);
+        physicsEngine.RegisterVehicle(racer.vehicle);
+        racer.ResetToIndexInTrackblock(0, racerIdx + 1, racerSpawnOffset);
         racerSpawnOffset = -racerSpawnOffset;
-
-        m_racers.emplace_back(racer);
+        racers.emplace_back(racer);
     }
 }

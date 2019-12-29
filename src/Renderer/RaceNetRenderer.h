@@ -14,7 +14,7 @@
 #include "../Util/Logger.h"
 #include "../Config.h"
 #include "../Shaders/RaceNetShader.h"
-#include "../RaceNet/CarAgent.h"
+#include "../RaceNet/Agents/TrainingAgent.h"
 
 class RaceNetRenderer {
 private:
@@ -29,5 +29,5 @@ private:
 public:
     explicit RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger);
     ~RaceNetRenderer();
-    void Render(uint32_t tick, std::vector <CarAgent> &carList, std::shared_ptr <ONFSTrack> &trackToRender);
+    void Render(uint32_t tick, std::vector <TrainingAgent> &carList, std::shared_ptr <ONFSTrack> &trackToRender);
 };

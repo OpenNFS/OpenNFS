@@ -3,7 +3,7 @@
 #include <vector>
 #include "stdint.h"
 
-#include "CarAgent.h"
+#include "Agents/TrainingAgent.h"
 #include "../Loaders/TrackLoader.h"
 #include "../Loaders/CarLoader.h"
 #include "../Physics/PhysicsEngine.h"
@@ -23,7 +23,7 @@ private:
     GLFWwindow *window;
     std::shared_ptr<ONFSTrack> training_track;
     std::shared_ptr<Car> training_car;
-    std::vector<CarAgent> carAgents;
+    std::vector<TrainingAgent> trainingAgents;
     RaceNetRenderer raceNetRenderer;
     /*------- BULLET --------*/
     PhysicsEngine physicsEngine;

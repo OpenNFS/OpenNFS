@@ -65,8 +65,7 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     return window;
 }
 
-bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCamera, const std::shared_ptr<HermiteCamera> &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar,
-                      const std::vector<CarAgent> &racers)
+bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCamera, const std::shared_ptr<HermiteCamera> &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, const std::vector<CarAgent> &racers)
 {
     bool newAssetSelected = false;
 
@@ -84,17 +83,16 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCame
     }
 
     // Render the environment
-    m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, m_sun, m_track->textureArrayID, visibleEntities, playerCar, racers);
+    m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, m_sun, m_track->textureArrayID, visibleEntities, racers);
     m_skyRenderer.Render(activeCamera, m_sun, totalTime);
-    m_trackRenderer.Render(playerCar, activeCamera, m_sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
+    m_trackRenderer.Render(racers, activeCamera, m_sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
     m_trackRenderer.RenderLights(activeCamera, m_track);
     m_debugRenderer.Render(activeCamera);
 
     // Render the Car and racers
     std::vector<Light> carBodyContributingLights;
-    m_carRenderer.Render(playerCar, activeCamera, carBodyContributingLights);
     for(auto &racer : racers){
-        m_carRenderer.Render(racer.car, activeCamera, carBodyContributingLights);
+        m_carRenderer.Render(racer.vehicle, activeCamera, carBodyContributingLights);
     }
 
     //if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
@@ -111,7 +109,7 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCame
         newAssetSelected = true;
     }
 
-    this->_DrawUI(userParams, activeCamera, playerCar);
+    this->_DrawUI(userParams, activeCamera);
 
     glfwSwapBuffers(m_pWindow);
 
@@ -311,7 +309,7 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
     ImGui::End();
 }
 
-void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &camera, const std::shared_ptr<Car> &playerCar)
+void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &camera)
 {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
@@ -363,27 +361,6 @@ void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &cam
 
     ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
     ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
-
-    if (ImGui::TreeNode("Car Models"))
-    {
-        char meshDetailBuf[200];
-        sprintf(meshDetailBuf, "%s (V: %zu)", playerCar->carBodyModel.m_name.c_str(), playerCar->carBodyModel.m_vertices.size());
-        ImGui::Checkbox(meshDetailBuf, &playerCar->carBodyModel.enabled);
-        ImGui::Checkbox(playerCar->leftFrontWheelModel.m_name.c_str(), &playerCar->leftFrontWheelModel.enabled);
-        ImGui::Checkbox(playerCar->leftRearWheelModel.m_name.c_str(), &playerCar->leftRearWheelModel.enabled);
-        ImGui::Checkbox(playerCar->rightFrontWheelModel.m_name.c_str(), &playerCar->rightFrontWheelModel.enabled);
-        ImGui::Checkbox(playerCar->rightRearWheelModel.m_name.c_str(), &playerCar->rightRearWheelModel.enabled);
-        ImGui::TreePop();
-        if (ImGui::TreeNode("Misc Models"))
-        {
-            for (auto &mesh : playerCar->miscModels)
-            {
-                sprintf(meshDetailBuf, "%s (V: %zu)", mesh.m_name.c_str(), mesh.m_vertices.size());
-                ImGui::Checkbox(meshDetailBuf, &mesh.enabled);
-            }
-            ImGui::TreePop();
-        }
-    }
 
     // Rendering
     int display_w, display_h;

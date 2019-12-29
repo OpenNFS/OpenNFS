@@ -10,7 +10,7 @@ RaceNetRenderer::RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> 
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, std::shared_ptr<ONFSTrack> &trackToRender) {
+void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList, std::shared_ptr<ONFSTrack> &trackToRender) {
     raceNetShader.shaderSet.UpdatePrograms(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -40,13 +40,13 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, std:
 
         // Draw Cars
         for (auto &car_agent : carList) {
-            std::swap(car_agent.car->carBodyModel.position.y, car_agent.car->carBodyModel.position.z);
-            std::swap(car_agent.car->carBodyModel.orientation.y, car_agent.car->carBodyModel.orientation.z);
-            car_agent.car->carBodyModel.update();
+            std::swap(car_agent.vehicle->carBodyModel.position.y, car_agent.vehicle->carBodyModel.position.z);
+            std::swap(car_agent.vehicle->carBodyModel.orientation.y, car_agent.vehicle->carBodyModel.orientation.z);
+            car_agent.vehicle->carBodyModel.update();
 
-            raceNetShader.loadColor(car_agent.car->vehicleProperties.colour);
-            raceNetShader.loadTransformationMatrix(car_agent.car->carBodyModel.ModelMatrix);
-            car_agent.car->carBodyModel.render();
+            raceNetShader.loadColor(car_agent.vehicle->vehicleProperties.colour);
+            raceNetShader.loadTransformationMatrix(car_agent.vehicle->carBodyModel.ModelMatrix);
+            car_agent.vehicle->carBodyModel.render();
         }
 
         raceNetShader.unbind();
@@ -56,7 +56,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<CarAgent> &carList, std:
     ImGui::Text("Tick %d", tick);
     ImGui::Text("Name Fitness Vroad AvgSpeed");
     for (auto &carAgent : carList) {
-        ImGui::Text("%s %d %d %f", carAgent.name.c_str(), carAgent.fitness, carAgent.insideVroadCount, carAgent.averageSpeed);
+        ImGui::Text("%s %d %d %f", carAgent.name.c_str(), carAgent.fitness, carAgent.ticksInsideVroad, carAgent.averageSpeed);
     }
 
     // Draw Logger UI

@@ -137,8 +137,8 @@ set(SOURCE_FILES
         shaders/ShaderPreamble.h
         src/RaceNet/RaceNEAT.cpp
         src/RaceNet/RaceNEAT.h
-        src/RaceNet/CarAgent.cpp
-        src/RaceNet/CarAgent.h
+        src/RaceNet/Agents/CarAgent.cpp
+        src/RaceNet/Agents/CarAgent.h
         src/Race/RaceSession.cpp
         src/Race/RaceSession.h
         src/Scene/Spotlight.cpp
@@ -178,7 +178,7 @@ set(SOURCE_FILES
         src/Shaders/BulletShader.cpp
         src/Shaders/BulletShader.h
         src/Renderer/DebugRenderer.cpp
-        src/Renderer/DebugRenderer.h src/Race/RacerManager.cpp src/Race/RacerManager.h)
+        src/Renderer/DebugRenderer.h src/Race/RacerManager.cpp src/Race/RacerManager.h src/RaceNet/Agents/TrainingAgent.cpp src/RaceNet/Agents/TrainingAgent.h src/RaceNet/Agents/RacerAgent.cpp src/RaceNet/Agents/RacerAgent.h src/RaceNet/Agents/PlayerAgent.cpp src/RaceNet/Agents/PlayerAgent.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 
