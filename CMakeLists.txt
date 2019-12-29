@@ -1,15 +1,14 @@
 cmake_minimum_required(VERSION 3.4)
 project(OpenNFS)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 
-set(DEP_ROOT_DIR ${CMAKE_SOURCE_DIR}/lib)
-
-include(cmake/CheckCXXCompilerFlag.cmake)
-include(cmake/CheckCCompilerFlag.cmake)
-include(cmake/AddCompilerFlag.cmake)
-include(cmake/OptimizeForArchitecture.cmake)
-include(cmake/CompileGLSLToSPIRV.cmake)
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+include(CheckCXXCompilerFlag)
+include(CheckCCompilerFlag)
+include(AddCompilerFlag)
+include(OptimizeForArchitecture)
+include(CompileGLSLToSPIRV)
 
 #[[OptimizeForArchitecture()]
 MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
@@ -19,7 +18,7 @@ if (NOT (APPLE OR UNIX))
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 
-set(OpenGL_GL_PREFERENCE LEGACY)
+set(OpenGL_GL_PREFERENCE GLVND)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 file(GLOB CRP_LIB_SOURCES
@@ -175,24 +174,32 @@ set(SOURCE_FILES
         src/Renderer/BulletDebugDrawer.cpp
         src/Renderer/BulletDebugDrawer.h
         src/Shaders/BulletShader.cpp
-        src/Shaders/BulletShader.h src/Renderer/DebugRenderer.cpp src/Renderer/DebugRenderer.h)
+        src/Shaders/BulletShader.h
+        src/Renderer/DebugRenderer.cpp
+        src/Renderer/DebugRenderer.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 
 
 #[[JSON]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")
+
 #[[STB]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/stb")
+
 #[[IMGUI]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
+
 #[[TINYOBJLOADER]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
+
 #[[BMPREAD]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
+
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::system Boost::boost)
+
 #[[G3Log (Because Boost-cmake logging won't build]]
 set(G3_SHARED_LIB OFF CACHE BOOL "Compile g3log as static library")
 set(ADD_FATAL_EXAMPLE OFF CACHE BOOL "Don't bother compiling invalid code in g3log")
@@ -201,6 +208,7 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/lib/g3log")
 include_directories(${DEP_ROOT_DIR}/${G3LOG_NAME}/src)
 target_include_directories(OpenNFS INTERFACE g3logger)
 target_link_libraries(OpenNFS g3logger)
+
 #[[Bullet Configuration]]
 set(USE_MSVC_RUNTIME_LIBRARY_DLL ON CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
@@ -214,15 +222,19 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3" EXCLUDE_FROM_ALL)
 target_link_libraries(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
+
 #[[GLEW Configuration]]
 add_definitions(-DGLEW_STATIC -D__NO_INLINE__)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")
+
 #[[GLM Configuration]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glm")
+
 #[[OpenGL Configuration]]
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 target_link_libraries(OpenNFS ${OPENGL_LIBRARIES})
+
 #[[Vulkan Configuration]]
 #[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
 if (NOT (APPLE OR WIN32 OR UNIX))
@@ -235,12 +247,14 @@ if (NOT (APPLE OR WIN32 OR UNIX))
     target_sources(OpenNFS PUBLIC ${VULKAN_SOURCE_FILES})
     add_definitions(-DVULKAN_BUILD)
 endif ()
+
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
 target_link_libraries(OpenNFS glfw)
+
 #[[Google Test Framework Configuration]]
 #[[
 add_subdirectory(lib/googletest)

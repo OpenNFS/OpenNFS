@@ -3,6 +3,78 @@
 using namespace Utils;
 using namespace TrackUtils;
 
+// Mike Thompson CarEd disasm parts table for NFS2 Cars
+constexpr char PC_PART_NAMES[32][32] = {
+        "High Additional Body Part",
+        "High Main Body Part",
+        "High Ground Part",
+        "High Front Part",
+        "High Back Part",
+        "High Left Side Part",
+        "High Right Side Part",
+        "High Additional Left Side Part",
+        "High Additional Right Side Part",
+        "High Spoiler Part",
+        "High Additional Part",
+        "High Backlights",
+        "High Front Right Wheel",
+        "High Front Right Wheel Part",
+        "High Front Left Wheel",
+        "High Front Left Wheel Part",
+        "High Rear Right Wheel",
+        "High Rear Right Wheel Part",
+        "High Rear Left Wheel",
+        "High Rear Left Wheel Part",
+        "Medium Additional Body Part",
+        "Medium Main Body Part",
+        "Medium Ground Part",
+        "Low Wheel Part",
+        "Low Main Part",
+        "Low Side Part",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+        "Reserved",
+};
+
+constexpr char PS1_PART_NAMES[33][32]{
+        "High Additional Body Part",
+        "High Main Body Part",
+        "High Ground Part",
+        "High Front Part",
+        "High Rear Part",
+        "High Left Side Part",
+        "High Right Side Part",
+        "High Additional Left Side Part",
+        "High Additional Right Side Part",
+        "High Front Rear Grilles",
+        "High Extra Side Parts",
+        "High Spoiler Part",
+        "High Additional Part",
+        "High Backlights",
+        "High Front Right Wheel",
+        "High Front Right Wheel Part",
+        "High Front Left Wheel",
+        "High Front Left Wheel Part",
+        "High Rear Right Wheel",
+        "High Rear Right Wheel Part",
+        "High Rear Left Wheel",
+        "High Rear Left Wheel Part",
+        "Medium Additional Body Part",
+        "Medium Main Body Part",
+        "Medium Ground Part",
+        "Wheel Positions",
+        "Medium/Low Side Parts",
+        "Low Main Part",
+        "Low Side Part",
+        "Headlight Positions",
+        "Backlight Positions",
+        "Reserved",
+        "Reserved"
+};
+
 template<>
 std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids) {
     float carScaleFactor = 2000.f;
@@ -55,7 +127,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
        std::streamoff end = geo.tellg();
         // Polygon Table start is aligned on 4 Byte boundary
         if (((end - start) % 4)) {
-            LOG(DEBUG) << "Part " << part_Idx << " [" << PC::GEO::PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: ";
+            LOG(DEBUG) << "Part " << part_Idx << " [" << PC_PART_NAMES[part_Idx] << "] Polygon Table Pre-Pad Contents: ";
             uint16_t *pad = new uint16_t[3];
             geo.read((char *) pad, sizeof(uint16_t) * 3);
             for (uint32_t i = 0; i < 3; ++i) {
@@ -114,7 +186,7 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.f) / carScaleFactor, (geoBlockHeader->position[1] / 256.f) / carScaleFactor, (geoBlockHeader->position[2] / 256.f) / carScaleFactor);
-        car_meshes.emplace_back(CarModel(PC::GEO::PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
+        car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         delete geoBlockHeader;
         delete[] vertices;
@@ -143,7 +215,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
 
     while (true) {
        std::streamoff start = geo.tellg();
-        LOG(DEBUG) << "Part " << part_Idx + 1 << " [" << PS1::GEO::PART_NAMES[part_Idx + 1] << "]";
+        LOG(DEBUG) << "Part " << part_Idx + 1 << " [" << PS1_PART_NAMES[part_Idx + 1] << "]";
         LOG(DEBUG) << "BlockStartOffset:   " << start;
         auto *geoBlockHeader = new PS1::GEO::BLOCK_HEADER();
         while (geoBlockHeader->nVerts == 0) {
@@ -297,7 +369,7 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
         glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.0f) / carScaleFactor, (geoBlockHeader->position[1] / 256.0f) / carScaleFactor, (geoBlockHeader->position[2] / 256.0f) / carScaleFactor);
-        car_meshes.emplace_back(CarModel(PS1::GEO::PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
+        car_meshes.emplace_back(CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         // Dump GeoBlock data for correlating with geometry/LOD's/Special Cases
         LOG(DEBUG) << "nVerts:    " << geoBlockHeader->nVerts << std::endl;
