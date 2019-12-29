@@ -70,7 +70,7 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCame
     bool newAssetSelected = false;
 
     // Perform frustum culling to get visible entities, from perspective of active camera
-    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, hermiteCamera, userParams);
+    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, activeCamera, userParams);
 
     if (userParams.drawHermiteFrustum)
     {

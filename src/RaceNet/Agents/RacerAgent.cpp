@@ -49,6 +49,8 @@ void RacerAgent::Simulate()
     this->_UpdateNearestTrackblock();
     this->_UpdateNearestVroad();
 
+    return;
+
     // If during simulation, car flips, reset. Not during training, or for player!
     if ((vehicle->rangefinderInfo.upDistance <= 0.1f || vehicle->rangefinderInfo.downDistance > 1.f || vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY] < 0.25f))
     {

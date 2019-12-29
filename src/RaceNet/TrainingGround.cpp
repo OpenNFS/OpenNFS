@@ -115,7 +115,8 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
 
                 car_agent.Simulate();
 
-                physicsEngine.StepSimulation(stepTime);
+                std::vector<uint32_t> dummy = {0, 1, 2, 3};
+                physicsEngine.StepSimulation(stepTime, dummy);
 
                 if (!Config::get().headless) {
                     raceNetRenderer.Render(tick_Idx, trainingAgents, training_track);

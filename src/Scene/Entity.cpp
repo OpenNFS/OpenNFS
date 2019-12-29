@@ -88,11 +88,11 @@ void Entity::_GenCollisionMesh()
                 // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
                 auto *mesh = new btTriangleMesh();
                 std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
-                for (int i = 0; i < vertices.size() - 2; i += 3)
+                for (size_t vertIdx = 0; vertIdx < vertices.size() - 2; vertIdx += 3)
                 {
-                    glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
-                    glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
-                    glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
+                    glm::vec3 triangle = vertices[vertIdx];
+                    glm::vec3 triangle1 = vertices[vertIdx + 1];
+                    glm::vec3 triangle2 = vertices[vertIdx + 2];
                     mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1),
                                       Utils::glmToBullet(triangle2), false);
                 }
@@ -102,11 +102,11 @@ void Entity::_GenCollisionMesh()
             {
                 std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
                 // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
-                for (int i = 0; i < vertices.size() - 2; i += 3)
+                for (size_t vertIdx = 0; vertIdx < vertices.size() - 2; vertIdx += 3)
                 {
-                    glm::vec3 triangle = glm::vec3(vertices[i].x, vertices[i].y, vertices[i].z);
-                    glm::vec3 triangle1 = glm::vec3(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
-                    glm::vec3 triangle2 = glm::vec3(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
+                    glm::vec3 triangle = vertices[vertIdx];
+                    glm::vec3 triangle1 = vertices[vertIdx + 1];
+                    glm::vec3 triangle2 = vertices[vertIdx + 2];
                     m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
                 }
                 m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
@@ -169,6 +169,10 @@ void Entity::Update()
 
 void Entity::_SetCollisionParameters()
 {
+    dynamic = false;
+    collideable = true;
+    return;
+
     switch (tag)
     {
         case NFS_3:
@@ -181,7 +185,6 @@ void Entity::_SetCollisionParameters()
                 case LIGHT:
                     collideable = false;
                     break;
-
                 case SOUND:
                     collideable = false;
                     break;
@@ -192,7 +195,7 @@ void Entity::_SetCollisionParameters()
                 case XOBJ:
                     collideable = false;
                     break;
-                    switch ((flags >> 4) & 0x7)
+                    /*switch ((flags >> 4) & 0x7)
                     {
                         case 1: // Hometown shack godray
                             collideable = false;
@@ -219,7 +222,7 @@ void Entity::_SetCollisionParameters()
                             dynamic = false;
                             break;
                     }
-                    break;
+                    break;*/
             }
             break;
         default:

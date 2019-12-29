@@ -71,6 +71,7 @@ AssetData RaceSession::Simulate()
         // Update time between engine ticks
         auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
+        // Clear the screen for next input and grab focus
         this->_GetInputsAndClear();
 
         // Update Cameras
@@ -84,7 +85,7 @@ AssetData RaceSession::Simulate()
         }
 
         // Step the physics simulation
-        m_physicsEngine.StepSimulation(deltaTime);
+        m_physicsEngine.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
         if (m_userParams.physicsDebugView) m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
 
         bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_userParams, m_loadedAssets, m_racerManager.racers);

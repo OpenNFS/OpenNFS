@@ -15,7 +15,7 @@ void RacerManager::Simulate()
 }
 
 // Return a list of trackblocks on which racers directly reside
-std::vector<uint32_t> RacerManager::GetRacerActiveTrackblocks()
+std::vector<uint32_t> RacerManager::GetRacerResidentTrackblocks()
 {
     std::unordered_set<uint32_t> activeTrackblockIDs;
 

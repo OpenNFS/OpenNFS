@@ -14,7 +14,7 @@ public:
     explicit RacerManager() = default;
     RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<ONFSTrack> &track, PhysicsEngine &physicsEngine);
     void Simulate();
-    std::vector<uint32_t> GetRacerActiveTrackblocks();
+    std::vector<uint32_t> GetRacerResidentTrackblocks();
 
     std::vector<std::shared_ptr<CarAgent>> racers;
 private:

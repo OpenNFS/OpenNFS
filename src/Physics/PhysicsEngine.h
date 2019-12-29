@@ -34,7 +34,7 @@ class PhysicsEngine{
 public:
     PhysicsEngine();
     ~PhysicsEngine();
-    void StepSimulation(float time);
+    void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs);
     void RegisterVehicle(std::shared_ptr<Car> car);
     void RegisterTrack(std::shared_ptr<ONFSTrack> track);
     Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted);

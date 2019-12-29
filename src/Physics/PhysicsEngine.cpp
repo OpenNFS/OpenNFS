@@ -55,22 +55,21 @@ PhysicsEngine::PhysicsEngine()
     m_pDynamicsWorld->setDebugDrawer(&debugDrawer);
 }
 
-void PhysicsEngine::StepSimulation(float time)
+void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs)
 {
     m_pDynamicsWorld->stepSimulation(time, 100);
+
     for (auto &car : m_activeVehicles)
     {
         car->Update(m_pDynamicsWorld);
     }
-    if (m_track != nullptr)
+
+    // Track updates propagate for active track blocks, based upon track blocks racer vehicles are on
+    for (auto &residentTrackblockID : racerResidentTrackblockIDs)
     {
-        // TODO: Track updates should only propagate for active track blocks. Active list should be based upon track blocks cars are on
-        for (auto &track_block : m_track->trackBlocks)
+        for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects)
         {
-            for (auto &objects : track_block.objects)
-            {
-                //objects.update();
-            }
+            //objects.update();
         }
     }
 }
