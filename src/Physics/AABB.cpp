@@ -1,7 +1,6 @@
 #include "AABB.h"
 
 #include <algorithm>
-#include <glm/glm.hpp>
 
 AABB::AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition) : min(minVertex), max(maxVertex), position(centerPosition)
 {
@@ -24,11 +23,11 @@ bool AABB::Contains(const AABB &other) const
 
 AABB AABB::Merge(const AABB &other) const
 {
-    return AABB(
+    return {
             glm::vec3(std::min(min.x, other.min.x), std::min(min.y, other.min.y), std::min(min.z, other.min.z)),
             glm::vec3(std::max(max.x, other.max.x), std::max(max.y, other.max.y), std::max(max.z, other.max.z)),
             (position + other.position) / 2.f
-    );
+    };
 }
 
 float AABB::GetWidth() const

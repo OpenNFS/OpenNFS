@@ -238,7 +238,7 @@ namespace Utils
         return true;
     }
 
-    // Modified Arushan CRP decompresser. Removes LZ77 style decompression from CRPs
+    // Modified Arushan CRP decompressor. Removes LZ77 style decompression from CRPs
     bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath)
     {
         LOG(INFO) << "Decompressing CRP File located at " << compressedCrpPath;

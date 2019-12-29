@@ -17,6 +17,10 @@ MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 if (NOT (APPLE OR UNIX))
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
+#[[Acknowledge VS2017 Aligned Storage Binary-Compar Breaking fix]]
+if(WIN32)
+    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+endif ()
 
 set(OpenGL_GL_PREFERENCE GLVND)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)

@@ -2,9 +2,9 @@
 
 // Windows Specific console handles for colour
 #ifdef _WIN32
-
+// GLM min and max functions get clobbered by windows without this
+#define NOMINMAX
 #include <windows.h>
-
 #endif
 
 #include <iostream>
