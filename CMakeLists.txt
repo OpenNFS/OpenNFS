@@ -159,6 +159,7 @@ set(SOURCE_FILES
         src/Loaders/SerializedGroupOps.h
         src/Scene/GlobalLight.cpp
         src/Scene/GlobalLight.h
+        src/Physics/AABB.cpp
         src/Physics/AABB.h
         src/Physics/AABBTree.h
         src/Physics/AABBTree.cpp
