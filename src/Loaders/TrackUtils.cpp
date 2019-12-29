@@ -161,13 +161,13 @@ namespace TrackUtils {
         std::vector<uint32_t> clear_data(max_width * max_height, 0);
 
         LOG(INFO) << "Creating texture array with " << (int) textures.size() << " textures, max texture width " << max_width << ", max texture height " << max_height;
-        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, max_width, max_height, MAX_TEXTURE_ARRAY_SIZE); // I should really call this on textures.size(), but the layer numbers are not linear up to textures.size(). HS Bloats tex index up over 2048.
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 3, GL_RGBA8, static_cast<GLsizei>(max_width), static_cast<GLsizei>(max_height), MAX_TEXTURE_ARRAY_SIZE); // I should really call this on textures.size(), but the layer numbers are not linear up to textures.size(). HS Bloats tex index up over 2048.
 
         for (auto &texture : textures) {
             ASSERT(texture.second.width <= max_width, "Texture " << texture.second.texture_id << " exceeds maximum specified texture size (" << max_width << ") for Array");
             ASSERT(texture.second.height <= max_height, "Texture " << texture.second.texture_id << " exceeds maximum specified texture size (" << max_height << ") for Array");
             // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, hsStockTextureIndexRemap(texture.first), max_width, max_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, hsStockTextureIndexRemap(texture.first), static_cast<GLsizei>(max_width), static_cast<GLsizei>(max_height), 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
             glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, hsStockTextureIndexRemap(texture.first), texture.second.width, texture.second.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) texture.second.texture_data);
 
             texture.second.min_u = 0.00;

@@ -13,8 +13,8 @@ include(CompileGLSLToSPIRV)
 #[[OptimizeForArchitecture()]
 MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 
-#[[Static linking broken under Mac OSX]]
-if (NOT (APPLE OR UNIX))
+#[[Static linking broken under Mac OSX (and UNIX too? + MSVC doesnt support this flag)]]
+if (NOT (APPLE OR UNIX OR MSVC))
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 #[[Acknowledge VS2017 Aligned Storage Binary-Compar Breaking fix]]

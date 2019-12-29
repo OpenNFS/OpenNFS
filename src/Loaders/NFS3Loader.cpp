@@ -848,7 +848,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
         std::vector<glm::vec3> normals;
         uint32_t accumulatedObjectFlags = 0u;
 
-        for (int32_t vertIdx = 0; vertIdx < rawTrackBlock.nVertices; ++vertIdx)
+        for (uint32_t vertIdx = 0; vertIdx < rawTrackBlock.nVertices; ++vertIdx)
         {
             glm::vec3 roadVertex = (rotationMatrix * (Utils::PointToVec(rawTrackBlock.vert[vertIdx]) / NFS3_SCALE_FACTOR)) - rawTrackBlockCenter;
             roadVertices.emplace_back(roadVertex);
@@ -861,7 +861,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
             roadShadingData.emplace_back(roadVertexShadingColour);
         }
         // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
-        for (int32_t lodChunkIdx = 4; lodChunkIdx <= 6; lodChunkIdx++)
+        for (uint32_t lodChunkIdx = 4; lodChunkIdx <= 6; lodChunkIdx++)
         {
             // If there are no lane markers in the lane chunk, skip
             if ((lodChunkIdx == 6) && (rawTrackBlock.nVertices <= rawTrackBlock.nHiResVert))

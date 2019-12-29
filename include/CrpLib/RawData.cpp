@@ -51,7 +51,7 @@ namespace CrpLib {
         if (file->is_open()) {
             m_Length = file->tellg();
             file->seekg( 0, std::ios::end );
-            m_Length = file->tellg() - (std::streamoff) m_Length;
+            m_Length = file->tellg() - m_Length;
             // Rewind after getting length
             file->seekg(0, std::ios::beg);
 
@@ -137,7 +137,7 @@ namespace CrpLib {
     }
 
     void CRawData::SetData(std::string data) {
-        this->SetData((char *) data.c_str(), data.length() + 1);
+        this->SetData((char *) data.c_str(), static_cast<int>(data.length() + 1));
     }
 
 

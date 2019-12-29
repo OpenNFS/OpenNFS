@@ -12,7 +12,7 @@ namespace CrpLib {
     private:
         static const uint32_t RAWDATA_MAGIC = 0x57415243;
         char *m_pData;
-        int m_Length;
+        std::streamoff m_Length;
         bool m_Init;
         // clean up helper
         void FreeData();

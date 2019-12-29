@@ -337,7 +337,7 @@ void NFS5::DumpCrpTextures(const std::string &crpPath) {
     std::vector<CRP::FSH_PART> fshParts;
 
     for (uint32_t miscPartIdx = 0; miscPartIdx < crpFileHeader->nMiscData; ++miscPartIdx) {
-        uint32_t currentCrpOffset = articleTableEnd + (miscPartIdx * 16);
+        uint32_t currentCrpOffset = static_cast<uint32_t>(articleTableEnd + (miscPartIdx * 16));
 
         switch (miscPartTable[miscPartIdx].getPartType()) {
             case CRP::MiscPart:

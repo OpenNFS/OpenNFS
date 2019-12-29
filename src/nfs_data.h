@@ -364,7 +364,7 @@ namespace NFS3_4_DATA {
     struct TRKBLOCK {
         FLOATPT ptCentre;
         FLOATPT ptBounding[4];
-        int32_t nVertices; // total stored
+        uint32_t nVertices; // total stored
         uint32_t nHiResVert, nLoResVert, nMedResVert; // #poly[...]+#polyobj
         uint32_t nVerticesDup, nObjectVert;
         FLOATPT *vert;  // the vertices

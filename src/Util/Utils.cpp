@@ -259,7 +259,7 @@ namespace Utils
 
         // Check valid file length
         file.seekg(0, std::ios::end);
-        unsigned int filesize = file.tellg();
+        std::streamoff filesize = file.tellg();
         file.seekg(0);
         ASSERT(filesize > 0x10, "CRP at " << compressedCrpPath << " has invalid file size");
 
