@@ -92,7 +92,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, con
         COLVROAD resetVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[nodeNumber];
         vroadPoint = (rotationMatrix * Utils::PointToVec(resetVroad.refPt)) / 65536.f;
         vroadPoint /= 10.f;
-        vroadPoint.y += 0.2;
+        vroadPoint.y += 0.2f;
 
         // Get VROAD right vector
         glm::vec3 curVroadRightVec = rotationMatrix * glm::vec3(resetVroad.right.x / 128.f, resetVroad.right.y / 128.f, resetVroad.right.z / 128.f);
@@ -111,7 +111,7 @@ void CarAgent::resetToVroad(int trackBlockIndex, int posIndex, float offset, con
     else
     {
         vroadPoint = Utils::PointToVec(track->trackBlocks[trackBlockIndex].center);
-        vroadPoint.y += 0.2;
+        vroadPoint.y += 0.2f;
         carOrientation = glm::quat(2, 0, 0, 1);
     }
 
@@ -135,7 +135,7 @@ void CarAgent::resetToVroad(int vroadIndex, float offset, const std::shared_ptr<
         COLVROAD resetVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroadIndex];
         vroadPoint = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(resetVroad.refPt));
         vroadPoint /= 10.f;
-        vroadPoint.y += 0.2;
+        vroadPoint.y += 0.2f;
 
         // Get VROAD right vector
         glm::vec3 curVroadRightVec = rotationMatrix *Utils::PointToVec(resetVroad.right) / 128.f;
@@ -168,7 +168,7 @@ int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
         float lowestDistance = FLT_MAX;
-        for (int vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
+        for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
         {
             INTPT refPt = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroad[vroad_Idx].refPt;
             glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));

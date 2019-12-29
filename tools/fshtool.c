@@ -396,7 +396,7 @@ int makealpha8(FILE **alpha8,char *fname,int *pal)
 void unpack_dxt(unsigned char mask, unsigned short col1, unsigned short col2,
                 unsigned char *target)
 {
-    unsigned short r1,g1,b1,r2,g2,b2;
+    unsigned char r1,g1,b1,r2,g2,b2;
     r1=8*(col1&31);  g1=4*((col1>>5)&63);  b1=8*(col1>>11);
     r2=8*(col2&31);  g2=4*((col2>>5)&63);  b2=8*(col2>>11);
 
@@ -1426,7 +1426,7 @@ char *read_alpha8()
 {
     char *buf;
     FILE *f;
-    int len;
+    size_t len;
 
     f=fopen("alpha8.dat","rt");
     if (f==NULL) {
@@ -1798,7 +1798,7 @@ int fsh_main(int argc,char **argv)
     FILE *f;
     char *outfn,*p;
     unsigned char *tmpbuf;
-    int i = 0;
+    size_t i = 0;
     int j = 0;
     int choice = 0;
 

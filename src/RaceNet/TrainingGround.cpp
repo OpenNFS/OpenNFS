@@ -24,7 +24,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
     pool.import_fromfile("generation.dat");
     bool haveWinner = false;
     uint32_t gen_Idx = 0;
-    int globalMaxFitness = 0;
+    unsigned int globalMaxFitness = 0;
 
     // iterator
     int specieCounter = 0;
@@ -62,7 +62,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
         // And export a representation of it's ANN network configuration for inference later
         if (allDead) {
             if (specieIter != pool.species.end()) {
-                int best_id = -1;
+                size_t best_id = -1;
                 for (size_t i = 0; i < (*specieIter).genomes.size(); i++) {
                     (*specieIter).genomes[i].fitness = carAgents[i].fitness;
                     if ((*specieIter).genomes[i].fitness > globalMaxFitness) {
@@ -124,7 +124,7 @@ void TrainingGround::TrainAgents(uint16_t nGenerations, uint32_t nTicks) {
             }
         }
 
-        unsigned int localMaxFitness = 0;
+        int localMaxFitness = 0;
         for (auto &carAgent : carAgents) {
             if (carAgent.fitness > localMaxFitness) {
                 localMaxFitness = carAgent.fitness;

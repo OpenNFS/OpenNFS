@@ -814,7 +814,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 std::vector<glm::vec2> uvs;
                 std::vector<unsigned int> texture_indices;
                 std::vector<glm::vec3> norms;
-                FLOATPT norm_floatpt;
+
                 for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
                     TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
                     Texture gl_texture = track->textures[texture_for_block.texture];
@@ -865,9 +865,9 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             uint32_t shading_data = trk_block.unknVertices[j];
             trk_block_shading_verts.emplace_back(glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
-        FLOATPT norm_floatpt;
+
         // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
-        for (uint32_t chnk = 4; chnk <= 6; chnk++) {
+        for (int32_t chnk = 4; chnk <= 6; chnk++) {
             if ((chnk == 6) && (trk_block.nVertices <= trk_block.nHiResVert))
                 continue;
             LPPOLYGONDATA poly_chunk = polygon_block.poly[chnk];
@@ -933,7 +933,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
         std::vector<glm::vec3> norms;
-        FLOATPT norm_floatpt;
+
         for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++) {
             TEXTUREBLOCK texture_for_block = track->texture[x->polyData->texture];
             Texture gl_texture = track->textures[texture_for_block.texture];

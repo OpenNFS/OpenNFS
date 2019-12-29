@@ -121,7 +121,7 @@ namespace NFS5_DATA {
             // TODO: DO THESE
             // 4 bits
             uint8_t getLOD(){
-                return data;
+                return static_cast<uint8_t>(data);
             }
             // 8 bits
             uint16_t getAnimationIndex(){
@@ -129,7 +129,7 @@ namespace NFS5_DATA {
             }
             // 4 bits
             uint8_t getDamageSwitch(){
-                return data;
+                return static_cast<uint8_t>(data);
             }
         };
 
@@ -142,7 +142,7 @@ namespace NFS5_DATA {
             }
             // 4 bits
             uint8_t getLOD(){
-                return data;
+                return static_cast<uint8_t>(data);
             }
         };
 

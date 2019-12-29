@@ -46,8 +46,7 @@ namespace Utils {
         }
 
         double elapsed() const {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(
-                    clock_::now() - m_beg).count();
+            return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(clock_::now() - m_beg).count());
         }
 
     private:

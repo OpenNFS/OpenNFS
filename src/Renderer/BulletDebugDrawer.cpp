@@ -47,7 +47,7 @@ void BulletDebugDrawer::Render(Camera &camera)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Render line
-    glDrawArrays(GL_LINES, 0, m_debugLines.size() * 2);
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(m_debugLines.size() * 2));
 
     // Reset state
     glBindVertexArray(0);

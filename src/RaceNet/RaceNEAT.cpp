@@ -77,7 +77,7 @@ void pool::mutate_enable_disable(genome &g, bool enable) {
     if (v.size() == 0)
         return;
 
-    std::uniform_int_distribution<int> distributor(0, v.size() - 1);
+    std::uniform_int_distribution<int> distributor(0, static_cast<int>(v.size() - 1));
     v[distributor(this->generator)]->enabled = enable;
 }
 
@@ -180,7 +180,7 @@ void pool::mutate_node(genome &g) {
     g.max_neuron++;
 
     // randomly choose a gene to mutate
-    std::uniform_int_distribution<unsigned int> distributor(0, g.genes.size() - 1);
+    std::uniform_int_distribution<unsigned int> distributor(0, static_cast<int>(g.genes.size() - 1));
     unsigned int gene_id = distributor(this->generator);
     auto it = g.genes.begin();
     std::advance(it, gene_id);
@@ -317,14 +317,14 @@ void pool::rank_globally() {
         return a->fitness < b->fitness;
     });
     for (size_t j = 0; j < global.size(); j++)
-        global[j]->global_rank = j + 1;
+        global[j]->global_rank = static_cast<int>(j + 1);
 }
 
 void pool::calculate_average_fitness(specie &s) {
     unsigned int total = 0;
     for (size_t i = 0; i < s.genomes.size(); i++)
         total += s.genomes[i].global_rank;
-    s.average_fitness = total / s.genomes.size();
+    s.average_fitness = static_cast<int>(total / s.genomes.size());
 }
 
 unsigned int pool::total_average_fitness() {
@@ -340,7 +340,7 @@ void pool::cull_species(bool cut_to_one) {
         std::sort((*s).genomes.begin(), (*s).genomes.end(),
                   [](genome &a, genome &b) { return a.fitness > b.fitness; });
 
-        unsigned int remaining = std::ceil((*s).genomes.size() * 1.0 / 2.0);
+        unsigned int remaining = static_cast<unsigned int>(std::ceil((*s).genomes.size() * 1.0 / 2.0));
         // this will leave the most fit genome in specie,
         // letting him make more and more babies (until someone in
         // specie beat him or he becomes weaker during mutations
@@ -354,7 +354,7 @@ void pool::cull_species(bool cut_to_one) {
 genome pool::breed_child(specie &s) {
     genome child(this->network_info, this->mutation_rates);
     std::uniform_real_distribution<double> distributor(0.0, 1.0);
-    std::uniform_int_distribution<unsigned int> choose_genome(0, s.genomes.size() - 1);
+    std::uniform_int_distribution<unsigned int> choose_genome(0, static_cast<unsigned int>(s.genomes.size() - 1));
     if (distributor(this->generator) < this->mutation_rates.crossover_chance) {
         unsigned int g1id, g2id;
         genome &g1 = s.genomes[g1id = choose_genome(this->generator)];
@@ -434,8 +434,7 @@ void pool::new_generation() {
     unsigned int sum = this->total_average_fitness();
     for (auto s = this->species.begin(); s != this->species.end(); s++) {
         unsigned int breed =
-                std::floor(((1. * (*s).average_fitness) / (1. * sum)) * 1. * this->speciating_parameters.population) -
-                1;
+                static_cast<unsigned int>(std::floor(((1. * (*s).average_fitness) / (1. * sum)) * 1. * this->speciating_parameters.population) - 1);
         for (unsigned int i = 0; i < breed; i++)
             children.push_back(this->breed_child(*s));
     }
@@ -443,7 +442,7 @@ void pool::new_generation() {
     this->cull_species(true); // now in each species we have only one genome
 
     // preparing for MAKING BABIES <3
-    std::uniform_int_distribution<unsigned int> choose_specie(0, this->species.size() - 1);
+    std::uniform_int_distribution<unsigned int> choose_specie(0, static_cast<unsigned int>(this->species.size() - 1));
     std::vector<specie *> species_pointer(0);
     for (auto s = this->species.begin(); s != this->species.end(); s++)
         species_pointer.push_back(&(*s));

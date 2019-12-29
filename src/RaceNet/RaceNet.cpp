@@ -9,13 +9,13 @@ void RaceNet::evaluate_nonrecurrent(const std::vector<double> &input, std::vecto
         nodes[input_nodes[i]].visited = true;
     }
 
-    for (unsigned long bias_node : bias_nodes) {
+    for (auto bias_node : bias_nodes) {
         nodes[bias_node].value = 1.0;
         nodes[bias_node].visited = true;
     }
 
     std::stack<size_t> s;
-    for (unsigned long output_node : output_nodes)
+    for (auto output_node : output_nodes)
         s.push(output_node);
 
     while (!s.empty()) {
@@ -113,11 +113,11 @@ void RaceNet::from_genome(const genome &a) {
         Neuron n;
         if (table.find(gene.second.from_node) == table.end()) {
             nodes.push_back(n);
-            table[gene.second.from_node] = nodes.size() - 1;
+            table[gene.second.from_node] = static_cast<unsigned int>(nodes.size() - 1);
         }
         if (table.find(gene.second.to_node) == table.end()) {
             nodes.push_back(n);
-            table[gene.second.to_node] = nodes.size() - 1;
+            table[gene.second.to_node] = static_cast<unsigned int>(nodes.size() - 1);
         }
     }
 

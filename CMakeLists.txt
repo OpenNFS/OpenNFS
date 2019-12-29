@@ -19,7 +19,7 @@ if (NOT (APPLE OR UNIX))
 endif ()
 #[[Acknowledge VS2017 Aligned Storage Binary-Compar Breaking fix]]
 if(MSVC)
-    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
 endif ()
 
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -120,9 +120,6 @@ set(SOURCE_FILES
         src/Shaders/DepthShader.h
         src/Util/Logger.cpp
         src/Util/Logger.h
-        src/RaceNet/Network.cpp
-        src/RaceNet/Network.h
-        src/RaceNet/Matrix.h
         src/RaceNet/RaceNet.cpp
         src/RaceNet/RaceNet.h
         src/RaceNet/TrainingGround.cpp
