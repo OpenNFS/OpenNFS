@@ -14,36 +14,38 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
     m_loadedAssets = {m_playerCar->tag, m_playerCar->id, m_track->tag, m_track->name};
 
     // Set up the cameras
-    m_freeCamera = FreeCamera(m_track->trackBlocks[0].center, m_pWindow);
-    m_hermiteCamera = HermiteCamera(m_track->centerSpline, m_track->trackBlocks[0].center, m_pWindow);
-    m_carCamera = CarCamera(m_playerCar->carBodyModel.position, m_pWindow);
+    m_freeCamera = std::make_shared<FreeCamera>(m_track->trackBlocks[0].center, m_pWindow);
+    m_hermiteCamera =  std::make_shared<HermiteCamera>(m_track->centerSpline, m_track->trackBlocks[0].center, m_pWindow);
+    m_carCamera =  std::make_shared<CarCamera>(m_playerCar->carBodyModel.position, m_pWindow);
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
     //m_physicsEngine.RegisterVehicle(m_playerCar);
 
+    // Set up the Racer Manager
+    m_racerManager = RacerManager(m_track, m_physicsEngine);
+
     // No neighbour data for anything except NFS3
     m_userParams.useNbData = !(m_track->tag == NFS_2_SE || m_track->tag == NFS_2 || m_track->tag == NFS_3_PS1);
 
     // Reset player character to start
-    //CarAgent::resetToVroad(0, 0, 0.25f, m_track, m_playerCar);
-    //this->_SpawnRacers(Config::get().nRacers);
+    // CarAgent::resetToVroad(0, 0, 0.25f, m_track, m_playerCar);
 }
 
 void RaceSession::_UpdateCameras(float deltaTime)
 {
-    m_hermiteCamera.UseSpline(m_totalTime);
+    m_hermiteCamera->UseSpline(m_totalTime);
 
     if (m_windowStatus == WindowStatus::GAME)
     {
         // Compute MVP from keyboard and mouse, centered around a target car
-        m_carCamera.FollowCar(m_playerCar);
+        m_carCamera->FollowCar(m_playerCar);
         // Compute the MVP matrix from keyboard and mouse input
-        m_freeCamera.ComputeMatricesFromInputs(deltaTime);
+        m_freeCamera->ComputeMatricesFromInputs(deltaTime);
     }
 }
 
-Camera RaceSession::_GetCamera()
+std::shared_ptr<Camera> RaceSession::_GetActiveCamera()
 {
     if (m_userParams.attachCamToHermite)
     {
@@ -78,17 +80,16 @@ AssetData RaceSession::Simulate()
         // Update Cameras
         this->_UpdateCameras(deltaTime);
         // Set the active camera dependent upon user input
-        Camera activeCamera = this->_GetCamera();
+        std::shared_ptr<Camera> activeCamera = this->_GetActiveCamera();
 
         if (m_userParams.simulateCars)
         {
-            this->_SimulateRacers();
+            m_racerManager.Simulate();
         }
 
         // Step the physics simulation
         m_physicsEngine.StepSimulation(deltaTime);
-        if (m_userParams.physicsDebugView)
-        { m_physicsEngine.GetDynamicsWorld()->debugDrawWorld(); }
+        if (m_userParams.physicsDebugView) m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
 
         bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_userParams, m_loadedAssets, m_playerCar, m_racerCars);
 
@@ -109,26 +110,7 @@ AssetData RaceSession::Simulate()
     return m_loadedAssets;
 }
 
-void RaceSession::_SpawnRacers(uint8_t nRacers)
-{
-    float racerSpawnOffset = -0.25f;
-    for (uint8_t racerIdx = 0; racerIdx < nRacers; ++racerIdx)
-    {
-        CarAgent racer(racerIdx % 23, BEST_NETWORK_PATH, m_playerCar, m_track);
-        m_physicsEngine.RegisterVehicle(racer.car);
-        CarAgent::resetToVroad(0, racerIdx + 1, racerSpawnOffset, m_track, racer.car);
-        m_racerCars.emplace_back(racer);
-        racerSpawnOffset = -racerSpawnOffset;
-    }
-}
 
-void RaceSession::_SimulateRacers()
-{
-    for (auto &racer : m_racerCars)
-    {
-        racer.simulate();
-    }
-}
 
 void RaceSession::_GetInputsAndClear()
 {

@@ -193,7 +193,7 @@ int CarAgent::getClosestVroad(const std::shared_ptr<Car> &car, const std::shared
 
 }
 
-int CarAgent::evaluateFitness(int vroadPosition)
+int CarAgent::_EvaluateFitness(int vroadPosition)
 {
     // F = C1 − Tout + C2 · s¯+ d, where Tout is the number of game tics the car is outside the track;
     // ¯s is the average speed (meters for game tic) during the evaluation;
@@ -216,7 +216,7 @@ bool CarAgent::isWinner()
     if (droveBack || dead)
     { return false; }
 
-    fitness = evaluateFitness(getClosestVroad(car, track));
+    fitness = _EvaluateFitness(getClosestVroad(car, track));
 
     int nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
 
@@ -301,7 +301,7 @@ void CarAgent::simulate()
     }
 
     // Calculate new fitness after moving
-    int newFitness = evaluateFitness(vroadPosition);
+    int newFitness = _EvaluateFitness(vroadPosition);
 
     // The fitness has increased, set it to the new value and reset the stale tick count
     if (newFitness > fitness)

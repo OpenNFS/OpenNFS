@@ -1,10 +1,10 @@
 #include "CarRenderer.h"
 
-void CarRenderer::Render(const shared_ptr<Car> &car, const Camera &mainCamera, const std::vector<Light> &contributingLights) {
+void CarRenderer::Render(const shared_ptr<Car> &car, const std::shared_ptr<Camera> &camera, const std::vector<Light> &contributingLights) {
     m_carShader.use();
 
     // This shader state doesnt change during a car renderpass
-    m_carShader.loadProjectionViewMatrices(mainCamera.projectionMatrix, mainCamera.viewMatrix);
+    m_carShader.loadProjectionViewMatrices(camera->projectionMatrix, camera->viewMatrix);
     m_carShader.setPolyFlagged(car->carBodyModel.hasPolyFlags);
     m_carShader.loadCarColor(glm::vec3(1, 1, 1));
     m_carShader.loadLights(contributingLights);

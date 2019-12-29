@@ -178,7 +178,7 @@ set(SOURCE_FILES
         src/Shaders/BulletShader.cpp
         src/Shaders/BulletShader.h
         src/Renderer/DebugRenderer.cpp
-        src/Renderer/DebugRenderer.h)
+        src/Renderer/DebugRenderer.h src/Race/RacerManager.cpp src/Race/RacerManager.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

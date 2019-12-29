@@ -40,8 +40,8 @@ public:
     }
     static GLFWwindow *InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName);
     bool Render(float totalTime,
-                Camera &activeCamera,
-                HermiteCamera &hermiteCamera,
+                const std::shared_ptr<Camera> &activeCamera,
+                const std::shared_ptr<HermiteCamera> &hermiteCamera,
                 ParamData &userParams,
                 AssetData &loadedAssets,
                 std::shared_ptr<Car> &playerCar,
@@ -51,9 +51,9 @@ private:
     void _InitialiseIMGUI();
     static void _DrawMetadata(Entity *targetEntity);
     bool _DrawMenuBar(AssetData &loadedAssets);
-    void _DrawUI(ParamData &userParams, Camera &camera, const std::shared_ptr<Car> &playerCar);
-    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams);
-    static std::vector<std::shared_ptr<Entity>> _FrustumCull(const std::shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams);
+    void _DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &camera, const std::shared_ptr<Car> &playerCar);
+    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<ONFSTrack> &track, const std::shared_ptr<Camera> &camera, ParamData &userParams);
+    static std::vector<std::shared_ptr<Entity>> _FrustumCull(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Camera> &camera, ParamData &userParams);
 
     GLFWwindow *m_pWindow;
     std::shared_ptr<Logger> m_logger;

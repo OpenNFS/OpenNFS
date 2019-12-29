@@ -32,11 +32,11 @@ void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, con
     m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
 }
 
-void BulletDebugDrawer::Render(Camera &camera)
+void BulletDebugDrawer::Render(const std::shared_ptr<Camera> &camera)
 {
     // Activate corresponding render state
     m_bulletShader.use();
-    m_bulletShader.loadProjectionViewMatrix(camera.projectionMatrix * camera.viewMatrix);
+    m_bulletShader.loadProjectionViewMatrix(camera->projectionMatrix * camera->viewMatrix);
 
     // Update content of VBO memory
     glBindVertexArray(m_lineVAO);

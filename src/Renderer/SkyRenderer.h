@@ -10,7 +10,7 @@ class SkyRenderer {
 public:
     explicit SkyRenderer();
     ~SkyRenderer();
-    void Render(const Camera &mainCamera, const GlobalLight &sun, float elapsedTime);
+    void Render(const std::shared_ptr<Camera> &camera, const GlobalLight &sun, float elapsedTime);
 private:
     // Load cloud, sun, moon and tint textures
     void _LoadAssets();

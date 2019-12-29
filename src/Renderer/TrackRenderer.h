@@ -11,8 +11,8 @@ class TrackRenderer {
 public:
     explicit TrackRenderer() = default;
     ~TrackRenderer();
-    void Render(shared_ptr<Car> &car, Camera &camera, const GlobalLight &light,  GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams, GLuint depthTextureID, float ambientFactor);
-    void RenderLights(const Camera &camera, const shared_ptr<ONFSTrack> &track);
+    void Render(shared_ptr<Car> &car, const std::shared_ptr<Camera> &camera, const GlobalLight &light,  GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams, GLuint depthTextureID, float ambientFactor);
+    void RenderLights(const std::shared_ptr<Camera> &camera, const shared_ptr<ONFSTrack> &track);
 
 private:
     // Create and compile our GLSL programs from the shaders

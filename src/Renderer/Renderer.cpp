@@ -65,7 +65,7 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     return window;
 }
 
-bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar,
+bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCamera, const std::shared_ptr<HermiteCamera> &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, std::shared_ptr<Car> &playerCar,
                       const std::vector<CarAgent> &racers)
 {
     bool newAssetSelected = false;
@@ -98,7 +98,7 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     }
 
     //if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
-    //    targetedEntity = physicsEngine.CheckForPicking(camera.viewMatrix, camera.projectionMatrix, &entityTargeted);
+    //    targetedEntity = physicsEngine.CheckForPicking(camera->viewMatrix, camera->projectionMatrix, &entityTargeted);
     //}
 
     if (m_entityTargeted)
@@ -118,10 +118,10 @@ bool Renderer::Render(float totalTime, Camera &activeCamera, HermiteCamera &herm
     return newAssetSelected;
 }
 
-std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams)
+std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Camera> &camera, ParamData &userParams)
 {
     // Only update the frustum of the camera when actually culling, to save some performance
-    camera.UpdateFrustum();
+    camera->UpdateFrustum();
 
     // Perform frustum culling on the current camera, on local trackblocks
     std::vector<std::shared_ptr<Entity>> visibleEntities;
@@ -129,14 +129,14 @@ std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_pt
     {
         for (auto &trackEntity : track->trackBlocks[trackBlockID].track)
         {
-            if (camera.viewFrustum.CheckIntersection(trackEntity.GetAABB()))
+            if (camera->viewFrustum.CheckIntersection(trackEntity.GetAABB()))
             {
                 visibleEntities.emplace_back(std::make_shared<Entity>(trackEntity));
             }
         }
         for (auto &objectEntity : track->trackBlocks[trackBlockID].objects)
         {
-            if (camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
+            if (camera->viewFrustum.CheckIntersection(objectEntity.GetAABB()))
             {
                 visibleEntities.emplace_back(std::make_shared<Entity>(objectEntity));
             }
@@ -144,7 +144,7 @@ std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_pt
         for (auto &laneEntity : track->trackBlocks[trackBlockID].lanes)
         {
             // It's not worth checking for Lane AABB intersections
-            //if(camera.viewFrustum.CheckIntersection(objectEntity.GetAABB()))
+            //if(camera->viewFrustum.CheckIntersection(objectEntity.GetAABB()))
             {
                 visibleEntities.emplace_back(std::make_shared<Entity>(laneEntity));
             }
@@ -152,7 +152,7 @@ std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_pt
     }
 
     // TODO: Fix the AABB tree
-    //auto aabbCollisions = track->cullTree.queryOverlaps(camera.viewFrustum);
+    //auto aabbCollisions = track->cullTree.queryOverlaps(camera->viewFrustum);
     //for(auto &collision : aabbCollisions)
     //{
     //    visibleEntities.emplace_back(std::static_pointer_cast<Entity>(collision));
@@ -161,7 +161,7 @@ std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_pt
     return visibleEntities;
 }
 
-std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONFSTrack> &track, Camera &camera, ParamData &userParams)
+std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Camera> &camera, ParamData &userParams)
 {
     std::vector<uint32_t> activeTrackBlockIds;
     uint32_t closestBlockID = 0;
@@ -171,7 +171,7 @@ std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONF
     // Get closest track block to camera position
     for (auto &trackblock :  track->trackBlocks)
     {
-        float distance = glm::distance(camera.position, trackblock.center);
+        float distance = glm::distance(camera->position, trackblock.center);
         if (distance < lowestDistance)
         {
             closestBlockID = trackblock.blockId;
@@ -311,7 +311,7 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
     ImGui::End();
 }
 
-void Renderer::_DrawUI(ParamData &userParams, Camera &camera, const std::shared_ptr<Car> &playerCar)
+void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &camera, const std::shared_ptr<Car> &playerCar)
 {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
@@ -330,9 +330,9 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, const std::shared_
     ImGui::Checkbox("Hermite Curve Cam", &userParams.attachCamToHermite);
     ImGui::Checkbox("Car Cam", &userParams.attachCamToCar);
     std::stringstream world_position_string;
-    ImGui::Text("X %f Y %f Z %f", camera.position.x, camera.position.y, camera.position.z);
+    ImGui::Text("X %f Y %f Z %f", camera->position.x, camera->position.y, camera->position.z);
     // ImGui::Text("Block ID: %d", m_closestBlockID);
-    ImGui::Text("Vroad ID: %d", CarAgent::getClosestVroad(playerCar, m_track));
+    // ImGui::Text("Vroad ID: %d", CarAgent::getClosestVroad(playerCar, m_track));
     ImGui::Checkbox("Frustum Cull", &userParams.frustumCull);
     ImGui::Checkbox("Draw Herm Frustum", &userParams.drawHermiteFrustum);
     ImGui::Checkbox("Draw Track AABBs", &userParams.drawTrackAABB);
@@ -343,12 +343,12 @@ void Renderer::_DrawUI(ParamData &userParams, Camera &camera, const std::shared_
 
     if (ImGui::Button("Reset View"))
     {
-        camera.ResetView();
+        camera->ResetView();
     };
     ImGui::SameLine(0, -1.0f);
     if (ImGui::Button("Reset Car to Start"))
     {
-        CarAgent::resetToVroad(0, 0, 0.f, m_track, playerCar);
+        // CarAgent::resetToVroad(0, 0, 0.f, m_track, playerCar);
     };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);

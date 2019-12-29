@@ -1,11 +1,11 @@
 #include "TrackRenderer.h"
 
-void TrackRenderer::Render(shared_ptr<Car> &car, Camera &camera, const GlobalLight &light, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams,
+void TrackRenderer::Render(shared_ptr<Car> &car, const std::shared_ptr<Camera> &camera, const GlobalLight &light, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams,
                                 GLuint depthTextureID, float ambientFactor) {
     m_trackShader.use();
     // This shader state doesnt change during a track renderpass
     m_trackShader.setClassic(userParams.useClassicGraphics);
-    m_trackShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
+    m_trackShader.loadProjectionViewMatrices(camera->projectionMatrix, camera->viewMatrix);
     m_trackShader.loadLightSpaceMatrix(light.lightSpaceMatrix);
     m_trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
     m_trackShader.bindTextureArray(trackTextureArrayID);
@@ -30,12 +30,12 @@ void TrackRenderer::Render(shared_ptr<Car> &car, Camera &camera, const GlobalLig
     m_trackShader.shaderSet.UpdatePrograms();
 }
 
-void TrackRenderer::RenderLights(const Camera &camera, const shared_ptr<ONFSTrack> &track) {
+void TrackRenderer::RenderLights(const std::shared_ptr<Camera> &camera, const shared_ptr<ONFSTrack> &track) {
     m_billboardShader.use();
     for (auto &trackBlock : track->trackBlocks) {
         // Render the lights far to near
         for (auto &lightEntity : trackBlock.lights) {
-            m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, boost::get<Light>(lightEntity.glMesh).ModelMatrix);
+            m_billboardShader.loadMatrices(camera->projectionMatrix, camera->viewMatrix, boost::get<Light>(lightEntity.glMesh).ModelMatrix);
             m_billboardShader.loadLight(boost::get<Light>(lightEntity.glMesh));
             boost::get<Light>(lightEntity.glMesh).render();
         }

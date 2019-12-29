@@ -13,6 +13,7 @@
 #include "../RaceNet/CarAgent.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
+#include "RacerManager.h"
 
 class RaceSession {
 public:
@@ -24,10 +25,8 @@ public:
     AssetData Simulate();
 
 private:
-    Camera _GetCamera();
+    std::shared_ptr<Camera> _GetActiveCamera();
     void _UpdateCameras(float deltaTime);
-    void _SpawnRacers(uint8_t nRacers);
-    void _SimulateRacers();
     void _GetInputsAndClear();
 
     GLFWwindow *m_pWindow;
@@ -40,10 +39,11 @@ private:
 
     PhysicsEngine m_physicsEngine;
     Renderer m_renderer;
+    RacerManager m_racerManager;
     CameraMode m_activeCameraMode;
-    FreeCamera m_freeCamera;
-    HermiteCamera m_hermiteCamera;
-    CarCamera m_carCamera;
+    std::shared_ptr<FreeCamera> m_freeCamera;
+    std::shared_ptr<HermiteCamera> m_hermiteCamera;
+    std::shared_ptr<CarCamera> m_carCamera;
 
     ParamData m_userParams;
     uint64_t m_ticks = 0; // Engine ticks elapsed
