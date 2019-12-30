@@ -1,6 +1,6 @@
 #include "CarAgent.h"
 
-CarAgent::CarAgent(AgentType agentType, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> track) :
+CarAgent::CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) :
 vehicle(std::make_shared<Car>(car->assetData, car->tag, car->id)), m_track(track), m_agentType(agentType) { }
 
 void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset)
@@ -127,7 +127,7 @@ void CarAgent::_UpdateNearestVroad()
             float distance = glm::distance(vehicle->carBodyModel.position, vroadPoint);
             if (distance < lowestDistance)
             {
-                nearestTrackblockID = vroadIdx;
+                m_nearestVroadID = vroadIdx;
                 lowestDistance = distance;
             }
         }

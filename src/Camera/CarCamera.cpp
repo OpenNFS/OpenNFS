@@ -1,6 +1,6 @@
 #include "CarCamera.h"
 
-CarCamera::CarCamera(glm::vec3 initialPosition, GLFWwindow *window) : Camera(CameraMode::FOLLOW_CAR, initialPosition, window) {
+CarCamera::CarCamera(GLFWwindow *window) : Camera(CameraMode::FOLLOW_CAR, window) {
 
 }
 

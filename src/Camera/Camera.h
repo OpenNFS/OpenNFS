@@ -23,7 +23,7 @@ enum CameraMode : uint8_t
 
 class Camera {
 public:
-    Camera(CameraMode mode, glm::vec3 initialPosition, GLFWwindow *pWindow);
+    Camera(CameraMode mode, GLFWwindow *pWindow);
     Camera() = default;
     void UpdateFrustum();
     void ResetView();
@@ -31,7 +31,6 @@ public:
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
     glm::vec3 position;
-    glm::vec3 initialPosition;
     Frustum viewFrustum;
 
 protected:

@@ -1,9 +1,10 @@
 #include "PlayerAgent.h"
 
-PlayerAgent::PlayerAgent(GLFWwindow *pWindow, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> raceTrack) :
+PlayerAgent::PlayerAgent(GLFWwindow *pWindow, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &raceTrack) :
 CarAgent(AgentType::PLAYER, car, raceTrack)
 {
     m_pWindow = pWindow;
+    name = "DumbPanda";
 }
 
 void PlayerAgent::Simulate()

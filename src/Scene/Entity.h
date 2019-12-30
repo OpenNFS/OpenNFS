@@ -34,6 +34,8 @@ public:
     bool collideable = false;
     bool dynamic = false;
 
+    void _GenCollisionMesh();
+
 private:
     glm::vec3 startPointA, startPointB, endPointA, endPointB;
     btTriangleMesh m_collisionMesh;
@@ -42,6 +44,6 @@ private:
     AABB m_boundingBox;
 
     void _SetCollisionParameters();
-    void _GenCollisionMesh();
+
     void _GenBoundingBox();
 };

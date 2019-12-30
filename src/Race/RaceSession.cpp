@@ -14,9 +14,9 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
     m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->tag, m_track->name};
 
     // Set up the cameras
-    m_freeCamera = std::make_shared<FreeCamera>(m_track->trackBlocks[0].center, m_pWindow);
-    m_hermiteCamera =  std::make_shared<HermiteCamera>(m_track->centerSpline, m_track->trackBlocks[0].center, m_pWindow);
-    m_carCamera =  std::make_shared<CarCamera>(m_playerAgent->vehicle->carBodyModel.position, m_pWindow);
+    m_freeCamera = std::make_shared<FreeCamera>(m_pWindow, m_track->trackBlocks[0].center);
+    m_hermiteCamera =  std::make_shared<HermiteCamera>(m_track->centerSpline, m_pWindow);
+    m_carCamera =  std::make_shared<CarCamera>(m_pWindow);
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
@@ -30,14 +30,22 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
 
 void RaceSession::_UpdateCameras(float deltaTime)
 {
-    m_hermiteCamera->UseSpline(m_totalTime);
-
     if (m_windowStatus == WindowStatus::GAME)
     {
-        // Compute MVP from keyboard and mouse, centered around a target car
-        m_carCamera->FollowCar(m_playerAgent->vehicle);
-        // Compute the MVP matrix from keyboard and mouse input
-        m_freeCamera->ComputeMatricesFromInputs(deltaTime);
+        switch(m_activeCameraMode)
+        {
+            case FOLLOW_CAR:
+                // Compute MVP from keyboard and mouse, centered around a target car
+                m_carCamera->FollowCar(m_playerAgent->vehicle);
+                break;
+            case HERMITE_FLYTHROUGH:
+                m_hermiteCamera->UseSpline(m_totalTime);
+                break;
+            case FREE_LOOK:
+                // Compute the MVP matrix from keyboard and mouse input
+                m_freeCamera->ComputeMatricesFromInputs(deltaTime);
+                break;
+        }
     }
 }
 
@@ -115,6 +123,9 @@ void RaceSession::_GetInputsAndClear()
     // Clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glfwPollEvents();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     // Detect a click on the 3D Window by detecting a click that isn't on ImGui
     if ((glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse))
@@ -127,9 +138,5 @@ void RaceSession::_GetInputsAndClear()
         m_windowStatus = WindowStatus::UI;
         ImGui::GetIO().MouseDrawCursor = true;
     }
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 }
 

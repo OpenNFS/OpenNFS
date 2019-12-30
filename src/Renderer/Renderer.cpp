@@ -2,7 +2,7 @@
 
 Renderer::Renderer(GLFWwindow *pWindow, std::shared_ptr<Logger> &onfsLogger,
                    const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, std::shared_ptr<BulletDebugDrawer> debugDrawer) :
-        m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_pWindow(pWindow), m_track(currentTrack), m_debugRenderer(debugDrawer)
+        m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_pWindow(pWindow), m_track(currentTrack) , m_debugRenderer(debugDrawer)
 {
     this->_InitialiseIMGUI();
     LOG(DEBUG) << "Renderer Initialised";

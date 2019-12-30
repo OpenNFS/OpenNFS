@@ -118,7 +118,7 @@ void DebugRenderer::DrawVroad(const std::shared_ptr<ONFSTrack> &track)
     }
 }
 
-void DebugRenderer::DrawCameraAnimation(const std::shared_ptr<Camera> &camera, const std::shared_ptr<ONFSTrack> &track)
+void DebugRenderer::DrawCameraAnimation(const std::shared_ptr<ONFSTrack> &track)
 {
     for (uint8_t canIdx = 0; canIdx < track->cameraAnimations.size() - 1; ++canIdx)
     {
@@ -132,16 +132,16 @@ void DebugRenderer::DrawCameraAnimation(const std::shared_ptr<Camera> &camera, c
         vroadPoint.y += 0.2f;
         vroadPointNext.y += 0.2f;
         m_bulletDebugDrawer->drawLine(
-                Utils::glmToBullet(vroadPoint + camera->initialPosition),
-                Utils::glmToBullet(vroadPointNext + camera->initialPosition), btVector3(0, 1, 1));
+                Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center),
+                Utils::glmToBullet(vroadPointNext + track->trackBlocks[0].center), btVector3(0, 1, 1));
 
         // Draw Rotations
         glm::quat RotationMatrix =
                 glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) *
                 glm::normalize(glm::quat(refPt.od1 / 65536.0f, refPt.od2 / 65536.0f, refPt.od3 / 65536.0f, refPt.od4 / 65536.0f));
         glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
-        m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + camera->initialPosition),
-                                      Utils::glmToBullet(vroadPoint + camera->initialPosition + direction), btVector3(0, 0.5, 0.5));
+        m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center),
+                                      Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center + direction), btVector3(0, 0.5, 0.5));
     }
 }
 

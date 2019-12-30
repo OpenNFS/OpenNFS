@@ -7,7 +7,7 @@ static const uint32_t STALE_TICK_COUNT = 70;
 class TrainingAgent : public CarAgent
 {
 public:
-    TrainingAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, std::shared_ptr<ONFSTrack> trainingTrack);
+    TrainingAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack);
     void Simulate();
     void Reset(); // Wrapper to reset to start of training track
     bool IsWinner();

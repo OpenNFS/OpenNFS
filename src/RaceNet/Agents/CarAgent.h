@@ -15,7 +15,7 @@ enum AgentType : uint8_t
 class CarAgent
 {
 public:
-    CarAgent(AgentType agentType, std::shared_ptr<Car> car, std::shared_ptr<ONFSTrack> track);
+    CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track);
     void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset);
     void ResetToVroad(int vroadIndex, float offset);
     virtual void Simulate() = 0;

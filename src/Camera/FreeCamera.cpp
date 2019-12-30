@@ -1,7 +1,9 @@
 #include "FreeCamera.h"
 
-FreeCamera::FreeCamera(glm::vec3 initialPosition, GLFWwindow *window) : Camera(CameraMode::FREE_LOOK, initialPosition, window){
-
+FreeCamera::FreeCamera(GLFWwindow *window, glm::vec3 initialPosition) :
+Camera(CameraMode::FREE_LOOK, window)
+{
+    position = initialPosition;
 }
 
 void FreeCamera::ComputeMatricesFromInputs(float deltaTime) {

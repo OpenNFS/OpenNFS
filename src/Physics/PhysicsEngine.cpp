@@ -64,12 +64,15 @@ void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &race
         car->Update(m_pDynamicsWorld);
     }
 
-    // Track updates propagate for active track blocks, based upon track blocks racer vehicles are on
-    for (auto &residentTrackblockID : racerResidentTrackblockIDs)
+    if (m_track != nullptr)
     {
-        for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects)
+        // Track updates propagate for active track blocks, based upon track blocks racer vehicles are on
+        for (auto &residentTrackblockID : racerResidentTrackblockIDs)
         {
-            //objects.update();
+            for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects)
+            {
+                objects.Update();
+            }
         }
     }
 }
@@ -104,10 +107,12 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
     {
         for (auto &road : trackBlock.track)
         {
+            road._GenCollisionMesh();
             m_pDynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
         }
         for (auto &object : trackBlock.objects)
         {
+            object._GenCollisionMesh();
             uint32_t collisionMask = COL_RAY;
             // Set collision masks
             if (object.collideable)
@@ -125,23 +130,24 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
         }
         for (auto &light : trackBlock.lights)
         {
+            light._GenCollisionMesh();
             m_pDynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
         }
     }
 
-    this->_GenerateVroadBarriers();
+    // this->_GenerateVroadBarriers();
 }
 
 void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> car)
 {
-    m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(), m_pDynamicsWorld->getDispatcher());
-    m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD);
-
     car->SetRaycaster(new btDefaultVehicleRaycaster(m_pDynamicsWorld));
     car->SetVehicle( new btRaycastVehicle(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
     car->GetVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
-    m_pDynamicsWorld->addVehicle(car->GetVehicle());
     car->GetVehicle()->setCoordinateSystem(0, 1, 2);
+
+    m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(), m_pDynamicsWorld->getDispatcher());
+    m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD);
+    m_pDynamicsWorld->addVehicle(car->GetVehicle());
 
     // Wire up the wheels
     float wheelRadius = car->vehicleProperties.wheelRadius;
@@ -180,32 +186,35 @@ PhysicsEngine::~PhysicsEngine()
     {
         m_pDynamicsWorld->removeVehicle(car->GetVehicle());
     }
-    for (auto &trackBlock : m_track->trackBlocks)
+    if(m_track != nullptr)
     {
-        for (auto &road : trackBlock.track)
+        for (auto &trackBlock : m_track->trackBlocks)
         {
-            m_pDynamicsWorld->removeRigidBody(road.rigidBody);
-            delete road.rigidBody->getMotionState();
-            delete road.rigidBody;
+            for (auto &road : trackBlock.track)
+            {
+                m_pDynamicsWorld->removeRigidBody(road.rigidBody);
+                delete road.rigidBody->getMotionState();
+                delete road.rigidBody;
+            }
+            for (auto &object : trackBlock.objects)
+            {
+                m_pDynamicsWorld->removeRigidBody(object.rigidBody);
+                delete object.rigidBody->getMotionState();
+                delete object.rigidBody;
+            }
+            for (auto &light : trackBlock.lights)
+            {
+                m_pDynamicsWorld->removeRigidBody(light.rigidBody);
+                delete light.rigidBody->getMotionState();
+                delete light.rigidBody;
+            }
         }
-        for (auto &object : trackBlock.objects)
+        for (auto &vroadBarrier : m_track->vroadBarriers)
         {
-            m_pDynamicsWorld->removeRigidBody(object.rigidBody);
-            delete object.rigidBody->getMotionState();
-            delete object.rigidBody;
+            m_pDynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
+            delete vroadBarrier.rigidBody->getMotionState();
+            delete vroadBarrier.rigidBody;
         }
-        for (auto &light : trackBlock.lights)
-        {
-            m_pDynamicsWorld->removeRigidBody(light.rigidBody);
-            delete light.rigidBody->getMotionState();
-            delete light.rigidBody;
-        }
-    }
-    for (auto &vroadBarrier : m_track->vroadBarriers)
-    {
-        m_pDynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
-        delete vroadBarrier.rigidBody->getMotionState();
-        delete vroadBarrier.rigidBody;
     }
     delete m_pDynamicsWorld;
     delete m_pSolver;

@@ -5,7 +5,8 @@
 class FreeCamera : public Camera {
 public:
     explicit FreeCamera() = default;
-    FreeCamera(glm::vec3 initialPosition, GLFWwindow *window);
+    FreeCamera(GLFWwindow *window, glm::vec3 initialPosition);
     void ComputeMatricesFromInputs(float deltaTime);
+
 };
 

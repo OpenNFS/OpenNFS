@@ -1,6 +1,6 @@
 #include "TrainingAgent.h"
 
-TrainingAgent::TrainingAgent(uint16_t populationID, std::shared_ptr<Car> trainingCar, std::shared_ptr<ONFSTrack> trainingTrack) :
+TrainingAgent::TrainingAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack) :
 CarAgent(AgentType::TRAINING, trainingCar, trainingTrack)
 {
     name = "TrainingAgent" + std::to_string(populationID);

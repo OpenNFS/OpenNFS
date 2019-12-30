@@ -319,7 +319,7 @@ void Car::_GenPhysicsModel()
     DimensionData chassisDimensions = Utils::GenDimensions(carBodyModel.m_vertices);
     // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
     chassisDimensions.minVertex.y += 0.04f;
-    btCollisionShape *chassisShape = new btBoxShape(Utils::glmToBullet((chassisDimensions.minVertex + chassisDimensions.maxVertex) / 2.f));
+    btCollisionShape *chassisShape = new btBoxShape(Utils::glmToBullet((chassisDimensions.maxVertex - chassisDimensions.minVertex) / 2.f));
     m_collisionShapes.push_back(chassisShape);
 
     auto *compound = new btCompoundShape();
