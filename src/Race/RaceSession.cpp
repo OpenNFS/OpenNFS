@@ -8,7 +8,7 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
                          std::shared_ptr<ONFSTrack> currentTrack,
                          std::shared_ptr<Car> &currentCar) :
         m_pWindow(glWindow), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(glWindow, currentCar, currentTrack)),
-        m_renderer(glWindow, onfsLogger, installedNFS, m_track, std::make_shared<BulletDebugDrawer>(m_physicsEngine.debugDrawer))
+        m_renderer(glWindow, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer)
 {
 
     m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->tag, m_track->name};
@@ -30,6 +30,8 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
 
 void RaceSession::_UpdateCameras(float deltaTime)
 {
+    m_hermiteCamera->UseSpline(m_totalTime);
+
     if (m_windowStatus == WindowStatus::GAME)
     {
         switch(m_activeCameraMode)
@@ -39,7 +41,7 @@ void RaceSession::_UpdateCameras(float deltaTime)
                 m_carCamera->FollowCar(m_playerAgent->vehicle);
                 break;
             case HERMITE_FLYTHROUGH:
-                m_hermiteCamera->UseSpline(m_totalTime);
+
                 break;
             case FREE_LOOK:
                 // Compute the MVP matrix from keyboard and mouse input

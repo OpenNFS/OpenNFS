@@ -40,7 +40,7 @@ public:
     Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted);
     btDiscreteDynamicsWorld *GetDynamicsWorld();
 
-    BulletDebugDrawer debugDrawer;
+    std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
 private:
     void _GenerateVroadBarriers();

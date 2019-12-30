@@ -8,7 +8,7 @@
 class PlayerAgent : public CarAgent {
 public:
     PlayerAgent(GLFWwindow *pWindow, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &raceTrack);
-    void Simulate();
+    void Simulate() override;
 
 private:
     GLFWwindow *m_pWindow;

@@ -41,7 +41,7 @@ WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screen
     return worldRay;
 }
 
-PhysicsEngine::PhysicsEngine()
+PhysicsEngine::PhysicsEngine() : debugDrawer(std::make_shared<BulletDebugDrawer>())
 {
     m_pBroadphase = new btDbvtBroadphase();
     // Set up the collision configuration and dispatcher
@@ -52,7 +52,7 @@ PhysicsEngine::PhysicsEngine()
     // The world.
     m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
     m_pDynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
-    m_pDynamicsWorld->setDebugDrawer(&debugDrawer);
+    m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
 }
 
 void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs)

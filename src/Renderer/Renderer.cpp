@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
 Renderer::Renderer(GLFWwindow *pWindow, std::shared_ptr<Logger> &onfsLogger,
-                   const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, std::shared_ptr<BulletDebugDrawer> debugDrawer) :
+                   const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, const std::shared_ptr<BulletDebugDrawer> &debugDrawer) :
         m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_pWindow(pWindow), m_track(currentTrack) , m_debugRenderer(debugDrawer)
 {
     this->_InitialiseIMGUI();
@@ -95,9 +95,9 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCame
         m_carRenderer.Render(racer->vehicle, activeCamera, carBodyContributingLights);
     }
 
-    //if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
-    //    targetedEntity = physicsEngine.CheckForPicking(camera->viewMatrix, camera->projectionMatrix, &entityTargeted);
-    //}
+    // if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
+    //     targetedEntity = physicsEngine.CheckForPicking(camera->viewMatrix, camera->projectionMatrix, &entityTargeted);
+    // }
 
     if (m_entityTargeted)
     {
@@ -142,10 +142,7 @@ std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_pt
         for (auto &laneEntity : track->trackBlocks[trackBlockID].lanes)
         {
             // It's not worth checking for Lane AABB intersections
-            //if(camera->viewFrustum.CheckIntersection(objectEntity.GetAABB()))
-            {
-                visibleEntities.emplace_back(std::make_shared<Entity>(laneEntity));
-            }
+            visibleEntities.emplace_back(std::make_shared<Entity>(laneEntity));
         }
     }
 
@@ -344,10 +341,6 @@ void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &cam
         camera->ResetView();
     };
     ImGui::SameLine(0, -1.0f);
-    if (ImGui::Button("Reset Car to Start"))
-    {
-        // CarAgent::resetToVroad(0, 0, 0.f, m_track, playerCar);
-    };
     ImGui::NewLine();
     ImGui::SameLine(0, 0.0f);
     if (!userParams.useNbData)

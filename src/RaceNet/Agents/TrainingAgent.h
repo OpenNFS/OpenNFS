@@ -8,7 +8,7 @@ class TrainingAgent : public CarAgent
 {
 public:
     TrainingAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack);
-    void Simulate();
+    void Simulate() override;
     void Reset(); // Wrapper to reset to start of training track
     bool IsWinner();
 

@@ -1,6 +1,6 @@
 #include "DebugRenderer.h"
 
-DebugRenderer::DebugRenderer(std::shared_ptr<BulletDebugDrawer> bulletDebugDrawer) : m_bulletDebugDrawer(bulletDebugDrawer)
+DebugRenderer::DebugRenderer(const std::shared_ptr<BulletDebugDrawer> &bulletDebugDrawer) : m_bulletDebugDrawer(bulletDebugDrawer)
 {}
 
 void DebugRenderer::Render(const std::shared_ptr<Camera> &camera)

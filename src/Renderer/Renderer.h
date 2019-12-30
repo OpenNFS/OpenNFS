@@ -28,7 +28,7 @@
 
 class Renderer {
 public:
-    Renderer(GLFWwindow *pWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, std::shared_ptr<BulletDebugDrawer> debugDrawer);
+    Renderer(GLFWwindow *pWindow, std::shared_ptr<Logger> &onfsLogger, const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, const std::shared_ptr<BulletDebugDrawer> &debugDrawer);
     ~Renderer();
     static void GlfwError(int id, const char *description) {
         LOG(WARNING) << description;

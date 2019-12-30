@@ -7,7 +7,7 @@
 class DebugRenderer
 {
 public:
-    explicit DebugRenderer(std::shared_ptr<BulletDebugDrawer> bulletDebugDrawer);
+    explicit DebugRenderer(const std::shared_ptr<BulletDebugDrawer> &bulletDebugDrawer);
     void Render(const std::shared_ptr<Camera> &camera);
     void DrawTrackCollision(const std::shared_ptr<ONFSTrack> &track);
     void DrawAABB(const AABB &aabb);

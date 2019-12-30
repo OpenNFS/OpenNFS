@@ -8,8 +8,6 @@
 #include "../Util/Utils.h"
 #include "../Util/Logger.h"
 
-const uint32_t INITIAL_LINE_BUF_SIZE = 1024 * 1000;
-
 class BulletLine {
     glm::vec3 from;
     glm::vec3 to;
@@ -21,6 +19,8 @@ public:
     }
 };
 
+const uint32_t MAX_NUM_LINES = 10000;
+const uint32_t INITIAL_LINE_BUF_SIZE = sizeof(BulletLine) * MAX_NUM_LINES;
 
 class BulletDebugDrawer : public btIDebugDraw {
 public:
@@ -53,7 +53,13 @@ public:
 
 private:
     // OpenGL data
-    GLuint m_lineVAO{}, m_lineVertexVBO{}, m_lineColourVBO{};
+    enum LineVBO : uint8_t
+    {
+        VERTEX = 0,
+        COLOUR = 1,
+    };
+    GLuint m_lineVertexBuffers[2]{};
+    GLuint m_lineVAO{};
     // Render shaders
     BulletShader m_bulletShader;
     std::vector<BulletLine> m_debugLines;
