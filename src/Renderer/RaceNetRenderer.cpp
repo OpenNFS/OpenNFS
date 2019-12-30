@@ -33,8 +33,8 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList,
         raceNetShader.loadColor(glm::vec3(0.f, 0.5f, 0.5f));
         for (auto &visibleTrackBlockID : visibleTrackBlocks) {
             for (auto &track_block_entity : trackToRender->trackBlocks[visibleTrackBlockID].track) {
-                raceNetShader.loadTransformationMatrix(boost::get<Track>(track_block_entity.glMesh).ModelMatrix);
-                boost::get<Track>(track_block_entity.glMesh).render();
+                raceNetShader.loadTransformationMatrix(boost::get<Track>(track_block_entity.raw).ModelMatrix);
+                boost::get<Track>(track_block_entity.raw).render();
             }
         }
 

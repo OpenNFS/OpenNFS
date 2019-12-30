@@ -38,6 +38,8 @@ void RacerManager::_InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &
 // Spawn racers onto the track along Vroad positions at alternating offsets
 void RacerManager::_SpawnRacers(PhysicsEngine &physicsEngine)
 {
+    if(Config::get().nRacers == 0) return;
+
     std::shared_ptr<Car> racerVehicle = CarLoader::LoadCar(NFSVer::NFS_3, "f355");
     float racerSpawnOffset = -0.25f;
     for (uint8_t racerIdx = 0; racerIdx < Config::get().nRacers; ++racerIdx)

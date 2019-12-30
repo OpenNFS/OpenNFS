@@ -43,8 +43,8 @@ void SkydomeShader::loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix
     loadMat3(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
 }
 
-void SkydomeShader::loadSunPosition(const GlobalLight &sun){
-    loadVec3(sunPositionLocation, sun.position);
+void SkydomeShader::loadSunPosition(const std::shared_ptr<GlobalLight> &light){
+    loadVec3(sunPositionLocation, light->position);
 }
 
 void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID){

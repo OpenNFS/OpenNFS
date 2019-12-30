@@ -2,7 +2,7 @@
 
 #include "BaseShader.h"
 #include "../Util/Utils.h"
-#include "../Scene/Light.h"
+#include "../Scene/Lights/LightModel.h"
 
 class DepthShader : public BaseShader {
 public:

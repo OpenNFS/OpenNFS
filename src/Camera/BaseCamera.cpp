@@ -1,6 +1,6 @@
-#include "Camera.h"
+#include "BaseCamera.h"
 
-Camera::Camera(CameraMode mode, GLFWwindow *pWindow) {
+BaseCamera::BaseCamera(CameraMode mode, GLFWwindow *pWindow) {
     m_pWindow = pWindow;
     m_fov = Config::get().fov;
     // Initial position : on +Z
@@ -10,7 +10,7 @@ Camera::Camera(CameraMode mode, GLFWwindow *pWindow) {
     m_mode = mode;
 }
 
-void Camera::ResetView() {
+void BaseCamera::ResetView() {
     position = glm::vec3(0, 0, 0);
     m_horizontalAngle = 3.14f;
     m_verticalAngle = 0.0f;
@@ -28,7 +28,7 @@ void Camera::ResetView() {
     viewMatrix = glm::lookAt(position, position + m_direction, glm::cross(right, m_direction));
 }
 
-void Camera::UpdateFrustum() {
+void BaseCamera::UpdateFrustum() {
     viewFrustum.Update(projectionMatrix * viewMatrix);
 }
 

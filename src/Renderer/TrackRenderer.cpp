@@ -1,43 +1,47 @@
 #include "TrackRenderer.h"
 
-void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers, const std::shared_ptr<Camera> &camera, const GlobalLight &light, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const ParamData &userParams,
-                                GLuint depthTextureID, float ambientFactor) {
+void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers, const std::shared_ptr<BaseCamera> &camera, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const std::vector<shared_ptr<BaseLight>> &lights, const ParamData &userParams,
+                           GLuint depthTextureID, float ambientFactor) {
     m_trackShader.use();
     // This shader state doesnt change during a track renderpass
     m_trackShader.setClassic(userParams.useClassicGraphics);
     m_trackShader.loadProjectionViewMatrices(camera->projectionMatrix, camera->viewMatrix);
-    m_trackShader.loadLightSpaceMatrix(light.lightSpaceMatrix);
     m_trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
     m_trackShader.bindTextureArray(trackTextureArrayID);
     m_trackShader.loadShadowMapTexture(depthTextureID);
     m_trackShader.loadAmbientFactor(ambientFactor);
+    m_trackShader.loadLights(lights);
     //m_trackShader.loadSpotlight(car->leftHeadlight);
+
+    // TODO: Again, super silly.
+    for(auto &light : lights)
+    {
+        if(light->type == LightType::GLOBAL_LIGHT)
+        {
+            m_trackShader.loadLightSpaceMatrix(std::static_pointer_cast<GlobalLight>(light)->lightSpaceMatrix);
+        }
+    }
 
     // Render the per-trackblock data
     for (auto &entity : visibleEntities) {
-        /*std::vector<Light> lights;
-        for(auto &lightEntity : trackBlock.lights)
-        {
-            // TODO: This is super silly.
-            lights.emplace_back(boost::get<Light>(lightEntity.glMesh));
-        }
-        trackShader.loadLights(lights);*/
-        m_trackShader.loadTransformMatrix(boost::get<Track>(entity->glMesh).ModelMatrix);
-        boost::get<Track>(entity->glMesh).render();
+        m_trackShader.loadTransformMatrix(boost::get<Track>(entity->raw).ModelMatrix);
+        boost::get<Track>(entity->raw).render();
     }
 
     m_trackShader.unbind();
     m_trackShader.shaderSet.UpdatePrograms();
 }
 
-void TrackRenderer::RenderLights(const std::shared_ptr<Camera> &camera, const shared_ptr<ONFSTrack> &track) {
+void TrackRenderer::RenderLights(const std::shared_ptr<BaseCamera> &camera, const std::vector<shared_ptr<BaseLight>> &lights) {
     m_billboardShader.use();
-    for (auto &trackBlock : track->trackBlocks) {
-        // Render the lights far to near
-        for (auto &lightEntity : trackBlock.lights) {
-            m_billboardShader.loadMatrices(camera->projectionMatrix, camera->viewMatrix, boost::get<Light>(lightEntity.glMesh).ModelMatrix);
-            m_billboardShader.loadLight(boost::get<Light>(lightEntity.glMesh));
-            boost::get<Light>(lightEntity.glMesh).render();
+
+    for (auto &light : lights) {
+        if(light->type == LightType::TRACK_LIGHT)
+        {
+            std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast <TrackLight>(light);
+            m_billboardShader.loadMatrices(camera->projectionMatrix, camera->viewMatrix);
+            m_billboardShader.loadLight(trackLight);
+            trackLight->model.render();
         }
     }
     m_billboardShader.unbind();

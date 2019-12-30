@@ -3,14 +3,14 @@
 #include "../Util/ImageLoader.h"
 #include "../Loaders/TrackLoader.h"
 #include "../Shaders/SkydomeShader.h"
-#include "../Camera/Camera.h"
-#include "../Scene/GlobalLight.h"
+#include "../Camera/BaseCamera.h"
+#include "../Scene/Lights/GlobalLight.h"
 
 class SkyRenderer {
 public:
     explicit SkyRenderer();
     ~SkyRenderer();
-    void Render(const std::shared_ptr<Camera> &camera, const GlobalLight &sun, float elapsedTime);
+    void Render(const std::shared_ptr<BaseCamera> &camera, const std::shared_ptr<GlobalLight> &light, float elapsedTime);
 private:
     // Load cloud, sun, moon and tint textures
     void _LoadAssets();

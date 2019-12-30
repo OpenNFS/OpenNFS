@@ -3,7 +3,7 @@
 DebugRenderer::DebugRenderer(const std::shared_ptr<BulletDebugDrawer> &bulletDebugDrawer) : m_bulletDebugDrawer(bulletDebugDrawer)
 {}
 
-void DebugRenderer::Render(const std::shared_ptr<Camera> &camera)
+void DebugRenderer::Render(const std::shared_ptr<BaseCamera> &camera)
 {
     m_bulletDebugDrawer->Render(camera);
 }
@@ -29,7 +29,7 @@ void DebugRenderer::DrawAABB(const AABB &aabb)
     m_bulletDebugDrawer->drawBox(Utils::glmToBullet(aabb.position + aabb.min), Utils::glmToBullet(aabb.position + aabb.max), colour);
 }
 
-void DebugRenderer::DrawFrustum(const std::shared_ptr<Camera> &camera)
+void DebugRenderer::DrawFrustum(const std::shared_ptr<BaseCamera> &camera)
 {
     std::array<glm::vec3, 8> frustumDebugVizPoints = camera->viewFrustum.points;
 

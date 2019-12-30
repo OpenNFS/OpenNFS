@@ -7,7 +7,7 @@
 #include "../Config.h"
 #include "../Util/ImageLoader.h"
 #include "../Scene/Model.h"
-#include "../Scene/Light.h"
+#include "../Scene/Lights/BaseLight.h"
 #include "../Physics/Car.h"
 #include "../../shaders/ShaderPreamble.h"
 
@@ -16,7 +16,7 @@ public:
     explicit CarShader();
     void loadCarColor(glm::vec3 color);
     void loadCarTexture(GLuint textureID);
-    void loadLights(std::vector<Light> lights);
+    void loadLights(const std::vector<shared_ptr<BaseLight>> &lights);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view);
     void loadTransformationMatrix(const glm::mat4 &transformation);

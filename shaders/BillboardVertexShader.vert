@@ -1,13 +1,12 @@
 // Input vertex data, different for all executions of this shader.
 layout(location = 0) in vec3 vertexPosition_modelspace;
 layout(location = 1) in vec2 vertexUV;
-layout(location = 2) in vec3 normal;
 
 // Output data ; will be interpolated for each fragment.
 out vec2 UV;
 
 // Values that stay constant for the whole mesh.
-uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
+uniform mat4 projectionMatrix, viewMatrix;
 uniform vec3 billboardPos; // Position of the center of the billboard
 
 // TODO: Doing this per vertex makes this quite expensive. I should bind as a uniform from CPU.
@@ -25,7 +24,7 @@ mat4 rotationMatrix(vec3 axis, float angle)
 }
 
 void main(){
-    vec4 worldPosition = transformationMatrix * vec4(billboardPos, 1.0f);
+    vec4 worldPosition = vec4(billboardPos, 1.0f);
 
     // Output position of the vertex
     gl_Position = projectionMatrix * viewMatrix * worldPosition; // Screen-space position of bb center

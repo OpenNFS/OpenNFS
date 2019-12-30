@@ -59,12 +59,12 @@ void SkyRenderer::_LoadAssets() {
     m_skydomeModel.update();
 }
 
-void SkyRenderer::Render(const std::shared_ptr<Camera> &camera, const GlobalLight &sun, float elapsedTime) {
+void SkyRenderer::Render(const std::shared_ptr<BaseCamera> &camera, const std::shared_ptr<GlobalLight> &light, float elapsedTime) {
     m_skydomeShader.use();
     m_skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
     m_skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(SIMD_PI, SIMD_PI, 0))))); // No star rotation
     m_skydomeShader.loadMatrices(camera->projectionMatrix, camera->viewMatrix, m_skydomeModel.ModelMatrix);
-    m_skydomeShader.loadSunPosition(sun);
+    m_skydomeShader.loadSunPosition(light);
     m_skydomeShader.loadTime(elapsedTime);
     m_skydomeShader.loadWeatherMixFactor(1.0f);
     // Bind the sphere model

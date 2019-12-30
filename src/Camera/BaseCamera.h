@@ -21,10 +21,10 @@ enum CameraMode : uint8_t
     FREE_LOOK
 };
 
-class Camera {
+class BaseCamera {
 public:
-    Camera(CameraMode mode, GLFWwindow *pWindow);
-    Camera() = default;
+    BaseCamera(CameraMode mode, GLFWwindow *pWindow);
+    BaseCamera() = default;
     void UpdateFrustum();
     void ResetView();
 

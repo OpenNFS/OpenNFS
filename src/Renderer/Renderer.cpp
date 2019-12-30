@@ -65,12 +65,13 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     return window;
 }
 
-bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCamera, const std::shared_ptr<HermiteCamera> &hermiteCamera, ParamData &userParams, AssetData &loadedAssets, const std::vector<std::shared_ptr<CarAgent>> &racers)
+bool Renderer::Render(float totalTime, const std::shared_ptr<BaseCamera> &activeCamera, const std::shared_ptr<HermiteCamera> &hermiteCamera, const std::shared_ptr<GlobalLight> &activeLight, ParamData &userParams, AssetData &loadedAssets, const std::vector<std::shared_ptr<CarAgent>> &racers)
 {
     bool newAssetSelected = false;
 
     // Perform frustum culling to get visible entities, from perspective of active camera
-    std::vector<std::shared_ptr<Entity>> visibleEntities = _FrustumCull(m_track, activeCamera, userParams);
+    VisibleSet visibleSet = _FrustumCull(m_track, activeCamera, userParams);
+    visibleSet.lights.emplace_back(activeLight);
 
     if (userParams.drawHermiteFrustum)
     {
@@ -83,16 +84,15 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCame
     }
 
     // Render the environment
-    m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, m_sun, m_track->textureArrayID, visibleEntities, racers);
-    m_skyRenderer.Render(activeCamera, m_sun, totalTime);
-    m_trackRenderer.Render(racers, activeCamera, m_sun, m_track->textureArrayID, visibleEntities, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
-    m_trackRenderer.RenderLights(activeCamera, m_track);
+    m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track->textureArrayID, visibleSet.entities, racers);
+    m_skyRenderer.Render(activeCamera, activeLight, totalTime);
+    m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleSet.entities, visibleSet.lights, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
+    m_trackRenderer.RenderLights(activeCamera, visibleSet.lights);
     m_debugRenderer.Render(activeCamera);
 
     // Render the Car and racers
-    std::vector<Light> carBodyContributingLights;
     for(auto &racer : racers){
-        m_carRenderer.Render(racer->vehicle, activeCamera, carBodyContributingLights);
+        m_carRenderer.Render(racer->vehicle, activeCamera, visibleSet.lights);
     }
 
     // if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
@@ -116,33 +116,41 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<Camera> &activeCame
     return newAssetSelected;
 }
 
-std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Camera> &camera, ParamData &userParams)
+VisibleSet Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams)
 {
+    VisibleSet visibleSet;
+
     // Only update the frustum of the camera when actually culling, to save some performance
     camera->UpdateFrustum();
 
     // Perform frustum culling on the current camera, on local trackblocks
-    std::vector<std::shared_ptr<Entity>> visibleEntities;
     for (auto &trackBlockID : _GetLocalTrackBlockIDs(track, camera, userParams))
     {
         for (auto &trackEntity : track->trackBlocks[trackBlockID].track)
         {
             if (camera->viewFrustum.CheckIntersection(trackEntity.GetAABB()))
             {
-                visibleEntities.emplace_back(std::make_shared<Entity>(trackEntity));
+                visibleSet.entities.emplace_back(std::make_shared<Entity>(trackEntity));
             }
         }
         for (auto &objectEntity : track->trackBlocks[trackBlockID].objects)
         {
             if (camera->viewFrustum.CheckIntersection(objectEntity.GetAABB()))
             {
-                visibleEntities.emplace_back(std::make_shared<Entity>(objectEntity));
+                visibleSet.entities.emplace_back(std::make_shared<Entity>(objectEntity));
             }
         }
         for (auto &laneEntity : track->trackBlocks[trackBlockID].lanes)
         {
             // It's not worth checking for Lane AABB intersections
-            visibleEntities.emplace_back(std::make_shared<Entity>(laneEntity));
+            visibleSet.entities.emplace_back(std::make_shared<Entity>(laneEntity));
+        }
+        for (auto &lightEntity : track->trackBlocks[trackBlockID].lights)
+        {
+            if (camera->viewFrustum.CheckIntersection(lightEntity.GetAABB()))
+            {
+                visibleSet.lights.emplace_back(boost::get<shared_ptr<BaseLight>>(lightEntity.raw));
+            }
         }
     }
 
@@ -153,10 +161,10 @@ std::vector<std::shared_ptr<Entity>> Renderer::_FrustumCull(const std::shared_pt
     //    visibleEntities.emplace_back(std::static_pointer_cast<Entity>(collision));
     //}
 
-    return visibleEntities;
+    return visibleSet;
 }
 
-std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<Camera> &camera, ParamData &userParams)
+std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams)
 {
     std::vector<uint32_t> activeTrackBlockIds;
     uint32_t closestBlockID = 0;
@@ -240,7 +248,8 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
             break;
         case EntityType::LIGHT:
         {
-            Light *targetLight = &boost::get<Light>(targetEntity->glMesh);
+            std::shared_ptr<BaseLight> targetBaseLight = boost::get<std::shared_ptr<BaseLight>>(targetEntity->raw);
+            std::shared_ptr<TrackLight> targetLight = std::static_pointer_cast<TrackLight>(targetBaseLight);
             ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z, targetLight->colour.w);
             ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z,0.0f);
             // Colour, type, attenuation, position and NFS unknowns
@@ -251,7 +260,7 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
             ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y, targetLight->position.z);
             ImGui::Separator();
             ImGui::Text("NFS Data");
-            ImGui::Text("Type: %ld", targetLight->type);
+            ImGui::Text("Type: %hhu", targetLight->type);
             ImGui::Text("Unknowns: ");
             ImGui::Text("[1]: %d", targetLight->unknown1);
             ImGui::Text("[2]: %d", targetLight->unknown2);
@@ -268,7 +277,7 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
         case EntityType::VROAD_CEIL:
             break;
         case EntityType::CAR:
-            Car *targetCar = boost::get<Car *>(targetEntity->glMesh);
+            Car *targetCar = boost::get<Car *>(targetEntity->raw);
             ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
             for (auto &carColour : targetCar->assetData.colours)
             {
@@ -306,7 +315,7 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
     ImGui::End();
 }
 
-void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &camera)
+void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera)
 {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");
@@ -324,10 +333,7 @@ void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<Camera> &cam
     ImGui::Checkbox("Classic Graphics", &userParams.useClassicGraphics);
     ImGui::Checkbox("Hermite Curve Cam", &userParams.attachCamToHermite);
     ImGui::Checkbox("Car Cam", &userParams.attachCamToCar);
-    std::stringstream world_position_string;
     ImGui::Text("X %f Y %f Z %f", camera->position.x, camera->position.y, camera->position.z);
-    // ImGui::Text("Block ID: %d", m_closestBlockID);
-    // ImGui::Text("Vroad ID: %d", CarAgent::getClosestVroad(playerCar, m_track));
     ImGui::Checkbox("Frustum Cull", &userParams.frustumCull);
     ImGui::Checkbox("Draw Herm Frustum", &userParams.drawHermiteFrustum);
     ImGui::Checkbox("Draw Track AABBs", &userParams.drawTrackAABB);

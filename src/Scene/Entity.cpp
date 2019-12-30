@@ -1,11 +1,12 @@
 #include "Entity.h"
+#include "Lights/TrackLight.h"
 
 Entity::Entity(uint32_t parentTrackblockID, uint32_t entityID, NFSVer nfsVersion, EntityType entityType, EngineModel glMesh, uint32_t flags, glm::vec3 fromA, glm::vec3 fromB, glm::vec3 toA,
                glm::vec3 toB)
 {
     tag = nfsVersion;
     type = entityType;
-    this->glMesh = glMesh;
+    this->raw = glMesh;
     this->flags = flags;
     this->parentTrackblockID = parentTrackblockID;
     this->entityID = entityID;
@@ -31,10 +32,11 @@ void Entity::_GenCollisionMesh()
             return;
         case LIGHT:
         {
+            std::shared_ptr<BaseLight> baseLight = boost::get<std::shared_ptr<BaseLight>>(raw);
+            std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
             // Light mesh billboarded, generated (Bullet) AABB too large. Divide verts by scale factor to make smaller.
-            std::vector<glm::vec3> vertices = boost::get<Light>(glMesh).m_vertices;
-            center = boost::get<Light>(glMesh).position;
-            orientation = boost::get<Light>(glMesh).orientation;
+            std::vector<glm::vec3> vertices = trackLight->model.m_vertices;
+            center = baseLight->position;
             float lightBoundScaleF = 10.f;
             for (int i = 0; i < vertices.size() - 2; i += 3)
             {
@@ -89,9 +91,9 @@ void Entity::_GenCollisionMesh()
         case XOBJ:
         case OBJ_POLY:
         {
-            std::vector<glm::vec3> vertices = boost::get<Track>(glMesh).m_vertices;
-            center = boost::get<Track>(glMesh).initialPosition;
-            orientation = boost::get<Track>(glMesh).orientation;
+            std::vector<glm::vec3> vertices = boost::get<Track>(raw).m_vertices;
+            center = boost::get<Track>(raw).initialPosition;
+            orientation = boost::get<Track>(raw).orientation;
             if (dynamic)
             {
                 // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
@@ -146,10 +148,20 @@ void Entity::_GenBoundingBox()
         case ROAD:
         case GLOBAL:
         {
-            DimensionData meshDimensions = Utils::GenDimensions(boost::get<Track>(glMesh).m_vertices);
-            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<Track>(glMesh).initialPosition);
+            DimensionData meshDimensions = Utils::GenDimensions(boost::get<Track>(raw).m_vertices);
+            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<Track>(raw).initialPosition);
+            return;
         }
         case LIGHT:
+        {
+            // For now, only tracklights will have entities created
+            std::shared_ptr<BaseLight> baseLight = boost::get<std::shared_ptr<BaseLight>>(raw);
+            ASSERT(baseLight->type == LightType::TRACK_LIGHT, "Not ready to handle other light types at entity creation time");
+            std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
+            DimensionData meshDimensions = Utils::GenDimensions(trackLight->model.m_vertices);
+            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
+            return;
+        }
         case SOUND:
         case CAR:
         case VROAD:
@@ -170,9 +182,9 @@ void Entity::Update()
     }
     btTransform trans;
     m_motionState->getWorldTransform(trans);
-    boost::get<Track>(glMesh).position = Utils::bulletToGlm(trans.getOrigin());
-    boost::get<Track>(glMesh).orientation = Utils::bulletToGlm(trans.getRotation());
-    boost::get<Track>(glMesh).update();
+    boost::get<Track>(raw).position = Utils::bulletToGlm(trans.getOrigin());
+    boost::get<Track>(raw).orientation = Utils::bulletToGlm(trans.getRotation());
+    boost::get<Track>(raw).update();
 }
 
 void Entity::_SetCollisionParameters()
@@ -240,7 +252,6 @@ AABB Entity::GetAABB() const
 {
     switch (type)
     {
-        case LIGHT:
         case SOUND:
         case CAR:
         case VROAD:

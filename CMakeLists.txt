@@ -51,17 +51,17 @@ set(SOURCE_FILES
         include/ImGuiColorTextEdit/TextEditor.h]]
         resources/asset/icon.rc
         src/main.cpp
-        src/Camera/Camera.cpp
+        src/Camera/BaseCamera.cpp
         src/Scene/Model.cpp
         src/Physics/PhysicsEngine.cpp
         lib/glew-cmake/src/glew.c
         src/Scene/TrackBlock.cpp
         src/Scene/TrackBlock.h
         src/nfs_data.h
-        src/Scene/Light.cpp
-        src/Scene/Light.h
-        src/Camera/Camera.cpp
-        src/Camera/Camera.h
+        src/Scene/Lights/LightModel.cpp
+        src/Scene/Lights/LightModel.h
+        src/Camera/BaseCamera.cpp
+        src/Camera/BaseCamera.h
         src/Shaders/TrackShader.cpp
         src/Shaders/TrackShader.h
         src/Shaders/CarShader.cpp
@@ -141,8 +141,8 @@ set(SOURCE_FILES
         src/RaceNet/Agents/CarAgent.h
         src/Race/RaceSession.cpp
         src/Race/RaceSession.h
-        src/Scene/Spotlight.cpp
-        src/Scene/Spotlight.h
+        src/Scene/Lights/Spotlight.cpp
+        src/Scene/Lights/Spotlight.h
         #[[src/Renderer/MenuRenderer.cpp
         src/Renderer/MenuRenderer.h]]
         src/Shaders/FontShader.cpp
@@ -158,8 +158,8 @@ set(SOURCE_FILES
         src/Loaders/NFS4PS1Loader.h
         src/Loaders/SerializedGroupOps.cpp
         src/Loaders/SerializedGroupOps.h
-        src/Scene/GlobalLight.cpp
-        src/Scene/GlobalLight.h
+        src/Scene/Lights/GlobalLight.cpp
+        src/Scene/Lights/GlobalLight.h
         src/Physics/AABB.cpp
         src/Physics/AABB.h
         src/Physics/AABBTree.h
@@ -178,7 +178,7 @@ set(SOURCE_FILES
         src/Shaders/BulletShader.cpp
         src/Shaders/BulletShader.h
         src/Renderer/DebugRenderer.cpp
-        src/Renderer/DebugRenderer.h src/Race/RacerManager.cpp src/Race/RacerManager.h src/RaceNet/Agents/TrainingAgent.cpp src/RaceNet/Agents/TrainingAgent.h src/RaceNet/Agents/RacerAgent.cpp src/RaceNet/Agents/RacerAgent.h src/RaceNet/Agents/PlayerAgent.cpp src/RaceNet/Agents/PlayerAgent.h)
+        src/Renderer/DebugRenderer.h src/Race/RacerManager.cpp src/Race/RacerManager.h src/RaceNet/Agents/TrainingAgent.cpp src/RaceNet/Agents/TrainingAgent.h src/RaceNet/Agents/RacerAgent.cpp src/RaceNet/Agents/RacerAgent.h src/RaceNet/Agents/PlayerAgent.cpp src/RaceNet/Agents/PlayerAgent.h src/Race/OrbitalManager.cpp src/Race/OrbitalManager.h src/Scene/Lights/BaseLight.cpp src/Scene/Lights/BaseLight.h src/Scene/Lights/TrackLight.cpp src/Scene/Lights/TrackLight.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

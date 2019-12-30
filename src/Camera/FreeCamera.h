@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Camera.h"
+#include "BaseCamera.h"
 
-class FreeCamera : public Camera {
+class FreeCamera : public BaseCamera {
 public:
     explicit FreeCamera() = default;
     FreeCamera(GLFWwindow *window, glm::vec3 initialPosition);

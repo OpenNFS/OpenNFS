@@ -2,12 +2,12 @@
 
 #include "BaseShader.h"
 #include "../Util/Utils.h"
-#include "../Scene/GlobalLight.h"
+#include "../Scene/Lights/GlobalLight.h"
 
 class SkydomeShader : public BaseShader {
 public:
     SkydomeShader();
-    void loadSunPosition(const GlobalLight &sun);
+    void loadSunPosition(const std::shared_ptr<GlobalLight> &light);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
     void loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix);
     void loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID);

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Camera.h"
+#include "BaseCamera.h"
 
 #include "../Physics/Car.h"
 
-class CarCamera : public Camera {
+class CarCamera : public BaseCamera {
 public:
     explicit CarCamera() = default;
     CarCamera(GLFWwindow *window);

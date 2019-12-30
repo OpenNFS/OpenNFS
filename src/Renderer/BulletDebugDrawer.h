@@ -3,7 +3,7 @@
 #include <LinearMath/btIDebugDraw.h>
 #include <glm/detail/type_mat4x4.hpp>
 
-#include "../Camera/Camera.h"
+#include "../Camera/BaseCamera.h"
 #include "../Shaders/BulletShader.h"
 #include "../Util/Utils.h"
 #include "../Util/Logger.h"
@@ -26,7 +26,7 @@ class BulletDebugDrawer : public btIDebugDraw {
 public:
     BulletDebugDrawer();
 
-    void Render(const std::shared_ptr<Camera> &camera);
+    void Render(const std::shared_ptr<BaseCamera> &camera);
 
     void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) override;
 
@@ -56,9 +56,10 @@ private:
     enum LineVBO : uint8_t
     {
         VERTEX = 0,
-        COLOUR = 1,
+        COLOUR,
+        Length
     };
-    GLuint m_lineVertexBuffers[2]{};
+    GLuint m_lineVertexBuffers[LineVBO::Length]{};
     GLuint m_lineVAO{};
     // Render shaders
     BulletShader m_bulletShader;

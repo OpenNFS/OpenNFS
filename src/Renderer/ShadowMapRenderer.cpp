@@ -23,10 +23,10 @@ ShadowMapRenderer::ShadowMapRenderer()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapRenderer::Render(float nearPlane, float farPlane, const GlobalLight &light,  GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const std::vector<std::shared_ptr<CarAgent>> &racers){
+void ShadowMapRenderer::Render(float nearPlane, float farPlane, const std::shared_ptr<GlobalLight> &light, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities, const std::vector<std::shared_ptr<CarAgent>> &racers){
     /* ------- SHADOW MAPPING ------- */
     m_depthShader.use();
-    m_depthShader.loadLightSpaceMatrix(light.lightSpaceMatrix);
+    m_depthShader.loadLightSpaceMatrix(light->lightSpaceMatrix);
     m_depthShader.bindTextureArray(trackTextureArrayID);
 
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -35,8 +35,8 @@ void ShadowMapRenderer::Render(float nearPlane, float farPlane, const GlobalLigh
 
     /* Render the track using this simple shader to get depth texture to test against during draw */
     for (auto &entity : visibleEntities) {
-        m_depthShader.loadTransformMatrix(boost::get<Track>(entity->glMesh).ModelMatrix);
-        boost::get<Track>(entity->glMesh).render();
+        m_depthShader.loadTransformMatrix(boost::get<Track>(entity->raw).ModelMatrix);
+        boost::get<Track>(entity->raw).render();
     }
 
     /* And the Cars */

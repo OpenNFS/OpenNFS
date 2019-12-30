@@ -10,12 +10,12 @@
 
 #include "../nfs_data.h"
 #include "../Config.h"
-#include "../Scene/Light.h"
+#include "../Scene/Lights/TrackLight.h"
 #include "../Util/Utils.h"
 #include "../Util/ImageLoader.h"
 
 namespace TrackUtils {
-    Light MakeLight(glm::vec3 light_position, uint32_t light_type);
+    std::shared_ptr<TrackLight> MakeLight(glm::vec3 position, uint32_t nfsType);
 
     bool ExtractTrackTextures(const std::string &track_path, const::std::string track_name, NFSVer nfs_version);
 

@@ -36,7 +36,7 @@ void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, con
     }
 }
 
-void BulletDebugDrawer::Render(const std::shared_ptr<Camera> &camera)
+void BulletDebugDrawer::Render(const std::shared_ptr<BaseCamera> &camera)
 {
     // Activate corresponding render state
     m_bulletShader.use();

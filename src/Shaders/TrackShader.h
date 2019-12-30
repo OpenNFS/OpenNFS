@@ -2,8 +2,8 @@
 
 #include "BaseShader.h"
 #include "../Scene/Track.h"
-#include "../Scene/Light.h"
-#include "../Scene/Spotlight.h"
+#include "../Scene/Lights/BaseLight.h"
+#include "../Scene/Lights/Spotlight.h"
 #include "../../shaders/ShaderPreamble.h"
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
@@ -16,7 +16,7 @@ public:
     void loadTransformMatrix(const glm::mat4 &transformation);
     void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
     void loadSpecular(float damper, float reflectivity);
-    void loadLights(std::vector<Light> lights);
+    void loadLights(const std::vector<shared_ptr<BaseLight>> &lights);
     void loadSpotlight(Spotlight spotlight);
     void loadShadowMapTexture(GLuint shadowMapTextureID);
     void loadAmbientFactor(float ambientFactor);

@@ -7,7 +7,7 @@
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <boost/variant.hpp>
 
-#include "Light.h"
+#include "Lights/BaseLight.h"
 #include "Sound.h"
 #include "Track.h"
 
@@ -17,7 +17,7 @@
 #include "../Physics/IAABB.h"
 #include "../Physics/Car.h"
 
-typedef boost::variant<Track, Light, Sound, Car*> EngineModel;
+typedef boost::variant<Track, std::shared_ptr<BaseLight>, Sound, Car*> EngineModel;
 
 class Entity : public IAABB {
 public:
@@ -27,7 +27,7 @@ public:
 
     NFSVer tag;
     EntityType type;
-    EngineModel glMesh;
+    EngineModel raw;
     btRigidBody* rigidBody;
     uint32_t parentTrackblockID, entityID;
     uint32_t flags;

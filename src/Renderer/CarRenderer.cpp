@@ -1,13 +1,13 @@
 #include "CarRenderer.h"
 
-void CarRenderer::Render(const shared_ptr<Car> &car, const std::shared_ptr<Camera> &camera, const std::vector<Light> &contributingLights) {
+void CarRenderer::Render(const shared_ptr<Car> &car, const std::shared_ptr<BaseCamera> &camera, const std::vector<std::shared_ptr<BaseLight>> &lights) {
     m_carShader.use();
 
     // This shader state doesnt change during a car renderpass
     m_carShader.loadProjectionViewMatrices(camera->projectionMatrix, camera->viewMatrix);
     m_carShader.setPolyFlagged(car->carBodyModel.hasPolyFlags);
     m_carShader.loadCarColor(glm::vec3(1, 1, 1));
-    m_carShader.loadLights(contributingLights);
+    m_carShader.loadLights(lights);
     m_carShader.loadEnvironmentMapTexture();
     // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
     m_carShader.setMultiTextured(car->renderInfo.isMultitexturedModel);

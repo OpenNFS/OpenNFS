@@ -6,7 +6,8 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
                          std::shared_ptr<Logger> &onfsLogger,
                          const std::vector<NfsAssetList> &installedNFS,
                          std::shared_ptr<ONFSTrack> currentTrack,
-                         std::shared_ptr<Car> &currentCar) :
+                         std::shared_ptr<Car> &currentCar
+) :
         m_pWindow(glWindow), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(glWindow, currentCar, currentTrack)),
         m_renderer(glWindow, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer)
 {
@@ -15,8 +16,8 @@ RaceSession::RaceSession(GLFWwindow *glWindow,
 
     // Set up the cameras
     m_freeCamera = std::make_shared<FreeCamera>(m_pWindow, m_track->trackBlocks[0].center);
-    m_hermiteCamera =  std::make_shared<HermiteCamera>(m_track->centerSpline, m_pWindow);
-    m_carCamera =  std::make_shared<CarCamera>(m_pWindow);
+    m_hermiteCamera = std::make_shared<HermiteCamera>(m_track->centerSpline, m_pWindow);
+    m_carCamera = std::make_shared<CarCamera>(m_pWindow);
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
@@ -34,7 +35,7 @@ void RaceSession::_UpdateCameras(float deltaTime)
 
     if (m_windowStatus == WindowStatus::GAME)
     {
-        switch(m_activeCameraMode)
+        switch (m_activeCameraMode)
         {
             case FOLLOW_CAR:
                 // Compute MVP from keyboard and mouse, centered around a target car
@@ -51,19 +52,17 @@ void RaceSession::_UpdateCameras(float deltaTime)
     }
 }
 
-std::shared_ptr<Camera> RaceSession::_GetActiveCamera()
+std::shared_ptr<BaseCamera> RaceSession::_GetActiveCamera()
 {
     if (m_userParams.attachCamToHermite)
     {
         m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
         return m_hermiteCamera;
-    }
-    else if (m_userParams.attachCamToCar)
+    } else if (m_userParams.attachCamToCar)
     {
         m_activeCameraMode = CameraMode::FOLLOW_CAR;
         return m_carCamera;
-    }
-    else
+    } else
     {
         m_activeCameraMode = CameraMode::FREE_LOOK;
         return m_freeCamera;
@@ -87,18 +86,20 @@ AssetData RaceSession::Simulate()
         // Update Cameras
         this->_UpdateCameras(deltaTime);
         // Set the active camera dependent upon user input
-        std::shared_ptr<Camera> activeCamera = this->_GetActiveCamera();
+        std::shared_ptr<BaseCamera> activeCamera = this->_GetActiveCamera();
 
         if (m_userParams.simulateCars)
         {
             m_racerManager.Simulate();
         }
 
+        m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
+
         // Step the physics simulation
         m_physicsEngine.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
         if (m_userParams.physicsDebugView) m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
 
-        bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_userParams, m_loadedAssets, m_racerManager.racers);
+        bool assetChange = m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams, m_loadedAssets, m_racerManager.racers);
 
         if (assetChange)
         {
@@ -118,7 +119,6 @@ AssetData RaceSession::Simulate()
 }
 
 
-
 void RaceSession::_GetInputsAndClear()
 {
     glClearColor(0.1f, 0.f, 0.5f, 1.f);
@@ -134,8 +134,7 @@ void RaceSession::_GetInputsAndClear()
     {
         m_windowStatus = WindowStatus::GAME;
         ImGui::GetIO().MouseDrawCursor = false;
-    }
-    else if (glfwGetKey(m_pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    } else if (glfwGetKey(m_pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         m_windowStatus = WindowStatus::UI;
         ImGui::GetIO().MouseDrawCursor = true;

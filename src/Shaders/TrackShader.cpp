@@ -51,12 +51,12 @@ void TrackShader::bindTextureArray(GLuint textureArrayID) {
     glUniform1i(trackTextureArrayLocation, 0);
 }
 
-void TrackShader::loadLights(std::vector<Light> lights) {
+void TrackShader::loadLights(const std::vector<shared_ptr<BaseLight>> &lights) {
     for(int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
         if(i < lights.size()){
-            loadVec3(lightPositionLocation[i], lights[i].position);
-            loadVec4(lightColourLocation[i], lights[i].colour);
-            loadVec3(attenuationLocation[i], lights[i].attenuation);
+            loadVec3(lightPositionLocation[i], lights[i]->position);
+            loadVec4(lightColourLocation[i], lights[i]->colour);
+            loadVec3(attenuationLocation[i], lights[i]->attenuation);
         } else {
             loadVec3(lightPositionLocation[i], glm::vec3(0,0,0));
             loadVec4(lightColourLocation[i], glm::vec4(0,0,0,0));

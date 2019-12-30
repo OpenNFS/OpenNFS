@@ -124,7 +124,7 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
                 collisionMask |= COL_TRACK;
             }
             // Move Rigid body to correct place in world
-            btTransform initialTransform = Utils::MakeTransform(boost::get<Track>(object.glMesh).initialPosition, boost::get<Track>(object.glMesh).orientation);
+            btTransform initialTransform = Utils::MakeTransform(boost::get<Track>(object.raw).initialPosition, boost::get<Track>(object.raw).orientation);
             object.rigidBody->setWorldTransform(initialTransform);
             m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }

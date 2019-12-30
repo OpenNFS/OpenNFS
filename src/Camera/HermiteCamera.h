@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Camera.h"
+#include "BaseCamera.h"
 #include "../Renderer/HermiteCurve.h"
 
-class HermiteCamera : public Camera {
+class HermiteCamera : public BaseCamera {
 public:
     explicit HermiteCamera() = default;
     HermiteCamera(const HermiteCurve &trackCenterSpline, GLFWwindow *window);

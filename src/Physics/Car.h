@@ -9,7 +9,7 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "../RaceNet/RaceNet.h"
-#include "../Scene/Spotlight.h"
+#include "../Scene/Lights/Spotlight.h"
 #include "../Scene/CarModel.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"

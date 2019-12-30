@@ -1,8 +1,8 @@
 #include "HermiteCamera.h"
 
 HermiteCamera::HermiteCamera(const HermiteCurve &trackCenterSpline, GLFWwindow *window) :
-Camera(CameraMode::HERMITE_FLYTHROUGH, window),
-m_trackCameraRail(trackCenterSpline)
+        BaseCamera(CameraMode::HERMITE_FLYTHROUGH, window),
+        m_trackCameraRail(trackCenterSpline)
 {
     m_loopTime = static_cast<int>(m_trackCameraRail.GetLength()) * 100;
 }

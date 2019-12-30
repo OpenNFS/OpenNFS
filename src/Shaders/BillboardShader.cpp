@@ -12,11 +12,9 @@ BillboardShader::BillboardShader() : super(vertexSrc, fragSrc){
 void BillboardShader::bindAttributes() {
     bindAttribute(0 ,"vertexPosition_modelspace");
     bindAttribute(1 ,"vertexUV");
-    bindAttribute(2 ,"normal");
 }
 
 void BillboardShader::getAllUniformLocations() {
-    transformationMatrixLocation = getUniformLocation("transformationMatrix");
     projectionMatrixLocation = getUniformLocation("projectionMatrix");
     viewMatrixLocation = getUniformLocation("viewMatrix");
     boardTextureLocation = getUniformLocation("boardTextureSampler");
@@ -30,16 +28,15 @@ void BillboardShader::loadBillboardTexture(){
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
 
-void BillboardShader::loadLight(Light board_light) {
-    loadVec4(lightColourLocation, board_light.colour);
-    loadVec3(billboardPosLocation, board_light.position);
+void BillboardShader::loadLight(const std::shared_ptr<TrackLight> &light) {
+    loadVec4(lightColourLocation, light->colour);
+    loadVec3(billboardPosLocation, light->position);
     loadBillboardTexture();
 }
 
-void BillboardShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation) {
+void BillboardShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view) {
     loadMat4(viewMatrixLocation, &view[0][0]);
     loadMat4(projectionMatrixLocation, &projection[0][0]);
-    loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
 
