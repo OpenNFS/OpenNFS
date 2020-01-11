@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "RawData.h"
+#include "IFrdData.h"
 
 const uint8_t NUM_POLYGON_BLOCKS = 7;
 const uint8_t NUM_POLYOBJ_CHUNKS = 4;
@@ -17,7 +17,7 @@ struct ObjectPolyBlock  // a POLYOBJ chunk
     std::vector<std::vector<PolygonData>> poly;// the polygons themselves
 };
 
-class PolyBlock : private RawData
+class PolyBlock : private IFrdData
 {
 public:
     PolyBlock() = default;

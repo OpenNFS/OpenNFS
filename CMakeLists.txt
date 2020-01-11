@@ -201,7 +201,7 @@ set(SOURCE_FILES
         src/Loaders/NFS3/PolyBlock.h
         src/Loaders/NFS3/ExtraObjectBlock.cpp
         src/Loaders/NFS3/ExtraObjectBlock.h
-        src/Loaders/NFS3/RawData.h
+        src/Loaders/NFS3/IFrdData.h
         src/Loaders/NFS3/TexBlock.cpp
         src/Loaders/NFS3/TexBlock.h)
 

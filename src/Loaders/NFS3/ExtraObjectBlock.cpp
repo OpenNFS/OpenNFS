@@ -39,7 +39,7 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &frd)
                 return false;
             }
 
-            x.animData.reserve(x.nAnimLength);
+            x.animData.resize(x.nAnimLength);
             SAFE_READ(frd, x.animData.data(), sizeof(AnimData) * x.nAnimLength);
             // make a ref point from first anim position
             x.ptRef.x = (float) (x.animData[0].pt.x / 65536.0);
@@ -52,18 +52,18 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &frd)
         SAFE_READ(frd, &(x.nVertices), sizeof(uint32_t));
 
         // Get vertices
-        x.vert.reserve(x.nVertices);
+        x.vert.resize(x.nVertices);
         SAFE_READ(frd, x.vert.data(), sizeof(glm::vec3) * x.nVertices);
 
         // Per vertex shading data (RGBA)
-        x.vertShading.reserve(x.nVertices);
+        x.vertShading.resize(x.nVertices);
         SAFE_READ(frd, x.vertShading.data(), sizeof(uint32_t) * x.nVertices);
 
         // Get number of polygons
         SAFE_READ(frd, &(x.nPolygons), sizeof(uint32_t));
 
         // Grab the polygons
-        x.polyData.reserve(x.nPolygons);
+        x.polyData.resize(x.nPolygons);
         SAFE_READ(frd, x.polyData.data(), sizeof(PolygonData) * x.nPolygons);
 
         obj.push_back(x);

@@ -204,9 +204,11 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
     can_path << track_base_path << "/" << track->name << "00a.can";
     hrz_path << track_base_path << "/3" << track->name << ".hrz";
 
+    FrdFile frdFile;
+
     ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_3),
            "Could not extract " << track->name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track->name, track),
+    ASSERT(FrdFile::LoadFRD(frd_path.str(), frdFile),
            "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
             << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
@@ -215,8 +217,13 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
     ASSERT(LoadHRZ(hrz_path.str(), track),
            "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
 
+    // Load QFS texture into GL objects
+    for(auto &frdTexBlock : frdFile.textureBlocks)
+    {
+        track->textures[frdTexBlock.texture] = LoadTexture(frdTexBlock, track->name);
+    }
     track->textureArrayID = MakeTextureArray(track->textures, false);
-    track->track_blocks = ParseTRKModels(track);
+    track->track_blocks = ParseTRKModels(frdFile, track);
     track->global_objects = ParseCOLModels(track);
 
     LOG(INFO) << "Track loaded successfully";
@@ -295,188 +302,6 @@ bool NFS3::LoadFFN(const std::string &ffn_path)
 
     //ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
     return true;
-}
-
-bool NFS3::LoadFRD(std::string frd_path, const std::string &track_name, const std::shared_ptr<TRACK> &track)
-{
-    std::ifstream ar(frd_path, std::ios::in | std::ios::binary);
-
-    char header[28]; /* file header */
-    SAFE_READ(ar, header, 28); // header & numblocks
-    SAFE_READ(ar, &track->nBlocks, 4);
-    track->nBlocks++;
-    if ((track->nBlocks < 1) || (track->nBlocks > 500))
-    { return false; } // 1st sanity check
-
-    LOG(INFO) << "Loading FRD File located at " << frd_path;
-
-    track->trk = new TRKBLOCK[track->nBlocks]();
-    track->poly = new POLYGONBLOCK[track->nBlocks]();
-    track->xobj = new XOBJBLOCK[4 * track->nBlocks + 1]();
-
-    int l;
-    SAFE_READ(ar, &l, 4); // choose between NFS3 & NFSHS
-    if ((l < 0) || (l > 5000)) track->bHSMode = false;
-    else if (((l + 7) / 8) == track->nBlocks) track->bHSMode = true;
-    else return false; // unknown file type
-
-    memcpy(track->trk, &l, 4);
-    if (ar.read(((char *) track->trk) + 4, 80).gcount() != 80) return false;
-
-    // TRKBLOCKs
-    for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++)
-    {
-        TRKBLOCK *trackBlock = &(track->trk[block_Idx]);
-        // ptCentre, ptBounding, 6 nVertices == 84 bytes
-        if (block_Idx != 0)
-        { SAFE_READ(ar, trackBlock, 84); }
-        if (trackBlock->nVertices == 0) return false;
-        trackBlock->vert = new FLOATPT[trackBlock->nVertices];
-
-        SAFE_READ(ar, trackBlock->vert, 12 * trackBlock->nVertices);
-        trackBlock->unknVertices = new uint32_t[trackBlock->nVertices];
-        SAFE_READ(ar, trackBlock->unknVertices, 4 * trackBlock->nVertices);
-        SAFE_READ(ar, trackBlock->nbdData, 4 * 0x12c);
-        // nStartPos & various blk sizes == 32 bytes
-        SAFE_READ(ar, &(trackBlock->nStartPos), 32);
-
-        if (block_Idx > 0)
-            if (trackBlock->nStartPos !=
-                track->trk[block_Idx - 1].nStartPos + track->trk[block_Idx - 1].nPositions)
-                return false;
-        trackBlock->posData = new POSITIONDATA[trackBlock->nPositions];
-        SAFE_READ(ar, trackBlock->posData, 8 * trackBlock->nPositions);
-
-        trackBlock->polyData = new POLYVROADDATA[trackBlock->nPolygons];
-
-        for (uint32_t j = 0; j < trackBlock->nPolygons; j++)
-            SAFE_READ(ar, trackBlock->polyData + j, 8);
-
-        trackBlock->vroadData = new VROADDATA[trackBlock->nVRoad];
-        SAFE_READ(ar, trackBlock->vroadData, 12 * trackBlock->nVRoad);
-
-        if (trackBlock->nXobj > 0)
-        {
-            trackBlock->xobj = new REFXOBJ[trackBlock->nXobj];
-            SAFE_READ(ar, trackBlock->xobj, 20 * trackBlock->nXobj);
-        }
-        if (trackBlock->nPolyobj > 0)
-        {
-            ar.seekg(20 * trackBlock->nPolyobj, std::ios_base::cur);
-        }
-        trackBlock->nPolyobj = 0;
-        if (trackBlock->nSoundsrc > 0)
-        {
-            trackBlock->soundsrc = new SOUNDSRC[trackBlock->nSoundsrc];
-            SAFE_READ(ar, trackBlock->soundsrc, 16 * trackBlock->nSoundsrc);
-        }
-        if (trackBlock->nLightsrc > 0)
-        {
-            trackBlock->lightsrc = new LIGHTSRC[trackBlock->nLightsrc];
-            SAFE_READ(ar, trackBlock->lightsrc, 16 * trackBlock->nLightsrc);
-        }
-    }
-
-    // POLYGONBLOCKs
-    for (uint32_t block_Idx = 0; block_Idx < track->nBlocks; block_Idx++)
-    {
-        POLYGONBLOCK *p = &(track->poly[block_Idx]);
-        for (uint32_t j = 0; j < 7; j++)
-        {
-            SAFE_READ(ar, &(p->sz[j]), 0x4);
-            if (p->sz[j] != 0)
-            {
-                SAFE_READ(ar, &(p->szdup[j]), 0x4);
-                if (p->szdup[j] != p->sz[j]) return false;
-                p->poly[j] = static_cast<LPPOLYGONDATA>(calloc(p->sz[j], sizeof(POLYGONDATA)));
-                SAFE_READ(ar, p->poly[j], 14 * p->sz[j]);
-            }
-        }
-        if (p->sz[4] != track->trk[block_Idx].nPolygons) return false; // sanity check
-        for (uint32_t obj_Idx = 0; obj_Idx < 4; obj_Idx++)
-        {
-            OBJPOLYBLOCK *o = &(p->obj[obj_Idx]);
-            SAFE_READ(ar, &(o->n1), 0x4);
-            if (o->n1 > 0)
-            {
-                SAFE_READ(ar, &(o->n2), 0x4);
-                o->types = new uint32_t[o->n2];
-                o->numpoly = new uint32_t[o->n2];
-                o->poly = new LPPOLYGONDATA[o->n2];
-                o->nobj = 0;
-                l = 0;
-                for (uint32_t k = 0; k < o->n2; k++)
-                {
-                    SAFE_READ(ar, o->types + k, 0x4);
-                    if (o->types[k] == 1)
-                    {
-                        SAFE_READ(ar, o->numpoly + o->nobj, 0x4);
-                        o->poly[o->nobj] = static_cast<LPPOLYGONDATA>(calloc(o->numpoly[o->nobj], sizeof(POLYGONDATA)));
-                        SAFE_READ(ar, o->poly[o->nobj], 14 * o->numpoly[o->nobj]);
-                        l += o->numpoly[o->nobj];
-                        o->nobj++;
-                    }
-                }
-                if (l != o->n1) return false; // n1 == total nb polygons
-            }
-        }
-    }
-
-    // XOBJBLOCKs
-    for (uint32_t xblock_Idx = 0; xblock_Idx <= 4 * track->nBlocks; xblock_Idx++)
-    {
-        SAFE_READ(ar, &(track->xobj[xblock_Idx].nobj), 4);
-        if (track->xobj[xblock_Idx].nobj > 0)
-        {
-            track->xobj[xblock_Idx].obj = new XOBJDATA[track->xobj[xblock_Idx].nobj];
-        }
-        for (uint32_t xobj_Idx = 0; xobj_Idx < track->xobj[xblock_Idx].nobj; xobj_Idx++)
-        {
-            XOBJDATA *x = &(track->xobj[xblock_Idx].obj[xobj_Idx]);
-            // 3 headers == 12 bytes
-            SAFE_READ(ar, x, 12);
-            if (x->crosstype == 4)
-            { // basic objects
-                SAFE_READ(ar, &(x->ptRef), 12);
-                SAFE_READ(ar, &(x->AnimMemory), 4);
-            }
-            else if (x->crosstype == 3)
-            { // animated objects
-                // unkn3, type3, objno, nAnimLength, unkn4 == 24 bytes
-                SAFE_READ(ar, x->unknown3, 24);
-                if (x->type3 != 3) return false;
-                x->animData = new ANIMDATA[x->nAnimLength];
-                SAFE_READ(ar, x->animData, 20 * x->nAnimLength);
-                // make a ref point from first anim position
-                x->ptRef.x = (float) (x->animData->pt.x / 65536.0);
-                x->ptRef.z = (float) (x->animData->pt.z / 65536.0);
-                x->ptRef.y = (float) (x->animData->pt.y / 65536.0);
-            }
-            else return false; // unknown object type
-
-            // common part : vertices & polygons
-            SAFE_READ(ar, &(x->nVertices), 4);
-            x->vert = new FLOATPT[x->nVertices];
-            SAFE_READ(ar, x->vert, 12 * x->nVertices);
-            x->unknVertices = new uint32_t[x->nVertices];
-            SAFE_READ(ar, x->unknVertices, 4 * x->nVertices);
-            SAFE_READ(ar, &(x->nPolygons), 4);
-            x->polyData = new POLYGONDATA[x->nPolygons];
-            SAFE_READ(ar, x->polyData, 14 * x->nPolygons);
-        }
-    }
-
-    // TEXTUREBLOCKs
-    SAFE_READ(ar, &track->nTextures, 4);
-    track->texture = new TEXTUREBLOCK[track->nTextures];
-    for (uint32_t tex_Idx = 0; tex_Idx < track->nTextures; tex_Idx++)
-    {
-        SAFE_READ(ar, &(track->texture[tex_Idx]), 47);
-        track->textures[track->texture[tex_Idx].texture] = LoadTexture(track->texture[tex_Idx], track_name);
-    }
-
-    uint32_t pad;
-    return ar.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
 }
 
 bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track)
@@ -643,21 +468,20 @@ bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track)
     return true;
 }
 
-std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track)
+std::vector<TrackBlock> NFS3::ParseTRKModels(const FrdFile &frdFile, const std::shared_ptr<TRACK> &track)
 {
     LOG(INFO) << "Parsing TRK file into ONFS GL structures";
 
     std::vector<TrackBlock> trackBlocks = std::vector<TrackBlock>();
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
-    for (uint32_t trackblockIdx = 0; trackblockIdx < track->nBlocks; ++trackblockIdx)
+    for (uint32_t trackblockIdx = 0; trackblockIdx < frdFile.nBlocks; ++trackblockIdx)
     {
         // Get Verts from Trk block, indices from associated polygon block
-        TRKBLOCK rawTrackBlock = track->trk[trackblockIdx];
-        POLYGONBLOCK trackPolygonBlock = track->poly[trackblockIdx];
+        TrkBlock rawTrackBlock = frdFile.trackBlocks[trackblockIdx];
+        PolyBlock trackPolygonBlock = frdFile.polygonBlocks[trackblockIdx];
 
-        glm::vec3 rawTrackBlockCenter = rotationMatrix * (Utils::PointToVec(rawTrackBlock.ptCentre) / NFS3_SCALE_FACTOR);
+        glm::vec3 rawTrackBlockCenter = rawTrackBlock.ptCentre / NFS3_SCALE_FACTOR;
         std::vector<glm::vec3> trackBlockVerts;
         std::vector<glm::vec4> trackBlockShadingData;
 
@@ -666,23 +490,23 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
         // Light and sound sources
         for (uint32_t lightNum = 0; lightNum < rawTrackBlock.nLightsrc; ++lightNum)
         {
-            glm::vec3 lightCenter = rotationMatrix * (Utils::FixedToFloat(Utils::PointToVec(rawTrackBlock.lightsrc[lightNum].refpoint)) / NFS3_SCALE_FACTOR);
+            glm::vec3 lightCenter = Utils::FixedToFloat(Utils::PointToVec(rawTrackBlock.lightsrc[lightNum].refpoint)) / NFS3_SCALE_FACTOR;
             trackBlock.lights.emplace_back(Entity(trackblockIdx, lightNum, NFS_3, LIGHT, MakeLight(lightCenter, rawTrackBlock.lightsrc[lightNum].type), 0));
         }
         for (uint32_t soundNum = 0; soundNum < rawTrackBlock.nSoundsrc; ++soundNum)
         {
-            glm::vec3 soundCenter = rotationMatrix * (Utils::FixedToFloat(Utils::PointToVec(rawTrackBlock.soundsrc[soundNum].refpoint)) / NFS3_SCALE_FACTOR);
+            glm::vec3 soundCenter = Utils::FixedToFloat(Utils::PointToVec(rawTrackBlock.soundsrc[soundNum].refpoint)) / NFS3_SCALE_FACTOR;
             trackBlock.sounds.emplace_back(Entity(trackblockIdx, soundNum, NFS_3, SOUND, Sound(soundCenter, rawTrackBlock.soundsrc[soundNum].type), 0));
         }
 
         // Get Trackblock roadVertices and per-vertex shading data
         for (uint32_t vertIdx = 0; vertIdx < rawTrackBlock.nObjectVert; ++vertIdx)
         {
-            glm::vec3 trackBlockVertex = (rotationMatrix * (Utils::PointToVec(rawTrackBlock.vert[vertIdx]) / NFS3_SCALE_FACTOR)) - rawTrackBlockCenter;
+            glm::vec3 trackBlockVertex = (rawTrackBlock.vert[vertIdx] / NFS3_SCALE_FACTOR) - rawTrackBlockCenter;
             trackBlockVerts.emplace_back(trackBlockVertex);
 
             // Packed RGBA per vertex colour data for baked lighting
-            uint32_t trackBlockVertexShadingRaw = rawTrackBlock.unknVertices[vertIdx];
+            uint32_t trackBlockVertexShadingRaw = rawTrackBlock.vertShading[vertIdx];
             // Break uint32_t of RGB into 4 normalised floats and store into vec4
             glm::vec4 trackBlockVertexShadingColour = glm::vec4(((trackBlockVertexShadingRaw >> 16) & 0xFF) / 255.0f,
                                                                 ((trackBlockVertexShadingRaw >> 8) & 0xFF) / 255.0f,
@@ -694,7 +518,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
         // 4 OBJ Poly blocks
         for (uint32_t j = 0; j < 4; j++)
         {
-            OBJPOLYBLOCK polygonBlock = trackPolygonBlock.obj[j];
+            ObjectPolyBlock polygonBlock = trackPolygonBlock.obj[j];
 
             if (polygonBlock.n1 > 0)
             {
@@ -702,7 +526,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 for (uint32_t objectIdx = 0; objectIdx < polygonBlock.nobj; ++objectIdx)
                 {
                     // Get Polygons in object
-                    LPPOLYGONDATA objectPolygons = polygonBlock.poly[objectIdx];
+                    std::vector<PolygonData> objectPolygons = polygonBlock.poly[objectIdx];
 
                     // Mesh Data
                     std::vector<unsigned int> vertexIndices;
@@ -714,15 +538,14 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     for (uint32_t polyIdx = 0; polyIdx < polygonBlock.numpoly[objectIdx]; polyIdx++)
                     {
                         // Texture for this polygon and it's loaded OpenGL equivalent
-                        TEXTUREBLOCK polygonTexture = track->texture[objectPolygons[polyIdx].texture];
+                        TexBlock polygonTexture = frdFile.textureBlocks[objectPolygons[polyIdx].texture];
                         Texture glTexture = track->textures[polygonTexture.texture];
 
                         // Calculate the normal, as the provided data is a little suspect
-                        glm::vec3 normal = rotationMatrix *
-                                           CalculateQuadNormal(PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[0]]),
-                                                               PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[1]]),
-                                                               PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[2]]),
-                                                               PointToVec(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[3]]));
+                        glm::vec3 normal = CalculateQuadNormal(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[0]],
+                                                               rawTrackBlock.vert[objectPolygons[polyIdx].vertex[1]],
+                                                               rawTrackBlock.vert[objectPolygons[polyIdx].vertex[2]],
+                                                               rawTrackBlock.vert[objectPolygons[polyIdx].vertex[3]]);
 
                         normals.emplace_back(normal);
                         normals.emplace_back(normal);
@@ -763,10 +586,10 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
         /* XOBJS - EXTRA OBJECTS */
         for (uint32_t l = (trackblockIdx * 4); l < (trackblockIdx * 4) + 4; ++l)
         {
-            for (uint32_t j = 0; j < track->xobj[l].nobj; ++j)
+            for (uint32_t j = 0; j < frdFile.extraObjectBlocks[l].nobj; ++j)
             {
                 // Get the Extra object data for this trackblock object from the global xobj table
-                XOBJDATA *pExtraObjectData = &(track->xobj[l].obj[j]);
+                ExtraObjectData extraObjectData = frdFile.extraObjectBlocks[l].obj[j];
 
                 // Mesh Data
                 std::vector<glm::vec3> extraObjectVerts;
@@ -777,12 +600,13 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 std::vector<glm::vec3> normals;
                 uint32_t accumulatedObjectFlags = 0u;
 
-                for (uint32_t vertIdx = 0; vertIdx < pExtraObjectData->nVertices; vertIdx++, pExtraObjectData->vert++)
+                for (uint32_t vertIdx = 0; vertIdx < extraObjectData.nVertices; vertIdx++)
                 {
-                    glm::vec3 extraObjectVertex = rotationMatrix * (glm::vec3(pExtraObjectData->vert->x, pExtraObjectData->vert->y, pExtraObjectData->vert->z) / NFS3_SCALE_FACTOR);
+
+                    glm::vec3 extraObjectVertex = extraObjectData.vert[vertIdx] / NFS3_SCALE_FACTOR;
                     extraObjectVerts.emplace_back(extraObjectVertex);
 
-                    uint32_t extraObjectVertexShadingRaw = pExtraObjectData->unknVertices[vertIdx];
+                    uint32_t extraObjectVertexShadingRaw =  extraObjectData.vertShading[vertIdx];
                     glm::vec4 extraObjectVertexShadingColour = glm::vec4(((extraObjectVertexShadingRaw >> 16) & 0xFF) / 255.0f,
                                                                          ((extraObjectVertexShadingRaw >> 8) & 0xFF) / 255.0f,
                                                                          (extraObjectVertexShadingRaw & 0xFF) / 255.0f,
@@ -790,15 +614,15 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     extraObjectShadingData.emplace_back(extraObjectVertexShadingColour);
                 }
 
-                for (uint32_t k = 0; k < pExtraObjectData->nPolygons; k++, pExtraObjectData->polyData++)
+                for (uint32_t k = 0; k < extraObjectData.nPolygons; k++)
                 {
-                    TEXTUREBLOCK texture_for_block = track->texture[pExtraObjectData->polyData->texture];
+                    TexBlock texture_for_block = frdFile.textureBlocks[extraObjectData.polyData[k].texture];
                     Texture gl_texture = track->textures[texture_for_block.texture];
 
-                    glm::vec3 normal = rotationMatrix * CalculateQuadNormal(PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[0]]),
-                                                                            PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[1]]),
-                                                                            PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[2]]),
-                                                                            PointToVec(extraObjectVerts[pExtraObjectData->polyData->vertex[3]]));
+                    glm::vec3 normal = CalculateQuadNormal(extraObjectVerts[extraObjectData.polyData[k].vertex[0]],
+                                                                            extraObjectVerts[extraObjectData.polyData[k].vertex[1]],
+                                                                            extraObjectVerts[extraObjectData.polyData[k].vertex[2]],
+                                                                            extraObjectVerts[extraObjectData.polyData[k].vertex[3]]);
                     normals.emplace_back(normal);
                     normals.emplace_back(normal);
                     normals.emplace_back(normal);
@@ -806,15 +630,14 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     normals.emplace_back(normal);
                     normals.emplace_back(normal);
 
-                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[0]);
-                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[1]);
-                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[2]);
-                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[0]);
-                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[2]);
-                    vertexIndices.emplace_back(pExtraObjectData->polyData->vertex[3]);
+                    vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[0]);
+                    vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[1]);
+                    vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[2]);
+                    vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[0]);
+                    vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[2]);
+                    vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[3]);
 
-                    std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, XOBJ, pExtraObjectData->polyData->hs_texflags,
-                                                                        gl_texture, texture_for_block);
+                    std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, XOBJ, extraObjectData.polyData[k].hs_texflags, gl_texture, texture_for_block);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     textureIndices.emplace_back(texture_for_block.texture);
@@ -824,9 +647,9 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     textureIndices.emplace_back(texture_for_block.texture);
                     textureIndices.emplace_back(texture_for_block.texture);
 
-                    accumulatedObjectFlags |= pExtraObjectData->polyData->flags;
+                    accumulatedObjectFlags |= extraObjectData.polyData[k].flags;
                 }
-                glm::vec3 extraObjectCenter = rotationMatrix * Utils::PointToVec(pExtraObjectData->ptRef) / NFS3_SCALE_FACTOR;
+                glm::vec3 extraObjectCenter = extraObjectData.ptRef / NFS3_SCALE_FACTOR;
                 Track extraObjectModel = Track(extraObjectVerts, normals, uvs, textureIndices, vertexIndices, extraObjectShadingData, extraObjectCenter);
                 Entity extraObjectEntity = Entity(trackblockIdx, l, NFS_3, XOBJ, extraObjectModel, accumulatedObjectFlags);
                 trackBlock.objects.emplace_back(extraObjectEntity);
@@ -844,10 +667,10 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
 
         for (uint32_t vertIdx = 0; vertIdx < rawTrackBlock.nVertices; ++vertIdx)
         {
-            glm::vec3 roadVertex = (rotationMatrix * (Utils::PointToVec(rawTrackBlock.vert[vertIdx]) / NFS3_SCALE_FACTOR)) - rawTrackBlockCenter;
+            glm::vec3 roadVertex = (Utils::PointToVec(rawTrackBlock.vert[vertIdx]) / NFS3_SCALE_FACTOR) - rawTrackBlockCenter;
             roadVertices.emplace_back(roadVertex);
 
-            uint32_t roadVertexShadingRaw = rawTrackBlock.unknVertices[vertIdx];
+            uint32_t roadVertexShadingRaw = rawTrackBlock.vertShading[vertIdx];
             glm::vec4 roadVertexShadingColour = glm::vec4(((roadVertexShadingRaw >> 16) & 0xFF) / 255.0f,
                                                           ((roadVertexShadingRaw >> 8) & 0xFF) / 255.0f,
                                                           (roadVertexShadingRaw & 0xFF) / 255.0f,
@@ -864,18 +687,17 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const std::shared_ptr<TRACK> &track
             }
 
             // Get the polygon data for this road section
-            LPPOLYGONDATA chunkPolygonData = trackPolygonBlock.poly[lodChunkIdx];
+            std::vector<PolygonData> chunkPolygonData = trackPolygonBlock.poly[lodChunkIdx];
 
             for (uint32_t polyIdx = 0; polyIdx < trackPolygonBlock.sz[lodChunkIdx]; polyIdx++)
             {
-                TEXTUREBLOCK polygonTexture = track->texture[chunkPolygonData[polyIdx].texture];
+                TexBlock polygonTexture = frdFile.textureBlocks[chunkPolygonData[polyIdx].texture];
                 Texture gl_texture = track->textures[polygonTexture.texture];
 
-                glm::vec3 normal = rotationMatrix *
-                                   CalculateQuadNormal(PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[0]]),
-                                                       PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[1]]),
-                                                       PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[2]]),
-                                                       PointToVec(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[3]]));
+                glm::vec3 normal = CalculateQuadNormal(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[0]],
+                                                       rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[1]],
+                                                       rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[2]],
+                                                       rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[3]]);
 
                 normals.emplace_back(normal);
                 normals.emplace_back(normal);
@@ -1004,27 +826,27 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track)
     return col_entities;
 }
 
-Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_name)
+Texture NFS3::LoadTexture(TexBlock trackTexture, const std::string &trackName)
 {
     std::stringstream filename;
     std::stringstream filename_alpha;
 
-    if (track_texture.islane)
+    if (trackTexture.isLane)
     {
-        filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << track_texture.texture + 9 << ".BMP";
-        filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << track_texture.texture + 9 << "-a.BMP";
+        filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.texture + 9 << ".BMP";
+        filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.texture + 9 << "-a.BMP";
     }
     else
     {
-        filename << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << std::setfill('0') << std::setw(4)
-                 << track_texture.texture << ".BMP";
-        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << track_name << "/textures/" << std::setfill('0') << std::setw(4)
-                       << track_texture.texture << "-a.BMP";
+        filename << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4)
+                 << trackTexture.texture << ".BMP";
+        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4)
+                       << trackTexture.texture << "-a.BMP";
     }
 
     GLubyte *data;
-    GLsizei width = track_texture.width;
-    GLsizei height = track_texture.height;
+    GLsizei width = trackTexture.width;
+    GLsizei height = trackTexture.height;
 
     if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height))
     {
@@ -1032,10 +854,10 @@ Texture NFS3::LoadTexture(TEXTUREBLOCK track_texture, const std::string &track_n
         // If the texture is missing, load a "MISSING" texture of identical size.
         ASSERT(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data,
                                              &width, &height), "Even the 'missing' texture is missing!");
-        return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(width),
+        return Texture((unsigned int) trackTexture.texture, data, static_cast<unsigned int>(width),
                        static_cast<unsigned int>(height));
     }
 
-    return Texture((unsigned int) track_texture.texture, data, static_cast<unsigned int>(track_texture.width),
-                   static_cast<unsigned int>(track_texture.height));
+    return Texture((unsigned int) trackTexture.texture, data, static_cast<unsigned int>(trackTexture.width),
+                   static_cast<unsigned int>(trackTexture.height));
 }

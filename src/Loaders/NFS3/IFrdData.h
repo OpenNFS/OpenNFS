@@ -21,7 +21,7 @@ struct PolygonData
     unsigned char unknown2; // F9
 };
 
-class RawData
+class IFrdData
 {
 public:
     virtual bool _SerializeIn(std::ifstream &frd) = 0;

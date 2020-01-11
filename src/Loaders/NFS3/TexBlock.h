@@ -1,8 +1,8 @@
 #pragma once
 
-#include "RawData.h"
+#include "IFrdData.h"
 
-class TexBlock : public RawData
+class TexBlock : public IFrdData
 {
 public:
     TexBlock() = default;

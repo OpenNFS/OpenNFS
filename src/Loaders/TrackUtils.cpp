@@ -332,8 +332,7 @@ namespace TrackUtils {
         return uvs;
     }
 
-    std::vector<glm::vec2> GenerateUVs(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture,
-                                       NFS3_4_DATA::TEXTUREBLOCK texture_block) {
+    std::vector<glm::vec2> GenerateUVs(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture, TexBlock texture_block) {
         std::bitset<32> textureAlignment(textureFlags);
         std::vector<glm::vec2> uvs;
 

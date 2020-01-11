@@ -8,6 +8,7 @@
 #include <GL/glew.h>
 #include <boost/filesystem/operations.hpp>
 
+#include "../Loaders/NFS3/FrdFile.h"
 #include "../nfs_data.h"
 #include "../Config.h"
 #include "../Scene/Lights/TrackLight.h"
@@ -25,8 +26,7 @@ namespace TrackUtils {
 
     std::vector<glm::vec2> GenerateUVs(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture);
 
-    std::vector<glm::vec2> GenerateUVs(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture,
-                                       NFS3_4_DATA::TEXTUREBLOCK texture_block);
+    std::vector<glm::vec2> GenerateUVs(NFSVer tag, EntityType mesh_type, uint32_t textureFlags, Texture gl_texture, TexBlock texture_block);
 
     bool LoadCAN(std::string can_path, std::vector<SHARED::CANPT> &cameraAnimations);
 };

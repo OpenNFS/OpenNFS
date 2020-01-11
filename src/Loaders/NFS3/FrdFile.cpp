@@ -1,13 +1,21 @@
 #include "FrdFile.h"
 
-FrdFile::FrdFile(const std::string &frdPath)
+bool FrdFile::LoadFRD(const std::string &frdPath, FrdFile &frdFile)
 {
     LOG(INFO) << "Loading FRD File located at " << frdPath;
     std::ifstream frd(frdPath, std::ios::in | std::ios::binary);
 
-    ASSERT(this->_SerializeIn(frd), "Failed to serialize Frd from file stream");
-
+    bool loadStatus = frdFile._SerializeIn(frd);
     frd.close();
+
+    return loadStatus;
+}
+
+void FrdFile::SaveFRD(const std::string &frdPath, FrdFile &frdFile)
+{
+    LOG(INFO) << "Saving FRD File to " << frdPath;
+    std::ofstream frd(frdPath, std::ios::out | std::ios::binary);
+    frdFile.SerializeOut(frd);
 }
 
 bool FrdFile::_SerializeIn(std::ifstream &frd)
@@ -57,7 +65,7 @@ bool FrdFile::_SerializeIn(std::ifstream &frd)
         polygonBlocks.emplace_back(PolyBlock(frd, trackBlocks[blockIdx].nPolygons));
     }
     // Extra Track Geometry
-    for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
+    for (uint32_t blockIdx = 0; blockIdx <= 4 * nBlocks; ++blockIdx)
     {
         extraObjectBlocks.emplace_back(ExtraObjectBlock(frd));
     }
@@ -105,3 +113,5 @@ void FrdFile::SerializeOut(std::ofstream &frd)
 
     frd.close();
 }
+
+

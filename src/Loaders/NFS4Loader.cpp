@@ -780,9 +780,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         vertex_indices.emplace_back(object_polys[p].vertex[2]);
                         vertex_indices.emplace_back(object_polys[p].vertex[3]);
 
-                        std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_4, OBJ_POLY,
-                                                                            object_polys[p].hs_texflags, gl_texture,
-                                                                            texture_for_block);
+                        std::vector<glm::vec2> transformedUVs;// = GenerateUVs(NFS_4, OBJ_POLY, object_polys[p].hs_texflags, gl_texture, texture_for_block);
                         uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
@@ -837,8 +835,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     vertex_indices.emplace_back(x->polyData->vertex[2]);
                     vertex_indices.emplace_back(x->polyData->vertex[3]);
 
-                    std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_4, XOBJ, x->polyData->hs_texflags,
-                                                                        gl_texture, texture_for_block);
+                    std::vector<glm::vec2> transformedUVs;// = GenerateUVs(NFS_4, XOBJ, x->polyData->hs_texflags,gl_texture, texture_for_block);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
@@ -894,9 +891,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 vertex_indices.emplace_back(poly_chunk[k].vertex[2]);
                 vertex_indices.emplace_back(poly_chunk[k].vertex[3]);
 
-                std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_4, chnk == 6 ? LANE : ROAD,
-                                                                    poly_chunk[k].hs_texflags, gl_texture,
-                                                                    texture_for_block);
+                std::vector<glm::vec2> transformedUVs;// = GenerateUVs(NFS_4, chnk == 6 ? LANE : ROAD,poly_chunk[k].hs_texflags, gl_texture,texture_for_block);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
@@ -956,8 +951,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             vertex_indices.emplace_back(x->polyData->vertex[2]); // BR
             vertex_indices.emplace_back(x->polyData->vertex[3]); // BL
 
-            std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture,
-                                                                texture_for_block);
+            std::vector<glm::vec2> transformedUVs;// = GenerateUVs(NFS_4, XOBJ, x->polyData->hs_texflags, gl_texture,texture_for_block);
             uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
             texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));

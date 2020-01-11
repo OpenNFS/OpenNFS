@@ -60,10 +60,6 @@ public:
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
         ASSERT(loadedAssets.trackTag != UNKNOWN, "Unknown track type!");
 
-        FrdFile test("../resources/NFS_3/gamedata/tracks/trk000/tr00.frd");
-        std::ofstream newFrd("./test.frd", std::ios::out | std::ios::binary);
-        test.SerializeOut(newFrd);
-
         /*------- Render --------*/
         while (loadedAssets.trackTag != UNKNOWN) {
             /*------ ASSET LOAD ------*/

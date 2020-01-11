@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RawData.h"
+#include "IFrdData.h"
 
 struct AnimData {
     IntPoint pt;
@@ -28,7 +28,7 @@ struct ExtraObjectData {
     std::vector<PolygonData> polyData;
 };
 
-class ExtraObjectBlock : RawData
+class ExtraObjectBlock : IFrdData
 {
 public:
     ExtraObjectBlock() = default;

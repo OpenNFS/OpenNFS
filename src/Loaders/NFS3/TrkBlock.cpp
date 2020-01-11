@@ -20,11 +20,11 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     { return false; }
 
     // Read Vertices
-    vert.reserve(nVertices);
+    vert.resize(nVertices);
     SAFE_READ(frd, vert.data(), sizeof(glm::vec3) * nVertices);
 
     // Read Vertices
-    vertShading.reserve(nVertices);
+    vertShading.resize(nVertices);
     SAFE_READ(frd, vertShading.data(), sizeof(uint32_t) * nVertices);
 
     // Read neighbouring block data
@@ -41,32 +41,32 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     SAFE_READ(frd, &nLightsrc, sizeof(uint32_t));
 
     // Read track position data
-    posData.reserve(nPositions);
+    posData.resize(nPositions);
     SAFE_READ(frd, posData.data(), sizeof(PositionData) * nPositions);
 
     // Read virtual road polygons
-    polyData.reserve(nPolygons);
+    polyData.resize(nPolygons);
     SAFE_READ(frd, polyData.data(), sizeof(PolyVRoadData) * nPolygons);
 
     // Read virtual road spline data
-    vroadData.reserve(nVRoad);
+    vroadData.resize(nVRoad);
     SAFE_READ(frd, vroadData.data(), sizeof(VRoadData) * nVRoad);
 
     // Read Extra object references
-    xobj.reserve(nXobj);
+    xobj.resize(nXobj);
     SAFE_READ(frd, xobj.data(), sizeof(RefExtraObject) * nXobj);
 
 
     // ?? Read unknown
-    polyObj.reserve(nPolyobj);
+    polyObj.resize(nPolyobj);
     SAFE_READ(frd, polyObj.data(), sizeof(PolyObject) * nPolyobj);
     //nPolyobj = 0;
 
     // Get the sound and light sources
-    soundsrc.reserve(nSoundsrc);
+    soundsrc.resize(nSoundsrc);
     SAFE_READ(frd, soundsrc.data(), sizeof(SoundSource) * nSoundsrc);
 
-    lightsrc.reserve(nLightsrc);
+    lightsrc.resize(nLightsrc);
     SAFE_READ(frd, lightsrc.data(), sizeof(LightSource) * nLightsrc);
 
 

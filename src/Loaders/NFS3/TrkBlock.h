@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RawData.h"
+#include "IFrdData.h"
 #include <glm/glm.hpp>
 
 struct PositionData  // enumerate polygons which lie at center
@@ -54,7 +54,7 @@ struct PolyObject
     uint8_t unknown[20];
 };
 
-class TrkBlock : public RawData
+class TrkBlock : public IFrdData
 {
 public:
     TrkBlock() = default;
