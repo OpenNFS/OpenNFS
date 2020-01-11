@@ -17,7 +17,7 @@ MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 if (NOT (APPLE OR UNIX OR MSVC))
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
-#[[Acknowledge VS2017 Aligned Storage Binary-Compar Breaking fix]]
+#[[Acknowledge VS2017 Aligned Storage Binary-Compat Breaking fix]]
 if(MSVC)
     add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
 endif ()
@@ -178,7 +178,32 @@ set(SOURCE_FILES
         src/Shaders/BulletShader.cpp
         src/Shaders/BulletShader.h
         src/Renderer/DebugRenderer.cpp
-        src/Renderer/DebugRenderer.h src/Race/RacerManager.cpp src/Race/RacerManager.h src/RaceNet/Agents/TrainingAgent.cpp src/RaceNet/Agents/TrainingAgent.h src/RaceNet/Agents/RacerAgent.cpp src/RaceNet/Agents/RacerAgent.h src/RaceNet/Agents/PlayerAgent.cpp src/RaceNet/Agents/PlayerAgent.h src/Race/OrbitalManager.cpp src/Race/OrbitalManager.h src/Scene/Lights/BaseLight.cpp src/Scene/Lights/BaseLight.h src/Scene/Lights/TrackLight.cpp src/Scene/Lights/TrackLight.h)
+        src/Renderer/DebugRenderer.h
+        src/Race/RacerManager.cpp
+        src/Race/RacerManager.h
+        src/RaceNet/Agents/TrainingAgent.cpp
+        src/RaceNet/Agents/TrainingAgent.h
+        src/RaceNet/Agents/RacerAgent.cpp
+        src/RaceNet/Agents/RacerAgent.h
+        src/RaceNet/Agents/PlayerAgent.cpp
+        src/RaceNet/Agents/PlayerAgent.h
+        src/Race/OrbitalManager.cpp
+        src/Race/OrbitalManager.h
+        src/Scene/Lights/BaseLight.cpp
+        src/Scene/Lights/BaseLight.h
+        src/Scene/Lights/TrackLight.cpp
+        src/Scene/Lights/TrackLight.h
+        src/Loaders/NFS3/FrdFile.cpp
+        src/Loaders/NFS3/FrdFile.h
+        src/Loaders/NFS3/TrkBlock.cpp
+        src/Loaders/NFS3/TrkBlock.h
+        src/Loaders/NFS3/PolyBlock.cpp
+        src/Loaders/NFS3/PolyBlock.h
+        src/Loaders/NFS3/ExtraObjectBlock.cpp
+        src/Loaders/NFS3/ExtraObjectBlock.h
+        src/Loaders/NFS3/RawData.h
+        src/Loaders/NFS3/TexBlock.cpp
+        src/Loaders/NFS3/TexBlock.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

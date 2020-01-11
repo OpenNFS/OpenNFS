@@ -24,6 +24,8 @@
 #include "Race/RaceSession.h"
 #include "RaceNet/TrainingGround.h"
 
+#include "Loaders/NFS3/FrdFile.h"
+
 class OpenNFS {
 public:
     explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
@@ -45,7 +47,6 @@ public:
     }
 
     void run() {
-        /*NFS4PS1Loader::LoadCar();*/
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
@@ -58,6 +59,8 @@ public:
 
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
         ASSERT(loadedAssets.trackTag != UNKNOWN, "Unknown track type!");
+
+        //FrdFile test("../resources/NFS_3/gamedata/tracks/trk000/tr00.frd");
 
         /*------- Render --------*/
         while (loadedAssets.trackTag != UNKNOWN) {
