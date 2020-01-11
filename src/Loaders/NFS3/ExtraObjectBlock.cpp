@@ -49,7 +49,7 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &frd)
         else return false; // unknown object type
 
         // Get number of vertices
-        SAFE_READ(frd, &(x.nVertices), 4);
+        SAFE_READ(frd, &(x.nVertices), sizeof(uint32_t));
 
         // Get vertices
         x.vert.reserve(x.nVertices);
@@ -74,5 +74,40 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &frd)
 
 void ExtraObjectBlock::SerializeOut(std::ofstream &frd)
 {
-    ASSERT(false, "ExtraObjectBlock serialization to file stream is not implemented");
+    frd.write((char*)&(nobj), sizeof(uint32_t));
+    
+    for (uint32_t xobjIdx = 0; xobjIdx < nobj; ++xobjIdx)
+    {
+        frd.write((char*)&obj[xobjIdx].crosstype, sizeof(uint32_t));
+        frd.write((char*)&obj[xobjIdx].crossno, sizeof(uint32_t));
+        frd.write((char*)&obj[xobjIdx].unknown, sizeof(uint32_t));
+
+        if (obj[xobjIdx].crosstype == 4)
+        {
+            // Basic objects
+            frd.write((char*)&obj[xobjIdx].ptRef, sizeof(glm::vec3));
+            frd.write((char*)&obj[xobjIdx].AnimMemory, sizeof(uint32_t));
+        }
+        else if (obj[xobjIdx].crosstype == 3)
+        {
+            // Animated objects
+            frd.write((char*)&obj[xobjIdx].unknown3, sizeof(uint16_t) * 9);
+            frd.write((char*)&obj[xobjIdx].type3, sizeof(uint8_t));
+            frd.write((char*)&obj[xobjIdx].objno, sizeof(uint8_t));
+            frd.write((char*)&obj[xobjIdx].nAnimLength, sizeof(uint16_t));
+            frd.write((char*)&obj[xobjIdx].AnimDelay, sizeof(uint16_t));
+            frd.write((char*)obj[xobjIdx].animData.data(), sizeof(AnimData) * obj[xobjIdx].nAnimLength);
+        }
+        frd.write((char*)&(obj[xobjIdx].nVertices), sizeof(uint32_t));
+        if(!obj[xobjIdx].vert.empty())
+        {
+            frd.write((char*)obj[xobjIdx].vert.data(), sizeof(glm::vec3) * obj[xobjIdx].nVertices);
+            frd.write((char*)obj[xobjIdx].vertShading.data(), sizeof(uint32_t) * obj[xobjIdx].nVertices);
+        }
+        frd.write((char*)&(obj[xobjIdx].nPolygons), sizeof(uint32_t));
+        if(!obj[xobjIdx].polyData.empty())
+        {
+            frd.write((char*)obj[xobjIdx].polyData.data(), sizeof(PolygonData) * obj[xobjIdx].nPolygons);
+        }
+    }
 }

@@ -102,4 +102,6 @@ void FrdFile::SerializeOut(std::ofstream &frd)
     }
 
     frd.write((char *) &m_pad, sizeof(uint32_t));
+
+    frd.close();
 }

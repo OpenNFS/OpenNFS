@@ -13,6 +13,7 @@ class FrdFile : RawData
 {
 public:
     FrdFile(const std::string &frdPath);
+    void SerializeOut(std::ofstream &frd) override;
 
     // Raw File data
     char header[HEADER_LENGTH];
@@ -27,5 +28,4 @@ public:
 
 private:
     bool _SerializeIn(std::ifstream &frd) override;
-    void SerializeOut(std::ofstream &frd) override;
 };

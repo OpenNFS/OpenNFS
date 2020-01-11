@@ -49,6 +49,11 @@ struct LightSource {
     uint32_t type;
 };
 
+struct PolyObject
+{
+    uint8_t unknown[20];
+};
+
 class TrkBlock : public RawData
 {
 public:
@@ -70,6 +75,7 @@ public:
     std::vector<PolyVRoadData> polyData; // polygon vroad references & flags
     std::vector<VRoadData> vroadData; // vroad vectors
     std::vector<RefExtraObject> xobj;
+    std::vector<PolyObject> polyObj; // Unknown Currently!
     std::vector<SoundSource> soundsrc;
     std::vector<LightSource> lightsrc;
     glm::vec3 hs_ptMin, hs_ptMax;

@@ -16,7 +16,8 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     SAFE_READ(frd, &nVerticesDup, sizeof(uint32_t));
     SAFE_READ(frd, &nObjectVert, sizeof(uint32_t));
 
-    if (nVertices == 0) return false;
+    if (nVertices == 0)
+    { return false; }
 
     // Read Vertices
     vert.reserve(nVertices);
@@ -51,34 +52,53 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     vroadData.reserve(nVRoad);
     SAFE_READ(frd, vroadData.data(), sizeof(VRoadData) * nVRoad);
 
-    if (nXobj > 0)
-    {
-        xobj.reserve(nXobj);
-        SAFE_READ(frd, xobj.data(), sizeof(RefExtraObject) * nXobj);
-    }
+    // Read Extra object references
+    xobj.reserve(nXobj);
+    SAFE_READ(frd, xobj.data(), sizeof(RefExtraObject) * nXobj);
 
-    if (nPolyobj > 0)
-    {
-        frd.seekg(20 * nPolyobj, std::ios_base::cur);
-    }
-    nPolyobj = 0;
 
-    if (nSoundsrc > 0)
-    {
-        soundsrc.reserve(nSoundsrc);
-        SAFE_READ(frd, soundsrc.data(), sizeof(SoundSource) * nSoundsrc);
-    }
+    // ?? Read unknown
+    polyObj.reserve(nPolyobj);
+    SAFE_READ(frd, polyObj.data(), sizeof(PolyObject) * nPolyobj);
+    //nPolyobj = 0;
 
-    if (nLightsrc > 0)
-    {
-        lightsrc.reserve(nLightsrc);
-        SAFE_READ(frd, lightsrc.data(), sizeof(LightSource) * nLightsrc);
-    }
+    // Get the sound and light sources
+    soundsrc.reserve(nSoundsrc);
+    SAFE_READ(frd, soundsrc.data(), sizeof(SoundSource) * nSoundsrc);
+
+    lightsrc.reserve(nLightsrc);
+    SAFE_READ(frd, lightsrc.data(), sizeof(LightSource) * nLightsrc);
+
 
     return true;
 }
 
 void TrkBlock::SerializeOut(std::ofstream &frd)
 {
-    ASSERT(false, "TrkBlock serialization to file stream is not implemented");
+    frd.write((char *) &ptCentre, sizeof(glm::vec3));
+    frd.write((char *) &ptBounding, sizeof(glm::vec3) * 4);
+    frd.write((char *) &nVertices, sizeof(uint32_t));
+    frd.write((char *) &nHiResVert, sizeof(uint32_t));
+    frd.write((char *) &nLoResVert, sizeof(uint32_t));
+    frd.write((char *) &nMedResVert, sizeof(uint32_t));
+    frd.write((char *) &nVerticesDup, sizeof(uint32_t));
+    frd.write((char *) &nObjectVert, sizeof(uint32_t));
+    frd.write((char *) vert.data(), sizeof(glm::vec3) * nVertices);
+    frd.write((char *) vertShading.data(), sizeof(uint32_t) * nVertices);
+    frd.write((char *) nbdData, 4 * 0x12c);
+    frd.write((char *) &nStartPos, sizeof(uint32_t));
+    frd.write((char *) &nPositions, sizeof(uint32_t));
+    frd.write((char *) &nPolygons, sizeof(uint32_t));
+    frd.write((char *) &nVRoad, sizeof(uint32_t));
+    frd.write((char *) &nXobj, sizeof(uint32_t));
+    frd.write((char *) &nPolyobj, sizeof(uint32_t));
+    frd.write((char *) &nSoundsrc, sizeof(uint32_t));
+    frd.write((char *) &nLightsrc, sizeof(uint32_t));
+    frd.write((char *) posData.data(), sizeof(PositionData) * nPositions);
+    frd.write((char *) polyData.data(), sizeof(PolyVRoadData) * nPolygons);
+    frd.write((char *) vroadData.data(), sizeof(VRoadData) * nVRoad);
+    frd.write((char *) xobj.data(), sizeof(RefExtraObject) * nXobj);
+    frd.write((char *) polyObj.data(), sizeof(PolyObject) * nPolyobj);
+    frd.write((char *) soundsrc.data(), sizeof(SoundSource) * nSoundsrc);
+    frd.write((char *) lightsrc.data(), sizeof(LightSource) * nLightsrc);
 }

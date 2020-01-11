@@ -70,6 +70,34 @@ bool PolyBlock::_SerializeIn(std::ifstream &frd)
 
 void PolyBlock::SerializeOut(std::ofstream &frd)
 {
-    ASSERT(false, "PolyBlock serialization to file stream is not implemented");
+    for (uint32_t polyBlockIdx = 0; polyBlockIdx < NUM_POLYGON_BLOCKS; polyBlockIdx++)
+    {
+        frd.write((char*) &sz[polyBlockIdx], sizeof(uint32_t));
+        if (sz[polyBlockIdx] != 0)
+        {
+            frd.write((char*) &szdup[polyBlockIdx], sizeof(uint32_t));
+            frd.write((char*) poly[polyBlockIdx].data(), sizeof(PolygonData) * sz[polyBlockIdx]);
+        }
+    }
+
+    for(auto & o : obj)
+    {
+        frd.write((char*) &o.n1, sizeof(uint32_t));
+        if (o.n1 > 0)
+        {
+            frd.write((char*) &o.n2, sizeof(uint32_t));
+            o.nobj = 0;
+            for (uint32_t k = 0; k < o.n2; ++k)
+            {
+                frd.write((char*) &o.types[k], sizeof(uint32_t));
+                if (o.types[k] == 1)
+                {
+                    frd.write((char*) &o.numpoly[o.nobj], sizeof(uint32_t));
+                    frd.write((char*) o.poly[o.nobj].data(), sizeof(PolygonData) * o.numpoly[o.nobj]);
+                    ++o.nobj;
+                }
+            }
+        }
+    }
 }
 
