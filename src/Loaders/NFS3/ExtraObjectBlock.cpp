@@ -99,15 +99,9 @@ void ExtraObjectBlock::SerializeOut(std::ofstream &frd)
             frd.write((char*)obj[xobjIdx].animData.data(), sizeof(AnimData) * obj[xobjIdx].nAnimLength);
         }
         frd.write((char*)&(obj[xobjIdx].nVertices), sizeof(uint32_t));
-        if(!obj[xobjIdx].vert.empty())
-        {
-            frd.write((char*)obj[xobjIdx].vert.data(), sizeof(glm::vec3) * obj[xobjIdx].nVertices);
-            frd.write((char*)obj[xobjIdx].vertShading.data(), sizeof(uint32_t) * obj[xobjIdx].nVertices);
-        }
+        frd.write((char*)obj[xobjIdx].vert.data(), sizeof(glm::vec3) * obj[xobjIdx].nVertices);
+        frd.write((char*)obj[xobjIdx].vertShading.data(), sizeof(uint32_t) * obj[xobjIdx].nVertices);
         frd.write((char*)&(obj[xobjIdx].nPolygons), sizeof(uint32_t));
-        if(!obj[xobjIdx].polyData.empty())
-        {
-            frd.write((char*)obj[xobjIdx].polyData.data(), sizeof(PolygonData) * obj[xobjIdx].nPolygons);
-        }
+        frd.write((char*)obj[xobjIdx].polyData.data(), sizeof(PolygonData) * obj[xobjIdx].nPolygons);
     }
 }

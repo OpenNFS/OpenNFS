@@ -18,6 +18,18 @@ void FrdFile::SaveFRD(const std::string &frdPath, FrdFile &frdFile)
     frdFile.SerializeOut(frd);
 }
 
+void FrdFile::MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB)
+{
+    // Mergearooney
+    // TODO: Of course it couldn't be this simple :(
+    frdFileA.nBlocks += frdFileB.nBlocks;
+    frdFileA.trackBlocks.insert(frdFileA.trackBlocks.end(), frdFileB.trackBlocks.begin(), frdFileB.trackBlocks.end());
+    frdFileA.polygonBlocks.insert(frdFileA.polygonBlocks.end(), frdFileB.polygonBlocks.begin(), frdFileB.polygonBlocks.end());
+    frdFileA.extraObjectBlocks.insert(frdFileA.extraObjectBlocks.end(), frdFileB.extraObjectBlocks.begin(), frdFileB.extraObjectBlocks.end());
+
+    FrdFile::SaveFRD(frdPath, frdFileA);
+}
+
 bool FrdFile::_SerializeIn(std::ifstream &frd)
 {
     SAFE_READ(frd, header, HEADER_LENGTH);
@@ -52,29 +64,29 @@ bool FrdFile::_SerializeIn(std::ifstream &frd)
     }
 
     // Back up a little, as this sizeof(int32_t) into a trackblock that we're about to deserialize
-    frd.seekg(-sizeof(int32_t), std::ios_base::cur);
+    frd.seekg(-4, std::ios_base::cur);
 
     // Track Data
     for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
     {
-        trackBlocks.emplace_back(TrkBlock(frd));
+        trackBlocks.push_back(TrkBlock(frd));
     }
     // Geometry
     for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
     {
-        polygonBlocks.emplace_back(PolyBlock(frd, trackBlocks[blockIdx].nPolygons));
+        polygonBlocks.push_back(PolyBlock(frd, trackBlocks[blockIdx].nPolygons));
     }
     // Extra Track Geometry
     for (uint32_t blockIdx = 0; blockIdx <= 4 * nBlocks; ++blockIdx)
     {
-        extraObjectBlocks.emplace_back(ExtraObjectBlock(frd));
+        extraObjectBlocks.push_back(ExtraObjectBlock(frd));
     }
     // Texture Table
     SAFE_READ(frd, &nTextures, sizeof(uint32_t));
     textureBlocks.reserve(nTextures);
     for (uint32_t tex_Idx = 0; tex_Idx < nTextures; tex_Idx++)
     {
-        textureBlocks.emplace_back(TexBlock(frd));
+        textureBlocks.push_back(TexBlock(frd));
     }
 
     return true;
@@ -109,7 +121,7 @@ void FrdFile::SerializeOut(std::ofstream &frd)
         textureBlock.SerializeOut(frd);
     }
 
-    frd.write((char *) &m_pad, sizeof(uint32_t));
+    //frd.write((char *) &ONFS_SIGNATURE, sizeof(uint32_t));
 
     frd.close();
 }

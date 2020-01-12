@@ -226,6 +226,11 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
     track->track_blocks = ParseTRKModels(frdFile, track);
     track->global_objects = ParseCOLModels(track);
 
+    //FrdFile frdFileB;
+    //FrdFile::LoadFRD("../resources/NFS_3/gamedata/tracks/trk001/tr01.frd", frdFileB);
+    //FrdFile::MergeFRD("C:/NFS3/NFS3 Copies/nfs3_modern_base_eng/gamedata/tracks/trk000/tr00.frd", frdFile, frdFileB);
+    //FrdFile::SaveFRD("C:/NFS3/NFS3 Copies/nfs3_modern_base_eng/gamedata/tracks/trk000/tr00.frd", frdFile);
+
     LOG(INFO) << "Track loaded successfully";
     return track;
 }

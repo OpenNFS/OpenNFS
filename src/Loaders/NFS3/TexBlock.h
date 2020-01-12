@@ -10,7 +10,7 @@ public:
     void SerializeOut(std::ofstream &frd) override;
 
     uint16_t width, height;
-    uint32_t unknown1;
+    uint32_t unknown1;  // Blending related, hometown covered bridges godrays `
     float corners[8];   // 4x planar coordinates == tiling?
     uint32_t unknown2;
     bool isLane;        // 1 if not a real texture (lane), 0 usually

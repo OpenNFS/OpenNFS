@@ -17,7 +17,9 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     SAFE_READ(frd, &nObjectVert, sizeof(uint32_t));
 
     if (nVertices == 0)
-    { return false; }
+    {
+        return false;
+    }
 
     // Read Vertices
     vert.resize(nVertices);
@@ -56,7 +58,6 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     xobj.resize(nXobj);
     SAFE_READ(frd, xobj.data(), sizeof(RefExtraObject) * nXobj);
 
-
     // ?? Read unknown
     polyObj.resize(nPolyobj);
     SAFE_READ(frd, polyObj.data(), sizeof(PolyObject) * nPolyobj);
@@ -68,7 +69,6 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
 
     lightsrc.resize(nLightsrc);
     SAFE_READ(frd, lightsrc.data(), sizeof(LightSource) * nLightsrc);
-
 
     return true;
 }

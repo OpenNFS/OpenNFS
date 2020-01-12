@@ -5,6 +5,7 @@ vehicle(std::make_shared<Car>(car->assetData, car->tag, car->id)), m_track(track
 
 void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset)
 {
+    return;
     glm::vec3 vroadPoint;
     glm::quat carOrientation;
 

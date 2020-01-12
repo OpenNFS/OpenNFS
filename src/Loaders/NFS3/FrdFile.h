@@ -8,6 +8,7 @@
 #include "TexBlock.h"
 
 static const uint8_t HEADER_LENGTH = 28;
+static const uint32_t ONFS_SIGNATURE = 0x15B001C0;
 
 class FrdFile : IFrdData
 {
@@ -15,6 +16,7 @@ public:
     FrdFile() = default;
     static bool LoadFRD(const std::string &frdPath, FrdFile &frdFile);
     static void SaveFRD(const std::string &frdPath, FrdFile &frdFile);
+    static void MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB);
 
     // Raw File data
     char header[HEADER_LENGTH];
@@ -25,7 +27,6 @@ public:
     std::vector<PolyBlock> polygonBlocks;
     std::vector<ExtraObjectBlock> extraObjectBlocks;
     std::vector<TexBlock> textureBlocks;
-    uint32_t m_pad;
 
 private:
     bool _SerializeIn(std::ifstream &frd) override;
