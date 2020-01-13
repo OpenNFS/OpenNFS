@@ -1,13 +1,13 @@
 #pragma once
 
-#include "IFrdData.h"
+#include "../IRawData.h"
 
-class TexBlock : public IFrdData
+class TexBlock : public IRawData
 {
 public:
     TexBlock() = default;
     explicit TexBlock(std::ifstream &frd);
-    void SerializeOut(std::ofstream &frd) override;
+    void _SerializeOut(std::ofstream &ifstream) override;
 
     uint16_t width, height;
     uint32_t unknown1;  // Blending related, hometown covered bridges godrays `
@@ -17,5 +17,5 @@ public:
     uint16_t texture;   // index in QFS file
 
 private:
-    bool _SerializeIn(std::ifstream &frd) override;
+    bool _SerializeIn(std::ifstream &ofstream) override;
 };

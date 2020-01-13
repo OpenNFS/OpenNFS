@@ -1,11 +1,6 @@
 #pragma once
 
-#include <string>
-#include <fstream>
-#include <vector>
 #include <cstdint>
-
-#include "../../Util/Utils.h"
 
 struct IntPoint
 {
@@ -21,9 +16,7 @@ struct PolygonData
     unsigned char unknown2; // F9
 };
 
-class IFrdData
-{
-public:
-    virtual bool _SerializeIn(std::ifstream &frd) = 0;
-    virtual void SerializeOut(std::ofstream &frd) = 0;
+struct AnimData {
+    IntPoint pt;
+    int16_t od1, od2, od3, od4;
 };

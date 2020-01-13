@@ -73,7 +73,7 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     return true;
 }
 
-void TrkBlock::SerializeOut(std::ofstream &frd)
+void TrkBlock::_SerializeOut(std::ofstream &frd)
 {
     frd.write((char *) &ptCentre, sizeof(glm::vec3));
     frd.write((char *) &ptBounding, sizeof(glm::vec3) * 4);

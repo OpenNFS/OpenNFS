@@ -193,17 +193,20 @@ set(SOURCE_FILES
         src/Scene/Lights/BaseLight.h
         src/Scene/Lights/TrackLight.cpp
         src/Scene/Lights/TrackLight.h
-        src/Loaders/NFS3/FrdFile.cpp
-        src/Loaders/NFS3/FrdFile.h
-        src/Loaders/NFS3/TrkBlock.cpp
-        src/Loaders/NFS3/TrkBlock.h
-        src/Loaders/NFS3/PolyBlock.cpp
-        src/Loaders/NFS3/PolyBlock.h
-        src/Loaders/NFS3/ExtraObjectBlock.cpp
-        src/Loaders/NFS3/ExtraObjectBlock.h
-        src/Loaders/NFS3/IFrdData.h
-        src/Loaders/NFS3/TexBlock.cpp
-        src/Loaders/NFS3/TexBlock.h)
+        src/Loaders/NFS3/FRD/FrdFile.cpp
+        src/Loaders/NFS3/FRD/FrdFile.h
+        src/Loaders/NFS3/FRD/TrkBlock.cpp
+        src/Loaders/NFS3/FRD/TrkBlock.h
+        src/Loaders/NFS3/FRD/PolyBlock.cpp
+        src/Loaders/NFS3/FRD/PolyBlock.h
+        src/Loaders/NFS3/FRD/ExtraObjectBlock.cpp
+        src/Loaders/NFS3/FRD/ExtraObjectBlock.h
+        src/Loaders/NFS3/IRawData.h
+        src/Loaders/NFS3/FRD/TexBlock.cpp
+        src/Loaders/NFS3/FRD/TexBlock.h
+        src/Loaders/NFS3/COL/ColFile.cpp
+        src/Loaders/NFS3/COL/ColFile.h
+        src/Loaders/NFS3/Common.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

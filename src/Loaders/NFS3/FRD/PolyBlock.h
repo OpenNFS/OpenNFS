@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "IFrdData.h"
+#include "../IRawData.h"
 
 const uint8_t NUM_POLYGON_BLOCKS = 7;
 const uint8_t NUM_POLYOBJ_CHUNKS = 4;
@@ -17,12 +17,12 @@ struct ObjectPolyBlock  // a POLYOBJ chunk
     std::vector<std::vector<PolygonData>> poly;// the polygons themselves
 };
 
-class PolyBlock : private IFrdData
+class PolyBlock : private IRawData
 {
 public:
     PolyBlock() = default;
     explicit PolyBlock(std::ifstream &frd, uint32_t nTrackBlockPolys);
-    void SerializeOut(std::ofstream &frd) override;
+    void _SerializeOut(std::ofstream &ofstream) override;
 
     uint32_t m_nTrackBlockPolys;
 
@@ -35,5 +35,5 @@ public:
     // the 1st chunk is described anyway in the TRKBLOCK
 
 private:
-    bool _SerializeIn(std::ifstream &frd) override;
+    bool _SerializeIn(std::ifstream &ifstream) override;
 };

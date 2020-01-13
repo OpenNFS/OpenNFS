@@ -1,13 +1,9 @@
 #pragma once
 
-#include "IFrdData.h"
+#include "../IRawData.h"
 
-struct AnimData {
-    IntPoint pt;
-    int16_t od1, od2, od3, od4;
-};
-
-struct ExtraObjectData {
+struct ExtraObjectData
+{
     uint32_t crosstype; // type 4, or more rarely 3 (animated)
     uint32_t crossno;   // obj number from REFXOBJ table in TRKBLOCK
     uint32_t unknown;
@@ -28,15 +24,17 @@ struct ExtraObjectData {
     std::vector<PolygonData> polyData;
 };
 
-class ExtraObjectBlock : IFrdData
+class ExtraObjectBlock : IRawData
 {
 public:
     ExtraObjectBlock() = default;
+
     explicit ExtraObjectBlock(std::ifstream &frd);
-    void SerializeOut(std::ofstream &frd) override;
+
+    void _SerializeOut(std::ofstream &ofstream) override;
 
     uint32_t nobj = 0;
     std::vector<ExtraObjectData> obj;
 private:
-    bool _SerializeIn(std::ifstream &frd) override;
+    bool _SerializeIn(std::ifstream &ifstream) override;
 };

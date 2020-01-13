@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IFrdData.h"
+#include "../IRawData.h"
 #include <glm/glm.hpp>
 
 struct PositionData  // enumerate polygons which lie at center
@@ -54,12 +54,12 @@ struct PolyObject
     uint8_t unknown[20];
 };
 
-class TrkBlock : public IFrdData
+class TrkBlock : public IRawData
 {
 public:
     TrkBlock() = default;
     explicit TrkBlock(std::ifstream &frd);
-    void SerializeOut(std::ofstream &frd) override;
+    void _SerializeOut(std::ofstream &frd) override;
 
     glm::vec3 ptCentre;
     glm::vec3 ptBounding[4];

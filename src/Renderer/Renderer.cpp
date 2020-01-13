@@ -71,7 +71,7 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<BaseCamera> &active
 
     // Perform frustum culling to get visible entities, from perspective of active camera
     VisibleSet visibleSet = _FrustumCull(m_track, activeCamera, userParams);
-    visibleSet.lights.emplace_back(activeLight);
+    visibleSet.lights.insert(visibleSet.lights.begin(), activeLight);
 
     if (userParams.drawHermiteFrustum)
     {
@@ -183,7 +183,7 @@ std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONF
     }
 
     // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
-    if ((track->tag == NFS_3 || track->tag == NFS_4) && userParams.useNbData)
+    if ((track->tag == NFS_3 || track->tag == NFS_4) && !userParams.useNbData)
     {
         for (auto &neighbourBlockData : boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData)
         {

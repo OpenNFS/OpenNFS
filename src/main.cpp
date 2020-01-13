@@ -24,8 +24,6 @@
 #include "Race/RaceSession.h"
 #include "RaceNet/TrainingGround.h"
 
-#include "Loaders/NFS3/FrdFile.h"
-
 class OpenNFS {
 public:
     explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {

@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 #include <boost/filesystem/operations.hpp>
 
-#include "../Loaders/NFS3/FrdFile.h"
+#include "NFS3/FRD/FrdFile.h"
 #include "../nfs_data.h"
 #include "../Config.h"
 #include "../Scene/Lights/TrackLight.h"

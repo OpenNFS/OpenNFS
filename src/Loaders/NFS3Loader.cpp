@@ -205,13 +205,14 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
     hrz_path << track_base_path << "/3" << track->name << ".hrz";
 
     FrdFile frdFile;
+    ColFile colFile;
 
     ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_3),
            "Could not extract " << track->name << " QFS texture pack.");
-    ASSERT(FrdFile::LoadFRD(frd_path.str(), frdFile),
+    ASSERT(FrdFile::Load(frd_path.str(), frdFile),
            "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
-    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: "
-            << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(ColFile::Load(col_path.str(), colFile),
+            "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(LoadCAN(can_path.str(), track->cameraAnimation),
            "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     ASSERT(LoadHRZ(hrz_path.str(), track),
@@ -224,14 +225,10 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
     }
     track->textureArrayID = MakeTextureArray(track->textures, false);
     track->track_blocks = ParseTRKModels(frdFile, track);
-    track->global_objects = ParseCOLModels(track);
-
-    //FrdFile frdFileB;
-    //FrdFile::LoadFRD("../resources/NFS_3/gamedata/tracks/trk001/tr01.frd", frdFileB);
-    //FrdFile::MergeFRD("C:/NFS3/NFS3 Copies/nfs3_modern_base_eng/gamedata/tracks/trk000/tr00.frd", frdFile, frdFileB);
-    //FrdFile::SaveFRD("C:/NFS3/NFS3 Copies/nfs3_modern_base_eng/gamedata/tracks/trk000/tr00.frd", frdFile);
+    track->global_objects = ParseCOLModels(colFile, track);
 
     LOG(INFO) << "Track loaded successfully";
+
     return track;
 }
 
@@ -307,141 +304,6 @@ bool NFS3::LoadFFN(const std::string &ffn_path)
 
     //ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
     return true;
-}
-
-bool NFS3::LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track)
-{
-    std::ifstream coll(col_path, std::ios::in | std::ios::binary);
-
-    COLOBJECT *o;
-
-    track->col.hs_extra = NULL;
-    if (coll.read((char *) &track->col, 16).gcount() != 16)
-    { return false; }
-    if (memcmp(track->col.collID, "COLL", sizeof(track->col.collID[0])) != 0)
-    {
-        LOG(WARNING) << "Invalid COL file";
-        return false;
-    }
-
-    LOG(INFO) << "Loading COL File located at " << col_path;
-
-    if (track->col.version != 11)
-    { return false; }
-    if ((track->col.nBlocks != 2) && (track->col.nBlocks != 4) && (track->col.nBlocks != 5))
-    { return false; }
-    SAFE_READ(coll, track->col.xbTable, 4 * track->col.nBlocks);
-
-    // texture XB
-    SAFE_READ(coll, &track->col.textureHead, 8);
-    if (track->col.textureHead.xbid != XBID_TEXTUREINFO)
-    { return false; }
-
-    track->col.texture = new COLTEXTUREINFO[track->col.textureHead.nrec];
-    SAFE_READ(coll, track->col.texture, 8 * track->col.textureHead.nrec);
-
-    // struct3D XB
-    if (track->col.nBlocks >= 4)
-    {
-        SAFE_READ(coll, &track->col.struct3DHead, 8);
-        if (track->col.struct3DHead.xbid != XBID_STRUCT3D)
-        { return false; }
-        COLSTRUCT3D *s = track->col.struct3D = new COLSTRUCT3D[track->col.struct3DHead.nrec];
-        int delta;
-        for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.struct3DHead.nrec; colRec_Idx++, s++)
-        {
-            SAFE_READ(coll, s, 8);
-            delta = (8 + 16 * s->nVert + 6 * s->nPoly) % 4;
-            delta = (4 - delta) % 4;
-            if (s->size != 8 + 16 * s->nVert + 6 * s->nPoly + delta)
-            { return false; }
-            s->vertex = new COLVERTEX[s->nVert];
-            SAFE_READ(coll, s->vertex, 16 * s->nVert);
-            s->polygon = new COLPOLYGON[s->nPoly];
-            SAFE_READ(coll, s->polygon, 6 * s->nPoly);
-            int dummy;
-            if (delta > 0) SAFE_READ(coll, &dummy, delta);
-        }
-
-        // object XB
-        SAFE_READ(coll, &track->col.objectHead, 8);
-        if ((track->col.objectHead.xbid != XBID_OBJECT) && (track->col.objectHead.xbid != XBID_OBJECT2))
-        {
-            return false;
-        }
-        o = track->col.object = new COLOBJECT[track->col.objectHead.nrec];
-
-        for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.objectHead.nrec; colRec_Idx++, o++)
-        {
-            SAFE_READ(coll, o, 4);
-            if (o->type == 1)
-            {
-                if (o->size != 16)
-                { return false; }
-                SAFE_READ(coll, &(o->ptRef), 12);
-            }
-            else if (o->type == 3)
-            {
-                SAFE_READ(coll, &(o->animLength), 4);
-                if (o->size != 8 + 20 * o->animLength)
-                { return false; }
-                o->animData = new ANIMDATA[o->animLength];
-                SAFE_READ(coll, o->animData, 20 * o->animLength);
-                o->ptRef.x = o->animData->pt.x;
-                o->ptRef.z = o->animData->pt.z;
-                o->ptRef.y = o->animData->pt.y;
-            }
-            else
-            { return false; } // unknown object type
-        }
-    }
-
-    // object2 XB
-    if (track->col.nBlocks == 5)
-    {
-        SAFE_READ(coll, &track->col.object2Head, 8);
-        if ((track->col.object2Head.xbid != XBID_OBJECT) && (track->col.object2Head.xbid != XBID_OBJECT2))
-        {
-            return false;
-        }
-        o = track->col.object2 = new COLOBJECT[track->col.object2Head.nrec];
-
-        for (uint32_t colRec_Idx = 0; colRec_Idx < track->col.object2Head.nrec; colRec_Idx++, o++)
-        {
-            SAFE_READ(coll, o, 4);
-            if (o->type == 1)
-            {
-                if (o->size != 16)
-                { return false; }
-                SAFE_READ(coll, &(o->ptRef), 12);
-            }
-            else if (o->type == 3)
-            {
-                SAFE_READ(coll, &(o->animLength), 4);
-                if (o->size != 8 + 20 * o->animLength)
-                { return false; }
-                o->animData = new ANIMDATA[o->animLength];
-                SAFE_READ(coll, o->animData, 20 * o->animLength);
-                o->ptRef.x = o->animData->pt.x;
-                o->ptRef.z = o->animData->pt.z;
-                o->ptRef.y = o->animData->pt.y;
-            }
-            else
-            { return false; } // unknown object type
-        }
-    }
-
-    // vroad XB
-    SAFE_READ(coll, &track->col.vroadHead, 8);
-    if (track->col.vroadHead.xbid != XBID_VROAD)
-    { return false; }
-    if (track->col.vroadHead.size != 8 + 36 * track->col.vroadHead.nrec)
-    { return false; }
-    track->col.vroad = new COLVROAD[track->col.vroadHead.nrec];
-    SAFE_READ(coll, track->col.vroad, 36 * track->col.vroadHead.nrec);
-
-    uint32_t pad;
-    return coll.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
 }
 
 bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track)
@@ -749,7 +611,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const FrdFile &frdFile, const std::
     return trackBlocks;
 }
 
-std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track)
+std::vector<Entity> NFS3::ParseCOLModels(const ColFile &colFile, const std::shared_ptr<TRACK> &track)
 {
     LOG(INFO) << "Parsing COL file into ONFS GL structures";
 
@@ -757,11 +619,11 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track)
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0,
                                                                   0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
-    COLOBJECT *o = track->col.object;
+    ColObject *o = colFile.object;
     /* COL DATA - TODO: Come back for VROAD AI/Collision data */
-    for (uint32_t i = 0; i < track->col.objectHead.nrec; i++, o++)
+    for (uint32_t i = 0; i < colFile.objectHead.nrec; i++, o++)
     {
-        COLSTRUCT3D s = track->col.struct3D[o->struct3D];
+        ColStruct3D s = colFile.struct3D[o->struct3D];
         std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
@@ -777,7 +639,7 @@ std::vector<Entity> NFS3::ParseCOLModels(const std::shared_ptr<TRACK> &track)
         for (uint32_t k = 0; k < s.nPoly; k++, s.polygon++)
         {
             // Remap the COL TextureID's using the COL texture block (XBID2)
-            COLTEXTUREINFO col_texture = track->col.texture[s.polygon->texture];
+            ColTextureInfo col_texture = colFile.texture[s.polygon->texture];
             TEXTUREBLOCK texture_for_block;
             // Find the texture by it's file name, but use the Texture table to get the block. TODO: Not mapping this so, must do a manual search.
             for (uint32_t t = 0; t < track->nTextures; t++)

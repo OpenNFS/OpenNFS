@@ -5,7 +5,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include "TrackUtils.h"
-#include "NFS3/FrdFile.h"
+#include "NFS3/FRD/FrdFile.h"
+#include "NFS3/COL/ColFile.h"
 #include "../Physics/Car.h"
 #include "../Config.h"
 #include "../Util/ImageLoader.h"
@@ -29,10 +30,9 @@ public:
     static CarData LoadFCE(const std::string &fce_path);
 private:
     // Track
-    static bool LoadCOL(std::string col_path, const std::shared_ptr<TRACK> &track);
     static bool LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track);
     static std::vector<TrackBlock> ParseTRKModels(const FrdFile &frdFile, const std::shared_ptr<TRACK> &track);
-    static std::vector<Entity>  ParseCOLModels(const std::shared_ptr<TRACK> &track);
+    static std::vector<Entity>  ParseCOLModels(const ColFile &colFile, const std::shared_ptr<TRACK> &track);
     static Texture LoadTexture(TexBlock trackTexture, const std::string &trackName);
 };
 
