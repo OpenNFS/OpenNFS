@@ -212,14 +212,14 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
     ASSERT(FrdFile::Load(frd_path.str(), frdFile),
            "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(ColFile::Load(col_path.str(), colFile),
-            "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+           "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(LoadCAN(can_path.str(), track->cameraAnimation),
            "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     ASSERT(LoadHRZ(hrz_path.str(), track),
            "Could not load HRZ file (skybox/lighting):" << hrz_path.str()); // Load HRZ Data
 
     // Load QFS texture into GL objects
-    for(auto &frdTexBlock : frdFile.textureBlocks)
+    for (auto &frdTexBlock : frdFile.textureBlocks)
     {
         track->textures[frdTexBlock.texture] = LoadTexture(frdTexBlock, track->name);
     }
@@ -473,7 +473,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const FrdFile &frdFile, const std::
                     glm::vec3 extraObjectVertex = extraObjectData.vert[vertIdx] / NFS3_SCALE_FACTOR;
                     extraObjectVerts.emplace_back(extraObjectVertex);
 
-                    uint32_t extraObjectVertexShadingRaw =  extraObjectData.vertShading[vertIdx];
+                    uint32_t extraObjectVertexShadingRaw = extraObjectData.vertShading[vertIdx];
                     glm::vec4 extraObjectVertexShadingColour = glm::vec4(((extraObjectVertexShadingRaw >> 16) & 0xFF) / 255.0f,
                                                                          ((extraObjectVertexShadingRaw >> 8) & 0xFF) / 255.0f,
                                                                          (extraObjectVertexShadingRaw & 0xFF) / 255.0f,
@@ -487,9 +487,9 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const FrdFile &frdFile, const std::
                     Texture gl_texture = track->textures[texture_for_block.texture];
 
                     glm::vec3 normal = CalculateQuadNormal(extraObjectVerts[extraObjectData.polyData[k].vertex[0]],
-                                                                            extraObjectVerts[extraObjectData.polyData[k].vertex[1]],
-                                                                            extraObjectVerts[extraObjectData.polyData[k].vertex[2]],
-                                                                            extraObjectVerts[extraObjectData.polyData[k].vertex[3]]);
+                                                           extraObjectVerts[extraObjectData.polyData[k].vertex[1]],
+                                                           extraObjectVerts[extraObjectData.polyData[k].vertex[2]],
+                                                           extraObjectVerts[extraObjectData.polyData[k].vertex[3]]);
                     normals.emplace_back(normal);
                     normals.emplace_back(normal);
                     normals.emplace_back(normal);
@@ -599,8 +599,7 @@ std::vector<TrackBlock> NFS3::ParseTRKModels(const FrdFile &frdFile, const std::
             {
                 Entity laneEntity = Entity(trackblockIdx, -1, NFS_3, LANE, roadModel, accumulatedObjectFlags);
                 trackBlock.lanes.emplace_back(laneEntity);
-            }
-            else
+            } else
             {
                 Entity roadEntity = Entity(trackblockIdx, -1, NFS_3, ROAD, roadModel, accumulatedObjectFlags);
                 trackBlock.track.emplace_back(roadEntity);
@@ -616,30 +615,30 @@ std::vector<Entity> NFS3::ParseCOLModels(const ColFile &colFile, const std::shar
     LOG(INFO) << "Parsing COL file into ONFS GL structures";
 
     std::vector<Entity> col_entities;
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0,
-                                                                  0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
-    ColObject *o = colFile.object;
     /* COL DATA - TODO: Come back for VROAD AI/Collision data */
-    for (uint32_t i = 0; i < colFile.objectHead.nrec; i++, o++)
+    for (uint32_t i = 0; i < colFile.objectHead.nrec; i++)
     {
-        ColStruct3D s = colFile.struct3D[o->struct3D];
+        ColStruct3D s = colFile.struct3D[colFile.object[i].struct3D];
         std::vector<unsigned int> indices;
         std::vector<glm::vec2> uvs;
         std::vector<unsigned int> texture_indices;
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> shading_data;
         std::vector<glm::vec3> norms;
-        for (uint32_t j = 0; j < s.nVert; j++, s.vertex++)
+        for (uint32_t j = 0; j < s.nVert; j++)
         {
-            verts.emplace_back(
-                    rotationMatrix * glm::vec3(s.vertex->pt.x / 10, s.vertex->pt.y / 10, s.vertex->pt.z / 10));
-            shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
+            verts.emplace_back(s.vertex[j].pt / NFS3_SCALE_FACTOR);
+            glm::vec4 roadVertexShadingColour = glm::vec4(((s.vertex[j].unknown >> 16) & 0xFF) / 255.0f,
+                                                          ((s.vertex[j].unknown >> 8) & 0xFF) / 255.0f,
+                                                          (s.vertex[j].unknown & 0xFF) / 255.0f,
+                                                          ((s.vertex[j].unknown >> 24) & 0xFF) / 255.0f);
+            shading_data.emplace_back(roadVertexShadingColour);
         }
-        for (uint32_t k = 0; k < s.nPoly; k++, s.polygon++)
+        for (uint32_t k = 0; k < s.nPoly; k++)
         {
             // Remap the COL TextureID's using the COL texture block (XBID2)
-            ColTextureInfo col_texture = colFile.texture[s.polygon->texture];
+            ColTextureInfo col_texture = colFile.texture[s.polygon[k].texture];
             TEXTUREBLOCK texture_for_block;
             // Find the texture by it's file name, but use the Texture table to get the block. TODO: Not mapping this so, must do a manual search.
             for (uint32_t t = 0; t < track->nTextures; t++)
@@ -650,17 +649,14 @@ std::vector<Entity> NFS3::ParseCOLModels(const ColFile &colFile, const std::shar
                 }
             }
             Texture gl_texture = track->textures[texture_for_block.texture];
-            indices.emplace_back(s.polygon->v[0]);
-            indices.emplace_back(s.polygon->v[1]);
-            indices.emplace_back(s.polygon->v[2]);
-            indices.emplace_back(s.polygon->v[0]);
-            indices.emplace_back(s.polygon->v[2]);
-            indices.emplace_back(s.polygon->v[3]);
+            indices.emplace_back(s.polygon[k].v[0]);
+            indices.emplace_back(s.polygon[k].v[1]);
+            indices.emplace_back(s.polygon[k].v[2]);
+            indices.emplace_back(s.polygon[k].v[0]);
+            indices.emplace_back(s.polygon[k].v[2]);
+            indices.emplace_back(s.polygon[k].v[3]);
 
-            glm::vec3 normal = rotationMatrix * CalculateQuadNormal(PointToVec(verts[s.polygon->v[0]]),
-                                                                    PointToVec(verts[s.polygon->v[1]]),
-                                                                    PointToVec(verts[s.polygon->v[2]]),
-                                                                    PointToVec(verts[s.polygon->v[3]]));
+            glm::vec3 normal = CalculateQuadNormal(verts[s.polygon[k].v[0]], verts[s.polygon[k].v[1]], verts[s.polygon[k].v[2]], verts[s.polygon[k].v[3]]);
             norms.emplace_back(normal);
             norms.emplace_back(normal);
             norms.emplace_back(normal);
@@ -687,8 +683,8 @@ std::vector<Entity> NFS3::ParseCOLModels(const ColFile &colFile, const std::shar
             texture_indices.emplace_back(texture_for_block.texture);
             texture_indices.emplace_back(texture_for_block.texture);
         }
-        glm::vec3 position = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(o->ptRef)) / NFS3_SCALE_FACTOR;
-        col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL,Track(verts, norms, uvs, texture_indices, indices, shading_data, position), 0));
+        glm::vec3 position = glm::vec3(colFile.object[i].ptRef) / NFS3_SCALE_FACTOR;
+        col_entities.emplace_back(Entity(-1, i, NFS_3, GLOBAL, Track(verts, norms, uvs, texture_indices, indices, shading_data, position), 0));
     }
     return col_entities;
 }
@@ -702,8 +698,7 @@ Texture NFS3::LoadTexture(TexBlock trackTexture, const std::string &trackName)
     {
         filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.texture + 9 << ".BMP";
         filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.texture + 9 << "-a.BMP";
-    }
-    else
+    } else
     {
         filename << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4)
                  << trackTexture.texture << ".BMP";

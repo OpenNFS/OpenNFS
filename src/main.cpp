@@ -18,8 +18,6 @@
 #include "Loaders/TrackLoader.h"
 #include "Loaders/CarLoader.h"
 #include "Loaders/MusicLoader.h"
-#include "Loaders/NFS4PS1Loader.h"
-#include "Physics/Car.h"
 #include "Renderer/Renderer.h"
 #include "Race/RaceSession.h"
 #include "RaceNet/TrainingGround.h"

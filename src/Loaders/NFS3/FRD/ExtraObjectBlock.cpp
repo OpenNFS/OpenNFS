@@ -42,9 +42,7 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream)
             x.animData.resize(x.nAnimLength);
             SAFE_READ(ifstream, x.animData.data(), sizeof(AnimData) * x.nAnimLength);
             // make a ref point from first anim position
-            x.ptRef.x = (float) (x.animData[0].pt.x / 65536.0);
-            x.ptRef.z = (float) (x.animData[0].pt.z / 65536.0);
-            x.ptRef.y = (float) (x.animData[0].pt.y / 65536.0);
+            x.ptRef = Utils::FixedToFloat(x.animData[0].pt);
         }
         else return false; // unknown object type
 

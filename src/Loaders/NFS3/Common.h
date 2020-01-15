@@ -1,11 +1,7 @@
 #pragma once
 
 #include <cstdint>
-
-struct IntPoint
-{
-    int32_t x, z, y;
-};
+#include <glm/glm.hpp>
 
 struct PolygonData
 {
@@ -17,6 +13,6 @@ struct PolygonData
 };
 
 struct AnimData {
-    IntPoint pt;
+    glm::ivec3 pt;
     int16_t od1, od2, od3, od4;
 };

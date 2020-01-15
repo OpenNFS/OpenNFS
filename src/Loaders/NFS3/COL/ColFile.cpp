@@ -21,9 +21,6 @@ void ColFile::Save(const std::string &colPath, ColFile &colFile)
 
 bool ColFile::_SerializeIn(std::ifstream &ifstream)
 {
-    ColObject *o;
-    hs_extra = NULL;
-
     SAFE_READ(ifstream, &header, sizeof(char) * 4);
     SAFE_READ(ifstream, &version, sizeof(uint32_t));
     SAFE_READ(ifstream, &fileLength, sizeof(uint32_t));
@@ -43,9 +40,8 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream)
     {
         return false;
     }
-
-    texture = new ColTextureInfo[textureHead.nrec];
-    SAFE_READ(ifstream, texture, 8 * textureHead.nrec);
+    texture.resize(textureHead.nrec);
+    SAFE_READ(ifstream, texture.data(), sizeof(ColTextureInfo) * textureHead.nrec);
 
     // struct3D XB
     if (nBlocks >= 4)
@@ -55,50 +51,79 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream)
         {
             return false;
         }
-        ColStruct3D *s = struct3D = new ColStruct3D[struct3DHead.nrec];
-        for (uint32_t colRec_Idx = 0; colRec_Idx < struct3DHead.nrec; colRec_Idx++, s++)
+        struct3D.resize(struct3DHead.nrec);
+        for (uint32_t colRec_Idx = 0; colRec_Idx < struct3DHead.nrec; colRec_Idx++)
         {
-            SAFE_READ(ifstream, s, 8);
-            int delta = (8 + 16 * s->nVert + 6 * s->nPoly) % 4;
+            SAFE_READ(ifstream, &struct3D[colRec_Idx].size, sizeof(uint32_t));
+            SAFE_READ(ifstream, &struct3D[colRec_Idx].nVert, sizeof(uint16_t));
+            SAFE_READ(ifstream, &struct3D[colRec_Idx].nPoly, sizeof(uint16_t));
+
+            int32_t delta = (8 + sizeof(ColVertex) * struct3D[colRec_Idx].nVert + sizeof(ColPolygon) *  struct3D[colRec_Idx].nPoly) % 4;
             delta = (4 - delta) % 4;
-            if (s->size != 8 + 16 * s->nVert + 6 * s->nPoly + delta)
-            { return false; }
-            s->vertex = new ColVertex[s->nVert];
-            SAFE_READ(ifstream, s->vertex, 16 * s->nVert);
-            s->polygon = new ColPolygon[s->nPoly];
-            SAFE_READ(ifstream, s->polygon, 6 * s->nPoly);
+
+            // Check the size matches up with the expected size of the contents
+            if (struct3D[colRec_Idx].size != 8 + sizeof(ColVertex) * struct3D[colRec_Idx].nVert + sizeof(ColPolygon) * struct3D[colRec_Idx].nPoly + delta)
+            {
+                return false;
+            }
+
+            // Grab the vertices
+            struct3D[colRec_Idx].vertex.resize(struct3D[colRec_Idx].nVert);
+            SAFE_READ(ifstream,  struct3D[colRec_Idx].vertex.data(), sizeof(ColVertex) * struct3D[colRec_Idx].nVert);
+
+            // And Polygons
+            struct3D[colRec_Idx].polygon.resize(struct3D[colRec_Idx].nPoly);
+            SAFE_READ(ifstream, struct3D[colRec_Idx].polygon.data(), sizeof(ColPolygon) * struct3D[colRec_Idx].nPoly);
+
+            // Consume the delta, to eat alignment bytes
             int dummy;
-            if (delta > 0) SAFE_READ(ifstream, &dummy, delta);
+            if (delta > 0)
+            {
+                SAFE_READ(ifstream, &dummy, delta);
+            }
         }
 
+        // TODO: Share this code between both XOBJ parse runs
         // object XB
         SAFE_READ(ifstream, &objectHead, 8);
         if ((objectHead.xbid != XBID_OBJECT) && (objectHead.xbid != XBID_OBJECT2))
         {
             return false;
         }
-        o = object = new ColObject[objectHead.nrec];
-
-        for (uint32_t colRec_Idx = 0; colRec_Idx < objectHead.nrec; colRec_Idx++, o++)
+        object.resize(objectHead.nrec);
+        for (uint32_t xobjIdx = 0; xobjIdx < objectHead.nrec; xobjIdx++)
         {
-            SAFE_READ(ifstream, o, 4);
-            if (o->type == 1)
+            SAFE_READ(ifstream, &object[xobjIdx].size, sizeof(uint16_t));
+            SAFE_READ(ifstream, &object[xobjIdx].type, sizeof(uint8_t));
+            SAFE_READ(ifstream, &object[xobjIdx].struct3D, sizeof(uint8_t));
+
+            if (object[xobjIdx].type == 1)
             {
-                if (o->size != 16)
-                { return false; }
-                SAFE_READ(ifstream, &(o->ptRef), 12);
-            } else if (o->type == 3)
+                if (object[xobjIdx].size != 16)
+                {
+                    return false;
+                }
+                SAFE_READ(ifstream, &object[xobjIdx].ptRef, sizeof(glm::ivec3));
+            }
+            else if (object[xobjIdx].type == 3)
             {
-                SAFE_READ(ifstream, &(o->animLength), 4);
-                if (o->size != 8 + 20 * o->animLength)
-                { return false; }
-                o->animData = new AnimData[o->animLength];
-                SAFE_READ(ifstream, o->animData, 20 * o->animLength);
-                o->ptRef.x = o->animData->pt.x;
-                o->ptRef.z = o->animData->pt.z;
-                o->ptRef.y = o->animData->pt.y;
-            } else
-            { return false; } // unknown object type
+                SAFE_READ(ifstream, &object[xobjIdx].animLength, sizeof(uint16_t));
+                SAFE_READ(ifstream, &object[xobjIdx].unknown, sizeof(uint16_t));
+                if (object[xobjIdx].size != 8 + 20 * object[xobjIdx].animLength)
+                {
+                    return false;
+                }
+
+                object[xobjIdx].animData.resize(object[xobjIdx].animLength);
+                SAFE_READ(ifstream, object[xobjIdx].animData.data(), sizeof(AnimData) * object[xobjIdx].animLength);
+                // Make a ref point from first anim position
+                object[xobjIdx].ptRef = Utils::FixedToFloat(object[xobjIdx].animData[0].pt);
+            }
+            else
+            {
+                // Unknown object type
+                return false;
+            }
         }
     }
 
@@ -110,31 +135,38 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream)
         {
             return false;
         }
-        o = object2 = new ColObject[object2Head.nrec];
-
-        for (uint32_t colRec_Idx = 0; colRec_Idx < object2Head.nrec; colRec_Idx++, o++)
+        object2.resize(object2Head.nrec);
+        for (uint32_t xobjIdx = 0; xobjIdx < object2Head.nrec; xobjIdx++)
         {
-            SAFE_READ(ifstream, o, 4);
-            if (o->type == 1)
+            SAFE_READ(ifstream, &object2[xobjIdx].size, sizeof(uint16_t));
+            SAFE_READ(ifstream, &object2[xobjIdx].type, sizeof(uint8_t));
+            SAFE_READ(ifstream, &object2[xobjIdx].struct3D, sizeof(uint8_t));
+
+            if (object2[xobjIdx].type == 1)
             {
-                if (o->size != 16)
-                { return false; }
-                SAFE_READ(ifstream, &(o->ptRef), 12);
-            } else if (o->type == 3)
-            {
-                SAFE_READ(ifstream, &(o->animLength), 4);
-                if (o->size != 8 + 20 * o->animLength)
+                if (object2[xobjIdx].size != 16)
                 {
                     return false;
                 }
-                o->animData = new AnimData[o->animLength];
-                SAFE_READ(ifstream, o->animData, 20 * o->animLength);
-                o->ptRef.x = o->animData->pt.x;
-                o->ptRef.z = o->animData->pt.z;
-                o->ptRef.y = o->animData->pt.y;
-            } else
+                SAFE_READ(ifstream, &object2[xobjIdx].ptRef, sizeof(glm::ivec3));
+            }
+            else if (object2[xobjIdx].type == 3)
             {
-                // unknown object type
+                SAFE_READ(ifstream, &object2[xobjIdx].animLength, sizeof(uint16_t));
+                SAFE_READ(ifstream, &object2[xobjIdx].unknown, sizeof(uint16_t));
+                if (object2[xobjIdx].size != 8 + 20 * object2[xobjIdx].animLength)
+                {
+                    return false;
+                }
+
+                object2[xobjIdx].animData.resize(object2[xobjIdx].animLength);
+                SAFE_READ(ifstream, object2[xobjIdx].animData.data(), sizeof(AnimData) * object2[xobjIdx].animLength);
+                // Make a ref point from first anim position
+                object2[xobjIdx].ptRef = Utils::FixedToFloat(object2[xobjIdx].animData[0].pt);
+            }
+            else
+            {
+                // Unknown object2 type
                 return false;
             }
         }
@@ -142,19 +174,14 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream)
 
     // vroad XB
     SAFE_READ(ifstream, &vroadHead, 8);
-    if (vroadHead.xbid != XBID_VROAD)
+    if (vroadHead.xbid != XBID_VROAD || (vroadHead.size != 8 + sizeof(ColVRoad) * vroadHead.nrec))
     {
         return false;
     }
-    if (vroadHead.size != 8 + 36 * vroadHead.nrec)
-    {
-        return false;
-    }
-    vroad = new ColVRoad[vroadHead.nrec];
-    SAFE_READ(ifstream, vroad, 36 * vroadHead.nrec);
+    vroad.resize(vroadHead.nrec);
+    SAFE_READ(ifstream, vroad.data(), sizeof(ColVRoad) * vroadHead.nrec);
 
-    uint32_t pad;
-    return ifstream.read((char *) &pad, 4).gcount() == 0; // we ought to be at EOF now
+    return true;
 }
 
 void ColFile::_SerializeOut(std::ofstream &ofstream)

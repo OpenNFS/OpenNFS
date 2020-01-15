@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../IRawData.h"
-#include <glm/glm.hpp>
 
 struct PositionData  // enumerate polygons which lie at center
 {
@@ -31,7 +30,7 @@ struct VRoadData  // vroad vectors
 
 struct RefExtraObject // description of a block's XOBJects.
 {
-    IntPoint pt;
+    glm::ivec3 pt;
     uint16_t unknown1;
     uint16_t globalno;  // sequence number in all of the track's xobjs
     uint16_t unknown2;
@@ -40,12 +39,12 @@ struct RefExtraObject // description of a block's XOBJects.
 }; // !!! does not list the animated XOBJs
 
 struct SoundSource {
-    IntPoint refpoint;
+    glm::ivec3 refpoint;
     uint32_t type;
 };
 
 struct LightSource {
-    IntPoint refpoint;
+    glm::ivec3 refpoint;
     uint32_t type;
 };
 

@@ -39,21 +39,21 @@ struct ColStruct3D
 {
     uint32_t size;
     uint16_t nVert, nPoly;
-    ColVertex *vertex;
-    ColPolygon *polygon;
+    std::vector<ColVertex> vertex;
+    std::vector<ColPolygon> polygon;
 };
 
 struct ColObject
 {
     uint16_t size;
-    char type;     // 1 = basic object, 3 = animated ...
-    char struct3D; // reference in previous block
+    uint8_t type;     // 1 = basic object, 3 = animated ...
+    uint8_t struct3D; // reference in previous block
 // type 1
-    IntPoint ptRef;
+    glm::ivec3 ptRef;
 // type 3
     uint16_t animLength;
     uint16_t unknown;
-    AnimData *animData; // same structure as in xobjs
+    std::vector<AnimData> animData; // same structure as in xobjs
 };
 
 struct ColVector
@@ -63,7 +63,7 @@ struct ColVector
 
 struct ColVRoad
 {
-    IntPoint refPt;
+    glm::ivec3 refPt;
     uint32_t unknown;  // Unknown data
     ColVector normal, forward, right;
     uint32_t leftWall, rightWall;
@@ -78,22 +78,22 @@ public:
 
     static void Save(const std::string &colPath, ColFile &colFile);
 
-    char header[4];         // Header of file 'COLL'
-    uint32_t version;       // Version number 11
-    uint32_t fileLength;    // File length in bytes
-    uint32_t nBlocks;       // Number of Xtra blocks in file
-    uint32_t xbTable[5];    // Offsets of Xtra blocks
-    ExtraBlockHeader textureHead;     // Record detailing texture table data
-    ColTextureInfo *texture; // Texture table
-    ExtraBlockHeader struct3DHead;    // Record detailing struct3D table data
-    ColStruct3D *struct3D;  // Struct 3D table
-    ExtraBlockHeader objectHead;      // Record detailing object table data
-    ColObject *object;      // Object table
-    ExtraBlockHeader object2Head;     // Record detailing extra object data
-    ColObject *object2;     // Extra object data
-    ExtraBlockHeader vroadHead;       // Unknown Record detailing unknown table data
-    ColVRoad *vroad;        // Unknown table
-    uint32_t *hs_extra;     // for the extra HS data in ColVRoad
+    char header[4];                     // Header of file 'COLL'
+    uint32_t version;                   // Version number 11
+    uint32_t fileLength;                // File length in bytes
+    uint32_t nBlocks;                   // Number of Xtra blocks in file
+    uint32_t xbTable[5];                // Offsets of Xtra blocks
+    ExtraBlockHeader textureHead;       // Record detailing texture table data
+    std::vector<ColTextureInfo> texture;// Texture table
+    ExtraBlockHeader struct3DHead;      // Record detailing struct3D table data
+    std::vector<ColStruct3D> struct3D;  // Struct 3D table
+    ExtraBlockHeader objectHead;        // Record detailing object table data
+    std::vector<ColObject> object;      // Object table
+    ExtraBlockHeader object2Head;       // Record detailing extra object data
+    std::vector<ColObject> object2;     // Extra object data
+    ExtraBlockHeader vroadHead;         // Unknown Record detailing unknown table data
+    std::vector<ColVRoad> vroad;        // Unknown table
+    uint32_t *hs_extra = nullptr;       // for the extra HS data in ColVRoad
 
 private:
     bool _SerializeIn(std::ifstream &ifstream) override;
