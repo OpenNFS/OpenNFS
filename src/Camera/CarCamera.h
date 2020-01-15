@@ -4,10 +4,11 @@
 
 #include "../Physics/Car.h"
 
-class CarCamera : public BaseCamera {
+class CarCamera : public BaseCamera
+{
 public:
     explicit CarCamera() = default;
-    CarCamera(GLFWwindow *window);
+    CarCamera(const std::shared_ptr<GLFWwindow> &window);
     void FollowCar(const std::shared_ptr<Car> &targetCar);
 
 private:

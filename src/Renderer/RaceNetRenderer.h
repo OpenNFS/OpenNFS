@@ -17,8 +17,12 @@
 #include "../RaceNet/Agents/TrainingAgent.h"
 
 class RaceNetRenderer {
+public:
+    explicit RaceNetRenderer(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Logger> &onfs_logger);
+    ~RaceNetRenderer();
+    void Render(uint32_t tick, std::vector <TrainingAgent> &carList, std::shared_ptr <ONFSTrack> &trackToRender);
 private:
-    GLFWwindow *window;
+    std::shared_ptr<GLFWwindow> m_window;
     std::shared_ptr<Logger> logger;
     glm::mat4 projectionMatrix;
     RaceNetShader raceNetShader;
@@ -26,8 +30,4 @@ private:
 
     std::vector<int> GetVisibleTrackBlocks(shared_ptr <ONFSTrack> &track_to_render);
     void RescaleUI();
-public:
-    explicit RaceNetRenderer(GLFWwindow *gl_window, std::shared_ptr<Logger> &onfs_logger);
-    ~RaceNetRenderer();
-    void Render(uint32_t tick, std::vector <TrainingAgent> &carList, std::shared_ptr <ONFSTrack> &trackToRender);
 };

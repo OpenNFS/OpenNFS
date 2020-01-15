@@ -1,6 +1,6 @@
 #include "HermiteCamera.h"
 
-HermiteCamera::HermiteCamera(const HermiteCurve &trackCenterSpline, GLFWwindow *window) :
+HermiteCamera::HermiteCamera(const HermiteCurve &trackCenterSpline, const std::shared_ptr<GLFWwindow> &window) :
         BaseCamera(CameraMode::HERMITE_FLYTHROUGH, window),
         m_trackCameraRail(trackCenterSpline)
 {

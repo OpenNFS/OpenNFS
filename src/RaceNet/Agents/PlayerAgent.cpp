@@ -1,9 +1,8 @@
 #include "PlayerAgent.h"
 
-PlayerAgent::PlayerAgent(GLFWwindow *pWindow, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &raceTrack) :
-CarAgent(AgentType::PLAYER, car, raceTrack)
+PlayerAgent::PlayerAgent(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &raceTrack) :
+CarAgent(AgentType::PLAYER, car, raceTrack), m_window(window)
 {
-    m_pWindow = pWindow;
     name = "DumbPanda";
 }
 
@@ -14,12 +13,12 @@ void PlayerAgent::Simulate()
     this->_UpdateNearestVroad();
 
     //if (userParams.windowActive && !ImGui::GetIO().MouseDown[1]) { }
-    vehicle->ApplyAccelerationForce(glfwGetKey(m_pWindow, GLFW_KEY_W) == GLFW_PRESS, glfwGetKey(m_pWindow, GLFW_KEY_S) == GLFW_PRESS);
-    vehicle->ApplyBrakingForce(glfwGetKey(m_pWindow, GLFW_KEY_SPACE) == GLFW_PRESS);
-    vehicle->ApplySteeringRight(glfwGetKey(m_pWindow, GLFW_KEY_D) == GLFW_PRESS);
-    vehicle->ApplySteeringLeft(glfwGetKey(m_pWindow, GLFW_KEY_A) == GLFW_PRESS);
+    vehicle->ApplyAccelerationForce(glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS, glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS);
+    vehicle->ApplyBrakingForce(glfwGetKey(m_window.get(), GLFW_KEY_SPACE) == GLFW_PRESS);
+    vehicle->ApplySteeringRight(glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS);
+    vehicle->ApplySteeringLeft(glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS);
 
-    if(glfwGetKey(m_pWindow, GLFW_KEY_R) == GLFW_PRESS)
+    if(glfwGetKey(m_window.get(), GLFW_KEY_R) == GLFW_PRESS)
     {
         ResetToVroad(m_nearestVroadID, 0.f);
     }

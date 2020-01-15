@@ -1,14 +1,17 @@
 #include "Renderer.h"
 
-Renderer::Renderer(GLFWwindow *pWindow, std::shared_ptr<Logger> &onfsLogger,
-                   const std::vector<NfsAssetList> &installedNFS, std::shared_ptr<ONFSTrack> currentTrack, const std::shared_ptr<BulletDebugDrawer> &debugDrawer) :
-        m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_pWindow(pWindow), m_track(currentTrack) , m_debugRenderer(debugDrawer)
+Renderer::Renderer(const std::shared_ptr<GLFWwindow> &window,
+                   const std::shared_ptr<Logger> &onfsLogger,
+                   const std::vector<NfsAssetList> &installedNFS,
+                   const std::shared_ptr<ONFSTrack> &currentTrack,
+                   const std::shared_ptr<BulletDebugDrawer> &debugDrawer
+) : m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_window(window), m_track(currentTrack), m_debugRenderer(debugDrawer)
 {
     this->_InitialiseIMGUI();
     LOG(DEBUG) << "Renderer Initialised";
 }
 
-GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::string &windowName)
+std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName)
 {
     // Initialise GLFW
     ASSERT(glfwInit(), "GLFW Init failed.\n");
@@ -21,7 +24,7 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
 
-    GLFWwindow *window = glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr);
+    auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr), [](GLFWwindow* w){glfwDestroyWindow(w);});
 
     if (window == nullptr)
     {
@@ -29,8 +32,8 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
         getchar();
         glfwTerminate();
     }
-    glfwMakeContextCurrent(window);
-    glfwSetWindowSizeCallback(window, Renderer::WindowSizeCallback);
+    glfwMakeContextCurrent(window.get());
+    glfwSetWindowSizeCallback(window.get(), Renderer::WindowSizeCallback);
 
     // Initialize GLEW
     glewExperimental = GL_TRUE; // Needed for core profile
@@ -42,7 +45,7 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     }
 
     // Ensure we can capture the escape key being pressed below
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(window.get(), GLFW_STICKY_KEYS, GL_TRUE);
     // Set the mouse at the center of the screen
     glfwPollEvents();
     // Dark blue background
@@ -65,7 +68,13 @@ GLFWwindow *Renderer::InitOpenGL(int resolutionX, int resolutionY, const std::st
     return window;
 }
 
-bool Renderer::Render(float totalTime, const std::shared_ptr<BaseCamera> &activeCamera, const std::shared_ptr<HermiteCamera> &hermiteCamera, const std::shared_ptr<GlobalLight> &activeLight, ParamData &userParams, AssetData &loadedAssets, const std::vector<std::shared_ptr<CarAgent>> &racers)
+bool Renderer::Render(float totalTime,
+                      const std::shared_ptr<BaseCamera> &activeCamera,
+                      const std::shared_ptr<HermiteCamera> &hermiteCamera,
+                      const std::shared_ptr<GlobalLight> &activeLight,
+                      ParamData &userParams, AssetData &loadedAssets,
+                      const std::vector<std::shared_ptr<CarAgent>> &racers
+)
 {
     bool newAssetSelected = false;
 
@@ -91,7 +100,8 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<BaseCamera> &active
     m_debugRenderer.Render(activeCamera);
 
     // Render the Car and racers
-    for(auto &racer : racers){
+    for (auto &racer : racers)
+    {
         m_carRenderer.Render(racer->vehicle, activeCamera, visibleSet.lights);
     }
 
@@ -111,7 +121,7 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<BaseCamera> &active
 
     this->_DrawUI(userParams, activeCamera);
 
-    glfwSwapBuffers(m_pWindow);
+    glfwSwapBuffers(m_window.get());
 
     return newAssetSelected;
 }
@@ -190,14 +200,12 @@ std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONF
             if (neighbourBlockData.blk == -1)
             {
                 break;
-            }
-            else
+            } else
             {
                 activeTrackBlockIds.emplace_back(neighbourBlockData.blk);
             }
         }
-    }
-    else
+    } else
     {
         // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
         for (auto trackblockIdx = closestBlockID - userParams.blockDrawDistance; trackblockIdx < closestBlockID + userParams.blockDrawDistance; ++trackblockIdx)
@@ -213,7 +221,7 @@ std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONF
 void Renderer::_InitialiseIMGUI()
 {
     ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(m_pWindow, true);
+    ImGui_ImplGlfw_InitForOpenGL(m_window.get(), true);
     const std::string glVersion = "#version " + ONFS_GL_VERSION;
     ImGui_ImplOpenGL3_Init(glVersion.c_str());
     ImGui::StyleColorsDark();
@@ -251,7 +259,7 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
             std::shared_ptr<BaseLight> targetBaseLight = boost::get<std::shared_ptr<BaseLight>>(targetEntity->raw);
             std::shared_ptr<TrackLight> targetLight = std::static_pointer_cast<TrackLight>(targetBaseLight);
             ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z, targetLight->colour.w);
-            ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z,0.0f);
+            ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z, 0.0f);
             // Colour, type, attenuation, position and NFS unknowns
             ImGui::ColorEdit4("Light Colour", (float *) &lightColour); // Edit 3 floats representing a color
             targetLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
@@ -285,10 +293,10 @@ void Renderer::_DrawMetadata(Entity *targetEntity)
                 ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
             }
             ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f",
-                    targetCar->rangefinderInfo.upDistance,
-                    targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY],
-                    targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT_RAY],
-                    targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT_RAY]);
+                        targetCar->rangefinderInfo.upDistance,
+                        targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY],
+                        targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT_RAY],
+                        targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT_RAY]);
             ImGui::Text("Speed %f", targetCar->GetVehicle()->getCurrentSpeedKmHour() / 10.f);
             // Physics Parameters
             ImGui::SliderFloat("Engine Force", &targetCar->vehicleState.gEngineForce, 0, 10000.0f);
@@ -363,7 +371,7 @@ void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> 
 
     // Rendering
     int display_w, display_h;
-    glfwGetFramebufferSize(m_pWindow, &display_w, &display_h);
+    glfwGetFramebufferSize(m_window.get(), &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -425,8 +433,8 @@ Renderer::~Renderer()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     // Fixes bug on next render creation when install_callbacks set to true for ImGui
-    glfwSetMouseButtonCallback(m_pWindow, nullptr);
-    glfwSetScrollCallback(m_pWindow, nullptr);
-    glfwSetKeyCallback(m_pWindow, nullptr);
-    glfwSetCharCallback(m_pWindow, nullptr);
+    glfwSetMouseButtonCallback(m_window.get(), nullptr);
+    glfwSetScrollCallback(m_window.get(), nullptr);
+    glfwSetKeyCallback(m_window.get(), nullptr);
+    glfwSetCharCallback(m_window.get(), nullptr);
 }

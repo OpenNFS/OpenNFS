@@ -6,7 +6,7 @@
 class HermiteCamera : public BaseCamera {
 public:
     explicit HermiteCamera() = default;
-    HermiteCamera(const HermiteCurve &trackCenterSpline, GLFWwindow *window);
+    HermiteCamera(const HermiteCurve &trackCenterSpline, const std::shared_ptr<GLFWwindow> &window);
     void UseSpline(float elapsedTime);
 
 private:

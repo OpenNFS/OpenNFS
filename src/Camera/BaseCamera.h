@@ -23,7 +23,7 @@ enum CameraMode : uint8_t
 
 class BaseCamera {
 public:
-    BaseCamera(CameraMode mode, GLFWwindow *pWindow);
+    BaseCamera(CameraMode mode, const std::shared_ptr<GLFWwindow> &window);
     BaseCamera() = default;
     void UpdateFrustum();
     void ResetView();
@@ -34,7 +34,7 @@ public:
     Frustum viewFrustum;
 
 protected:
-    GLFWwindow* m_pWindow;
+    std::shared_ptr<GLFWwindow> m_window;
     CameraMode m_mode;
     glm::vec3 m_direction;
     float m_fov;

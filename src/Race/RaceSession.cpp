@@ -2,22 +2,21 @@
 
 #include <imgui.h>
 
-RaceSession::RaceSession(GLFWwindow *glWindow,
-                         std::shared_ptr<Logger> &onfsLogger,
+RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
+                         const std::shared_ptr<Logger> &onfsLogger,
                          const std::vector<NfsAssetList> &installedNFS,
-                         std::shared_ptr<ONFSTrack> currentTrack,
-                         std::shared_ptr<Car> &currentCar
-) :
-        m_pWindow(glWindow), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(glWindow, currentCar, currentTrack)),
-        m_renderer(glWindow, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer)
+                         const std::shared_ptr<ONFSTrack> &currentTrack,
+                         const std::shared_ptr<Car> &currentCar
+) : m_window(window), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(window, currentCar, currentTrack)),
+        m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer)
 {
 
     m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->tag, m_track->name};
 
     // Set up the cameras
-    m_freeCamera = std::make_shared<FreeCamera>(m_pWindow, m_track->trackBlocks[0].center);
-    m_hermiteCamera = std::make_shared<HermiteCamera>(m_track->centerSpline, m_pWindow);
-    m_carCamera = std::make_shared<CarCamera>(m_pWindow);
+    m_freeCamera = std::make_shared<FreeCamera>(m_window, m_track->trackBlocks[0].center);
+    m_hermiteCamera = std::make_shared<HermiteCamera>(m_track->centerSpline, m_window);
+    m_carCamera = std::make_shared<CarCamera>(m_window);
 
     // Generate the collision meshes
     m_physicsEngine.RegisterTrack(m_track);
@@ -71,7 +70,7 @@ std::shared_ptr<BaseCamera> RaceSession::_GetActiveCamera()
 
 AssetData RaceSession::Simulate()
 {
-    while (!glfwWindowShouldClose(m_pWindow))
+    while (!glfwWindowShouldClose(m_window.get()))
     {
         // glfwGetTime is called only once, the first time this function is called
         static double lastTime = glfwGetTime();
@@ -130,11 +129,11 @@ void RaceSession::_GetInputsAndClear()
     ImGui::NewFrame();
 
     // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-    if ((glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse))
+    if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse))
     {
         m_windowStatus = WindowStatus::GAME;
         ImGui::GetIO().MouseDrawCursor = false;
-    } else if (glfwGetKey(m_pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    } else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         m_windowStatus = WindowStatus::UI;
         ImGui::GetIO().MouseDrawCursor = true;

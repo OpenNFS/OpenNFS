@@ -1,6 +1,6 @@
 #include "FreeCamera.h"
 
-FreeCamera::FreeCamera(GLFWwindow *window, glm::vec3 initialPosition) :
+FreeCamera::FreeCamera(const std::shared_ptr<GLFWwindow> &window, glm::vec3 initialPosition) :
         BaseCamera(CameraMode::FREE_LOOK, window)
 {
     position = initialPosition;
@@ -12,7 +12,7 @@ void FreeCamera::ComputeMatricesFromInputs(float deltaTime) {
     m_verticalAngle += m_mouseSpeedDamper * (Config::get().resY / 2 - ImGui::GetIO().MousePos.y);
 
     // Reset mouse position for next frame
-    glfwSetCursorPos(m_pWindow, Config::get().resX / 2, Config::get().resY / 2);
+    glfwSetCursorPos(m_window.get(), Config::get().resX / 2, Config::get().resY / 2);
 
     // Direction : Spherical coordinates to Cartesian coordinates conversion
     m_direction = glm::vec3(
@@ -40,19 +40,19 @@ void FreeCamera::ComputeMatricesFromInputs(float deltaTime) {
 
     if (ImGui::GetIO().MouseDown[1]) {
         // Move forward
-        if (glfwGetKey(m_pWindow, GLFW_KEY_W) == GLFW_PRESS) {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS) {
             position += m_direction * deltaTime * m_speed;
         }
         // Move backward
-        if (glfwGetKey(m_pWindow, GLFW_KEY_S) == GLFW_PRESS) {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS) {
             position -= m_direction * deltaTime * m_speed;
         }
         // Strafe right
-        if (glfwGetKey(m_pWindow, GLFW_KEY_D) == GLFW_PRESS) {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS) {
             position += right * deltaTime * m_speed;
         }
         // Strafe left
-        if (glfwGetKey(m_pWindow, GLFW_KEY_A) == GLFW_PRESS) {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS) {
             position -= right * deltaTime * m_speed;
         }
     }

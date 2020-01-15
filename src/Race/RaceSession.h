@@ -18,11 +18,11 @@
 
 class RaceSession {
 public:
-    RaceSession(GLFWwindow *glWindow,
-                std::shared_ptr<Logger> &onfsLogger,
+    RaceSession(const std::shared_ptr<GLFWwindow> &window,
+                const std::shared_ptr<Logger> &onfsLogger,
                 const std::vector<NfsAssetList> &installedNFS,
-                std::shared_ptr<ONFSTrack> currentTrack,
-                std::shared_ptr<Car> &currentCar);
+                const std::shared_ptr<ONFSTrack> &currentTrack,
+                const std::shared_ptr<Car> &currentCar);
     AssetData Simulate();
 
 private:
@@ -30,11 +30,11 @@ private:
     void _UpdateCameras(float deltaTime);
     void _GetInputsAndClear();
 
-    GLFWwindow *m_pWindow;
     AssetData m_loadedAssets;
     WindowStatus m_windowStatus = WindowStatus::UI;
     CameraMode m_activeCameraMode = CameraMode::FREE_LOOK;
 
+    std::shared_ptr<GLFWwindow> m_window;
     std::shared_ptr<ONFSTrack> m_track;
     std::shared_ptr<PlayerAgent> m_playerAgent;
     std::shared_ptr<FreeCamera> m_freeCamera;

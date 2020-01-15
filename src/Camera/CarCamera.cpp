@@ -1,6 +1,6 @@
 #include "CarCamera.h"
 
-CarCamera::CarCamera(GLFWwindow *window) : BaseCamera(CameraMode::FOLLOW_CAR, window) {
+CarCamera::CarCamera(const std::shared_ptr<GLFWwindow> &window) : BaseCamera(CameraMode::FOLLOW_CAR, window) {
 
 }
 
