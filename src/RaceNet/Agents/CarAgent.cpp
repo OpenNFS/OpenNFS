@@ -110,6 +110,7 @@ void CarAgent::_UpdateNearestTrackblock()
 
 void CarAgent::_UpdateNearestVroad()
 {
+    return;
     if (m_track->tag == NFS_3 || m_track->tag == NFS_4)
     {
         float lowestDistance = FLT_MAX;

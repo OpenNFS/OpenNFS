@@ -32,10 +32,10 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream)
         return false;
     }
 
-    SAFE_READ(ifstream, xbTable, 4 * nBlocks);
+    SAFE_READ(ifstream, xbTable, sizeof(uint32_t) * nBlocks);
 
     // texture XB
-    SAFE_READ(ifstream, &textureHead, 8);
+    SAFE_READ(ifstream, &textureHead, sizeof(ExtraBlockHeader));
     if (textureHead.xbid != XBID_TEXTUREINFO)
     {
         return false;
@@ -46,7 +46,7 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream)
     // struct3D XB
     if (nBlocks >= 4)
     {
-        SAFE_READ(ifstream, &struct3DHead, 8);
+        SAFE_READ(ifstream, &struct3DHead, sizeof(ExtraBlockHeader));
         if (struct3DHead.xbid != XBID_STRUCT3D)
         {
             return false;
@@ -85,7 +85,7 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream)
 
         // TODO: Share this code between both XOBJ parse runs
         // object XB
-        SAFE_READ(ifstream, &objectHead, 8);
+        SAFE_READ(ifstream, &objectHead, sizeof(ExtraBlockHeader));
         if ((objectHead.xbid != XBID_OBJECT) && (objectHead.xbid != XBID_OBJECT2))
         {
             return false;

@@ -706,33 +706,6 @@ namespace NFS3_4_DATA {
         };
 
     };
-#pragma pack(1)
-    struct FFN {
-        struct HEADER {
-            char fntfChk[4];
-            uint32_t fileSize;
-            uint16_t version;
-            uint16_t numChars;
-            uint32_t unknown;
-            uint16_t zeroPad;
-            uint16_t unknown2;
-            uint64_t num20Check;
-            uint32_t fontMapOffset;
-        };
-
-        struct CHAR_TABLE_ENTRY {
-            uint16_t asciiCode;
-            uint8_t width;
-            uint8_t height;
-            uint8_t horizontalScroll;
-            uint8_t unknown[2];
-            uint8_t zeroPad;
-            uint8_t rightPadding;
-            uint8_t leftPadding;
-            uint8_t topPadding;
-        };
-    };
-#pragma pack()
 
     namespace PS1 {
         struct VECTOR // hashcode: 0xCB78D6DC (dec: -881273124)

@@ -206,7 +206,11 @@ set(SOURCE_FILES
         src/Loaders/NFS3/FRD/TexBlock.h
         src/Loaders/NFS3/COL/ColFile.cpp
         src/Loaders/NFS3/COL/ColFile.h
-        src/Loaders/NFS3/Common.h)
+        src/Loaders/NFS3/Common.h
+        src/Loaders/NFS3/FFN/FfnFile.cpp
+        src/Loaders/NFS3/FFN/FfnFile.h
+        src/Loaders/Shared/CanFile.cpp
+        src/Loaders/Shared/CanFile.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

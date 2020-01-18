@@ -152,37 +152,6 @@ CarData NFS3::LoadFCE(const std::string &fce_path)
     return carData;
 }
 
-void DumpMeshes(CarData car, const std::string &objFilePath)
-{
-    // Make the directories if they're not there
-    if (!(boost::filesystem::exists(objFilePath)))
-    {
-        boost::filesystem::create_directories(objFilePath);
-    }
-
-    // Open up the obj file for writing
-    std::ofstream obj_dump(objFilePath);
-    ASSERT(obj_dump.is_open(), "Couldn't open obj file at " << objFilePath);
-
-    // For every part
-    for (auto &part : car.meshes)
-    {
-        // Write the name into the file
-        obj_dump << "o " << part.m_name << std::endl;
-        // And all of its vertices
-        for (auto &vertex : part.m_vertices)
-        {
-            obj_dump << "v " << vertex.x << " " << vertex.y << " " << vertex.z << std::endl;
-        }
-        // You can do the indices spark!
-        for (auto &index : part.m_vertex_indices)
-        {
-            // Same as before, but follow obj format. 'v' should be 'f'
-        }
-    }
-    obj_dump.close();
-}
-
 // TRACK
 std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
 {
@@ -230,80 +199,6 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &track_base_path)
     LOG(INFO) << "Track loaded successfully";
 
     return track;
-}
-
-bool NFS3::LoadFFN(const std::string &ffn_path)
-{
-    std::ifstream ffn(ffn_path, std::ios::in | std::ios::binary);
-
-    if (!ffn.is_open())
-    {
-        return false;
-    }
-
-    LOG(INFO) << "Loading FFN File located at " << ffn_path;
-
-    // Get filesize so can check have parsed all bytes
-    FFN::HEADER *header = new FFN::HEADER;
-    ffn.read((char *) header, sizeof(FFN::HEADER));
-
-    if (memcmp(header->fntfChk, "FNTF", sizeof(header->fntfChk)) != 0)
-    {
-        LOG(WARNING) << "Invalid FFN Header.";
-        delete header;
-        return false;
-    }
-
-    FFN::CHAR_TABLE_ENTRY *charTable = new FFN::CHAR_TABLE_ENTRY[header->numChars];
-    ffn.read((char *) charTable, sizeof(FFN::CHAR_TABLE_ENTRY) * header->numChars);
-
-    uint32_t predictedAFontOffset = header->fontMapOffset;
-
-    for (uint8_t char_Idx = 0; char_Idx < header->numChars; ++char_Idx)
-    {
-        FFN::CHAR_TABLE_ENTRY character = charTable[char_Idx];
-    }
-    header->numChars = 400;
-    header->version = 164;
-
-    //streamoff readBytes = ffn.tellg();
-    //ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
-
-    ffn.seekg(header->fontMapOffset, std::ios_base::beg);
-    uint32_t *pixels = new uint32_t[header->version * header->numChars];
-    uint16_t *paletteColours = new uint16_t[0xFF];
-    uint8_t *indexes = new uint8_t[header->version * header->numChars]; // Only used if indexed
-
-    for (int pal_Idx = 0; pal_Idx < 255; ++pal_Idx)
-    {
-        paletteColours[pal_Idx] = 65535;
-    }
-
-    for (int y = 0; y < header->numChars; y++)
-    {
-        for (int x = 0; x < header->version; x++)
-        {
-            ffn.read((char *) &indexes[(x + y * header->version)], sizeof(uint8_t));
-        }
-    }
-
-    // Rewrite the pixels using the palette data
-    for (int y = 0; y < header->numChars; y++)
-    {
-        for (int x = 0; x < header->version; x++)
-        {
-            uint32_t pixel = ImageLoader::abgr1555ToARGB8888(paletteColours[indexes[(x + y * header->version)]]);
-            pixels[(x + y * header->version)] = pixel;
-        }
-    }
-
-    ImageLoader::SaveImage("C:/Users/Amrik/Desktop/test.bmp", pixels, header->version, header->numChars);
-    delete[]pixels;
-
-    delete header;
-
-    //ASSERT(readBytes == header->fileSize, "Missing " << header->fileSize - readBytes << " bytes from loaded FFN file: " << ffn_path);
-    return true;
 }
 
 bool NFS3::LoadHRZ(std::string hrz_path, const std::shared_ptr<TRACK> &track)

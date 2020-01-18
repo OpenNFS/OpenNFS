@@ -73,9 +73,7 @@ class ColFile : IRawData
 {
 public:
     ColFile() = default;
-
     static bool Load(const std::string &colPath, ColFile &colFile);
-
     static void Save(const std::string &colPath, ColFile &colFile);
 
     char header[4];                     // Header of file 'COLL'
@@ -97,6 +95,5 @@ public:
 
 private:
     bool _SerializeIn(std::ifstream &ifstream) override;
-
     void _SerializeOut(std::ofstream &ofstream) override;
 };
