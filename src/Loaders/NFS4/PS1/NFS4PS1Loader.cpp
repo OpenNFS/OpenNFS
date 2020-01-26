@@ -1,4 +1,5 @@
 #include "NFS4PS1Loader.h"
+#include "Texture.h"
 
 constexpr float carScaleFactor = 1000.f;
 

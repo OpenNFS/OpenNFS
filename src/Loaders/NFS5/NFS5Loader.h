@@ -7,11 +7,11 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 
-#include "../Physics/Car.h"
-#include "../nfs_data.h"
-#include "../Util/Utils.h"
-#include "../Util/ImageLoader.h"
-#include "../../include/CrpLib/Lib.h"
+#include "../../Physics/Car.h"
+#include "../../nfs_data.h"
+#include "../../Util/Utils.h"
+#include "../../Util/ImageLoader.h"
+#include "../../../include/CrpLib/Lib.h"
 
 using namespace NFS5_DATA;
 using namespace CrpLib;

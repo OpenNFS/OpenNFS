@@ -36,12 +36,10 @@ public:
     static bool Load(const std::string &ffnPath, FfnFile &ffnFile);
     static void Save(const std::string &ffnPath, FfnFile &ffnFile);
 
-
     HEADER header;
     std::vector<CHAR_TABLE_ENTRY> characters;
 
 private:
     bool _SerializeIn(std::ifstream &ifstream) override;
-
     void _SerializeOut(std::ofstream &ofstream) override;
 };

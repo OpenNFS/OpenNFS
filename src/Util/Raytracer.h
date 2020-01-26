@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <assert.h>
-#include "../Loaders/NFS3Loader.h"
+#include "../Loaders/NFS3/NFS3Loader.h"
 
 #define EPSILON 0.000001
 

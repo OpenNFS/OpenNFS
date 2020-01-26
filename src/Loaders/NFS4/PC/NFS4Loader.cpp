@@ -1,5 +1,6 @@
 #include "NFS4Loader.h"
-#include "../Util/Raytracer.h"
+#include "../../../Util/Raytracer.h"
+#include "Texture.h"
 
 using namespace Utils;
 using namespace TrackUtils;

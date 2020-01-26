@@ -1,4 +1,5 @@
 #include "NFS2Loader.h"
+#include "Texture.h"
 
 using namespace Utils;
 using namespace TrackUtils;

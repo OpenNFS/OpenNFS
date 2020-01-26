@@ -11,13 +11,13 @@
 #include <memory.h>
 #include <cstring>
 #include <boost/filesystem.hpp>
-#include "TrackUtils.h"
+#include "../../TrackUtils.h"
 #include "SerializedGroupOps.h"
-#include "../Util/Logger.h"
-#include "../Physics/Car.h"
-#include "../Util/ImageLoader.h"
-#include "../Util/Utils.h"
-#include "../nfs_data.h"
+#include "../../../Util/Logger.h"
+#include "../../../Physics/Car.h"
+#include "../../../Util/ImageLoader.h"
+#include "../../../Util/Utils.h"
+#include "../../../nfs_data.h"
 
 using namespace NFS3_4_DATA::PS1;
 

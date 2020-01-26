@@ -6,14 +6,14 @@
 #include <cstdlib>
 #include <bitset>
 #include "bmpread.h"
-#include "TrackUtils.h"
-#include "../Physics/Car.h"
-#include "../Config.h"
-#include "../Util/ImageLoader.h"
-#include "../Util/Utils.h"
-#include "../Scene/TrackBlock.h"
-#include "../nfs_data.h"
-#include "../Util/Logger.h"
+#include "../../TrackUtils.h"
+#include "../../../Physics/Car.h"
+#include "../../../Config.h"
+#include "../../../Util/ImageLoader.h"
+#include "../../../Util/Utils.h"
+#include "../../../Scene/TrackBlock.h"
+#include "../../../nfs_data.h"
+#include "../../../Util/Logger.h"
 
 #define scaleFactor 1000000.0f
 

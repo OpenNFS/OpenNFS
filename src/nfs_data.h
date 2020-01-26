@@ -5,38 +5,9 @@
 #include <vector>
 #include "Scene/TrackBlock.h"
 
-// ---- NFS2/3/4 GL Structures -----
-class Texture {
-public:
-    unsigned int texture_id, width, height, layer;
-    float min_u, min_v, max_u, max_v;
-
-    GLubyte *texture_data;
-
-    Texture() = default;
-
-    explicit Texture(unsigned int id, GLubyte *data, unsigned int w, unsigned int h) {
-        texture_id = id;
-        texture_data = data;
-        width = w;
-        height = h;
-        min_u = 0.f;
-        min_v = 0.f;
-        max_u = 0.f;
-        max_v = 0.f;
-    }
-};
-
 /* HEREIN LIES THE HOLY GRAIL OF OLD SCHOOL NEED FOR SPEED MODDING.
  * Every raw data structure from every interesting file in NFS 2, 3, 4 is documented here.
  * Big up to Denis Auroux, Jesper Juul Mortensen, JimDiabolo, Lasse (Nappe1), Hoo, Valery V. Anisimovsky */
-
-namespace SHARED {
-    struct CANPT {
-        int32_t x, z, y;
-        int16_t od1, od2, od3, od4;
-    };
-}
 
 // Derived from Arushans collated Addict and Jesper-Juul Mortensen notes
 // Deprecated in favour of CrpLib
@@ -544,28 +515,15 @@ namespace NFS3_4_DATA {
 
     // ---- MASTER TRACK STRUCT ----
     struct TRACK {
-        // !!! for arrays : structures are aligned to their largest member
-        // !!! structure members are aligned on their own size (up to the /Zp parameter)
-        // Attributes
-        bool bEmpty;
-        bool bHSMode;
         std::string name;
         uint32_t nBlocks;
-        TRKBLOCK *trk;
-        POLYGONBLOCK *poly;
-        XOBJBLOCK *xobj; // xobj[4*blk+chunk]; global=xobj[4*nblocks]
-        uint32_t hs_morexobjlen;
-        char *hs_morexobj;  // 4N & 4N+1 in HS format (xobj[4N] left empty)
         uint32_t nTextures;
-        TEXTUREBLOCK *texture;
-        COLFILE col;
-        std::vector<SHARED::CANPT> cameraAnimation;
+        std::vector<CameraAnimPoint> cameraAnimation;
         // GL 3D Render Data
-        std::vector<TrackBlock> track_blocks;
-        std::vector<Entity> global_objects;
+        std::vector<TrackBlock> trackBlocks;
+        std::vector<Entity> globalObjects;
         std::map<unsigned int, Texture> textures;
         GLuint textureArrayID;
-        glm::vec3 sky_top_colour, sky_bottom_colour;
     };
 
     struct FCE {
@@ -648,50 +606,6 @@ namespace NFS3_4_DATA {
                 uint8_t unknownTable2[528];
             };
         };
-
-        struct NFS3 {
-            struct COLOUR {
-                uint32_t H, S, B, T;
-            };
-
-            struct HEADER {
-                uint32_t unknown;
-
-                uint32_t nTriangles;
-                uint32_t nVertices;
-                uint32_t nArts;
-
-                uint32_t vertTblOffset;
-                uint32_t normTblOffset;
-                uint32_t triTblOffset;
-                uint32_t reserve1Offset;
-                uint32_t reserve2Offset;
-                uint32_t reserve3Offset;
-
-                FLOATPT modelHalfSize;
-
-                uint32_t nDummies;
-                FLOATPT dummyCoords[16];
-
-                uint32_t nParts;
-                FLOATPT partCoords[64];
-
-                uint32_t partFirstVertIndices[64];
-                uint32_t partNumVertices[64];
-                uint32_t partFirstTriIndices[64];
-                uint32_t partNumTriangles[64];
-
-                uint32_t nPriColours;
-                COLOUR primaryColours[16];
-                uint32_t nSecColours;
-                COLOUR secondaryColours[16];
-
-                char dummyNames[16][64];
-                char partNames[64][64];
-
-                uint32_t unknownTable[64];
-            };
-        };
     };
 
     struct FEDATA {
@@ -699,12 +613,6 @@ namespace NFS3_4_DATA {
             static const int COLOUR_TABLE_OFFSET = 0x043C;
             static const int MENU_NAME_FILEPOS_OFFSET = 0x03C8;
         };
-
-        struct NFS3 {
-            static const int COLOUR_TABLE_OFFSET = 0xA7;
-            static const int MENU_NAME_FILEPOS_OFFSET = 0x37;
-        };
-
     };
 
     namespace PS1 {
