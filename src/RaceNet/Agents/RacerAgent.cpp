@@ -28,7 +28,7 @@ char const *RACER_NAMES[23] =
                 "Ram Rod"
         };
 
-RacerAgent::RacerAgent(uint16_t racerID, const std::string &networkPath, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &raceTrack) :
+RacerAgent::RacerAgent(uint16_t racerID, const std::string &networkPath, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &raceTrack) :
 CarAgent(AgentType::RACING, car, raceTrack)
 {
     if (boost::filesystem::exists(networkPath))

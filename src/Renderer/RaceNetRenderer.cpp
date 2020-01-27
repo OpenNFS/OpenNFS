@@ -11,7 +11,7 @@ RaceNetRenderer::RaceNetRenderer(const std::shared_ptr<GLFWwindow> &window, cons
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList, std::shared_ptr<ONFSTrack> &trackToRender)
+void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList, std::shared_ptr<Track> &trackToRender)
 {
     raceNetShader.shaderSet.UpdatePrograms(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -32,14 +32,14 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList,
     {
         raceNetShader.use();
         raceNetShader.loadProjectionMatrix(projectionMatrix);
-        // Draw Track
+        // Draw TrackModel
         raceNetShader.loadColor(glm::vec3(0.f, 0.5f, 0.5f));
         for (auto &visibleTrackBlockID : visibleTrackBlocks)
         {
             for (auto &track_block_entity : trackToRender->trackBlocks[visibleTrackBlockID].track)
             {
-                raceNetShader.loadTransformationMatrix(boost::get<Track>(track_block_entity.raw).ModelMatrix);
-                boost::get<Track>(track_block_entity.raw).render();
+                raceNetShader.loadTransformationMatrix(boost::get<TrackModel>(track_block_entity.raw).ModelMatrix);
+                boost::get<TrackModel>(track_block_entity.raw).render();
             }
         }
 
@@ -78,7 +78,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList,
     glfwSwapBuffers(m_window.get());
 }
 
-std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<ONFSTrack> &track_to_render)
+std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<Track> &track_to_render)
 {
     std::vector<int> activeTrackBlockIds;
 

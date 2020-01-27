@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../NFS3/IRawData.h"
+#include "../Common/IRawData.h"
 
 struct CameraAnimPoint {
     glm::ivec3 pt;

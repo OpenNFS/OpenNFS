@@ -1,19 +1,15 @@
 #include "TrackLoader.h"
 
-
-#include <memory>
-
-ONFSTrack::ONFSTrack(NFSVer trackVersion, const std::string &trackName) : cullTree(4000)
+std::shared_ptr<Track> TrackLoader::LoadTrack(NFSVer trackVersion, const std::string &trackName)
 {
-    tag = trackVersion;
-    name = trackName;
+    std::shared_ptr<Track> loadedTrack;
 
     std::stringstream trackPath;
-    trackPath << RESOURCE_PATH << ToString(tag);
+    trackPath << RESOURCE_PATH << ToString(trackVersion);
 
-    switch (tag)
+    switch (trackVersion)
     {
-        case NFS_2:
+        /*case NFS_2:
             trackPath << NFS_2_TRACK_PATH << trackName;
             trackData = NFS2<PC>::LoadTrack(trackPath.str());
             nBlocks = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
@@ -30,82 +26,42 @@ ONFSTrack::ONFSTrack(NFSVer trackVersion, const std::string &trackName) : cullTr
             textureArrayID = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->textureArrayID;
             trackBlocks = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
             globalObjects = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
-            break;
+            break;*/
         case NFS_3:
             trackPath << NFS_3_TRACK_PATH << trackName;
-            trackData = NFS3::LoadTrack(trackPath.str());
-            nBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
-            cameraAnimations = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->cameraAnimation;
-            textureArrayID =  boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
-            trackBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
-            globalObjects = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
+            loadedTrack = NFS3::LoadTrack(trackPath.str());
             break;
-        case NFS_3_PS1:
-            trackPath << "/" << trackName;
-            trackData = NFS2<NFS2_DATA::PS1>::LoadTrack(trackPath.str());
-            nBlocks = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->nBlocks;
-            cameraAnimations = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->cameraAnimation;
-            textureArrayID =  boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->textureArrayID;
-            trackBlocks = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->track_blocks;
-            globalObjects = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->global_objects;
-            break;
-        case NFS_4:
-            trackPath << NFS_4_TRACK_PATH << trackName;
-            trackData = NFS4::LoadTrack(trackPath.str());
-            nBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
-            cameraAnimations = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->cameraAnimation;
-            textureArrayID = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
-            trackBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
-            globalObjects = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
-            break;
-        case NFS_4_PS1:
-            trackPath << "/" << trackName << ".GRP";
-            trackData = NFS4PS1::LoadTrack(trackPath.str());
-            ASSERT(false, "Implement!");
-            break;
+            /*case NFS_3_PS1:
+                trackPath << "/" << trackName;
+                trackData = NFS2<NFS2_DATA::PS1>::LoadTrack(trackPath.str());
+                nBlocks = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->nBlocks;
+                cameraAnimations = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->cameraAnimation;
+                textureArrayID =  boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->textureArrayID;
+                trackBlocks = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->track_blocks;
+                globalObjects = boost::get<std::shared_ptr<NFS2_DATA::PS1::TRACK>>(trackData)->global_objects;
+                break;
+            case NFS_4:
+                trackPath << NFS_4_TRACK_PATH << trackName;
+                trackData = NFS4::LoadTrack(trackPath.str());
+                nBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->nBlocks;
+                cameraAnimations = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->cameraAnimation;
+                textureArrayID = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->textureArrayID;
+                trackBlocks = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->track_blocks;
+                globalObjects = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(trackData)->global_objects;
+                break;
+            case NFS_4_PS1:
+                trackPath << "/" << trackName << ".GRP";
+                trackData = NFS4PS1::LoadTrack(trackPath.str());
+                ASSERT(false, "Implement!");
+                break;*/
         case UNKNOWN:
             ASSERT(false, "Unknown track type!");
         default:
             break;
     }
 
-    this->_GenerateSpline();
-    this->_GenerateAabbTree();
-}
+    loadedTrack->GenerateSpline();
+    loadedTrack->GenerateAabbTree();
 
-void ONFSTrack::_GenerateSpline()
-{
-    // Build a spline through the center of the track
-    std::vector<glm::vec3> cameraPoints;
-    for (auto &trackBlock : trackBlocks)
-    {
-        cameraPoints.emplace_back(glm::vec3(trackBlock.center.x, trackBlock.center.y + 0.2, trackBlock.center.z));
-    }
-    centerSpline = HermiteCurve(cameraPoints, 0.1f, 0.0f);
+    return loadedTrack;
 }
-
-void ONFSTrack::_GenerateAabbTree()
-{
-    // Build an optimised BvH of AABB's so that culling for render becomes cheap
-    for (auto &trackBlock : trackBlocks)
-    {
-        for (auto &baseTrackEntity : trackBlock.track)
-        {
-            cullTree.insertObject(std::make_shared<Entity>(baseTrackEntity));
-        }
-        for (auto &trackObjectEntity : trackBlock.objects)
-        {
-            cullTree.insertObject(std::make_shared<Entity>(trackObjectEntity));
-        }
-        for (auto &trackLaneEntity : trackBlock.lanes)
-        {
-            cullTree.insertObject(std::make_shared<Entity>(trackLaneEntity));
-        }
-    }
-}
-
-std::shared_ptr<ONFSTrack> TrackLoader::LoadTrack(NFSVer nfs_version, const std::string &track_name)
-{
-    return std::make_shared<ONFSTrack>(nfs_version, track_name);
-}
-

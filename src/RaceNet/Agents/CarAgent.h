@@ -3,7 +3,7 @@
 #include "../RaceNet.h"
 #include "../RaceNEAT.h"
 #include "../../Loaders/CarLoader.h"
-#include "../../Loaders/TrackLoader.h"
+#include "../../Loaders/Track.h"
 
 enum AgentType : uint8_t
 {
@@ -15,7 +15,7 @@ enum AgentType : uint8_t
 class CarAgent
 {
 public:
-    CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track);
+    CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &track);
     void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset);
     void ResetToVroad(int vroadIndex, float offset);
     virtual void Simulate() = 0;
@@ -29,7 +29,7 @@ protected:
     void _UpdateNearestTrackblock();
     void _UpdateNearestVroad();
 
-    std::shared_ptr<ONFSTrack> m_track;
+    std::shared_ptr<Track> m_track;
     AgentType m_agentType;
     uint32_t m_nearestVroadID = 0;
 };

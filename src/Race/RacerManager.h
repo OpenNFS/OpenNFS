@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Physics/PhysicsEngine.h"
-#include "../Loaders/TrackLoader.h"
+#include "../Loaders/Track.h"
 #include "../RaceNet/Agents/PlayerAgent.h"
 #include "../RaceNet/Agents/RacerAgent.h"
 
@@ -12,7 +12,7 @@ class RacerManager
 {
 public:
     explicit RacerManager() = default;
-    RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<ONFSTrack> &track, PhysicsEngine &physicsEngine);
+    RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<Track> &track, PhysicsEngine &physicsEngine);
     void Simulate();
     std::vector<uint32_t> GetRacerResidentTrackblocks();
 
@@ -21,5 +21,5 @@ private:
     void _InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsEngine &physicsEngine);
     void _SpawnRacers(PhysicsEngine &physicsEngine);
 
-    std::shared_ptr<ONFSTrack> m_currentTrack;
+    std::shared_ptr<Track> m_currentTrack;
 };

@@ -8,7 +8,7 @@ void DebugRenderer::Render(const std::shared_ptr<BaseCamera> &camera)
     m_bulletDebugDrawer->Render(camera);
 }
 
-void DebugRenderer::DrawTrackCollision(const std::shared_ptr<ONFSTrack> &track)
+void DebugRenderer::DrawTrackCollision(const std::shared_ptr<Track> &track)
 {
     for (auto &trackblock : track->trackBlocks)
     {
@@ -69,9 +69,9 @@ void DebugRenderer::DrawCarRaycasts(const std::shared_ptr<Car> &car)
                                   btVector3(2.0f * (kFarDistance - car->rangefinderInfo.downDistance), 2.0f * (car->rangefinderInfo.downDistance), 0));
 }
 
-void DebugRenderer::DrawVroad(const std::shared_ptr<ONFSTrack> &track)
+void DebugRenderer::DrawVroad(const std::shared_ptr<Track> &track)
 {
-    if (track->tag == NFS_3 || track->tag == NFS_4)
+    /*if (track->tag == NFS_3 || track->tag == NFS_4)
     {
         float vRoadDisplayHeight = 0.2f;
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->col.vroadHead.nrec;
@@ -115,18 +115,18 @@ void DebugRenderer::DrawVroad(const std::shared_ptr<ONFSTrack> &track)
                 }
             }
         }
-    }
+    }*/
 }
 
-void DebugRenderer::DrawCameraAnimation(const std::shared_ptr<ONFSTrack> &track)
+void DebugRenderer::DrawCameraAnimation(const std::shared_ptr<Track> &track)
 {
-    for (uint8_t canIdx = 0; canIdx < track->cameraAnimations.size() - 1; ++canIdx)
+    /*for (uint8_t canIdx = 0; canIdx < track->cameraAnimation.size() - 1; ++canIdx)
     {
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
 
         // Draw CAN positions
-        SHARED::CANPT refPt = track->cameraAnimations[canIdx];
-        SHARED::CANPT refPtNext = track->cameraAnimations[canIdx + 1];
+        SHARED::CANPT refPt = track->cameraAnimation[canIdx];
+        SHARED::CANPT refPtNext = track->cameraAnimation[canIdx + 1];
         glm::vec3 vroadPoint = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(refPt)) / NFS3_SCALE_FACTOR;
         glm::vec3 vroadPointNext = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(refPtNext)) / NFS3_SCALE_FACTOR;
         vroadPoint.y += 0.2f;
@@ -142,7 +142,7 @@ void DebugRenderer::DrawCameraAnimation(const std::shared_ptr<ONFSTrack> &track)
         glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
         m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center),
                                       Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center + direction), btVector3(0, 0.5, 0.5));
-    }
+    }*/
 }
 
 

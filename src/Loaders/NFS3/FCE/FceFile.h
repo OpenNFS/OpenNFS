@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../IRawData.h"
+#include "../../Common/IRawData.h"
 
 struct Colour {
     uint32_t H, S, B, T;
@@ -12,6 +12,13 @@ struct Triangle {
     uint16_t padding[6]; // 00FF
     uint32_t polygonFlags;
     float uvTable[6]; // U1 U2 U3, V1 V2 V3
+};
+
+struct CarPart
+{
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
+    std::vector<Triangle> triangles;
 };
 
 class FceFile : IRawData
@@ -48,6 +55,7 @@ public:
     char dummyNames[16][64];
     char partNames[64][64];
     uint32_t unknownTable[64];
+    std::vector<CarPart> carParts;
     
 private:
     bool _SerializeIn(std::ifstream &ifstream) override;

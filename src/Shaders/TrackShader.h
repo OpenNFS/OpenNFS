@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BaseShader.h"
-#include "../Scene/Track.h"
+#include "../Scene/TrackModel.h"
 #include "../Scene/Lights/BaseLight.h"
 #include "../Scene/Lights/Spotlight.h"
 #include "../../shaders/ShaderPreamble.h"

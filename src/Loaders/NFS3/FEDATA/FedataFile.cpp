@@ -46,6 +46,8 @@ bool FedataFile::_SerializeIn(std::ifstream &ifstream)
         SAFE_READ(ifstream, &colourName, colourNameLength);
         primaryColourNames.push_back(std::string(colourName));
     }
+
+    return true;
 }
 
 void FedataFile::_SerializeOut(std::ofstream &ofstream)

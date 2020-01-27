@@ -91,9 +91,9 @@ void Entity::_GenCollisionMesh()
         case XOBJ:
         case OBJ_POLY:
         {
-            std::vector<glm::vec3> vertices = boost::get<Track>(raw).m_vertices;
-            center = boost::get<Track>(raw).initialPosition;
-            orientation = boost::get<Track>(raw).orientation;
+            std::vector<glm::vec3> vertices = boost::get<TrackModel>(raw).m_vertices;
+            center = boost::get<TrackModel>(raw).initialPosition;
+            orientation = boost::get<TrackModel>(raw).orientation;
             if (dynamic)
             {
                 // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
@@ -148,8 +148,8 @@ void Entity::_GenBoundingBox()
         case ROAD:
         case GLOBAL:
         {
-            DimensionData meshDimensions = Utils::GenDimensions(boost::get<Track>(raw).m_vertices);
-            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<Track>(raw).initialPosition);
+            DimensionData meshDimensions = Utils::GenDimensions(boost::get<TrackModel>(raw).m_vertices);
+            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<TrackModel>(raw).initialPosition);
             return;
         }
         case LIGHT:
@@ -182,9 +182,9 @@ void Entity::Update()
     }
     btTransform trans;
     m_motionState->getWorldTransform(trans);
-    boost::get<Track>(raw).position = Utils::bulletToGlm(trans.getOrigin());
-    boost::get<Track>(raw).orientation = Utils::bulletToGlm(trans.getRotation());
-    boost::get<Track>(raw).update();
+    boost::get<TrackModel>(raw).position = Utils::bulletToGlm(trans.getOrigin());
+    boost::get<TrackModel>(raw).orientation = Utils::bulletToGlm(trans.getRotation());
+    boost::get<TrackModel>(raw).update();
 }
 
 void Entity::_SetCollisionParameters()

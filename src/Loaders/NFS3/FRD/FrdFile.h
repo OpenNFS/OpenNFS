@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../IRawData.h"
+#include "../../Common/IRawData.h"
 
 #include "TrkBlock.h"
 #include "PolyBlock.h"

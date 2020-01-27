@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../IRawData.h"
+#include "../../Common/IRawData.h"
 
 static const uint32_t COLOUR_TABLE_OFFSET = 0xA7;
 static const uint32_t MENU_NAME_FILEPOS_OFFSET = 0x37;

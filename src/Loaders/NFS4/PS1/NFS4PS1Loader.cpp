@@ -53,7 +53,7 @@ std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath) {
 
 
 std::shared_ptr<NFS3_4_DATA::PS1::TRACK> NFS4PS1::LoadTrack(const std::string &trackGrpPath) {
-    std::cout << "--- Loading NFS4 PS1 Track ---" << std::endl;
+    std::cout << "--- Loading NFS4 PS1  ---" << std::endl;
     auto track = std::make_shared<TRACK>(TRACK());
 
     boost::filesystem::path p(trackGrpPath);

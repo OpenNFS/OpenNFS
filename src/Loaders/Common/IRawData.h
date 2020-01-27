@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 
-#include "Common.h"
+#include "../NFS3/Common.h"
 #include "../../Util/Utils.h"
 
 class IRawData

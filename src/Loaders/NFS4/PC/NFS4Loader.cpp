@@ -791,7 +791,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                         texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
                         texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
                     }
-                    current_track_block.objects.emplace_back(Entity(i, (j + 1) * (k + 1), NFS_4, OBJ_POLY, Track(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center), 0));
+                    current_track_block.objects.emplace_back(Entity(i, (j + 1) * (k + 1), NFS_4, OBJ_POLY, TrackModel(obj_verts, norms, uvs, texture_indices, vertex_indices, obj_shading_verts, trk_block_center), 0));
                 }
             }
         }
@@ -846,7 +846,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
                     texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
                 }
-                current_track_block.objects.emplace_back(Entity(i, l, NFS_4, XOBJ, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, trk_block_center), 0));
+                current_track_block.objects.emplace_back(Entity(i, l, NFS_4, XOBJ, TrackModel(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, trk_block_center), 0));
             }
         }
 
@@ -904,9 +904,9 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             }
 
             if (chnk == 6) {
-                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_4, LANE, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), 0));
+                current_track_block.lanes.emplace_back(Entity(i, -1, NFS_4, LANE, TrackModel(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), 0));
             } else {
-                current_track_block.track.emplace_back(Entity(i, -1, NFS_4, ROAD, Track(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), 0));
+                current_track_block.track.emplace_back(Entity(i, -1, NFS_4, ROAD, TrackModel(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, trk_block_center), 0));
             }
         }
         track_blocks.emplace_back(current_track_block);
@@ -963,7 +963,7 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             texture_indices.emplace_back(hsStockTextureIndexRemap(texture_for_block.texture));
         }
         glm::vec3 position = rotationMatrix * glm::vec3(static_cast<float>(x->ptRef.x / 65536.0) / 10, static_cast<float>(x->ptRef.y / 65536.0) / 10, static_cast<float>(x->ptRef.z / 65536.0) / 10);
-        track->global_objects.emplace_back(Entity(-1, j, NFS_4, GLOBAL, Track(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, position), 0));
+        track->global_objects.emplace_back(Entity(-1, j, NFS_4, GLOBAL, TrackModel(verts, norms, uvs, texture_indices, vertex_indices, xobj_shading_verts, position), 0));
     }
 
     return track_blocks;

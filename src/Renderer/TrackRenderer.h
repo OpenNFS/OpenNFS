@@ -5,7 +5,6 @@
 #include "../Scene/Lights/GlobalLight.h"
 #include "../Shaders/TrackShader.h"
 #include "../Shaders/BillboardShader.h"
-#include "../Loaders/TrackLoader.h"
 #include "../RaceNet/Agents/CarAgent.h"
 #include "../Config.h"
 

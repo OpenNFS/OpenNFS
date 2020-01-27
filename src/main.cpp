@@ -15,6 +15,7 @@
 
 #include "Config.h"
 #include "Util/Logger.h"
+#include "Loaders/Track.h"
 #include "Loaders/TrackLoader.h"
 #include "Loaders/CarLoader.h"
 #include "Loaders/MusicLoader.h"
@@ -60,9 +61,9 @@ public:
         while (loadedAssets.trackTag != UNKNOWN) {
             /*------ ASSET LOAD ------*/
             //Load Car data from unpacked NFS files
-            std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+            auto car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
             //Load Track Data
-            std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+            auto track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
 
             //Load Music
             //MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
@@ -87,8 +88,8 @@ public:
         };
 
         /*------ ASSET LOAD ------*/
-        //Load Track Data
-        std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
+        //Load TrackModel Data
+        auto track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
         //Load Car data from unpacked NFS files
         std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 

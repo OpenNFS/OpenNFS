@@ -20,7 +20,7 @@
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
 #include "../Util/Utils.h"
-#include "../Loaders/TrackLoader.h"
+#include "../Loaders/Track.h"
 #include "../Renderer/BulletDebugDrawer.h"
 #include "Car.h"
 
@@ -35,8 +35,8 @@ public:
     PhysicsEngine();
     ~PhysicsEngine();
     void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs);
-    void RegisterVehicle(std::shared_ptr<Car> car);
-    void RegisterTrack(std::shared_ptr<ONFSTrack> track);
+    void RegisterVehicle(const std::shared_ptr<Car> &car);
+    void RegisterTrack(const std::shared_ptr<Track> &track);
     Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted);
     btDiscreteDynamicsWorld *GetDynamicsWorld();
 
@@ -45,7 +45,7 @@ public:
 private:
     void _GenerateVroadBarriers();
 
-    std::shared_ptr<ONFSTrack> m_track;
+    std::shared_ptr<Track> m_track;
     std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
     btBroadphaseInterface *m_pBroadphase;

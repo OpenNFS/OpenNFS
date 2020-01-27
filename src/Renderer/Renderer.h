@@ -13,7 +13,7 @@
 #include "../Camera/CarCamera.h"
 #include "../Scene/Entity.h"
 #include "../Scene/Lights/GlobalLight.h"
-#include "../Loaders/TrackLoader.h"
+#include "../Loaders/Track.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../RaceNet/Agents/CarAgent.h"
 #include "../Util/Logger.h"
@@ -40,7 +40,7 @@ public:
     Renderer(const std::shared_ptr<GLFWwindow> &window,
              const std::shared_ptr<Logger> &onfsLogger,
              const std::vector<NfsAssetList> &installedNFS,
-             const std::shared_ptr<ONFSTrack> &currentTrack,
+             const std::shared_ptr<Track> &currentTrack,
              const std::shared_ptr<BulletDebugDrawer> &debugDrawer
     );
 
@@ -72,13 +72,13 @@ private:
     static void _DrawMetadata(Entity *targetEntity);
     bool _DrawMenuBar(AssetData &loadedAssets);
     void _DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
-    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<ONFSTrack> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
-    static VisibleSet _FrustumCull(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
+    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
+    static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
 
     std::shared_ptr<GLFWwindow> m_window;
     std::shared_ptr<Logger> m_logger;
     std::vector<NfsAssetList> m_nfsAssetList;
-    std::shared_ptr<ONFSTrack> m_track;
+    std::shared_ptr<Track> m_track;
 
     TrackRenderer m_trackRenderer;
     CarRenderer m_carRenderer;

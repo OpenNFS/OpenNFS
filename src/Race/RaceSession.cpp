@@ -5,7 +5,7 @@
 RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
                          const std::shared_ptr<Logger> &onfsLogger,
                          const std::vector<NfsAssetList> &installedNFS,
-                         const std::shared_ptr<ONFSTrack> &currentTrack,
+                         const std::shared_ptr<Track> &currentTrack,
                          const std::shared_ptr<Car> &currentCar
 ) : m_window(window), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(window, currentCar, currentTrack)),
         m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer)

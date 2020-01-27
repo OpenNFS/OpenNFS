@@ -3,7 +3,7 @@
 Renderer::Renderer(const std::shared_ptr<GLFWwindow> &window,
                    const std::shared_ptr<Logger> &onfsLogger,
                    const std::vector<NfsAssetList> &installedNFS,
-                   const std::shared_ptr<ONFSTrack> &currentTrack,
+                   const std::shared_ptr<Track> &currentTrack,
                    const std::shared_ptr<BulletDebugDrawer> &debugDrawer
 ) : m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_window(window), m_track(currentTrack), m_debugRenderer(debugDrawer)
 {
@@ -126,7 +126,7 @@ bool Renderer::Render(float totalTime,
     return newAssetSelected;
 }
 
-VisibleSet Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams)
+VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams)
 {
     VisibleSet visibleSet;
 
@@ -174,7 +174,7 @@ VisibleSet Renderer::_FrustumCull(const std::shared_ptr<ONFSTrack> &track, const
     return visibleSet;
 }
 
-std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONFSTrack> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams)
+std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams)
 {
     std::vector<uint32_t> activeTrackBlockIds;
     uint32_t closestBlockID = 0;
@@ -193,7 +193,7 @@ std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONF
     }
 
     // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
-    if ((track->tag == NFS_3 || track->tag == NFS_4) && !userParams.useNbData)
+    /*if ((track->tag == NFS_3 || track->tag == NFS_4) && userParams.useNbData)
     {
         for (auto &neighbourBlockData : boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData)
         {
@@ -206,14 +206,14 @@ std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<ONF
             }
         }
     } else
-    {
+    {*/
         // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
         for (auto trackblockIdx = closestBlockID - userParams.blockDrawDistance; trackblockIdx < closestBlockID + userParams.blockDrawDistance; ++trackblockIdx)
         {
             uint32_t activeBlock = trackblockIdx < 0 ? ((uint32_t) track->trackBlocks.size() + trackblockIdx) : (trackblockIdx % (uint32_t) track->trackBlocks.size());
             activeTrackBlockIds.emplace_back(activeBlock);
         }
-    }
+    //}
 
     return activeTrackBlockIds;
 }
@@ -382,7 +382,7 @@ bool Renderer::_DrawMenuBar(AssetData &loadedAssets)
     bool assetChange = false;
     if (ImGui::BeginMainMenuBar())
     {
-        if (ImGui::BeginMenu("Track"))
+        if (ImGui::BeginMenu("TrackModel"))
         {
             for (auto &installedNFS : m_nfsAssetList)
             {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "../IRawData.h"
+#include "../../Common/IRawData.h"
 
 const uint8_t NUM_POLYGON_BLOCKS = 7;
 const uint8_t NUM_POLYOBJ_CHUNKS = 4;

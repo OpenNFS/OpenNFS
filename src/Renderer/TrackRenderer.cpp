@@ -24,8 +24,8 @@ void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
 
     // Render the per-trackblock data
     for (auto &entity : visibleEntities) {
-        m_trackShader.loadTransformMatrix(boost::get<Track>(entity->raw).ModelMatrix);
-        boost::get<Track>(entity->raw).render();
+        m_trackShader.loadTransformMatrix(boost::get<TrackModel>(entity->raw).ModelMatrix);
+        boost::get<TrackModel>(entity->raw).render();
     }
 
     m_trackShader.unbind();

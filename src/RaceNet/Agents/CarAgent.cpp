@@ -1,6 +1,6 @@
 #include "CarAgent.h"
 
-CarAgent::CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<ONFSTrack> &track) :
+CarAgent::CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &track) :
 vehicle(std::make_shared<Car>(car->assetData, car->tag, car->id)), m_track(track), m_agentType(agentType) { }
 
 void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset)
@@ -11,7 +11,7 @@ void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float
 
     ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
-    if (m_track->tag == NFS_3 || m_track->tag == NFS_4)
+    /*if (m_track->tag == NFS_3 || m_track->tag == NFS_4)
     {
         // Can move this by trk[trackBlockIndex].nodePositions
         uint32_t nodeNumber = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->trk[trackBlockIndex].nStartPos;
@@ -42,14 +42,14 @@ void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float
         this->ResetToVroad(nodeNumber, offset);
     }
     else
-    {
+    {*/
         vroadPoint = Utils::PointToVec(m_track->trackBlocks[trackBlockIndex].center);
         vroadPoint.y += 0.2f;
         carOrientation = glm::quat(2, 0, 0, 1);
 
         // Go and find the Vroad Data to reset to
         vehicle->SetPosition(vroadPoint, carOrientation);
-    }
+    //}
 }
 
 void CarAgent::ResetToVroad(int vroadIndex, float offset)
@@ -59,7 +59,7 @@ void CarAgent::ResetToVroad(int vroadIndex, float offset)
 
     ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
-    if (m_track->tag == NFS_3 || m_track->tag == NFS_4)
+    /*if (m_track->tag == NFS_3 || m_track->tag == NFS_4)
     {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
         ASSERT(vroadIndex < nVroad, "Requested reset to vroad index: " << vroadIndex << " outside of nVroad: " << nVroad);
@@ -86,7 +86,7 @@ void CarAgent::ResetToVroad(int vroadIndex, float offset)
     else
     {
         ASSERT(false, "Vroad Index based reset not available outside NFS3 for now.");
-    }
+    }*/
 
     // Go and find the Vroad Data to reset to
     vehicle->SetPosition(vroadPoint, carOrientation);
@@ -110,8 +110,7 @@ void CarAgent::_UpdateNearestTrackblock()
 
 void CarAgent::_UpdateNearestVroad()
 {
-    return;
-    if (m_track->tag == NFS_3 || m_track->tag == NFS_4)
+    /*if (m_track->tag == NFS_3 || m_track->tag == NFS_4)
     {
         float lowestDistance = FLT_MAX;
         glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
@@ -133,5 +132,5 @@ void CarAgent::_UpdateNearestVroad()
                 lowestDistance = distance;
             }
         }
-    }
+    }*/
 }

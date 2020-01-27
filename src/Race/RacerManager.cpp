@@ -1,6 +1,6 @@
 #include "RacerManager.h"
 
-RacerManager::RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<ONFSTrack> &track, PhysicsEngine &physicsEngine) : m_currentTrack(track)
+RacerManager::RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<Track> &track, PhysicsEngine &physicsEngine) : m_currentTrack(track)
 {
     this->_InitialisePlayerVehicle(playerAgent, physicsEngine);
     this->_SpawnRacers(physicsEngine);

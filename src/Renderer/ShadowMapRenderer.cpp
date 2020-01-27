@@ -35,8 +35,8 @@ void ShadowMapRenderer::Render(float nearPlane, float farPlane, const std::share
 
     /* Render the track using this simple shader to get depth texture to test against during draw */
     for (auto &entity : visibleEntities) {
-        m_depthShader.loadTransformMatrix(boost::get<Track>(entity->raw).ModelMatrix);
-        boost::get<Track>(entity->raw).render();
+        m_depthShader.loadTransformMatrix(boost::get<TrackModel>(entity->raw).ModelMatrix);
+        boost::get<TrackModel>(entity->raw).render();
     }
 
     /* And the Cars */

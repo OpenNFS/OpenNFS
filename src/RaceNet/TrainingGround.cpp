@@ -2,7 +2,7 @@
 
 TrainingGround::TrainingGround(uint16_t nGenerations,
                                uint32_t nTicks,
-                               const std::shared_ptr<ONFSTrack> &training_track,
+                               const std::shared_ptr<Track> &training_track,
                                const std::shared_ptr<Car> &training_car,
                                const std::shared_ptr<Logger> &logger,
                                const std::shared_ptr<GLFWwindow> &window

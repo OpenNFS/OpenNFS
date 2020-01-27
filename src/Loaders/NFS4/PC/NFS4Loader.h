@@ -18,7 +18,7 @@ using namespace NFS3_4_DATA;
 class NFS4 {
 public:
     static std::shared_ptr<Car> LoadCar(const std::string &car_base_path, NFSVer version); // Car
-    static std::shared_ptr<TRACK> LoadTrack(const std::string &track_base_path); // Track
+    static std::shared_ptr<TRACK> LoadTrack(const std::string &track_base_path); // TrackModel
 
 private:
     static CarData LoadFCE(const std::string &fce_path, NFSVer version);

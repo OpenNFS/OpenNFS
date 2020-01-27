@@ -13,7 +13,7 @@ bool TexBlock::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, &corners, sizeof(float) * 8);
     SAFE_READ(ifstream, &unknown2, (sizeof(uint32_t)));
     SAFE_READ(ifstream, &isLane, (sizeof(bool)));
-    SAFE_READ(ifstream, &texture, (sizeof(uint16_t)));
+    SAFE_READ(ifstream, &qfsIndex, (sizeof(uint16_t)));
 
     return true;
 }
@@ -27,5 +27,5 @@ void TexBlock::_SerializeOut(std::ofstream &ofstream)
     ofstream.write((char *) &corners, sizeof(float) * 8);
     ofstream.write((char *) &unknown2, sizeof(uint32_t));
     ofstream.write((char *) &isLane, sizeof(bool));
-    ofstream.write((char *) &texture, sizeof(uint16_t));
+    ofstream.write((char *) &qfsIndex, sizeof(uint16_t));
 }

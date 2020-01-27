@@ -35,10 +35,12 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &carBasePath)
     return std::make_shared<Car>(carData, NFS_3, car_name);
 }
 
-std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &trackBasePath)
+std::shared_ptr<Track> NFS3::LoadTrack(const std::string &trackBasePath)
 {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
-    auto track = std::make_shared<TRACK>(TRACK());
+
+    auto track = std::make_shared<Track>(Track());
+    track->tag = NFSVer::NFS_3;
 
     boost::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
@@ -63,7 +65,7 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &trackBasePath)
     // Load QFS texture into GL objects
     for (auto &frdTexBlock : frdFile.textureBlocks)
     {
-        track->textures[frdTexBlock.texture] = Texture::LoadTexture(frdTexBlock, track->name);
+        track->textureMap[frdTexBlock.qfsIndex] = Texture::LoadTexture(NFSVer::NFS_3, frdTexBlock, track->name);
     }
 
     ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack.");
@@ -72,10 +74,12 @@ std::shared_ptr<TRACK> NFS3::LoadTrack(const std::string &trackBasePath)
     ASSERT(CanFile::Load(canPath.str(), canFile), "Could not load CAN file (camera animation): " << canPath.str()); // Load camera intro/outro animation data
     ASSERT(HrzFile::Load(hrzPath.str(), hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath.str()); // Load HRZ Data
 
+    track->nBlocks = frdFile.nBlocks;
     track->cameraAnimation = canFile.animPoints;
-    track->textureArrayID = Texture::MakeTextureArray(track->textures, false);
+    track->textureArrayID = Texture::MakeTextureArray(track->textureMap, false);
     track->trackBlocks = _ParseTRKModels(frdFile, track);
     track->globalObjects = _ParseCOLModels(colFile, track);
+
 
     LOG(INFO) << "Track loaded successfully";
 
@@ -103,7 +107,7 @@ CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
         carData.dummies.emplace_back(dummy);
     }
 
-    for (uint32_t part_Idx = 0; part_Idx < fceFile.nParts; ++part_Idx)
+    for (uint32_t partIdx = 0; partIdx < fceFile.nParts; ++partIdx)
     {
         float specularDamper = 0.2f;
         float specularReflectivity = 0.02f;
@@ -115,29 +119,29 @@ CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
         std::vector<glm::vec3> normals;
         std::vector<glm::vec2> uvs;
 
-        std::string part_name(fceFile.partNames[part_Idx]);
-        glm::vec3 center = rotationMatrix * (fceFile.partCoords[part_Idx] / NFS3_SCALE_FACTOR);
+        std::string part_name(fceFile.partNames[partIdx]);
+        glm::vec3 center = rotationMatrix * (fceFile.partCoords[partIdx] / NFS3_SCALE_FACTOR);
 
-        for (uint32_t vert_Idx = 0; vert_Idx < fceFile.partNumVertices[part_Idx]; ++vert_Idx)
+        for (uint32_t vert_Idx = 0; vert_Idx < fceFile.partNumVertices[partIdx]; ++vert_Idx)
         {
-            vertices.emplace_back(rotationMatrix * (partVertices[vertIdx] / NFS3_SCALE_FACTOR));
+            vertices.emplace_back(rotationMatrix * (fceFile.carParts[partIdx].vertices[vert_Idx] / NFS3_SCALE_FACTOR));
         }
 
-        for (uint32_t normal_Idx = 0; normal_Idx < fceFile.partNumVertices[part_Idx]; ++normal_Idx)
+        for (uint32_t normal_Idx = 0; normal_Idx < fceFile.partNumVertices[partIdx]; ++normal_Idx)
         {
-            normals.emplace_back(rotationMatrix * partNormals[normal_Idx]);
+            normals.emplace_back(rotationMatrix * fceFile.carParts[partIdx].normals[normal_Idx]);
         }
-        for (uint32_t tri_Idx = 0; tri_Idx < fceFile.partNumTriangles[part_Idx]; ++tri_Idx)
+        for (uint32_t tri_Idx = 0; tri_Idx < fceFile.partNumTriangles[partIdx]; ++tri_Idx)
         {
-            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
-            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
-            polygonFlags.emplace_back(partTriangles[tri_Idx].polygonFlags);
-            indices.emplace_back(partTriangles[tri_Idx].vertex[0]);
-            indices.emplace_back(partTriangles[tri_Idx].vertex[1]);
-            indices.emplace_back(partTriangles[tri_Idx].vertex[2]);
-            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[0], 1.0f - partTriangles[tri_Idx].uvTable[3]));
-            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[1], 1.0f - partTriangles[tri_Idx].uvTable[4]));
-            uvs.emplace_back(glm::vec2(partTriangles[tri_Idx].uvTable[2], 1.0f - partTriangles[tri_Idx].uvTable[5]));
+            polygonFlags.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].polygonFlags);
+            polygonFlags.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].polygonFlags);
+            polygonFlags.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].polygonFlags);
+            indices.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].vertex[0]);
+            indices.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].vertex[1]);
+            indices.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].vertex[2]);
+            uvs.emplace_back(glm::vec2(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[0], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[3]));
+            uvs.emplace_back(glm::vec2(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[1], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[4]));
+            uvs.emplace_back(glm::vec2(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[2], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[5]));
         }
         carData.meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
     }
@@ -145,10 +149,11 @@ CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
     return carData;
 }
 
-std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
+std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile, const std::shared_ptr<Track> &track)
 {
     LOG(INFO) << "Parsing TRK file into ONFS GL structures";
-    std::vector<TrackBlock> trackBlocks(frdFile.nBlocks);
+    std::vector<TrackBlock> trackBlocks;
+    trackBlocks.reserve(frdFile.nBlocks);
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
     for (uint32_t trackblockIdx = 0; trackblockIdx < frdFile.nBlocks; ++trackblockIdx)
@@ -205,8 +210,11 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
                     for (uint32_t polyIdx = 0; polyIdx < polygonBlock.numpoly[objectIdx]; ++polyIdx)
                     {
                         // Texture for this polygon and it's loaded OpenGL equivalent
-                        TexBlock polygonTexture = frdFile.textureBlocks[objectPolygons[polyIdx].texture];
-                        Texture glTexture = track->textures[polygonTexture.texture];
+                        TexBlock polygonTexture = frdFile.textureBlocks[objectPolygons[polyIdx].textureId];
+                        Texture glTexture = track->textureMap[polygonTexture.qfsIndex];
+                        // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
+                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(OBJ_POLY, objectPolygons[polyIdx].hs_texflags, polygonTexture);
+                        uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         // Calculate the normal, as the provided data is a little suspect
                         glm::vec3 normal = Utils::CalculateQuadNormal(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[0]],
@@ -219,16 +227,12 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
                         {
                             normals.emplace_back(normal);
                             vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[quadToTriVertNumbers[i]]);
-                            textureIndices.emplace_back(polygonTexture.texture);
+                            textureIndices.emplace_back(polygonTexture.qfsIndex);
                         }
-
-                        // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                        std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, OBJ_POLY, objectPolygons[polyIdx].hs_texflags, glTexture, polygonTexture);
-                        uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         accumulatedObjectFlags |= objectPolygons[polyIdx].flags;
                     }
-                    Track trackBlockModel = Track(trackBlockVerts, normals, uvs, textureIndices, vertexIndices, trackBlockShadingData, rawTrackBlockCenter);
+                    TrackModel trackBlockModel = TrackModel(trackBlockVerts, normals, uvs, textureIndices, vertexIndices, trackBlockShadingData, rawTrackBlockCenter);
                     Entity trackBlockEntity = Entity(trackblockIdx, (j + 1) * (objectIdx + 1), NFS_3, OBJ_POLY, trackBlockModel, accumulatedObjectFlags);
                     trackBlock.objects.emplace_back(trackBlockEntity);
                 }
@@ -260,8 +264,11 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
 
                 for (uint32_t k = 0; k < extraObjectData.nPolygons; k++)
                 {
-                    TexBlock blockTexture = frdFile.textureBlocks[extraObjectData.polyData[k].texture];
-                    Texture gl_texture = track->textures[blockTexture.texture];
+                    TexBlock blockTexture = frdFile.textureBlocks[extraObjectData.polyData[k].textureId];
+                    Texture glTexture = track->textureMap[blockTexture.qfsIndex];
+                    std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, extraObjectData.polyData[k].hs_texflags, blockTexture);
+                    uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
+
                     glm::vec3 normal = Utils::CalculateQuadNormal(extraObjectVerts[extraObjectData.polyData[k].vertex[0]],
                                                                   extraObjectVerts[extraObjectData.polyData[k].vertex[1]],
                                                                   extraObjectVerts[extraObjectData.polyData[k].vertex[2]],
@@ -272,16 +279,15 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
                     {
                         normals.emplace_back(normal);
                         vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[quadToTriVertNumbers[i]]);
-                        textureIndices.emplace_back(blockTexture.texture);
+                        textureIndices.emplace_back(blockTexture.qfsIndex);
                     }
 
-                    std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, XOBJ, extraObjectData.polyData[k].hs_texflags, gl_texture, blockTexture);
-                    uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
+
 
                     accumulatedObjectFlags |= extraObjectData.polyData[k].flags;
                 }
                 glm::vec3 extraObjectCenter = extraObjectData.ptRef / NFS3_SCALE_FACTOR;
-                Track extraObjectModel = Track(extraObjectVerts, normals, uvs, textureIndices, vertexIndices, extraObjectShadingData, extraObjectCenter);
+                TrackModel extraObjectModel = TrackModel(extraObjectVerts, normals, uvs, textureIndices, vertexIndices, extraObjectShadingData, extraObjectCenter);
                 Entity extraObjectEntity = Entity(trackblockIdx, l, NFS_3, XOBJ, extraObjectModel, accumulatedObjectFlags);
                 trackBlock.objects.emplace_back(extraObjectEntity);
             }
@@ -315,8 +321,10 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
 
             for (uint32_t polyIdx = 0; polyIdx < trackPolygonBlock.sz[lodChunkIdx]; polyIdx++)
             {
-                TexBlock polygonTexture = frdFile.textureBlocks[chunkPolygonData[polyIdx].texture];
-                Texture gl_texture = track->textures[polygonTexture.texture];
+                TexBlock polygonTexture = frdFile.textureBlocks[chunkPolygonData[polyIdx].textureId];
+                Texture glTexture = track->textureMap[polygonTexture.qfsIndex];
+                std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(lodChunkIdx == 6 ? LANE : ROAD, chunkPolygonData[polyIdx].hs_texflags, polygonTexture);
+                uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 glm::vec3 normal = Utils::CalculateQuadNormal(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[0]],
                                                               rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[1]],
@@ -328,15 +336,12 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
                 {
                     normals.emplace_back(normal);
                     vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[quadToTriVertNumbers[i]]);
-                    textureIndices.emplace_back(polygonTexture.texture);
+                    textureIndices.emplace_back(polygonTexture.qfsIndex);
                 }
-
-                std::vector<glm::vec2> transformedUVs = GenerateUVs(NFS_3, lodChunkIdx == 6 ? LANE : ROAD, chunkPolygonData[polyIdx].hs_texflags, gl_texture, polygonTexture);
-                uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 accumulatedObjectFlags |= chunkPolygonData[polyIdx].flags;
             }
-            Track roadModel = Track(roadVertices, normals, uvs, textureIndices, vertexIndices, roadShadingData, rawTrackBlockCenter);
+            TrackModel roadModel = TrackModel(roadVertices, normals, uvs, textureIndices, vertexIndices, roadShadingData, rawTrackBlockCenter);
             if (lodChunkIdx == 6)
             {
                 Entity laneEntity = Entity(trackblockIdx, -1, NFS_3, LANE, roadModel, accumulatedObjectFlags);
@@ -352,7 +357,7 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile)
     return trackBlocks;
 }
 
-std::vector<Entity> NFS3::_ParseCOLModels(const ColFile &colFile)
+std::vector<Entity> NFS3::_ParseCOLModels(const ColFile &colFile, const std::shared_ptr<Track> &track)
 {
     LOG(INFO) << "Parsing COL file into ONFS GL structures";
     std::vector<Entity> colEntities;
@@ -377,11 +382,18 @@ std::vector<Entity> NFS3::_ParseCOLModels(const ColFile &colFile)
         for (uint32_t polyIdx = 0; polyIdx < s.nPoly; ++polyIdx)
         {
             // Remap the COL TextureID's using the COL texture block (XBID2)
-            ColTextureInfo col_texture = colFile.texture[s.polygon[polyIdx].texture];
-            // Lookup the remapped COL->FRD texture ID in the FRD texture table
-            TEXTUREBLOCK blockTexture = track->textures[col_texture.texture].rawTextureInfo;
+            ColTextureInfo colTexture = colFile.texture[s.polygon[polyIdx].texture];
             // Retrieve the GL texture for it so can scale UVs into texture array
-            Texture glTexture = track->textures[blockTexture.texture];
+            Texture glTexture = track->textureMap[colTexture.id];
+            // Lookup the remapped COL->FRD texture ID in the FRD texture table
+            TexBlock blockTexture = boost::get<TexBlock>(glTexture.rawTextureInfo);
+
+            uvs.emplace_back(blockTexture.corners[0] * glTexture.max_u, (1.0f - blockTexture.corners[1]) * glTexture.max_v);
+            uvs.emplace_back(blockTexture.corners[2] * glTexture.max_u, (1.0f - blockTexture.corners[3]) * glTexture.max_v);
+            uvs.emplace_back(blockTexture.corners[4] * glTexture.max_u, (1.0f - blockTexture.corners[5]) * glTexture.max_v);
+            uvs.emplace_back(blockTexture.corners[0] * glTexture.max_u, (1.0f - blockTexture.corners[1]) * glTexture.max_v);
+            uvs.emplace_back(blockTexture.corners[4] * glTexture.max_u, (1.0f - blockTexture.corners[5]) * glTexture.max_v);
+            uvs.emplace_back(blockTexture.corners[6] * glTexture.max_u, (1.0f - blockTexture.corners[7]) * glTexture.max_v);
 
             glm::vec3 normal = Utils::CalculateQuadNormal(verts[s.polygon[polyIdx].v[0]], verts[s.polygon[polyIdx].v[1]], verts[s.polygon[polyIdx].v[2]], verts[s.polygon[polyIdx].v[3]]);
 
@@ -390,18 +402,11 @@ std::vector<Entity> NFS3::_ParseCOLModels(const ColFile &colFile)
             {
                 indices.emplace_back(s.polygon[polyIdx].v[quadToTriVertNumbers[i]]);
                 norms.emplace_back(normal);
-                texture_indices.emplace_back(blockTexture.texture);
+                texture_indices.emplace_back(blockTexture.qfsIndex);
             }
-
-            uvs.emplace_back(blockTexture.corners[0] * glTexture.max_u, (1.0f - blockTexture.corners[1]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[2] * glTexture.max_u, (1.0f - blockTexture.corners[3]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[4] * glTexture.max_u, (1.0f - blockTexture.corners[5]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[0] * glTexture.max_u, (1.0f - blockTexture.corners[1]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[4] * glTexture.max_u, (1.0f - blockTexture.corners[5]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[6] * glTexture.max_u, (1.0f - blockTexture.corners[7]) * glTexture.max_v);
         }
         glm::vec3 position = glm::vec3(colFile.object[i].ptRef) / NFS3_SCALE_FACTOR;
-        colEntities.emplace_back(Entity(-1, i, NFS_3, GLOBAL, Track(verts, norms, uvs, texture_indices, indices, shading_data, position), 0));
+        colEntities.emplace_back(Entity(-1, i, NFS_3, GLOBAL, TrackModel(verts, norms, uvs, texture_indices, indices, shading_data, position), 0));
     }
 
     return colEntities;

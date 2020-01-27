@@ -8,7 +8,7 @@
 #include "../Camera/CarCamera.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../Loaders/CarLoader.h"
-#include "../Loaders/TrackLoader.h"
+#include "../Loaders/Track.h"
 #include "../Renderer/Renderer.h"
 #include "../RaceNet/Agents/PlayerAgent.h"
 #include "../Util/Logger.h"
@@ -21,7 +21,7 @@ public:
     RaceSession(const std::shared_ptr<GLFWwindow> &window,
                 const std::shared_ptr<Logger> &onfsLogger,
                 const std::vector<NfsAssetList> &installedNFS,
-                const std::shared_ptr<ONFSTrack> &currentTrack,
+                const std::shared_ptr<Track> &currentTrack,
                 const std::shared_ptr<Car> &currentCar);
     AssetData Simulate();
 
@@ -35,7 +35,7 @@ private:
     CameraMode m_activeCameraMode = CameraMode::FREE_LOOK;
 
     std::shared_ptr<GLFWwindow> m_window;
-    std::shared_ptr<ONFSTrack> m_track;
+    std::shared_ptr<Track> m_track;
     std::shared_ptr<PlayerAgent> m_playerAgent;
     std::shared_ptr<FreeCamera> m_freeCamera;
     std::shared_ptr<HermiteCamera> m_hermiteCamera;

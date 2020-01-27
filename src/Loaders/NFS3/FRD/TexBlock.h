@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../IRawData.h"
+#include "../../Common/IRawData.h"
 
 class TexBlock : public IRawData
 {
@@ -14,7 +14,7 @@ public:
     float corners[8];   // 4x planar coordinates == tiling?
     uint32_t unknown2;
     bool isLane;        // 1 if not a real texture (lane), 0 usually
-    uint16_t texture;   // index in QFS file
+    uint16_t qfsIndex;   // index in QFS file
 
 private:
     bool _SerializeIn(std::ifstream &ofstream) override;

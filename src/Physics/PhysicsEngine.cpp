@@ -66,7 +66,7 @@ void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &race
 
     if (m_track != nullptr)
     {
-        // Track updates propagate for active track blocks, based upon track blocks racer vehicles are on
+        // TrackModel updates propagate for active track blocks, based upon track blocks racer vehicles are on
         for (auto &residentTrackblockID : racerResidentTrackblockIDs)
         {
             for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects)
@@ -99,7 +99,7 @@ Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::m
     }
 }
 
-void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
+void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track)
 {
     m_track = track;
 
@@ -124,7 +124,7 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
                 collisionMask |= COL_TRACK;
             }
             // Move Rigid body to correct place in world
-            btTransform initialTransform = Utils::MakeTransform(boost::get<Track>(object.raw).initialPosition, boost::get<Track>(object.raw).orientation);
+            btTransform initialTransform = Utils::MakeTransform(boost::get<TrackModel>(object.raw).initialPosition, boost::get<TrackModel>(object.raw).orientation);
             object.rigidBody->setWorldTransform(initialTransform);
             m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }
@@ -138,7 +138,7 @@ void PhysicsEngine::RegisterTrack(std::shared_ptr<ONFSTrack> track)
     // this->_GenerateVroadBarriers();
 }
 
-void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> car)
+void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car)
 {
     car->SetRaycaster(new btDefaultVehicleRaycaster(m_pDynamicsWorld));
     car->SetVehicle( new btRaycastVehicle(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
@@ -172,7 +172,7 @@ void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> car)
     }
 
     // Add vehicle to active vehicles list so they can be updated on step of physics engine
-    m_activeVehicles.emplace_back(car);
+    m_activeVehicles.push_back(car);
 }
 
 btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld()
@@ -225,7 +225,7 @@ PhysicsEngine::~PhysicsEngine()
 
 void PhysicsEngine::_GenerateVroadBarriers()
 {
-    if ((m_track->tag == NFS_3 || m_track->tag == NFS_4) && !Config::get().sparkMode)
+    /*if ((m_track->tag == NFS_3 || m_track->tag == NFS_4) && !Config::get().sparkMode)
     {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
         for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
@@ -274,5 +274,5 @@ void PhysicsEngine::_GenerateVroadBarriers()
                 m_track->vroadBarriers.emplace_back(vroadCeiling);
             }
         }
-    }
+    }*/
 }

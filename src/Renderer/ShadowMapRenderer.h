@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 #include "../Scene/Lights/GlobalLight.h"
-#include "../Loaders/TrackLoader.h"
+#include "../Loaders/Track.h"
 #include "../RaceNet/Agents/CarAgent.h"
 #include "../Shaders/DepthShader.h"
 #include "../Config.h"

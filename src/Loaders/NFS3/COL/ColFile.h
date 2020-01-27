@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../IRawData.h"
+#include "../../Common/IRawData.h"
 
 #define XBID_TEXTUREINFO 2
 #define XBID_STRUCT3D 8
@@ -17,7 +17,7 @@ struct ExtraBlockHeader
 
 struct ColTextureInfo
 {
-    uint16_t texture;  // position in .QFS file
+    uint16_t id;  // position in .QFS file
     uint16_t unknown1; // zero ?
     uint16_t unknown2; // texture offset ?
     uint16_t unknown3;

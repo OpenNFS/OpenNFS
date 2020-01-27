@@ -513,19 +513,6 @@ namespace NFS3_4_DATA {
         uint32_t *hs_extra; // for the extra HS data in COLVROAD
     };
 
-    // ---- MASTER TRACK STRUCT ----
-    struct TRACK {
-        std::string name;
-        uint32_t nBlocks;
-        uint32_t nTextures;
-        std::vector<CameraAnimPoint> cameraAnimation;
-        // GL 3D Render Data
-        std::vector<TrackBlock> trackBlocks;
-        std::vector<Entity> globalObjects;
-        std::map<unsigned int, Texture> textures;
-        GLuint textureArrayID;
-    };
-
     struct FCE {
         struct TVECTOR {
             float x, y, z;
@@ -848,11 +835,11 @@ namespace NFS2_DATA {
             std::vector<GEOM_REF_BLOCK> colStructureRefData;
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
-            std::vector<SHARED::CANPT> cameraAnimation;
+            // std::vector<SHARED::CANPT> cameraAnimation;
             // GL 3D Render Data
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
-            std::map<unsigned int, Texture> textures;
+            // std::map<unsigned int, Texture> textures;
             GLuint textureArrayID;
         };
 
@@ -971,11 +958,11 @@ namespace NFS2_DATA {
             uint32_t nCollisionData;
             COLLISION_BLOCK *collisionData;
 
-            std::vector<SHARED::CANPT> cameraAnimation;
+            //std::vector<SHARED::CANPT> cameraAnimation;
             // GL 3D Render Data
             std::vector<Entity> global_objects;
             std::vector<TrackBlock> track_blocks;
-            std::map<unsigned int, Texture> textures;
+            //std::map<unsigned int, Texture> textures;
             GLuint textureArrayID;
         };
 

@@ -1,9 +1,9 @@
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
-#include "Track.h"
+#include "TrackModel.h"
 #include "../Util/Utils.h"
 
-Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<glm::vec4> shading_data, std::vector<uint32_t> debug_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position) {
+TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<glm::vec4> shading_data, std::vector<uint32_t> debug_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position) {
     m_texture_indices = texture_indices;
     shadingData = shading_data;
     m_debug_data = debug_data;
@@ -16,8 +16,8 @@ Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::ve
     update();
 }
 
-Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
-             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
+TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
+                       std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
 
@@ -37,8 +37,8 @@ Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vect
     update();
 }
 
-Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
-             std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position){
+TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
+                       std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position){
     m_texture_indices = texture_indices;
     shadingData = shading_data;
     // Fill the unused buffer with data
@@ -54,14 +54,14 @@ Track::Track(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::ve
     update();
 }
 
-void Track::update() {
+void TrackModel::update() {
     RotationMatrix = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix = TranslationMatrix * RotationMatrix;
 }
 
 
-void Track::destroy() {
+void TrackModel::destroy() {
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &uvbuffer);
     glDeleteBuffers(1, &textureIndexBuffer);
@@ -70,7 +70,7 @@ void Track::destroy() {
     glDeleteBuffers(1, &debugBuffer);
 }
 
-void Track::render() {
+void TrackModel::render() {
     if (enabled){
         glBindVertexArray(VertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
@@ -78,7 +78,7 @@ void Track::render() {
     }
 }
 
-bool Track::genBuffers() {
+bool TrackModel::genBuffers() {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     // 1st attribute buffer : Vertices
@@ -107,7 +107,7 @@ bool Track::genBuffers() {
             (void *) 0                          // array buffer offset
     );
     glEnableVertexAttribArray(1);
-    // 3rd attribute buffer : Track Normals
+    // 3rd attribute buffer : TrackModel Normals
     glGenBuffers(1, &normalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
     glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
@@ -163,4 +163,4 @@ bool Track::genBuffers() {
     return true;
 }
 
-Track::Track() : super("Track", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0,0,0)){}
+TrackModel::TrackModel() : super("TrackModel", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)){}

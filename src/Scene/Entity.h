@@ -9,7 +9,7 @@
 
 #include "Lights/BaseLight.h"
 #include "Sound.h"
-#include "Track.h"
+#include "TrackModel.h"
 
 #include "../Enums.h"
 #include "../Util/Utils.h"
@@ -17,7 +17,7 @@
 #include "../Physics/IAABB.h"
 #include "../Physics/Car.h"
 
-typedef boost::variant<Track, std::shared_ptr<BaseLight>, Sound, Car*> EngineModel;
+typedef boost::variant<TrackModel, std::shared_ptr<BaseLight>, Sound, Car*> EngineModel;
 
 class Entity : public IAABB {
 public:

@@ -2,19 +2,19 @@
 
 #include "BulletDebugDrawer.h"
 #include "../Camera/BaseCamera.h"
-#include "../Loaders/TrackLoader.h"
+#include "../Loaders/Track.h"
 
 class DebugRenderer
 {
 public:
     explicit DebugRenderer(const std::shared_ptr<BulletDebugDrawer> &bulletDebugDrawer);
     void Render(const std::shared_ptr<BaseCamera> &camera);
-    void DrawTrackCollision(const std::shared_ptr<ONFSTrack> &track);
+    void DrawTrackCollision(const std::shared_ptr<Track> &track);
     void DrawAABB(const AABB &aabb);
     void DrawFrustum(const std::shared_ptr<BaseCamera> &camera);
     void DrawCarRaycasts(const std::shared_ptr<Car> &car);
-    void DrawVroad(const std::shared_ptr<ONFSTrack> &track);
-    void DrawCameraAnimation(const std::shared_ptr<ONFSTrack> &track);
+    void DrawVroad(const std::shared_ptr<Track> &track);
+    void DrawCameraAnimation(const std::shared_ptr<Track> &track);
 
 private:
     std::shared_ptr<BulletDebugDrawer> m_bulletDebugDrawer;

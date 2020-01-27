@@ -80,7 +80,7 @@ TEST_F(UtilTest, CarMoveTest){
     };
 
     //Load Track Data
-    std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+    std::shared_ptr<Track> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
     //Load Car data from unpacked NFS files
     std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
@@ -136,7 +136,7 @@ TEST_F(UtilTest, RaycastTest){
     };
 
     //Load Track Data
-    std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+    std::shared_ptr<Track> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
     //Load Car data from unpacked NFS files
     std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
@@ -179,7 +179,7 @@ TEST_F(UtilTest, TrainingGroundTest){
     };
 
     //Load Track Data
-    std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
+    std::shared_ptr<Track> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
     //Load Car data from unpacked NFS files
     std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 
@@ -231,7 +231,7 @@ TEST_F(UtilTest, AgentResetTest){
     };
 
     //Load Track Data
-    std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+    std::shared_ptr<Track> track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
     //Load Car data from unpacked NFS files
     std::shared_ptr<Car> car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
@@ -263,7 +263,7 @@ TEST_F(UtilTest, RaceSessionTest){
     };
 
     //Load Track Data
-    std::shared_ptr<ONFSTrack> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
+    std::shared_ptr<Track> track = TrackLoader::LoadTrack(trainingAssets.trackTag, trainingAssets.track);
     //Load Car data from unpacked NFS files
     std::shared_ptr<Car> car = CarLoader::LoadCar(trainingAssets.carTag, trainingAssets.car);
 

@@ -47,27 +47,25 @@ bool FceFile::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, &partNames, sizeof(char) * 64 * 64);
     SAFE_READ(ifstream, &unknownTable, sizeof(uint32_t) * 64);
 
-    for (uint32_t part_Idx = 0; part_Idx < nParts; ++part_Idx)
+    carParts.resize(nParts);
+
+    for (uint32_t partIdx = 0; partIdx < nParts; ++partIdx)
     {
-        std::vector<uint32_t> indices;
-        std::vector<uint32_t> polygonFlags;
-        std::vector<glm::vec3> vertices;
-        std::vector<glm::vec3> normals;
-        std::vector<glm::vec2> uvs;
+        carParts[partIdx].vertices.resize(partNumVertices[partIdx]);
+        carParts[partIdx].normals.resize(partNumVertices[partIdx]);
+        carParts[partIdx].triangles.resize(partNumTriangles[partIdx]);
 
-        auto *partVertices = new glm::vec3[partNumVertices[part_Idx]];
-        auto *partNormals = new glm::vec3[partNumVertices[part_Idx]];
-        auto *partTriangles = new Triangle[partNumTriangles[part_Idx]];
+        ifstream.seekg(0x1F04 + vertTblOffset + (partFirstVertIndices[partIdx] * sizeof(glm::vec3)), std::ios_base::beg);
+        SAFE_READ(ifstream, carParts[partIdx].vertices.data(), partNumVertices[partIdx] * sizeof(glm::vec3));
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + vertTblOffset + (partFirstVertIndices[part_Idx] * sizeof(glm::vec3)), std::ios_base::beg);
-        fce.read((char *) partVertices, partNumVertices[part_Idx] * sizeof(glm::vec3));
+        ifstream.seekg(0x1F04 + normTblOffset + (partFirstVertIndices[partIdx] * sizeof(glm::vec3)), std::ios_base::beg);
+        ifstream.read((char *) carParts[partIdx].normals.data(), partNumVertices[partIdx] * sizeof(glm::vec3));
 
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + normTblOffset + (partFirstVertIndices[part_Idx] * sizeof(glm::vec3)), std::ios_base::beg);
-        fce.read((char *) partNormals, partNumVertices[part_Idx] * sizeof(glm::vec3));
-
-        fce.seekg(sizeof(FCE::NFS3::HEADER) + triTblOffset + (partFirstTriIndices[part_Idx] * sizeof(Triangle)), std::ios_base::beg);
-        fce.read((char *) partTriangles, partNumTriangles[part_Idx] * sizeof(Triangle));
+        ifstream.seekg(0x1F04 + triTblOffset + (partFirstTriIndices[partIdx] * sizeof(Triangle)), std::ios_base::beg);
+        ifstream.read((char *) carParts[partIdx].triangles.data(), partNumTriangles[partIdx] * sizeof(Triangle));
     }
+
+    return true;
 }
 
 void FceFile::_SerializeOut(std::ofstream &ofstream)

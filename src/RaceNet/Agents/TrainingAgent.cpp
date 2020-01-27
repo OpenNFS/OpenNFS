@@ -1,6 +1,6 @@
 #include "TrainingAgent.h"
 
-TrainingAgent::TrainingAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<ONFSTrack> &trainingTrack) :
+TrainingAgent::TrainingAgent(uint16_t populationID, const std::shared_ptr<Car> &trainingCar, const std::shared_ptr<Track> &trainingTrack) :
 CarAgent(AgentType::TRAINING, trainingCar, trainingTrack)
 {
     name = "TrainingAgent" + std::to_string(populationID);
@@ -18,7 +18,7 @@ bool TrainingAgent::IsWinner()
 
     fitness = _EvaluateFitness(m_nearestVroadID);
 
-    int nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
+    int nVroad = 0; //boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
 
     // Have won if have made it near to end of track
     return fitness > pow(nVroad - 30, 1);
@@ -53,7 +53,7 @@ void TrainingAgent::Simulate()
     this->_UpdateNearestTrackblock();
     this->_UpdateNearestVroad();
 
-    // Track our old position
+    // TrackModel our old position
     static int vroadPosition;
 
     // If the agent is dead, there is no need to simulate it.

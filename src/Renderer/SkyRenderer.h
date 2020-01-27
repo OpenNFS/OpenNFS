@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Util/ImageLoader.h"
-#include "../Loaders/TrackLoader.h"
+#include "../Loaders/Track.h"
 #include "../Shaders/SkydomeShader.h"
 #include "../Camera/BaseCamera.h"
 #include "../Scene/Lights/GlobalLight.h"

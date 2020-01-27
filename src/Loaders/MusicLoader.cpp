@@ -362,7 +362,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
 		}
 	}
 
-      // Out of spec: Track number of times played section, use to set next section
+      // Out of spec: TrackModel number of times played section, use to set next section
 	auto playedSections = std::map<uint8_t, int8_t>();
 
 
@@ -377,7 +377,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
 		// Check if we've already played this section before. If we have, drop record number, else set to highest record index
 		playedSections[section_Idx] = playedSections.count(section_Idx) ? playedSections[section_Idx]-1 : sectionDefTable[section_Idx].bNumRecords - 1;
 
-		// If played all next records, quit playback? TODO: Implies that Track data must correlate to MAP derived loops
+		// If played all next records, quit playback? TODO: Implies that TrackModel data must correlate to MAP derived loops
 		if (playedSections[section_Idx] < 0)
 		{
 			break;
