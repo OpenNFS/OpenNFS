@@ -62,24 +62,23 @@ std::shared_ptr<Track> NFS3::LoadTrack(const std::string &trackBasePath)
     CanFile canFile;
     HrzFile hrzFile;
 
-    // Load QFS texture into GL objects
-    for (auto &frdTexBlock : frdFile.textureBlocks)
-    {
-        track->textureMap[frdTexBlock.qfsIndex] = Texture::LoadTexture(NFSVer::NFS_3, frdTexBlock, track->name);
-    }
-
     ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack.");
     ASSERT(FrdFile::Load(frdPath.str(), frdFile), "Could not load FRD file: " << frdPath.str()); // Load FRD file to get track block specific data
     ASSERT(ColFile::Load(colPath.str(), colFile), "Could not load COL file: " << colPath.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(CanFile::Load(canPath.str(), canFile), "Could not load CAN file (camera animation): " << canPath.str()); // Load camera intro/outro animation data
     ASSERT(HrzFile::Load(hrzPath.str(), hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath.str()); // Load HRZ Data
 
+    // Load QFS textures into GL objects
+    for (auto &frdTexBlock : frdFile.textureBlocks)
+    {
+        track->textureMap[frdTexBlock.qfsIndex] = Texture::LoadTexture(NFSVer::NFS_3, frdTexBlock, track->name);
+    }
+
+    track->textureArrayID = Texture::MakeTextureArray(track->textureMap, false);
     track->nBlocks = frdFile.nBlocks;
     track->cameraAnimation = canFile.animPoints;
-    track->textureArrayID = Texture::MakeTextureArray(track->textureMap, false);
     track->trackBlocks = _ParseTRKModels(frdFile, track);
     track->globalObjects = _ParseCOLModels(colFile, track);
-
 
     LOG(INFO) << "Track loaded successfully";
 
@@ -223,10 +222,10 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile, const std:
                                                                       rawTrackBlock.vert[objectPolygons[polyIdx].vertex[3]]);
 
                         // Two triangles per raw quad, hence 6 vertices. Normal data and texture index required per-vertex.
-                        for (uint8_t i = 0; i < 6; ++i)
+                        for (auto &quadToTriVertNumber : quadToTriVertNumbers)
                         {
                             normals.emplace_back(normal);
-                            vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[quadToTriVertNumbers[i]]);
+                            vertexIndices.emplace_back(objectPolygons[polyIdx].vertex[quadToTriVertNumber]);
                             textureIndices.emplace_back(polygonTexture.qfsIndex);
                         }
 
@@ -275,14 +274,12 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile, const std:
                                                                   extraObjectVerts[extraObjectData.polyData[k].vertex[3]]);
 
                     // Two triangles per raw quad, hence 6 vertices. Normal data and texture index required per-vertex.
-                    for (uint8_t i = 0; i < 6; ++i)
+                    for (auto &quadToTriVertNumber : quadToTriVertNumbers)
                     {
                         normals.emplace_back(normal);
-                        vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[quadToTriVertNumbers[i]]);
+                        vertexIndices.emplace_back(extraObjectData.polyData[k].vertex[quadToTriVertNumber]);
                         textureIndices.emplace_back(blockTexture.qfsIndex);
                     }
-
-
 
                     accumulatedObjectFlags |= extraObjectData.polyData[k].flags;
                 }
@@ -332,10 +329,10 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile, const std:
                                                               rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[3]]);
 
                 // Two triangles per raw quad, hence 6 vertices. Normal data and texture index required per-vertex.
-                for (uint8_t i = 0; i < 6; ++i)
+                for (auto &quadToTriVertNumber : quadToTriVertNumbers)
                 {
                     normals.emplace_back(normal);
-                    vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[quadToTriVertNumbers[i]]);
+                    vertexIndices.emplace_back(chunkPolygonData[polyIdx].vertex[quadToTriVertNumber]);
                     textureIndices.emplace_back(polygonTexture.qfsIndex);
                 }
 
@@ -398,9 +395,9 @@ std::vector<Entity> NFS3::_ParseCOLModels(const ColFile &colFile, const std::sha
             glm::vec3 normal = Utils::CalculateQuadNormal(verts[s.polygon[polyIdx].v[0]], verts[s.polygon[polyIdx].v[1]], verts[s.polygon[polyIdx].v[2]], verts[s.polygon[polyIdx].v[3]]);
 
             // Two triangles per raw quad, hence 6 vertices. Normal data and texture index required per-vertex.
-            for (uint8_t i = 0; i < 6; ++i)
+            for (auto &quadToTriVertNumber : quadToTriVertNumbers)
             {
-                indices.emplace_back(s.polygon[polyIdx].v[quadToTriVertNumbers[i]]);
+                indices.emplace_back(s.polygon[polyIdx].v[quadToTriVertNumber]);
                 norms.emplace_back(normal);
                 texture_indices.emplace_back(blockTexture.qfsIndex);
             }
