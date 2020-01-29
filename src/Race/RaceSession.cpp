@@ -31,8 +31,6 @@ RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
 
 void RaceSession::_UpdateCameras(float deltaTime)
 {
-    m_hermiteCamera->UseSpline(m_totalTime);
-
     if (m_windowStatus == WindowStatus::GAME)
     {
         switch (m_activeCameraMode)
@@ -42,7 +40,7 @@ void RaceSession::_UpdateCameras(float deltaTime)
             m_carCamera->FollowCar(m_playerAgent->vehicle);
             break;
         case HERMITE_FLYTHROUGH:
-
+            m_hermiteCamera->UseSpline(m_totalTime);
             break;
         case FREE_LOOK:
             // Compute the MVP matrix from keyboard and mouse input

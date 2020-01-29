@@ -60,7 +60,7 @@ struct ColVRoad
 {
     glm::ivec3 refPt;
     uint32_t unknown; // Unknown data
-    glm::i8vec3 normal, forward, right;
+    glm::i8vec4 normal, forward, right;
     uint32_t leftWall, rightWall;
 };
 

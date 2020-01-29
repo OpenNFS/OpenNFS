@@ -89,7 +89,6 @@ CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
 {
     LOG(INFO) << "Parsing FCE File into ONFS Structures";
     // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
-    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f))));
     CarData carData;
 
     // Grab colours
@@ -102,8 +101,7 @@ CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
 
     for (uint32_t dummyIdx = 0; dummyIdx < fceFile.nDummies; ++dummyIdx)
     {
-        Dummy dummy(fceFile.dummyNames[dummyIdx],
-                    rotationMatrix * glm::vec3(fceFile.dummyCoords[dummyIdx].x / 10, fceFile.dummyCoords[dummyIdx].y / 10, fceFile.dummyCoords[dummyIdx].z / 10));
+        Dummy dummy(fceFile.dummyNames[dummyIdx], fceFile.dummyCoords[dummyIdx] / NFS3_SCALE_FACTOR);
         carData.dummies.emplace_back(dummy);
     }
 
@@ -120,16 +118,16 @@ CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
         std::vector<glm::vec2> uvs;
 
         std::string part_name(fceFile.partNames[partIdx]);
-        glm::vec3 center = rotationMatrix * (fceFile.partCoords[partIdx] / NFS3_SCALE_FACTOR);
+        glm::vec3 center = fceFile.partCoords[partIdx] / NFS3_SCALE_FACTOR;
 
         for (uint32_t vert_Idx = 0; vert_Idx < fceFile.partNumVertices[partIdx]; ++vert_Idx)
         {
-            vertices.emplace_back(rotationMatrix * (fceFile.carParts[partIdx].vertices[vert_Idx] / NFS3_SCALE_FACTOR));
+            vertices.emplace_back(fceFile.carParts[partIdx].vertices[vert_Idx] / NFS3_SCALE_FACTOR);
         }
 
         for (uint32_t normal_Idx = 0; normal_Idx < fceFile.partNumVertices[partIdx]; ++normal_Idx)
         {
-            normals.emplace_back(rotationMatrix * fceFile.carParts[partIdx].normals[normal_Idx]);
+            normals.emplace_back(fceFile.carParts[partIdx].normals[normal_Idx]);
         }
         for (uint32_t tri_Idx = 0; tri_Idx < fceFile.partNumTriangles[partIdx]; ++tri_Idx)
         {
@@ -383,10 +381,9 @@ std::vector<VirtualRoad> NFS3::_ParseVirtualRoad(const ColFile &colFile)
         position.y += 0.2f;
 
         // Get VROAD right vector
-        glm::vec3 right          = glm::vec3(vroad.right) / 128.f;
-        glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(SIMD_PI / 2, 0, 0)));
-        glm::vec3 forward        = glm::vec3(vroad.forward) * rotationMatrix;
-        glm::vec3 normal         = glm::vec3(vroad.normal) * rotationMatrix;
+        glm::vec3 right   = glm::vec3(vroad.right) / 128.f;
+        glm::vec3 forward = glm::vec3(vroad.forward);
+        glm::vec3 normal  = glm::vec3(vroad.normal);
 
         glm::vec3 leftWall  = ((vroad.leftWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;
         glm::vec3 rightWall = ((vroad.rightWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;

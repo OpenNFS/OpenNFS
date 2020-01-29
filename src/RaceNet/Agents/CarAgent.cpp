@@ -1,9 +1,7 @@
 #include "CarAgent.h"
 
 CarAgent::CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &track) :
-    vehicle(std::make_shared<Car>(car->assetData, car->tag, car->id)),
-    m_track(track),
-    m_agentType(agentType)
+    vehicle(std::make_shared<Car>(car->assetData, car->tag, car->id)), m_track(track), m_agentType(agentType)
 {
 }
 
@@ -46,14 +44,14 @@ void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float
 
 void CarAgent::ResetToVroad(int vroadIndex, float offset)
 {
-    glm::vec3 vroadPoint;
-    glm::quat carOrientation;
-
     ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
     ASSERT(vroadIndex < m_track->virtualRoad.size(), "Requested reset to vroad index: " << vroadIndex << " outside of num vroad chunks");
 
-    carOrientation = glm::conjugate(glm::toQuat(glm::lookAt(
+    glm::vec3 vroadPoint     = m_track->virtualRoad[vroadIndex].position;
+    glm::quat carOrientation = glm::conjugate(glm::toQuat(glm::lookAt(
       m_track->virtualRoad[vroadIndex].position, m_track->virtualRoad[vroadIndex].position - m_track->virtualRoad[vroadIndex].forward, m_track->virtualRoad[vroadIndex].normal)));
+    // Offset horizontally across the right vector from center
+    vroadPoint += offset * m_track->virtualRoad[vroadIndex].right;
 
     // Go and find the Vroad Data to reset to
     vehicle->SetPosition(vroadPoint, carOrientation);
