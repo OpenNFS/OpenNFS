@@ -28,7 +28,7 @@ std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t resolutionX, uint32_t 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
 
-    auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr), [](GLFWwindow *w) { glfwDestroyWindow(w); });
+    auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr), [](GLFWwindow *w) { glfwTerminate(); });
 
     if (window == nullptr)
     {
