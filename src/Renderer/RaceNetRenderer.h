@@ -10,7 +10,7 @@
 #include <examples/imgui_impl_opengl3.h>
 
 #include "../Scene/Entity.h"
-#include "../Loaders/Track.h"
+#include "../Scene/Track.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
 #include "../Shaders/RaceNetShader.h"

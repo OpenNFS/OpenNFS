@@ -25,7 +25,7 @@
 #include <GL/glew.h>
 
 #include "Logger.h"
-#include "../Scene/CarModel.h"
+#include "../Scene/Models/CarModel.h"
 #include "../Enums.h"
 
 #define SAFE_READ(file, structure, size)  if((file).read((char *) (structure), (size)).gcount() != (size)) return false

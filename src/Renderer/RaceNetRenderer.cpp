@@ -84,9 +84,9 @@ std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<Track> &track
 
     for (auto &track_block : track_to_render->trackBlocks)
     {
-        if ((track_block.center.x > minX) && (track_block.center.x < maxX) && (track_block.center.z < minY) && (track_block.center.z > maxY))
+        if ((track_block.position.x > minX) && (track_block.position.x < maxX) && (track_block.position.z < minY) && (track_block.position.z > maxY))
         {
-            activeTrackBlockIds.emplace_back(track_block.blockId);
+            activeTrackBlockIds.emplace_back(track_block.id);
         }
     }
 

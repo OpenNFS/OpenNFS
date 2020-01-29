@@ -4,7 +4,7 @@
 #include "stdint.h"
 
 #include "Agents/TrainingAgent.h"
-#include "../Loaders/Track.h"
+#include "../Scene/Track.h"
 #include "../Loaders/CarLoader.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../Util/Utils.h"

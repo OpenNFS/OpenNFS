@@ -4,12 +4,13 @@
 #include <vector>
 #include <memory>
 
+#include "Entity.h"
+#include "TrackBlock.h"
+#include "VirtualRoad.h"
 
-#include "Shared/CanFile.h"
-#include "../Renderer/Texture.h"
-#include "../Scene/TrackBlock.h"
-#include "../Scene/Entity.h"
+#include "../Loaders/Shared/CanFile.h"
 #include "../Physics/AABBTree.h"
+#include "../Renderer/Texture.h"
 #include "../Renderer/HermiteCurve.h"
 
 constexpr uint16_t kCullTreeInitialSize = 4000;
@@ -26,6 +27,7 @@ public:
     std::string name;
     uint32_t nBlocks;
     std::vector<CameraAnimPoint> cameraAnimation;
+    std::vector<VirtualRoad> virtualRoad;
     HermiteCurve centerSpline;
 
     // Geometry
@@ -35,6 +37,6 @@ public:
 
     // GL 3D Render Data
     std::map<uint32_t, Texture> textureMap;
-    GLuint textureArrayID;
+    GLuint textureArrayID = 0;
     AABBTree cullTree;
 };

@@ -1,11 +1,8 @@
-#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
-#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
 #include "TrackModel.h"
-#include "../Util/Utils.h"
+#include "../../Util/Utils.h"
 
 TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices, std::vector<glm::vec4> shading_data, std::vector<uint32_t> debug_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position) {
     m_texture_indices = texture_indices;
-    shadingData = shading_data;
     m_debug_data = debug_data;
     // Index Shading data
     for(unsigned int m_vertex_index : indices) {
@@ -19,7 +16,6 @@ TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norm
 TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
                        std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, std::vector<glm::vec3>(), indices, true, center_position){
     m_texture_indices = texture_indices;
-    shadingData = shading_data;
 
     // Fill the unused buffer with data
     for(int i = 0; i < m_texture_indices.size(); ++i){
@@ -40,11 +36,10 @@ TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
 TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
                        std::vector<glm::vec4> shading_data, glm::vec3 center_position) : super("TrackMesh", verts, uvs, norms, indices, true, center_position){
     m_texture_indices = texture_indices;
-    shadingData = shading_data;
+
     // Fill the unused buffer with data
-    for(int i = 0; i < m_texture_indices.size(); ++i){
-        m_debug_data.emplace_back(0);
-    }
+    m_debug_data.resize(m_texture_indices.size());
+
     // Index Shading data
     for(unsigned int m_vertex_index : indices) {
         m_shading_data.push_back(shading_data[m_vertex_index]);
@@ -104,7 +99,7 @@ bool TrackModel::genBuffers() {
             GL_FLOAT,                         // type
             GL_FALSE,                         // normalized?
             0,                                // stride
-            (void *) 0                          // array buffer offset
+            (void *) nullptr                  // array buffer offset
     );
     glEnableVertexAttribArray(1);
     // 3rd attribute buffer : TrackModel Normals
@@ -117,7 +112,7 @@ bool TrackModel::genBuffers() {
             GL_FLOAT,           // type
             GL_FALSE,           // normalized?
             0,                  // stride
-            (void *) 0            // array buffer offset
+            (void *) nullptr    // array buffer offset
     );
     glEnableVertexAttribArray(2);
     // 4th attribute buffer : Texture Indices
@@ -129,7 +124,7 @@ bool TrackModel::genBuffers() {
             1,
             GL_UNSIGNED_INT,
             0,
-            (void *) 0
+            (void *) nullptr
     );
     glEnableVertexAttribArray(3);
     // 5th attribute buffer : NFS Shading Data
@@ -142,7 +137,7 @@ bool TrackModel::genBuffers() {
             GL_FLOAT,
             GL_FALSE,
             0,
-            (void *) 0
+            (void *) nullptr
     );
     glEnableVertexAttribArray(4);
     // 6th attribute buffer : Debug Data
@@ -155,7 +150,7 @@ bool TrackModel::genBuffers() {
             1,
             GL_UNSIGNED_INT,
             0,
-            (void *) 0
+            (void *) nullptr
     );
     glEnableVertexAttribArray(5);
     // Lets not affect any state

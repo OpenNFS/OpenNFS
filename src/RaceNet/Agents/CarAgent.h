@@ -3,7 +3,7 @@
 #include "../RaceNet.h"
 #include "../RaceNEAT.h"
 #include "../../Loaders/CarLoader.h"
-#include "../../Loaders/Track.h"
+#include "../../Scene/Track.h"
 
 enum AgentType : uint8_t
 {

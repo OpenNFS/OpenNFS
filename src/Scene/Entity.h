@@ -9,7 +9,7 @@
 
 #include "Lights/BaseLight.h"
 #include "Sound.h"
-#include "TrackModel.h"
+#include "Models/TrackModel.h"
 
 #include "../Enums.h"
 #include "../Util/Utils.h"

@@ -8,7 +8,7 @@
 #include "../Camera/CarCamera.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../Loaders/CarLoader.h"
-#include "../Loaders/Track.h"
+#include "../Scene/Track.h"
 #include "../Renderer/Renderer.h"
 #include "../RaceNet/Agents/PlayerAgent.h"
 #include "../Util/Logger.h"

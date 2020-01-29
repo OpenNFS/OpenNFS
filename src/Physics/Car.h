@@ -10,7 +10,7 @@
 
 #include "../RaceNet/RaceNet.h"
 #include "../Scene/Lights/Spotlight.h"
-#include "../Scene/CarModel.h"
+#include "../Scene/Models/CarModel.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
 #include "../Enums.h"

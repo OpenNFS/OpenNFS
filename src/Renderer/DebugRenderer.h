@@ -2,7 +2,7 @@
 
 #include "BulletDebugDrawer.h"
 #include "../Camera/BaseCamera.h"
-#include "../Loaders/Track.h"
+#include "../Scene/Track.h"
 
 class DebugRenderer
 {

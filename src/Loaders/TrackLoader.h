@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Track.h"
+#include "../Scene/Track.h"
 
 #include "NFS3/NFS3Loader.h"
 /*#include "NFS2/PC/NFS2Loader.h"

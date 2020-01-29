@@ -15,7 +15,7 @@
 
 #include "Config.h"
 #include "Util/Logger.h"
-#include "Loaders/Track.h"
+#include "Scene/Track.h"
 #include "Loaders/TrackLoader.h"
 #include "Loaders/CarLoader.h"
 #include "Loaders/MusicLoader.h"

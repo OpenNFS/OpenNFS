@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/vec3.hpp>
-#include "../Model.h"
+#include "../Models/Model.h"
 
 const float kLightSize = 3.0f;
 

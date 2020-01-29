@@ -7,10 +7,14 @@
 
 class TrackBlock  {
 public:
-    TrackBlock(uint32_t blockID, glm::vec3 centerPosition);
+    TrackBlock(uint32_t id, glm::vec3 position, uint32_t virtualRoadStartIndex, uint32_t nVirtualRoadPositions, const std::vector<uint32_t> &neighbourIds);
 
-    glm::vec3 center;
-    uint32_t blockId;
+    uint32_t id;
+    glm::vec3 position;
+    uint32_t virtualRoadStartIndex;
+    uint32_t nVirtualRoadPositions;
+    std::vector<uint32_t> neighbourIds;
+
     std::vector<Entity> track;
     std::vector<Entity> objects;
     std::vector<Entity> lanes;

@@ -1,7 +1,10 @@
 #include "TrackBlock.h"
 
-TrackBlock::TrackBlock(uint32_t blockID, glm::vec3 centerPosition)
+TrackBlock::TrackBlock(uint32_t id, glm::vec3 position, uint32_t virtualRoadStartIndex, uint32_t nVirtualRoadPositions, const std::vector<uint32_t> &neighbourIds)
 {
-    blockId = blockID;
-    center = centerPosition;
+    this->id = id;
+    this->position              = position;
+    this->virtualRoadStartIndex = virtualRoadStartIndex;
+    this->nVirtualRoadPositions = nVirtualRoadPositions;
+    this->neighbourIds = neighbourIds;
 }

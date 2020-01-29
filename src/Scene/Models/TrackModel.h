@@ -22,7 +22,6 @@ private:
     GLuint shadingBuffer;
     GLuint normalBuffer;
     GLuint debugBuffer;
-    std::vector<glm::vec4> shadingData;
     typedef Model super;
 };
 

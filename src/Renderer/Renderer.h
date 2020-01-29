@@ -13,7 +13,7 @@
 #include "../Camera/CarCamera.h"
 #include "../Scene/Entity.h"
 #include "../Scene/Lights/GlobalLight.h"
-#include "../Loaders/Track.h"
+#include "../Scene/Track.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../RaceNet/Agents/CarAgent.h"
 #include "../Util/Logger.h"

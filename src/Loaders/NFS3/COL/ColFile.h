@@ -56,16 +56,11 @@ struct ColObject
     std::vector<AnimData> animData; // same structure as in xobjs
 };
 
-struct ColVector
-{
-    signed char x, z, y, unknown;
-};
-
 struct ColVRoad
 {
     glm::ivec3 refPt;
     uint32_t unknown;  // Unknown data
-    ColVector normal, forward, right;
+    glm::i8vec3 normal, forward, right;
     uint32_t leftWall, rightWall;
 };
 

@@ -52,7 +52,7 @@ set(SOURCE_FILES
         resources/asset/icon.rc
         src/main.cpp
         src/Camera/BaseCamera.cpp
-        src/Scene/Model.cpp
+        src/Scene/Models/Model.cpp
         src/Physics/PhysicsEngine.cpp
         lib/glew-cmake/src/glew.c
         src/Scene/TrackBlock.cpp
@@ -74,10 +74,10 @@ set(SOURCE_FILES
        #[[ src/Util/Raytracer.h]]
         tools/fshtool.c
         tools/fshtool.h
-        src/Scene/CarModel.cpp
-        src/Scene/CarModel.h
-        src/Scene/TrackModel.cpp
-        src/Scene/TrackModel.h
+        src/Scene/Models/CarModel.cpp
+        src/Scene/Models/CarModel.h
+        src/Scene/Models/TrackModel.cpp
+        src/Scene/Models/TrackModel.h
         src/Shaders/BillboardShader.cpp
         src/Shaders/BillboardShader.h
         src/Physics/Car.cpp
@@ -125,8 +125,8 @@ set(SOURCE_FILES
         src/Renderer/RaceNetRenderer.h
         src/Shaders/RaceNetShader.cpp
         src/Shaders/RaceNetShader.h
-        src/Scene/Quad.cpp
-        src/Scene/Quad.h
+        src/Scene/Models/Quad.cpp
+        src/Scene/Models/Quad.h
         src/Renderer/ShadowMapRenderer.cpp
         src/Renderer/ShadowMapRenderer.h
         src/Shaders/ShaderSet.cpp
@@ -207,7 +207,7 @@ set(SOURCE_FILES
         src/Loaders/NFS3/FFN/FfnFile.cpp
         src/Loaders/NFS3/FFN/FfnFile.h
         src/Loaders/Shared/CanFile.cpp
-        src/Loaders/Shared/CanFile.h src/Renderer/Texture.cpp src/Renderer/Texture.h src/Loaders/Shared/HrzFile.cpp src/Loaders/Shared/HrzFile.h src/Loaders/NFS3/FCE/FceFile.cpp src/Loaders/NFS3/FCE/FceFile.h src/Loaders/NFS3/FEDATA/FedataFile.cpp src/Loaders/NFS3/FEDATA/FedataFile.h src/Loaders/Track.h src/Loaders/Track.cpp src/Loaders/TrackLoader.cpp src/Loaders/TrackLoader.h)
+        src/Loaders/Shared/CanFile.h src/Renderer/Texture.cpp src/Renderer/Texture.h src/Loaders/Shared/HrzFile.cpp src/Loaders/Shared/HrzFile.h src/Loaders/NFS3/FCE/FceFile.cpp src/Loaders/NFS3/FCE/FceFile.h src/Loaders/NFS3/FEDATA/FedataFile.cpp src/Loaders/NFS3/FEDATA/FedataFile.h src/Scene/Track.h src/Scene/Track.cpp src/Loaders/TrackLoader.cpp src/Loaders/TrackLoader.h src/Scene/VirtualRoad.cpp src/Scene/VirtualRoad.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

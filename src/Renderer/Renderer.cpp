@@ -92,6 +92,11 @@ bool Renderer::Render(float totalTime,
         m_debugRenderer.DrawTrackCollision(m_track);
     }
 
+    if(userParams.drawVroad)
+    {
+        m_debugRenderer.DrawVroad(m_track);
+    }
+
     // Render the environment
     m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track->textureArrayID, visibleSet.entities, racers);
     m_skyRenderer.Render(activeCamera, activeLight, totalTime);
@@ -184,36 +189,28 @@ std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<Tra
     // Get closest track block to camera position
     for (auto &trackblock :  track->trackBlocks)
     {
-        float distance = glm::distance(camera->position, trackblock.center);
+        float distance = glm::distance(camera->position, trackblock.position);
         if (distance < lowestDistance)
         {
-            closestBlockID = trackblock.blockId;
+            closestBlockID = trackblock.id;
             lowestDistance = distance;
         }
     }
 
-    // If we have an NFS3 track loaded, use the provided neighbour data to work out which blocks to render
-    /*if ((track->tag == NFS_3 || track->tag == NFS_4) && userParams.useNbData)
+    if (userParams.useNbData)
     {
-        for (auto &neighbourBlockData : boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(track->trackData)->trk[closestBlockID].nbdData)
-        {
-            if (neighbourBlockData.blk == -1)
-            {
-                break;
-            } else
-            {
-                activeTrackBlockIds.emplace_back(neighbourBlockData.blk);
-            }
-        }
-    } else
-    {*/
+        // Use the provided neighbour data to work out which blocks to render
+        activeTrackBlockIds = track->trackBlocks[closestBlockID].neighbourIds;
+    }
+    else
+    {
         // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
         for (auto trackblockIdx = closestBlockID - userParams.blockDrawDistance; trackblockIdx < closestBlockID + userParams.blockDrawDistance; ++trackblockIdx)
         {
             uint32_t activeBlock = trackblockIdx < 0 ? ((uint32_t) track->trackBlocks.size() + trackblockIdx) : (trackblockIdx % (uint32_t) track->trackBlocks.size());
             activeTrackBlockIds.emplace_back(activeBlock);
         }
-    //}
+    }
 
     return activeTrackBlockIds;
 }

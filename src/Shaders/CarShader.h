@@ -6,7 +6,7 @@
 
 #include "../Config.h"
 #include "../Util/ImageLoader.h"
-#include "../Scene/Model.h"
+#include "../Scene/Models/Model.h"
 #include "../Scene/Lights/BaseLight.h"
 #include "../Physics/Car.h"
 #include "../../shaders/ShaderPreamble.h"
