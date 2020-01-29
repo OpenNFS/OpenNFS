@@ -402,7 +402,6 @@ std::vector<Entity> NFS3::_ParseCOLModels(const ColFile &colFile, const std::sha
 	LOG(INFO) << "Parsing COL file into ONFS GL structures";
 	std::vector<Entity> colEntities;
 
-	/* COL DATA - TODO: Come back for VROAD AI/Collision data */
 	for (uint32_t i = 0; i < colFile.objectHead.nrec; ++i)
 	{
 		std::vector<unsigned int> indices;

@@ -35,16 +35,16 @@ bool FedataFile::_SerializeIn(std::ifstream &ifstream)
 	// Jump to location of FILEPOS table for car colour names
 	ifstream.seekg(COLOUR_TABLE_OFFSET, std::ios::beg);
 	// Read that table in
-	uint32_t colourNameOffsets[m_nPriColours];
-	SAFE_READ(ifstream, &colourNameOffsets, m_nPriColours * sizeof(uint32_t));
+	std::vector<uint32_t> colourNameOffsets(m_nPriColours);
+	SAFE_READ(ifstream, colourNameOffsets.data(), m_nPriColours * sizeof(uint32_t));
 
 	for (uint8_t colourIdx = 0; colourIdx < m_nPriColours; ++colourIdx)
 	{
 		ifstream.seekg(colourNameOffsets[colourIdx]);
 		uint32_t colourNameLength = colourIdx < (m_nPriColours - 1) ? (colourNameOffsets[colourIdx + 1] - colourNameOffsets[colourIdx]) : 32;
-		char colourName[colourNameLength];
-		SAFE_READ(ifstream, &colourName, colourNameLength);
-		primaryColourNames.push_back(std::string(colourName));
+		std::vector<char> colourName(colourNameLength);
+		SAFE_READ(ifstream, colourName.data(), colourNameLength);
+		primaryColourNames.emplace_back(colourName.begin(), colourName.end());
 	}
 
 	return true;

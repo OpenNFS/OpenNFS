@@ -50,8 +50,6 @@ void CarAgent::ResetToVroad(int vroadIndex, float offset)
 	ASSERT(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 	ASSERT(vroadIndex < m_track->virtualRoad.size(), "Requested reset to vroad index: " << vroadIndex << " outside of num vroad chunks");
 
-	glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-
 	carOrientation = glm::conjugate(glm::toQuat(glm::lookAt(
 	  m_track->virtualRoad[vroadIndex].position, m_track->virtualRoad[vroadIndex].position - m_track->virtualRoad[vroadIndex].forward, m_track->virtualRoad[vroadIndex].normal)));
 
