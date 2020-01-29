@@ -4,22 +4,22 @@
 
 #include <glm/detail/type_mat4x4.hpp>
 
-class RaceNetShader : public BaseShader {
+class RaceNetShader : public BaseShader
+{
 public:
-    explicit RaceNetShader();
-    void loadColor(glm::vec3 color);
-    void loadProjectionMatrix(const glm::mat4 &projection);
-    void loadTransformationMatrix(const glm::mat4 &transformation);
+	explicit RaceNetShader();
+	void loadColor(glm::vec3 color);
+	void loadProjectionMatrix(const glm::mat4 &projection);
+	void loadTransformationMatrix(const glm::mat4 &transformation);
+
 protected:
-    void bindAttributes() override;
-    void getAllUniformLocations() override;
-    void customCleanup() override;
+	void bindAttributes() override;
+	void getAllUniformLocations() override;
+	void customCleanup() override;
 
-    GLint transformationMatrixLocation;
-    GLint projectionMatrixLocation;
-    GLint colourLocation;
+	GLint transformationMatrixLocation;
+	GLint projectionMatrixLocation;
+	GLint colourLocation;
 
-    typedef BaseShader super;
+	typedef BaseShader super;
 };
-
-

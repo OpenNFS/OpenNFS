@@ -17,13 +17,14 @@ NFS3_4_DATA::FLOATPT SumVector(NFS3_4_DATA::FLOATPT Vect1, NFS3_4_DATA::FLOATPT 
 
 NFS3_4_DATA::FLOATPT VertexNormal(int blk, int VertexIndex, NFS3_4_DATA::TRKBLOCK *trk, NFS3_4_DATA::POLYGONBLOCK *poly);
 
-int intersect_triangle(double orig[3], double dir[3], double vert0[3], double vert1[3], double vert2[3], double *t, double *u, double *v) ;
+int intersect_triangle(double orig[3], double dir[3], double vert0[3], double vert1[3], double vert2[3], double *t, double *u, double *v);
 
 void BlockShadingFixer(int blk, float theta, float rho, NFS3_4_DATA::TRKBLOCK *trk, NFS3_4_DATA::POLYGONBLOCK *poly, NFS3_4_DATA::XOBJBLOCK *xobj);
 
 void ObjectShadingFixer(int blk, float theta, float rho, NFS3_4_DATA::TRKBLOCK *trk, NFS3_4_DATA::POLYGONBLOCK *poly, NFS3_4_DATA::XOBJBLOCK *xobj);
 
-class Raytracer {
+class Raytracer
+{
 public:
-    explicit Raytracer(float rho, float theta, int nBlocks, NFS3_4_DATA::TRKBLOCK *trk, NFS3_4_DATA::POLYGONBLOCK *poly, NFS3_4_DATA::XOBJBLOCK *xobj);
+	explicit Raytracer(float rho, float theta, int nBlocks, NFS3_4_DATA::TRKBLOCK *trk, NFS3_4_DATA::POLYGONBLOCK *poly, NFS3_4_DATA::XOBJBLOCK *xobj);
 };

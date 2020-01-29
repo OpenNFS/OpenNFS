@@ -30,64 +30,62 @@
 
 struct VisibleSet
 {
-    std::vector<std::shared_ptr<Entity>> entities;
-    std::vector<std::shared_ptr<BaseLight>> lights;
+	std::vector<std::shared_ptr<Entity>> entities;
+	std::vector<std::shared_ptr<BaseLight>> lights;
 };
 
 class Renderer
 {
 public:
-    Renderer(const std::shared_ptr<GLFWwindow> &window,
-             const std::shared_ptr<Logger> &onfsLogger,
-             const std::vector<NfsAssetList> &installedNFS,
-             const std::shared_ptr<Track> &currentTrack,
-             const std::shared_ptr<BulletDebugDrawer> &debugDrawer
-    );
+	Renderer(const std::shared_ptr<GLFWwindow> &window,
+	         const std::shared_ptr<Logger> &onfsLogger,
+	         const std::vector<NfsAssetList> &installedNFS,
+	         const std::shared_ptr<Track> &currentTrack,
+	         const std::shared_ptr<BulletDebugDrawer> &debugDrawer);
 
-    ~Renderer();
+	~Renderer();
 
-    static void GlfwError(int id, const char *description)
-    {
-        LOG(WARNING) << description;
-    }
+	static void GlfwError(int id, const char *description)
+	{
+		LOG(WARNING) << description;
+	}
 
-    static void WindowSizeCallback(GLFWwindow *window, int width, int height)
-    {
-        Config::get().resX = width;
-        Config::get().resY = height;
-    }
+	static void WindowSizeCallback(GLFWwindow *window, int width, int height)
+	{
+		Config::get().resX = width;
+		Config::get().resY = height;
+	}
 
-    static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName);
-    bool Render(float totalTime,
-                const std::shared_ptr<BaseCamera> &activeCamera,
-                const std::shared_ptr<HermiteCamera> &hermiteCamera,
-                const std::shared_ptr<GlobalLight> &activeLight,
-                ParamData &userParams,
-                AssetData &loadedAssets,
-                const std::vector<std::shared_ptr<CarAgent>> &racers
-    );
+	static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName);
+	bool Render(float totalTime,
+	            const std::shared_ptr<BaseCamera> &activeCamera,
+	            const std::shared_ptr<HermiteCamera> &hermiteCamera,
+	            const std::shared_ptr<GlobalLight> &activeLight,
+	            ParamData &userParams,
+	            AssetData &loadedAssets,
+	            const std::vector<std::shared_ptr<CarAgent>> &racers);
 
 private:
-    void _InitialiseIMGUI();
-    static void _DrawMetadata(Entity *targetEntity);
-    bool _DrawMenuBar(AssetData &loadedAssets);
-    void _DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
-    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
-    static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
+	void _InitialiseIMGUI();
+	static void _DrawMetadata(Entity *targetEntity);
+	bool _DrawMenuBar(AssetData &loadedAssets);
+	void _DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
+	static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
+	static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
 
-    std::shared_ptr<GLFWwindow> m_window;
-    std::shared_ptr<Logger> m_logger;
-    std::vector<NfsAssetList> m_nfsAssetList;
-    std::shared_ptr<Track> m_track;
+	std::shared_ptr<GLFWwindow> m_window;
+	std::shared_ptr<Logger> m_logger;
+	std::vector<NfsAssetList> m_nfsAssetList;
+	std::shared_ptr<Track> m_track;
 
-    TrackRenderer m_trackRenderer;
-    CarRenderer m_carRenderer;
-    SkyRenderer m_skyRenderer;
-    ShadowMapRenderer m_shadowMapRenderer;
-    DebugRenderer m_debugRenderer;
-    /*MenuRenderer menuRenderer;*/
+	TrackRenderer m_trackRenderer;
+	CarRenderer m_carRenderer;
+	SkyRenderer m_skyRenderer;
+	ShadowMapRenderer m_shadowMapRenderer;
+	DebugRenderer m_debugRenderer;
+	/*MenuRenderer menuRenderer;*/
 
-    /* State */
-    bool m_entityTargeted = false;
-    Entity *m_pTargetedEntity = nullptr;
+	/* State */
+	bool m_entityTargeted     = false;
+	Entity *m_pTargetedEntity = nullptr;
 };

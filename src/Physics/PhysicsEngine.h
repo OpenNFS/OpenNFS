@@ -26,31 +26,32 @@
 
 struct WorldRay
 {
-    glm::vec3 origin;
-    glm::vec3 direction;
+	glm::vec3 origin;
+	glm::vec3 direction;
 };
 
-class PhysicsEngine{
+class PhysicsEngine
+{
 public:
-    PhysicsEngine();
-    ~PhysicsEngine();
-    void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs);
-    void RegisterVehicle(const std::shared_ptr<Car> &car);
-    void RegisterTrack(const std::shared_ptr<Track> &track);
-    Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted);
-    btDiscreteDynamicsWorld *GetDynamicsWorld();
+	PhysicsEngine();
+	~PhysicsEngine();
+	void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs);
+	void RegisterVehicle(const std::shared_ptr<Car> &car);
+	void RegisterTrack(const std::shared_ptr<Track> &track);
+	Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted);
+	btDiscreteDynamicsWorld *GetDynamicsWorld();
 
-    std::shared_ptr<BulletDebugDrawer> debugDrawer;
+	std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
 private:
-    void _GenerateVroadBarriers();
+	void _GenerateVroadBarriers();
 
-    std::shared_ptr<Track> m_track;
-    std::vector<std::shared_ptr<Car>> m_activeVehicles;
+	std::shared_ptr<Track> m_track;
+	std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
-    btBroadphaseInterface *m_pBroadphase;
-    btDefaultCollisionConfiguration *m_pCollisionConfiguration;
-    btCollisionDispatcher *m_pDispatcher;
-    btSequentialImpulseConstraintSolver *m_pSolver;
-    btDiscreteDynamicsWorld *m_pDynamicsWorld;
+	btBroadphaseInterface *m_pBroadphase;
+	btDefaultCollisionConfiguration *m_pCollisionConfiguration;
+	btCollisionDispatcher *m_pDispatcher;
+	btSequentialImpulseConstraintSolver *m_pSolver;
+	btDiscreteDynamicsWorld *m_pDynamicsWorld;
 };

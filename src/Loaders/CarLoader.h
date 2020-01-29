@@ -8,8 +8,8 @@
 #include "NFS5/NFS5Loader.h"*/
 #include "../Physics/Car.h"
 
-class CarLoader {
+class CarLoader
+{
 public:
-    static std::shared_ptr<Car> LoadCar(NFSVer nfs_version, const std::string &car_name);
+	static std::shared_ptr<Car> LoadCar(NFSVer nfs_version, const std::string &car_name);
 };
-

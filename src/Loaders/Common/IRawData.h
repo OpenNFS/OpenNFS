@@ -11,6 +11,6 @@
 class IRawData
 {
 protected:
-    virtual bool _SerializeIn(std::ifstream &ifstream) = 0;
-    virtual void _SerializeOut(std::ofstream &ofstream) = 0;
+	virtual bool _SerializeIn(std::ifstream &ifstream)  = 0;
+	virtual void _SerializeOut(std::ofstream &ofstream) = 0;
 };

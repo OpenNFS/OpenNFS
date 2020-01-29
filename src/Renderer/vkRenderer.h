@@ -23,190 +23,196 @@
 #include "../Physics/Car.h"
 #include "../Loaders/CarLoader.h"
 
-struct QueueFamilyIndices {
-    int graphicsFamily = -1;
-    int presentFamily = -1;
+struct QueueFamilyIndices
+{
+	int graphicsFamily = -1;
+	int presentFamily  = -1;
 
-    bool isComplete() {
-        return graphicsFamily >= 0 && presentFamily >= 0;
-    }
+	bool isComplete()
+	{
+		return graphicsFamily >= 0 && presentFamily >= 0;
+	}
 };
 
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
+struct SwapChainSupportDetails
+{
+	VkSurfaceCapabilitiesKHR capabilities;
+	std::vector<VkSurfaceFormatKHR> formats;
+	std::vector<VkPresentModeKHR> presentModes;
 };
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec2 uv;
+struct Vertex
+{
+	glm::vec3 pos;
+	glm::vec3 normal;
+	glm::vec2 uv;
 
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription = {};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	static VkVertexInputBindingDescription getBindingDescription()
+	{
+		VkVertexInputBindingDescription bindingDescription = {};
+		bindingDescription.binding                         = 0;
+		bindingDescription.stride                          = sizeof(Vertex);
+		bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
 
-        return bindingDescription;
-    }
+		return bindingDescription;
+	}
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+	{
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
 
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
+		attributeDescriptions[0].binding  = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[0].offset   = offsetof(Vertex, pos);
 
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, normal);
+		attributeDescriptions[1].binding  = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset   = offsetof(Vertex, normal);
 
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, uv);
+		attributeDescriptions[2].binding  = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format   = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset   = offsetof(Vertex, uv);
 
-        return attributeDescriptions;
-    }
+		return attributeDescriptions;
+	}
 };
 
-struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
+struct UniformBufferObject
+{
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 proj;
 };
 
 static std::vector<char> readFile(const std::string& filename);
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code, const char* layerPrefix, const char* msg, void* userData) ;
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code,
+                                                    const char* layerPrefix, const char* msg, void* userData);
 
-
-class vkRenderer {
+class vkRenderer
+{
 public:
-    void run();
+	void run();
 
 private:
-    GLFWwindow* window;
+	GLFWwindow* window;
 
-    VkInstance instance;
-    VkDebugReportCallbackEXT callback;
-    VkSurfaceKHR surface;
+	VkInstance instance;
+	VkDebugReportCallbackEXT callback;
+	VkSurfaceKHR surface;
 
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice device;
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	VkDevice device;
 
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
+	VkQueue graphicsQueue;
+	VkQueue presentQueue;
 
-    VkSwapchainKHR swapChain;
-    std::vector<VkImage> swapChainImages;
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
-    std::vector<VkImageView> swapChainImageViews;
-    std::vector<VkFramebuffer> swapChainFramebuffers;
+	VkSwapchainKHR swapChain;
+	std::vector<VkImage> swapChainImages;
+	VkFormat swapChainImageFormat;
+	VkExtent2D swapChainExtent;
+	std::vector<VkImageView> swapChainImageViews;
+	std::vector<VkFramebuffer> swapChainFramebuffers;
 
-    VkRenderPass renderPass;
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
+	VkRenderPass renderPass;
+	VkDescriptorSetLayout descriptorSetLayout;
+	VkPipelineLayout pipelineLayout;
+	VkPipeline graphicsPipeline;
 
-    VkCommandPool commandPool;
+	VkCommandPool commandPool;
 
-    std::vector<VkBuffer> vertexBuffers;
-    std::vector<VkDeviceMemory> vertexBufferMemory;
+	std::vector<VkBuffer> vertexBuffers;
+	std::vector<VkDeviceMemory> vertexBufferMemory;
 
-    VkBuffer uniformBuffer;
-    VkDeviceMemory uniformBufferMemory;
+	VkBuffer uniformBuffer;
+	VkDeviceMemory uniformBufferMemory;
 
-    VkDescriptorPool descriptorPool;
-    VkDescriptorSet descriptorSet;
+	VkDescriptorPool descriptorPool;
+	VkDescriptorSet descriptorSet;
 
-    std::vector<VkCommandBuffer> commandBuffers;
+	std::vector<VkCommandBuffer> commandBuffers;
 
-    VkSemaphore imageAvailableSemaphore;
-    VkSemaphore renderFinishedSemaphore;
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
 
-    void initWindow();
+	void initWindow();
 
-    void initVulkan() ;
+	void initVulkan();
 
-    void mainLoop() ;
+	void mainLoop();
 
-    void cleanupSwapChain();
+	void cleanupSwapChain();
 
-    void cleanup();
+	void cleanup();
 
-    void recreateSwapChain() ;
+	void recreateSwapChain();
 
-    void createInstance() ;
+	void createInstance();
 
-    void setupDebugCallback() ;
+	void setupDebugCallback();
 
-    void createSurface();
+	void createSurface();
 
-    void pickPhysicalDevice();
+	void pickPhysicalDevice();
 
-    void createLogicalDevice();
+	void createLogicalDevice();
 
-    void createSwapChain();
+	void createSwapChain();
 
-    void createImageViews() ;
+	void createImageViews();
 
-    void createRenderPass() ;
+	void createRenderPass();
 
-    void createDescriptorSetLayout() ;
+	void createDescriptorSetLayout();
 
-    void createGraphicsPipeline() ;
+	void createGraphicsPipeline();
 
-    void createFramebuffers() ;
+	void createFramebuffers();
 
-    void createCommandPool();
+	void createCommandPool();
 
-    void createVertexBuffers();
+	void createVertexBuffers();
 
-    void createUniformBuffer();
+	void createUniformBuffer();
 
-    void createDescriptorPool();
+	void createDescriptorPool();
 
-    void createDescriptorSet();
+	void createDescriptorSet();
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) ;
+	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) ;
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    void createCommandBuffers();
+	void createCommandBuffers();
 
-    void createSemaphores();
+	void createSemaphores();
 
-    void updateUniformBuffer() ;
+	void updateUniformBuffer();
 
-    void drawFrame();
+	void drawFrame();
 
-    VkShaderModule createShaderModule(const std::vector<char>& code);
+	VkShaderModule createShaderModule(const std::vector<char>& code);
 
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
-    std::vector<const char*> getRequiredExtensions();
+	std::vector<const char*> getRequiredExtensions();
 
-    bool isDeviceSuitable(VkPhysicalDevice device);
+	bool isDeviceSuitable(VkPhysicalDevice device);
 
-    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
-    bool checkValidationLayerSupport();
-
-   };
-
+	bool checkValidationLayerSupport();
+};

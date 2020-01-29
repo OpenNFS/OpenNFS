@@ -52,10 +52,8 @@ void CarAgent::ResetToVroad(int vroadIndex, float offset)
 
 	glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
 
-	carOrientation =
-	  glm::conjugate(glm::toQuat(glm::lookAt(m_track->virtualRoad[vroadIndex].position,
-	                                         m_track->virtualRoad[vroadIndex].position - m_track->virtualRoad[vroadIndex].forward,
-	                                         m_track->virtualRoad[vroadIndex].normal)));
+	carOrientation = glm::conjugate(glm::toQuat(glm::lookAt(
+	  m_track->virtualRoad[vroadIndex].position, m_track->virtualRoad[vroadIndex].position - m_track->virtualRoad[vroadIndex].forward, m_track->virtualRoad[vroadIndex].normal)));
 
 	// Go and find the Vroad Data to reset to
 	vehicle->SetPosition(vroadPoint, carOrientation);
