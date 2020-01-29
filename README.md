@@ -12,7 +12,7 @@ An attempt to recreate the classic Need for Speed Games (1-6), unpacking their o
   * Select Car models (Low LOD, Med LOD, Misc parts) in Debug Menu, by expanding "Car Models" dropdown and playing with checkboxes
   * Set Draw Distance by unchecking NBData and adjusting slider (Neighbour data only available for NFS3/NFS4).
   * For NFS3 tracks, change between 'Classic Graphics' and a unfinished slightly more dynamic implementation.
-  * Go to free camera, and expand the "Engine Entity" dialog box on an NFS3 track, to adjust lighting parameters for lights after targeting them with the cursor and * clicking. This will affect the colour of the track in non classic graphics mode. Adjust Track Specular Damper and Reflectivity similarly from Debug Menu.
+  * Go to free camera, and expand the "Engine Entity" dialog box on an NFS3 track, to adjust lighting parameters for lights after targeting them with the cursor and * clicking. This will affect the colour of the track in non classic graphics mode. Adjust TrackModel Specular Damper and Reflectivity similarly from Debug Menu.
   * Similarly, click the car to tweak physics parameters in real time in the "Engine Entity" dialog, and view data from the car.
   * Pan and zoom around the car with mouse wheel and LMB/RMB in "Car Cam" mode (ensure Hermite Curve cam is unchecked)
   * Set Sky Colour
@@ -33,8 +33,8 @@ An attempt to recreate the classic Need for Speed Games (1-6), unpacking their o
     * Music decoder (encoder)
     * qfs/fsh (de)compiler
     * Video demuxer
-    * Car/Track exporter
-  * Track Editor
+    * Car/TrackModel exporter
+  * TrackModel Editor
 and others
 
 ## Current Loadable Assets

@@ -26,5 +26,5 @@ void ObjectShadingFixer(int blk, float theta, float rho, NFS3_4_DATA::TRKBLOCK *
 class Raytracer
 {
 public:
-	explicit Raytracer(float rho, float theta, int nBlocks, NFS3_4_DATA::TRKBLOCK *trk, NFS3_4_DATA::POLYGONBLOCK *poly, NFS3_4_DATA::XOBJBLOCK *xobj);
+    explicit Raytracer(float rho, float theta, int nBlocks, NFS3_4_DATA::TRKBLOCK *trk, NFS3_4_DATA::POLYGONBLOCK *poly, NFS3_4_DATA::XOBJBLOCK *xobj);
 };

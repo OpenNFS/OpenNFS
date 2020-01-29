@@ -8,20 +8,20 @@ OrbitalManager::OrbitalManager() :
 
 void OrbitalManager::Update(const std::shared_ptr<BaseCamera> &camera, float timeScaleFactor)
 {
-	m_sun->ChangeTarget(camera->position);
-	m_sun->Update(timeScaleFactor);
+    m_sun->ChangeTarget(camera->position);
+    m_sun->Update(timeScaleFactor);
 
-	m_moon->ChangeTarget(camera->position);
-	m_moon->Update(timeScaleFactor);
+    m_moon->ChangeTarget(camera->position);
+    m_moon->Update(timeScaleFactor);
 }
 
 std::shared_ptr<GlobalLight> OrbitalManager::GetActiveGlobalLight()
 {
-	// TODO: Switch this over to be time based
-	if (m_sun->position.y <= 0)
-	{
-		return m_moon;
-	}
+    // TODO: Switch this over to be time based
+    if (m_sun->position.y <= 0)
+    {
+        return m_moon;
+    }
 
-	return m_sun;
+    return m_sun;
 }

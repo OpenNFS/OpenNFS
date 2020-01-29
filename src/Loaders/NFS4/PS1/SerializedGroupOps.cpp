@@ -9,27 +9,27 @@
 
 SerializedGroup *LocateGroupType__15SerializedGroupii(SerializedGroup *this, int type, int index)
 {
-	/*  bool bVar1;
-	  uint8_t uVar2;
-	  int iVar3;
-	  int iVar4;
+    /*  bool bVar1;
+      uint8_t uVar2;
+      int iVar3;
+      int iVar4;
 
-	  iVar4 = 0;
-	  iVar3 = this->m_num_elements;
-	  this = this + 1;
-	  while (true) {
-	      iVar3 = iVar3 + -1;
-	      if (iVar3 == -1) {
-	          return (SerializedGroup *) 0x0;
-	      }
-	      if ((this->m_type == type) && (bVar1 = iVar4 == index, iVar4 = iVar4 + 1, bVar1)) break;
-	      uVar2 = this->m_length & 3;
-	      if (uVar2 != 0) {
-	          this->m_length = (this->m_length + 4U) - uVar2;
-	      }
-	      this = (SerializedGroup *) ((int) &this->m_type + this->m_length);
-	  }*/
-	return this;
+      iVar4 = 0;
+      iVar3 = this->m_num_elements;
+      this = this + 1;
+      while (true) {
+          iVar3 = iVar3 + -1;
+          if (iVar3 == -1) {
+              return (SerializedGroup *) 0x0;
+          }
+          if ((this->m_type == type) && (bVar1 = iVar4 == index, iVar4 = iVar4 + 1, bVar1)) break;
+          uVar2 = this->m_length & 3;
+          if (uVar2 != 0) {
+              this->m_length = (this->m_length + 4U) - uVar2;
+          }
+          this = (SerializedGroup *) ((int) &this->m_type + this->m_length);
+      }*/
+    return this;
 }
 
 /*Group *CreateLiteGroup__15SerializedGroupP15SerializedGroupP9SimpleMem(SerializedGroup *this, SerializedGroup *source, SimpleMem *mem) {

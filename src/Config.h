@@ -70,76 +70,76 @@ const int DEFAULT_NUM_RACERS            = 0;
 class Config
 {
 public:
-	static Config& get()
-	{
-		static Config instance;
-		return instance;
-	}
-	void ParseFile(std::ifstream& inStream);
-	void InitFromCommandLine(int argc, char** argv);
-	template <typename _T>
-	_T getValue(const std::string& key)
-	{
-		return storedConfig[key].as<_T>();
-	};
-	// Better named parameters instead of using var_map with command-line arg name
-	std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
-	std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
-	uint16_t nRacers = DEFAULT_NUM_RACERS;
-	/* -- Physics/AI Params -- */
-	bool useFullVroad = false;
-	bool sparkMode    = false;
-	/* -- Render Params -- */
-	bool vulkanRender = false;
-	bool headless     = false;
-	float fov         = DEFAULT_FOV;
-	uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
-	/* -- Training Params -- */
-	bool trainingMode     = false;
-	uint16_t nGenerations = 0;
-	uint32_t nTicks;
+    static Config& get()
+    {
+        static Config instance;
+        return instance;
+    }
+    void ParseFile(std::ifstream& inStream);
+    void InitFromCommandLine(int argc, char** argv);
+    template <typename _T>
+    _T getValue(const std::string& key)
+    {
+        return storedConfig[key].as<_T>();
+    };
+    // Better named parameters instead of using var_map with command-line arg name
+    std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
+    std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
+    uint16_t nRacers = DEFAULT_NUM_RACERS;
+    /* -- Physics/AI Params -- */
+    bool useFullVroad = false;
+    bool sparkMode    = false;
+    /* -- Render Params -- */
+    bool vulkanRender = false;
+    bool headless     = false;
+    float fov         = DEFAULT_FOV;
+    uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
+    /* -- Training Params -- */
+    bool trainingMode     = false;
+    uint16_t nGenerations = 0;
+    uint32_t nTicks;
 
 private:
-	Config() = default;
-	Config(const Config&);
-	Config& operator=(const Config&);
-	variables_map storedConfig;
+    Config() = default;
+    Config(const Config&);
+    Config& operator=(const Config&);
+    variables_map storedConfig;
 };
 
 struct ParamData
 {
-	float timeScaleFactor       = 1.f;
-	ImVec4 sunAttenuation       = ImVec4(0.f, 0.f, 0.f, 1.0f);
-	float trackSpecReflectivity = 1;
-	float nearPlane             = 160.f;
-	float farPlane              = 300.f;
-	float trackSpecDamper       = 10;
-	int blockDrawDistance       = 15;
-	bool physicsDebugView       = false;
-	bool drawHermiteFrustum     = false;
-	bool drawTrackAABB          = false;
-	bool useClassicGraphics     = false;
-	bool attachCamToHermite     = false;
-	bool useNbData              = true;
-	bool attachCamToCar         = false;
-	bool frustumCull            = false;
-	bool drawVroad              = false;
-	bool drawCAN                = false;
-	bool drawRaycast            = false;
-	bool simulateCars           = true;
+    float timeScaleFactor       = 1.f;
+    ImVec4 sunAttenuation       = ImVec4(0.f, 0.f, 0.f, 1.0f);
+    float trackSpecReflectivity = 1;
+    float nearPlane             = 160.f;
+    float farPlane              = 300.f;
+    float trackSpecDamper       = 10;
+    int blockDrawDistance       = 15;
+    bool physicsDebugView       = false;
+    bool drawHermiteFrustum     = false;
+    bool drawTrackAABB          = false;
+    bool useClassicGraphics     = false;
+    bool attachCamToHermite     = false;
+    bool useNbData              = true;
+    bool attachCamToCar         = false;
+    bool frustumCull            = false;
+    bool drawVroad              = false;
+    bool drawCAN                = false;
+    bool drawRaycast            = false;
+    bool simulateCars           = true;
 };
 
 struct AssetData
 {
-	NFSVer carTag;
-	std::string car;
-	NFSVer trackTag;
-	std::string track;
+    NFSVer carTag;
+    std::string car;
+    NFSVer trackTag;
+    std::string track;
 };
 
 struct NfsAssetList
 {
-	NFSVer tag;
-	std::vector<std::string> tracks;
-	std::vector<std::string> cars;
+    NFSVer tag;
+    std::vector<std::string> tracks;
+    std::vector<std::string> cars;
 };

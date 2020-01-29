@@ -7,19 +7,19 @@
 class DepthShader : public BaseShader
 {
 public:
-	DepthShader();
-	void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
-	void loadTransformMatrix(const glm::mat4 &transformationMatrix);
-	void bindTextureArray(GLuint textureArrayID);
+    DepthShader();
+    void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
+    void loadTransformMatrix(const glm::mat4 &transformationMatrix);
+    void bindTextureArray(GLuint textureArrayID);
 
 protected:
-	void bindAttributes() override;
-	void getAllUniformLocations() override;
-	void customCleanup() override;
+    void bindAttributes() override;
+    void getAllUniformLocations() override;
+    void customCleanup() override;
 
-	GLint lightSpaceMatrixLocation;
-	GLint transformationMatrixLocation;
-	GLint textureArrayLocation;
+    GLint lightSpaceMatrixLocation;
+    GLint transformationMatrixLocation;
+    GLint textureArrayLocation;
 
-	typedef BaseShader super;
+    typedef BaseShader super;
 };

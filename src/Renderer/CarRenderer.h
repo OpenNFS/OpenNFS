@@ -6,11 +6,11 @@
 class CarRenderer
 {
 public:
-	explicit CarRenderer() = default;
-	~CarRenderer();
-	void Render(const shared_ptr<Car> &car, const std::shared_ptr<BaseCamera> &camera, const std::vector<std::shared_ptr<BaseLight>> &lights);
+    explicit CarRenderer() = default;
+    ~CarRenderer();
+    void Render(const shared_ptr<Car> &car, const std::shared_ptr<BaseCamera> &camera, const std::vector<std::shared_ptr<BaseLight>> &lights);
 
 private:
-	// Create and compile our GLSL programs from the shaders
-	CarShader m_carShader;
+    // Create and compile our GLSL programs from the shaders
+    CarShader m_carShader;
 };

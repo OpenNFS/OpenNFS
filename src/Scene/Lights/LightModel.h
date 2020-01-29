@@ -15,20 +15,20 @@ const std::vector<glm::vec3> verts = {
 class LightModel : public Model
 {
 public:
-	LightModel();
+    LightModel();
 
-	void update() override{};
-	void destroy() override;
-	void render() override;
-	bool genBuffers() override;
+    void update() override{};
+    void destroy() override;
+    void render() override;
+    bool genBuffers() override;
 
 private:
-	// OpenGL data
-	enum LightVBO : uint8_t
-	{
-		VERTEX = 0,
-		UV,
-		Length
-	};
-	GLuint m_lightVertexBuffers[LightVBO::Length]{};
+    // OpenGL data
+    enum LightVBO : uint8_t
+    {
+        VERTEX = 0,
+        UV,
+        Length
+    };
+    GLuint m_lightVertexBuffers[LightVBO::Length]{};
 };

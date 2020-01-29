@@ -13,22 +13,22 @@ static const uint32_t ONFS_SIGNATURE = 0x15B001C0;
 class FrdFile : IRawData
 {
 public:
-	FrdFile() = default;
-	static bool Load(const std::string &frdPath, FrdFile &frdFile);
-	static void Save(const std::string &frdPath, FrdFile &frdFile);
-	static void MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB);
+    FrdFile() = default;
+    static bool Load(const std::string &frdPath, FrdFile &frdFile);
+    static void Save(const std::string &frdPath, FrdFile &frdFile);
+    static void MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB);
 
-	// Raw File data
-	char header[HEADER_LENGTH];
-	uint32_t nBlocks;
-	uint32_t nTextures;
-	NFSVer version;
-	std::vector<TrkBlock> trackBlocks;
-	std::vector<PolyBlock> polygonBlocks;
-	std::vector<ExtraObjectBlock> extraObjectBlocks;
-	std::vector<TexBlock> textureBlocks;
+    // Raw File data
+    char header[HEADER_LENGTH];
+    uint32_t nBlocks;
+    uint32_t nTextures;
+    NFSVer version;
+    std::vector<TrkBlock> trackBlocks;
+    std::vector<PolyBlock> polygonBlocks;
+    std::vector<ExtraObjectBlock> extraObjectBlocks;
+    std::vector<TexBlock> textureBlocks;
 
 private:
-	bool _SerializeIn(std::ifstream &ifstream) override;
-	void _SerializeOut(std::ofstream &ofstream) override;
+    bool _SerializeIn(std::ifstream &ifstream) override;
+    void _SerializeOut(std::ofstream &ofstream) override;
 };

@@ -10,14 +10,14 @@
 class ShadowMapRenderer
 {
 public:
-	ShadowMapRenderer();
-	~ShadowMapRenderer();
-	void Render(float nearPlane, float farPlane, const std::shared_ptr<GlobalLight> &light, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities,
-	            const std::vector<std::shared_ptr<CarAgent>> &racers);
+    ShadowMapRenderer();
+    ~ShadowMapRenderer();
+    void Render(float nearPlane, float farPlane, const std::shared_ptr<GlobalLight> &light, GLuint trackTextureArrayID, const std::vector<std::shared_ptr<Entity>> &visibleEntities,
+                const std::vector<std::shared_ptr<CarAgent>> &racers);
 
-	GLuint m_depthTextureID = 0;
-	DepthShader m_depthShader;
+    GLuint m_depthTextureID = 0;
+    DepthShader m_depthShader;
 
 private:
-	GLuint m_fboDepthMap = 0;
+    GLuint m_fboDepthMap = 0;
 };

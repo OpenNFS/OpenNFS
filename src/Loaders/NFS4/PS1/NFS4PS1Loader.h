@@ -98,10 +98,10 @@ static constexpr char geoPartNames[57][32] = {"Body Medium",
 class NFS4PS1
 {
 public:
-	static std::shared_ptr<Car> LoadCar(const std::string &carVivPath);
-	static std::shared_ptr<NFS3_4_DATA::PS1::TRACK> LoadTrack(const std::string &trackGrpPath);
+    static std::shared_ptr<Car> LoadCar(const std::string &carVivPath);
+    static std::shared_ptr<NFS3_4_DATA::PS1::TRACK> LoadTrack(const std::string &trackGrpPath);
 
 private:
-	static std::vector<CarModel> LoadGEO(const std::string &geoPath, std::map<unsigned int, Texture> carTextures);
-	static void LoadGRP(const std::string &grpPath);
+    static std::vector<CarModel> LoadGEO(const std::string &geoPath, std::map<unsigned int, Texture> carTextures);
+    static void LoadGRP(const std::string &grpPath);
 };

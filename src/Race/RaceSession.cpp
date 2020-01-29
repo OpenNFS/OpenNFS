@@ -12,135 +12,135 @@ RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
     m_playerAgent(std::make_shared<PlayerAgent>(window, currentCar, currentTrack)),
     m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer)
 {
-	m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->tag, m_track->name};
+    m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->tag, m_track->name};
 
-	// Set up the cameras
-	m_freeCamera    = std::make_shared<FreeCamera>(m_window, m_track->trackBlocks[0].position);
-	m_hermiteCamera = std::make_shared<HermiteCamera>(m_track->centerSpline, m_window);
-	m_carCamera     = std::make_shared<CarCamera>(m_window);
+    // Set up the cameras
+    m_freeCamera    = std::make_shared<FreeCamera>(m_window, m_track->trackBlocks[0].position);
+    m_hermiteCamera = std::make_shared<HermiteCamera>(m_track->centerSpline, m_window);
+    m_carCamera     = std::make_shared<CarCamera>(m_window);
 
-	// Generate the collision meshes
-	m_physicsEngine.RegisterTrack(m_track);
+    // Generate the collision meshes
+    m_physicsEngine.RegisterTrack(m_track);
 
-	// Set up the Racer Manager to spawn vehicles on track
-	m_racerManager = RacerManager(m_playerAgent, m_track, m_physicsEngine);
+    // Set up the Racer Manager to spawn vehicles on track
+    m_racerManager = RacerManager(m_playerAgent, m_track, m_physicsEngine);
 
-	// No neighbour data for anything except NFS3
-	m_userParams.useNbData = !(m_track->tag == NFS_2_SE || m_track->tag == NFS_2 || m_track->tag == NFS_3_PS1);
+    // No neighbour data for anything except NFS3
+    m_userParams.useNbData = !(m_track->tag == NFS_2_SE || m_track->tag == NFS_2 || m_track->tag == NFS_3_PS1);
 }
 
 void RaceSession::_UpdateCameras(float deltaTime)
 {
-	m_hermiteCamera->UseSpline(m_totalTime);
+    m_hermiteCamera->UseSpline(m_totalTime);
 
-	if (m_windowStatus == WindowStatus::GAME)
-	{
-		switch (m_activeCameraMode)
-		{
-		case FOLLOW_CAR:
-			// Compute MVP from keyboard and mouse, centered around a target car
-			m_carCamera->FollowCar(m_playerAgent->vehicle);
-			break;
-		case HERMITE_FLYTHROUGH:
+    if (m_windowStatus == WindowStatus::GAME)
+    {
+        switch (m_activeCameraMode)
+        {
+        case FOLLOW_CAR:
+            // Compute MVP from keyboard and mouse, centered around a target car
+            m_carCamera->FollowCar(m_playerAgent->vehicle);
+            break;
+        case HERMITE_FLYTHROUGH:
 
-			break;
-		case FREE_LOOK:
-			// Compute the MVP matrix from keyboard and mouse input
-			m_freeCamera->ComputeMatricesFromInputs(deltaTime);
-			break;
-		}
-	}
+            break;
+        case FREE_LOOK:
+            // Compute the MVP matrix from keyboard and mouse input
+            m_freeCamera->ComputeMatricesFromInputs(deltaTime);
+            break;
+        }
+    }
 }
 
 std::shared_ptr<BaseCamera> RaceSession::_GetActiveCamera()
 {
-	if (m_userParams.attachCamToHermite)
-	{
-		m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
-		return m_hermiteCamera;
-	}
-	else if (m_userParams.attachCamToCar)
-	{
-		m_activeCameraMode = CameraMode::FOLLOW_CAR;
-		return m_carCamera;
-	}
-	else
-	{
-		m_activeCameraMode = CameraMode::FREE_LOOK;
-		return m_freeCamera;
-	}
+    if (m_userParams.attachCamToHermite)
+    {
+        m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
+        return m_hermiteCamera;
+    }
+    else if (m_userParams.attachCamToCar)
+    {
+        m_activeCameraMode = CameraMode::FOLLOW_CAR;
+        return m_carCamera;
+    }
+    else
+    {
+        m_activeCameraMode = CameraMode::FREE_LOOK;
+        return m_freeCamera;
+    }
 }
 
 AssetData RaceSession::Simulate()
 {
-	while (!glfwWindowShouldClose(m_window.get()))
-	{
-		// glfwGetTime is called only once, the first time this function is called
-		static double lastTime = glfwGetTime();
-		// Compute time difference between current and last frame
-		double currentTime = glfwGetTime();
-		// Update time between engine ticks
-		auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
+    while (!glfwWindowShouldClose(m_window.get()))
+    {
+        // glfwGetTime is called only once, the first time this function is called
+        static double lastTime = glfwGetTime();
+        // Compute time difference between current and last frame
+        double currentTime = glfwGetTime();
+        // Update time between engine ticks
+        auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
-		// Clear the screen for next input and grab focus
-		this->_GetInputsAndClear();
+        // Clear the screen for next input and grab focus
+        this->_GetInputsAndClear();
 
-		// Update Cameras
-		this->_UpdateCameras(deltaTime);
-		// Set the active camera dependent upon user input
-		std::shared_ptr<BaseCamera> activeCamera = this->_GetActiveCamera();
+        // Update Cameras
+        this->_UpdateCameras(deltaTime);
+        // Set the active camera dependent upon user input
+        std::shared_ptr<BaseCamera> activeCamera = this->_GetActiveCamera();
 
-		if (m_userParams.simulateCars)
-		{
-			m_racerManager.Simulate();
-		}
+        if (m_userParams.simulateCars)
+        {
+            m_racerManager.Simulate();
+        }
 
-		m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
+        m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
-		// Step the physics simulation
-		m_physicsEngine.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
-		if (m_userParams.physicsDebugView)
-			m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
+        // Step the physics simulation
+        m_physicsEngine.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
+        if (m_userParams.physicsDebugView)
+            m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
 
-		bool assetChange =
-		  m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams, m_loadedAssets, m_racerManager.racers);
+        bool assetChange =
+          m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams, m_loadedAssets, m_racerManager.racers);
 
-		if (assetChange)
-		{
-			return m_loadedAssets;
-		}
+        if (assetChange)
+        {
+            return m_loadedAssets;
+        }
 
-		// For the next frame, the "last time" will be "now"
-		lastTime = currentTime;
-		// Keep track of total elapsed time too
-		m_totalTime += deltaTime;
-		++m_ticks;
-	}
+        // For the next frame, the "last time" will be "now"
+        lastTime = currentTime;
+        // Keep track of total elapsed time too
+        m_totalTime += deltaTime;
+        ++m_ticks;
+    }
 
-	// Just set a flag temporarily to let main know that we outta here
-	m_loadedAssets.trackTag = UNKNOWN;
-	return m_loadedAssets;
+    // Just set a flag temporarily to let main know that we outta here
+    m_loadedAssets.trackTag = UNKNOWN;
+    return m_loadedAssets;
 }
 
 void RaceSession::_GetInputsAndClear()
 {
-	glClearColor(0.1f, 0.f, 0.5f, 1.f);
-	// Clear the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glfwPollEvents();
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
+    glClearColor(0.1f, 0.f, 0.5f, 1.f);
+    // Clear the screen
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glfwPollEvents();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
-	// Detect a click on the 3D Window by detecting a click that isn't on ImGui
-	if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse))
-	{
-		m_windowStatus                 = WindowStatus::GAME;
-		ImGui::GetIO().MouseDrawCursor = false;
-	}
-	else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		m_windowStatus                 = WindowStatus::UI;
-		ImGui::GetIO().MouseDrawCursor = true;
-	}
+    // Detect a click on the 3D Window by detecting a click that isn't on ImGui
+    if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse))
+    {
+        m_windowStatus                 = WindowStatus::GAME;
+        ImGui::GetIO().MouseDrawCursor = false;
+    }
+    else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        m_windowStatus                 = WindowStatus::UI;
+        ImGui::GetIO().MouseDrawCursor = true;
+    }
 }

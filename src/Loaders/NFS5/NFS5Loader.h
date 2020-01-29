@@ -20,11 +20,11 @@ using namespace Utils;
 class NFS5
 {
 public:
-	static std::shared_ptr<Car> LoadCar(const std::string &carBasePath);
-	static CarData LoadCRP(const std::string &crpPath);
+    static std::shared_ptr<Car> LoadCar(const std::string &carBasePath);
+    static CarData LoadCRP(const std::string &crpPath);
 
 private:
-	// OpenNFS derived method of dumping FSH textures. To be Deprecated eventually in favour of CrpLib mechanisms
-	static void DumpCrpTextures(const std::string &crpPath);
-	static void DumpArticleVertsToObj(CRP::ARTICLE_DATA article);
+    // OpenNFS derived method of dumping FSH textures. To be Deprecated eventually in favour of CrpLib mechanisms
+    static void DumpCrpTextures(const std::string &crpPath);
+    static void DumpArticleVertsToObj(CRP::ARTICLE_DATA article);
 };
