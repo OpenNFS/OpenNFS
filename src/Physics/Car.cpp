@@ -67,7 +67,7 @@ void Car::Update(btDynamicsWorld *dynamicsWorld)
     // Apply user input
     this->_ApplyInputs();
     // Update raycasts
-    // this->_GenRaycasts(dynamicsWorld);
+    this->_GenRaycasts(dynamicsWorld);
 }
 
 void Car::ApplyAccelerationForce(bool accelerate, bool reverse)
@@ -110,7 +110,7 @@ void Car::ApplyAbsoluteSteerAngle(float targetAngle)
     // Allow the update() method to directly utilise this targetAngle value
     vehicleProperties.absoluteSteer = true;
     // NN will always produce positive value, drop 0.5f from 0 -> 1 step output to allow -0.5 to 0.5
-    float finalSteering = targetAngle - 0.5f;
+    float finalSteering = targetAngle; // - 0.5f;
     // Clamp value within steering extents
     vehicleState.gVehicleSteering = std::max(-vehicleProperties.steeringClamp, std::min(finalSteering, vehicleProperties.steeringClamp));
 }
@@ -363,7 +363,7 @@ void Car::_GenRaycasts(btDynamicsWorld *dynamicsWorld)
         rangefinderInfo.castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistances[rangeIdx]);
         rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]));
         // Don't Raycast against other opponents for now. Ghost through them. Only interested in VROAD edge.
-        rayCallbacks[rangeIdx]->m_collisionFilterMask = COL_VROAD;
+        rayCallbacks[rangeIdx]->m_collisionFilterMask = COL_TRACK;
         // Perform the raycast
         dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]), *rayCallbacks[rangeIdx]);
         // Check whether we hit anything

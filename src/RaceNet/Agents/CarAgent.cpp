@@ -26,7 +26,7 @@ void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float
         int nExtra = posIndex - nPositions;
         while (true)
         {
-            nodeNumber = m_track->trackBlocks[trackBlockIndex].virtualRoadStartIndex;
+            nodeNumber = m_track->trackBlocks[++trackBlockIndex].virtualRoadStartIndex;
             nPositions = m_track->trackBlocks[trackBlockIndex].nVirtualRoadPositions;
             if (nExtra < nPositions)
             {

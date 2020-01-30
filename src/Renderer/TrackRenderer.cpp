@@ -1,8 +1,13 @@
 #include "TrackRenderer.h"
 
-void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers, const std::shared_ptr<BaseCamera> &camera, GLuint trackTextureArrayID,
-                           const std::vector<std::shared_ptr<Entity>> &visibleEntities, const std::vector<shared_ptr<BaseLight>> &lights, const ParamData &userParams,
-                           GLuint depthTextureID, float ambientFactor)
+void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
+                           const std::shared_ptr<BaseCamera> &camera,
+                           GLuint trackTextureArrayID,
+                           const std::vector<std::shared_ptr<Entity>> &visibleEntities,
+                           const std::vector<shared_ptr<BaseLight>> &lights,
+                           const ParamData &userParams,
+                           GLuint depthTextureID,
+                           float ambientFactor)
 {
     m_trackShader.use();
     // This shader state doesnt change during a track renderpass

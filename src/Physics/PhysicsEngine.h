@@ -38,7 +38,7 @@ public:
     void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs);
     void RegisterVehicle(const std::shared_ptr<Car> &car);
     void RegisterTrack(const std::shared_ptr<Track> &track);
-    Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted);
+    Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool &entityTargeted);
     btDiscreteDynamicsWorld *GetDynamicsWorld();
 
     std::shared_ptr<BulletDebugDrawer> debugDrawer;

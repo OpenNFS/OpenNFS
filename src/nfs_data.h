@@ -421,7 +421,8 @@ namespace NFS3_4_DATA
         uint16_t vertex[4];
         uint16_t texture;
         uint16_t hs_texflags;   // only used in road lane polygonblock ?
-        unsigned char flags;    // 00 normally, 20 at end of row, 10 two-sided (HS  // used for animated textures //AnimInfo (Length : Period AS LSB 3:HSB 5))
+        unsigned char flags;    // 00 normally, 20 at end of row, 10 two-sided (HS  // used for animated textures //AnimInfo (Length : Period
+                                // AS LSB 3:HSB 5))
         unsigned char unknown2; // F9
     };
 
@@ -696,7 +697,8 @@ namespace NFS3_4_DATA
             long vx;  // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
             long vy;  // size=0, offset=4 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
             long vz;  // size=0, offset=8 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
-            long pad; // size=0, offset=12 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000 (dec: 0)
+            long pad; // size=0, offset=12 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct VECTOR', parent hashcode: 0x00000000
+                      // (dec: 0)
         };
 
         struct coorddef // hashcode: 0x29F67CAF (dec: 704019631)
@@ -715,45 +717,64 @@ namespace NFS3_4_DATA
 
         struct Transformer_zUV // hashcode: 0x7FDBB35E (dec: 2145104734)
         {
-            unsigned char u; // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zUV', parent hashcode: 0x00000000 (dec: 0)
-            unsigned char v; // size=0, offset=1 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zUV', parent hashcode: 0x00000000 (dec: 0)
+            unsigned char u; // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zUV', parent hashcode:
+                             // 0x00000000 (dec: 0)
+            unsigned char v; // size=0, offset=1 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zUV', parent hashcode:
+                             // 0x00000000 (dec: 0)
         };
 
         struct Transformer_zFacet // hashcode: 0x90ADBC21 (dec: -1867662303)
         {
-            short flag;                 // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
-            unsigned char textureIndex; // size=0, offset=2 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
-            unsigned char vertexId0;    // size=0, offset=3 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
-            unsigned char vertexId1;    // size=0, offset=4 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
-            unsigned char vertexId2;    // size=0, offset=5 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
-            struct Transformer_zUV uv0; // size=2, offset=6 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
-            struct Transformer_zUV uv1; // size=2, offset=8 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
-            struct Transformer_zUV uv2; // size=2, offset=10 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode: 0x00000000 (dec: 0)
+            short flag;                 // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent hashcode:
+                                        // 0x00000000 (dec: 0)
+            unsigned char textureIndex; // size=0, offset=2 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet',
+                                        // parent hashcode: 0x00000000 (dec: 0)
+            unsigned char vertexId0;    // size=0, offset=3 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent
+                                        // hashcode: 0x00000000 (dec: 0)
+            unsigned char vertexId1;    // size=0, offset=4 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent
+                                        // hashcode: 0x00000000 (dec: 0)
+            unsigned char vertexId2;    // size=0, offset=5 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet', parent
+                                        // hashcode: 0x00000000 (dec: 0)
+            struct Transformer_zUV uv0; // size=2, offset=6 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet',
+                                        // parent hashcode: 0x00000000 (dec: 0)
+            struct Transformer_zUV uv1; // size=2, offset=8 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet',
+                                        // parent hashcode: 0x00000000 (dec: 0)
+            struct Transformer_zUV uv2; // size=2, offset=10 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zFacet',
+                                        // parent hashcode: 0x00000000 (dec: 0)
         };
 
         struct Transformer_zObj // hashcode: 0x9B8A4BF8 (dec: -1685435400)
         {
-            unsigned short numVertex;         // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent hashcode: 0x00000000 (dec: 0)
-            unsigned short numFacet;          // size=0, offset=2 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent hashcode: 0x00000000 (dec: 0)
-            struct coorddef translation;      // size=12, offset=4 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent hashcode: 0x00000000 (dec: 0)
-            struct COORD16 *vertex;           // size=6, offset=16 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent hashcode: 0x00000000 (dec: 0)
-            struct COORD16 *Nvertex;          // size=6, offset=20 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent hashcode: 0x00000000 (dec: 0)
-            struct Transformer_zFacet *facet; // size=12, offset=24 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent hashcode: 0x00000000 (dec: 0)
+            unsigned short numVertex;         // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent
+                                              // hashcode: 0x00000000 (dec: 0)
+            unsigned short numFacet;          // size=0, offset=2 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent
+                                              // hashcode: 0x00000000 (dec: 0)
+            struct coorddef translation;      // size=12, offset=4 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj',
+                                              // parent hashcode: 0x00000000 (dec: 0)
+            struct COORD16 *vertex;           // size=6, offset=16 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent
+                                              // hashcode: 0x00000000 (dec: 0)
+            struct COORD16 *Nvertex;          // size=6, offset=20 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zObj', parent
+                                              // hashcode: 0x00000000 (dec: 0)
+            struct Transformer_zFacet *facet; // size=12, offset=24 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct
+                                              // Transformer_zObj', parent hashcode: 0x00000000 (dec: 0)
         };
 
         struct Transformer_zOverlay // hashcode: 0xC77675A4 (dec: -948537948)
         {
-            short offset;    // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zOverlay', parent hashcode: 0x00000000 (dec: 0)
-            unsigned char u; // size=0, offset=2 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zOverlay', parent hashcode: 0x00000000 (dec: 0)
-            unsigned char v; // size=0, offset=3 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zOverlay', parent hashcode: 0x00000000 (dec: 0)
+            short offset;    // size=0, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zOverlay', parent
+                             // hashcode: 0x00000000 (dec: 0)
+            unsigned char u; // size=0, offset=2 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zOverlay', parent
+                             // hashcode: 0x00000000 (dec: 0)
+            unsigned char v; // size=0, offset=3 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zOverlay', parent
+                             // hashcode: 0x00000000 (dec: 0)
         };
 
         struct Transformer_zScene // hashcode: 0xA8EF3F3A (dec: -1460715718)
         {
-            struct Transformer_zObj
-              *obj[57]; // size=228, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zScene', parent hashcode: 0x00000000 (dec: 0)
-            struct Transformer_zOverlay
-              overlay[90]; // size=360, offset=228 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct Transformer_zScene', parent hashcode: 0x00000000 (dec: 0)
+            struct Transformer_zObj *obj[57];        // size=228, offset=0 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct
+                                                     // Transformer_zScene', parent hashcode: 0x00000000 (dec: 0)
+            struct Transformer_zOverlay overlay[90]; // size=360, offset=228 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct
+                                                     // Transformer_zScene', parent hashcode: 0x00000000 (dec: 0)
         };
 
         struct TRACK
@@ -842,11 +863,12 @@ namespace NFS2_DATA
         int8_t rightVec[3];       // 3 bytes : its x, z and y components are each signed 8-bit values.
         uint8_t zero;
         uint16_t blockNumber;
-        uint16_t
-          unknown; // The left and right border values indicate the two limits beyond which no car can go. This is the data used for delimitation between the road and scenery
-        uint16_t leftBorder; // Formula to find the coordinates of the left-most point of the road is (left-most point) = (reference point) - 2.(left border).(right vector):  there
-                             // is a factor of 2 between absolute
-        uint16_t rightBorder;       // 32-bit coordinates and the othe data in the record. Similarly, for the right-most point of the road, (right-most point) = (reference point)
+        uint16_t unknown;           // The left and right border values indicate the two limits beyond which no car can go. This is the data used for
+                                    // delimitation between the road and scenery
+        uint16_t leftBorder;        // Formula to find the coordinates of the left-most point of the road is (left-most point) = (reference point)
+                                    // - 2.(left border).(right vector):  there is a factor of 2 between absolute
+        uint16_t rightBorder;       // 32-bit coordinates and the othe data in the record. Similarly, for the right-most point of the road,
+                                    // (right-most point) = (reference point)
                                     // + 2.(right border).(right vector).
         uint16_t postCrashPosition; // Lateral position after respawn
         uint32_t unknown2;
@@ -962,7 +984,8 @@ namespace NFS2_DATA
             struct HEADER
             {
                 uint32_t padding;     // Possible value: 0x00, 0x01, 0x02
-                uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for calculating the position of the blocks)
+                uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for
+                                      // calculating the position of the blocks)
                 uint64_t unknown2;    //  always 0x00
             };
 
@@ -1109,8 +1132,8 @@ namespace NFS2_DATA
 
             struct IMAGE_HEADER
             {
-                uint8_t imageType; // Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0 The bottom 2 bits of the image type byte specify the bit depth of the image: 0 -
-                                   // 4-bit indexed colour 2 - 16-bit direct colour 3 - 24-bit direct colour
+                uint8_t imageType; // Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0 The bottom 2 bits of the image type byte specify
+                                   // the bit depth of the image: 0 - 4-bit indexed colour 2 - 16-bit direct colour 3 - 24-bit direct colour
                 uint8_t unknown[3];
                 uint16_t width;
                 uint16_t height;
@@ -1133,7 +1156,8 @@ namespace NFS2_DATA
             struct HEADER
             {
                 uint32_t padding;     // Possible value: 0x00, 0x01, 0x02
-                uint16_t unknown[64]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for calculating the position of the blocks)
+                uint16_t unknown[64]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for
+                                      // calculating the position of the blocks)
                 uint64_t unknown2;    //  always 0x00
             };
 
@@ -1159,7 +1183,8 @@ namespace NFS2_DATA
             struct POLY_3D
             {
                 uint16_t texMap[2];    // [1] seems to be useless. Value of 102 in bottom right of some meshes, small triangle.
-                uint16_t vertex[3][4]; // Literally wtf, 3 groups of 4 numbers that look like the vert indexes. One set [1] is usually 0,0,0,0 or 1,1,1,1
+                uint16_t vertex[3][4]; // Literally wtf, 3 groups of 4 numbers that look like the vert indexes. One set [1] is usually
+                                       // 0,0,0,0 or 1,1,1,1
                 char texName[4];
             };
 

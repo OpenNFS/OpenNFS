@@ -1,8 +1,7 @@
 #include "PlayerAgent.h"
 
 PlayerAgent::PlayerAgent(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &raceTrack) :
-    CarAgent(AgentType::PLAYER, car, raceTrack),
-    m_window(window)
+    CarAgent(AgentType::PLAYER, car, raceTrack), m_window(window)
 {
     name = "DumbPanda";
 }

@@ -194,8 +194,8 @@ std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<un
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
-        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.f) / carScaleFactor, (geoBlockHeader->position[1] / 256.f) / carScaleFactor,
-                                     (geoBlockHeader->position[2] / 256.f) / carScaleFactor);
+        glm::vec3 center = glm::vec3(
+          (geoBlockHeader->position[0] / 256.f) / carScaleFactor, (geoBlockHeader->position[1] / 256.f) / carScaleFactor, (geoBlockHeader->position[2] / 256.f) / carScaleFactor);
         car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
 
         delete geoBlockHeader;
@@ -356,7 +356,8 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
             texMapStuff.emplace_back(polygons[poly_Idx].texName[0]);
 
-            // TODO: There's another set of indices at index [2], that form barely valid polygons. Middle set [1] are always numbers that match, 0000, 1111, 2222, 3333.
+            // TODO: There's another set of indices at index [2], that form barely valid polygons. Middle set [1] are always numbers that
+            // match, 0000, 1111, 2222, 3333.
             indices.emplace_back(polygons[poly_Idx].vertex[0][0]);
             indices.emplace_back(polygons[poly_Idx].vertex[0][1]);
             indices.emplace_back(polygons[poly_Idx].vertex[0][2]);
@@ -393,7 +394,8 @@ std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<u
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
             texture_indices.emplace_back(remapped_texture_ids[textureName]);
         }
-        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.0f) / carScaleFactor, (geoBlockHeader->position[1] / 256.0f) / carScaleFactor,
+        glm::vec3 center = glm::vec3((geoBlockHeader->position[0] / 256.0f) / carScaleFactor,
+                                     (geoBlockHeader->position[1] / 256.0f) / carScaleFactor,
                                      (geoBlockHeader->position[2] / 256.0f) / carScaleFactor);
         car_meshes.emplace_back(
           CarModel(PS1_PART_NAMES[part_Idx], verts, uvs, texture_indices, texMapStuff, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
@@ -511,7 +513,9 @@ std::shared_ptr<Car> NFS2<Platform>::LoadCar(const std::string &car_base_path, N
                 bmpread_t bmpAttr; // This will leak.
                 ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
                 car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] =
-                  Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width),
+                  Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()],
+                          bmpAttr.data,
+                          static_cast<unsigned int>(bmpAttr.width),
                           static_cast<unsigned int>(bmpAttr.height));
                 break;
             default:
@@ -554,7 +558,8 @@ std::shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::s
             nfs_version = NFS_2;
         }
         can_path << RESOURCE_PATH << ToString(nfs_version) << "/GAMEDATA/TRACKS/DATA/PC/" << track->name << "00.CAN";
-        ASSERT(LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
+        ASSERT(LoadCAN(can_path.str(), track->cameraAnimation),
+               "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
     }
     else if (std::is_same<Platform, PS1>::value)
     {
@@ -566,7 +571,8 @@ std::shared_ptr<typename Platform::TRACK> NFS2<Platform>::LoadTrack(const std::s
     }
 
     ASSERT(LoadTRK(trk_path.str(), track), "Could not load TRK file: " << trk_path.str()); // Load TRK file to get track block specific data
-    ASSERT(LoadCOL(col_path.str(), track), "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(LoadCOL(col_path.str(), track),
+           "Could not load COL file: " << col_path.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(ExtractTrackTextures(track_base_path, track->name, nfs_version), "Could not extract " << track->name << " texture pack.");
 
     // Load up the textures
@@ -724,7 +730,8 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const std::shared_ptr<typenam
                             {
                                 trk.read((char *) &trackblock->structures[structure_Idx].polygonTable[poly_Idx], sizeof(typename Platform::POLYGONDATA));
                             }
-                            trk.seekg(trackblock->structures[structure_Idx].recSize - (trk.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
+                            trk.seekg(trackblock->structures[structure_Idx].recSize - (trk.tellg() - padCheck),
+                                      std::ios_base::cur); // Eat possible padding
                         }
                         break;
                     case 7:
@@ -778,10 +785,10 @@ bool NFS2<Platform>::LoadTRK(std::string trk_path, const std::shared_ptr<typenam
                             for(int i = 0; i < 8; ++i){
                                 std::cout << (int) xbidHeader[i] << std::endl;
                             }
-                            // TODO: Likely these are not VERTS, and the act of adding the parent block center gives meaning where none is present.
-                            ps1TrackBlock->unknownVerts = new PS1::VERT[xblockHeader->nRecords];
-                            for (uint32_t record_Idx = 0; record_Idx < xblockHeader->nRecords; ++record_Idx) {
-                                trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx], sizeof(PS1::VERT));
+                            // TODO: Likely these are not VERTS, and the act of adding the parent block center gives meaning where none is
+                        present. ps1TrackBlock->unknownVerts = new PS1::VERT[xblockHeader->nRecords]; for (uint32_t record_Idx = 0;
+                        record_Idx < xblockHeader->nRecords; ++record_Idx) { trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx],
+                        sizeof(PS1::VERT));
                             }
                         }
                             break;*/
@@ -881,7 +888,8 @@ bool NFS2<Platform>::LoadCOL(std::string col_path, const std::shared_ptr<typenam
                 {
                     col.read((char *) &track->colStructures[structure_Idx].polygonTable[poly_Idx], sizeof(typename Platform::POLYGONDATA));
                 }
-                col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
+                col.seekg(track->colStructures[structure_Idx].recSize - (col.tellg() - padCheck),
+                          std::ios_base::cur); // Eat possible padding
             }
             break;
         case 7: // XBID 7 3D Structure Reference: This block is only present if nExtraBlocks != 2
@@ -958,10 +966,11 @@ void NFS2<Platform>::dbgPrintVerts(const std::string &path, const std::shared_pt
             // Print clipping rectangle
             // obj_dump << "o Block" << trkBlock.header->blockSerial << "ClippingRect" << std::endl;
             // for(int i = 0; i < 4; i++){
-            //    obj_dump << "v " << trkBlock.header->clippingRect[i].x << " " << trkBlock.header->clippingRect[i].z << " " << trkBlock.header->clippingRect[i].y << std::endl;
+            //    obj_dump << "v " << trkBlock.header->clippingRect[i].x << " " << trkBlock.header->clippingRect[i].z << " " <<
+            //    trkBlock.header->clippingRect[i].y << std::endl;
             //}
-            // obj_dump << "f " << 1+(4*trkBlock.header->blockSerial) << " " << 2+(4*trkBlock.header->blockSerial) << " " << 3+(4*trkBlock.header->blockSerial) << " " <<
-            // 4+(4*trkBlock.header->blockSerial) << std::endl;
+            // obj_dump << "f " << 1+(4*trkBlock.header->blockSerial) << " " << 2+(4*trkBlock.header->blockSerial) << " " <<
+            // 3+(4*trkBlock.header->blockSerial) << " " << 4+(4*trkBlock.header->blockSerial) << std::endl;
             std::ostringstream stringStream;
             stringStream << path << "TrackBlock" << trkBlock.header->blockSerial << ".obj";
             obj_dump.open(stringStream.str());
@@ -1112,9 +1121,10 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
             VERT_HIGHP blockReferenceCoord;
 
             glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-            TrackBlock current_track_block(trkBlock.header->blockSerial, orientation * glm::vec3(track->blockReferenceCoords[trkBlock.header->blockSerial].x / scaleFactor,
-                                                                                                 track->blockReferenceCoords[trkBlock.header->blockSerial].y / scaleFactor,
-                                                                                                 track->blockReferenceCoords[trkBlock.header->blockSerial].z / scaleFactor));
+            TrackBlock current_track_block(trkBlock.header->blockSerial,
+                                           orientation * glm::vec3(track->blockReferenceCoords[trkBlock.header->blockSerial].x / scaleFactor,
+                                                                   track->blockReferenceCoords[trkBlock.header->blockSerial].y / scaleFactor,
+                                                                   track->blockReferenceCoords[trkBlock.header->blockSerial].z / scaleFactor));
 
             if (trkBlock.nStructures != trkBlock.nStructureReferences)
             {
@@ -1218,9 +1228,12 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                 }
                 std::stringstream xobj_name;
                 xobj_name << "SB" << superBlock_Idx << "TB" << block_Idx << "S" << structure_Idx << ".obj";
-                current_track_block.objects.emplace_back(Entity(superBlock_Idx, (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx,
-                                                                std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, XOBJ,
-                                                                TrackModel(verts, norms, uvs, texture_indices, vertex_indices, shading_verts, debug_data, glm::vec3(0, 0, 0)), 0));
+                current_track_block.objects.emplace_back(Entity(superBlock_Idx,
+                                                                (trkBlock.header->blockSerial * trkBlock.nStructures) * structure_Idx,
+                                                                std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2,
+                                                                XOBJ,
+                                                                TrackModel(verts, norms, uvs, texture_indices, vertex_indices, shading_verts, debug_data, glm::vec3(0, 0, 0)),
+                                                                0));
             }
 
             // Mesh Data
@@ -1289,7 +1302,10 @@ void NFS2<Platform>::ParseTRKModels(const std::shared_ptr<typename Platform::TRA
                 norms.emplace_back(glm::vec3(1, 1, 1));
                 norms.emplace_back(glm::vec3(1, 1, 1));
             }
-            current_track_block.track.emplace_back(Entity(superBlock_Idx, trkBlock.header->blockSerial, std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2, ROAD,
+            current_track_block.track.emplace_back(Entity(superBlock_Idx,
+                                                          trkBlock.header->blockSerial,
+                                                          std::is_same<Platform, PS1>::value ? NFS_3_PS1 : NFS_2,
+                                                          ROAD,
                                                           TrackModel(verts, norms, uvs, texture_indices, vertex_indices, trk_block_shading_verts, debug_data, glm::vec3(0, 0, 0)),
                                                           0));
 
@@ -1375,8 +1391,9 @@ std::vector<Entity> NFS2<Platform>::ParseCOLModels(const std::shared_ptr<typenam
             texture_indices.emplace_back(texture_for_block.texNumber);
             texture_indices.emplace_back(texture_for_block.texNumber);
         }
-        glm::vec3 position = rotationMatrix * glm::vec3(structureReferenceCoordinates->x / scaleFactor, structureReferenceCoordinates->y / scaleFactor,
-                                                        structureReferenceCoordinates->z / scaleFactor);
+        glm::vec3 position =
+          rotationMatrix *
+          glm::vec3(structureReferenceCoordinates->x / scaleFactor, structureReferenceCoordinates->y / scaleFactor, structureReferenceCoordinates->z / scaleFactor);
         col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, TrackModel(verts, uvs, texture_indices, indices, shading_data, position), 0));
         // free(structureReferenceCoordinates);
     }

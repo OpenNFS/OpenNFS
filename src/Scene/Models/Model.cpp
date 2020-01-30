@@ -2,7 +2,16 @@
 
 #include <utility>
 
-Model::Model(std::string name, std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<glm::vec3> norms, std::vector<unsigned int> indices, bool removeVertexIndexing,
+Model::Model(std::string name,
+             std::vector<glm::vec3>
+               verts,
+             std::vector<glm::vec2>
+               uvs,
+             std::vector<glm::vec3>
+               norms,
+             std::vector<unsigned int>
+               indices,
+             bool removeVertexIndexing,
              glm::vec3 center_position)
 {
     m_name           = std::move(name);

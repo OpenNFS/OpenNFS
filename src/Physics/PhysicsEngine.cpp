@@ -70,7 +70,7 @@ void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &race
     }
 }
 
-Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool *entityTargeted)
+Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool &entityTargeted)
 {
     WorldRay worldRayFromScreenPosition = ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix);
     glm::vec3 outEnd                    = worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f;
@@ -82,12 +82,12 @@ Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::m
 
     if (rayCallback.hasHit())
     {
-        *entityTargeted = true;
+        entityTargeted = true;
         return static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer());
     }
     else
     {
-        *entityTargeted = false;
+        entityTargeted = false;
         return nullptr;
     }
 }
@@ -139,7 +139,7 @@ void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car)
     car->GetVehicle()->setCoordinateSystem(0, 1, 2);
 
     m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(), m_pDynamicsWorld->getDispatcher());
-    m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD);
+    m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD | COL_CAR);
     m_pDynamicsWorld->addVehicle(car->GetVehicle());
 
     // Wire up the wheels
@@ -256,8 +256,8 @@ void PhysicsEngine::_GenerateVroadBarriers()
                 // Add them to the physics world
                 Entity leftVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, nullptr, 0, curLeftVroadEdge, nextLeftVroadEdge);
                 Entity rightVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, nullptr, 0, curRightVroadEdge, nextRightVroadEdge);
-                Entity vroadCeiling = Entity(99, 99, NFSVer::NFS_3, VROAD_CEIL, nullptr, 0, curLeftVroadEdge, nextLeftVroadEdge, curRightVroadEdge, nextRightVroadEdge);
-                m_pDynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_VROAD, COL_RAY | COL_CAR);
+                Entity vroadCeiling = Entity(99, 99, NFSVer::NFS_3, VROAD_CEIL, nullptr, 0, curLeftVroadEdge, nextLeftVroadEdge,
+    curRightVroadEdge, nextRightVroadEdge); m_pDynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_VROAD, COL_RAY | COL_CAR);
                 m_pDynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_VROAD, COL_RAY | COL_CAR);
                 m_pDynamicsWorld->addRigidBody(vroadCeiling.rigidBody, COL_VROAD_CEIL, COL_RAY);
 

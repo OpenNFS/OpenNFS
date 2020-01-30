@@ -1,8 +1,20 @@
 #include "TrackModel.h"
 #include "../../Util/Utils.h"
 
-TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices,
-                       std::vector<unsigned int> indices, std::vector<glm::vec4> shading_data, std::vector<uint32_t> debug_data, glm::vec3 center_position) :
+TrackModel::TrackModel(std::vector<glm::vec3> verts,
+                       std::vector<glm::vec3>
+                         norms,
+                       std::vector<glm::vec2>
+                         uvs,
+                       std::vector<unsigned int>
+                         texture_indices,
+                       std::vector<unsigned int>
+                         indices,
+                       std::vector<glm::vec4>
+                         shading_data,
+                       std::vector<uint32_t>
+                         debug_data,
+                       glm::vec3 center_position) :
     super("TrackMesh", verts, uvs, norms, indices, true, center_position)
 {
     m_texture_indices = texture_indices;
@@ -17,8 +29,16 @@ TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norm
     update();
 }
 
-TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices, std::vector<unsigned int> indices,
-                       std::vector<glm::vec4> shading_data, glm::vec3 center_position) :
+TrackModel::TrackModel(std::vector<glm::vec3> verts,
+                       std::vector<glm::vec2>
+                         uvs,
+                       std::vector<unsigned int>
+                         texture_indices,
+                       std::vector<unsigned int>
+                         indices,
+                       std::vector<glm::vec4>
+                         shading_data,
+                       glm::vec3 center_position) :
     super("TrackMesh", verts, uvs, std::vector<glm::vec3>(), indices, true, center_position)
 {
     m_texture_indices = texture_indices;
@@ -42,8 +62,18 @@ TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec2> uvs,
     update();
 }
 
-TrackModel::TrackModel(std::vector<glm::vec3> verts, std::vector<glm::vec3> norms, std::vector<glm::vec2> uvs, std::vector<unsigned int> texture_indices,
-                       std::vector<unsigned int> indices, std::vector<glm::vec4> shading_data, glm::vec3 center_position) :
+TrackModel::TrackModel(std::vector<glm::vec3> verts,
+                       std::vector<glm::vec3>
+                         norms,
+                       std::vector<glm::vec2>
+                         uvs,
+                       std::vector<unsigned int>
+                         texture_indices,
+                       std::vector<unsigned int>
+                         indices,
+                       std::vector<glm::vec4>
+                         shading_data,
+                       glm::vec3 center_position) :
     super("TrackMesh", verts, uvs, norms, indices, true, center_position)
 {
     m_texture_indices = texture_indices;

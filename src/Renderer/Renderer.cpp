@@ -5,11 +5,7 @@ Renderer::Renderer(const std::shared_ptr<GLFWwindow> &window,
                    const std::vector<NfsAssetList> &installedNFS,
                    const std::shared_ptr<Track> &currentTrack,
                    const std::shared_ptr<BulletDebugDrawer> &debugDrawer) :
-    m_logger(onfsLogger),
-    m_nfsAssetList(installedNFS),
-    m_window(window),
-    m_track(currentTrack),
-    m_debugRenderer(debugDrawer)
+    m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_window(window), m_track(currentTrack), m_debugRenderer(debugDrawer)
 {
     this->_InitialiseIMGUI();
     LOG(DEBUG) << "Renderer Initialised";
@@ -72,8 +68,13 @@ std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t resolutionX, uint32_t 
     return window;
 }
 
-bool Renderer::Render(float totalTime, const std::shared_ptr<BaseCamera> &activeCamera, const std::shared_ptr<HermiteCamera> &hermiteCamera,
-                      const std::shared_ptr<GlobalLight> &activeLight, ParamData &userParams, AssetData &loadedAssets, const std::vector<std::shared_ptr<CarAgent>> &racers)
+bool Renderer::Render(float totalTime,
+                      const std::shared_ptr<BaseCamera> &activeCamera,
+                      const std::shared_ptr<HermiteCamera> &hermiteCamera,
+                      const std::shared_ptr<GlobalLight> &activeLight,
+                      ParamData &userParams,
+                      AssetData &loadedAssets,
+                      const std::vector<std::shared_ptr<CarAgent>> &racers)
 {
     bool newAssetSelected = false;
 
@@ -107,15 +108,6 @@ bool Renderer::Render(float totalTime, const std::shared_ptr<BaseCamera> &active
     for (auto &racer : racers)
     {
         m_carRenderer.Render(racer->vehicle, activeCamera, visibleSet.lights);
-    }
-
-    // if (ImGui::GetIO().MouseReleased[0] & userParams.windowActive) {
-    //     targetedEntity = physicsEngine.CheckForPicking(camera->viewMatrix, camera->projectionMatrix, &entityTargeted);
-    // }
-
-    if (m_entityTargeted)
-    {
-        this->_DrawMetadata(m_pTargetedEntity);
     }
 
     if (this->_DrawMenuBar(loadedAssets))
@@ -223,7 +215,7 @@ void Renderer::_InitialiseIMGUI()
     ImGui::StyleColorsDark();
 }
 
-void Renderer::_DrawMetadata(Entity *targetEntity)
+void Renderer::DrawMetadata(Entity *targetEntity)
 {
     ImGui::Begin("Engine Entity");
     ImGui::Text("%s", ToString(targetEntity->tag));

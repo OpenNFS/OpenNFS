@@ -30,6 +30,15 @@ private:
 
     void DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE *mus_file, FILE *pcm_file);
 
-    void ParsePTHeader(FILE *file, uint32_t *dwSampleRate, uint32_t *dwChannels, uint32_t *dwCompression, uint32_t *dwNumSamples, uint32_t *dwDataStart, uint32_t *dwLoopOffset,
-                       uint32_t *dwLoopLength, uint32_t *dwBytesPerSample, uint32_t *bSplit, uint32_t *bSplitCompression);
+    void ParsePTHeader(FILE *file,
+                       uint32_t *dwSampleRate,
+                       uint32_t *dwChannels,
+                       uint32_t *dwCompression,
+                       uint32_t *dwNumSamples,
+                       uint32_t *dwDataStart,
+                       uint32_t *dwLoopOffset,
+                       uint32_t *dwLoopLength,
+                       uint32_t *dwBytesPerSample,
+                       uint32_t *bSplit,
+                       uint32_t *bSplitCompression);
 };

@@ -14,7 +14,8 @@ extern "C"
 
 #define MAKEuint16_t(a, b) ((uint16_t)(((uint8_t)(a)) | (((uint16_t)((uint8_t)(b))) << 8)))
 
-// Define Windows Bitmap structs and macros with CP (CrossPlatform prefix) to avoid redef when conditionally including Windows.h for logging colour handles
+// Define Windows Bitmap structs and macros with CP (CrossPlatform prefix) to avoid redef when conditionally including Windows.h for logging
+// colour handles
 #define CP_BI_RGB 0x0000
 
 #pragma pack(push, 2)

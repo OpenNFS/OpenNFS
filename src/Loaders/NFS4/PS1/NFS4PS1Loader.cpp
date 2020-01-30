@@ -63,8 +63,9 @@ std::shared_ptr<NFS3_4_DATA::PS1::TRACK> NFS4PS1::LoadTrack(const std::string &t
     LoadGRP(trackGrpPath);
     /* frd_path << track_base_path << "/TR.frd";
 
-     ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4_PS1), "Could not extract " << track->name << " QFS texture pack.");
-     ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+     ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4_PS1), "Could not extract " << track->name << " QFS texture
+     pack."); ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str()); // Load FRD file to get
+     track block specific data
  */
     std::cout << "Successful track load!" << std::endl;
     return track;

@@ -59,14 +59,17 @@ void DebugRenderer::DrawCarRaycasts(const std::shared_ptr<Car> &car)
     glm::vec3 carBodyPosition = car->carBodyModel.position;
     for (uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx)
     {
-        m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->rangefinderInfo.castPositions[rangeIdx]),
+        m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition),
+                                      Utils::glmToBullet(car->rangefinderInfo.castPositions[rangeIdx]),
                                       btVector3(2.0f * (kFarDistance - car->rangefinderInfo.rangefinders[rangeIdx]), 2.0f * (car->rangefinderInfo.rangefinders[rangeIdx]), 0));
     }
 
     // Draw up and down casts
-    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->rangefinderInfo.upCastPosition),
+    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition),
+                                  Utils::glmToBullet(car->rangefinderInfo.upCastPosition),
                                   btVector3(2.0f * (kFarDistance - car->rangefinderInfo.upDistance), 2.0f * (car->rangefinderInfo.upDistance), 0));
-    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->rangefinderInfo.downCastPosition),
+    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition),
+                                  Utils::glmToBullet(car->rangefinderInfo.downCastPosition),
                                   btVector3(2.0f * (kFarDistance - car->rangefinderInfo.downDistance), 2.0f * (car->rangefinderInfo.downDistance), 0));
 }
 

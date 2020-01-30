@@ -121,12 +121,12 @@ struct ParamData
     bool useClassicGraphics     = false;
     bool attachCamToHermite     = false;
     bool useNbData              = true;
-    bool attachCamToCar         = false;
+    bool attachCamToCar         = true;
     bool frustumCull            = false;
     bool drawVroad              = false;
     bool drawCAN                = false;
     bool drawRaycast            = false;
-    bool simulateCars           = true;
+    bool simulateCars           = false;
 };
 
 struct AssetData

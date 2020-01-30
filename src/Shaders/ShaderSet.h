@@ -97,14 +97,10 @@ public:
     // Similar to what is explained here: https://software.intel.com/en-us/blogs/2012/03/26/using-ifdef-in-opengl-es-20-shaders
     // eg: AddProgramFromCombinedFile("shader.glsl", { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER });
     //
-    // The shader will be compiled many times with a different #define based on which shader stage it's being used for, similarly to the Intel article above.
-    // The defines are as follows:
-    // vertex shader: VERTEX_SHADER
-    // fragment shader: FRAGMENT_SHADER
-    // geometry shader: GEOMETRY_SHADER
-    // tessellation control shader: TESS_CONTROL_SHADER
-    // tessellation evaluation shader: TESS_EVALUATION_SHADER
-    // compute shader: COMPUTE_SHADER
+    // The shader will be compiled many times with a different #define based on which shader stage it's being used for, similarly to the
+    // Intel article above. The defines are as follows: vertex shader: VERTEX_SHADER fragment shader: FRAGMENT_SHADER geometry shader:
+    // GEOMETRY_SHADER tessellation control shader: TESS_CONTROL_SHADER tessellation evaluation shader: TESS_EVALUATION_SHADER compute
+    // shader: COMPUTE_SHADER
     //
     // Note: These defines are not unique to the AddProgramFromCombinedFile API. The defines are also set with any other AddProgram*() API.
     // Note: You may use the defines from inside the preamble. (ie. the preamble is inserted after those defines.)

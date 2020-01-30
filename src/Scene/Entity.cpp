@@ -1,8 +1,16 @@
 #include "Entity.h"
 #include "Lights/TrackLight.h"
 
-Entity::Entity(uint32_t parentTrackblockID, uint32_t entityID, NFSVer nfsVersion, EntityType entityType, EngineModel glMesh, uint32_t flags, glm::vec3 fromA, glm::vec3 fromB,
-               glm::vec3 toA, glm::vec3 toB)
+Entity::Entity(uint32_t parentTrackblockID,
+               uint32_t entityID,
+               NFSVer nfsVersion,
+               EntityType entityType,
+               EngineModel glMesh,
+               uint32_t flags,
+               glm::vec3 fromA,
+               glm::vec3 fromB,
+               glm::vec3 toA,
+               glm::vec3 toB)
 {
     tag                      = nfsVersion;
     type                     = entityType;

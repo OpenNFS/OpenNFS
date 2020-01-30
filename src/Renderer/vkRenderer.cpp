@@ -13,7 +13,9 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator,
+VkResult CreateDebugReportCallbackEXT(VkInstance instance,
+                                      const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
+                                      const VkAllocationCallbacks *pAllocator,
                                       VkDebugReportCallbackEXT *pCallback)
 {
     auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
@@ -651,7 +653,10 @@ void vkRenderer::createVertexBuffers()
         memcpy(data, model_vertices[model_Idx].data(), (size_t) bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
 
-        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffers[model_Idx],
+        createBuffer(bufferSize,
+                     VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                     vertexBuffers[model_Idx],
                      vertexBufferMemory[model_Idx]);
 
         copyBuffer(stagingBuffer, vertexBuffers[model_Idx], bufferSize);
@@ -1189,8 +1194,8 @@ static std::vector<char> readFile(const std::string &filename)
     return buffer;
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code,
-                                                    const char *layerPrefix, const char *msg, void *userData)
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+  VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code, const char *layerPrefix, const char *msg, void *userData)
 {
     std::cerr << "validation layer: " << msg << std::endl;
 

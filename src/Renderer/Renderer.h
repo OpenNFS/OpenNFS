@@ -57,6 +57,7 @@ public:
     }
 
     static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName);
+    static void DrawMetadata(Entity *targetEntity);
     bool Render(float totalTime,
                 const std::shared_ptr<BaseCamera> &activeCamera,
                 const std::shared_ptr<HermiteCamera> &hermiteCamera,
@@ -67,7 +68,6 @@ public:
 
 private:
     void _InitialiseIMGUI();
-    static void _DrawMetadata(Entity *targetEntity);
     bool _DrawMenuBar(AssetData &loadedAssets);
     void _DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
     static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
@@ -84,8 +84,4 @@ private:
     ShadowMapRenderer m_shadowMapRenderer;
     DebugRenderer m_debugRenderer;
     /*MenuRenderer menuRenderer;*/
-
-    /* State */
-    bool m_entityTargeted     = false;
-    Entity *m_pTargetedEntity = nullptr;
 };

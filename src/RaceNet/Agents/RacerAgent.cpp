@@ -1,5 +1,7 @@
 #include "RacerAgent.h"
 
+#include <glm/gtx/vector_angle.hpp>
+
 // TODO: Read this from file
 char const *RACER_NAMES[23] = {"DumbPanda",       "Spark198rus", "Keiiko",    "N/A",       "Patas De Pavo", "Dopamine Flint", "Oh Hansssss", "scaryred24",
                                "MaximilianVeers", "Keith",       "AJ_Lethal", "Sirius-R",  "Ewil",          "Zipper",         "heyitsleo",   "MADMAN_nfs",
@@ -18,6 +20,9 @@ RacerAgent::RacerAgent(uint16_t racerID, const std::string &networkPath, const s
     }
     name          = RACER_NAMES[racerID];
     this->vehicle = std::make_shared<Car>(car->assetData, car->tag, car->id);
+
+    // TODO: DEBUG! Set a low max speed.
+    this->vehicle->vehicleProperties.maxSpeed = 10.f;
 }
 
 void RacerAgent::Simulate()
@@ -26,14 +31,62 @@ void RacerAgent::Simulate()
     this->_UpdateNearestTrackblock();
     this->_UpdateNearestVroad();
 
-    return;
-
-    // If during simulation, car flips, reset. Not during training, or for player!
-    if ((vehicle->rangefinderInfo.upDistance <= 0.1f || vehicle->rangefinderInfo.downDistance > 1.f || vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY] < 0.25f))
+    switch (m_mode)
     {
-        ResetToVroad(m_nearestVroadID, 0.f);
+    case FollowTrack:
+        this->_FollowTrack();
+        break;
+    case NeuralNet:
+        this->_UseNeuralNetAI();
+        break;
+    case Primitive:
+        this->_UsePrimitiveAI();
+        break;
     }
 
+    // If during simulation, car flips, reset.
+    if ((vehicle->rangefinderInfo.upDistance <= 0.1f || vehicle->rangefinderInfo.downDistance > 1.f || vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY] < 0.25f) &&
+        m_ticksAlive > 5000)
+    {
+        m_ticksAlive = 0;
+        ResetToVroad(m_nearestVroadID, 0.f);
+    }
+    else
+    {
+        ++m_ticksAlive;
+    }
+}
+void RacerAgent::_FollowTrack()
+{
+    glm::vec3 target = m_track->virtualRoad[(m_nearestVroadID + 10) % m_track->virtualRoad.size()].position;
+    float angle      = glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
+                                     glm::normalize(target - this->vehicle->carBodyModel.position), glm::vec3(0, 1, 0));
+    // vehicle->ApplyAbsoluteSteerAngle(angle);
+    if (angle < -0.15f)
+    {
+        vehicle->ApplySteeringRight(true);
+    }
+    else if (angle > 0.15f)
+    {
+        vehicle->ApplySteeringLeft(true);
+    }
+    else
+    {
+        vehicle->ApplySteeringRight(false);
+        vehicle->ApplySteeringLeft(false);
+    }
+    vehicle->ApplyAccelerationForce(true, false);
+}
+
+void RacerAgent::_UsePrimitiveAI()
+{
+    vehicle->ApplyAccelerationForce(true, false);
+    vehicle->ApplySteeringLeft(vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY] < 1.f);
+    vehicle->ApplySteeringRight(vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY] < 1.f);
+}
+
+void RacerAgent::_UseNeuralNetAI()
+{
     // Use maximum from front 3 sensors, as per Luigi Cardamone
     float maxForwardDistance = std::max({vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY], vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY],
                                          vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY]});

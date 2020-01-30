@@ -58,8 +58,10 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path)
     can_path << track_base_path << "/TR00A.CAN";
 
     ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack.");
-    ASSERT(LoadFRD(frd_path.str(), track->name, track), "Could not load FRD file: " << frd_path.str());                        // Load FRD file to get track block specific data
-    ASSERT(LoadCAN(can_path.str(), track->cameraAnimation), "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
+    ASSERT(LoadFRD(frd_path.str(), track->name, track),
+           "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
+    ASSERT(LoadCAN(can_path.str(), track->cameraAnimation),
+           "Could not load CAN file (camera animation): " << can_path.str()); // Load camera intro/outro animation data
 
     track->textureArrayID = MakeTextureArray(track->textures, false);
     track->track_blocks   = ParseTRKModels(track);
@@ -86,9 +88,11 @@ void parsePolygonFlags(int triangle, uint32_t polygonFlags)
 CarData NFS4::LoadFCE(const std::string &fce_path, NFSVer version)
 {
     std::cout << "- Parsing FCE File: " << fce_path << std::endl;
-    glm::quat rotationMatrix = glm::normalize(glm::quat(
-      glm::vec3(glm::radians(90.f), 0, glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
-    bool isTraffic           = fce_path.find("TRAFFIC") != std::string::npos;
+    glm::quat rotationMatrix =
+      glm::normalize(glm::quat(glm::vec3(glm::radians(90.f),
+                                         0,
+                                         glm::radians(180.f)))); // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
+    bool isTraffic = fce_path.find("TRAFFIC") != std::string::npos;
 
     CarData carData;
     std::ifstream fce(fce_path, std::ios::in | std::ios::binary);

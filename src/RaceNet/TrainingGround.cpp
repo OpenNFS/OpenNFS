@@ -6,8 +6,7 @@ TrainingGround::TrainingGround(uint16_t nGenerations,
                                const std::shared_ptr<Car> &training_car,
                                const std::shared_ptr<Logger> &logger,
                                const std::shared_ptr<GLFWwindow> &window) :
-    m_window(window),
-    raceNetRenderer(m_window, logger)
+    m_window(window), raceNetRenderer(m_window, logger)
 {
     LOG(INFO) << "Beginning GA evolution session. nGenerations Cap: " << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " ("
               << ToString(training_track->tag) << ")";

@@ -28,21 +28,23 @@ std::shared_ptr<Car> NFS5::LoadCar(const std::string& carBasePath)
     uint32_t remappedTextureID = 0;
 
     /*for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
-        if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
+        if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") ==
+    std::string::npos) {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
             remapped_texture_ids[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
             if (std::is_same<Platform, PS1>::value) {
                 GLubyte *data;
                 GLsizei width;
                 GLsizei height;
-                ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " << itr->path().string() << " did not load
-    succesfully!"); car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] =
-    Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height)); } else {
-                bmpread_t bmpAttr; // This will leak.
-                ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
+                ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u), "Texture " <<
+    itr->path().string() << " did not load succesfully!");
+    car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] =
+    Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width),
+    static_cast<unsigned int>(height)); } else { bmpread_t bmpAttr; // This will leak. ASSERT(bmpread(itr->path().string().c_str(),
+    BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
                 car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] =
-    Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width), static_cast<unsigned
-    int>(bmpAttr.height));
+    Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned
+    int>(bmpAttr.width), static_cast<unsigned int>(bmpAttr.height));
             }
         }
     }

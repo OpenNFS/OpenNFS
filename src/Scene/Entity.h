@@ -22,8 +22,16 @@ typedef boost::variant<TrackModel, std::shared_ptr<BaseLight>, Sound, Car*> Engi
 class Entity : public IAABB
 {
 public:
-    Entity(uint32_t parentTrackblockID, uint32_t entityID, NFSVer nfsVersion, EntityType entityType, EngineModel glMesh = nullptr, uint32_t flags = 0u,
-           glm::vec3 fromA = glm::vec3(0, 0, 0), glm::vec3 fromB = glm::vec3(0, 0, 0), glm::vec3 toA = glm::vec3(0, 0, 0), glm::vec3 toB = glm::vec3(0, 0, 0));
+    Entity(uint32_t parentTrackblockID,
+           uint32_t entityID,
+           NFSVer nfsVersion,
+           EntityType entityType,
+           EngineModel glMesh = nullptr,
+           uint32_t flags     = 0u,
+           glm::vec3 fromA    = glm::vec3(0, 0, 0),
+           glm::vec3 fromB    = glm::vec3(0, 0, 0),
+           glm::vec3 toA      = glm::vec3(0, 0, 0),
+           glm::vec3 toB      = glm::vec3(0, 0, 0));
     void Update(); // Update Entity position based on Physics engine
     AABB GetAABB() const;
 

@@ -148,7 +148,8 @@ void ShaderSet::UpdatePrograms()
     for (std::pair<const ShaderNameTypePair, Shader>* shader : updatedShaders)
     {
         // the #line prefix ensures error messages have the right line number for their file
-        // the #line directive also allows specifying a "file name" number, which makes it possible to identify which file the error came from.
+        // the #line directive also allows specifying a "file name" number, which makes it possible to identify which file the error came
+        // from.
         std::string version = "#version " + mVersion + "\n";
 
         std::string defines;

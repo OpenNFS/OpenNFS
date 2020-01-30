@@ -23,8 +23,12 @@ ShadowMapRenderer::ShadowMapRenderer()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowMapRenderer::Render(float nearPlane, float farPlane, const std::shared_ptr<GlobalLight> &light, GLuint trackTextureArrayID,
-                               const std::vector<std::shared_ptr<Entity>> &visibleEntities, const std::vector<std::shared_ptr<CarAgent>> &racers)
+void ShadowMapRenderer::Render(float nearPlane,
+                               float farPlane,
+                               const std::shared_ptr<GlobalLight> &light,
+                               GLuint trackTextureArrayID,
+                               const std::vector<std::shared_ptr<Entity>> &visibleEntities,
+                               const std::vector<std::shared_ptr<CarAgent>> &racers)
 {
     /* ------- SHADOW MAPPING ------- */
     m_depthShader.use();

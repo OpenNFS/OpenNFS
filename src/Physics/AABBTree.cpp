@@ -243,8 +243,8 @@ void AABBTree::removeLeaf(unsigned leafNodeIndex)
 
     if (grandParentNodeIndex != AABB_NULL_NODE)
     {
-        // if we have a grand parent (i.e. the parent is not the root) then destroy the parent and connect the sibling to the grandparent in its
-        // place
+        // if we have a grand parent (i.e. the parent is not the root) then destroy the parent and connect the sibling to the grandparent in
+        // its place
         AABBNode& grandParentNode = _nodes[grandParentNodeIndex];
         if (grandParentNode.leftNodeIndex == parentNodeIndex)
         {

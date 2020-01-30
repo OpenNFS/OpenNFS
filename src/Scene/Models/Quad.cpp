@@ -9,8 +9,9 @@ Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float
     verts.emplace_back(glm::vec3(toY, fromX, 0));   // top left corner
     verts.emplace_back(glm::vec3(toX, toY, 0));     // top right corner
     verts.emplace_back(glm::vec3(toX, fromY, 0));   // bottom right corner
-    unsigned int indices[] = {0, 1, 2,              // first triangle (bottom left - top left - top right)
-                              0, 2, 3};             // second triangle (bottom left - top right - bottom right)
+    unsigned int indices[] = {0, 1,
+                              2,        // first triangle (bottom left - top left - top right)
+                              0, 2, 3}; // second triangle (bottom left - top right - bottom right)
     m_uvs.clear();
     m_uvs.emplace_back(glm::vec2(1.0f, 1.0f));
     m_uvs.emplace_back(glm::vec2(0.0f, 1.0f));
