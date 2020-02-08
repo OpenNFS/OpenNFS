@@ -207,7 +207,7 @@ set(SOURCE_FILES
         src/Loaders/NFS3/FFN/FfnFile.cpp
         src/Loaders/NFS3/FFN/FfnFile.h
         src/Loaders/Shared/CanFile.cpp
-        src/Loaders/Shared/CanFile.h src/Renderer/Texture.cpp src/Renderer/Texture.h src/Loaders/Shared/HrzFile.cpp src/Loaders/Shared/HrzFile.h src/Loaders/NFS3/FCE/FceFile.cpp src/Loaders/NFS3/FCE/FceFile.h src/Loaders/NFS3/FEDATA/FedataFile.cpp src/Loaders/NFS3/FEDATA/FedataFile.h src/Scene/Track.h src/Scene/Track.cpp src/Loaders/TrackLoader.cpp src/Loaders/TrackLoader.h src/Scene/VirtualRoad.cpp src/Scene/VirtualRoad.h)
+        src/Loaders/Shared/CanFile.h src/Renderer/Texture.cpp src/Renderer/Texture.h src/Loaders/Shared/HrzFile.cpp src/Loaders/Shared/HrzFile.h src/Loaders/NFS3/FCE/FceFile.cpp src/Loaders/NFS3/FCE/FceFile.h src/Loaders/NFS3/FEDATA/FedataFile.cpp src/Loaders/NFS3/FEDATA/FedataFile.h src/Scene/Track.h src/Scene/Track.cpp src/Loaders/TrackLoader.cpp src/Loaders/TrackLoader.h src/Scene/VirtualRoad.cpp src/Scene/VirtualRoad.h src/Loaders/NFS3/SPEEDS/SpeedsFile.cpp src/Loaders/NFS3/SPEEDS/SpeedsFile.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

@@ -9,6 +9,7 @@
 #include "FEDATA/FedataFile.h"
 #include "FRD/FrdFile.h"
 #include "COL/ColFile.h"
+#include "SPEEDS/SpeedsFile.h"
 #include "../Shared/CanFile.h"
 #include "../Shared/HrzFile.h"
 #include "../TrackUtils.h"

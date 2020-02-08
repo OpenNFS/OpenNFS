@@ -40,7 +40,7 @@ std::shared_ptr<Track> NFS3::LoadTrack(const std::string &trackBasePath)
 
     boost::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
-    std::stringstream frdPath, colPath, canPath, hrzPath;
+    std::stringstream frdPath, colPath, canPath, hrzPath, binPath;
     std::string strip = "k0";
     size_t pos        = track->name.find(strip);
     if (pos != std::string::npos)
@@ -52,11 +52,13 @@ std::shared_ptr<Track> NFS3::LoadTrack(const std::string &trackBasePath)
     colPath << trackBasePath << "/" << track->name << ".col";
     canPath << trackBasePath << "/" << track->name << "00a.can";
     hrzPath << trackBasePath << "/3" << track->name << ".hrz";
+    binPath << trackBasePath << "/speedsf.bin";
 
     FrdFile frdFile;
     ColFile colFile;
     CanFile canFile;
     HrzFile hrzFile;
+    SpeedsFile speedFile;
 
     ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack.");
     ASSERT(FrdFile::Load(frdPath.str(), frdFile),
@@ -64,8 +66,12 @@ std::shared_ptr<Track> NFS3::LoadTrack(const std::string &trackBasePath)
     ASSERT(ColFile::Load(colPath.str(), colFile),
            "Could not load COL file: " << colPath.str()); // Load Catalogue file to get global (non trkblock specific) data
     ASSERT(CanFile::Load(canPath.str(), canFile),
-           "Could not load CAN file (camera animation): " << canPath.str());                                      // Load camera intro/outro animation data
-    ASSERT(HrzFile::Load(hrzPath.str(), hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath.str()); // Load HRZ Data
+           "Could not load CAN file (camera animation): " << canPath.str());                                                  // Load camera intro/outro animation data
+    ASSERT(HrzFile::Load(hrzPath.str(), hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath.str());             // Load HRZ Data
+    ASSERT(SpeedsFile::Load(binPath.str(), speedFile), "Could not load speedsf.bin file (AI vroad speeds:" << binPath.str()); // Load AI speed data
+
+    // TODO: Debug, dump to a CSV for quick excel viz
+    SpeedsFile::SaveCSV("./speeds.csv", speedFile);
 
     // Load QFS textures into GL objects
     for (auto &frdTexBlock : frdFile.textureBlocks)
