@@ -66,10 +66,10 @@ public:
         while (loadedAssets.trackTag != UNKNOWN)
         {
             /*------ ASSET LOAD ------*/
-            // Load Car data from unpacked NFS files
-            auto car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
             // Load Track Data
             auto track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+            // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky texture for car environment map)
+            auto car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
             // Load Music
             // MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
@@ -122,9 +122,7 @@ private:
         using namespace boost::filesystem;
 
         path basePath(RESOURCE_PATH);
-        bool hasLanes = false;
         bool hasMisc  = false;
-        bool hasSfx   = false;
         bool hasUI    = false;
 
         for (directory_iterator itr(basePath); itr != directory_iterator(); ++itr)
@@ -229,6 +227,10 @@ private:
             else if (itr->path().filename().string() == ToString(NFS_3))
             {
                 currentNFS.tag = NFS_3;
+
+                std::string sfxPath = itr->path().string() + "/gamedata/render/pc/sfx.fsh";
+                ASSERT(exists(sfxPath), "NFS 3 SFX Resource: " << sfxPath << " is missing.");
+                ASSERT(ImageLoader::ExtractQFS(sfxPath, RESOURCE_PATH + "sfx/"), "Unable to extract SFX textures from " << sfxPath);
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_3_TRACK_PATH;
@@ -383,19 +385,9 @@ private:
                     }
                 }
             }
-            else if (itr->path().filename().string() == "lanes")
-            {
-                hasLanes = true;
-                continue;
-            }
             else if (itr->path().filename().string() == "misc")
             {
                 hasMisc = true;
-                continue;
-            }
-            else if (itr->path().filename().string() == "sfx")
-            {
-                hasSfx = true;
                 continue;
             }
             else if (itr->path().filename().string() == "ui")
@@ -415,9 +407,7 @@ private:
             installedNFS.emplace_back(currentNFS);
         }
 
-        ASSERT(hasLanes, "Missing \'lanes\' folder in resources directory");
         ASSERT(hasMisc, "Missing \'misc\' folder in resources directory");
-        ASSERT(hasSfx, "Missing \'sfx\' folder in resources directory");
         ASSERT(hasUI, "Missing \'ui\' folder in resources directory");
         ASSERT(installedNFS.size(), "No Need for Speed games detected in resources directory");
 

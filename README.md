@@ -53,7 +53,7 @@ Below is a table better describing the current level of asset load into OpenNFS:
 | NFS2 PS1 | 90%  | 10%    |       |
 | NFS1     |      |        |       |
 
-![Screenshot](../master/doc/BuildProgress.png)
+![Screenshot](../main/doc/BuildProgress.png)
 
 ## Releases:
 

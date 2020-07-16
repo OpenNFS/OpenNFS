@@ -10,7 +10,7 @@ GLuint ImageLoader::LoadImage(const std::string &imagePath, int *width, int *hei
     int nChannels;
 
     unsigned char *image = stbi_load(imagePath.c_str(), width, height, &nChannels, STBI_rgb_alpha);
-    ASSERT(image != nullptr, "Failed to load UI texture " << imagePath);
+    ASSERT(image != nullptr, "Failed to load texture " << imagePath);
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
