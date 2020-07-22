@@ -86,12 +86,18 @@ set(SOURCE_FILES
         src/Loaders/MusicLoader.h
         src/Config.cpp
         src/Config.h
-        #[[src/Loaders/NFS2/PC/NFS2Loader.cpp
-        src/Loaders/NFS2/PC/NFS2Loader.h]]
+        #[[src/Loaders/NFS2/NFS2Loader.cpp
+        src/Loaders/NFS2/NFS2Loader.h]]
         src/Loaders/NFS3/NFS3Loader.cpp
         src/Loaders/NFS3/NFS3Loader.h
         #[[src/Loaders/NFS4/PC/NFS4Loader.cpp
-        src/Loaders/NFS4/PC/NFS4Loader.h]]
+        src/Loaders/NFS4/PC/NFS4Loader.h
+        src/Loaders/NFS5/NFS5Loader.cpp
+        src/Loaders/NFS5/NFS5Loader.h
+        src/Loaders/NFS4/PS1/NFS4PS1Loader.cpp
+        src/Loaders/NFS4/PS1/NFS4PS1Loader.h
+        src/Loaders/NFS4/PS1/SerializedGroupOps.cpp
+        src/Loaders/NFS4/PS1/SerializedGroupOps.h]]
         src/Renderer/Renderer.cpp
         src/Renderer/Renderer.h
         src/Loaders/TrackUtils.cpp
@@ -100,6 +106,7 @@ set(SOURCE_FILES
         src/Loaders/CarLoader.h
         src/Renderer/HermiteCurve.cpp
         src/Renderer/HermiteCurve.h
+        src/Scene/Sound.cpp
         src/Scene/Sound.cpp
         src/Scene/Sound.h
         src/Scene/Entity.cpp
@@ -149,12 +156,6 @@ set(SOURCE_FILES
         src/Util/ImageLoader.cpp
         src/Util/ImageLoader.cpp
         src/Util/ImageLoader.h
-        #[[src/Loaders/NFS5/NFS5Loader.cpp
-        src/Loaders/NFS5/NFS5Loader.h
-        src/Loaders/NFS4/PS1/NFS4PS1Loader.cpp
-        src/Loaders/NFS4/PS1/NFS4PS1Loader.h
-        src/Loaders/NFS4/PS1/SerializedGroupOps.cpp
-        src/Loaders/NFS4/PS1/SerializedGroupOps.h]]
         src/Scene/Lights/GlobalLight.cpp
         src/Scene/Lights/GlobalLight.h
         src/Physics/AABB.cpp
@@ -207,7 +208,24 @@ set(SOURCE_FILES
         src/Loaders/NFS3/FFN/FfnFile.cpp
         src/Loaders/NFS3/FFN/FfnFile.h
         src/Loaders/Shared/CanFile.cpp
-        src/Loaders/Shared/CanFile.h src/Renderer/Texture.cpp src/Renderer/Texture.h src/Loaders/Shared/HrzFile.cpp src/Loaders/Shared/HrzFile.h src/Loaders/NFS3/FCE/FceFile.cpp src/Loaders/NFS3/FCE/FceFile.h src/Loaders/NFS3/FEDATA/FedataFile.cpp src/Loaders/NFS3/FEDATA/FedataFile.h src/Scene/Track.h src/Scene/Track.cpp src/Loaders/TrackLoader.cpp src/Loaders/TrackLoader.h src/Scene/VirtualRoad.cpp src/Scene/VirtualRoad.h src/Loaders/NFS3/SPEEDS/SpeedsFile.cpp src/Loaders/NFS3/SPEEDS/SpeedsFile.h)
+        src/Loaders/Shared/CanFile.h
+        src/Loaders/Shared/HrzFile.cpp
+        src/Loaders/Shared/HrzFile.h
+        src/Loaders/NFS3/FCE/FceFile.cpp
+        src/Loaders/NFS3/FCE/FceFile.h
+        src/Loaders/NFS3/FEDATA/FedataFile.cpp
+        src/Loaders/NFS3/FEDATA/FedataFile.h
+        src/Loaders/NFS3/SPEEDS/SpeedsFile.cpp
+        src/Loaders/NFS3/SPEEDS/SpeedsFile.h
+        src/Renderer/Texture.cpp
+        src/Renderer/Texture.h
+        src/Scene/Track.cpp
+        src/Scene/Track.h
+        src/Loaders/TrackLoader.cpp
+        src/Loaders/TrackLoader.h
+        src/Scene/VirtualRoad.cpp
+        src/Scene/VirtualRoad.h
+        src/Loaders/NFS2/Common.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
 

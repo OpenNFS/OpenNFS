@@ -8,7 +8,6 @@
 #include "TexBlock.h"
 
 static const uint8_t HEADER_LENGTH   = 28;
-static const uint32_t ONFS_SIGNATURE = 0x15B001C0;
 
 class FrdFile : IRawData
 {
