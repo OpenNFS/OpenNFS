@@ -1,0 +1,45 @@
+#include "StructureBlock.h"
+
+using namespace LibOpenNFS::NFS2;
+
+StructureBlock::StructureBlock(std::ifstream &trk)
+{
+    ASSERT(this->_SerializeIn(trk), "Failed to serialize StructureBlock from file stream");
+}
+
+bool StructureBlock::_SerializeIn(std::ifstream &ifstream)
+{
+    SAFE_READ(ifstream, &recSize, sizeof(uint16_t));
+    SAFE_READ(ifstream, &recType, sizeof(uint8_t));
+    SAFE_READ(ifstream, &structureRef, sizeof(uint8_t));
+
+    if (recType == 1)
+    {
+        // Fixed type
+        SAFE_READ(ifstream, &refCoordinates, sizeof(VERT_HIGHP));
+    }
+    else if (recType == 3)
+    {
+        // Animated type
+        SAFE_READ(ifstream, &animLength, sizeof(uint16_t));
+        SAFE_READ(ifstream, &unknown, sizeof(uint16_t));
+        animationData.reserve(animLength);
+        SAFE_READ(ifstream, animationData.data(), animLength * sizeof(ANIM_POS));
+    }
+    else if (recType == 4)
+    {
+        // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
+        SAFE_READ(ifstream, &refCoordinates, sizeof(VERT_HIGHP));
+    }
+    else
+    {
+        LOG(DEBUG) << "Unknown Structure Reference type: " << (int) recType << " Size: " << (int) recSize << " StructRef: " << (int) structureRef;
+    }
+
+    return true;
+}
+
+void StructureBlock::_SerializeOut(std::ofstream &ofstream)
+{
+    ASSERT(false, "StructureBlock output serialization is not currently implemented");
+}

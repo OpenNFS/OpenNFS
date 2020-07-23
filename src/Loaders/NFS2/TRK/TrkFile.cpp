@@ -1,5 +1,7 @@
 #include "TrkFile.h"
 
+using namespace LibOpenNFS::NFS2;
+
 template <typename Platform>
 bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile)
 {

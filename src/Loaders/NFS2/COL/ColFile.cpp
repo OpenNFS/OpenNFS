@@ -1,5 +1,7 @@
 #include "ColFile.h"
 
+using namespace LibOpenNFS::NFS2;
+
 bool ColFile::Load(const std::string &colPath, ColFile &colFile)
 {
     LOG(INFO) << "Loading COL File located at " << colPath;

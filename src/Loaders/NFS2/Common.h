@@ -7,3 +7,9 @@ struct VERT_HIGHP
 {
     int32_t x, z, y;
 };
+
+struct ANIM_POS
+{
+    VERT_HIGHP position;
+    int16_t unknown[4];
+};

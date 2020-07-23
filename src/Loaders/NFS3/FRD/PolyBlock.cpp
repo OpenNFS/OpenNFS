@@ -1,5 +1,7 @@
 #include "PolyBlock.h"
 
+using namespace LibOpenNFS::NFS3;
+
 PolyBlock::PolyBlock(std::ifstream &frd, uint32_t nTrackBlockPolys) : m_nTrackBlockPolys(nTrackBlockPolys), obj{}
 {
     ASSERT(this->_SerializeIn(frd), "Failed to serialize PolyBlock from file stream");

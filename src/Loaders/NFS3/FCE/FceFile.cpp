@@ -1,5 +1,7 @@
 #include "FceFile.h"
 
+using namespace LibOpenNFS::NFS3;
+
 bool FceFile::Load(const std::string &fcePath, FceFile &fceFile)
 {
     LOG(INFO) << "Loading FCE File located at " << fcePath;

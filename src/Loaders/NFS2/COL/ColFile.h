@@ -1,94 +1,53 @@
 #pragma once
 
 #include "../../Common/IRawData.h"
+#include "../Common.h"
 
-#define XBID_TEXTUREINFO 2
-#define XBID_STRUCT3D 8
-#define XBID_OBJECT 7
-#define XBID_OBJECT2 18
-#define XBID_VROAD 15
-
-struct ExtraBlockHeader
+namespace LibOpenNFS
 {
-    uint32_t size;
-    uint16_t xbid;
-    uint16_t nrec;
-};
+    namespace NFS2
+    {
+        // ---- COL Specific Extra Blocks ----
+        struct TEXTURE_BLOCK
+        {
+            // XBID = 2
+            uint16_t texNumber; // Texture number in QFS file
+            uint16_t alignmentData;
+            uint8_t RGB[3];     // Luminosity
+            uint8_t RGBlack[3]; // Usually black
+        };
 
-struct ColTextureInfo
-{
-    uint16_t id;       // position in .QFS file
-    uint16_t unknown1; // zero ?
-    uint16_t unknown2; // texture offset ?
-    uint16_t unknown3;
-};
+        struct COLLISION_BLOCK
+        {
+            // XBID = 15
+            VERT_HIGHP trackPosition; // Position auint32_t track on a single line, either at center or side of road
+            int8_t vertVec[3];        // The three vectors are mutually orthogonal, and are normalized so that
+            int8_t fwdVec[3];         // each vector's norm is slightly less than 128. Each vector is coded on
+            int8_t rightVec[3];       // 3 bytes : its x, z and y components are each signed 8-bit values.
+            uint8_t zero;
+            uint16_t blockNumber;
+            uint16_t unknown; // The left and right border values indicate the two limits beyond which no car can go. This is the data used for
+            // delimitation between the road and scenery
+            uint16_t leftBorder; // Formula to find the coordinates of the left-most point of the road is (left-most point) = (reference point)
+            // - 2.(left border).(right vector):  there is a factor of 2 between absolute
+            uint16_t rightBorder; // 32-bit coordinates and the othe data in the record. Similarly, for the right-most point of the road,
+            // (right-most point) = (reference point)
+            // + 2.(right border).(right vector).
+            uint16_t postCrashPosition; // Lateral position after respawn
+            uint32_t unknown2;
+        };
 
-struct ColVertex
-{
-    glm::vec3 pt;     // relative coord
-    uint32_t unknown; // like the unknVertices structures in FRD
-};
+        class ColFile : IRawData
+        {
+        public:
+            ColFile() = default;
+            static bool Load(const std::string &colPath, ColFile &colFile);
+            static void Save(const std::string &colPath, ColFile &colFile);
 
-struct ColPolygon
-{
-    uint16_t texture;
-    char v[4]; // vertices
-};
+        private:
+            bool _SerializeIn(std::ifstream &ifstream) override;
+            void _SerializeOut(std::ofstream &ofstream) override;
+        };
 
-struct ColStruct3D
-{
-    uint32_t size;
-    uint16_t nVert, nPoly;
-    std::vector<ColVertex> vertex;
-    std::vector<ColPolygon> polygon;
-};
-
-struct ColObject
-{
-    uint16_t size;
-    uint8_t type;     // 1 = basic object, 3 = animated ...
-    uint8_t struct3D; // reference in previous block
-                      // type 1
-    glm::ivec3 ptRef;
-    // type 3
-    uint16_t animLength;
-    uint16_t unknown;
-    std::vector<AnimData> animData; // same structure as in xobjs
-};
-
-struct ColVRoad
-{
-    glm::ivec3 refPt;
-    uint32_t unknown; // Unknown data
-    glm::i8vec4 normal, forward, right;
-    uint32_t leftWall, rightWall;
-};
-
-class ColFile : IRawData
-{
-public:
-    ColFile() = default;
-    static bool Load(const std::string &colPath, ColFile &colFile);
-    static void Save(const std::string &colPath, ColFile &colFile);
-
-    char header[4];                      // Header of file 'COLL'
-    uint32_t version;                    // Version number 11
-    uint32_t fileLength;                 // File length in bytes
-    uint32_t nBlocks;                    // Number of Xtra blocks in file
-    uint32_t xbTable[5];                 // Offsets of Xtra blocks
-    ExtraBlockHeader textureHead;        // Record detailing texture table data
-    std::vector<ColTextureInfo> texture; // Texture table
-    ExtraBlockHeader struct3DHead;       // Record detailing struct3D table data
-    std::vector<ColStruct3D> struct3D;   // Struct 3D table
-    ExtraBlockHeader objectHead;         // Record detailing object table data
-    std::vector<ColObject> object;       // Object table
-    ExtraBlockHeader object2Head;        // Record detailing extra object data
-    std::vector<ColObject> object2;      // Extra object data
-    ExtraBlockHeader vroadHead;          // Unknown Record detailing unknown table data
-    std::vector<ColVRoad> vroad;         // Unknown table
-    uint32_t *hs_extra = nullptr;        // for the extra HS data in ColVRoad
-
-private:
-    bool _SerializeIn(std::ifstream &ifstream) override;
-    void _SerializeOut(std::ofstream &ofstream) override;
-};
+    } // namespace NFS2
+} // namespace LibOpenNFS

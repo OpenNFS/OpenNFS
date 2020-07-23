@@ -217,7 +217,8 @@ namespace NFS5_DATA
             uint32_t offset; // Relative from current EFFECT_PART offset
         };
 
-        union GENERIC_PART {
+        union GENERIC_PART
+        {
             // Misc Parts
             MISC_PART miscPart;
             MATERIAL_PART materialPart;
@@ -786,334 +787,50 @@ namespace NFS3_4_DATA
 
 namespace NFS2_DATA
 {
-    // ---- CORE DATA TYPES ----
-    struct VERT_HIGHP
+    struct GEO
     {
-        int32_t x, z, y;
-    };
-
-    struct ANIM_POS
-    {
-        VERT_HIGHP position;
-        int16_t unknown[4];
-    };
-
-    // ----------------- EXTRA BLOCKS -----------------
-    struct EXTRABLOCK_HEADER
-    {
-        uint32_t recSize;
-        uint16_t XBID;
-        uint16_t nRecords;
-    };
-
-    // Matches number of NP1 polygons in corresponding trackblock
-    struct POLY_TYPE
-    {
-        // XBID = 5
-        uint8_t xblockRef; // Refers to an entry in the XBID=13 extrablock
-        uint8_t carBehaviour;
-    };
-
-    struct GEOM_REF_BLOCK
-    {
-        // XBID = 7, 18
-        uint16_t recSize; // If Anim (recType == 3) , recSize == 8 + 20*animation length
-        uint8_t recType;
-        uint8_t structureRef;
-        // Fixed Type (recType == 1)
-        VERT_HIGHP refCoordinates;
-        // Animated Type (recType == 3)
-        uint16_t animLength;     // num of position records
-        uint16_t unknown;        // Potentially time between animation steps?
-        ANIM_POS *animationData; // Sequence of positions which animation follows
-    };
-
-    // Matches number of full resolution polygons
-    struct MEDIAN_BLOCK
-    {
-        // XBID = 6
-        uint8_t refPoly[8];
-    };
-
-    struct LANE_BLOCK
-    {
-        // XBID = 9
-        uint8_t vertRef;  // Inside B3D structure: 0 to nFullRes + nStickToNext
-        uint8_t trackPos; // Position auint32_t track inside block (0 to 7)
-        uint8_t latPos;   // Lateral position, -1 at the end
-        uint8_t polyRef;  // Inside Full-res B3D structure, 0 to nFullRes
-    };
-
-    // ---- COL Specific Extra Blocks ----
-    struct TEXTURE_BLOCK
-    {
-        // XBID = 2
-        uint16_t texNumber; // Texture number in QFS file
-        uint16_t alignmentData;
-        uint8_t RGB[3];     // Luminosity
-        uint8_t RGBlack[3]; // Usually black
-    };
-
-    struct COLLISION_BLOCK
-    {
-        // XBID = 15
-        VERT_HIGHP trackPosition; // Position auint32_t track on a single line, either at center or side of road
-        int8_t vertVec[3];        // The three vectors are mutually orthogonal, and are normalized so that
-        int8_t fwdVec[3];         // each vector's norm is slightly less than 128. Each vector is coded on
-        int8_t rightVec[3];       // 3 bytes : its x, z and y components are each signed 8-bit values.
-        uint8_t zero;
-        uint16_t blockNumber;
-        uint16_t unknown;           // The left and right border values indicate the two limits beyond which no car can go. This is the data used for
-                                    // delimitation between the road and scenery
-        uint16_t leftBorder;        // Formula to find the coordinates of the left-most point of the road is (left-most point) = (reference point)
-                                    // - 2.(left border).(right vector):  there is a factor of 2 between absolute
-        uint16_t rightBorder;       // 32-bit coordinates and the othe data in the record. Similarly, for the right-most point of the road,
-                                    // (right-most point) = (reference point)
-                                    // + 2.(right border).(right vector).
-        uint16_t postCrashPosition; // Lateral position after respawn
-        uint32_t unknown2;
-    };
-
-    // ------------ TRACK BLOCKS ----------------
-    struct TRKBLOCK_HEADER
-    {
-        uint32_t blockSize;
-        uint32_t blockSizeDup;
-        uint16_t nExtraBlocks;
-        uint16_t unknown;
-        uint32_t blockSerial;
-        struct VERT_HIGHP clippingRect[4];
-        uint32_t extraBlockTblOffset;
-        uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
-        uint16_t nLowResPoly, nMedResPoly, nHighResPoly;
-        uint16_t unknownPad[3];
-    };
-
-    struct PC
-    {
-        // ---- CORE DATA TYPES ----
-        struct POLYGONDATA
-        {
-            int16_t texture;
-            int16_t otherSideTex;
-            uint8_t vertex[4];
-        };
-
-        struct VERT
-        {
-            int16_t x, z, y;
-        };
-
-        // (Unfortunately, structs below contain the above two modified structs, so must be duplicated across PS1/PC)
-        struct VROAD
-        {
-            VERT normalVec;
-            VERT forwardVec;
-        };
-
-        // ---- EXTRA BLOCKS ----
-        struct GEOM_BLOCK
-        {
-            // XBID = 8
-            uint32_t recSize;
-            uint16_t nVerts;
-            uint16_t nPoly;
-            VERT *vertexTable;
-            POLYGONDATA *polygonTable;
-        };
-
-        // ---- TRACK BLOCKS ----
-        struct TRKBLOCK
-        {
-            TRKBLOCK_HEADER *header;
-            VERT *vertexTable;
-            POLYGONDATA *polygonTable;
-            POLY_TYPE *polyTypes;
-            uint16_t nNeighbours;
-            uint16_t *blockNeighbours;
-            uint16_t nStructures;
-            GEOM_BLOCK *structures;
-
-            uint16_t nStructureReferences;
-            std::vector<GEOM_REF_BLOCK> structureRefData;
-
-            MEDIAN_BLOCK *medianData;
-            uint16_t nVroad;
-            VROAD *vroadData; // Reference using XBID 5
-            uint16_t nLanes;
-            LANE_BLOCK *laneData;
-        };
-
-        struct SUPERBLOCK
-        {
-            uint32_t superBlockSize;
-            uint32_t nBlocks;
-            uint32_t padding;
-            TRKBLOCK *trackBlocks;
-        };
-
-        // ---- MASTER TRACK STRUCT ----
-        struct TRACK
-        {
-            std::string name;
-            // TRK data
-            uint32_t nSuperBlocks;
-            uint32_t nBlocks;
-            SUPERBLOCK *superblocks;
-            VERT_HIGHP *blockReferenceCoords;
-            // COL data
-            uint32_t nTextures;
-            TEXTURE_BLOCK *polyToQFStexTable;
-            uint32_t nColStructures;
-            GEOM_BLOCK *colStructures;
-            uint32_t nColStructureReferences;
-            std::vector<GEOM_REF_BLOCK> colStructureRefData;
-            uint32_t nCollisionData;
-            COLLISION_BLOCK *collisionData;
-            // std::vector<SHARED::CANPT> cameraAnimation;
-            // GL 3D Render Data
-            std::vector<Entity> global_objects;
-            std::vector<TrackBlock> track_blocks;
-            // std::map<unsigned int, Texture> textures;
-            GLuint textureArrayID;
-        };
-
-        struct GEO
-        {
 #pragma pack(push, 2)
-            struct HEADER
-            {
-                uint32_t padding;     // Possible value: 0x00, 0x01, 0x02
-                uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for
-                                      // calculating the position of the blocks)
-                uint64_t unknown2;    //  always 0x00
-            };
+        struct HEADER
+        {
+            uint32_t padding;     // Possible value: 0x00, 0x01, 0x02
+            uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for
+                                  // calculating the position of the blocks)
+            uint64_t unknown2;    //  always 0x00
+        };
 
-            struct BLOCK_HEADER
-            {
-                uint32_t nVerts; // If nVert = 0x00, jump sizeof(GEO_BLOCK_HEADER) forwards, if odd, add 1
-                uint32_t nPolygons;
-                int32_t position[3]; // Absolute XYZ of the block
-                uint16_t unknown;    // ? similar to the value in the list above
-                uint16_t unknown1;   // ? similar to the value in the list above
-                uint16_t unknown2;   // ? similar to the value in the list above
-                uint16_t unknown3;   // ? similar to the value in the list above
-                uint64_t pad0;       // always 0x00
-                uint64_t pad1;       // always 0x01
-                uint64_t pad2;       // always 0x01
-            };
+        struct BLOCK_HEADER
+        {
+            uint32_t nVerts; // If nVert = 0x00, jump sizeof(GEO_BLOCK_HEADER) forwards, if odd, add 1
+            uint32_t nPolygons;
+            int32_t position[3]; // Absolute XYZ of the block
+            uint16_t unknown;    // ? similar to the value in the list above
+            uint16_t unknown1;   // ? similar to the value in the list above
+            uint16_t unknown2;   // ? similar to the value in the list above
+            uint16_t unknown3;   // ? similar to the value in the list above
+            uint64_t pad0;       // always 0x00
+            uint64_t pad1;       // always 0x01
+            uint64_t pad2;       // always 0x01
+        };
 #pragma pack(pop)
 
-            // Maybe this is a platform specific VERT HIGH P scenario?
-            struct BLOCK_3D
-            {
-                int16_t x;
-                int16_t y;
-                int16_t z;
-            };
+        // Maybe this is a platform specific VERT HIGH P scenario?
+        struct BLOCK_3D
+        {
+            int16_t x;
+            int16_t y;
+            int16_t z;
+        };
 
-            struct POLY_3D
-            {
-                uint32_t texMapType;
-                uint8_t vertex[4];
-                char texName[4];
-            };
+        struct POLY_3D
+        {
+            uint32_t texMapType;
+            uint8_t vertex[4];
+            char texName[4];
         };
     };
 
     struct PS1
     {
-        struct POLYGONDATA
-        {
-            uint8_t texture;
-            uint8_t otherSideTex;
-            uint8_t vertex[4];
-        };
-
-        struct VERT
-        {
-            int16_t x, z, y, w;
-        };
-
-        struct VROAD
-        {
-            VERT normalVec;
-            VERT forwardVec;
-        };
-
-        // ---- EXTRA BLOCKS ----
-        struct GEOM_BLOCK
-        {
-            // XBID = 8
-            uint32_t recSize;
-            uint16_t nVerts;
-            uint16_t nPoly;
-            VERT *vertexTable;
-            POLYGONDATA *polygonTable;
-        };
-
-        // ---- TRACK BLOCKS ----
-        struct TRKBLOCK
-        {
-            TRKBLOCK_HEADER *header;
-            VERT *vertexTable;
-            POLYGONDATA *polygonTable;
-            POLY_TYPE *polyTypes;
-            uint16_t nNeighbours;
-            uint16_t *blockNeighbours;
-            uint16_t nStructures;
-            GEOM_BLOCK *structures;
-
-            uint16_t nStructureReferences;
-            std::vector<GEOM_REF_BLOCK> structureRefData;
-
-            uint16_t nUnknownVerts;
-            VERT *unknownVerts;
-
-            MEDIAN_BLOCK *medianData;
-            uint16_t nVroad;
-            VROAD *vroadData; // Reference using XBID 5
-            uint16_t nLanes;
-            LANE_BLOCK *laneData;
-        };
-
-        struct SUPERBLOCK
-        {
-            uint32_t superBlockSize;
-            uint32_t nBlocks;
-            uint32_t padding;
-            TRKBLOCK *trackBlocks;
-        };
-
-        // ---- MASTER TRACK STRUCT ----
-        struct TRACK
-        {
-            std::string name;
-            // TRK data
-            uint32_t nSuperBlocks;
-            uint32_t nBlocks;
-            SUPERBLOCK *superblocks;
-            VERT_HIGHP *blockReferenceCoords;
-            // COL data
-            uint32_t nTextures;
-            TEXTURE_BLOCK *polyToQFStexTable;
-            uint32_t nColStructures;
-            GEOM_BLOCK *colStructures;
-
-            uint32_t nColStructureReferences;
-            std::vector<GEOM_REF_BLOCK> colStructureRefData;
-
-            uint32_t nCollisionData;
-            COLLISION_BLOCK *collisionData;
-
-            // std::vector<SHARED::CANPT> cameraAnimation;
-            // GL 3D Render Data
-            std::vector<Entity> global_objects;
-            std::vector<TrackBlock> track_blocks;
-            // std::map<unsigned int, Texture> textures;
-            GLuint textureArrayID;
-        };
-
         struct PSH
         {
             struct HEADER
@@ -1133,7 +850,7 @@ namespace NFS2_DATA
             struct IMAGE_HEADER
             {
                 uint8_t imageType; // Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0 The bottom 2 bits of the image type byte specify
-                                   // the bit depth of the image: 0 - 4-bit indexed colour 2 - 16-bit direct colour 3 - 24-bit direct colour
+                // the bit depth of the image: 0 - 4-bit indexed colour 2 - 16-bit direct colour 3 - 24-bit direct colour
                 uint8_t unknown[3];
                 uint16_t width;
                 uint16_t height;
@@ -1157,8 +874,8 @@ namespace NFS2_DATA
             {
                 uint32_t padding;     // Possible value: 0x00, 0x01, 0x02
                 uint16_t unknown[64]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for
-                                      // calculating the position of the blocks)
-                uint64_t unknown2;    //  always 0x00
+                // calculating the position of the blocks)
+                uint64_t unknown2; //  always 0x00
             };
 
             struct BLOCK_HEADER
@@ -1184,7 +901,7 @@ namespace NFS2_DATA
             {
                 uint16_t texMap[2];    // [1] seems to be useless. Value of 102 in bottom right of some meshes, small triangle.
                 uint16_t vertex[3][4]; // Literally wtf, 3 groups of 4 numbers that look like the vert indexes. One set [1] is usually
-                                       // 0,0,0,0 or 1,1,1,1
+                // 0,0,0,0 or 1,1,1,1
                 char texName[4];
             };
 
@@ -1215,7 +932,7 @@ namespace NFS2_DATA
 #pragma pack(pop)
         };
     };
-} // namespace NFS2_DATA
+}; // namespace NFS2_DATA
 
 namespace Music
 {

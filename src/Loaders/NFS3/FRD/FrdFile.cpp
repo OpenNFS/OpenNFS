@@ -1,5 +1,7 @@
 #include "FrdFile.h"
 
+using namespace LibOpenNFS::NFS3;
+
 bool FrdFile::Load(const std::string &frdPath, FrdFile &frdFile)
 {
     LOG(INFO) << "Loading FRD File located at " << frdPath;

@@ -15,7 +15,7 @@ Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_
     this->rawTextureInfo = rawTextureInfo;
 }
 
-Texture Texture::LoadTexture(NFSVer tag, TexBlock trackTexture, const std::string &trackName)
+Texture Texture::LoadTexture(NFSVer tag, LibOpenNFS::NFS3::TexBlock trackTexture, const std::string &trackName)
 {
     std::stringstream filename;
     std::stringstream filename_alpha;
@@ -127,7 +127,7 @@ int32_t Texture::hsStockTextureIndexRemap(int32_t textureIndex)
     return remappedIndex;
 }
 
-std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags, TexBlock texBlock)
+std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags, LibOpenNFS::NFS3::TexBlock texBlock)
 {
     std::bitset<32> textureAlignment(textureFlags);
     std::vector<glm::vec2> uvs;

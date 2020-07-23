@@ -1,5 +1,7 @@
 #include "TrkBlock.h"
 
+using namespace LibOpenNFS::NFS3;
+
 TrkBlock::TrkBlock(std::ifstream &frd)
 {
     ASSERT(this->_SerializeIn(frd), "Failed to serialize TrkBlock from file stream");

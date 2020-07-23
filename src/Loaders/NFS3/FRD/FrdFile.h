@@ -7,27 +7,33 @@
 #include "ExtraObjectBlock.h"
 #include "TexBlock.h"
 
-static const uint8_t HEADER_LENGTH   = 28;
-
-class FrdFile : IRawData
+namespace LibOpenNFS
 {
-public:
-    FrdFile() = default;
-    static bool Load(const std::string &frdPath, FrdFile &frdFile);
-    static void Save(const std::string &frdPath, FrdFile &frdFile);
-    static void MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB);
+    namespace NFS3
+    {
+        static const uint8_t HEADER_LENGTH = 28;
 
-    // Raw File data
-    char header[HEADER_LENGTH];
-    uint32_t nBlocks;
-    uint32_t nTextures;
-    NFSVer version;
-    std::vector<TrkBlock> trackBlocks;
-    std::vector<PolyBlock> polygonBlocks;
-    std::vector<ExtraObjectBlock> extraObjectBlocks;
-    std::vector<TexBlock> textureBlocks;
+        class FrdFile : IRawData
+        {
+        public:
+            FrdFile() = default;
+            static bool Load(const std::string &frdPath, FrdFile &frdFile);
+            static void Save(const std::string &frdPath, FrdFile &frdFile);
+            static void MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB);
 
-private:
-    bool _SerializeIn(std::ifstream &ifstream) override;
-    void _SerializeOut(std::ofstream &ofstream) override;
-};
+            // Raw File data
+            char header[HEADER_LENGTH];
+            uint32_t nBlocks;
+            uint32_t nTextures;
+            NFSVer version;
+            std::vector<TrkBlock> trackBlocks;
+            std::vector<PolyBlock> polygonBlocks;
+            std::vector<ExtraObjectBlock> extraObjectBlocks;
+            std::vector<TexBlock> textureBlocks;
+
+        private:
+            bool _SerializeIn(std::ifstream &ifstream) override;
+            void _SerializeOut(std::ofstream &ofstream) override;
+        };
+    } // namespace NFS3
+} // namespace LibOpenNFS

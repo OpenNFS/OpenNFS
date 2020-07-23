@@ -21,6 +21,8 @@
 #include "../../Scene/TrackBlock.h"
 #include "../../Renderer/Texture.h"
 
+using namespace LibOpenNFS::NFS3;
+
 const float NFS3_SCALE_FACTOR         = 10.f;
 const uint8_t quadToTriVertNumbers[6] = {0, 1, 2, 0, 2, 3};
 

@@ -1,5 +1,7 @@
 #include "ExtraObjectBlock.h"
 
+using namespace LibOpenNFS::NFS3;
+
 ExtraObjectBlock::ExtraObjectBlock(std::ifstream &frd)
 {
     ASSERT(this->_SerializeIn(frd), "Failed to serialize ExtraObjectBlock from file stream");

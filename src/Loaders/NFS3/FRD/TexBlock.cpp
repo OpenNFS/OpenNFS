@@ -1,5 +1,7 @@
 #include "TexBlock.h"
 
+using namespace LibOpenNFS::NFS3;
+
 TexBlock::TexBlock(std::ifstream &frd)
 {
     ASSERT(this->_SerializeIn(frd), "Failed to serialize TextureBlock from file stream");

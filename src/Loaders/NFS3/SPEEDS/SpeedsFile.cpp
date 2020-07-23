@@ -1,5 +1,7 @@
 #include "SpeedsFile.h"
 
+using namespace LibOpenNFS::NFS3;
+
 bool SpeedsFile::Load(const std::string& speedBinPath, SpeedsFile& speedFile)
 {
     LOG(INFO) << "Loading FRD File located at " << speedBinPath;
@@ -10,12 +12,14 @@ bool SpeedsFile::Load(const std::string& speedBinPath, SpeedsFile& speedFile)
 
     return loadStatus;
 }
+
 void SpeedsFile::Save(const std::string& speedBinPath, SpeedsFile& speedFile)
 {
     LOG(INFO) << "Saving SPEED BIN File to " << speedBinPath;
     std::ofstream speedBin(speedBinPath, std::ios::out | std::ios::binary);
     speedFile._SerializeOut(speedBin);
 }
+
 bool SpeedsFile::_SerializeIn(std::ifstream& ifstream)
 {
     // Tactical grab of the file size
@@ -29,17 +33,19 @@ bool SpeedsFile::_SerializeIn(std::ifstream& ifstream)
 
     return true;
 }
+
 void SpeedsFile::_SerializeOut(std::ofstream& ofstream)
 {
-    ofstream.write((char *) speeds.data(), m_uFileSize);
+    ofstream.write((char*) speeds.data(), m_uFileSize);
     ofstream.close();
 }
+
 void SpeedsFile::SaveCSV(const std::string& speedsCsvPath, SpeedsFile& speedFile)
 {
     LOG(INFO) << "Saving SPEED BIN File to CSV: " << speedsCsvPath;
     std::ofstream speedCsv(speedsCsvPath, std::ios::out | std::ios::binary);
 
-    for(auto &speed : speedFile.speeds)
+    for (auto& speed : speedFile.speeds)
     {
         speedCsv << static_cast<uint16_t>(speed) << "," << std::endl;
     }

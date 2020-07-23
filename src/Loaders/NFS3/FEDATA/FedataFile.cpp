@@ -1,5 +1,7 @@
 #include "FedataFile.h"
 
+using namespace LibOpenNFS::NFS3;
+
 bool FedataFile::Load(const std::string &fedataPath, FedataFile &fedataFile, uint8_t nPriColours)
 {
     LOG(INFO) << "Loading Fedata File located at " << fedataPath;

@@ -2,23 +2,29 @@
 
 #include "../../Common/IRawData.h"
 
-static const uint32_t COLOUR_TABLE_OFFSET      = 0xA7;
-static const uint32_t MENU_NAME_FILEPOS_OFFSET = 0x37;
-
-class FedataFile : IRawData
+namespace LibOpenNFS
 {
-public:
-    FedataFile() = default;
+    namespace NFS3
+    {
+        static const uint32_t COLOUR_TABLE_OFFSET      = 0xA7;
+        static const uint32_t MENU_NAME_FILEPOS_OFFSET = 0x37;
 
-    static bool Load(const std::string &fedataPath, FedataFile &fedataFile, uint8_t nPriColours);
-    static void Save(const std::string &fedataPath, FedataFile &fedataFile);
+        class FedataFile : IRawData
+        {
+        public:
+            FedataFile() = default;
 
-    std::string menuName;
-    std::vector<std::string> primaryColourNames;
+            static bool Load(const std::string &fedataPath, FedataFile &fedataFile, uint8_t nPriColours);
+            static void Save(const std::string &fedataPath, FedataFile &fedataFile);
 
-private:
-    bool _SerializeIn(std::ifstream &ifstream) override;
-    void _SerializeOut(std::ofstream &ofstream) override;
+            std::string menuName;
+            std::vector<std::string> primaryColourNames;
 
-    uint8_t m_nPriColours;
-};
+        private:
+            bool _SerializeIn(std::ifstream &ifstream) override;
+            void _SerializeOut(std::ofstream &ofstream) override;
+
+            uint8_t m_nPriColours;
+        };
+    } // namespace NFS3
+} // namespace LibOpenNFS

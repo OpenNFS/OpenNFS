@@ -2,6 +2,8 @@
 
 #include "../../../Util/ImageLoader.h"
 
+using namespace LibOpenNFS::NFS3;
+
 bool FfnFile::Load(const std::string &ffnPath, FfnFile &ffnFile)
 {
     LOG(INFO) << "Loading FFN File located at " << ffnPath;
