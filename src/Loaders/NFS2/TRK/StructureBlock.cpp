@@ -9,6 +9,8 @@ StructureBlock::StructureBlock(std::ifstream &trk)
 
 bool StructureBlock::_SerializeIn(std::ifstream &ifstream)
 {
+    std::streamoff padCheck = ifstream.tellg();
+
     SAFE_READ(ifstream, &recSize, sizeof(uint16_t));
     SAFE_READ(ifstream, &recType, sizeof(uint8_t));
     SAFE_READ(ifstream, &structureRef, sizeof(uint8_t));
@@ -34,7 +36,10 @@ bool StructureBlock::_SerializeIn(std::ifstream &ifstream)
     else
     {
         LOG(DEBUG) << "Unknown Structure Reference type: " << (int) recType << " Size: " << (int) recSize << " StructRef: " << (int) structureRef;
+        return true;
     }
+
+    ifstream.seekg(recSize - (ifstream.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
 
     return true;
 }

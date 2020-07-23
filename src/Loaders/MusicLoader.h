@@ -4,15 +4,55 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <boost/filesystem/path.hpp>
 #include <sstream>
-#include <stdio.h>
-#include "../nfs_data.h"
-#include "../Util/Utils.h"
 #include <set>
+#include <stdio.h>
+#include <boost/filesystem/path.hpp>
+
+#include "../Util/Utils.h"
 
 using namespace std;
-using namespace Music;
+
+typedef struct MAPHeader
+{
+    char szID[4];
+    uint8_t bUnknown1;
+    uint8_t bFirstSection;
+    uint8_t bNumSections;
+    uint8_t bRecordSize; // ???
+    uint8_t Unknown2[3];
+    uint8_t bNumRecords;
+} MAPHeader;
+
+typedef struct MAPSectionDefRecord
+{
+    uint8_t bUnknown;
+    uint8_t bMagic;
+    uint8_t bNextSection;
+} MAPSectionDefRecord;
+
+typedef struct MAPSectionDef
+{
+    uint8_t bIndex;
+    uint8_t bNumRecords;
+    uint8_t szID[2];
+    struct MAPSectionDefRecord msdRecords[8];
+} MAPSectionDef;
+
+struct ASFBlockHeader
+{
+    char szBlockID[4];
+    uint32_t dwSize;
+};
+
+struct ASFChunkHeader
+{
+    uint32_t dwOutSize;
+    uint16_t lCurSampleLeft;
+    uint16_t lPrevSampleLeft;
+    uint16_t lCurSampleRight;
+    uint16_t lPrevSampleRight;
+};
 
 class MusicLoader
 {

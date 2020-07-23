@@ -5,7 +5,6 @@
 #include <vector>
 #include <cstdint>
 
-#include "../NFS3/Common.h"
 #include "../../Util/Utils.h"
 
 static const uint32_t ONFS_SIGNATURE = 0x15B001C0;

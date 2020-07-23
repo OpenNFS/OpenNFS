@@ -1,7 +1,9 @@
 #pragma once
 
 #include <array>
+
 #include "../../Common/IRawData.h"
+#include "../Common.h"
 
 namespace LibOpenNFS
 {

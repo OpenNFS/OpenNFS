@@ -2,6 +2,9 @@
 
 using namespace LibOpenNFS::NFS2;
 
+template class LibOpenNFS::NFS2::TrkFile<PS1>;
+template class LibOpenNFS::NFS2::TrkFile<PC>;
+
 template <typename Platform>
 bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile)
 {
@@ -36,11 +39,11 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     }
 
     // Unknown header data
-    SAFE_READ(ifstream, unknownHeader, UNKNOWN_HEADER_LENGTH);
+    SAFE_READ(ifstream, unknownHeader, UNKNOWN_HEADER_LENGTH * sizeof(uint32_t));
 
     // Basic Track data
-    SAFE_READ(ifstream, nSuperBlocks, sizeof(uint32_t));
-    SAFE_READ(ifstream, nBlocks, sizeof(uint32_t));
+    SAFE_READ(ifstream, &nSuperBlocks, sizeof(uint32_t));
+    SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
     superBlocks.reserve(nSuperBlocks);
 
     // Offsets of Superblocks in TRK file

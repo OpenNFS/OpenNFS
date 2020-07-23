@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NFS3/FRD/FrdFile.h"
+#include <memory>
 #include "../Scene/Lights/TrackLight.h"
 
 namespace TrackUtils

@@ -1,7 +1,8 @@
 #include "NFS3Loader.h"
 
-// CAR
-std::shared_ptr<Car> NFS3::LoadCar(const std::string &carBasePath)
+using namespace LibOpenNFS::NFS3;
+
+std::shared_ptr<Car> NFS3Loader::LoadCar(const std::string &carBasePath)
 {
     boost::filesystem::path p(carBasePath);
     std::string car_name = p.filename().string();
@@ -31,7 +32,7 @@ std::shared_ptr<Car> NFS3::LoadCar(const std::string &carBasePath)
     return std::make_shared<Car>(carData, NFS_3, car_name);
 }
 
-std::shared_ptr<Track> NFS3::LoadTrack(const std::string &trackBasePath)
+std::shared_ptr<Track> NFS3Loader::LoadTrack(const std::string &trackBasePath)
 {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
 
@@ -91,7 +92,7 @@ std::shared_ptr<Track> NFS3::LoadTrack(const std::string &trackBasePath)
     return track;
 }
 
-CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
+CarData NFS3Loader::_ParseFCEModels(const FceFile &fceFile)
 {
     LOG(INFO) << "Parsing FCE File into ONFS Structures";
     // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
@@ -153,10 +154,10 @@ CarData NFS3::_ParseFCEModels(const FceFile &fceFile)
     return carData;
 }
 
-std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile, const std::shared_ptr<Track> &track)
+std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdFile, const std::shared_ptr<Track> &track)
 {
     LOG(INFO) << "Parsing TRK file into ONFS GL structures";
-    std::vector<TrackBlock> trackBlocks;
+    std::vector<OpenNFS::TrackBlock> trackBlocks;
     trackBlocks.reserve(frdFile.nBlocks);
 
     /* TRKBLOCKS - BASE TRACK GEOMETRY */
@@ -184,7 +185,7 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile, const std:
             }
         }
 
-        TrackBlock trackBlock(trackblockIdx, rawTrackBlockCenter, rawTrackBlock.nStartPos, rawTrackBlock.nPositions, trackBlockNeighbourIds);
+        OpenNFS::TrackBlock trackBlock(trackblockIdx, rawTrackBlockCenter, rawTrackBlock.nStartPos, rawTrackBlock.nPositions, trackBlockNeighbourIds);
 
         // Light and sound sources
         for (uint32_t lightNum = 0; lightNum < rawTrackBlock.nLightsrc; ++lightNum)
@@ -374,7 +375,7 @@ std::vector<TrackBlock> NFS3::_ParseTRKModels(const FrdFile &frdFile, const std:
     return trackBlocks;
 }
 
-std::vector<VirtualRoad> NFS3::_ParseVirtualRoad(const ColFile &colFile)
+std::vector<VirtualRoad> NFS3Loader::_ParseVirtualRoad(const ColFile &colFile)
 {
     std::vector<VirtualRoad> virtualRoad;
 
@@ -400,7 +401,7 @@ std::vector<VirtualRoad> NFS3::_ParseVirtualRoad(const ColFile &colFile)
     return virtualRoad;
 }
 
-std::vector<Entity> NFS3::_ParseCOLModels(const ColFile &colFile, const std::shared_ptr<Track> &track)
+std::vector<Entity> NFS3Loader::_ParseCOLModels(const ColFile &colFile, const std::shared_ptr<Track> &track)
 {
     LOG(INFO) << "Parsing COL file into ONFS GL structures";
     std::vector<Entity> colEntities;

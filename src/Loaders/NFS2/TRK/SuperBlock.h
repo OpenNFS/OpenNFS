@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Common/IRawData.h"
+#include "../Common.h"
 #include "TrackBlock.h"
 
 namespace LibOpenNFS

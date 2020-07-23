@@ -5,33 +5,31 @@
 #include <cstdint>
 #include <cstdlib>
 #include <bitset>
+
 #include "bmpread.h"
+#include "TRK/TrkFile.h"
+#include "COL/ColFile.h"
 #include "../TrackUtils.h"
-#include "../../Physics/Car.h"
 #include "../../Config.h"
-#include "../../Util/ImageLoader.h"
 #include "../../Util/Utils.h"
+#include "../../Physics/Car.h"
+#include "../../Scene/Track.h"
+#include "../../Scene/VirtualRoad.h"
 #include "../../Scene/TrackBlock.h"
-#include "../../nfs_data.h"
-#include "../../Util/Logger.h"
 
-#define scaleFactor 1000000.0f
-
-using namespace NFS2_DATA;
+const float NFS2_SCALE_FACTOR = 1000000.0f;
 
 template <typename Platform>
-class NFS2
+class NFS2Loader
 {
 public:
-    static std::shared_ptr<typename Platform::TRACK> LoadTrack(const std::string &track_base_path);
-    static std::shared_ptr<Car> LoadCar(const std::string &car_base_path, NFSVer version);
+    static std::shared_ptr<Car> LoadCar(const std::string &carBasePath);
+    static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath);
 
 private:
-    // Car
-    static std::vector<CarModel> LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids);
-    // Track
-    static bool LoadCOL(std::string col_path, const std::shared_ptr<typename Platform::TRACK> &track);
-    static void ParseTRKModels(const std::shared_ptr<typename Platform::TRACK> &track);
-    static std::vector<Entity> ParseCOLModels(const std::shared_ptr<typename Platform::TRACK> &track);
-    static Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version);
+    // static CarData _ParseGEOModels(const GeoFile &fceFile);
+    static std::vector<OpenNFS::TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS2::TrkFile<Platform> &trkFile, const std::shared_ptr<Track> &track);
+    static std::vector<VirtualRoad> _ParseVirtualRoad(const LibOpenNFS::NFS2::ColFile<Platform> &colFile);
+    static std::vector<Entity> _ParseCOLModels(const LibOpenNFS::NFS2::ColFile<Platform> &colFile, const std::shared_ptr<Track> &track);
+    // static Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version);
 };

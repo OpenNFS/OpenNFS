@@ -10,7 +10,6 @@
 #include <boost/filesystem/operations.hpp>
 
 #include "../Loaders/NFS3/FRD/TexBlock.h"
-#include "../nfs_data.h"
 #include "../Util/Utils.h"
 #include "../Util/ImageLoader.h"
 

@@ -3,13 +3,61 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-struct VERT_HIGHP
+namespace LibOpenNFS
 {
-    int32_t x, z, y;
-};
+    namespace NFS2
+    {
+        struct VERT_HIGHP
+        {
+            int32_t x, z, y;
+        };
 
-struct ANIM_POS
-{
-    VERT_HIGHP position;
-    int16_t unknown[4];
-};
+        struct ANIM_POS
+        {
+            VERT_HIGHP position;
+            int16_t unknown[4];
+        };
+
+        struct PC
+        {
+            struct VERT
+            {
+                int16_t x, z, y;
+            };
+
+            struct POLYGONDATA
+            {
+                int16_t texture;
+                int16_t otherSideTex;
+                uint8_t vertex[4];
+            };
+
+            struct VROAD
+            {
+                VERT normalVec;
+                VERT forwardVec;
+            };
+        };
+
+        struct PS1
+        {
+            struct VERT
+            {
+                int16_t x, z, y, w;
+            };
+
+            struct POLYGONDATA
+            {
+                uint8_t texture;
+                uint8_t otherSideTex;
+                uint8_t vertex[4];
+            };
+
+            struct VROAD
+            {
+                VERT normalVec;
+                VERT forwardVec;
+            };
+        };
+    } // namespace NFS2
+} // namespace LibOpenNFS

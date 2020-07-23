@@ -1,5 +1,10 @@
 #include "TrackLoader.h"
 
+#include "NFS3/NFS3Loader.h"
+#include "NFS2/NFS2Loader.h"
+/*#include "NFS4/PC/NFS4Loader.h"
+#include "NFS4/PS1/NFS4PS1Loader.h"*/
+
 std::shared_ptr<Track> TrackLoader::LoadTrack(NFSVer trackVersion, const std::string &trackName)
 {
     std::shared_ptr<Track> loadedTrack;
@@ -9,16 +14,16 @@ std::shared_ptr<Track> TrackLoader::LoadTrack(NFSVer trackVersion, const std::st
 
     switch (trackVersion)
     {
-    /*case NFS_2:
+    case NFS_2:
         trackPath << NFS_2_TRACK_PATH << trackName;
-        trackData = NFS2<PC>::LoadTrack(trackPath.str());
-        nBlocks = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
+        loadedTrack = NFS2Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str());
+        /*nBlocks = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
         cameraAnimations = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->cameraAnimation;
         textureArrayID = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->textureArrayID;
         trackBlocks = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->track_blocks;
-        globalObjects = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;
+        globalObjects = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->global_objects;*/
         break;
-    case NFS_2_SE:
+    /*case NFS_2_SE:
         trackPath << NFS_2_SE_TRACK_PATH << trackName;
         trackData = NFS2<PC>::LoadTrack(trackPath.str());
         nBlocks = boost::get<std::shared_ptr<NFS2_DATA::PC::TRACK>>(trackData)->nBlocks;
@@ -29,7 +34,7 @@ std::shared_ptr<Track> TrackLoader::LoadTrack(NFSVer trackVersion, const std::st
         break;*/
     case NFS_3:
         trackPath << NFS_3_TRACK_PATH << trackName;
-        loadedTrack = NFS3::LoadTrack(trackPath.str());
+        loadedTrack = NFS3Loader::LoadTrack(trackPath.str());
         break;
         /*case NFS_3_PS1:
             trackPath << "/" << trackName;

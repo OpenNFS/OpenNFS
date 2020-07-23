@@ -92,7 +92,8 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
     if (nfsVer == NFS_3_PS1)
     {
         output_dir << "/textures/";
-        return ImageLoader::ExtractPSH(tex_archive_path.str(), output_dir.str());
+        ASSERT(false, "Dead path until NFS2 OOP refactor complete");
+        // return ImageLoader::ExtractPSH(tex_archive_path.str(), output_dir.str());
     }
     else if (nfsVer == NFS_3)
     {

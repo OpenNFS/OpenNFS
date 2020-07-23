@@ -30,6 +30,55 @@ file(GLOB CRP_LIB_SOURCES
         include/CrpLib/*.cpp
         )
 
+set(LIB_OPENNFS_SOURCES
+        src/Loaders/Common/IRawData.h
+        src/Loaders/NFS3/Common.h
+        src/Loaders/NFS3/FRD/FrdFile.cpp
+        src/Loaders/NFS3/FRD/FrdFile.h
+        src/Loaders/NFS3/FRD/TrkBlock.cpp
+        src/Loaders/NFS3/FRD/TrkBlock.h
+        src/Loaders/NFS3/FRD/PolyBlock.cpp
+        src/Loaders/NFS3/FRD/PolyBlock.h
+        src/Loaders/NFS3/FRD/ExtraObjectBlock.cpp
+        src/Loaders/NFS3/FRD/ExtraObjectBlock.h
+        src/Loaders/NFS3/FRD/TexBlock.cpp
+        src/Loaders/NFS3/FRD/TexBlock.h
+        src/Loaders/NFS3/COL/ColFile.cpp
+        src/Loaders/NFS3/COL/ColFile.h
+        src/Loaders/NFS3/FFN/FfnFile.cpp
+        src/Loaders/NFS3/FFN/FfnFile.h
+        src/Loaders/NFS3/FCE/FceFile.cpp
+        src/Loaders/NFS3/FCE/FceFile.h
+        src/Loaders/NFS3/FEDATA/FedataFile.cpp
+        src/Loaders/NFS3/FEDATA/FedataFile.h
+        src/Loaders/NFS3/SPEEDS/SpeedsFile.cpp
+        src/Loaders/NFS3/SPEEDS/SpeedsFile.h
+        src/Loaders/Shared/CanFile.cpp
+        src/Loaders/Shared/CanFile.h
+        src/Loaders/Shared/HrzFile.cpp
+        src/Loaders/Shared/HrzFile.h
+
+        src/Loaders/NFS2/Common.h
+        src/Loaders/NFS2/COL/ColFile.cpp
+        src/Loaders/NFS2/COL/ColFile.h
+        src/Loaders/NFS2/GEO/GeoFile.cpp
+        src/Loaders/NFS2/GEO/GeoFile.h
+        src/Loaders/NFS2/PSH/PshFile.cpp
+        src/Loaders/NFS2/PSH/PshFile.h
+        src/Loaders/NFS2/TRK/ExtraObjectBlock.cpp
+        src/Loaders/NFS2/TRK/ExtraObjectBlock.h
+        src/Loaders/NFS2/TRK/GeomBlock.cpp
+        src/Loaders/NFS2/TRK/GeomBlock.h
+        src/Loaders/NFS2/TRK/StructureBlock.cpp
+        src/Loaders/NFS2/TRK/StructureBlock.h
+        src/Loaders/NFS2/TRK/SuperBlock.cpp
+        src/Loaders/NFS2/TRK/SuperBlock.h
+        src/Loaders/NFS2/TRK/TrackBlock.cpp
+        src/Loaders/NFS2/TRK/TrackBlock.h
+        src/Loaders/NFS2/TRK/TrkFile.cpp
+        src/Loaders/NFS2/TRK/TrkFile.h
+        )
+
 set(SOURCE_FILES
         include/bmpread/bmpread.c
         include/bmpread/bmpread.h
@@ -57,7 +106,6 @@ set(SOURCE_FILES
         lib/glew-cmake/src/glew.c
         src/Scene/TrackBlock.cpp
         src/Scene/TrackBlock.h
-        src/nfs_data.h
         src/Scene/Lights/LightModel.cpp
         src/Scene/Lights/LightModel.h
         src/Camera/BaseCamera.cpp
@@ -86,8 +134,8 @@ set(SOURCE_FILES
         src/Loaders/MusicLoader.h
         src/Config.cpp
         src/Config.h
-        #[[src/Loaders/NFS2/NFS2Loader.cpp
-        src/Loaders/NFS2/NFS2Loader.h]]
+        src/Loaders/NFS2/NFS2Loader.cpp
+        src/Loaders/NFS2/NFS2Loader.h
         src/Loaders/NFS3/NFS3Loader.cpp
         src/Loaders/NFS3/NFS3Loader.h
         #[[src/Loaders/NFS4/PC/NFS4Loader.cpp
@@ -191,32 +239,6 @@ set(SOURCE_FILES
         src/Scene/Lights/BaseLight.h
         src/Scene/Lights/TrackLight.cpp
         src/Scene/Lights/TrackLight.h
-        src/Loaders/NFS3/FRD/FrdFile.cpp
-        src/Loaders/NFS3/FRD/FrdFile.h
-        src/Loaders/NFS3/FRD/TrkBlock.cpp
-        src/Loaders/NFS3/FRD/TrkBlock.h
-        src/Loaders/NFS3/FRD/PolyBlock.cpp
-        src/Loaders/NFS3/FRD/PolyBlock.h
-        src/Loaders/NFS3/FRD/ExtraObjectBlock.cpp
-        src/Loaders/NFS3/FRD/ExtraObjectBlock.h
-        src/Loaders/Common/IRawData.h
-        src/Loaders/NFS3/FRD/TexBlock.cpp
-        src/Loaders/NFS3/FRD/TexBlock.h
-        src/Loaders/NFS3/COL/ColFile.cpp
-        src/Loaders/NFS3/COL/ColFile.h
-        src/Loaders/NFS3/Common.h
-        src/Loaders/NFS3/FFN/FfnFile.cpp
-        src/Loaders/NFS3/FFN/FfnFile.h
-        src/Loaders/Shared/CanFile.cpp
-        src/Loaders/Shared/CanFile.h
-        src/Loaders/Shared/HrzFile.cpp
-        src/Loaders/Shared/HrzFile.h
-        src/Loaders/NFS3/FCE/FceFile.cpp
-        src/Loaders/NFS3/FCE/FceFile.h
-        src/Loaders/NFS3/FEDATA/FedataFile.cpp
-        src/Loaders/NFS3/FEDATA/FedataFile.h
-        src/Loaders/NFS3/SPEEDS/SpeedsFile.cpp
-        src/Loaders/NFS3/SPEEDS/SpeedsFile.h
         src/Renderer/Texture.cpp
         src/Renderer/Texture.h
         src/Scene/Track.cpp
@@ -227,7 +249,7 @@ set(SOURCE_FILES
         src/Scene/VirtualRoad.h
         src/Loaders/NFS2/Common.h)
 
-add_executable(OpenNFS ${SOURCE_FILES} ${CRP_LIB_SOURCES})
+add_executable(OpenNFS ${SOURCE_FILES} ${LIB_OPENNFS_SOURCES} ${CRP_LIB_SOURCES})
 
 
 #[[JSON]]

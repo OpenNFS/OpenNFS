@@ -23,10 +23,10 @@
 #include "Race/RaceSession.h"
 #include "RaceNet/TrainingGround.h"
 
-class OpenNFS
+class OpenNFSEngine
 {
 public:
-    explicit OpenNFS(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger)
+    explicit OpenNFSEngine(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger)
     {
         InitDirectories();
         PopulateAssets();
@@ -425,7 +425,7 @@ int main(int argc, char **argv)
 
     try
     {
-        OpenNFS game(logger);
+        OpenNFSEngine game(logger);
     }
     catch (const std::runtime_error &e)
     {

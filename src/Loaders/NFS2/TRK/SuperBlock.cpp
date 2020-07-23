@@ -2,6 +2,9 @@
 
 using namespace LibOpenNFS::NFS2;
 
+template class LibOpenNFS::NFS2::SuperBlock<PS1>;
+template class LibOpenNFS::NFS2::SuperBlock<PC>;
+
 template <typename Platform>
 SuperBlock<Platform>::SuperBlock(std::ifstream &trk)
 {
@@ -11,10 +14,11 @@ SuperBlock<Platform>::SuperBlock(std::ifstream &trk)
 template <typename Platform>
 bool SuperBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
 {
+    // TODO: Gross, needs to be relative//passed in
     std::streampos superblockOffset = ifstream.tellg();
-    SAFE_READ(ifstream, superBlockSize, sizeof(uint32_t));
-    SAFE_READ(ifstream, nBlocks, sizeof(uint32_t));
-    SAFE_READ(ifstream, padding, sizeof(uint32_t));
+    SAFE_READ(ifstream, &superBlockSize, sizeof(uint32_t));
+    SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
+    SAFE_READ(ifstream, &padding, sizeof(uint32_t));
 
     if (nBlocks != 0)
     {
@@ -26,8 +30,8 @@ bool SuperBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
         for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
         {
             // LOG(DEBUG) << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->blockSerial << "]";
-            // TODO: Is this seek necessary?
-            // ifstream.seekg(superblockOffset + blockOffsets[blockIdx], std::ios_base::beg);
+            // TODO: Fix this
+            ifstream.seekg((uint32_t) superblockOffset + blockOffsets[blockIdx], std::ios_base::beg);
             trackBlocks.push_back(TrackBlock<Platform>(ifstream));
         }
     }

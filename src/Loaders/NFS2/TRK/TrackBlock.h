@@ -8,68 +8,6 @@ namespace LibOpenNFS
 {
     namespace NFS2
     {
-        namespace PC
-        {
-            struct VERT
-            {
-                int16_t x, z, y;
-            };
-
-            struct POLYGONDATA
-            {
-                int16_t texture;
-                int16_t otherSideTex;
-                uint8_t vertex[4];
-            };
-
-            struct GEOM_BLOCK
-            {
-                // XBID = 8
-                uint32_t recSize;
-                uint16_t nVerts;
-                uint16_t nPoly;
-                VERT *vertexTable;
-                POLYGONDATA *polygonTable;
-            };
-
-            struct VROAD
-            {
-                VERT normalVec;
-                VERT forwardVec;
-            };
-        } // namespace PC
-
-        namespace PS1
-        {
-            struct VERT
-            {
-                int16_t x, z, y, w;
-            };
-
-            struct POLYGONDATA
-            {
-                uint8_t texture;
-                uint8_t otherSideTex;
-                uint8_t vertex[4];
-            };
-
-            struct GEOM_BLOCK
-            {
-                // XBID = 8
-                uint32_t recSize;
-                uint16_t nVerts;
-                uint16_t nPoly;
-                VERT *vertexTable;
-                POLYGONDATA *polygonTable;
-            };
-
-            struct VROAD
-            {
-                VERT normalVec;
-                VERT forwardVec;
-            };
-        } // namespace PS1
-
         template <typename Platform>
         class TrackBlock : IRawData
         {

@@ -4,9 +4,6 @@
 
 #include "SuperBlock.h"
 
-static const uint8_t HEADER_LENGTH         = 4;
-static const uint8_t UNKNOWN_HEADER_LENGTH = 5;
-
 namespace LibOpenNFS
 {
     namespace NFS2
@@ -19,12 +16,15 @@ namespace LibOpenNFS
             static bool Load(const std::string &trkPath, TrkFile &trkFile);
             static void Save(const std::string &trkPath, TrkFile &trkFile);
 
+            static const uint8_t HEADER_LENGTH         = 4;
+            static const uint8_t UNKNOWN_HEADER_LENGTH = 5;
+
             // ONFS attribute
             NFSVer version;
 
             // Raw File data
-            char header[HEADER_LENGTH];
-            long unknownHeader[UNKNOWN_HEADER_LENGTH];
+            unsigned char header[HEADER_LENGTH];
+            uint32_t unknownHeader[UNKNOWN_HEADER_LENGTH];
             uint32_t nSuperBlocks;
             uint32_t nBlocks;
             std::vector<SuperBlock<Platform>> superBlocks;

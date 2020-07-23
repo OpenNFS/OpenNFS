@@ -31,7 +31,7 @@ public:
     HermiteCurve centerSpline;
 
     // Geometry
-    std::vector<TrackBlock> trackBlocks;
+    std::vector<OpenNFS::TrackBlock> trackBlocks;
     std::vector<Entity> globalObjects;
     std::vector<Entity> vroadBarriers;
 

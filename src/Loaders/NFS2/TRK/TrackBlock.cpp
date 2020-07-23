@@ -2,6 +2,9 @@
 
 using namespace LibOpenNFS::NFS2;
 
+template class LibOpenNFS::NFS2::TrackBlock<PS1>;
+template class LibOpenNFS::NFS2::TrackBlock<PC>;
+
 template <typename Platform>
 TrackBlock<Platform>::TrackBlock(std::ifstream &frd)
 {
@@ -11,6 +14,7 @@ TrackBlock<Platform>::TrackBlock(std::ifstream &frd)
 template <typename Platform>
 bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
 {
+    std::streampos trackBlockOffset = ifstream.tellg();
     // Read Header
     SAFE_READ(ifstream, &blockSize, sizeof(uint32_t));
     SAFE_READ(ifstream, &blockSizeDup, sizeof(uint32_t));
@@ -43,16 +47,16 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, polygonTable.data(), (nLowResPoly + nMedResPoly + nHighResPoly) * sizeof(typename Platform::POLYGONDATA));
 
     // Read Extrablock data
-    // trk.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + 64u + header->extraBlockTblOffset, std::ios_base::beg);
+    ifstream.seekg((uint32_t) trackBlockOffset + 64u + extraBlockTblOffset, std::ios_base::beg);
     // Get extrablock offsets (relative to beginning of TrackBlock)
     extraBlockOffsets.reserve(nExtraBlocks);
-    SAFE_READ(ifstream, extraBlockOffsets, nExtraBlocks * sizeof(uint32_t));
+    SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
 
     extraObjectBlocks.reserve(nExtraBlocks);
 
     for (uint32_t xblockIdx = 0; xblockIdx < nExtraBlocks; ++xblockIdx)
     {
-        // ifstream.seekg(superblockOffsets[superBlock_Idx] + blockOffsets[block_Idx] + extrablockOffsets[xblockIdx], std::ios_base::beg);
+        ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[xblockIdx], std::ios_base::beg);
         extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
     }
 

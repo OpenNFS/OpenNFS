@@ -3,11 +3,43 @@
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 #include "StructureBlock.h"
+#include "GeomBlock.h"
 
 namespace LibOpenNFS
 {
     namespace NFS2
     {
+        // ---- COL Specific Extra Blocks ----
+        struct TEXTURE_BLOCK
+        {
+            // XBID = 2
+            uint16_t texNumber; // Texture number in QFS file
+            uint16_t alignmentData;
+            uint8_t RGB[3];     // Luminosity
+            uint8_t RGBlack[3]; // Usually black
+        };
+
+        struct COLLISION_BLOCK
+        {
+            // XBID = 15
+            VERT_HIGHP trackPosition; // Position auint32_t track on a single line, either at center or side of road
+            int8_t vertVec[3];        // The three vectors are mutually orthogonal, and are normalized so that
+            int8_t fwdVec[3];         // each vector's norm is slightly less than 128. Each vector is coded on
+            int8_t rightVec[3];       // 3 bytes : its x, z and y components are each signed 8-bit values.
+            uint8_t zero;
+            uint16_t blockNumber;
+            uint16_t unknown; // The left and right border values indicate the two limits beyond which no car can go. This is the data used for
+            // delimitation between the road and scenery
+            uint16_t leftBorder; // Formula to find the coordinates of the left-most point of the road is (left-most point) = (reference point)
+            // - 2.(left border).(right vector):  there is a factor of 2 between absolute
+            uint16_t rightBorder; // 32-bit coordinates and the othe data in the record. Similarly, for the right-most point of the road,
+            // (right-most point) = (reference point)
+            // + 2.(right border).(right vector).
+            uint16_t postCrashPosition; // Lateral position after respawn
+            uint32_t unknown2;
+        };
+
+        // ---- TRK Specific Extra Blocks ----
         // Matches number of NP1 polygons in corresponding trackblock
         struct POLY_TYPE
         {
@@ -40,31 +72,47 @@ namespace LibOpenNFS
             explicit ExtraObjectBlock(std::ifstream &trk);
             void _SerializeOut(std::ofstream &ofstream) override;
 
-            uint32_t recSize;
-            uint16_t id;
-            uint16_t nRecords;
+            uint32_t recSize  = 0;
+            uint16_t id       = 0;
+            uint16_t nRecords = 0;
+
+            // Type 2
+            uint16_t nTextures = 0;
+            std::vector<TEXTURE_BLOCK> polyToQfsTexTable;
+
+            // Type 4
+            uint16_t nNeighbours = 0;
+            std::vector<uint16_t> blockNeighbours;
 
             // Type 5
             std::vector<POLY_TYPE> polyTypes;
 
-            // Type 4
-            uint16_t nNeighbours;
-            std::vector<uint16_t> blockNeighbours;
+            // Type 6
+            std::vector<MEDIAN_BLOCK> medianData;
 
             // Type 8
-            uint16_t nStructures;
-            std::vector<typename Platform::GEOM_BLOCK> structures;
-            uint16_t nStructureReferences;
+            uint16_t nStructures = 0;
+            std::vector<GeomBlock<Platform>> structures;
+
+            // Type 7, 18, 19
+            uint16_t nStructureReferences = 0;
             std::vector<StructureBlock> structureBlocks;
 
-            uint16_t nUnknownVerts;
+            // Type 9
+            uint16_t nLanes = 0;
+            std::vector<LANE_BLOCK> laneData;
+
+            // Type 10?
+            uint16_t nUnknownVerts = 0;
             std::vector<typename Platform::VERT> unknownVerts;
 
-            std::vector<MEDIAN_BLOCK> medianData;
-            uint16_t nVroad;
+            // Type 13
+            uint16_t nVroad = 0;
             std::vector<typename Platform::VROAD> vroadData; // Reference using XBID 5
-            uint16_t nLanes;
-            std::vector<LANE_BLOCK> laneData;
+
+            // Type 15
+            uint16_t nCollisionData = 0;
+            std::vector<COLLISION_BLOCK> collisionData;
 
         private:
             bool _SerializeIn(std::ifstream &ifstream) override;
