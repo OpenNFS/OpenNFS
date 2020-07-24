@@ -29,7 +29,7 @@ bool SuperBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
 
         for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
         {
-            // LOG(DEBUG) << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->blockSerial << "]";
+            // LOG(DEBUG) << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->serialNum << "]";
             // TODO: Fix this
             ifstream.seekg((uint32_t) superblockOffset + blockOffsets[blockIdx], std::ios_base::beg);
             trackBlocks.push_back(TrackBlock<Platform>(ifstream));

@@ -67,10 +67,10 @@ set(LIB_OPENNFS_SOURCES
         src/Loaders/NFS2/PSH/PshFile.h
         src/Loaders/NFS2/TRK/ExtraObjectBlock.cpp
         src/Loaders/NFS2/TRK/ExtraObjectBlock.h
-        src/Loaders/NFS2/TRK/GeomBlock.cpp
-        src/Loaders/NFS2/TRK/GeomBlock.h
         src/Loaders/NFS2/TRK/StructureBlock.cpp
         src/Loaders/NFS2/TRK/StructureBlock.h
+        src/Loaders/NFS2/TRK/StructureRefBlock.cpp
+        src/Loaders/NFS2/TRK/StructureRefBlock.h
         src/Loaders/NFS2/TRK/SuperBlock.cpp
         src/Loaders/NFS2/TRK/SuperBlock.h
         src/Loaders/NFS2/TRK/TrackBlock.cpp

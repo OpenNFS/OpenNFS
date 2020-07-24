@@ -70,7 +70,6 @@ std::shared_ptr<Track> NFS3Loader::LoadTrack(const std::string &trackBasePath)
            "Could not load CAN file (camera animation): " << canPath.str());                                                  // Load camera intro/outro animation data
     ASSERT(HrzFile::Load(hrzPath.str(), hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath.str());             // Load HRZ Data
     ASSERT(SpeedsFile::Load(binPath.str(), speedFile), "Could not load speedsf.bin file (AI vroad speeds:" << binPath.str()); // Load AI speed data
-
     // TODO: Debug, dump to a CSV for quick excel viz
     SpeedsFile::SaveCSV("./speeds.csv", speedFile);
 

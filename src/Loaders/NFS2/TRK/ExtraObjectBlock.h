@@ -2,13 +2,30 @@
 
 #include "../../Common/IRawData.h"
 #include "../Common.h"
+#include "StructureRefBlock.h"
 #include "StructureBlock.h"
-#include "GeomBlock.h"
 
 namespace LibOpenNFS
 {
     namespace NFS2
     {
+        // LibONFS Helper
+        enum ExtraBlockID : uint8_t
+        {
+            TEXTURE_BLOCK_ID = 2,
+            NEIGHBOUR_BLOCK_ID = 4,
+            POLY_TYPE_BLOCK_ID = 5,
+            MEDIAN_BLOCK_ID = 6,
+            STRUCTURE_REF_BLOCK_A_ID = 7,
+            STRUCTURE_BLOCK_ID       = 8,
+            LANE_BLOCK_ID = 9,
+            UNKNOWN_BLOCK_ID = 10,
+            VROAD_BLOCK_ID = 13,
+            COLLISION_BLOCK_ID = 15,
+            STRUCTURE_REF_BLOCK_B_ID = 18,
+            STRUCTURE_REF_BLOCK_C_ID = 19,
+        };
+
         // ---- COL Specific Extra Blocks ----
         struct TEXTURE_BLOCK
         {
@@ -92,11 +109,11 @@ namespace LibOpenNFS
 
             // Type 8
             uint16_t nStructures = 0;
-            std::vector<GeomBlock<Platform>> structures;
+            std::vector<StructureBlock<Platform>> structures;
 
             // Type 7, 18, 19
             uint16_t nStructureReferences = 0;
-            std::vector<StructureBlock> structureBlocks;
+            std::vector<StructureRefBlock> structureReferences;
 
             // Type 9
             uint16_t nLanes = 0;

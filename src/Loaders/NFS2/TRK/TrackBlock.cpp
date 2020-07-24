@@ -20,7 +20,7 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, &blockSizeDup, sizeof(uint32_t));
     SAFE_READ(ifstream, &nExtraBlocks, sizeof(uint16_t));
     SAFE_READ(ifstream, &unknown, sizeof(uint16_t));
-    SAFE_READ(ifstream, &blockSerial, sizeof(uint32_t));
+    SAFE_READ(ifstream, &serialNum, sizeof(uint32_t));
     SAFE_READ(ifstream, clippingRect, 4 * sizeof(VERT_HIGHP));
     SAFE_READ(ifstream, &extraBlockTblOffset, sizeof(uint32_t));
     SAFE_READ(ifstream, &nStickToNextVerts, sizeof(uint16_t));
@@ -52,12 +52,11 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     extraBlockOffsets.reserve(nExtraBlocks);
     SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
 
-    extraObjectBlocks.reserve(nExtraBlocks);
-
     for (uint32_t xblockIdx = 0; xblockIdx < nExtraBlocks; ++xblockIdx)
     {
         ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[xblockIdx], std::ios_base::beg);
-        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
+        ExtraObjectBlock<Platform> extraObjectBlock = ExtraObjectBlock<Platform>(ifstream);
+        extraObjectBlocks[(ExtraBlockID)extraObjectBlock.id] = extraObjectBlock;
     }
 
     return true;

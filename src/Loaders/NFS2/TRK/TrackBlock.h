@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 #include "ExtraObjectBlock.h"
@@ -20,7 +22,7 @@ namespace LibOpenNFS
             uint32_t blockSizeDup;
             uint16_t nExtraBlocks;
             uint16_t unknown;
-            uint32_t blockSerial;
+            uint32_t serialNum;
             struct VERT_HIGHP clippingRect[4];
             uint32_t extraBlockTblOffset;
             uint16_t nStickToNextVerts, nLowResVert, nMedResVert, nHighResVert;
@@ -29,7 +31,7 @@ namespace LibOpenNFS
             std::vector<typename Platform::VERT> vertexTable;
             std::vector<typename Platform::POLYGONDATA> polygonTable;
             std::vector<uint32_t> extraBlockOffsets;
-            std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
+            std::unordered_map<ExtraBlockID, ExtraObjectBlock<Platform>> extraObjectBlocks; // Allows lookup by block type for parsers
 
         private:
             bool _SerializeIn(std::ifstream &ifstream) override;

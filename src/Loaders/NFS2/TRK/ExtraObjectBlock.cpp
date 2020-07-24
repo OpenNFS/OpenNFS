@@ -45,7 +45,7 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
         nStructureReferences += nRecords;
         for (uint32_t structureRef_Idx = 0; structureRef_Idx < nStructureReferences; ++structureRef_Idx)
         {
-            structureBlocks.push_back(StructureBlock(ifstream));
+            structureReferences.push_back(StructureRefBlock(ifstream));
         }
         break;
     case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2 (COL)
@@ -53,7 +53,7 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
         nStructures = nRecords;
         for (uint32_t structureIdx = 0; structureIdx < nStructures; ++structureIdx)
         {
-            structures.push_back(GeomBlock<Platform>(ifstream));
+            structures.push_back(StructureBlock<Platform>(ifstream));
         }
         break;
     case 9:
@@ -61,9 +61,9 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
         laneData.reserve(nRecords);
         SAFE_READ(ifstream, laneData.data(), nLanes * sizeof(LANE_BLOCK));
         break;
-    case 10: // PS1 Specific id, Misc purpose
-    {
-        std::cout << "id 10 NStruct: " << nRecords << std::endl;
+    // case 10: // PS1 Specific id, Misc purpose
+    // {
+        // std::cout << "id 10 NStruct: " << nRecords << std::endl;
         // PS1::TRKBLOCK *ps1TrackBlock = ((PS1::TRKBLOCK *) trackblock);
         // ps1TrackBlock->nUnknownVerts = nRecords;
         // uint8_t xbidHeader[8];
@@ -78,8 +78,8 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
         // {
         //     trk.read((char *) &ps1TrackBlock->unknownVerts[record_Idx], sizeof(PS1::VERT));
         // }
-    }
-    break;
+    // }
+    // break;
     case 13:
         nVroad = nRecords;
         vroadData.reserve(nRecords);

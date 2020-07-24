@@ -2,49 +2,37 @@
 
 using namespace LibOpenNFS::NFS2;
 
-StructureBlock::StructureBlock(std::ifstream &trk)
+template class LibOpenNFS::NFS2::StructureBlock<PS1>;
+template class LibOpenNFS::NFS2::StructureBlock<PC>;
+
+template <typename Platform>
+StructureBlock<Platform>::StructureBlock(std::ifstream &ifstream)
 {
-    ASSERT(this->_SerializeIn(trk), "Failed to serialize StructureBlock from file stream");
+    ASSERT(this->_SerializeIn(ifstream), "Failed to serialize StructureBlock from file stream");
 }
 
-bool StructureBlock::_SerializeIn(std::ifstream &ifstream)
+template <typename Platform>
+bool StructureBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
 {
     std::streamoff padCheck = ifstream.tellg();
 
-    SAFE_READ(ifstream, &recSize, sizeof(uint16_t));
-    SAFE_READ(ifstream, &recType, sizeof(uint8_t));
-    SAFE_READ(ifstream, &structureRef, sizeof(uint8_t));
+    SAFE_READ(ifstream, &recSize, sizeof(uint32_t));
+    SAFE_READ(ifstream, &nVerts, sizeof(uint16_t));
+    SAFE_READ(ifstream, &nPoly, sizeof(uint16_t));
 
-    if (recType == 1)
-    {
-        // Fixed type
-        SAFE_READ(ifstream, &refCoordinates, sizeof(VERT_HIGHP));
-    }
-    else if (recType == 3)
-    {
-        // Animated type
-        SAFE_READ(ifstream, &animLength, sizeof(uint16_t));
-        SAFE_READ(ifstream, &unknown, sizeof(uint16_t));
-        animationData.reserve(animLength);
-        SAFE_READ(ifstream, animationData.data(), animLength * sizeof(ANIM_POS));
-    }
-    else if (recType == 4)
-    {
-        // 4 Component PSX Vert data? TODO: Restructure to allow the 4th component to be read
-        SAFE_READ(ifstream, &refCoordinates, sizeof(VERT_HIGHP));
-    }
-    else
-    {
-        LOG(DEBUG) << "Unknown Structure Reference type: " << (int) recType << " Size: " << (int) recSize << " StructRef: " << (int) structureRef;
-        return true;
-    }
+    vertexTable.reserve(nVerts);
+    SAFE_READ(ifstream, vertexTable.data(), nVerts * sizeof(typename Platform::VERT));
+
+    polygonTable.reserve(nPoly);
+    SAFE_READ(ifstream, polygonTable.data(), nPoly * sizeof(typename Platform::POLYGONDATA));
 
     ifstream.seekg(recSize - (ifstream.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
 
     return true;
 }
 
-void StructureBlock::_SerializeOut(std::ofstream &ofstream)
+template <typename Platform>
+void StructureBlock<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
     ASSERT(false, "StructureBlock output serialization is not currently implemented");
 }
