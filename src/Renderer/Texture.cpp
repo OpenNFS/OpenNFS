@@ -15,35 +15,75 @@ Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_
     this->rawTextureInfo = rawTextureInfo;
 }
 
-Texture Texture::LoadTexture(NFSVer tag, LibOpenNFS::NFS3::TexBlock trackTexture, const std::string &trackName)
+Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const std::string &trackName)
 {
     std::stringstream filename;
-    std::stringstream filename_alpha;
-
-    if (trackTexture.isLane)
-    {
-        filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << ".BMP";
-        filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << "-a.BMP";
-    }
-    else
-    {
-        filename << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << ".BMP";
-        filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << "-a.BMP";
-    }
-
     GLubyte *data;
-    GLsizei width  = trackTexture.width;
-    GLsizei height = trackTexture.height;
+    GLsizei width;
+    GLsizei height;
 
-    if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height))
+    switch (tag)
     {
-        LOG(WARNING) << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!";
-        // If the texture is missing, load a "MISSING" texture of identical size.
-        ASSERT(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height), "Even the 'missing' texture is missing!");
-        return Texture(tag, (unsigned int) trackTexture.qfsIndex, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height), trackTexture);
-    }
+    case NFS_3:
+    {
+        LibOpenNFS::NFS3::TexBlock trackTexture = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
+        width                                   = trackTexture.width;
+        height                                  = trackTexture.height;
 
-    return Texture(tag, static_cast<uint32_t>(trackTexture.qfsIndex), data, static_cast<uint32_t>(trackTexture.width), static_cast<uint32_t>(trackTexture.height), trackTexture);
+        std::stringstream filename_alpha;
+
+        if (trackTexture.isLane)
+        {
+            filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << ".BMP";
+            filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << "-a.BMP";
+        }
+        else
+        {
+            filename << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << ".BMP";
+            filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << "-a.BMP";
+        }
+
+        if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height))
+        {
+            LOG(WARNING) << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!";
+            // If the texture is missing, load a "MISSING" texture of identical size.
+            ASSERT(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height),
+                   "Even the 'missing' texture is missing!");
+            return Texture(tag, (unsigned int) trackTexture.qfsIndex, data, static_cast<unsigned int>(width), static_cast<unsigned int>(height), rawTrackTexture);
+        }
+
+        return Texture(
+          tag, static_cast<uint32_t>(trackTexture.qfsIndex), data, static_cast<uint32_t>(trackTexture.width), static_cast<uint32_t>(trackTexture.height), rawTrackTexture);
+    }
+    break;
+    case NFS_2:
+    case NFS_2_SE:
+    case NFS_3_PS1:
+    {
+        LibOpenNFS::NFS2::TEXTURE_BLOCK trackTexture = boost::get<LibOpenNFS::NFS2::TEXTURE_BLOCK>(rawTrackTexture);
+        uint8_t alphaColour                          = 0;
+        switch (tag)
+        {
+        case NFS_2:
+            alphaColour = 0u;
+            break;
+        case NFS_2_SE:
+            alphaColour = 248u;
+            break;
+        case NFS_3_PS1:
+            break;
+        }
+        filename << TRACK_PATH << ToString(tag) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.texNumber << ".BMP";
+
+        ASSERT(ImageLoader::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture " << filename.str() << " did not load succesfully!");
+
+        return Texture(tag, (uint32_t) trackTexture.texNumber, data, static_cast<uint32_t>(width), static_cast<uint32_t>(height), rawTrackTexture);
+    }
+    break;
+    default:
+        ASSERT(false, "Trying to load texture from unknown NFS version");
+        break;
+    }
 }
 
 bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::string trackName, NFSVer nfsVer)
@@ -128,7 +168,7 @@ int32_t Texture::hsStockTextureIndexRemap(int32_t textureIndex)
     return remappedIndex;
 }
 
-std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags, LibOpenNFS::NFS3::TexBlock texBlock)
+std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags)
 {
     std::bitset<32> textureAlignment(textureFlags);
     std::vector<glm::vec2> uvs;
@@ -264,6 +304,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         }
         break;
     case NFS_3:
+    {
+        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo);
         switch (meshType)
         {
         case XOBJ:
@@ -289,9 +331,12 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         case CAR:
             break;
         }
-
-        break;
+    }
+    break;
     case NFS_4:
+    {
+        // TODO: Needs to be an NFS4 texblock after NFS4 new gen parser bringup
+        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo);
         switch (meshType)
         {
         //(flags>>2)&3 indicates the multiple of 90° by which the
@@ -374,7 +419,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         case CAR:
             break;
         }
-        break;
+    }
+    break;
     case NFS_5:
         break;
     case UNKNOWN:

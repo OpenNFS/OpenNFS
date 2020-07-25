@@ -28,7 +28,7 @@ public:
 
 private:
     // static CarData _ParseGEOModels(const GeoFile &fceFile);
-    static std::vector<OpenNFS::TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS2::TrkFile<Platform> &trkFile, const std::shared_ptr<Track> &track);
+    static std::vector<OpenNFS::TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS2::TrkFile<Platform> &trkFile, LibOpenNFS::NFS2::ColFile<Platform> &colFile, const std::shared_ptr<Track> &track);
     static std::vector<VirtualRoad> _ParseVirtualRoad(const LibOpenNFS::NFS2::ColFile<Platform> &colFile);
     static std::vector<Entity> _ParseCOLModels(const LibOpenNFS::NFS2::ColFile<Platform> &colFile, const std::shared_ptr<Track> &track);
     // static Texture LoadTexture(TEXTURE_BLOCK track_texture, const std::string &track_name, NFSVer nfs_version);

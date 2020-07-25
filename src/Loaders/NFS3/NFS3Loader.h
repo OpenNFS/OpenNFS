@@ -22,7 +22,6 @@
 #include "../../Renderer/Texture.h"
 
 const float NFS3_SCALE_FACTOR         = 10.f;
-const uint8_t quadToTriVertNumbers[6] = {0, 1, 2, 0, 2, 3};
 
 class NFS3Loader
 {

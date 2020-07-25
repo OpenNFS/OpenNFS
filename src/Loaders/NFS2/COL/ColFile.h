@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 #include "../TRK/ExtraObjectBlock.h"
@@ -23,7 +25,7 @@ namespace LibOpenNFS
             uint32_t size;
             uint32_t nExtraBlocks;
             std::vector<uint32_t> extraBlockOffsets;
-            std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
+            std::unordered_map<ExtraBlockID, ExtraObjectBlock<Platform>> extraObjectBlocks; // Allows lookup by block type for parsers
 
         private:
             bool _SerializeIn(std::ifstream &ifstream) override;

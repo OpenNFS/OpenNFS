@@ -49,7 +49,8 @@ bool ColFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     for (uint32_t xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx)
     {
         ifstream.seekg(16 + extraBlockOffsets[xBlock_Idx], std::ios_base::beg);
-        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
+        ExtraObjectBlock<Platform> extraObjectBlock = ExtraObjectBlock<Platform>(ifstream);
+        extraObjectBlocks[(ExtraBlockID)extraObjectBlock.id] = extraObjectBlock;
     }
 
     return true;
