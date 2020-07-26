@@ -570,7 +570,7 @@ void fsh_to_bmp(char *fshname)
     if (hasglobpal>=0) {
         makepal(inbuf+dir[hasglobpal].ofs,&globpallen,globpal);
         fprintf(log,"GLOBPAL %04d.BIN\n",hasglobpal);
-        printf("Found a global palette (tag '%c%c%c%c', will be saved as '%04d.BIN') with %d colors.\n",
+        printf("Found a global palette (nfsVersion '%c%c%c%c', will be saved as '%04d.BIN') with %d colors.\n",
                dir[hasglobpal].name[0],dir[hasglobpal].name[1],
                dir[hasglobpal].name[2],dir[hasglobpal].name[3],hasglobpal,globpallen);
     }
@@ -1028,7 +1028,7 @@ void fsh_to_bmp(char *fshname)
                     curoffs=auxoffs+16+auxhdr->width*j;
                 }
                 else if ((auxhdr->code&0xff)==0x6F) {
-                    // TODO: This should be more robust, pass in tag and object type enums to fshtool
+                    // TODO: This should be more robust, pass in nfsVersion and object type enums to fshtool
                     if (strstr(fshname, "NFS_4") != NULL) {
                         i++;
                         mirrorskip++;

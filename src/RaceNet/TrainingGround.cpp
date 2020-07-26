@@ -9,7 +9,7 @@ TrainingGround::TrainingGround(uint16_t nGenerations,
     m_window(window), raceNetRenderer(m_window, logger)
 {
     LOG(INFO) << "Beginning GA evolution session. nGenerations Cap: " << nGenerations << " nTicks: " << nTicks << " Track: " << training_track->name << " ("
-              << ToString(training_track->tag) << ")";
+              << ToString(training_track->nfsVersion) << ")";
 
     this->training_track = training_track;
     this->training_car   = training_car;

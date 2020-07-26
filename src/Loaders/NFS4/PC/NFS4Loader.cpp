@@ -890,9 +890,9 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                 {
                     // TODO: Animated objects here, obj_polygon_block.types
                     // Mesh Data
-                    std::vector<unsigned int> vertex_indices;
+                    std::vector<uint32_t> vertex_indices;
                     std::vector<glm::vec2> uvs;
-                    std::vector<unsigned int> texture_indices;
+                    std::vector<uint32_t> texture_indices;
                     std::vector<glm::vec3> norms;
                     FLOATPT norm_floatpt = {0.f, 0.f, 0.f};
                     // Get Polygons in object
@@ -953,9 +953,9 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
                     xobj_shading_verts.emplace_back(glm::vec4(
                       ((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
                 }
-                std::vector<unsigned int> vertex_indices;
+                std::vector<uint32_t> vertex_indices;
                 std::vector<glm::vec2> uvs;
-                std::vector<unsigned int> texture_indices;
+                std::vector<uint32_t> texture_indices;
                 std::vector<glm::vec3> norms;
 
                 for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++)
@@ -997,9 +997,9 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
         }
 
         // Mesh Data
-        std::vector<unsigned int> vertex_indices;
+        std::vector<uint32_t> vertex_indices;
         std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
+        std::vector<uint32_t> texture_indices;
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> trk_block_shading_verts;
         std::vector<glm::vec3> norms;
@@ -1082,9 +1082,9 @@ std::vector<TrackBlock> NFS4::ParseTRKModels(const std::shared_ptr<TRACK> &track
             xobj_shading_verts.emplace_back(
               glm::vec4(((shading_data >> 16) & 0xFF) / 255.0f, ((shading_data >> 8) & 0xFF) / 255.0f, (shading_data & 0xFF) / 255.0f, ((shading_data >> 24) & 0xFF) / 255.0f));
         }
-        std::vector<unsigned int> vertex_indices;
+        std::vector<uint32_t> vertex_indices;
         std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
+        std::vector<uint32_t> texture_indices;
         std::vector<glm::vec3> norms;
 
         for (uint32_t k = 0; k < x->nPolygons; k++, x->polyData++)

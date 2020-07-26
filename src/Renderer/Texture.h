@@ -32,7 +32,7 @@ public:
 
     NFSVer tag;
     uint32_t id, width, height, layer;
-    float min_u, min_v, max_u, max_v;
+    float minU, minV, maxU, maxV;
     GLubyte *data;
     RawTextureInfo rawTextureInfo;
 };

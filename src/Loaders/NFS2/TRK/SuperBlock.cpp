@@ -23,9 +23,8 @@ bool SuperBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     if (nBlocks != 0)
     {
         // Get the offsets of the child blocks within superblock
-        blockOffsets.reserve(nBlocks);
+        blockOffsets.resize(nBlocks);
         SAFE_READ(ifstream, blockOffsets.data(), nBlocks * sizeof(uint32_t));
-        trackBlocks.reserve(nBlocks);
 
         for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
         {

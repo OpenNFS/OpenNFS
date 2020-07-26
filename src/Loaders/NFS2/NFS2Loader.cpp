@@ -5,23 +5,26 @@
 
 using namespace LibOpenNFS::NFS2;
 
+template class NFS2Loader<PS1>;
+template class NFS2Loader<PC>;
+
 template <typename Platform>
-std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePath)
+std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVer nfsVersion)
 {
-    /*boost::filesystem::path p(car_base_path);
-    std::string car_name = p.filename().string();
+    boost::filesystem::path p(carBasePath);
+    std::string carName = p.filename().string();
 
     std::stringstream geo_path, psh_path, qfs_path, car_out_path;
-    geo_path << car_base_path << ".GEO";
-    psh_path << car_base_path << ".PSH";
-    qfs_path << car_base_path << ".QFS";
+    geo_path << carBasePath << ".GEO";
+    psh_path << carBasePath << ".PSH";
+    qfs_path << carBasePath << ".QFS";
 
     // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
-    std::map<unsigned int, Texture> car_textures;
-    std::map<std::string, uint32_t> remapped_texture_ids;
+    std::map<unsigned int, Texture> carTextures;
+    std::map<std::string, uint32_t> remappedTextureIds;
     uint32_t remappedTextureID = 0;
 
-    switch (version)
+    /*switch (version)
     {
     case NFS_3_PS1:
     case NFS_2_PS1:
@@ -69,13 +72,13 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
                 ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it.");
             }
         }
-    }
+    }*/
 
     // This must run before geometry load, as it will affect UV's
-    GLint textureArrayID = MakeTextureArray(car_textures, false);
+    GLint textureArrayID = Texture::MakeTextureArray(carTextures, false);
     CarData carData;
-    carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
-    return std::make_shared<Car>(carData, version, car_name, textureArrayID);*/
+    // carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
+    return std::make_shared<Car>(carData, NFSVer::NFS_2, carName, textureArrayID);
 }
 
 template <>
@@ -83,8 +86,8 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
 {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
 
-    auto track = std::make_shared<Track>(Track());
-    track->tag = (trackBasePath.find(ToString(NFS_2_SE)) != std::string::npos) ? NFS_2_SE : NFS_2;
+    auto track        = std::make_shared<Track>(Track());
+    track->nfsVersion = (trackBasePath.find(ToString(NFS_2_SE)) != std::string::npos) ? NFS_2_SE : NFS_2;
 
     boost::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
@@ -92,23 +95,22 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
 
     trkPath = trackBasePath + ".TRK";
     colPath = trackBasePath + ".COL";
-    canPath = RESOURCE_PATH + ToString(track->tag) + "/GAMEDATA/TRACKS/DATA/PC/" + track->name + "00.CAN";
+    canPath = RESOURCE_PATH + ToString(track->nfsVersion) + "/GAMEDATA/TRACKS/DATA/PC/" + track->name + "00.CAN";
 
     TrkFile<PC> trkFile;
     ColFile<PC> colFile;
     CanFile canFile;
 
-    // ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->tag), "Could not extract " << track->name << " texture pack.");
+    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
     ASSERT(CanFile::Load(canPath, canFile), "Could not load CAN file (camera animation): " << canPath); // Load camera intro/outro animation data
     ASSERT(TrkFile<PC>::Load(trkPath, trkFile), "Could not load TRK file: " << trkPath);                // Load TRK file to get track block specific data
     ASSERT(ColFile<PC>::Load(colPath, colFile), "Could not load COL file: " << colPath);                // Load Catalogue file to get global (non block specific) data
 
     // Load up the textures
-    auto &textureBlock = colFile.extraObjectBlocks[ExtraBlockID::TEXTURE_BLOCK_ID];
+    auto textureBlock = colFile.GetExtraObjectBlock(ExtraBlockID::TEXTURE_BLOCK_ID);
     for (uint32_t texIdx = 0; texIdx < textureBlock.nTextures; texIdx++)
     {
-        TEXTURE_BLOCK test = textureBlock.polyToQfsTexTable[texIdx];
-        track->textureMap[textureBlock.polyToQfsTexTable[texIdx].texNumber] = Texture::LoadTexture(track->tag, textureBlock.polyToQfsTexTable[texIdx], track->name);
+        track->textureMap[textureBlock.polyToQfsTexTable[texIdx].texNumber] = Texture::LoadTexture(track->nfsVersion, textureBlock.polyToQfsTexTable[texIdx], track->name);
     }
 
     track->textureArrayID  = Texture::MakeTextureArray(track->textureMap, false);
@@ -116,7 +118,7 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
     track->cameraAnimation = canFile.animPoints;
     track->trackBlocks     = _ParseTRKModels(trkFile, colFile, track);
     track->globalObjects   = _ParseCOLModels(colFile, track);
-    track->virtualRoad     = _ParseVirtualRoad(colFile);
+    track->virtualRoad     = _ParseVirtualRoad(trkFile);
 
     LOG(INFO) << "Track loaded successfully";
 
@@ -127,8 +129,8 @@ template <>
 std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePath)
 {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
-    auto track = std::make_shared<Track>(Track());
-    track->tag = NFS_3_PS1;
+    auto track        = std::make_shared<Track>(Track());
+    track->nfsVersion = NFS_3_PS1;
 
     boost::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
@@ -141,7 +143,7 @@ std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePa
     TrkFile<PS1> trkFile;
     ColFile<PS1> colFile;
 
-    // ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->tag), "Could not extract " << track->name << " texture pack.");
+    // ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
     ASSERT(TrkFile<PS1>::Load(trkPath, trkFile), "Could not load TRK file: " << trkPath); // Load TRK file to get track block specific data
     ASSERT(ColFile<PS1>::Load(colPath, colFile), "Could not load COL file: " << colPath); // Load Catalogue file to get global (non block specific) data
 
@@ -149,19 +151,26 @@ std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePa
     auto &textureBlock = colFile.extraObjectBlocks[ExtraBlockID::TEXTURE_BLOCK_ID];
     for (uint32_t texIdx = 0; texIdx < textureBlock.nTextures; texIdx++)
     {
-        track->textureMap[textureBlock.polyToQfsTexTable[texIdx].texNumber] = Texture::LoadTexture(track->tag, textureBlock.polyToQfsTexTable[texIdx], track->name);
+        track->textureMap[textureBlock.polyToQfsTexTable[texIdx].texNumber] = Texture::LoadTexture(track->nfsVersion, textureBlock.polyToQfsTexTable[texIdx], track->name);
     }
 
     track->textureArrayID = Texture::MakeTextureArray(track->textureMap, false);
     track->nBlocks        = trkFile.nBlocks;
     track->trackBlocks    = _ParseTRKModels(trkFile, colFile, track);
     track->globalObjects  = _ParseCOLModels(colFile, track);
-    track->virtualRoad    = _ParseVirtualRoad(colFile);
+    track->virtualRoad    = _ParseVirtualRoad(trkFile);
 
     LOG(INFO) << "Track loaded successfully";
 
     return track;
 }
+
+// template <typename Platform>
+// CarData NFS2Loader<Platform>::_ParseGEOModels(const GeoFile<Platform> &geoFile)
+// {
+//     ASSERT(false, "Unimplemented");
+//     return CarData();
+// }
 
 // One might question why a TRK parsing function requires the COL file too. Simples, we need XBID 2 for Texture remapping during ONFS texgen.
 template <typename Platform>
@@ -171,7 +180,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
     std::vector<OpenNFS::TrackBlock> trackBlocks;
 
     // Pull out a shorter reference to the texture table
-    auto &polyToQfsTexTable = colFile.extraObjectBlocks[ExtraBlockID::TEXTURE_BLOCK_ID].polyToQfsTexTable;
+    auto polyToQfsTexTable = colFile.GetExtraObjectBlock(ExtraBlockID::TEXTURE_BLOCK_ID).polyToQfsTexTable;
 
     // Parse out TRKBlock data
     for (const auto &superBlock : trkFile.superBlocks)
@@ -181,9 +190,13 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
             // Get position all vertices need to be relative to
             glm::quat orientation         = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
             glm::vec3 rawTrackBlockCenter = orientation * (Utils::PointToVec(trkFile.blockReferenceCoords[rawTrackBlock.serialNum]) / NFS2_SCALE_FACTOR);
+            std::vector<uint32_t> trackBlockNeighbourIds;
             // Convert the neighbor uint16_t's to uint32_t for OFNS trackblock representation
-            std::vector<uint32_t> trackBlockNeighbourIds(rawTrackBlock.extraObjectBlocks[ExtraBlockID::NEIGHBOUR_BLOCK_ID].blockNeighbours.begin(),
-                                                         rawTrackBlock.extraObjectBlocks[ExtraBlockID::NEIGHBOUR_BLOCK_ID].blockNeighbours.end());
+            // if (rawTrackBlock.IsBlockPresent(ExtraBlockID::NEIGHBOUR_BLOCK_ID))
+            // {
+            //     trackBlockNeighbourIds.insert(trackBlockNeighbourIds.begin(), rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::NEIGHBOUR_BLOCK_ID).blockNeighbours.begin(),
+            //                                   rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::NEIGHBOUR_BLOCK_ID).blockNeighbours.end());
+            // }
 
             OpenNFS::TrackBlock trackBlock(rawTrackBlock.serialNum, rawTrackBlockCenter, rawTrackBlock.serialNum, 1, trackBlockNeighbourIds);
 
@@ -193,111 +206,119 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                                                              ExtraBlockID::STRUCTURE_REF_BLOCK_C_ID};
             for (auto &structRefBlockId : structRefBlockIds)
             {
-                if (rawTrackBlock.extraObjectBlocks.count(structRefBlockId))
+                if (rawTrackBlock.IsBlockPresent(structRefBlockId))
                 {
-                    structureReferences.insert(structureReferences.end(),
-                                               rawTrackBlock.extraObjectBlocks[structRefBlockId].structureReferences.begin(),
-                                               rawTrackBlock.extraObjectBlocks[structRefBlockId].structureReferences.end());
+                    auto structureRefBlock = rawTrackBlock.GetExtraObjectBlock(structRefBlockId);
+                    structureReferences.insert(structureReferences.end(), structureRefBlock.structureReferences.begin(), structureRefBlock.structureReferences.end());
                 }
             }
 
-            if (rawTrackBlock.extraObjectBlocks[ExtraBlockID::STRUCTURE_BLOCK_ID].nStructures != structureReferences.size())
+            // Pull out structures from trackblock if present
+            if (rawTrackBlock.IsBlockPresent(ExtraBlockID::STRUCTURE_BLOCK_ID))
             {
-                LOG(WARNING) << "Trk block " << (int) rawTrackBlock.serialNum << " is missing "
-                             << rawTrackBlock.extraObjectBlocks[ExtraBlockID::STRUCTURE_BLOCK_ID].nStructures - structureReferences.size() << " structure locations!";
-            }
-
-            // Structures
-            for (uint32_t structureIdx = 0; structureIdx < rawTrackBlock.extraObjectBlocks[ExtraBlockID::STRUCTURE_BLOCK_ID].nStructures; ++structureIdx)
-            {
-                // Mesh Data
-                std::vector<unsigned int> structureVertexIndices;
-                std::vector<glm::vec2> structureUVs;
-                std::vector<unsigned int> structureTextureIndices;
-                std::vector<glm::vec3> structureVertices;
-                std::vector<glm::vec4> structureShadingData;
-                std::vector<glm::vec3> structureNormals;
+                // Check whether there are enough struct references for how many strucutres there are for this trackblock
+                if (rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::STRUCTURE_BLOCK_ID).nStructures != structureReferences.size())
+                {
+                    LOG(WARNING) << "Trk block " << (int) rawTrackBlock.serialNum << " is missing "
+                                 << rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::STRUCTURE_BLOCK_ID).nStructures - structureReferences.size() << " structure locations!";
+                }
 
                 // Shorter reference to structures for trackblock
-                auto &structures = rawTrackBlock.extraObjectBlocks[ExtraBlockID::STRUCTURE_BLOCK_ID].structures;
+                auto structures = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::STRUCTURE_BLOCK_ID).structures;
 
-                VERT_HIGHP structureReferenceCoordinates = trkFile.blockReferenceCoords[rawTrackBlock.serialNum];
-                bool refCoordsFound                      = false;
-                // Find the structure reference that matches this structure, else use block default
-                for (auto &structureReference : structureReferences)
+                // Structures
+                for (uint32_t structureIdx = 0; structureIdx < rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::STRUCTURE_BLOCK_ID).nStructures; ++structureIdx)
                 {
-                    // Only check fixed type structure references
-                    if (structureReference.structureRef == structureIdx)
+                    // Mesh Data
+                    std::vector<uint32_t> structureVertexIndices;
+                    std::vector<glm::vec2> structureUVs;
+                    std::vector<uint32_t> structureTextureIndices;
+                    std::vector<glm::vec3> structureVertices;
+                    std::vector<glm::vec4> structureShadingData;
+                    std::vector<glm::vec3> structureNormals;
+
+                    VERT_HIGHP structureReferenceCoordinates = trkFile.blockReferenceCoords[rawTrackBlock.serialNum];
+                    bool refCoordsFound                      = false;
+                    // Find the structure reference that matches this structure, else use block default
+                    for (auto &structureReference : structureReferences)
                     {
-                        if (structureReference.recType == 1 || structureReference.recType == 4)
+                        // Only check fixed type structure references
+                        if (structureReference.structureRef == structureIdx)
                         {
-                            structureReferenceCoordinates = structureReference.refCoordinates;
-                            refCoordsFound                = true;
-                            break;
-                        }
-                        else if (structureReference.recType == 3)
-                        {
-                            // For now, if animated, use position 0 of animation sequence
-                            structureReferenceCoordinates = structureReference.animationData[0].position;
-                            refCoordsFound                = true;
-                            break;
+                            if (structureReference.recType == 1 || structureReference.recType == 4)
+                            {
+                                structureReferenceCoordinates = structureReference.refCoordinates;
+                                refCoordsFound                = true;
+                                break;
+                            }
+                            else if (structureReference.recType == 3)
+                            {
+                                // For now, if animated, use position 0 of animation sequence
+                                structureReferenceCoordinates = structureReference.animationData[0].position;
+                                refCoordsFound                = true;
+                                break;
+                            }
                         }
                     }
-                }
-                if (!refCoordsFound)
-                {
-                    LOG(WARNING) << "Couldn't find a reference coordinate for Structure " << structureIdx << " in TB" << rawTrackBlock.serialNum;
-                }
-                for (uint16_t vertIdx = 0; vertIdx < structures[structureIdx].nVerts; ++vertIdx)
-                {
-                    structureVertices.emplace_back(orientation *
-                                                   (((256.f * Utils::PointToVec(structures[structureIdx].vertexTable[vertIdx])) / NFS2_SCALE_FACTOR) - rawTrackBlockCenter));
-                    structureShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
-                }
-                for (uint32_t polyIdx = 0; polyIdx < structures[structureIdx].nPoly; ++polyIdx)
-                {
-                    // Remap the COL TextureID's using the COL texture block (XBID2)
-                    TEXTURE_BLOCK polygonTexture = polyToQfsTexTable[structures[structureIdx].polygonTable[polyIdx].texture];
-                    Texture glTexture            = track->textureMap[polygonTexture.texNumber];
-                    // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                    std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, polygonTexture.alignmentData);
-                    structureUVs.insert(structureUVs.end(), transformedUVs.begin(), transformedUVs.end());
-
-                    // Calculate the normal, as no provided data
-                    glm::vec3 normal = Utils::CalculateQuadNormal(verts[structures[structureIdx].polygonTable[polyIdx].vertex[0]],
-                                                                  verts[structures[structureIdx].polygonTable[polyIdx].vertex[1]],
-                                                                  verts[structures[structureIdx].polygonTable[polyIdx].vertex[2]],
-                                                                  verts[structures[structureIdx].polygonTable[polyIdx].vertex[3]]);
-
-                    // Two triangles per raw quad, hence 6 vertices. Normal data and texture index required per-vertex.
-                    for (auto &quadToTriVertNumber : quadToTriVertNumbers)
+                    if (!refCoordsFound)
                     {
-                        structureNormals.emplace_back(normal);
-                        structureVertexIndices.emplace_back(structures[structureIdx].polygonTable[polyIdx].vertex[quadToTriVertNumber]);
-                        structureTextureIndices.emplace_back(polygonTexture.texNumber);
+                        LOG(WARNING) << "Couldn't find a reference coordinate for Structure " << structureIdx << " in TB" << rawTrackBlock.serialNum;
                     }
-                }
+                    for (uint16_t vertIdx = 0; vertIdx < structures[structureIdx].nVerts; ++vertIdx)
+                    {
+                        structureVertices.emplace_back(orientation * ((256.f * Utils::PointToVec(structures[structureIdx].vertexTable[vertIdx])) / NFS2_SCALE_FACTOR));
+                        structureShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
+                    }
+                    for (uint32_t polyIdx = 0; polyIdx < structures[structureIdx].nPoly; ++polyIdx)
+                    {
+                        // Remap the COL TextureID's using the COL texture block (XBID2)
+                        TEXTURE_BLOCK polygonTexture = polyToQfsTexTable[structures[structureIdx].polygonTable[polyIdx].texture];
+                        Texture glTexture            = track->textureMap[polygonTexture.texNumber];
+                        // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
+                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, polygonTexture.alignmentData);
+                        structureUVs.insert(structureUVs.end(), transformedUVs.begin(), transformedUVs.end());
 
-                TrackModel trackBlockModel =
-                  TrackModel(structureVertices, structureNormals, structureUVs, structureTextureIndices, structureVertexIndices, structureShadingData, rawTrackBlockCenter);
-                Entity trackBlockEntity = Entity(rawTrackBlock.serialNum, structureIdx, track->tag, OBJ_POLY, trackBlockModel, 0);
-                trackBlock.objects.emplace_back(trackBlockEntity);
+                        // Calculate the normal, as no provided data
+                        glm::vec3 normal = Utils::CalculateQuadNormal(verts[structures[structureIdx].polygonTable[polyIdx].vertex[0]],
+                                                                      verts[structures[structureIdx].polygonTable[polyIdx].vertex[1]],
+                                                                      verts[structures[structureIdx].polygonTable[polyIdx].vertex[2]],
+                                                                      verts[structures[structureIdx].polygonTable[polyIdx].vertex[3]]);
+
+                        // Two triangles per raw quad, hence 6 vertices. Normal data and texture index required per-vertex.
+                        for (auto &quadToTriVertNumber : quadToTriVertNumbers)
+                        {
+                            structureNormals.emplace_back(normal);
+                            structureVertexIndices.emplace_back(structures[structureIdx].polygonTable[polyIdx].vertex[quadToTriVertNumber]);
+                            structureTextureIndices.emplace_back(polygonTexture.texNumber);
+                        }
+                    }
+
+                    TrackModel trackBlockModel = TrackModel(structureVertices,
+                                                            structureNormals,
+                                                            structureUVs,
+                                                            structureTextureIndices,
+                                                            structureVertexIndices,
+                                                            structureShadingData,
+                                                            orientation * (Utils::PointToVec(structureReferenceCoordinates) / NFS2_SCALE_FACTOR));
+                    Entity trackBlockEntity    = Entity(rawTrackBlock.serialNum, structureIdx, track->nfsVersion, OBJ_POLY, trackBlockModel, 0);
+                    trackBlock.objects.emplace_back(trackBlockEntity);
+                }
             }
 
             // Track Mesh Data
-            std::vector<unsigned int> trackBlockVertexIndices;
+            std::vector<uint32_t> trackBlockVertexIndices;
             std::vector<glm::vec2> trackBlockUVs;
-            std::vector<unsigned int> trackBlockTextureIndices;
+            std::vector<uint32_t> trackBlockTextureIndices;
             std::vector<glm::vec3> trackBlockVertices;
             std::vector<glm::vec4> trackBlockShadingData;
             std::vector<glm::vec3> trackBlockNormals;
 
-            for (int32_t i = 0; i < rawTrackBlock.nStickToNextVerts + rawTrackBlock.nHighResVert; i++)
-            {
-                // Base Track Geometry
-                VERT_HIGHP blockRefCoord;
+            // Base Track Geometry
+            VERT_HIGHP blockRefCoord;
 
-                if (i < rawTrackBlock.nStickToNextVerts)
+            for (int32_t vertIdx = 0; vertIdx < rawTrackBlock.nStickToNextVerts + rawTrackBlock.nHighResVert; vertIdx++)
+            {
+                if (vertIdx < rawTrackBlock.nStickToNextVerts)
                 {
                     // If in last block go get ref coord of first block, else get ref of next block
                     blockRefCoord = (rawTrackBlock.serialNum == track->nBlocks - 1) ? trkFile.blockReferenceCoords[0] : trkFile.blockReferenceCoords[rawTrackBlock.serialNum + 1];
@@ -307,8 +328,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                     blockRefCoord = trkFile.blockReferenceCoords[rawTrackBlock.serialNum];
                 }
 
-                trackBlockVertices.emplace_back(
-                  orientation * ((Utils::PointToVec(blockRefCoord) + (256.f * Utils::PointToVec(rawTrackBlock.vertexTable[i])) / NFS2_SCALE_FACTOR) - rawTrackBlockCenter));
+                trackBlockVertices.emplace_back(orientation * (((Utils::PointToVec(blockRefCoord) + (256.f * Utils::PointToVec(rawTrackBlock.vertexTable[vertIdx]))) / NFS2_SCALE_FACTOR)));
                 trackBlockShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
             }
             for (int32_t polyIdx = (rawTrackBlock.nLowResPoly + rawTrackBlock.nMedResPoly);
@@ -336,107 +356,153 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                 }
             }
 
-            TrackModel trackBlockModel =
-              TrackModel(trackBlockVertices, trackBlockNormals, trackBlockUVs, trackBlockTextureIndices, trackBlockVertexIndices, trackBlockShadingData, rawTrackBlockCenter);
-            Entity trackBlockEntity = Entity(rawTrackBlock.serialNum, rawTrackBlock.serialNum, track->tag, OBJ_POLY, trackBlockModel, 0);
+            TrackModel trackBlockModel = TrackModel(trackBlockVertices,
+                                                    trackBlockNormals,
+                                                    trackBlockUVs,
+                                                    trackBlockTextureIndices,
+                                                    trackBlockVertexIndices,
+                                                    trackBlockShadingData,
+                                                    glm::vec3(0,0,0));
+                                                    //orientation * (Utils::PointToVec(blockRefCoord) / NFS2_SCALE_FACTOR));
+            Entity trackBlockEntity    = Entity(rawTrackBlock.serialNum, rawTrackBlock.serialNum, track->nfsVersion, ROAD, trackBlockModel, 0);
             trackBlock.track.push_back(trackBlockEntity);
 
             // Add the parsed ONFS trackblock to the list of trackblocks
             trackBlocks.push_back(trackBlock);
         }
     }
+    return trackBlocks;
 }
 
 template <typename Platform>
-std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const ColFile<Platform> &colFile)
+std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<Platform> &trkFile)
 {
     std::vector<VirtualRoad> virtualRoad;
+
+    for (const auto &superBlock : trkFile.superBlocks)
+    {
+        for (auto rawTrackBlock : superBlock.trackBlocks)
+        {
+            if (!rawTrackBlock.IsBlockPresent(ExtraBlockID::VROAD_BLOCK_ID))
+            {
+                LOG(WARNING) << "Trackblock: " << rawTrackBlock.serialNum << " is missing virtual road data.";
+                continue;
+            }
+
+            std::vector<typename Platform::VROAD> vroadData = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).vroadData;
+
+            for (auto &vroadEntry : vroadData)
+            {
+                // Get VROAD right vector
+                glm::vec3 forward = Utils::PointToVec(vroadEntry.forwardVec);
+                glm::vec3 normal  = Utils::PointToVec(vroadEntry.normalVec) / 128.f;
+                // TODO: Generate a vector 90 degs from forward
+                glm::vec3 right = glm::vec3(0, 0, 0);
+
+                glm::vec3 leftWall  = (2.f) * normal;
+                glm::vec3 rightWall = (2.f) * normal;
+
+                virtualRoad.push_back(VirtualRoad(glm::vec3(0, 0, 0), 0, normal, forward, right, leftWall, rightWall));
+            }
+        }
+    }
 
     return virtualRoad;
 }
 
 template <typename Platform>
-std::vector<Entity> NFS2Loader<Platform>::_ParseCOLModels(const ColFile<Platform> &colFile, const std::shared_ptr<Track> &track)
+std::vector<Entity> NFS2Loader<Platform>::_ParseCOLModels(ColFile<Platform> &colFile, const std::shared_ptr<Track> &track)
 {
-    /*LOG(INFO) << "Parsing COL file into ONFS GL structures";
+    LOG(INFO) << "Parsing COL file into ONFS GL structures";
+    std::vector<Entity> colEntities;
 
-    glm::quat rotationMatrix =
-      glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
 
-    std::vector<Entity> col_entities;
+    // Shorter reference to structures and texture table
+    auto structures        = colFile.GetExtraObjectBlock(ExtraBlockID::STRUCTURE_BLOCK_ID).structures;
+    auto polyToQfsTexTable = colFile.GetExtraObjectBlock(ExtraBlockID::TEXTURE_BLOCK_ID).polyToQfsTexTable;
 
     // Parse out COL data
-    for (uint32_t structure_Idx = 0; structure_Idx < track->nColStructures; ++structure_Idx)
+    for (uint32_t structureIdx = 0; structureIdx < colFile.GetExtraObjectBlock(ExtraBlockID::STRUCTURE_BLOCK_ID).nStructures; ++structureIdx)
     {
-        std::vector<unsigned int> indices;
-        std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
-        std::vector<glm::vec3> verts;
-        std::vector<glm::vec4> shading_data;
+        std::vector<uint32_t> globalStructureVertexIndices;
+        std::vector<glm::vec2> globalStructureUVs;
+        std::vector<uint32_t> globalStructureTextureIndices;
+        std::vector<glm::vec3> globalStructureVertices;
+        std::vector<glm::vec4> globalStructureShadingData;
+        std::vector<glm::vec3> globalStructureNormals;
 
-        auto *structureReferenceCoordinates = static_cast<VERT_HIGHP *>(calloc(1, sizeof(VERT_HIGHP)));
-        // Find the structure reference that matches this structure, else use block default
-        for (auto &structure : track->colStructureRefData)
+        VERT_HIGHP structureReferenceCoordinates;
+        bool refCoordsFound = false;
+        // Find the structure reference that matches this structure
+        for (auto &structure : colFile.GetExtraObjectBlock(ExtraBlockID::STRUCTURE_REF_BLOCK_A_ID).structureReferences)
         {
             // Only check fixed type structure references
-            if (structure.structureRef == structure_Idx)
+            if (structure.structureRef == structureIdx)
             {
                 if (structure.recType == 1 || structure.recType == 4)
                 {
-                    structureReferenceCoordinates = &structure.refCoordinates;
+                    structureReferenceCoordinates = structure.refCoordinates;
+                    refCoordsFound                = true;
                     break;
                 }
                 else if (structure.recType == 3)
                 {
                     // For now, if animated, use position 0 of animation sequence
-                    structureReferenceCoordinates = &structure.animationData[0].position;
+                    structureReferenceCoordinates = structure.animationData[0].position;
+                    refCoordsFound                = true;
                     break;
                 }
             }
         }
-        if (!structureReferenceCoordinates->x || !structureReferenceCoordinates->y || !structureReferenceCoordinates->z)
+        if (!refCoordsFound)
         {
-            LOG(WARNING) << "Couldn't find a reference coordinate for Structure " << structure_Idx << " in COL file";
+            LOG(WARNING) << "Couldn't find a reference coordinate for Structure " << structureIdx << " in COL file";
         }
-        for (uint16_t vert_Idx = 0; vert_Idx < track->colStructures[structure_Idx].nVerts; ++vert_Idx)
+        for (uint16_t vertIdx = 0; vertIdx < structures[structureIdx].nVerts; ++vertIdx)
         {
-            int32_t x = ((256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].x));
-            int32_t y = ((256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].y));
-            int32_t z = ((256 * track->colStructures[structure_Idx].vertexTable[vert_Idx].z));
-            verts.emplace_back(rotationMatrix * glm::vec3(x / NFS2_SCALE_FACTOR, z / NFS2_SCALE_FACTOR, y / NFS2_SCALE_FACTOR));
-            shading_data.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
+            globalStructureVertices.emplace_back(rotationMatrix * ((256.f * Utils::PointToVec(structures[structureIdx].vertexTable[vertIdx])) / NFS2_SCALE_FACTOR));
+            globalStructureShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
         }
 
-        for (uint32_t poly_Idx = 0; poly_Idx < track->colStructures[structure_Idx].nPoly; ++poly_Idx)
+        for (uint32_t polyIdx = 0; polyIdx < structures[structureIdx].nPoly; ++polyIdx)
         {
             // Remap the COL TextureID's using the COL texture block (XBID2)
-            TEXTURE_BLOCK texture_for_block = track->polyToQFStexTable[track->colStructures[structure_Idx].polygonTable[poly_Idx].texture];
-            Texture gl_texture              = track->textures[texture_for_block.texNumber];
-            indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[0]);
-            indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[1]);
-            indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
-            indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[0]);
-            indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[2]);
-            indices.emplace_back(track->colStructures[structure_Idx].polygonTable[poly_Idx].vertex[3]);
+            TEXTURE_BLOCK polygonTexture = polyToQfsTexTable[structures[structureIdx].polygonTable[polyIdx].texture];
+            Texture glTexture            = track->textureMap[polygonTexture.texNumber];
+            // Calculate the normal, as no provided data
+            glm::vec3 normal = Utils::CalculateQuadNormal(globalStructureVertices[structures[structureIdx].polygonTable[polyIdx].vertex[0]],
+                                                          globalStructureVertices[structures[structureIdx].polygonTable[polyIdx].vertex[1]],
+                                                          globalStructureVertices[structures[structureIdx].polygonTable[polyIdx].vertex[2]],
+                                                          globalStructureVertices[structures[structureIdx].polygonTable[polyIdx].vertex[3]]);
+
             // TODO: Use textures alignment data to modify these UV's
-            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            texture_indices.emplace_back(texture_for_block.texNumber);
-            texture_indices.emplace_back(texture_for_block.texNumber);
-            texture_indices.emplace_back(texture_for_block.texNumber);
-            texture_indices.emplace_back(texture_for_block.texNumber);
-            texture_indices.emplace_back(texture_for_block.texNumber);
-            texture_indices.emplace_back(texture_for_block.texNumber);
+            globalStructureUVs.emplace_back(1.0f * glTexture.maxU, 1.0f * glTexture.maxV);
+            globalStructureUVs.emplace_back(0.0f * glTexture.maxU, 1.0f * glTexture.maxV);
+            globalStructureUVs.emplace_back(0.0f * glTexture.maxU, 0.0f * glTexture.maxV);
+            globalStructureUVs.emplace_back(1.0f * glTexture.maxU, 1.0f * glTexture.maxV);
+            globalStructureUVs.emplace_back(0.0f * glTexture.maxU, 0.0f * glTexture.maxV);
+            globalStructureUVs.emplace_back(1.0f * glTexture.maxU, 0.0f * glTexture.maxV);
+
+            // Two triangles per raw quad, hence 6 vertices. Normal data and texture index required per-vertex.
+            for (auto &quadToTriVertNumber : quadToTriVertNumbers)
+            {
+                globalStructureNormals.emplace_back(normal);
+                globalStructureVertexIndices.emplace_back(structures[structureIdx].polygonTable[polyIdx].vertex[quadToTriVertNumber]);
+                globalStructureTextureIndices.emplace_back(polygonTexture.texNumber);
+            }
         }
-        glm::vec3 position = rotationMatrix * glm::vec3(structureReferenceCoordinates->x / NFS2_SCALE_FACTOR,
-                                                        structureReferenceCoordinates->y / NFS2_SCALE_FACTOR,
-                                                        structureReferenceCoordinates->z / NFS2_SCALE_FACTOR);
-        col_entities.emplace_back(Entity(0, structure_Idx, NFS_2, GLOBAL, TrackModel(verts, uvs, texture_indices, indices, shading_data, position), 0));
-        // free(structureReferenceCoordinates);
+
+        glm::vec3 position = rotationMatrix * (Utils::PointToVec(structureReferenceCoordinates) / NFS2_SCALE_FACTOR);
+        colEntities.emplace_back(Entity(0,
+                                        structureIdx,
+                                        NFS_2,
+                                        GLOBAL,
+                                        TrackModel(globalStructureVertices, globalStructureNormals, globalStructureUVs, globalStructureTextureIndices, globalStructureVertexIndices,
+                                                   globalStructureShadingData, position),
+                                        0));
     }
-    return col_entities;*/
+
+    return colEntities;
 }

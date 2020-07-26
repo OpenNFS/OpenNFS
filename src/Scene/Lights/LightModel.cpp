@@ -3,12 +3,12 @@
 
 LightModel::LightModel() : Model("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3())
 {
-    m_vertex_indices = {0, 1,
+    m_vertexIndices = {0, 1,
                         2,        // first triangle (bottom left - top left - top right)
                         0, 2, 3}; // second triangle (bottom left - top right - bottom right)
 
     // Unindex data and Fill unused normal buffer
-    for (auto &vertexIndex : m_vertex_indices)
+    for (auto &vertexIndex : m_vertexIndices)
     {
         m_vertices.push_back(verts[vertexIndex]);
     }

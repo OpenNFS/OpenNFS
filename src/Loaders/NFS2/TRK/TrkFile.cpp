@@ -44,14 +44,13 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     // Basic Track data
     SAFE_READ(ifstream, &nSuperBlocks, sizeof(uint32_t));
     SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
-    superBlocks.reserve(nSuperBlocks);
 
     // Offsets of Superblocks in TRK file
-    superBlockOffsets.reserve(nSuperBlocks);
+    superBlockOffsets.resize(nSuperBlocks);
     SAFE_READ(ifstream, superBlockOffsets.data(), nSuperBlocks * sizeof(uint32_t));
 
     // Reference coordinates for each block
-    blockReferenceCoords.reserve(nBlocks);
+    blockReferenceCoords.resize(nBlocks);
     SAFE_READ(ifstream, blockReferenceCoords.data(), nBlocks * sizeof(VERT_HIGHP));
 
     // Go read the superblocks in

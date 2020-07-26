@@ -20,10 +20,10 @@ bool StructureBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, &nVerts, sizeof(uint16_t));
     SAFE_READ(ifstream, &nPoly, sizeof(uint16_t));
 
-    vertexTable.reserve(nVerts);
+    vertexTable.resize(nVerts);
     SAFE_READ(ifstream, vertexTable.data(), nVerts * sizeof(typename Platform::VERT));
 
-    polygonTable.reserve(nPoly);
+    polygonTable.resize(nPoly);
     SAFE_READ(ifstream, polygonTable.data(), nPoly * sizeof(typename Platform::POLYGONDATA));
 
     ifstream.seekg(recSize - (ifstream.tellg() - padCheck), std::ios_base::cur); // Eat possible padding

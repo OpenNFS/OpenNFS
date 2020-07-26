@@ -17,6 +17,8 @@ namespace LibOpenNFS
             ColFile() = default;
             static bool Load(const std::string &colPath, ColFile &colFile);
             static void Save(const std::string &colPath, ColFile &colFile);
+            ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
+            bool IsBlockPresent(ExtraBlockID eBlockType);
 
             static const uint8_t HEADER_LENGTH = 4;
 
@@ -25,11 +27,14 @@ namespace LibOpenNFS
             uint32_t size;
             uint32_t nExtraBlocks;
             std::vector<uint32_t> extraBlockOffsets;
-            std::unordered_map<ExtraBlockID, ExtraObjectBlock<Platform>> extraObjectBlocks; // Allows lookup by block type for parsers
+            std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
 
         private:
             bool _SerializeIn(std::ifstream &ifstream) override;
             void _SerializeOut(std::ofstream &ofstream) override;
+
+            // Allows lookup by block type for parsers
+            std::unordered_map<ExtraBlockID, uint8_t> extraObjectBlockMap;
         };
 
     } // namespace NFS2

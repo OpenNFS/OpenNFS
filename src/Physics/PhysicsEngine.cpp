@@ -218,7 +218,7 @@ PhysicsEngine::~PhysicsEngine()
 
 void PhysicsEngine::_GenerateVroadBarriers()
 {
-    /*if ((m_track->tag == NFS_3 || m_track->tag == NFS_4) && !Config::get().sparkMode)
+    /*if ((m_track->nfsVersion == NFS_3 || m_track->nfsVersion == NFS_4) && !Config::get().sparkMode)
     {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
         for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)

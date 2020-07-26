@@ -56,10 +56,10 @@ bool GeoFile<PC>::_SerializeIn(std::ifstream &ifstream)
         std::vector<glm::vec3> verts;
         std::vector<glm::vec3> norms;
         std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
+        std::vector<uint32_t> texture_indices;
 
-        indices.reserve(geoBlockHeader->nPolygons * 6);
-        verts.reserve(geoBlockHeader->nVerts);
+        indices.resize(geoBlockHeader->nPolygons * 6);
+        verts.resize(geoBlockHeader->nVerts);
 
         float specularDamper       = 0.2f;
         float specularReflectivity = 0.02f;
@@ -102,12 +102,12 @@ bool GeoFile<PC>::_SerializeIn(std::ifstream &ifstream)
             indices.emplace_back(polygons[poly_Idx].vertex[2]);
             indices.emplace_back(polygons[poly_Idx].vertex[3]);
 
-            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            uvs.emplace_back(1.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 0.0f * gl_texture.max_v);
-            uvs.emplace_back(1.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
-            uvs.emplace_back(0.0f * gl_texture.max_u, 1.0f * gl_texture.max_v);
+            uvs.emplace_back(0.0f * gl_texture.maxU, 0.0f * gl_texture.maxV);
+            uvs.emplace_back(1.0f * gl_texture.maxU, 0.0f * gl_texture.maxV);
+            uvs.emplace_back(1.0f * gl_texture.maxU, 1.0f * gl_texture.maxV);
+            uvs.emplace_back(0.0f * gl_texture.maxU, 0.0f * gl_texture.maxV);
+            uvs.emplace_back(1.0f * gl_texture.maxU, 1.0f * gl_texture.maxV);
+            uvs.emplace_back(0.0f * gl_texture.maxU, 1.0f * gl_texture.maxV);
 
             glm::vec3 normal = rotationMatrix * CalculateQuadNormal(PointToVec(vertices[polygons[poly_Idx].vertex[0]]),
                                                                     PointToVec(vertices[polygons[poly_Idx].vertex[1]]),
@@ -194,10 +194,10 @@ bool GeoFile<PS1>::_SerializeIn(std::ifstream &ifstream)
         std::vector<glm::vec3> verts;
         std::vector<glm::vec3> norms;
         std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
+        std::vector<uint32_t> texture_indices;
 
-        indices.reserve(geoBlockHeader->nPolygons * 6);
-        verts.reserve(geoBlockHeader->nVerts);
+        indices.resize(geoBlockHeader->nPolygons * 6);
+        verts.resize(geoBlockHeader->nVerts);
 
         float specularDamper       = 0.2f;
         float specularReflectivity = 0.02f;

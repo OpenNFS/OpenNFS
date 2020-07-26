@@ -12,7 +12,7 @@ RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
     m_playerAgent(std::make_shared<PlayerAgent>(window, currentCar, currentTrack)),
     m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer)
 {
-    m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->tag, m_track->name};
+    m_loadedAssets = {m_playerAgent->vehicle->tag, m_playerAgent->vehicle->id, m_track->nfsVersion, m_track->name};
 
     // Set up the cameras
     m_freeCamera    = std::make_shared<FreeCamera>(m_window, m_track->trackBlocks[0].position);
@@ -26,7 +26,7 @@ RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
     m_racerManager = RacerManager(m_playerAgent, m_track, m_physicsEngine);
 
     // No neighbour data for anything except NFS3
-    m_userParams.useNbData = !(m_track->tag == NFS_2_SE || m_track->tag == NFS_2 || m_track->tag == NFS_3_PS1);
+    m_userParams.useNbData = !(m_track->nfsVersion == NFS_2_SE || m_track->nfsVersion == NFS_2 || m_track->nfsVersion == NFS_3_PS1);
 }
 
 void RaceSession::_UpdateCameras(float deltaTime)

@@ -25,7 +25,7 @@ bool StructureRefBlock::_SerializeIn(std::ifstream &ifstream)
         // Animated type
         SAFE_READ(ifstream, &animLength, sizeof(uint16_t));
         SAFE_READ(ifstream, &unknown, sizeof(uint16_t));
-        animationData.reserve(animLength);
+        animationData.resize(animLength);
         SAFE_READ(ifstream, animationData.data(), animLength * sizeof(ANIM_POS));
     }
     else if (recType == 4)

@@ -8,10 +8,10 @@ Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_
     this->width          = width;
     this->height         = height;
     this->layer          = 0;
-    this->min_u          = 0.f;
-    this->min_v          = 0.f;
-    this->max_u          = 0.f;
-    this->max_v          = 0.f;
+    this->minU           = 0.f;
+    this->minV           = 0.f;
+    this->maxU           = 0.f;
+    this->maxV           = 0.f;
     this->rawTextureInfo = rawTextureInfo;
 }
 
@@ -84,6 +84,8 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
         ASSERT(false, "Trying to load texture from unknown NFS version");
         break;
     }
+    // Execution will never reach here, appease compiler
+    return Texture(UNKNOWN, 0, nullptr, 0, 0, rawTrackTexture);
 }
 
 bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::string trackName, NFSVer nfsVer)
@@ -206,8 +208,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 {
                     uv.y = 1.0f - uv.y;
                 }
-                uv.x *= max_u;
-                uv.y *= max_v;
+                uv.x *= maxU;
+                uv.y *= maxV;
             }
         }
         break;
@@ -237,8 +239,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 {
                     uv.y = 1.0f - uv.y;
                 }
-                uv.x *= this->max_u;
-                uv.y *= this->max_v;
+                uv.x *= this->maxU;
+                uv.y *= this->maxV;
             }
         }
         break;
@@ -253,22 +255,22 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         switch (meshType)
         {
         case XOBJ:
-            uvs.emplace_back(1.0f * max_u, 1.0f * max_v);
-            uvs.emplace_back(0.0f * max_u, 1.0f * max_v);
-            uvs.emplace_back(0.0f * max_u, 0.0f * max_v);
-            uvs.emplace_back(1.0f * max_u, 1.0f * max_v);
-            uvs.emplace_back(0.0f * max_u, 0.0f * max_v);
-            uvs.emplace_back(1.0f * max_u, 0.0f * max_v);
+            uvs.emplace_back(1.0f * maxU, 1.0f * maxV);
+            uvs.emplace_back(0.0f * maxU, 1.0f * maxV);
+            uvs.emplace_back(0.0f * maxU, 0.0f * maxV);
+            uvs.emplace_back(1.0f * maxU, 1.0f * maxV);
+            uvs.emplace_back(0.0f * maxU, 0.0f * maxV);
+            uvs.emplace_back(1.0f * maxU, 0.0f * maxV);
             break;
         case OBJ_POLY:
             break;
         case ROAD:
-            uvs.emplace_back(1.0f * max_u, 1.0f * max_v);
-            uvs.emplace_back(0.0f * max_u, 1.0f * max_v);
-            uvs.emplace_back(0.0f * max_u, 0.0f * max_v);
-            uvs.emplace_back(1.0f * max_u, 1.0f * max_v);
-            uvs.emplace_back(0.0f * max_u, 0.0f * max_v);
-            uvs.emplace_back(1.0f * max_u, 0.0f * max_v);
+            uvs.emplace_back(1.0f * maxU, 1.0f * maxV);
+            uvs.emplace_back(0.0f * maxU, 1.0f * maxV);
+            uvs.emplace_back(0.0f * maxU, 0.0f * maxV);
+            uvs.emplace_back(1.0f * maxU, 1.0f * maxV);
+            uvs.emplace_back(0.0f * maxU, 0.0f * maxV);
+            uvs.emplace_back(1.0f * maxU, 0.0f * maxV);
             break;
         case GLOBAL:
             break;
@@ -296,8 +298,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 {
                     uv.y = 1.0f - uv.y;
                 }
-                uv.x *= max_u;
-                uv.y *= max_v;
+                uv.x *= maxU;
+                uv.y *= maxV;
             }
         }
         break;
@@ -309,22 +311,22 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         switch (meshType)
         {
         case XOBJ:
-            uvs.emplace_back((1.0f - texBlock.corners[0]) * max_u, (1.0f - texBlock.corners[1]) * max_v);
-            uvs.emplace_back((1.0f - texBlock.corners[2]) * max_u, (1.0f - texBlock.corners[3]) * max_v);
-            uvs.emplace_back((1.0f - texBlock.corners[4]) * max_u, (1.0f - texBlock.corners[5]) * max_v);
-            uvs.emplace_back((1.0f - texBlock.corners[0]) * max_u, (1.0f - texBlock.corners[1]) * max_v);
-            uvs.emplace_back((1.0f - texBlock.corners[4]) * max_u, (1.0f - texBlock.corners[5]) * max_v);
-            uvs.emplace_back((1.0f - texBlock.corners[6]) * max_u, (1.0f - texBlock.corners[7]) * max_v);
+            uvs.emplace_back((1.0f - texBlock.corners[0]) * maxU, (1.0f - texBlock.corners[1]) * maxV);
+            uvs.emplace_back((1.0f - texBlock.corners[2]) * maxU, (1.0f - texBlock.corners[3]) * maxV);
+            uvs.emplace_back((1.0f - texBlock.corners[4]) * maxU, (1.0f - texBlock.corners[5]) * maxV);
+            uvs.emplace_back((1.0f - texBlock.corners[0]) * maxU, (1.0f - texBlock.corners[1]) * maxV);
+            uvs.emplace_back((1.0f - texBlock.corners[4]) * maxU, (1.0f - texBlock.corners[5]) * maxV);
+            uvs.emplace_back((1.0f - texBlock.corners[6]) * maxU, (1.0f - texBlock.corners[7]) * maxV);
             break;
         case OBJ_POLY:
         case LANE:
         case ROAD:
-            uvs.emplace_back(texBlock.corners[0] * max_u, (1.0f - texBlock.corners[1]) * max_v);
-            uvs.emplace_back(texBlock.corners[2] * max_u, (1.0f - texBlock.corners[3]) * max_v);
-            uvs.emplace_back(texBlock.corners[4] * max_u, (1.0f - texBlock.corners[5]) * max_v);
-            uvs.emplace_back(texBlock.corners[0] * max_u, (1.0f - texBlock.corners[1]) * max_v);
-            uvs.emplace_back(texBlock.corners[4] * max_u, (1.0f - texBlock.corners[5]) * max_v);
-            uvs.emplace_back(texBlock.corners[6] * max_u, (1.0f - texBlock.corners[7]) * max_v);
+            uvs.emplace_back(texBlock.corners[0] * maxU, (1.0f - texBlock.corners[1]) * maxV);
+            uvs.emplace_back(texBlock.corners[2] * maxU, (1.0f - texBlock.corners[3]) * maxV);
+            uvs.emplace_back(texBlock.corners[4] * maxU, (1.0f - texBlock.corners[5]) * maxV);
+            uvs.emplace_back(texBlock.corners[0] * maxU, (1.0f - texBlock.corners[1]) * maxV);
+            uvs.emplace_back(texBlock.corners[4] * maxU, (1.0f - texBlock.corners[5]) * maxV);
+            uvs.emplace_back(texBlock.corners[6] * maxU, (1.0f - texBlock.corners[7]) * maxV);
             break;
         case GLOBAL:
             break;
@@ -379,8 +381,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 {
                     uv.y = 1.0f - uv.y;
                 }
-                uv.x *= max_u;
-                uv.y *= max_v;
+                uv.x *= maxU;
+                uv.y *= maxV;
             }
         }
         break;
@@ -411,8 +413,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 {
                     uv.y = 1.0f - uv.y;
                 }
-                uv.x *= max_u;
-                uv.y *= max_v;
+                uv.x *= maxU;
+                uv.y *= maxV;
             }
         }
         break;
@@ -488,11 +490,11 @@ GLuint Texture::MakeTextureArray(std::map<uint32_t, Texture> &textures, bool rep
                         GL_UNSIGNED_BYTE,
                         (const GLvoid *) texture.second.data);
 
-        texture.second.min_u = 0.00;
-        texture.second.min_v = 0.00;
+        texture.second.minU  = 0.00;
+        texture.second.minV  = 0.00;
         texture.second.layer = hsStockTextureIndexRemap(texture.first);
-        texture.second.max_u = (texture.second.width / static_cast<float>(max_width)) - 0.005f; // Attempt to remove potential for sampling texture from transparent area
-        texture.second.max_v = (texture.second.height / static_cast<float>(max_height)) - 0.005f;
+        texture.second.maxU  = (texture.second.width / static_cast<float>(max_width)) - 0.005f; // Attempt to remove potential for sampling texture from transparent area
+        texture.second.maxV  = (texture.second.height / static_cast<float>(max_height)) - 0.005f;
         texture.second.id    = texture_name;
     }
 

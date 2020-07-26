@@ -23,33 +23,32 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     {
     case 2: // First xblock always texture table (in COL)
         nTextures = nRecords;
-        polyToQfsTexTable.reserve(nTextures);
+        polyToQfsTexTable.resize(nTextures);
         SAFE_READ(ifstream, polyToQfsTexTable.data(), nTextures * sizeof(TEXTURE_BLOCK));
         break;
     case 4:
         nNeighbours = nRecords;
-        blockNeighbours.reserve(nRecords);
+        blockNeighbours.resize(nRecords);
         SAFE_READ(ifstream, blockNeighbours.data(), nRecords * sizeof(uint16_t));
         break;
     case 5:
-        polyTypes.reserve(nRecords);
+        polyTypes.resize(nRecords);
         SAFE_READ(ifstream, polyTypes.data(), nRecords * sizeof(POLY_TYPE));
         break;
     case 6:
-        medianData.reserve(nRecords);
+        medianData.resize(nRecords);
         SAFE_READ(ifstream, medianData.data(), nRecords * sizeof(MEDIAN_BLOCK));
         break;
     case 7:
     case 18:
     case 19:
-        nStructureReferences += nRecords;
-        for (uint32_t structureRef_Idx = 0; structureRef_Idx < nStructureReferences; ++structureRef_Idx)
+        nStructureReferences = nRecords;
+        for (uint32_t structureRefIdx = 0; structureRefIdx < nStructureReferences; ++structureRefIdx)
         {
             structureReferences.push_back(StructureRefBlock(ifstream));
         }
         break;
     case 8: // XBID 8 3D Structure data: This block is only present if nExtraBlocks != 2 (COL)
-        structures.reserve(nRecords);
         nStructures = nRecords;
         for (uint32_t structureIdx = 0; structureIdx < nStructures; ++structureIdx)
         {
@@ -58,7 +57,7 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
         break;
     case 9:
         nLanes = nRecords;
-        laneData.reserve(nRecords);
+        laneData.resize(nRecords);
         SAFE_READ(ifstream, laneData.data(), nLanes * sizeof(LANE_BLOCK));
         break;
     // case 10: // PS1 Specific id, Misc purpose
@@ -82,12 +81,12 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     // break;
     case 13:
         nVroad = nRecords;
-        vroadData.reserve(nRecords);
+        vroadData.resize(nRecords);
         SAFE_READ(ifstream, vroadData.data(), nVroad * sizeof(typename Platform::VROAD));
         break;
     case 15:
         nCollisionData = nRecords;
-        collisionData.reserve(nCollisionData);
+        collisionData.resize(nCollisionData);
         SAFE_READ(ifstream, collisionData.data(), nCollisionData * sizeof(COLLISION_BLOCK));
         break;
     default:

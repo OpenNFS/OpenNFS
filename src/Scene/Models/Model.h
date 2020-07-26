@@ -16,22 +16,13 @@
 class Model
 {
 public:
-    Model(std::string name,
-          std::vector<glm::vec3>
-            verts,
-          std::vector<glm::vec2>
-            uvs,
-          std::vector<glm::vec3>
-            norms,
-          std::vector<unsigned int>
-            indices,
-          bool removeVertexIndexing,
-          glm::vec3 center_position);
+    Model(std::string name, std::vector<glm::vec3> vertices, std::vector<glm::vec2> uvs, std::vector<glm::vec3> normals, std::vector<uint32_t> vertexIndices,
+          bool removeVertexIndexing, glm::vec3 centerPosition);
     std::string m_name;
     std::vector<glm::vec3> m_vertices;
     std::vector<glm::vec3> m_normals;
     std::vector<glm::vec2> m_uvs;
-    std::vector<unsigned int> m_vertex_indices;
+    std::vector<uint32_t> m_vertexIndices;
 
     void enable();
 

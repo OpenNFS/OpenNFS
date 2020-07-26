@@ -24,12 +24,12 @@ CarModel::CarModel(std::string name,
     isMultiTextured   = true;
     // Fill the unused buffer with data
     m_polygon_flags = test;
-    // Can't call basic constructor as genBuffers() call would run before m_texture_indices was available
+    // Can't call basic constructor as genBuffers() call would run before m_textureIndices was available
     specularDamper       = specular_damper;
     specularReflectivity = specular_reflectivity;
     envReflectivity      = env_reflectivity;
     m_normals.clear();
-    for (unsigned int m_vertex_index : m_vertex_indices)
+    for (unsigned int m_vertex_index : m_vertexIndices)
     {
         m_normals.push_back(norms[m_vertex_index]);
     }
@@ -62,7 +62,7 @@ CarModel::CarModel(std::string name,
     {
         m_polygon_flags.emplace_back(0);
     }
-    // Can't call basic constructor as genBuffers() call would run before m_texture_indices was available
+    // Can't call basic constructor as genBuffers() call would run before m_textureIndices was available
     specularDamper       = specular_damper;
     specularReflectivity = specular_reflectivity;
     envReflectivity      = env_reflectivity;
@@ -92,7 +92,7 @@ CarModel::CarModel(std::string name,
     m_polygon_flags = poly_flags;
     hasPolyFlags    = true;
     // Fill the unused buffer with data
-    for (int i = 0; i < m_vertex_indices.size(); ++i)
+    for (int i = 0; i < m_vertexIndices.size(); ++i)
     {
         m_texture_indices.emplace_back(0);
     }
@@ -102,7 +102,7 @@ CarModel::CarModel(std::string name,
     specularReflectivity = specular_reflectivity;
     envReflectivity      = env_reflectivity;
     m_normals.clear();
-    for (unsigned int m_vertex_index : m_vertex_indices)
+    for (unsigned int m_vertex_index : m_vertexIndices)
     {
         m_normals.push_back(norms[m_vertex_index]);
     }
@@ -139,7 +139,7 @@ CarModel::CarModel(std::string name,
     specularReflectivity = specular_reflectivity;
     envReflectivity      = env_reflectivity;
     m_normals.clear();
-    for (unsigned int m_vertex_index : m_vertex_indices)
+    for (unsigned int m_vertex_index : m_vertexIndices)
     {
         m_normals.push_back(norms[m_vertex_index]);
     }

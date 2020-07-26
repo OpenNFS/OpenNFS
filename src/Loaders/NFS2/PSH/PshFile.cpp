@@ -38,7 +38,7 @@ bool PshFile::_SerializeIn(std::ifstream &ifstream)
     }
 
     // Get the offsets to each image in the PSH
-    directoryEntries.reserve(header.nDirectories);
+    directoryEntries.resize(header.nDirectories);
     SAFE_READ(ifstream, directoryEntries.data(), header.nDirectories * sizeof(DIR_ENTRY));
 
     return true;

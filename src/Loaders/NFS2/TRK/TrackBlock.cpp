@@ -40,23 +40,24 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     }
 
     // Read 3D Data
-    vertexTable.reserve(nStickToNextVerts + nHighResVert);
+    vertexTable.resize(nStickToNextVerts + nHighResVert);
     SAFE_READ(ifstream, vertexTable.data(), (nStickToNextVerts + nHighResVert) * sizeof(typename Platform::VERT));
 
-    polygonTable.reserve(nLowResPoly + nMedResPoly + nHighResPoly);
+    polygonTable.resize(nLowResPoly + nMedResPoly + nHighResPoly);
     SAFE_READ(ifstream, polygonTable.data(), (nLowResPoly + nMedResPoly + nHighResPoly) * sizeof(typename Platform::POLYGONDATA));
 
     // Read Extrablock data
     ifstream.seekg((uint32_t) trackBlockOffset + 64u + extraBlockTblOffset, std::ios_base::beg);
     // Get extrablock offsets (relative to beginning of TrackBlock)
-    extraBlockOffsets.reserve(nExtraBlocks);
+    extraBlockOffsets.resize(nExtraBlocks);
     SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
 
-    for (uint32_t xblockIdx = 0; xblockIdx < nExtraBlocks; ++xblockIdx)
+    for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
-        ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[xblockIdx], std::ios_base::beg);
-        ExtraObjectBlock<Platform> extraObjectBlock = ExtraObjectBlock<Platform>(ifstream);
-        extraObjectBlocks[(ExtraBlockID)extraObjectBlock.id] = extraObjectBlock;
+        ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
+        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
+        // Map the the block type to the vector index, original ordering is then maintained for output serialisation
+        extraObjectBlockMap[(ExtraBlockID)extraObjectBlocks.back().id] = extraBlockIdx;
     }
 
     return true;
@@ -66,4 +67,16 @@ template <typename Platform>
 void TrackBlock<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
     ASSERT(false, "TrackBlock output serialization is not currently implemented");
+}
+
+template <typename Platform>
+ExtraObjectBlock<Platform> TrackBlock<Platform>::GetExtraObjectBlock(ExtraBlockID eBlockType)
+{
+    return extraObjectBlocks[extraObjectBlockMap[eBlockType]];
+}
+
+template <typename Platform>
+bool TrackBlock<Platform>::IsBlockPresent(ExtraBlockID eBlockType)
+{
+    return extraObjectBlockMap.count(eBlockType);
 }

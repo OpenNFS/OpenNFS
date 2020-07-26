@@ -17,6 +17,8 @@ namespace LibOpenNFS
             TrackBlock() = default;
             explicit TrackBlock(std::ifstream &frd);
             void _SerializeOut(std::ofstream &ofstream) override;
+            ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
+            bool IsBlockPresent(ExtraBlockID eBlockType);
 
             uint32_t blockSize;
             uint32_t blockSizeDup;
@@ -31,10 +33,13 @@ namespace LibOpenNFS
             std::vector<typename Platform::VERT> vertexTable;
             std::vector<typename Platform::POLYGONDATA> polygonTable;
             std::vector<uint32_t> extraBlockOffsets;
-            std::unordered_map<ExtraBlockID, ExtraObjectBlock<Platform>> extraObjectBlocks; // Allows lookup by block type for parsers
+            std::vector<ExtraObjectBlock<Platform>> extraObjectBlocks;
 
         private:
             bool _SerializeIn(std::ifstream &ifstream) override;
+
+            // Allows lookup by block type for parsers
+            std::unordered_map<ExtraBlockID, uint8_t> extraObjectBlockMap;
         };
     } // namespace NFS2
 } // namespace LibOpenNFS

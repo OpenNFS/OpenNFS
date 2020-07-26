@@ -5,12 +5,12 @@ using namespace LibOpenNFS::NFS3;
 std::shared_ptr<Car> NFS3Loader::LoadCar(const std::string &carBasePath)
 {
     boost::filesystem::path p(carBasePath);
-    std::string car_name = p.filename().string();
+    std::string carName = p.filename().string();
 
     std::stringstream vivPath, carOutPath, fcePath, fedataPath;
     vivPath << carBasePath << "/car.viv";
-    carOutPath << CAR_PATH << ToString(NFS_3) << "/" << car_name << "/";
-    fcePath << CAR_PATH << ToString(NFS_3) << "/" << car_name << "/car.fce";
+    carOutPath << CAR_PATH << ToString(NFS_3) << "/" << carName << "/";
+    fcePath << CAR_PATH << ToString(NFS_3) << "/" << carName << "/car.fce";
     fedataPath << carOutPath.str() << "/fedata.eng";
 
     FceFile fceFile;
@@ -29,7 +29,7 @@ std::shared_ptr<Car> NFS3Loader::LoadCar(const std::string &carBasePath)
         carData.colours[colourIdx].colourName = fedataFile.primaryColourNames[colourIdx];
     }
 
-    return std::make_shared<Car>(carData, NFS_3, car_name);
+    return std::make_shared<Car>(carData, NFS_3, carName);
 }
 
 std::shared_ptr<Track> NFS3Loader::LoadTrack(const std::string &trackBasePath)
@@ -37,7 +37,7 @@ std::shared_ptr<Track> NFS3Loader::LoadTrack(const std::string &trackBasePath)
     LOG(INFO) << "Loading Track located at " << trackBasePath;
 
     auto track = std::make_shared<Track>(Track());
-    track->tag = NFSVer::NFS_3;
+    track->nfsVersion = NFSVer::NFS_3;
 
     boost::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
@@ -216,8 +216,8 @@ std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdF
                 for (uint32_t objectIdx = 0; objectIdx < polygonBlock.nobj; ++objectIdx)
                 {
                     // Mesh Data
-                    std::vector<unsigned int> vertexIndices;
-                    std::vector<unsigned int> textureIndices;
+                    std::vector<uint32_t> vertexIndices;
+                    std::vector<uint32_t> textureIndices;
                     std::vector<glm::vec2> uvs;
                     std::vector<glm::vec3> normals;
                     uint32_t accumulatedObjectFlags = 0u;
@@ -265,8 +265,8 @@ std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdF
                 // Mesh Data
                 std::vector<glm::vec3> extraObjectVerts;
                 std::vector<glm::vec4> extraObjectShadingData;
-                std::vector<unsigned int> vertexIndices;
-                std::vector<unsigned int> textureIndices;
+                std::vector<uint32_t> vertexIndices;
+                std::vector<uint32_t> textureIndices;
                 std::vector<glm::vec2> uvs;
                 std::vector<glm::vec3> normals;
                 uint32_t accumulatedObjectFlags = 0u;
@@ -312,8 +312,8 @@ std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdF
         // Road Mesh data
         std::vector<glm::vec3> roadVertices;
         std::vector<glm::vec4> roadShadingData;
-        std::vector<unsigned int> vertexIndices;
-        std::vector<unsigned int> textureIndices;
+        std::vector<uint32_t> vertexIndices;
+        std::vector<uint32_t> textureIndices;
         std::vector<glm::vec2> uvs;
         std::vector<glm::vec3> normals;
         uint32_t accumulatedObjectFlags = 0u;
@@ -407,9 +407,9 @@ std::vector<Entity> NFS3Loader::_ParseCOLModels(const ColFile &colFile, const st
 
     for (uint32_t i = 0; i < colFile.objectHead.nrec; ++i)
     {
-        std::vector<unsigned int> indices;
+        std::vector<uint32_t> indices;
         std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> texture_indices;
+        std::vector<uint32_t> texture_indices;
         std::vector<glm::vec3> verts;
         std::vector<glm::vec4> shading_data;
         std::vector<glm::vec3> norms;
@@ -430,12 +430,12 @@ std::vector<Entity> NFS3Loader::_ParseCOLModels(const ColFile &colFile, const st
             // Lookup the remapped COL->FRD texture ID in the FRD texture table
             TexBlock blockTexture = boost::get<TexBlock>(glTexture.rawTextureInfo);
 
-            uvs.emplace_back(blockTexture.corners[0] * glTexture.max_u, (1.0f - blockTexture.corners[1]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[2] * glTexture.max_u, (1.0f - blockTexture.corners[3]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[4] * glTexture.max_u, (1.0f - blockTexture.corners[5]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[0] * glTexture.max_u, (1.0f - blockTexture.corners[1]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[4] * glTexture.max_u, (1.0f - blockTexture.corners[5]) * glTexture.max_v);
-            uvs.emplace_back(blockTexture.corners[6] * glTexture.max_u, (1.0f - blockTexture.corners[7]) * glTexture.max_v);
+            uvs.emplace_back(blockTexture.corners[0] * glTexture.maxU, (1.0f - blockTexture.corners[1]) * glTexture.maxV);
+            uvs.emplace_back(blockTexture.corners[2] * glTexture.maxU, (1.0f - blockTexture.corners[3]) * glTexture.maxV);
+            uvs.emplace_back(blockTexture.corners[4] * glTexture.maxU, (1.0f - blockTexture.corners[5]) * glTexture.maxV);
+            uvs.emplace_back(blockTexture.corners[0] * glTexture.maxU, (1.0f - blockTexture.corners[1]) * glTexture.maxV);
+            uvs.emplace_back(blockTexture.corners[4] * glTexture.maxU, (1.0f - blockTexture.corners[5]) * glTexture.maxV);
+            uvs.emplace_back(blockTexture.corners[6] * glTexture.maxU, (1.0f - blockTexture.corners[7]) * glTexture.maxV);
 
             glm::vec3 normal =
               Utils::CalculateQuadNormal(verts[s.polygon[polyIdx].v[0]], verts[s.polygon[polyIdx].v[1]], verts[s.polygon[polyIdx].v[2]], verts[s.polygon[polyIdx].v[3]]);

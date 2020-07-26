@@ -40,17 +40,18 @@ bool ColFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, &size, sizeof(uint32_t));
     SAFE_READ(ifstream, &nExtraBlocks, sizeof(uint32_t));
 
-    extraBlockOffsets.reserve(nExtraBlocks);
+    extraBlockOffsets.resize(nExtraBlocks);
     SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
 
     LOG(INFO) << "Version: " << version << " nExtraBlocks: " << nExtraBlocks;
     LOG(DEBUG) << "Parsing COL Extrablocks";
 
-    for (uint32_t xBlock_Idx = 0; xBlock_Idx < nExtraBlocks; ++xBlock_Idx)
+    for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
-        ifstream.seekg(16 + extraBlockOffsets[xBlock_Idx], std::ios_base::beg);
-        ExtraObjectBlock<Platform> extraObjectBlock = ExtraObjectBlock<Platform>(ifstream);
-        extraObjectBlocks[(ExtraBlockID)extraObjectBlock.id] = extraObjectBlock;
+        ifstream.seekg(16 + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
+        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
+        // Map the the block type to the vector index, gross, original ordering is then maintained for output serialisation
+        extraObjectBlockMap[(ExtraBlockID)extraObjectBlocks.back().id] = extraBlockIdx;
     }
 
     return true;
@@ -60,4 +61,14 @@ template <typename Platform>
 void ColFile<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
     ASSERT(false, "COL output serialization is not currently implemented");
+}
+template <typename Platform>
+ExtraObjectBlock<Platform> ColFile<Platform>::GetExtraObjectBlock(ExtraBlockID eBlockType)
+{
+    return extraObjectBlocks[extraObjectBlockMap[eBlockType]];
+}
+template <typename Platform>
+bool ColFile<Platform>::IsBlockPresent(ExtraBlockID eBlockType)
+{
+    return extraObjectBlockMap.count(eBlockType);
 }

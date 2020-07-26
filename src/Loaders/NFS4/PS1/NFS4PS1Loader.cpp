@@ -252,7 +252,7 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
         std::vector<glm::vec3> vertices;
         std::vector<glm::vec3> normals;
         std::vector<glm::vec2> uvs;
-        std::vector<unsigned int> textureIndices;
+        std::vector<uint32_t> textureIndices;
         // Start reading the file
         auto *Nobj = reinterpret_cast<Transformer_zObj *>(mem + fileOffset);
         fileOffset += sizeof(Transformer_zObj);

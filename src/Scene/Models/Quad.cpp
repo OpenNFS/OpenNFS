@@ -20,12 +20,12 @@ Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float
     m_uvs.emplace_back(glm::vec2(0.0f, 0.0f));
     m_uvs.emplace_back(glm::vec2(1.0f, 0.0f));
 
-    m_vertex_indices = std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0]));
+    m_vertexIndices = std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0]));
     ;
     m_vertices.clear();
 
     // Unindex data and Fill unused normal buffer
-    for (unsigned int m_vertex_index : m_vertex_indices)
+    for (unsigned int m_vertex_index : m_vertexIndices)
     {
         m_vertices.push_back(verts[m_vertex_index]);
         m_normals.emplace_back(glm::vec3(0, 0, 0));
