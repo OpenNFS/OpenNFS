@@ -22,7 +22,7 @@ RacerAgent::RacerAgent(uint16_t racerID, const std::string &networkPath, const s
     this->vehicle = std::make_shared<Car>(car->assetData, car->tag, car->id);
 
     // TODO: DEBUG! Set a low max speed.
-    this->vehicle->vehicleProperties.maxSpeed = 10.f;
+    this->vehicle->vehicleProperties.maxSpeed = 100.f;
 }
 
 void RacerAgent::Simulate()

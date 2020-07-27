@@ -81,8 +81,8 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     // break;
     case 13:
         nVroad = nRecords;
-        vroadData.resize(nRecords);
-        SAFE_READ(ifstream, vroadData.data(), nVroad * sizeof(typename Platform::VROAD));
+        vroadData.resize(nVroad);
+        SAFE_READ(ifstream, vroadData.data(), nVroad * sizeof(VROAD));
         break;
     case 15:
         nCollisionData = nRecords;

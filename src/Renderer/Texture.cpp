@@ -134,8 +134,7 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
     if (nfsVer == NFS_3_PS1)
     {
         output_dir << "/textures/";
-        ASSERT(false, "Dead path until NFS2 OOP refactor complete");
-        // return ImageLoader::ExtractPSH(tex_archive_path.str(), output_dir.str());
+        return ImageLoader::ExtractPSH(tex_archive_path.str(), output_dir.str());
     }
     else if (nfsVer == NFS_3)
     {
@@ -170,7 +169,7 @@ int32_t Texture::hsStockTextureIndexRemap(int32_t textureIndex)
     return remappedIndex;
 }
 
-std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags)
+std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags, RawTextureInfo rawTrackTexture)
 {
     std::bitset<32> textureAlignment(textureFlags);
     std::vector<glm::vec2> uvs;
@@ -307,7 +306,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         break;
     case NFS_3:
     {
-        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo);
+        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
         switch (meshType)
         {
         case XOBJ:
@@ -338,7 +337,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
     case NFS_4:
     {
         // TODO: Needs to be an NFS4 texblock after NFS4 new gen parser bringup
-        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo);
+        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
         switch (meshType)
         {
         //(flags>>2)&3 indicates the multiple of 90° by which the

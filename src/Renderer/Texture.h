@@ -22,7 +22,7 @@ class Texture
 public:
     Texture() = default;
     explicit Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo);
-    std::vector<glm::vec2> GenerateUVs(EntityType meshType, uint32_t textureFlags);
+    std::vector<glm::vec2> GenerateUVs(EntityType meshType, uint32_t textureFlags, RawTextureInfo rawTrackTexture);
 
     // Utils
     static Texture LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const std::string &trackName);

@@ -31,12 +31,6 @@ namespace LibOpenNFS
                 int16_t otherSideTex;
                 uint8_t vertex[4];
             };
-
-            struct VROAD
-            {
-                VERT normalVec;
-                VERT forwardVec;
-            };
         };
 
         struct PS1
@@ -51,12 +45,6 @@ namespace LibOpenNFS
                 uint8_t texture;
                 uint8_t otherSideTex;
                 uint8_t vertex[4];
-            };
-
-            struct VROAD
-            {
-                VERT normalVec;
-                VERT forwardVec;
             };
         };
     } // namespace NFS2

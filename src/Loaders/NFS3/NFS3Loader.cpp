@@ -231,7 +231,7 @@ std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdF
                         TexBlock polygonTexture = frdFile.textureBlocks[objectPolygons[polyIdx].textureId];
                         Texture glTexture       = track->textureMap[polygonTexture.qfsIndex];
                         // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(OBJ_POLY, objectPolygons[polyIdx].hs_texflags);
+                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(OBJ_POLY, objectPolygons[polyIdx].hs_texflags, polygonTexture);
                         uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         // Calculate the normal, as the provided data is a little suspect
@@ -284,7 +284,7 @@ std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdF
                 {
                     TexBlock blockTexture                 = frdFile.textureBlocks[extraObjectData.polyData[k].textureId];
                     Texture glTexture                     = track->textureMap[blockTexture.qfsIndex];
-                    std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, extraObjectData.polyData[k].hs_texflags);
+                    std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, extraObjectData.polyData[k].hs_texflags, blockTexture);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     glm::vec3 normal = Utils::CalculateQuadNormal(extraObjectVerts[extraObjectData.polyData[k].vertex[0]],
@@ -339,7 +339,7 @@ std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdF
             {
                 TexBlock polygonTexture               = frdFile.textureBlocks[chunkPolygonData[polyIdx].textureId];
                 Texture glTexture                     = track->textureMap[polygonTexture.qfsIndex];
-                std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(lodChunkIdx == 6 ? LANE : ROAD, chunkPolygonData[polyIdx].hs_texflags);
+                std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(lodChunkIdx == 6 ? LANE : ROAD, chunkPolygonData[polyIdx].hs_texflags, polygonTexture);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 glm::vec3 normal = Utils::CalculateQuadNormal(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[0]],

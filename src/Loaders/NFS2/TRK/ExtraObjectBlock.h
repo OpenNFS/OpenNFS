@@ -19,9 +19,14 @@ namespace LibOpenNFS
             STRUCTURE_REF_BLOCK_A_ID = 7,
             STRUCTURE_BLOCK_ID       = 8,
             LANE_BLOCK_ID = 9,
-            UNKNOWN_BLOCK_ID = 10,
+            UNKNOWN_BLOCK_ID_A = 10,
+            UNKNOWN_BLOCK_ID_B = 11,
+            UNKNOWN_BLOCK_ID_C = 12,
             VROAD_BLOCK_ID = 13,
+            UNKNOWN_BLOCK_ID_D = 14,
             COLLISION_BLOCK_ID = 15,
+            UNKNOWN_BLOCK_ID_E = 16,
+            UNKNOWN_BLOCK_ID_F = 17,
             STRUCTURE_REF_BLOCK_B_ID = 18,
             STRUCTURE_REF_BLOCK_C_ID = 19,
         };
@@ -81,6 +86,17 @@ namespace LibOpenNFS
             uint8_t polyRef;  // Inside Full-res B3D structure, 0 to nFullRes
         };
 
+        struct VROAD_VEC
+        {
+            int16_t x, z, y;
+        };
+
+        struct VROAD
+        {
+            VROAD_VEC normalVec;
+            VROAD_VEC forwardVec;
+        };
+
         template <typename Platform>
         class ExtraObjectBlock : IRawData
         {
@@ -125,7 +141,7 @@ namespace LibOpenNFS
 
             // Type 13
             uint16_t nVroad = 0;
-            std::vector<typename Platform::VROAD> vroadData; // Reference using XBID 5
+            std::vector<VROAD> vroadData; // Reference using XBID 5
 
             // Type 15
             uint16_t nCollisionData = 0;

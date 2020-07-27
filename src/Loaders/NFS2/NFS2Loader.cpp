@@ -143,12 +143,12 @@ std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePa
     TrkFile<PS1> trkFile;
     ColFile<PS1> colFile;
 
-    // ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
+    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
     ASSERT(TrkFile<PS1>::Load(trkPath, trkFile), "Could not load TRK file: " << trkPath); // Load TRK file to get track block specific data
     ASSERT(ColFile<PS1>::Load(colPath, colFile), "Could not load COL file: " << colPath); // Load Catalogue file to get global (non block specific) data
 
     // Load up the textures
-    auto &textureBlock = colFile.extraObjectBlocks[ExtraBlockID::TEXTURE_BLOCK_ID];
+    auto textureBlock = colFile.GetExtraObjectBlock(ExtraBlockID::TEXTURE_BLOCK_ID);
     for (uint32_t texIdx = 0; texIdx < textureBlock.nTextures; texIdx++)
     {
         track->textureMap[textureBlock.polyToQfsTexTable[texIdx].texNumber] = Texture::LoadTexture(track->nfsVersion, textureBlock.polyToQfsTexTable[texIdx], track->name);
@@ -275,7 +275,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                         TEXTURE_BLOCK polygonTexture = polyToQfsTexTable[structures[structureIdx].polygonTable[polyIdx].texture];
                         Texture glTexture            = track->textureMap[polygonTexture.texNumber];
                         // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, polygonTexture.alignmentData);
+                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, polygonTexture.alignmentData, polygonTexture);
                         structureUVs.insert(structureUVs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         // Calculate the normal, as no provided data
@@ -339,7 +339,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                 TEXTURE_BLOCK polygonTexture = polyToQfsTexTable[rawTrackBlock.polygonTable[polyIdx].texture];
                 Texture glTexture            = track->textureMap[polygonTexture.texNumber];
                 // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(ROAD, polygonTexture.alignmentData);
+                std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(ROAD, polygonTexture.alignmentData, polygonTexture);
                 trackBlockUVs.insert(trackBlockUVs.end(), transformedUVs.begin(), transformedUVs.end());
                 // Calculate the normal, as no provided data
                 glm::vec3 normal = Utils::CalculateQuadNormal(trackBlockVertices[rawTrackBlock.polygonTable[polyIdx].vertex[0]],
@@ -389,7 +389,7 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<P
                 continue;
             }
 
-            std::vector<typename Platform::VROAD> vroadData = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).vroadData;
+            std::vector<LibOpenNFS::NFS2::VROAD> vroadData = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).vroadData;
 
             for (auto &vroadEntry : vroadData)
             {
