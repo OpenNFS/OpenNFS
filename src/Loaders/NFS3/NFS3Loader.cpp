@@ -184,6 +184,7 @@ std::vector<OpenNFS::TrackBlock> NFS3Loader::_ParseTRKModels(const FrdFile &frdF
             }
         }
 
+        // Build the base OpenNFS trackblock, to hold all of the geometry and virtual road data, lights, sounds etc. for this portion of track
         OpenNFS::TrackBlock trackBlock(trackblockIdx, rawTrackBlockCenter, rawTrackBlock.nStartPos, rawTrackBlock.nPositions, trackBlockNeighbourIds);
 
         // Light and sound sources

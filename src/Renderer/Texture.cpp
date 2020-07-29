@@ -191,6 +191,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
     case NFS_2:
     case NFS_2_SE:
     case NFS_2_PS1:
+    case NFS_3_PS1:
         switch (meshType)
         {
         case XOBJ:
@@ -259,8 +260,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             break;
         }
         break;
-    case NFS_3_PS1:
-        switch (meshType)
+    /*    switch (meshType)
         {
         case XOBJ:
             uvs.emplace_back(1.0f * maxU, 1.0f * maxV);
@@ -312,7 +312,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         }
         break;
         }
-        break;
+        break;*/
     case NFS_3:
     {
         LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);

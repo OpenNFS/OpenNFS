@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "../Scene/Lights/TrackLight.h"
+#include "../../Scene/Lights/TrackLight.h"
 
 namespace TrackUtils
 {

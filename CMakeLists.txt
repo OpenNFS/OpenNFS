@@ -148,8 +148,8 @@ set(SOURCE_FILES
         src/Loaders/NFS4/PS1/SerializedGroupOps.h]]
         src/Renderer/Renderer.cpp
         src/Renderer/Renderer.h
-        src/Loaders/TrackUtils.cpp
-        src/Loaders/TrackUtils.h
+        src/Loaders/Common/TrackUtils.cpp
+        src/Loaders/Common/TrackUtils.h
         src/Loaders/CarLoader.cpp
         src/Loaders/CarLoader.h
         src/Renderer/HermiteCurve.cpp
@@ -247,10 +247,9 @@ set(SOURCE_FILES
         src/Loaders/TrackLoader.h
         src/Scene/VirtualRoad.cpp
         src/Scene/VirtualRoad.h
-        src/Loaders/NFS2/Common.h)
+        )
 
 add_executable(OpenNFS ${SOURCE_FILES} ${LIB_OPENNFS_SOURCES} ${CRP_LIB_SOURCES})
-
 
 #[[JSON]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")

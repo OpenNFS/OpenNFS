@@ -28,28 +28,23 @@ std::shared_ptr<Car> CarLoader::LoadCar(NFSVer nfsVersion, const std::string &ca
     case NFS_3_PS1:
         carPath << "/" << carName;
         return NFS2Loader<LibOpenNFS::NFS2::PS1>::LoadCar(carPath.str(), nfsVersion);
-   //case NFS_4:
-   //    carPath << NFS_4_CAR_PATH << carName;
-   //    return NFS4::LoadCar(carPath.str(), nfsVersion);
-   //    break;
-   //case NFS_4_PS1:
-   //    carPath << "/" << carName << ".VIV";
-   //    return NFS4PS1::LoadCar(carPath.str());
-   //    break;
-   //case MCO:
-   //    carPath << MCO_CAR_PATH << carName;
-   //    return NFS4::LoadCar(carPath.str(), nfsVersion);
-   //    break;
-   //case NFS_5:
-   //    carPath << NFS_5_CAR_PATH << carName;
-   //    return NFS5::LoadCar(carPath.str());*/
-   //    break;
-    case UNKNOWN:
-        ASSERT(false, "Unknown car type!");
-    default:
+    /*case NFS_4:
+        carPath << NFS_4_CAR_PATH << carName;
+        return NFS4::LoadCar(carPath.str(), nfsVersion);
         break;
+    case NFS_4_PS1:
+        carPath << "/" << carName << ".VIV";
+        return NFS4PS1::LoadCar(carPath.str());
+        break;
+    case MCO:
+        carPath << MCO_CAR_PATH << carName;
+        return NFS4::LoadCar(carPath.str(), nfsVersion);
+        break;
+    case NFS_5:
+        carPath << NFS_5_CAR_PATH << carName;
+        return NFS5::LoadCar(carPath.str());
+        break;*/
+    default:
+        ASSERT(false, "Unknown car type!");
     }
-
-
-    return std::shared_ptr<Car>();
 }

@@ -5,7 +5,7 @@
 #include <bitset>
 #include <boost/filesystem.hpp>
 #include <boost/lambda/bind.hpp>
-#include "../../TrackUtils.h"
+#include "../../Common/TrackUtils.h"
 #include "../../../Physics/Car.h"
 #include "../../../Config.h"
 #include "../../../Util/ImageLoader.h"

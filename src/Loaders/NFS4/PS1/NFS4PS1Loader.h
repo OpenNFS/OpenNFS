@@ -11,7 +11,7 @@
 #include <memory.h>
 #include <cstring>
 #include <boost/filesystem.hpp>
-#include "../../TrackUtils.h"
+#include "../../Common/TrackUtils.h"
 #include "SerializedGroupOps.h"
 #include "../../../Util/Logger.h"
 #include "../../../Physics/Car.h"

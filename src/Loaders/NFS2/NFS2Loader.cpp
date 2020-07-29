@@ -212,7 +212,15 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                 }
             }
 
-            OpenNFS::TrackBlock trackBlock(rawTrackBlock.serialNum, rawTrackBlockCenter, rawTrackBlock.serialNum, 1, trackBlockNeighbourIds);
+            // Get the number of virtual road positions for this trackblock
+            uint32_t nVroadPositions = 0;
+            if (rawTrackBlock.IsBlockPresent(ExtraBlockID::VROAD_BLOCK_ID))
+            {
+                nVroadPositions = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).nVroad;
+            }
+
+            // Build the base OpenNFS trackblock, to hold all of the geometry and virtual road data, lights, sounds etc. for this portion of track
+            OpenNFS::TrackBlock trackBlock(rawTrackBlock.serialNum, rawTrackBlockCenter, rawTrackBlock.serialNum, nVroadPositions, trackBlockNeighbourIds);
 
             // Collate all available Structure References, 3 different ID types can store this information, check them all
             std::vector<StructureRefBlock> structureReferences;
@@ -396,6 +404,9 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<P
                 continue;
             }
 
+            glm::quat orientation         = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+            glm::vec3 rawTrackBlockCenter = orientation * (Utils::PointToVec(trkFile.blockReferenceCoords[rawTrackBlock.serialNum]) / NFS2_SCALE_FACTOR);
+
             if (trkFile.version == NFS_2_PS1)
             {
                 std::vector<LibOpenNFS::NFS2::VROAD_VEC> vroadVectors = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).ps1VroadData;
@@ -407,10 +418,10 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<P
                     glm::vec3 normal  = glm::normalize(glm::quat(glm::vec3(0, -SIMD_PI / 2, 0))) * forward;
                     glm::vec3 right   = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * forward;
 
-                    glm::vec3 leftWall  = (2.f) * normal;
-                    glm::vec3 rightWall = (2.f) * normal;
+                    glm::vec3 leftWall  = -0.01f * right;
+                    glm::vec3 rightWall = 0.01f * right;
 
-                    virtualRoad.push_back(VirtualRoad(glm::vec3(0, 0, 0), 0, normal, forward, right, leftWall, rightWall));
+                    virtualRoad.push_back(VirtualRoad(rawTrackBlockCenter, 0, normal, forward, right, leftWall, rightWall));
                 }
             }
             else
@@ -419,16 +430,15 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<P
 
                 for (auto &vroadEntry : vroadData)
                 {
-                    // Get VROAD right vector
+                    // Get VROAD forward and normal vectors, fake a right vector
                     glm::vec3 forward = Utils::PointToVec(vroadEntry.forwardVec);
-                    glm::vec3 normal  = Utils::PointToVec(vroadEntry.normalVec) / 128.f;
-                    // TODO: Generate a vector 90 degs from forward
-                    glm::vec3 right = glm::vec3(0, 0, 0);
+                    glm::vec3 normal  = Utils::PointToVec(vroadEntry.normalVec);
+                    glm::vec3 right   = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * forward;
 
-                    glm::vec3 leftWall  = (2.f) * normal;
-                    glm::vec3 rightWall = (2.f) * normal;
+                    glm::vec3 leftWall  = -0.01f * right;
+                    glm::vec3 rightWall = 0.01f * right;
 
-                    virtualRoad.push_back(VirtualRoad(glm::vec3(0, 0, 0), 0, normal, forward, right, leftWall, rightWall));
+                    virtualRoad.push_back(VirtualRoad(rawTrackBlockCenter, 0, normal, forward, right, leftWall, rightWall));
                 }
             }
         }
