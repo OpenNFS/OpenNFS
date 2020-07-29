@@ -581,6 +581,7 @@ bool ImageLoader::ExtractPSH(const std::string &psh_path, const std::string &out
             // Read Palette
             if (paletteHeader->nPaletteEntries == 0)
             {
+                delete paletteHeader;
                 return false;
             }
 
@@ -599,6 +600,8 @@ bool ImageLoader::ExtractPSH(const std::string &psh_path, const std::string &out
                     }
                 }
             }
+
+            delete paletteHeader;
         }
         std::stringstream output_bmp;
         // output_bmp << output_path << setfill('0') << setw(4) << image_Idx << ".BMP";

@@ -4,7 +4,7 @@
 
 An attempt to recreate the classic Need for Speed Games (1-6), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
  
-  * Fully working NFS3, NFS2, NFS2SE, NFS3 PS1, NFS4 track load
+  * Fully working NFS2, NFS2SE, NFS2 PS1, NFS3, NFS3 PS1, NFS4 track load
   * Explore TR02b! (if you have NFS_3_PS1 folder filled with the ISO contents)
   * Drive the car with WASD, Reset the car with 'R'
   * "Hermite Curve camera" tick box and untick car cam to flythrough track. Unselect both to have a 'free camera', moveable with WASD and viewpoint change by holding right mouse button, move faster by holding "Shift" key.
@@ -50,7 +50,7 @@ Below is a table better describing the current level of asset load into OpenNFS:
 | NFS3 PS1 | 40%  | 90%    | 95%   |
 | NFS2 SE  | 90%  | 90%    |       |
 | NFS2 PC  | 90%  | 90%    |       |
-| NFS2 PS1 | 90%  | 10%    |       |
+| NFS2 PS1 | 90%  | 90%    |       |
 | NFS1     |      |        |       |
 
 ![Screenshot](../main/doc/BuildProgress.png)

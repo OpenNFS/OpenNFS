@@ -370,7 +370,7 @@ bool Renderer::_DrawMenuBar(AssetData &loadedAssets)
     bool assetChange = false;
     if (ImGui::BeginMainMenuBar())
     {
-        if (ImGui::BeginMenu("TrackModel"))
+        if (ImGui::BeginMenu("Track"))
         {
             for (auto &installedNFS : m_nfsAssetList)
             {

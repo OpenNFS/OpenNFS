@@ -29,6 +29,7 @@ namespace LibOpenNFS
             UNKNOWN_BLOCK_ID_F = 17,
             STRUCTURE_REF_BLOCK_B_ID = 18,
             STRUCTURE_REF_BLOCK_C_ID = 19,
+            UNKNOWN_BLOCK_ID_G = 20,
         };
 
         // ---- COL Specific Extra Blocks ----
@@ -115,7 +116,7 @@ namespace LibOpenNFS
 
             // Type 4
             uint16_t nNeighbours = 0;
-            std::vector<uint16_t> blockNeighbours;
+            std::vector<int16_t> blockNeighbours;
 
             // Type 5
             std::vector<POLY_TYPE> polyTypes;
@@ -138,7 +139,7 @@ namespace LibOpenNFS
             // Type 10?
             uint16_t nUnknownVerts = 0;
             std::vector<typename Platform::VERT> unknownVerts;
-
+            
             // Type 13
             uint16_t nVroad = 0;
             std::vector<VROAD> vroadData; // Reference using XBID 5

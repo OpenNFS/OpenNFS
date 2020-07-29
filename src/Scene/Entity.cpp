@@ -245,7 +245,7 @@ void Entity::_SetCollisionParameters()
     default:
         collideable = true;
         dynamic     = false;
-        LOG(WARNING) << "Entity parameters are unset for " << ToString(tag);
+        // LOG(WARNING) << "Entity parameters are unset for " << ToString(tag);
     }
 }
 

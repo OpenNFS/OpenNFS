@@ -58,6 +58,7 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
     break;
     case NFS_2:
     case NFS_2_SE:
+    case NFS_2_PS1:
     case NFS_3_PS1:
     {
         LibOpenNFS::NFS2::TEXTURE_BLOCK trackTexture = boost::get<LibOpenNFS::NFS2::TEXTURE_BLOCK>(rawTrackTexture);
@@ -70,6 +71,7 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
         case NFS_2_SE:
             alphaColour = 248u;
             break;
+        case NFS_2_PS1:
         case NFS_3_PS1:
             break;
         }
@@ -90,66 +92,73 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
 
 bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::string trackName, NFSVer nfsVer)
 {
-    std::stringstream output_dir, tex_archive_path;
-    std::string psh_path        = trackPath;
-    std::string full_track_path = trackPath + "/" + trackName;
-    output_dir << TRACK_PATH << ToString(nfsVer) << "/";
+    std::stringstream nfsTexArchivePath;
+    std::string fullTrackPath = trackPath + "/" + trackName;
+    std::string onfsTrackAssetDir =  TRACK_PATH + ToString(nfsVer) + "/" + trackName;
+
+    if (boost::filesystem::exists(onfsTrackAssetDir))
+    {
+        return true;
+    }
+    else
+    {
+        boost::filesystem::create_directories(onfsTrackAssetDir);
+    }
 
     switch (nfsVer)
     {
     case NFS_2:
-        tex_archive_path << trackPath << "0.qfs";
+        nfsTexArchivePath << trackPath << "0.qfs";
         break;
     case NFS_2_SE:
-        tex_archive_path << trackPath << "0M.qfs";
+        nfsTexArchivePath << trackPath << "0M.qfs";
+        break;
+    case NFS_2_PS1:
+        nfsTexArchivePath << trackPath << "0.PSH";
         break;
     case NFS_3:
-        tex_archive_path << full_track_path << "0.qfs";
+        nfsTexArchivePath << fullTrackPath << "0.qfs";
         break;
     case NFS_3_PS1:
-        psh_path.replace(psh_path.find("ZZ"), 2, "");
-        tex_archive_path << psh_path << "0.PSH";
-        break;
+    {
+        std::string pshPath = trackPath;
+        pshPath.replace(pshPath.find("ZZ"), 2, "");
+        nfsTexArchivePath << pshPath << "0.PSH";
+    }
+    break;
     case NFS_4:
-        tex_archive_path << trackPath << "/TR0.qfs";
+        nfsTexArchivePath << trackPath << "/TR0.qfs";
         break;
     case UNKNOWN:
     default:
         ASSERT(false, "Trying to extract track textures from unknown NFS version");
         break;
     }
-    output_dir << trackName;
-
-    if (boost::filesystem::exists(output_dir.str()))
-    {
-        return true;
-    }
-    else
-    {
-        boost::filesystem::create_directories(output_dir.str());
-    }
 
     LOG(INFO) << "Extracting track textures";
+    std::string onfsTrackAssetTextureDir = onfsTrackAssetDir + "/textures/";
 
-    if (nfsVer == NFS_3_PS1)
+    switch (nfsVer)
     {
-        output_dir << "/textures/";
-        return ImageLoader::ExtractPSH(tex_archive_path.str(), output_dir.str());
-    }
-    else if (nfsVer == NFS_3)
+    case NFS_2_PS1:
+    case NFS_3_PS1:
+        return ImageLoader::ExtractPSH(nfsTexArchivePath.str(), onfsTrackAssetTextureDir);
+    case NFS_3:
     {
-        std::stringstream sky_fsh_path;
-        sky_fsh_path << full_track_path.substr(0, full_track_path.find_last_of('/')) << "/sky.fsh";
-        if (boost::filesystem::exists(sky_fsh_path.str()))
+        std::stringstream nfsSkyTexArchivePath;
+        nfsSkyTexArchivePath << fullTrackPath.substr(0, fullTrackPath.find_last_of('/')) << "/sky.fsh";
+        if (boost::filesystem::exists(nfsSkyTexArchivePath.str()))
         {
-            std::stringstream sky_textures_path;
-            sky_textures_path << output_dir.str() << "/sky_textures/";
-            ASSERT(ImageLoader::ExtractQFS(sky_fsh_path.str(), sky_textures_path.str()), "Unable to extract sky textures from " << sky_fsh_path.str());
+            std::string onfsTrackAssetSkyTexDir = onfsTrackAssetDir + "/sky_textures/";
+            ASSERT(ImageLoader::ExtractQFS(nfsSkyTexArchivePath.str(), onfsTrackAssetSkyTexDir), "Unable to extract sky textures from " << nfsSkyTexArchivePath.str());
         }
     }
+    break;
+    default:
+        break;
+    }
 
-    output_dir << "/textures/";
-    return (ImageLoader::ExtractQFS(tex_archive_path.str(), output_dir.str()));
+    return ImageLoader::ExtractQFS(nfsTexArchivePath.str(), onfsTrackAssetTextureDir);
 }
 
 int32_t Texture::hsStockTextureIndexRemap(int32_t textureIndex)
@@ -181,6 +190,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         break;
     case NFS_2:
     case NFS_2_SE:
+    case NFS_2_PS1:
         switch (meshType)
         {
         case XOBJ:
@@ -249,7 +259,6 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             break;
         }
         break;
-    case NFS_2_PS1:
     case NFS_3_PS1:
         switch (meshType)
         {
