@@ -11,6 +11,8 @@ An attempt to recreate the classic Need for Speed Games (1-6), unpacking their o
   * Bullet Physics Integration for vehicle dynamics
   * New shaders that allow for dynamic lighting and shadows
   
+![Screenshot](../main/doc/BuildProgress.png)  
+  
 ## Planned Features
 
   * An actual implementation of gameplay that replicates the original titles
@@ -33,15 +35,14 @@ Below is a table better describing the current level of asset load into OpenNFS:
 | NFS4 PS1 | 50%* |        |       |
 | NFS3 PC  | 100% | 100%   | 95%   |
 | NFS3 PS1 | 40%  | 90%    | 95%   |
-| NFS2 SE  | 90*  | 90%    |       |
+| NFS2 SE  | 90%* | 90%    |       |
 | NFS2 PC  | 90%* | 90%    |       |
-| NFS2 PS1 | 90% *| 90%    |       |
+| NFS2 PS1 | 90%* | 90%    |       |
 | NFS1     |      |        |       |
 
 *Some titles fail to load in current builds of OpenNFS due to the undertaking of a large parser refactor. 
-**NFS5 Track formats have been reverse engineered, but a stable parser has not yet been written.
 
-![Screenshot](../main/doc/BuildProgress.png)
+**NFS5 Track formats have been reverse engineered, but a stable parser has not yet been written.
 
 ## Releases:
 
