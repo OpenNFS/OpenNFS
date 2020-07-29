@@ -2,7 +2,7 @@
 
 # OpenNFS 
 
-#### Linux [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/GCC%20Linux%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=4) Windows [![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MinGW%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=5) Mac [![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/Clang%20Mac%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=3)
+#### Windows [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Windows_gcc)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main) Linux [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Linux)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main) Mac [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Mac)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main) 
 
 An attempt to recreate the classic Need for Speed Games (1-6), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
  
@@ -11,7 +11,7 @@ An attempt to recreate the classic Need for Speed Games (1-6), unpacking their o
   * Bullet Physics Integration for vehicle dynamics
   * New shaders that allow for dynamic lighting and shadows
   
-![Screenshot](../main/doc/BuildProgress.png)  
+![Screenshot](doc/BuildProgress.png)  
   
 ## Planned Features
 
@@ -51,41 +51,32 @@ OpenNFS does not bundle any EA intellectual property. A copy of the original gam
 [View the latest stable feature releases Here](https://github.com/AmrikSadhra/OpenNFS/releases)
 
 ### For development builds on CI:
-All versions (Windows/Mac/Linux) are built on VSTS, but the current build artifacts only contain the OpenNFS.exe. To use these builds, it is recommended to download a Github Release from the 'Releases' page, and replace the OpenNFS exe with that produced by CI. You will most likely also need to update the 'shaders' directory, using the latest available from Git. I will alter my CI scripts soon to produce zips that can be ran without these extra steps.
 
-#### VSTS Windows 
-[![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/MinGW%20Windows%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=5)
+All versions (Windows/Mac/Linux) are built on VSTS, but the current build artifacts only contain the OpenNFS executable. To use these builds, it is recommended to download a Github Release from the 'Releases' page, and replace the OpenNFS executable with that produced by CI. You will most likely also need to update the 'shaders' directory, using the latest available from Git. I will alter my CI scripts soon to produce zips that can be ran without these extra steps. Build badges for CI are located at the top of this README.
 
-#### VSTS Linux 
-[![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/GCC%20Linux%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=4)
+## Development Board
 
-#### VSTS Mac 
-[![Build status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/Clang%20Mac%20OpenNFS%20Build)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=3)
-
-## Trello Development Board
-
-Check out what I'm working on by looking at the task board here:
-https://trello.com/b/01KK3JMr/opennfs
+Check out what I'm working on by looking at the Github Project boards for an upcoming point release here:
+https://github.com/OpenNFS/OpenNFS/projects
 
 ## Dependencies
 
 The CMake files are currently configured to detect external libraries from within the 'lib' folder at the same level as 'src', just do a 'git submodule update --recursive --remote' to get them.
 
-* GLEW 2.1.0
-* GLFW 3.2.1
-* GLM 0.9.9-a2
+* GLEW 
+* GLFW
+* GLM 
 * Bullet3
 * Boost
 
 ## Thanks
 
 Massive thanks to Denis Auroux, Vitaly 'Necromancer', EdasX, Ian Brownm, Jesper Juul-Mortensen and Arushan for their work on reverse engineering various NFS formats.
-
-Tom 'VapeTrick' Klapwijk - sarcasm and support and snaking my dev updates
+The OpenNFS Logo courtesy of AJ_Lethal.
 
 ## Legal:
 Models, textures, tracks, cars by EA Seattle (C) 1998, 1999, 2002. EA Canada (C) 2000, EA Blackbox (C) 2002.
-OpenNFS is not affiated in any way with EA
+OpenNFS is not affiliated in any way with EA.
 
 Released under the MIT License.
 
