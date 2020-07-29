@@ -6,10 +6,11 @@ template class LibOpenNFS::NFS2::ColFile<PS1>;
 template class LibOpenNFS::NFS2::ColFile<PC>;
 
 template <typename Platform>
-bool ColFile<Platform>::Load(const std::string &colPath, ColFile &colFile)
+bool ColFile<Platform>::Load(const std::string &colPath, ColFile &colFile, NFSVer version)
 {
     LOG(INFO) << "Loading COL File located at " << colPath;
     std::ifstream col(colPath, std::ios::in | std::ios::binary);
+    colFile.version = version;
 
     bool loadStatus = colFile._SerializeIn(col);
     col.close();
@@ -33,8 +34,8 @@ bool ColFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     if (memcmp(header, "COLL", sizeof(header)) != 0)
         return false;
 
-    SAFE_READ(ifstream, &version, sizeof(uint32_t));
-    if (version != 11)
+    SAFE_READ(ifstream, &colVersion, sizeof(uint32_t));
+    if (colVersion != 11)
         return false;
 
     SAFE_READ(ifstream, &size, sizeof(uint32_t));
@@ -43,13 +44,13 @@ bool ColFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     extraBlockOffsets.resize(nExtraBlocks);
     SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
 
-    LOG(INFO) << "Version: " << version << " nExtraBlocks: " << nExtraBlocks;
+    LOG(INFO) << "Version: " << colVersion << " nExtraBlocks: " << nExtraBlocks;
     LOG(DEBUG) << "Parsing COL Extrablocks";
 
     for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
         ifstream.seekg(16 + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
-        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
+        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream, this->version));
         // Map the the block type to the vector index, gross, original ordering is then maintained for output serialisation
         extraObjectBlockMap[(ExtraBlockID)extraObjectBlocks.back().id] = extraBlockIdx;
     }

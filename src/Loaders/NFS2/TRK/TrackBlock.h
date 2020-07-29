@@ -15,11 +15,15 @@ namespace LibOpenNFS
         {
         public:
             TrackBlock() = default;
-            explicit TrackBlock(std::ifstream &frd);
+            explicit TrackBlock(std::ifstream &trk, NFSVer version);
             void _SerializeOut(std::ofstream &ofstream) override;
             ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
 
+            // ONFS attribute
+            NFSVer version;
+
+            // Raw file data
             uint32_t blockSize;
             uint32_t blockSizeDup;
             uint16_t nExtraBlocks;

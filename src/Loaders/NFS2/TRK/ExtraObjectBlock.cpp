@@ -6,8 +6,9 @@ template class LibOpenNFS::NFS2::ExtraObjectBlock<PS1>;
 template class LibOpenNFS::NFS2::ExtraObjectBlock<PC>;
 
 template <typename Platform>
-ExtraObjectBlock<Platform>::ExtraObjectBlock(std::ifstream &trk)
+ExtraObjectBlock<Platform>::ExtraObjectBlock(std::ifstream &trk, NFSVer version)
 {
+    this->version = version;
     ASSERT(this->_SerializeIn(trk), "Failed to serialize ExtraObjectBlock from file stream");
 }
 
@@ -81,8 +82,16 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     // break;
     case 13:
         nVroad = nRecords;
-        vroadData.resize(nVroad);
-        SAFE_READ(ifstream, vroadData.data(), nVroad * sizeof(VROAD));
+        if(this->version == NFS_2_PS1)
+        {
+            ps1VroadData.resize(nVroad);
+            SAFE_READ(ifstream, ps1VroadData.data(), nVroad * sizeof(VROAD_VEC));
+        }
+        else
+        {
+            vroadData.resize(nVroad);
+            SAFE_READ(ifstream, vroadData.data(), nVroad * sizeof(VROAD));
+        }
         break;
     case 15:
         nCollisionData = nRecords;

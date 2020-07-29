@@ -6,10 +6,11 @@ template class LibOpenNFS::NFS2::TrkFile<PS1>;
 template class LibOpenNFS::NFS2::TrkFile<PC>;
 
 template <typename Platform>
-bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile)
+bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version)
 {
     LOG(INFO) << "Loading TRK File located at " << trkPath;
     std::ifstream trk(trkPath, std::ios::in | std::ios::binary);
+    trkFile.version = version;
 
     bool loadStatus = trkFile._SerializeIn(trk);
     trk.close();
@@ -59,7 +60,7 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
         LOG(DEBUG) << "SuperBlock " << superBlockIdx + 1 << " of " << nSuperBlocks;
         // Jump to the super block
         ifstream.seekg(superBlockOffsets[superBlockIdx], std::ios_base::beg);
-        superBlocks.push_back(SuperBlock<Platform>(ifstream));
+        superBlocks.push_back(SuperBlock<Platform>(ifstream, this->version));
     }
 
     return true;

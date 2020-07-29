@@ -13,7 +13,7 @@ namespace LibOpenNFS
         {
         public:
             TrkFile() = default;
-            static bool Load(const std::string &trkPath, TrkFile &trkFile);
+            static bool Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version);
             static void Save(const std::string &trkPath, TrkFile &trkFile);
 
             static const uint8_t HEADER_LENGTH         = 4;

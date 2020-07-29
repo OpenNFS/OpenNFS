@@ -103,9 +103,13 @@ namespace LibOpenNFS
         {
         public:
             ExtraObjectBlock() = default;
-            explicit ExtraObjectBlock(std::ifstream &trk);
+            explicit ExtraObjectBlock(std::ifstream &trk, NFSVer version);
             void _SerializeOut(std::ofstream &ofstream) override;
 
+            // ONFS attribute
+            NFSVer version;
+
+            // Raw file data
             uint32_t recSize  = 0;
             uint16_t id       = 0;
             uint16_t nRecords = 0;
@@ -143,6 +147,8 @@ namespace LibOpenNFS
             // Type 13
             uint16_t nVroad = 0;
             std::vector<VROAD> vroadData; // Reference using XBID 5
+            // Type 13 NFS2 PS1 Type (This looks hacky, but this struct doesn't match NFS3 PS1 or NFS2 PC)
+            std::vector<VROAD_VEC> ps1VroadData;
 
             // Type 15
             uint16_t nCollisionData = 0;

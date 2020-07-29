@@ -6,9 +6,10 @@ template class LibOpenNFS::NFS2::TrackBlock<PS1>;
 template class LibOpenNFS::NFS2::TrackBlock<PC>;
 
 template <typename Platform>
-TrackBlock<Platform>::TrackBlock(std::ifstream &frd)
+TrackBlock<Platform>::TrackBlock(std::ifstream &trk, NFSVer version)
 {
-    ASSERT(this->_SerializeIn(frd), "Failed to serialize TrackBlock from file stream");
+    this->version = version;
+    ASSERT(this->_SerializeIn(trk), "Failed to serialize TrackBlock from file stream");
 }
 
 template <typename Platform>
@@ -55,7 +56,7 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
     {
         ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
-        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream));
+        extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream, this->version));
         // Map the the block type to the vector index, original ordering is then maintained for output serialisation
         extraObjectBlockMap[(ExtraBlockID)extraObjectBlocks.back().id] = extraBlockIdx;
     }

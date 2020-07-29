@@ -112,9 +112,9 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
     CanFile canFile;
 
     ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
-    ASSERT(CanFile::Load(canPath, canFile), "Could not load CAN file (camera animation): " << canPath); // Load camera intro/outro animation data
-    ASSERT(TrkFile<PC>::Load(trkPath, trkFile), "Could not load TRK file: " << trkPath);                // Load TRK file to get track block specific data
-    ASSERT(ColFile<PC>::Load(colPath, colFile), "Could not load COL file: " << colPath);                // Load Catalogue file to get global (non block specific) data
+    ASSERT(CanFile::Load(canPath, canFile), "Could not load CAN file (camera animation): " << canPath);     // Load camera intro/outro animation data
+    ASSERT(TrkFile<PC>::Load(trkPath, trkFile, track->nfsVersion), "Could not load TRK file: " << trkPath); // Load TRK file to get track block specific data
+    ASSERT(ColFile<PC>::Load(colPath, colFile, track->nfsVersion), "Could not load COL file: " << colPath); // Load Catalogue file to get global (non block specific) data
 
     // Load up the textures
     auto textureBlock = colFile.GetExtraObjectBlock(ExtraBlockID::TEXTURE_BLOCK_ID);
@@ -154,8 +154,8 @@ std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePa
     ColFile<PS1> colFile;
 
     ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
-    ASSERT(TrkFile<PS1>::Load(trkPath, trkFile), "Could not load TRK file: " << trkPath); // Load TRK file to get track block specific data
-    ASSERT(ColFile<PS1>::Load(colPath, colFile), "Could not load COL file: " << colPath); // Load Catalogue file to get global (non block specific) data
+    ASSERT(TrkFile<PS1>::Load(trkPath, trkFile, track->nfsVersion), "Could not load TRK file: " << trkPath); // Load TRK file to get track block specific data
+    ASSERT(ColFile<PS1>::Load(colPath, colFile, track->nfsVersion), "Could not load COL file: " << colPath); // Load Catalogue file to get global (non block specific) data
 
     // Load up the textures
     auto textureBlock = colFile.GetExtraObjectBlock(ExtraBlockID::TEXTURE_BLOCK_ID);
@@ -396,20 +396,40 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<P
                 continue;
             }
 
-            std::vector<LibOpenNFS::NFS2::VROAD> vroadData = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).vroadData;
-
-            for (auto &vroadEntry : vroadData)
+            if (trkFile.version == NFS_2_PS1)
             {
-                // Get VROAD right vector
-                glm::vec3 forward = Utils::PointToVec(vroadEntry.forwardVec);
-                glm::vec3 normal  = Utils::PointToVec(vroadEntry.normalVec) / 128.f;
-                // TODO: Generate a vector 90 degs from forward
-                glm::vec3 right = glm::vec3(0, 0, 0);
+                std::vector<LibOpenNFS::NFS2::VROAD_VEC> vroadVectors = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).ps1VroadData;
 
-                glm::vec3 leftWall  = (2.f) * normal;
-                glm::vec3 rightWall = (2.f) * normal;
+                for (auto &vroadVector : vroadVectors)
+                {
+                    // Get VROAD forward vector, and fake a normal + right vector
+                    glm::vec3 forward = Utils::PointToVec(vroadVector);
+                    glm::vec3 normal  = glm::normalize(glm::quat(glm::vec3(0, -SIMD_PI / 2, 0))) * forward;
+                    glm::vec3 right   = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * forward;
 
-                virtualRoad.push_back(VirtualRoad(glm::vec3(0, 0, 0), 0, normal, forward, right, leftWall, rightWall));
+                    glm::vec3 leftWall  = (2.f) * normal;
+                    glm::vec3 rightWall = (2.f) * normal;
+
+                    virtualRoad.push_back(VirtualRoad(glm::vec3(0, 0, 0), 0, normal, forward, right, leftWall, rightWall));
+                }
+            }
+            else
+            {
+                std::vector<LibOpenNFS::NFS2::VROAD> vroadData = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).vroadData;
+
+                for (auto &vroadEntry : vroadData)
+                {
+                    // Get VROAD right vector
+                    glm::vec3 forward = Utils::PointToVec(vroadEntry.forwardVec);
+                    glm::vec3 normal  = Utils::PointToVec(vroadEntry.normalVec) / 128.f;
+                    // TODO: Generate a vector 90 degs from forward
+                    glm::vec3 right = glm::vec3(0, 0, 0);
+
+                    glm::vec3 leftWall  = (2.f) * normal;
+                    glm::vec3 rightWall = (2.f) * normal;
+
+                    virtualRoad.push_back(VirtualRoad(glm::vec3(0, 0, 0), 0, normal, forward, right, leftWall, rightWall));
+                }
             }
         }
     }

@@ -15,15 +15,19 @@ namespace LibOpenNFS
         {
         public:
             ColFile() = default;
-            static bool Load(const std::string &colPath, ColFile &colFile);
+            static bool Load(const std::string &colPath, ColFile &colFile, NFSVer version);
             static void Save(const std::string &colPath, ColFile &colFile);
             ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
 
             static const uint8_t HEADER_LENGTH = 4;
 
+            // ONFS attribute
+            NFSVer version;
+
+            // Raw File data
             unsigned char header[HEADER_LENGTH];
-            uint32_t version;
+            uint32_t colVersion;
             uint32_t size;
             uint32_t nExtraBlocks;
             std::vector<uint32_t> extraBlockOffsets;

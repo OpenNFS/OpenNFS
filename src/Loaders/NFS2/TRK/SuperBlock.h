@@ -13,9 +13,13 @@ namespace LibOpenNFS
         {
         public:
             SuperBlock() = default;
-            explicit SuperBlock(std::ifstream &trk);
+            explicit SuperBlock(std::ifstream &trk, NFSVer version);
             void _SerializeOut(std::ofstream &ofstream) override;
 
+            // ONFS attribute
+            NFSVer version;
+
+            // Raw file data
             uint32_t superBlockSize;
             uint32_t nBlocks;
             uint32_t padding;

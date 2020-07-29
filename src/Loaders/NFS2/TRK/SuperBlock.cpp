@@ -6,8 +6,9 @@ template class LibOpenNFS::NFS2::SuperBlock<PS1>;
 template class LibOpenNFS::NFS2::SuperBlock<PC>;
 
 template <typename Platform>
-SuperBlock<Platform>::SuperBlock(std::ifstream &trk)
+SuperBlock<Platform>::SuperBlock(std::ifstream &trk, NFSVer version)
 {
+    this->version = version;
     ASSERT(this->_SerializeIn(trk), "Failed to serialize SuperBlock from file stream");
 }
 
@@ -31,7 +32,7 @@ bool SuperBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
             // LOG(DEBUG) << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->serialNum << "]";
             // TODO: Fix this
             ifstream.seekg((uint32_t) superblockOffset + blockOffsets[blockIdx], std::ios_base::beg);
-            trackBlocks.push_back(TrackBlock<Platform>(ifstream));
+            trackBlocks.push_back(TrackBlock<Platform>(ifstream, this->version));
         }
     }
 
