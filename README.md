@@ -2,8 +2,12 @@
 
 # OpenNFS 
 
-#### Windows [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Windows_gcc)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main) Linux [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Linux)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main) Mac [![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Mac)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main) 
-
+|OS      |CI         |
+|--------|-----------|
+|Windows |[![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Windows_gcc)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main)|
+|Linux   |[![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Linux)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main)      |
+|Mac     |[![Build Status](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&jobName=Mac)](https://type2labs.visualstudio.com/OpenNFS/_build/latest?definitionId=12&branchName=main)        |
+    
 An attempt to recreate the classic Need for Speed Games (1-6), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
  
   * Reverse engineered asset loaders (tracks, cars, images, music etc) for NFS 1-6 PC and PSX (with the possibility for other systems as well), soon to be separated into LibOpenNFS for the creation of mod tools/converters through a stable API
