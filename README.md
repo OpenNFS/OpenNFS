@@ -28,7 +28,7 @@ Below is a table better describing the current level of asset load into OpenNFS:
 | Game     | Cars | Tracks | Music |
 |----------|------|--------|-------|
 | NFS6 PC  |      |        |       |
-| NFS5 PC  | 40%* | 20%*   |       |
+| NFS5 PC  | 40%**| 20%**  |       |
 | NFS4 PC  | 90%* | 90%*   |       |
 | NFS4 PS1 | 50%* |        |       |
 | NFS3 PC  | 100% | 100%   | 95%   |
@@ -38,9 +38,8 @@ Below is a table better describing the current level of asset load into OpenNFS:
 | NFS2 PS1 | 90% *| 90%    |       |
 | NFS1     |      |        |       |
 
-Some titles fail to load in current builds of OpenNFS due to the undertaking of a large parser refactor. 
-
-NFS5 Track formats have been reverse engineered, but a stable parser has not yet been written.
+*Some titles fail to load in current builds of OpenNFS due to the undertaking of a large parser refactor. 
+**NFS5 Track formats have been reverse engineered, but a stable parser has not yet been written.
 
 ![Screenshot](../main/doc/BuildProgress.png)
 
