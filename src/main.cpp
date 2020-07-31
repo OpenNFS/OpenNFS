@@ -482,8 +482,8 @@ private:
 
         LOG(INFO) << "Renaming complete on " << originalPaths.size() << " files";
     }
-};
 #endif
+};
 
 int main(int argc, char **argv)
 {
