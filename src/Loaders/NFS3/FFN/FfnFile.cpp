@@ -29,7 +29,7 @@ bool FfnFile::_SerializeIn(std::ifstream &ifstream)
 
     if (memcmp(header.fntfChk, "FNTF", sizeof(header.fntfChk)) != 0)
     {
-        LOG(WARNING) << "Invalid FFN Header.";
+        LOG(WARNING) << "Invalid FFN Header";
         return false;
     }
 

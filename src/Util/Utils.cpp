@@ -159,7 +159,7 @@ namespace Utils
 
         if (boost::filesystem::exists(output_dir))
         {
-            LOG(INFO) << "VIV has already been extracted. Skipping.";
+            LOG(INFO) << "VIV has already been extracted, skipping";
             return true;
         }
         else
@@ -206,7 +206,7 @@ namespace Utils
             viv.read(&c, sizeof(char));
             while (c != '\0')
             {
-                fileName[pos] = c;
+                fileName[pos] = tolower(c);
                 pos++;
                 viv.read(&c, sizeof(char));
             }
@@ -245,7 +245,7 @@ namespace Utils
         // Bail early if decompressed CRP present already
         if (boost::filesystem::exists(decompressedCrpPath))
         {
-            LOG(INFO) << "Already decompressed. Skipping.";
+            LOG(INFO) << "Already decompressed, skipping";
             return true;
         }
 
@@ -272,7 +272,7 @@ namespace Utils
         if ((id & 0x0000FFFF) != 0xFB10)
         {
             file.close();
-            LOG(INFO) << "CRP is already decompressed. Skipping.";
+            LOG(INFO) << "CRP is already decompressed, skipping";
             boost::filesystem::copy_file(compressedCrpPath, decompressedCrpPath, boost::filesystem::copy_option::overwrite_if_exists);
             return true;
         }
@@ -389,7 +389,7 @@ namespace Utils
         // Write out uncompressed data
         std::ofstream ofile;
         ofile.open(decompressedCrpPath.c_str(), std::ios::binary);
-        ASSERT(ofile.is_open(), "Unable to open output CRP at " << decompressedCrpPath << " for write of decompressed data.");
+        ASSERT(ofile.is_open(), "Unable to open output CRP at " << decompressedCrpPath << " for write of decompressed data");
         ofile.write((const char *) data, length);
         ofile.close();
 

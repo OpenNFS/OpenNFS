@@ -14,9 +14,9 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
     std::string carName = p.filename().string();
 
     std::stringstream geo_path, psh_path, qfs_path, car_out_path;
-    geo_path << carBasePath << ".GEO";
-    psh_path << carBasePath << ".PSH";
-    qfs_path << carBasePath << ".QFS";
+    geo_path << carBasePath << ".geo";
+    psh_path << carBasePath << ".psh";
+    qfs_path << carBasePath << ".qfs";
 
     // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
     std::map<unsigned int, Texture> carTextures;
@@ -36,7 +36,7 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
         ImageLoader::ExtractQFS(qfs_path.str(), car_out_path.str());
         break;
     default:
-        ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it.");
+        ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it");
     }
 
     for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr)
@@ -68,7 +68,7 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
                           static_cast<unsigned int>(bmpAttr.height));
                 break;
             default:
-                ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it.");
+                ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it");
             }
         }
     }*/
@@ -92,16 +92,16 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
     track->name = p.filename().string();
     std::string trkPath, colPath, canPath;
 
-    trkPath = trackBasePath + ".TRK";
-    colPath = trackBasePath + ".COL";
+    trkPath = trackBasePath + ".trk";
+    colPath = trackBasePath + ".col";
     switch (track->nfsVersion)
     {
     case NFS_2:
     case NFS_2_SE:
-        canPath = RESOURCE_PATH + ToString(track->nfsVersion) + "/GAMEDATA/TRACKS/DATA/PC/" + track->name + "00.CAN";
+        canPath = RESOURCE_PATH + ToString(track->nfsVersion) + "/gamedata/tracks/data/pc/" + track->name + "00.can";
         break;
     case NFS_2_PS1:
-        canPath = trackBasePath + "00.CAN";
+        canPath = trackBasePath + "00.can";
         break;
     default:
         ASSERT(false, "Attempting to load unknown NFS version with NFS2 PC Track parser");
@@ -111,7 +111,7 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
     ColFile<PC> colFile;
     CanFile canFile;
 
-    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
+    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack");
     ASSERT(CanFile::Load(canPath, canFile), "Could not load CAN file (camera animation): " << canPath);     // Load camera intro/outro animation data
     ASSERT(TrkFile<PC>::Load(trkPath, trkFile, track->nfsVersion), "Could not load TRK file: " << trkPath); // Load TRK file to get track block specific data
     ASSERT(ColFile<PC>::Load(colPath, colFile, track->nfsVersion), "Could not load COL file: " << colPath); // Load Catalogue file to get global (non block specific) data
@@ -146,14 +146,14 @@ std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePa
     track->name = p.filename().string();
     std::string trkPath, colPath;
 
-    trkPath = trackBasePath + ".TRK";
-    colPath = trackBasePath + ".COL";
-    colPath.replace(colPath.find("ZZ"), 2, "");
+    trkPath = trackBasePath + ".trk";
+    colPath = trackBasePath + ".col";
+    colPath.replace(colPath.find("zz"), 2, "");
 
     TrkFile<PS1> trkFile;
     ColFile<PS1> colFile;
 
-    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack.");
+    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, track->nfsVersion), "Could not extract " << track->name << " texture pack");
     ASSERT(TrkFile<PS1>::Load(trkPath, trkFile, track->nfsVersion), "Could not load TRK file: " << trkPath); // Load TRK file to get track block specific data
     ASSERT(ColFile<PS1>::Load(colPath, colFile, track->nfsVersion), "Could not load COL file: " << colPath); // Load Catalogue file to get global (non block specific) data
 
@@ -400,12 +400,13 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<P
         {
             if (!rawTrackBlock.IsBlockPresent(ExtraBlockID::VROAD_BLOCK_ID))
             {
-                LOG(WARNING) << "Trackblock: " << rawTrackBlock.serialNum << " is missing virtual road data.";
+                LOG(WARNING) << "Trackblock: " << rawTrackBlock.serialNum << " is missing virtual road data";
                 continue;
             }
 
             glm::quat orientation         = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
             glm::vec3 rawTrackBlockCenter = orientation * (Utils::PointToVec(trkFile.blockReferenceCoords[rawTrackBlock.serialNum]) / NFS2_SCALE_FACTOR);
+            rawTrackBlockCenter.y += 0.2f;
 
             if (trkFile.version == NFS_2_PS1)
             {

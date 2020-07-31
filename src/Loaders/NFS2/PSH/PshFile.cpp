@@ -33,7 +33,7 @@ bool PshFile::_SerializeIn(std::ifstream &ifstream)
     // Header should contain TRAC
     if (memcmp(header.header, "SHPP", sizeof(header.header)) != 0 && memcmp(header.chk, "GIMX", sizeof(header.chk)) != 0)
     {
-        LOG(WARNING) << "Invalid PSH Header(s).";
+        LOG(WARNING) << "Invalid PSH Header(s)";
         return false;
     }
 
@@ -51,7 +51,7 @@ bool PshFile::Extract(const std::string &outputPath, PshFile &pshFile)
 
      if (boost::filesystem::exists(outputPath))
      {
-         LOG(INFO) << "Textures already exist at " << outputPath << ". Nothing to extract.";
+         LOG(INFO) << "Textures already exist at " << outputPath << ", nothing to extract";
          return true;
      }
 

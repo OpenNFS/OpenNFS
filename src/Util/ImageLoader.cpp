@@ -79,7 +79,7 @@ bool ImageLoader::ExtractQFS(const std::string &qfs_input, const std::string &ou
     LOG(INFO) << "Extracting QFS file: " << qfs_input << " to " << output_dir;
     if (boost::filesystem::exists(output_dir))
     {
-        LOG(INFO) << "Textures already exist at " << output_dir << ". Nothing to extract.";
+        LOG(INFO) << "Textures already exist at " << output_dir << ", nothing to extract";
         return true;
     }
 
@@ -427,7 +427,7 @@ bool ImageLoader::ExtractPSH(const std::string &psh_path, const std::string &out
 
     if (boost::filesystem::exists(output_path))
     {
-        LOG(INFO) << "Textures already exist at " << output_path << ". Nothing to extract.";
+        LOG(INFO) << "Textures already exist at " << output_path << ". Nothing to extract";
         return true;
     }
 
@@ -439,7 +439,7 @@ bool ImageLoader::ExtractPSH(const std::string &psh_path, const std::string &out
     // Check we're in a valid TRK file
     if (psh.read(((char *) pshHeader), sizeof(PSH::HEADER)).gcount() != sizeof(PSH::HEADER))
     {
-        LOG(WARNING) << "Couldn't open file/truncated.";
+        LOG(WARNING) << "Couldn't open file/truncated";
         delete pshHeader;
         return false;
     }
@@ -449,7 +449,7 @@ bool ImageLoader::ExtractPSH(const std::string &psh_path, const std::string &out
     // Header should contain TRAC
     if (memcmp(pshHeader->header, "SHPP", sizeof(pshHeader->header)) != 0 && memcmp(pshHeader->chk, "GIMX", sizeof(pshHeader->chk)) != 0)
     {
-        LOG(WARNING) << "Invalid PSH Header(s).";
+        LOG(WARNING) << "Invalid PSH Header(s)";
         delete pshHeader;
         return false;
     }

@@ -6,7 +6,7 @@ void option_dependency(const variables_map &vm, const char *for_what, const char
 {
     if (vm.count(for_what) && !vm[for_what].defaulted())
         if (vm.count(required_option) == 0 || vm[required_option].defaulted())
-            yeet std::logic_error(std::string("Option '") + for_what + "' requires option '" + required_option + "'.");
+            yeet std::logic_error(std::string("Option '") + for_what + "' requires option '" + required_option + "'");
 }
 
 void Config::ParseFile(std::ifstream &inStream)
@@ -28,7 +28,11 @@ void Config::InitFromCommandLine(int argc, char **argv)
             "nticks", value(&nTicks), "Number of ticks to allow AI agents to simulate in, per generation (training mode)")("car,c", value(&car), "Name of desired car")(
             "carv,cv", value(&carTag), "NFS Version containing desired car (NFS_2, NFS_3, NFS_3_PS1, NFS_4, NFS_4_PS1, NFS_5")("track,t", value(&track), "Name of desired track")(
             "trackv,tv", value(&trackTag), "NFS Version containing desired track (NFS_2, NFS_3, NFS_3_PS1, NFS_4, NFS_4_PS1, NFS_5")(
-            "resX,x", value<uint32_t>(&resX), "Horizontal screen resolution")("resY,y", value<uint32_t>(&resY), "Vertical screen resolution");
+            "resX,x", value<uint32_t>(&resX), "Horizontal screen resolution")("resY,y", value<uint32_t>(&resY), "Vertical screen resolution")
+#ifdef __linux__
+            ("fixup-asset-paths", bool_switch(&renameAssets), "Rename all available NFS files and folders to lowercase so can be consistent for ONFS read under Linux")
+#endif
+          ;
 
         store(parse_command_line(argc, argv, desc), storedConfig);
         notify(storedConfig);

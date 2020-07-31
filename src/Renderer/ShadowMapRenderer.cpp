@@ -19,7 +19,7 @@ ShadowMapRenderer::ShadowMapRenderer()
     glReadBuffer(GL_NONE);
 
     // Always check that our framebuffer is ok
-    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Depth FBO is nae good.");
+    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Depth FBO is nae good");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

@@ -29,23 +29,23 @@ const std::string RESOURCE_PATH = "../resources/";
 
 const std::string BEST_NETWORK_PATH = ASSET_PATH + "bestRacer.net";
 
-const std::string NFS_2_TRACK_PATH = "/GAMEDATA/TRACKS/PC/";
-const std::string NFS_2_CAR_PATH   = "/GAMEDATA/CARMODEL/PC/";
+const std::string NFS_2_TRACK_PATH = "/gamedata/tracks/pc/";
+const std::string NFS_2_CAR_PATH   = "/gamedata/carmodel/pc/";
 
-const std::string NFS_2_SE_TRACK_PATH = "/GAMEDATA/TRACKS/SE/";
-const std::string NFS_2_SE_CAR_PATH   = "/GAMEDATA/CARMODEL/PC/";
+const std::string NFS_2_SE_TRACK_PATH = "/gamedata/tracks/se/";
+const std::string NFS_2_SE_CAR_PATH   = "/gamedata/carmodel/pc/";
 
 const std::string NFS_3_TRACK_PATH = "/gamedata/tracks/";
 const std::string NFS_3_CAR_PATH   = "/gamedata/carmodel/";
 
-const std::string NFS_4_TRACK_PATH = "/DATA/TRACKS/";
-const std::string NFS_4_CAR_PATH   = "/DATA/CARS/";
+const std::string NFS_4_TRACK_PATH = "/data/tracks/";
+const std::string NFS_4_CAR_PATH   = "/data/cars/";
 
-const std::string MCO_TRACK_PATH = "/Data/Tracks/";
-const std::string MCO_CAR_PATH   = "/Data/models/";
+const std::string MCO_TRACK_PATH = "/data/tracks/";
+const std::string MCO_CAR_PATH   = "/data/models/";
 
-const std::string NFS_5_TRACK_PATH = "/GameData/Track/";
-const std::string NFS_5_CAR_PATH   = "/GameData/CarModel/";
+const std::string NFS_5_TRACK_PATH = "/gamedata/tracks/";
+const std::string NFS_5_CAR_PATH   = "/gamedata/carmodel/";
 
 // ----- Graphics -----
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
@@ -60,8 +60,8 @@ const int LIGHTS_PER_NB_BLOCK         = 3; // Number of lights per neighbouring 
 const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks to search for lights
 
 // ----- Defaults -----
-const std::string DEFAULT_CAR           = "diab";
-const std::string DEFAULT_TRACK         = "trk000";
+const std::string DEFAULT_CAR           = "corv";
+const std::string DEFAULT_TRACK         = "trk003";
 const std::string DEFAULT_CAR_NFS_VER   = ToString(NFS_3);
 const std::string DEFAULT_TRACK_NFS_VER = ToString(NFS_3);
 const int DEFAULT_NUM_RACERS            = 0;
@@ -98,6 +98,8 @@ public:
     bool trainingMode     = false;
     uint16_t nGenerations = 0;
     uint32_t nTicks;
+    /* -- Tool Params -- */
+    bool renameAssets = false;
 
 private:
     Config() = default;

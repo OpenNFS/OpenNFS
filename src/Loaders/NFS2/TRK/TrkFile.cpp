@@ -35,7 +35,7 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     // Header should contain TRAC
     if (memcmp(header, "TRAC", sizeof(header)) != 0)
     {
-        LOG(WARNING) << "Invalid TRK Header.";
+        LOG(WARNING) << "Invalid TRK Header";
         return false;
     }
 

@@ -28,7 +28,7 @@ std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t resolutionX, uint32_t 
 
     if (window == nullptr)
     {
-        LOG(WARNING) << "Failed to create a GLFW window.";
+        LOG(WARNING) << "Failed to create a GLFW window";
         getchar();
         glfwTerminate();
     }

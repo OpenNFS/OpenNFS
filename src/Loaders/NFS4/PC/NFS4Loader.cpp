@@ -57,7 +57,7 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path)
     frd_path << track_base_path << "/TR.frd";
     can_path << track_base_path << "/TR00A.CAN";
 
-    ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack.");
+    ASSERT(ExtractTrackTextures(track_base_path, track->name, NFSVer::NFS_4), "Could not extract " << track->name << " QFS texture pack");
     ASSERT(LoadFRD(frd_path.str(), track->name, track),
            "Could not load FRD file: " << frd_path.str()); // Load FRD file to get track block specific data
     ASSERT(LoadCAN(can_path.str(), track->cameraAnimation),

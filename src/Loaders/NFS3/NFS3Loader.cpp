@@ -11,7 +11,7 @@ std::shared_ptr<Car> NFS3Loader::LoadCar(const std::string &carBasePath)
     vivPath << carBasePath << "/car.viv";
     carOutPath << CAR_PATH << ToString(NFS_3) << "/" << carName << "/";
     fcePath << CAR_PATH << ToString(NFS_3) << "/" << carName << "/car.fce";
-    fedataPath << carOutPath.str() << "/fedata.eng";
+    fedataPath << carOutPath.str() << "fedata.eng";
 
     FceFile fceFile;
     FedataFile fedataFile;
@@ -61,7 +61,7 @@ std::shared_ptr<Track> NFS3Loader::LoadTrack(const std::string &trackBasePath)
     HrzFile hrzFile;
     SpeedsFile speedFile;
 
-    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack.");
+    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack");
     ASSERT(FrdFile::Load(frdPath.str(), frdFile),
            "Could not load FRD file: " << frdPath.str()); // Load FRD file to get track block specific data
     ASSERT(ColFile::Load(colPath.str(), colFile),

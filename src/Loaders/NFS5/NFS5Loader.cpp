@@ -350,7 +350,7 @@ void NFS5::DumpCrpTextures(const std::string& crpPath)
     std::ifstream crp(crpPath, std::ios::in | std::ios::binary);
 
     auto* crpFileHeader = new CRP::HEADER();
-    ASSERT(crp.read((char*) crpFileHeader, sizeof(CRP::HEADER)).gcount() == sizeof(CRP::HEADER), "Couldn't open file/truncated.");
+    ASSERT(crp.read((char*) crpFileHeader, sizeof(CRP::HEADER)).gcount() == sizeof(CRP::HEADER), "Couldn't open file/truncated");
 
     // Each entry here points to a part table
     auto* articleTable = new CRP::ARTICLE[crpFileHeader->headerInfo.getNumParts()];
@@ -412,7 +412,7 @@ void NFS5::DumpCrpTextures(const std::string& crpPath)
         ImageLoader::ExtractQFS(fshPath.str(), fshOutputPath.str());
     }
     crp.close();
-    LOG(INFO) << "Done.";
+    LOG(INFO) << "Done";
 }
 
 // Debug

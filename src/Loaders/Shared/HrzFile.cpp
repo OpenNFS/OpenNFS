@@ -46,5 +46,5 @@ bool HrzFile::_SerializeIn(std::ifstream &ifstream)
 
 void HrzFile::_SerializeOut(std::ofstream &ofstream)
 {
-    ASSERT(false, "HRZ Output serialization is not implemented yet.");
+    ASSERT(false, "HRZ Output serialization is not implemented yet");
 }

@@ -111,10 +111,10 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
         nfsTexArchivePath << trackPath << "0.qfs";
         break;
     case NFS_2_SE:
-        nfsTexArchivePath << trackPath << "0M.qfs";
+        nfsTexArchivePath << trackPath << "0m.qfs";
         break;
     case NFS_2_PS1:
-        nfsTexArchivePath << trackPath << "0.PSH";
+        nfsTexArchivePath << trackPath << "0.psh";
         break;
     case NFS_3:
         nfsTexArchivePath << fullTrackPath << "0.qfs";
@@ -122,12 +122,12 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
     case NFS_3_PS1:
     {
         std::string pshPath = trackPath;
-        pshPath.replace(pshPath.find("ZZ"), 2, "");
-        nfsTexArchivePath << pshPath << "0.PSH";
+        pshPath.replace(pshPath.find("zz"), 2, "");
+        nfsTexArchivePath << pshPath << "0.psh";
     }
     break;
     case NFS_4:
-        nfsTexArchivePath << trackPath << "/TR0.qfs";
+        nfsTexArchivePath << trackPath << "/tr0.qfs";
         break;
     case UNKNOWN:
     default:
@@ -442,7 +442,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
 
 GLuint Texture::MakeTextureArray(std::map<uint32_t, Texture> &textures, bool repeatable)
 {
-    ASSERT(textures.size() < MAX_TEXTURE_ARRAY_SIZE, "Configured maximum texture array size of " << MAX_TEXTURE_ARRAY_SIZE << " has been exceeded.");
+    ASSERT(textures.size() < MAX_TEXTURE_ARRAY_SIZE, "Configured maximum texture array size of " << MAX_TEXTURE_ARRAY_SIZE << " has been exceeded");
 
     size_t max_width = 0, max_height = 0;
     GLuint texture_name;

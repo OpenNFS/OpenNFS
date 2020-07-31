@@ -48,7 +48,7 @@ namespace LibOpenNFS
             };
 
             // Mike Thompson CarEd disasm parts table for NFS2 Cars
-            const std::array<std::string, 32> PART_NAMES = {
+            const std::array<std::string, 32> PART_NAMES = {{
               "High Additional Body Part",
               "High Main Body Part",
               "High Ground Part",
@@ -81,7 +81,7 @@ namespace LibOpenNFS
               "Reserved",
               "Reserved",
               "Reserved",
-            };
+            }};
         };
 
         struct PS1
@@ -148,39 +148,39 @@ namespace LibOpenNFS
             };
 #pragma pack(pop)
 
-            const std::array<std::string, 33> PART_NAMES = {"High Additional Body Part",
-                                                            "High Main Body Part",
-                                                            "High Ground Part",
-                                                            "High Front Part",
-                                                            "High Rear Part",
-                                                            "High Left Side Part",
-                                                            "High Right Side Part",
-                                                            "High Additional Left Side Part",
-                                                            "High Additional Right Side Part",
-                                                            "High Front Rear Grilles",
-                                                            "High Extra Side Parts",
-                                                            "High Spoiler Part",
-                                                            "High Additional Part",
-                                                            "High Backlights",
-                                                            "High Front Right Wheel",
-                                                            "High Front Right Wheel Part",
-                                                            "High Front Left Wheel",
-                                                            "High Front Left Wheel Part",
-                                                            "High Rear Right Wheel",
-                                                            "High Rear Right Wheel Part",
-                                                            "High Rear Left Wheel",
-                                                            "High Rear Left Wheel Part",
-                                                            "Medium Additional Body Part",
-                                                            "Medium Main Body Part",
-                                                            "Medium Ground Part",
-                                                            "Wheel Positions",
-                                                            "Medium/Low Side Parts",
-                                                            "Low Main Part",
-                                                            "Low Side Part",
-                                                            "Headlight Positions",
-                                                            "Backlight Positions",
-                                                            "Reserved",
-                                                            "Reserved"};
+            const std::array<std::string, 33> PART_NAMES = {{"High Additional Body Part",
+                                                             "High Main Body Part",
+                                                             "High Ground Part",
+                                                             "High Front Part",
+                                                             "High Rear Part",
+                                                             "High Left Side Part",
+                                                             "High Right Side Part",
+                                                             "High Additional Left Side Part",
+                                                             "High Additional Right Side Part",
+                                                             "High Front Rear Grilles",
+                                                             "High Extra Side Parts",
+                                                             "High Spoiler Part",
+                                                             "High Additional Part",
+                                                             "High Backlights",
+                                                             "High Front Right Wheel",
+                                                             "High Front Right Wheel Part",
+                                                             "High Front Left Wheel",
+                                                             "High Front Left Wheel Part",
+                                                             "High Rear Right Wheel",
+                                                             "High Rear Right Wheel Part",
+                                                             "High Rear Left Wheel",
+                                                             "High Rear Left Wheel Part",
+                                                             "Medium Additional Body Part",
+                                                             "Medium Main Body Part",
+                                                             "Medium Ground Part",
+                                                             "Wheel Positions",
+                                                             "Medium/Low Side Parts",
+                                                             "Low Main Part",
+                                                             "Low Side Part",
+                                                             "Headlight Positions",
+                                                             "Backlight Positions",
+                                                             "Reserved",
+                                                             "Reserved"}};
         };
 
         template <typename Platform>

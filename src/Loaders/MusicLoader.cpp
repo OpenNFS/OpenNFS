@@ -376,7 +376,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
         startingPositions[startPos_Idx] = SWAPuint32_t(startingPosition);
     }
 
-    std::cout << "MAP File successfully parsed. Playing back MUS file." << std::endl;
+    std::cout << "MAP File successfully parsed. Playing back MUS file" << std::endl;
 
     FILE *mus_file = fopen(mus_path.c_str(), "rb");
 

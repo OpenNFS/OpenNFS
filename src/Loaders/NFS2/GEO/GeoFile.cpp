@@ -156,7 +156,7 @@ bool GeoFile<PS1>::_SerializeIn(std::ifstream &ifstream)
     auto *geoFileHeader = new PS1::HEADER();
     if (geo.read((char *) geoFileHeader, sizeof(PS1::GEO::HEADER)).gcount() != sizeof(PS1::GEO::HEADER))
     {
-        LOG(WARNING) << "Couldn't open file/truncated.";
+        LOG(WARNING) << "Couldn't open file/truncated";
         delete geoFileHeader;
         return car_meshes;
     }
