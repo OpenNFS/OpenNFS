@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 
 #include "../../Common/IRawData.h"
 #include "../Common.h"
@@ -43,7 +43,7 @@ namespace LibOpenNFS
             bool _SerializeIn(std::ifstream &ifstream) override;
 
             // Allows lookup by block type for parsers
-            std::unordered_map<ExtraBlockID, uint8_t> extraObjectBlockMap;
+            std::map<ExtraBlockID, uint8_t> extraObjectBlockMap;
         };
     } // namespace NFS2
 } // namespace LibOpenNFS
