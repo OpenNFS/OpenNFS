@@ -13,39 +13,40 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
     boost::filesystem::path p(carBasePath);
     std::string carName = p.filename().string();
 
-    std::stringstream geo_path, psh_path, qfs_path, car_out_path;
-    geo_path << carBasePath << ".geo";
-    psh_path << carBasePath << ".psh";
-    qfs_path << carBasePath << ".qfs";
+    std::string geoPath = carBasePath + ".geo";
+    std::string pshPath = carBasePath + ".psh";
+    std::string qfsPath = carBasePath + ".qfs";
+    std::string carOutPath;
 
     // For every file in here that's a BMP, load the data into a Texture object. This lets us easily access textures by an ID.
-    std::map<unsigned int, Texture> carTextures;
+    std::map<uint32_t, Texture> carTextures;
     std::map<std::string, uint32_t> remappedTextureIds;
     uint32_t remappedTextureID = 0;
 
-    /*switch (version)
+    // TODO: Refactor all of this to nexgen style
+    switch (nfsVersion)
     {
     case NFS_3_PS1:
     case NFS_2_PS1:
-        car_out_path << CAR_PATH << ToString(version) << "/" << car_name << "/";
-        ImageLoader::ExtractPSH(psh_path.str(), car_out_path.str());
+        carOutPath = CAR_PATH + ToString(nfsVersion) + "/" + carName + "/";
+        ImageLoader::ExtractPSH(pshPath, carOutPath);
         break;
     case NFS_2:
     case NFS_2_SE:
-        car_out_path << CAR_PATH << ToString(version) << "/" << car_name << "/";
-        ImageLoader::ExtractQFS(qfs_path.str(), car_out_path.str());
+        carOutPath = CAR_PATH + ToString(nfsVersion) + "/" + carName + "/";
+        ImageLoader::ExtractQFS(qfsPath, carOutPath);
         break;
     default:
-        ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it");
+        ASSERT(false, "I shouldn't be loading this version (" << nfsVersion << ") and you know it");
     }
 
-    for (boost::filesystem::directory_iterator itr(car_out_path.str()); itr != boost::filesystem::directory_iterator(); ++itr)
+    for (boost::filesystem::directory_iterator itr(carOutPath); itr != boost::filesystem::directory_iterator(); ++itr)
     {
         if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos)
         {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
-            remapped_texture_ids[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
-            switch (version)
+            remappedTextureIds[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
+            switch (nfsVersion)
             {
             case NFS_3_PS1:
             case NFS_2_PS1:
@@ -54,28 +55,30 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
                 GLsizei height;
                 ASSERT(ImageLoader::LoadBmpCustomAlpha(itr->path().string().c_str(), &data, &width, &height, 0u),
                        "Texture " << itr->path().string() << " did not load succesfully!");
-                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] =
-                  Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+                // carTextures[remappedTextureIds[itr->path().filename().replace_extension("").string()]] =
+                //   Texture(nfsVersion, remappedTextureIds[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width),
+                //           static_cast<unsigned int>(height), nullptr);
                 break;
             case NFS_2:
             case NFS_2_SE:
                 bmpread_t bmpAttr; // This will leak.
                 ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
-                car_textures[remapped_texture_ids[itr->path().filename().replace_extension("").string()]] =
-                  Texture(remapped_texture_ids[itr->path().filename().replace_extension("").string()],
-                          bmpAttr.data,
-                          static_cast<unsigned int>(bmpAttr.width),
-                          static_cast<unsigned int>(bmpAttr.height));
+                // carTextures[remappedTextureIds[itr->path().filename().replace_extension("").string()]] =
+                //  Texture(nfsVersion, remappedTextureIds[itr->path().filename().replace_extension("").string()], bmpAttr.data, static_cast<unsigned int>(bmpAttr.width),
+                //          static_cast<unsigned int>(bmpAttr.height), nullptr);
                 break;
             default:
-                ASSERT(false, "I shouldn't be loading this version (" << version << ") and you know it");
+                ASSERT(false, "I shouldn't be loading this version (" << nfsVersion << ") and you know it");
             }
         }
-    }*/
+    }
+
+    GeoFile<Platform> geoFile;
+    ASSERT(GeoFile<Platform>::Load(geoPath, geoFile), "Could not load GEO file: " << geoPath);
 
     // This must run before geometry load, as it will affect UV's
     GLint textureArrayID = Texture::MakeTextureArray(carTextures, false);
-    CarData carData;
+    CarData carData      = _ParseGEOModels(geoFile);
     // carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
     return std::make_shared<Car>(carData, NFSVer::NFS_2, carName, textureArrayID);
 }
@@ -175,12 +178,12 @@ std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePa
     return track;
 }
 
-// template <typename Platform>
-// CarData NFS2Loader<Platform>::_ParseGEOModels(const GeoFile<Platform> &geoFile)
-// {
-//     ASSERT(false, "Unimplemented");
-//     return CarData();
-// }
+template <typename Platform>
+CarData NFS2Loader<Platform>::_ParseGEOModels(const GeoFile<Platform> &geoFile)
+{
+    ASSERT(false, "Unimplemented");
+    return CarData();
+}
 
 // One might question why a TRK parsing function requires the COL file too. Simples, we need XBID 2 for Texture remapping during ONFS texgen.
 template <typename Platform>
