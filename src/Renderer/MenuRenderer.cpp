@@ -1,5 +1,12 @@
 #include "MenuRenderer.h"
 
+#include <json.hpp>
+#include <ft2build.h>
+
+#include FT_FREETYPE_H
+
+using json = nlohmann::json;
+
 MenuRenderer::MenuRenderer()
 {
     FT_Library ft;
@@ -33,25 +40,25 @@ MenuRenderer::MenuRenderer()
         // Now store character for later use
         Character character = {textureID, glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows), glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
                                (GLuint) face->glyph->advance.x};
-        characters.insert(std::pair<GLchar, Character>(c, character));
+        m_characterMap.insert(std::pair<GLchar, Character>(c, character));
     }
     glBindTexture(GL_TEXTURE_2D, 0);
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
     // Configure VAO/VBO for font texture quads
-    glGenVertexArrays(1, &fontQuadVAO);
-    glGenBuffers(1, &fontQuadVBO);
-    glBindVertexArray(fontQuadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, fontQuadVBO);
+    glGenVertexArrays(1, &m_fontQuadVAO);
+    glGenBuffers(1, &m_fontQuadVBO);
+    glBindVertexArray(m_fontQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_fontQuadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
     // Configure VAO/VBO for menu texture quads
-    glGenVertexArrays(1, &menuQuadVAO);
-    glGenBuffers(1, &menuQuadVBO);
-    glBindVertexArray(menuQuadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, menuQuadVBO);
+    glGenVertexArrays(1, &m_menuQuadVAO);
+    glGenBuffers(1, &m_menuQuadVBO);
+    glBindVertexArray(m_menuQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_menuQuadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
@@ -61,24 +68,24 @@ MenuRenderer::MenuRenderer()
 
     LOG(INFO) << "Glyphs loaded successfully";
 
-    menuResources = loadResources("../resources/ui/menu/resources.json");
+    m_menuResourceMap = LoadResources("../resources/ui/menu/resources.json");
     LOG(INFO) << "Menu resources loaded successfully";
 }
 
 MenuRenderer::~MenuRenderer()
 {
     // Lets delete all of the loaded textures
-    for (std::map<GLchar, Character>::iterator it = characters.begin(); it != characters.end(); ++it)
+    for (std::map<GLchar, Character>::iterator it = m_characterMap.begin(); it != m_characterMap.end(); ++it)
     {
         glDeleteTextures(1, &it->second.textureID);
     }
-    for (std::map<std::string, MenuResource>::iterator it = menuResources.begin(); it != menuResources.end(); ++it)
+    for (std::map<std::string, MenuResource>::iterator it = m_menuResourceMap.begin(); it != m_menuResourceMap.end(); ++it)
     {
         glDeleteTextures(1, &it->second.textureID);
     }
 }
 
-std::map<std::string, MenuResource> MenuRenderer::loadResources(const std::string &resourceFile)
+std::map<std::string, MenuResource> MenuRenderer::LoadResources(const std::string &resourceFile)
 {
     // Read the resource JSON file
     std::ifstream jsonFile(resourceFile);
@@ -104,78 +111,76 @@ std::map<std::string, MenuResource> MenuRenderer::loadResources(const std::strin
     return resources;
 }
 
-void MenuRenderer::render()
+void MenuRenderer::Render()
 {
-    projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
+    m_projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // TODO: Traverse parsed menuLayout JSON to render UI elements, depth sorted by layer back to front
-    renderResource("backgroundPattern", 0, 0, 0, Config::get().resX, Config::get().resY, 1.0f);
-    renderResource("leftMenuCurve", 1, 0, 0);
-    renderText("Test Menu", 2, Config::get().resX / 2, Config::get().resY / 2, 1.0f, glm::vec3(0.9, 0.9, 0));
+    RenderText("OpenNFS v" + ONFS_VERSION + " Pre Alpha", 0, Config::get().resX - 270, 35, 0.2f, glm::vec3(0.6, 0.6, 0.6));
+    RenderResource("onfsLogo", 0, Config::get().resX - 75, 5, 0.1f);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void MenuRenderer::renderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour)
+void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour)
 {
     ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
     // Allow for hot reload of shader
-    fontShader.shaders.UpdatePrograms();
+    m_fontShader.HotReload();
 
     // Activate corresponding render state
-    fontShader.use();
-    fontShader.loadLayer(layer);
-    fontShader.loadColour(colour);
-    fontShader.loadProjectionMatrix(projectionMatrix);
+    m_fontShader.use();
+    m_fontShader.loadLayer(layer);
+    m_fontShader.loadColour(colour);
+    m_fontShader.loadProjectionMatrix(m_projectionMatrix);
 
-    glBindVertexArray(fontQuadVAO);
+    glBindVertexArray(m_fontQuadVAO);
     // Iterate through all characters
     for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
     {
-        Character ch = characters[*c];
+        Character ch = m_characterMap[*c];
 
-        GLfloat xpos = x + ch.Bearing.x * scale;
-        GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+        GLfloat xpos = x + ch.bearing.x * scale;
+        GLfloat ypos = y - (ch.size.y - ch.bearing.y) * scale;
 
-        GLfloat w = ch.Size.x * scale;
-        GLfloat h = ch.Size.y * scale;
+        GLfloat w = ch.size.x * scale;
+        GLfloat h = ch.size.y * scale;
         // Update VBO for each character
         GLfloat vertices[6][4] = {{xpos, ypos + h, 0.0, 0.0}, {xpos, ypos, 0.0, 1.0},     {xpos + w, ypos, 1.0, 1.0},
 
                                   {xpos, ypos + h, 0.0, 0.0}, {xpos + w, ypos, 1.0, 1.0}, {xpos + w, ypos + h, 1.0, 0.0}};
         // Render glyph texture over quad
-        fontShader.loadGlyphTexture(ch.textureID);
+        m_fontShader.loadGlyphTexture(ch.textureID);
         // Update content of VBO memory
-        glBindBuffer(GL_ARRAY_BUFFER, fontQuadVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_fontQuadVBO);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // Render quad
         glDrawArrays(GL_TRIANGLES, 0, 6);
         // Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
+        x += (ch.advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64)
     }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    fontShader.unbind();
+    m_fontShader.unbind();
 }
 
-void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y)
+void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat scale)
 {
-    ASSERT(menuResources.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
-
-    float ratioX = (float) menuResources[resourceID].width / Config::get().resX;
-    float ratioY = (float) menuResources[resourceID].height / Config::get().resY;
+    ASSERT(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 
     // TODO: Actually implement this rescaling scaling properly
+    float ratioX = 1.0f; // (float) m_menuResourceMap[resourceID].width / Config::get().resX;
+    float ratioY = 1.0f; // (float) m_menuResourceMap[resourceID].height / Config::get().resY;
 
-    renderResource(resourceID, layer, x, y, ratioX * menuResources[resourceID].width, ratioY * menuResources[resourceID].height, 1.0f);
+    RenderResource(resourceID, layer, x, y, ratioX * m_menuResourceMap[resourceID].width, ratioY * m_menuResourceMap[resourceID].height, scale);
 }
 
-void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale)
+void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale)
 {
     ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
-    ASSERT(menuResources.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
+    ASSERT(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 
     GLfloat xpos = x;
     GLfloat ypos = y;
@@ -188,19 +193,19 @@ void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GL
                               {xpos, ypos + h, 0.0, 0.0}, {xpos + w, ypos, 1.0, 1.0}, {xpos + w, ypos + h, 1.0, 0.0}};
 
     // Allow for hot reload of shader
-    menuShader.shaders.UpdatePrograms();
+    m_menuShader.HotReload();
 
     // Activate corresponding render state
-    menuShader.use();
-    menuShader.loadLayer(layer);
-    menuShader.loadColour(glm::vec3(1, 1, 1));
-    menuShader.loadProjectionMatrix(projectionMatrix);
+    m_menuShader.use();
+    m_menuShader.loadLayer(layer);
+    m_menuShader.loadColour(glm::vec3(1, 1, 1));
+    m_menuShader.loadProjectionMatrix(m_projectionMatrix);
     // Render menu texture over quad
-    menuShader.loadMenuTexture(menuResources[resourceID].textureID);
+    m_menuShader.loadMenuTexture(m_menuResourceMap[resourceID].textureID);
 
-    glBindVertexArray(menuQuadVAO);
+    glBindVertexArray(m_menuQuadVAO);
     // Update content of VBO memory
-    glBindBuffer(GL_ARRAY_BUFFER, menuQuadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_menuQuadVBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     // Render quad
@@ -209,5 +214,5 @@ void MenuRenderer::renderResource(const std::string &resourceID, GLint layer, GL
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    menuShader.unbind();
+    m_menuShader.unbind();
 }

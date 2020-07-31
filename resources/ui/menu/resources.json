@@ -1,11 +1,16 @@
 {
-  "resources": [{
-    "name": "backgroundPattern",
-    "path": "../resources/ui/menu/images/bgGrillePattern.png"
-  },
+  "resources": [
+    {
+      "name": "backgroundPattern",
+      "path": "../resources/ui/menu/images/bgGrillePattern.png"
+    },
     {
       "name": "leftMenuCurve",
       "path": "../resources/ui/menu/images/leftMenuCurve.png"
+    },
+    {
+      "name": "onfsLogo",
+      "path": "../resources/ui/menu/images/logo.png"
     }
   ]
 }

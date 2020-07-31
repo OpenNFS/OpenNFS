@@ -69,7 +69,7 @@ void ShadowMapRenderer::Render(float nearPlane,
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, Config::get().resX, Config::get().resY);
     m_depthShader.unbind();
-    m_depthShader.shaderSet.UpdatePrograms();
+    m_depthShader.HotReload();
 }
 
 ShadowMapRenderer::~ShadowMapRenderer()

@@ -115,7 +115,11 @@ bool Renderer::Render(float totalTime,
         newAssetSelected = true;
     }
 
-    this->_DrawUI(userParams, activeCamera);
+    // Render the Debug UI
+    this->_DrawDebugUI(userParams, activeCamera);
+
+    // Render the Game UI
+    m_menuRenderer.Render();
 
     glfwSwapBuffers(m_window.get());
 
@@ -311,7 +315,7 @@ void Renderer::DrawMetadata(Entity *targetEntity)
     ImGui::End();
 }
 
-void Renderer::_DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera)
+void Renderer::_DrawDebugUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera)
 {
     // Draw Shadow Map
     ImGui::Begin("Shadow Map");

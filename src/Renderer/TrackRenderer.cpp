@@ -37,7 +37,7 @@ void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
     }
 
     m_trackShader.unbind();
-    m_trackShader.shaderSet.UpdatePrograms();
+    m_trackShader.HotReload();
 }
 
 void TrackRenderer::RenderLights(const std::shared_ptr<BaseCamera> &camera, const std::vector<shared_ptr<BaseLight>> &lights)
@@ -55,7 +55,7 @@ void TrackRenderer::RenderLights(const std::shared_ptr<BaseCamera> &camera, cons
         }
     }
     m_billboardShader.unbind();
-    m_billboardShader.shaderSet.UpdatePrograms();
+    m_billboardShader.HotReload();
 }
 
 TrackRenderer::~TrackRenderer()

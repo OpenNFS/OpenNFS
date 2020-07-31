@@ -6,25 +6,25 @@
 BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path)
 {
     // Prepended to shaders
-    shaderSet.SetVersion(ONFS_GL_VERSION);
+    m_shaderSet.SetVersion(ONFS_GL_VERSION);
 
     // File prepended to shaders (after #version)
-    shaderSet.SetPreambleFile(SHADER_PREAMBLE_PATH);
+    m_shaderSet.SetPreambleFile(SHADER_PREAMBLE_PATH);
 
-    ProgramID = shaderSet.AddProgramFromExts({vertex_file_path, fragment_file_path});
-    shaderSet.UpdatePrograms();
+    m_programID = m_shaderSet.AddProgramFromExts({vertex_file_path, fragment_file_path});
+    m_shaderSet.UpdatePrograms();
 }
 
 BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &geometry_file_path, const std::string &fragment_file_path)
 {
     // Prepended to shaders
-    shaderSet.SetVersion(ONFS_GL_VERSION);
+    m_shaderSet.SetVersion(ONFS_GL_VERSION);
 
     // File prepended to shaders (after #version)
-    shaderSet.SetPreambleFile(SHADER_PREAMBLE_PATH);
+    m_shaderSet.SetPreambleFile(SHADER_PREAMBLE_PATH);
 
-    ProgramID = shaderSet.AddProgramFromExts({vertex_file_path, geometry_file_path, fragment_file_path});
-    shaderSet.UpdatePrograms();
+    m_programID = m_shaderSet.AddProgramFromExts({vertex_file_path, geometry_file_path, fragment_file_path});
+    m_shaderSet.UpdatePrograms();
 }
 
 void BaseShader::loadSampler2D(GLint location, GLint textureUnit)
@@ -74,7 +74,7 @@ void BaseShader::cleanup()
 
 void BaseShader::use()
 {
-    glUseProgram(*ProgramID);
+    glUseProgram(*m_programID);
 }
 
 void BaseShader::unbind()
@@ -82,17 +82,22 @@ void BaseShader::unbind()
     glUseProgram(0);
 }
 
+void BaseShader::HotReload()
+{
+    m_shaderSet.UpdatePrograms();
+}
+
 BaseShader::~BaseShader()
 {
-    glDeleteProgram(*ProgramID);
+    glDeleteProgram(*m_programID);
 }
 
 GLint BaseShader::getUniformLocation(std::string uniformName)
 {
-    return glGetUniformLocation(*ProgramID, uniformName.c_str());
+    return glGetUniformLocation(*m_programID, uniformName.c_str());
 }
 
 void BaseShader::bindAttribute(GLuint attribute, std::string variableName)
 {
-    glBindAttribLocation(*ProgramID, attribute, variableName.c_str());
+    glBindAttribLocation(*m_programID, attribute, variableName.c_str());
 }

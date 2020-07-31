@@ -99,12 +99,9 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
         SAFE_READ(ifstream, collisionData.data(), nCollisionData * sizeof(COLLISION_BLOCK));
         break;
     default:
-        LOG(WARNING) << "Unknown id: " << id << " nRecords: " << nRecords << " RecSize: " << recSize;
+        LOG(WARNING) << "Unknown XBID: " << id << " nRecords: " << nRecords << " RecSize: " << recSize;
         break;
     }
-
-    LOG(DEBUG) << "XBID: " << id;
-
     return true;
 }
 

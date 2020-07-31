@@ -76,7 +76,7 @@ void SkyRenderer::Render(const std::shared_ptr<BaseCamera> &camera, const std::s
     // Bind the sphere model
     m_skydomeModel.render();
     m_skydomeShader.unbind();
-    m_skydomeShader.shaderSet.UpdatePrograms();
+    m_skydomeShader.HotReload();
 }
 
 SkyRenderer::~SkyRenderer()

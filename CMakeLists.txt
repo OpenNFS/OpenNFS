@@ -195,8 +195,8 @@ set(SOURCE_FILES
         src/Race/RaceSession.h
         src/Scene/Lights/Spotlight.cpp
         src/Scene/Lights/Spotlight.h
-        #[[src/Renderer/MenuRenderer.cpp
-        src/Renderer/MenuRenderer.h]]
+        src/Renderer/MenuRenderer.cpp
+        src/Renderer/MenuRenderer.h
         src/Shaders/FontShader.cpp
         src/Shaders/FontShader.h
         src/Shaders/MenuShader.cpp
@@ -265,6 +265,11 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
 
 #[[BMPREAD]]
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
+
+#[[FREETYPE]]
+add_subdirectory(lib/freetype2)
+include_directories(lib/freetype2/include)
+target_link_libraries(OpenNFS freetype)
 
 #[[BOOST]]
 add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)

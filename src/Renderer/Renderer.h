@@ -25,8 +25,7 @@
 #include "SkyRenderer.h"
 #include "ShadowMapRenderer.h"
 #include "DebugRenderer.h"
-
-/*#include "MenuRenderer.h"*/
+#include "MenuRenderer.h"
 
 struct VisibleSet
 {
@@ -69,7 +68,7 @@ public:
 private:
     void _InitialiseIMGUI();
     bool _DrawMenuBar(AssetData &loadedAssets);
-    void _DrawUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
+    void _DrawDebugUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
     static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
     static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
 
@@ -83,5 +82,5 @@ private:
     SkyRenderer m_skyRenderer;
     ShadowMapRenderer m_shadowMapRenderer;
     DebugRenderer m_debugRenderer;
-    /*MenuRenderer menuRenderer;*/
+    MenuRenderer m_menuRenderer;
 };

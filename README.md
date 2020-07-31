@@ -1,4 +1,4 @@
-</table><img src="doc/logo.png" align="right" height="300" width="300"/>
+</table><img src="resources/ui/menu/images/logo.png" align="right" height="300" width="300"/>
 
 # OpenNFS 
   
@@ -52,20 +52,9 @@ OpenNFS does not bundle any EA intellectual property. A copy of the original gam
 
 All versions (Windows/Mac/Linux) are built on VSTS, but the current build artifacts only contain the OpenNFS executable. To use these builds, it is recommended to download a Github Release from the 'Releases' page, and replace the OpenNFS executable with that produced by CI. You will most likely also need to update the 'shaders' directory, using the latest available from Git. I will alter my CI scripts soon to produce zips that can be ran without these extra steps. 
 
-<table>
-<tbody>
-<tr>
-<td>Linux</td>
-<td>Windows</td>
-<td>Mac OS</td>
-</tr>
-<tr>
-<td><img src="https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Linux" alt="Linux Azure CI Build"/></td>
-<td><img src="https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Windows_gcc" alt="Windows GCC Azure CI Build"/></td>
-<td><img src="https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Mac" alt="Mac OS Azure CI Build"/></td>
-</tr>
-</tbody>
-</table>
+|Linux|Windows|Mac OS|
+|-----|-------|------|
+|![Linux](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Linux)|![Windows](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Windows_gcc)|![Linux](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Mac)|
 
 ## Keep up to date
 

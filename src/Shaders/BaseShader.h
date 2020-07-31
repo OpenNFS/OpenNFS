@@ -24,9 +24,7 @@ public:
     void use();
     void unbind();
     void cleanup();
-
-    ShaderSet shaderSet;
-    GLuint *ProgramID;
+    void HotReload();
 
 protected:
     void loadMat4(GLint location, const GLfloat *value);
@@ -42,4 +40,8 @@ protected:
     virtual void bindAttributes()         = 0;
     virtual void getAllUniformLocations() = 0;
     virtual void customCleanup()          = 0;
+
+private:
+    GLuint *m_programID;
+    ShaderSet m_shaderSet;
 };

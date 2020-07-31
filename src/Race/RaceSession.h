@@ -32,7 +32,7 @@ private:
     void _GetInputsAndClear();
 
     AssetData m_loadedAssets;
-    WindowStatus m_windowStatus   = WindowStatus::UI;
+    WindowStatus m_windowStatus   = WindowStatus::GAME;
     CameraMode m_activeCameraMode = CameraMode::FREE_LOOK;
 
     std::shared_ptr<GLFWwindow> m_window;
