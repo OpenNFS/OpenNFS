@@ -2,8 +2,14 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class LibOpenNFS::NFS2::GeoFile<PS1>;
-template class LibOpenNFS::NFS2::GeoFile<PC>;
+namespace LibOpenNFS
+{
+    namespace NFS2
+    {
+        template class GeoFile<PS1>;
+        template class GeoFile<PC>;
+    } // namespace NFS2
+} // namespace LibOpenNFS
 
 template <typename Platform>
 bool GeoFile<Platform>::Load(const std::string &geoPath, GeoFile &geoFile)
@@ -26,7 +32,7 @@ void GeoFile<Platform>::Save(const std::string &geoPath, GeoFile &geoFile)
 }
 
 template <>
-bool GeoFile<LibOpenNFS::NFS2::PC>::_SerializeIn(std::ifstream &ifstream)
+bool GeoFile<PC>::_SerializeIn(std::ifstream &ifstream)
 {
     float carScaleFactor     = 2000.f;
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
@@ -149,7 +155,7 @@ bool GeoFile<LibOpenNFS::NFS2::PC>::_SerializeIn(std::ifstream &ifstream)
 }
 
 template <>
-bool GeoFile<LibOpenNFS::NFS2::PS1>::_SerializeIn(std::ifstream &ifstream)
+bool GeoFile<PS1>::_SerializeIn(std::ifstream &ifstream)
 {
     /*glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0)));
     float carScaleFactor     = 2000.f;

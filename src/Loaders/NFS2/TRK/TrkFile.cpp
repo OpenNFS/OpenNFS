@@ -65,6 +65,7 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
 
     return true;
 }
+
 template <typename Platform>
 void TrkFile<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
