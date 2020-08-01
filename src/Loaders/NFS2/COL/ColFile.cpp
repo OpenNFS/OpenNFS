@@ -2,9 +2,6 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class LibOpenNFS::NFS2::ColFile<PS1>;
-template class LibOpenNFS::NFS2::ColFile<PC>;
-
 template <typename Platform>
 bool ColFile<Platform>::Load(const std::string &colPath, ColFile &colFile, NFSVer version)
 {
@@ -73,3 +70,6 @@ bool ColFile<Platform>::IsBlockPresent(ExtraBlockID eBlockType)
 {
     return extraObjectBlockMap.count(eBlockType);
 }
+
+template class LibOpenNFS::NFS2::ColFile<PS1>;
+template class LibOpenNFS::NFS2::ColFile<PC>;

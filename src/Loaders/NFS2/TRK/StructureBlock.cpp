@@ -2,9 +2,6 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class LibOpenNFS::NFS2::StructureBlock<PS1>;
-template class LibOpenNFS::NFS2::StructureBlock<PC>;
-
 template <typename Platform>
 StructureBlock<Platform>::StructureBlock(std::ifstream &ifstream)
 {
@@ -36,3 +33,6 @@ void StructureBlock<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
     ASSERT(false, "StructureBlock output serialization is not currently implemented");
 }
+
+template class LibOpenNFS::NFS2::StructureBlock<PS1>;
+template class LibOpenNFS::NFS2::StructureBlock<PC>;

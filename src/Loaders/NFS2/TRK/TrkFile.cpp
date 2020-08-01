@@ -2,9 +2,6 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class LibOpenNFS::NFS2::TrkFile<PS1>;
-template class LibOpenNFS::NFS2::TrkFile<PC>;
-
 template <typename Platform>
 bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version)
 {
@@ -71,3 +68,6 @@ void TrkFile<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
     ASSERT(false, "TRK output serialization is not currently implemented");
 }
+
+template class LibOpenNFS::NFS2::TrkFile<PS1>;
+template class LibOpenNFS::NFS2::TrkFile<PC>;

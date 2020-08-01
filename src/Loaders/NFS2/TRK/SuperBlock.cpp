@@ -2,9 +2,6 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class LibOpenNFS::NFS2::SuperBlock<PS1>;
-template class LibOpenNFS::NFS2::SuperBlock<PC>;
-
 template <typename Platform>
 SuperBlock<Platform>::SuperBlock(std::ifstream &trk, NFSVer version)
 {
@@ -44,3 +41,6 @@ void SuperBlock<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
     ASSERT(false, "SuperBlock output serialization is not currently implemented");
 }
+
+template class LibOpenNFS::NFS2::SuperBlock<PS1>;
+template class LibOpenNFS::NFS2::SuperBlock<PC>;

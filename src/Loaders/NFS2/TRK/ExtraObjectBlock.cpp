@@ -2,9 +2,6 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class LibOpenNFS::NFS2::ExtraObjectBlock<PS1>;
-template class LibOpenNFS::NFS2::ExtraObjectBlock<PC>;
-
 template <typename Platform>
 ExtraObjectBlock<Platform>::ExtraObjectBlock(std::ifstream &trk, NFSVer version)
 {
@@ -110,3 +107,6 @@ void ExtraObjectBlock<Platform>::_SerializeOut(std::ofstream &ofstream)
 {
     ASSERT(false, "ExtraObjectBlock output serialization is not currently implemented");
 }
+
+template class LibOpenNFS::NFS2::ExtraObjectBlock<PS1>;
+template class LibOpenNFS::NFS2::ExtraObjectBlock<PC>;

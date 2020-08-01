@@ -4,9 +4,6 @@ namespace LibOpenNFS
 {
     namespace NFS2
     {
-        template class GeoFile<PS1>;
-        template class GeoFile<PC>;
-
         template <typename Platform>
         bool GeoFile<Platform>::Load(const std::string &geoPath, GeoFile &geoFile)
         {
@@ -409,5 +406,8 @@ namespace LibOpenNFS
         {
             ASSERT(false, "GEO output serialization is not currently implemented");
         }
+
+        template class GeoFile<PS1>;
+        template class GeoFile<PC>;
     }
 }

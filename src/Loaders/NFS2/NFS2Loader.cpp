@@ -4,9 +4,6 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class NFS2Loader<PS1>;
-template class NFS2Loader<PC>;
-
 template <typename Platform>
 std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVer nfsVersion)
 {
@@ -543,3 +540,6 @@ std::vector<Entity> NFS2Loader<Platform>::_ParseCOLModels(ColFile<Platform> &col
 
     return colEntities;
 }
+
+template class NFS2Loader<PS1>;
+template class NFS2Loader<PC>;

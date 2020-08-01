@@ -2,9 +2,6 @@
 
 using namespace LibOpenNFS::NFS2;
 
-template class LibOpenNFS::NFS2::TrackBlock<PS1>;
-template class LibOpenNFS::NFS2::TrackBlock<PC>;
-
 template <typename Platform>
 TrackBlock<Platform>::TrackBlock(std::ifstream &trk, NFSVer version)
 {
@@ -81,3 +78,6 @@ bool TrackBlock<Platform>::IsBlockPresent(ExtraBlockID eBlockType)
 {
     return extraObjectBlockMap.count(eBlockType);
 }
+
+template class LibOpenNFS::NFS2::TrackBlock<PS1>;
+template class LibOpenNFS::NFS2::TrackBlock<PC>;
