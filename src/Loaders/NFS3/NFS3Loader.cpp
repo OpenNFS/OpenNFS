@@ -36,24 +36,24 @@ std::shared_ptr<Track> NFS3Loader::LoadTrack(const std::string &trackBasePath)
 {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
 
-    auto track = std::make_shared<Track>(Track());
+    auto track        = std::make_shared<Track>(Track());
     track->nfsVersion = NFSVer::NFS_3;
 
     boost::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
-    std::stringstream frdPath, colPath, canPath, hrzPath, binPath;
-    std::string strip = "k0";
-    size_t pos        = track->name.find(strip);
+    std::string frdPath, colPath, canPath, hrzPath, binPath;
+    std::string strip = "k0", trackNameStripped = track->name;
+    size_t pos = track->name.find(strip);
     if (pos != std::string::npos)
     {
-        track->name.replace(pos, strip.size(), "");
+        trackNameStripped.replace(pos, strip.size(), "");
     }
 
-    frdPath << trackBasePath << "/" << track->name << ".frd";
-    colPath << trackBasePath << "/" << track->name << ".col";
-    canPath << trackBasePath << "/" << track->name << "00a.can";
-    hrzPath << trackBasePath << "/3" << track->name << ".hrz";
-    binPath << trackBasePath << "/speedsf.bin";
+    frdPath = trackBasePath + "/" + trackNameStripped + ".frd";
+    colPath = trackBasePath + "/" + trackNameStripped + ".col";
+    canPath = trackBasePath + "/" + trackNameStripped + "00a.can";
+    hrzPath = trackBasePath + "/3" + trackNameStripped + ".hrz";
+    binPath = trackBasePath + "/speedsf.bin";
 
     FrdFile frdFile;
     ColFile colFile;
@@ -61,22 +61,17 @@ std::shared_ptr<Track> NFS3Loader::LoadTrack(const std::string &trackBasePath)
     HrzFile hrzFile;
     SpeedsFile speedFile;
 
-    ASSERT(Texture::ExtractTrackTextures(trackBasePath, track->name, NFSVer::NFS_3), "Could not extract " << track->name << " QFS texture pack");
-    ASSERT(FrdFile::Load(frdPath.str(), frdFile),
-           "Could not load FRD file: " << frdPath.str()); // Load FRD file to get track block specific data
-    ASSERT(ColFile::Load(colPath.str(), colFile),
-           "Could not load COL file: " << colPath.str()); // Load Catalogue file to get global (non trkblock specific) data
-    ASSERT(CanFile::Load(canPath.str(), canFile),
-           "Could not load CAN file (camera animation): " << canPath.str());                                                  // Load camera intro/outro animation data
-    ASSERT(HrzFile::Load(hrzPath.str(), hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath.str());             // Load HRZ Data
-    ASSERT(SpeedsFile::Load(binPath.str(), speedFile), "Could not load speedsf.bin file (AI vroad speeds:" << binPath.str()); // Load AI speed data
-    // TODO: Debug, dump to a CSV for quick excel viz
-    SpeedsFile::SaveCSV("./speeds.csv", speedFile);
+    ASSERT(Texture::ExtractTrackTextures(trackBasePath, trackNameStripped, NFSVer::NFS_3), "Could not extract " << trackNameStripped << " QFS texture pack");
+    ASSERT(FrdFile::Load(frdPath, frdFile), "Could not load FRD file: " << frdPath);                              // Load FRD file to get track block specific data
+    ASSERT(ColFile::Load(colPath, colFile), "Could not load COL file: " << colPath);                              // Load Catalogue file to get global (non trkblock specific) data
+    ASSERT(CanFile::Load(canPath, canFile), "Could not load CAN file (camera animation): " << canPath);           // Load camera intro/outro animation data
+    ASSERT(HrzFile::Load(hrzPath, hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath);             // Load HRZ Data
+    ASSERT(SpeedsFile::Load(binPath, speedFile), "Could not load speedsf.bin file (AI vroad speeds:" << binPath); // Load AI speed data
 
     // Load QFS textures into GL objects
     for (auto &frdTexBlock : frdFile.textureBlocks)
     {
-        track->textureMap[frdTexBlock.qfsIndex] = Texture::LoadTexture(NFSVer::NFS_3, frdTexBlock, track->name);
+        track->textureMap[frdTexBlock.qfsIndex] = Texture::LoadTexture(NFSVer::NFS_3, frdTexBlock, trackNameStripped);
     }
 
     track->textureArrayID  = Texture::MakeTextureArray(track->textureMap, false);

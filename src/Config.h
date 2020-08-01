@@ -44,7 +44,7 @@ const std::string NFS_4_CAR_PATH   = "/data/cars/";
 const std::string MCO_TRACK_PATH = "/data/tracks/";
 const std::string MCO_CAR_PATH   = "/data/models/";
 
-const std::string NFS_5_TRACK_PATH = "/gamedata/tracks/";
+const std::string NFS_5_TRACK_PATH = "/gamedata/track/";
 const std::string NFS_5_CAR_PATH   = "/gamedata/carmodel/";
 
 // ----- Graphics -----

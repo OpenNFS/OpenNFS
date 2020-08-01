@@ -30,12 +30,10 @@ class OpenNFSEngine
 public:
     explicit OpenNFSEngine(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger)
     {
-#ifdef __linux__
         if (Config::get().renameAssets)
         {
             RenameAssetsToLowercase();
         }
-#endif
         InitDirectories();
         PopulateAssets();
 
@@ -423,7 +421,6 @@ private:
         }
     }
 
-#ifdef __linux__
     static bool FilePathSortByDepthReverse(path a, path b)
     {
         return (a.size() > b.size());
@@ -482,7 +479,6 @@ private:
 
         LOG(INFO) << "Renaming complete on " << originalPaths.size() << " files";
     }
-#endif
 };
 
 int main(int argc, char **argv)
