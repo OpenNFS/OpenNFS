@@ -31,7 +31,7 @@ std::vector<uint32_t> RacerManager::GetRacerResidentTrackblocks()
 void RacerManager::_InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsEngine &physicsEngine)
 {
     physicsEngine.RegisterVehicle(playerAgent->vehicle);
-    playerAgent->ResetToIndexInTrackblock(0, 0, 0.25f);
+    playerAgent->ResetToIndexInTrackblock(0, 0, 0.f);
     racers.emplace_back(playerAgent);
 }
 

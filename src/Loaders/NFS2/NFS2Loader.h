@@ -31,6 +31,6 @@ private:
     static CarData _ParseGEOModels(const LibOpenNFS::NFS2::GeoFile<Platform> &geoFile);
     static std::vector<OpenNFS::TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS2::TrkFile<Platform> &trkFile, LibOpenNFS::NFS2::ColFile<Platform> &colFile,
                                                             const std::shared_ptr<Track> &track);
-    static std::vector<VirtualRoad> _ParseVirtualRoad(const LibOpenNFS::NFS2::TrkFile<Platform> &trkFile);
+    static std::vector<VirtualRoad> _ParseVirtualRoad(LibOpenNFS::NFS2::ColFile<Platform> &colFile);
     static std::vector<Entity> _ParseCOLModels(LibOpenNFS::NFS2::ColFile<Platform> &colFile, const std::shared_ptr<Track> &track);
 };

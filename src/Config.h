@@ -87,7 +87,7 @@ public:
     std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
     uint16_t nRacers = DEFAULT_NUM_RACERS;
     /* -- Physics/AI Params -- */
-    bool useFullVroad = false;
+    bool useFullVroad = true;
     bool sparkMode    = false;
     /* -- Render Params -- */
     bool vulkanRender = false;
@@ -128,7 +128,7 @@ struct ParamData
     bool drawVroad              = false;
     bool drawCAN                = false;
     bool drawRaycast            = false;
-    bool simulateCars           = false;
+    bool simulateCars           = true;
 };
 
 struct AssetData

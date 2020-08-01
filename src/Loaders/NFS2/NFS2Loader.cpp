@@ -128,7 +128,7 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
     track->cameraAnimation = canFile.animPoints;
     track->trackBlocks     = _ParseTRKModels(trkFile, colFile, track);
     track->globalObjects   = _ParseCOLModels(colFile, track);
-    track->virtualRoad     = _ParseVirtualRoad(trkFile);
+    track->virtualRoad     = _ParseVirtualRoad(colFile);
 
     LOG(INFO) << "Track loaded successfully";
 
@@ -168,7 +168,7 @@ std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePa
     track->nBlocks        = trkFile.nBlocks;
     track->trackBlocks    = _ParseTRKModels(trkFile, colFile, track);
     track->globalObjects  = _ParseCOLModels(colFile, track);
-    track->virtualRoad    = _ParseVirtualRoad(trkFile);
+    track->virtualRoad    = _ParseVirtualRoad(colFile);
 
     LOG(INFO) << "Track loaded successfully";
 
@@ -212,15 +212,25 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                 }
             }
 
-            // Get the number of virtual road positions for this trackblock
+            // Count the number of virtual road positions for this trackblock
             uint32_t nVroadPositions = 0;
-            if (rawTrackBlock.IsBlockPresent(ExtraBlockID::VROAD_BLOCK_ID))
+            uint32_t vroadStartIndex = 0;
+            auto collisionBlock      = colFile.GetExtraObjectBlock(ExtraBlockID::COLLISION_BLOCK_ID);
+            for (uint32_t vroadIdx = 0; vroadIdx < collisionBlock.nCollisionData; ++vroadIdx)
             {
-                nVroadPositions = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).nVroad;
+                auto vroadEntry = collisionBlock.collisionData[vroadIdx];
+                if (vroadEntry.blockNumber == rawTrackBlock.serialNum)
+                {
+                    if (nVroadPositions == 0)
+                    {
+                        vroadStartIndex = vroadIdx;
+                    }
+                    ++nVroadPositions;
+                }
             }
 
             // Build the base OpenNFS trackblock, to hold all of the geometry and virtual road data, lights, sounds etc. for this portion of track
-            OpenNFS::TrackBlock trackBlock(rawTrackBlock.serialNum, rawTrackBlockCenter, rawTrackBlock.serialNum, nVroadPositions, trackBlockNeighbourIds);
+            OpenNFS::TrackBlock trackBlock(rawTrackBlock.serialNum, rawTrackBlockCenter, vroadStartIndex, nVroadPositions, trackBlockNeighbourIds);
 
             // Collate all available Structure References, 3 different ID types can store this information, check them all
             std::vector<StructureRefBlock> structureReferences;
@@ -390,59 +400,36 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
 }
 
 template <typename Platform>
-std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(const TrkFile<Platform> &trkFile)
+std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(ColFile<Platform> &colFile)
 {
     std::vector<VirtualRoad> virtualRoad;
 
-    for (const auto &superBlock : trkFile.superBlocks)
+    glm::quat orientation = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+
+    if (!colFile.IsBlockPresent(ExtraBlockID::COLLISION_BLOCK_ID))
     {
-        for (auto rawTrackBlock : superBlock.trackBlocks)
-        {
-            if (!rawTrackBlock.IsBlockPresent(ExtraBlockID::VROAD_BLOCK_ID))
-            {
-                LOG(WARNING) << "Trackblock: " << rawTrackBlock.serialNum << " is missing virtual road data";
-                continue;
-            }
+        LOG(WARNING) << "Col file is missing virtual road data";
+        return virtualRoad;
+    }
 
-            glm::quat orientation         = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-            glm::vec3 rawTrackBlockCenter = orientation * (Utils::PointToVec(trkFile.blockReferenceCoords[rawTrackBlock.serialNum]) / NFS2_SCALE_FACTOR);
-            rawTrackBlockCenter.y += 0.2f;
+    std::vector<LibOpenNFS::NFS2::COLLISION_BLOCK> collisionData = colFile.GetExtraObjectBlock(ExtraBlockID::COLLISION_BLOCK_ID).collisionData;
 
-            if (trkFile.version == NFS_2_PS1)
-            {
-                std::vector<LibOpenNFS::NFS2::VROAD_VEC> vroadVectors = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).ps1VroadData;
+    for (auto &vroadEntry : collisionData)
+    {
+        // Transform NFS2 coords into ONFS 3d space
+        glm::vec3 vroadCenter = orientation * (Utils::PointToVec(vroadEntry.trackPosition) / NFS2_SCALE_FACTOR);
+        vroadCenter.y += 0.2f;
 
-                for (auto &vroadVector : vroadVectors)
-                {
-                    // Get VROAD forward vector, and fake a normal + right vector
-                    glm::vec3 forward = Utils::PointToVec(vroadVector);
-                    glm::vec3 normal  = glm::normalize(glm::quat(glm::vec3(0, -SIMD_PI / 2, 0))) * forward;
-                    glm::vec3 right   = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * forward;
+        // Get VROAD forward and normal vectors, fake a right vector
+        glm::vec3 right   = orientation * glm::vec3(vroadEntry.rightVec[0], vroadEntry.rightVec[2], vroadEntry.rightVec[1]);
+        glm::vec3 forward = orientation * glm::vec3(vroadEntry.fwdVec[0], vroadEntry.fwdVec[2], vroadEntry.fwdVec[1]);
+        glm::vec3 normal  = orientation * glm::vec3(vroadEntry.vertVec[0], vroadEntry.vertVec[2], vroadEntry.vertVec[1]);
 
-                    glm::vec3 leftWall  = -0.01f * right;
-                    glm::vec3 rightWall = 0.01f * right;
+        glm::vec3 leftWall  = (vroadEntry.leftBorder / NFS2_SCALE_FACTOR) * right * 2.f;
+        glm::vec3 rightWall = (vroadEntry.rightBorder / NFS2_SCALE_FACTOR) * right * 2.f;
+        glm::vec3 lateralRespawn = (vroadEntry.postCrashPosition / NFS2_SCALE_FACTOR) * right * 2.f; // TODO: This is incorrect
 
-                    virtualRoad.push_back(VirtualRoad(rawTrackBlockCenter, 0, normal, forward, right, leftWall, rightWall));
-                }
-            }
-            else
-            {
-                std::vector<LibOpenNFS::NFS2::VROAD> vroadData = rawTrackBlock.GetExtraObjectBlock(ExtraBlockID::VROAD_BLOCK_ID).vroadData;
-
-                for (auto &vroadEntry : vroadData)
-                {
-                    // Get VROAD forward and normal vectors, fake a right vector
-                    glm::vec3 forward = Utils::PointToVec(vroadEntry.forwardVec);
-                    glm::vec3 normal  = Utils::PointToVec(vroadEntry.normalVec);
-                    glm::vec3 right   = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0))) * forward;
-
-                    glm::vec3 leftWall  = -0.01f * right;
-                    glm::vec3 rightWall = 0.01f * right;
-
-                    virtualRoad.push_back(VirtualRoad(rawTrackBlockCenter, 0, normal, forward, right, leftWall, rightWall));
-                }
-            }
-        }
+        virtualRoad.push_back(VirtualRoad(vroadCenter, lateralRespawn, normal, forward, right, leftWall, rightWall, vroadEntry.unknown2));
     }
 
     return virtualRoad;

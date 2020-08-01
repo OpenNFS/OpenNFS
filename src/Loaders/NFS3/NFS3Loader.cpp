@@ -390,7 +390,7 @@ std::vector<VirtualRoad> NFS3Loader::_ParseVirtualRoad(const ColFile &colFile)
         glm::vec3 leftWall  = ((vroad.leftWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;
         glm::vec3 rightWall = ((vroad.rightWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;
 
-        virtualRoad.push_back(VirtualRoad(position, vroad.unknown, normal, forward, right, leftWall, rightWall));
+        virtualRoad.push_back(VirtualRoad(position, glm::vec3(0,0,0), normal, forward, right, leftWall, rightWall, vroad.unknown));
     }
 
     return virtualRoad;

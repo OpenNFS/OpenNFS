@@ -30,7 +30,6 @@ void Config::InitFromCommandLine(int argc, char **argv)
             "trackv,tv", value(&trackTag), "NFS Version containing desired track (NFS_2, NFS_3, NFS_3_PS1, NFS_4, NFS_4_PS1, NFS_5")(
             "resX,x", value<uint32_t>(&resX), "Horizontal screen resolution")("resY,y", value<uint32_t>(&resY), "Vertical screen resolution")
             ("fixup-asset-paths", bool_switch(&renameAssets), "Rename all available NFS files and folders to lowercase so can be consistent for ONFS read");
-
         store(parse_command_line(argc, argv, desc), storedConfig);
         notify(storedConfig);
 

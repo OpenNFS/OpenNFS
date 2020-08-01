@@ -24,9 +24,6 @@ RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
 
     // Set up the Racer Manager to spawn vehicles on track
     m_racerManager = RacerManager(m_playerAgent, m_track, m_physicsEngine);
-
-    // No neighbour data for anything except NFS3
-    m_userParams.useNbData = !(m_track->nfsVersion == NFS_2_SE || m_track->nfsVersion == NFS_2 || m_track->nfsVersion == NFS_3_PS1);
 }
 
 void RaceSession::_UpdateCameras(float deltaTime)
