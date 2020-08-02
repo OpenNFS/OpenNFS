@@ -81,4 +81,22 @@ namespace TrackUtils
     {
         return glm::vec4(((packedRgba >> 16) & 0xFF) / 255.0f, ((packedRgba >> 8) & 0xFF) / 255.0f, (packedRgba & 0xFF) / 255.0f, ((packedRgba >> 24) & 0xFF) / 255.0f);
     }
+
+    glm::vec4 ShadingDataToVec4(uint16_t packedRgba)
+    {
+        // BGR565
+        // return glm::vec4(((packedRgba >> 11) & 0x1F) / 32.0f, ((packedRgba >> 5) & 0x3F) / 64.0f, ((packedRgba ) & 0x1F) / 32.0f, 0.2f);
+        // RGB565 (best, but blueish)
+        // return glm::vec4(((packedRgba) & 0x1F) / 32.0f, ((packedRgba >> 5) & 0x3F) / 64.0f, ((packedRgba >> 11 ) & 0x1F) / 32.0f, 1.0f);
+        // ARGB 4444
+        // return glm::vec4(((packedRgba >> 8) & 0xF) / 16.0f, ((packedRgba >> 4) & 0xF) / 16.0f, ((packedRgba) & 0xF) / 16.0f, ((packedRgba >> 12) & 0xF) / 16.0f);
+        // BGRA 4444
+        // return glm::vec4(((packedRgba >> 4) & 0xF) / 16.0f, ((packedRgba >> 8) & 0xF) / 16.0f, ((packedRgba >> 12) & 0xF) / 16.0f, ((packedRgba) & 0xF) / 16.0f);
+        // RGBA 4444
+        // return glm::vec4(((packedRgba >> 12) & 0xF) / 16.0f, ((packedRgba >> 8) & 0xF) / 16.0f, ((packedRgba >> 4) & 0xF) / 16.0f, ((packedRgba) & 0xF) / 16.0f);
+        // RGBA 5551
+        // return glm::vec4(((packedRgba >> 11) & 0x1F) / 32.0f, ((packedRgba >> 6) & 0x1F) / 32.0f, ((packedRgba >> 1) & 0x1F) / 32.0f, ((packedRgba) & 0x1));
+        // They're all broken lol, return nothing
+        return glm::vec4(1.f, 1.f, 1.f, 1.f);
+    }
 } // namespace TrackUtils

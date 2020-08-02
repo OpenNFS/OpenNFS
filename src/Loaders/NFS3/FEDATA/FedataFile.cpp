@@ -42,10 +42,9 @@ bool FedataFile::_SerializeIn(std::ifstream &ifstream)
 
     for (uint8_t colourIdx = 0; colourIdx < m_nPriColours; ++colourIdx)
     {
-        ifstream.seekg(colourNameOffsets[colourIdx]);
-        uint32_t colourNameLength = colourIdx < (m_nPriColours - 1) ? (colourNameOffsets[colourIdx + 1] - colourNameOffsets[colourIdx]) : 32;
-        std::vector<char> colourName(colourNameLength);
-        SAFE_READ(ifstream, colourName.data(), colourNameLength);
+        ifstream.seekg(colourNameOffsets[colourIdx], std::ios::beg);
+        std::string colourName;
+        std::getline(ifstream, colourName, '\0');
         primaryColourNames.emplace_back(colourName.begin(), colourName.end());
     }
 

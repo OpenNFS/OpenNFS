@@ -361,7 +361,15 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
 
                 trackBlockVertices.emplace_back(orientation *
                                                 (((Utils::PointToVec(blockRefCoord) + (256.f * Utils::PointToVec(rawTrackBlock.vertexTable[vertIdx]))) / NFS2_SCALE_FACTOR)));
-                trackBlockShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
+
+                if (track->nfsVersion == NFS_3_PS1)
+                {
+                    trackBlockShadingData.emplace_back(TrackUtils::ShadingDataToVec4((uint16_t)((PS1::VERT *) &rawTrackBlock.vertexTable[vertIdx])->w)); // And I oop
+                }
+                else
+                {
+                    trackBlockShadingData.emplace_back(glm::vec4(1.f, 1.f, 1.f, 1.f));
+                }
             }
             for (int32_t polyIdx = (rawTrackBlock.nLowResPoly + rawTrackBlock.nMedResPoly);
                  polyIdx < (rawTrackBlock.nLowResPoly + rawTrackBlock.nMedResPoly + rawTrackBlock.nHighResPoly);
@@ -412,9 +420,7 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(ColFile<Platfor
         return virtualRoad;
     }
 
-    std::vector<LibOpenNFS::NFS2::COLLISION_BLOCK> collisionData = colFile.GetExtraObjectBlock(ExtraBlockID::COLLISION_BLOCK_ID).collisionData;
-
-    for (auto &vroadEntry : collisionData)
+    for (auto &vroadEntry : colFile.GetExtraObjectBlock(ExtraBlockID::COLLISION_BLOCK_ID).collisionData)
     {
         // Transform NFS2 coords into ONFS 3d space
         glm::vec3 vroadCenter = orientation * (Utils::PointToVec(vroadEntry.trackPosition) / NFS2_SCALE_FACTOR);
@@ -425,9 +431,9 @@ std::vector<VirtualRoad> NFS2Loader<Platform>::_ParseVirtualRoad(ColFile<Platfor
         glm::vec3 forward = orientation * glm::vec3(vroadEntry.fwdVec[0], vroadEntry.fwdVec[2], vroadEntry.fwdVec[1]);
         glm::vec3 normal  = orientation * glm::vec3(vroadEntry.vertVec[0], vroadEntry.vertVec[2], vroadEntry.vertVec[1]);
 
-        glm::vec3 leftWall  = (vroadEntry.leftBorder / NFS2_SCALE_FACTOR) * right * 2.f;
-        glm::vec3 rightWall = (vroadEntry.rightBorder / NFS2_SCALE_FACTOR) * right * 2.f;
-        glm::vec3 lateralRespawn = (vroadEntry.postCrashPosition / NFS2_SCALE_FACTOR) * right * 2.f; // TODO: This is incorrect
+        glm::vec3 leftWall       = (vroadEntry.leftBorder / NFS2_SCALE_FACTOR) * right * 2.f;
+        glm::vec3 rightWall      = (vroadEntry.rightBorder / NFS2_SCALE_FACTOR) * right * 2.f;
+        glm::vec3 lateralRespawn = ((vroadEntry.postCrashPosition) / NFS2_SCALE_FACTOR) * right * 2.f; // TODO: This is incorrect
 
         virtualRoad.push_back(VirtualRoad(vroadCenter, lateralRespawn, normal, forward, right, leftWall, rightWall, vroadEntry.unknown2));
     }
@@ -488,7 +494,14 @@ std::vector<Entity> NFS2Loader<Platform>::_ParseCOLModels(ColFile<Platform> &col
         for (uint16_t vertIdx = 0; vertIdx < structures[structureIdx].nVerts; ++vertIdx)
         {
             globalStructureVertices.emplace_back(orientation * ((256.f * Utils::PointToVec(structures[structureIdx].vertexTable[vertIdx])) / NFS2_SCALE_FACTOR));
-            globalStructureShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
+            if (track->nfsVersion == NFS_3_PS1)
+            {
+                globalStructureShadingData.emplace_back(TrackUtils::ShadingDataToVec4((uint16_t)((PS1::VERT *) &structures[structureIdx].vertexTable[vertIdx])->w)); // And I oop
+            }
+            else
+            {
+                globalStructureShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
+            }
         }
 
         for (uint32_t polyIdx = 0; polyIdx < structures[structureIdx].nPoly; ++polyIdx)

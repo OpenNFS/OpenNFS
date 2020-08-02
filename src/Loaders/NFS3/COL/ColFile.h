@@ -81,15 +81,15 @@ namespace LibOpenNFS
             uint32_t fileLength;                 // File length in bytes
             uint32_t nBlocks;                    // Number of Xtra blocks in file
             uint32_t xbTable[5];                 // Offsets of Xtra blocks
-            ExtraBlockHeader textureHead;        // Record detailing texture table data
+            ExtraBlockHeader textureHead = {};   // Record detailing texture table data
             std::vector<ColTextureInfo> texture; // Texture table
-            ExtraBlockHeader struct3DHead;       // Record detailing struct3D table data
+            ExtraBlockHeader struct3DHead = {};  // Record detailing struct3D table data
             std::vector<ColStruct3D> struct3D;   // Struct 3D table
-            ExtraBlockHeader objectHead;         // Record detailing object table data
+            ExtraBlockHeader objectHead = {};    // Record detailing object table data
             std::vector<ColObject> object;       // Object table
-            ExtraBlockHeader object2Head;        // Record detailing extra object data
+            ExtraBlockHeader object2Head = {};   // Record detailing extra object data
             std::vector<ColObject> object2;      // Extra object data
-            ExtraBlockHeader vroadHead;          // Unknown Record detailing unknown table data
+            ExtraBlockHeader vroadHead = {};     // Unknown Record detailing unknown table data
             std::vector<ColVRoad> vroad;         // Unknown table
             uint32_t *hs_extra = nullptr;        // for the extra HS data in ColVRoad
 

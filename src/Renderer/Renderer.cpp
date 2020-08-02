@@ -164,6 +164,12 @@ VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const std
         }
     }
 
+    // Global Objects are always visible
+    for (auto &globalEntity : track->globalObjects)
+    {
+        visibleSet.entities.emplace_back(std::make_shared<Entity>(globalEntity));
+    }
+
     // TODO: Fix the AABB tree
     // auto aabbCollisions = track->cullTree.queryOverlaps(camera->viewFrustum);
     // for(auto &collision : aabbCollisions)
