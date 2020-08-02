@@ -16,7 +16,7 @@ Car::Car(const CarData &carData, NFSVer nfsVersion, const std::string &carID, GL
 Car::Car(const CarData &carData, NFSVer nfsVersion, const std::string &carID) : id(carID), assetData(carData), tag(nfsVersion)
 {
     // Vehicle names are only encoded in mesh Asset files for NFS 3 and 4, we must rely upon part of the filename for other titles
-    name = (tag == NFS_3 || tag == NFS_4) ? carData.carName : id;
+    name = carData.carName.empty() ? id : carData.carName;
 
     // Load in vehicle texture data to OpenGL
     if (!Config::get().vulkanRender)

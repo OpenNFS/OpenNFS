@@ -18,7 +18,10 @@ std::shared_ptr<Car> NFS3Loader::LoadCar(const std::string &carBasePath)
 
     ASSERT(Utils::ExtractVIV(vivPath.str(), carOutPath.str()), "Unable to extract " << vivPath.str() << " to " << carOutPath.str());
     ASSERT(FceFile::Load(fcePath.str(), fceFile), "Could not load FCE file: " << fcePath.str());
-    ASSERT(FedataFile::Load(fedataPath.str(), fedataFile, fceFile.nPriColours), "Could not load FeData file: " << fedataPath.str());
+    if (!FedataFile::Load(fedataPath.str(), fedataFile, fceFile.nPriColours))
+    {
+        LOG(WARNING) <<  "Could not load FeData file: " << fedataPath.str();
+    }
 
     CarData carData = _ParseFCEModels(fceFile);
 
@@ -390,7 +393,7 @@ std::vector<VirtualRoad> NFS3Loader::_ParseVirtualRoad(const ColFile &colFile)
         glm::vec3 leftWall  = ((vroad.leftWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;
         glm::vec3 rightWall = ((vroad.rightWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;
 
-        virtualRoad.push_back(VirtualRoad(position, glm::vec3(0,0,0), normal, forward, right, leftWall, rightWall, vroad.unknown));
+        virtualRoad.push_back(VirtualRoad(position, glm::vec3(0, 0, 0), normal, forward, right, leftWall, rightWall, vroad.unknown));
     }
 
     return virtualRoad;
