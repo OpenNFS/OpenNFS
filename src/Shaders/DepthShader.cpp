@@ -20,7 +20,7 @@ void DepthShader::getAllUniformLocations()
 {
     lightSpaceMatrixLocation     = getUniformLocation("lightSpaceMatrix");
     transformationMatrixLocation = getUniformLocation("transformationMatrix");
-    textureArrayLocation         = getUniformLocation("texture_array");
+    textureArrayLocation         = getUniformLocation("textureArray");
 }
 
 void DepthShader::customCleanup()

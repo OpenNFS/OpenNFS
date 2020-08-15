@@ -26,7 +26,7 @@ void TrackShader::getAllUniformLocations()
     projectionMatrixLocation     = getUniformLocation("projectionMatrix");
     viewMatrixLocation           = getUniformLocation("viewMatrix");
     lightSpaceMatrixLocation     = getUniformLocation("lightSpaceMatrix");
-    trackTextureArrayLocation    = getUniformLocation("texture_array");
+    trackTextureArrayLocation    = getUniformLocation("textureArray");
     shineDamperLocation          = getUniformLocation("shineDamper");
     reflectivityLocation         = getUniformLocation("reflectivity");
     useClassicLocation           = getUniformLocation("useClassic");

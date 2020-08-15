@@ -252,19 +252,19 @@ set(SOURCE_FILES
 add_executable(OpenNFS ${SOURCE_FILES} ${LIB_OPENNFS_SOURCES} ${CRP_LIB_SOURCES})
 
 #[[JSON]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/json")
+include_directories(include/json)
 
 #[[STB]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/stb")
+include_directories(include/stb)
 
 #[[IMGUI]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/imgui")
+include_directories(include/imgui)
 
 #[[TINYOBJLOADER]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/tinyobjloader")
+include_directories(include/tinyobjloader)
 
 #[[BMPREAD]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/bmpread")
+include_directories(include/bmpread)
 
 #[[FREETYPE]]
 add_subdirectory(lib/freetype2)
@@ -272,14 +272,14 @@ include_directories(lib/freetype2/include)
 target_link_libraries(OpenNFS freetype)
 
 #[[BOOST]]
-add_subdirectory(lib/boost-cmake/ EXCLUDE_FROM_ALL)
+add_subdirectory(lib/boost-cmake)
 target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::system Boost::boost)
 
 #[[G3Log (Because Boost-cmake logging won't build]]
 set(G3_SHARED_LIB OFF CACHE BOOL "Compile g3log as static library")
 set(ADD_FATAL_EXAMPLE OFF CACHE BOOL "Don't bother compiling invalid code in g3log")
 set(ENABLE_VECTORED_EXCEPTIONHANDLING ON CACHE BOOL "Turn off to handoff exception to system debugger")
-add_subdirectory("${CMAKE_SOURCE_DIR}/lib/g3log")
+add_subdirectory(lib/g3log)
 include_directories(${DEP_ROOT_DIR}/${G3LOG_NAME}/src)
 target_include_directories(OpenNFS INTERFACE g3logger)
 target_link_libraries(OpenNFS g3logger)
@@ -294,16 +294,29 @@ set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
 set(BUILD_OPENGL3_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-add_subdirectory(lib/bullet3/ "${CMAKE_CURRENT_BINARY_DIR}/bullet3" EXCLUDE_FROM_ALL)
+add_subdirectory(lib/bullet3)
+include_directories(lib/bullet3/src)
 target_link_libraries(OpenNFS BulletDynamics BulletCollision LinearMath Bullet3Common)
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/bullet3/src")
+
 
 #[[GLEW Configuration]]
-add_definitions(-DGLEW_STATIC -D__NO_INLINE__)
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glew-cmake/include")
+add_subdirectory(lib/glew-cmake)
+target_link_libraries(OpenNFS libglew_static)
 
 #[[GLM Configuration]]
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/glm")
+add_subdirectory(lib/glm)
+target_link_libraries(OpenNFS glm)
+
+#[[GLFW Configuration]]
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(lib/glfw)
+target_link_libraries(OpenNFS glfw)
+
+#[[CEGUI]]
+set(GLM_H_PATH lib/glm/glm)
+#[[add_subdirectory(lib/cegui)]]
 
 #[[OpenGL Configuration]]
 find_package(OpenGL REQUIRED)
@@ -322,13 +335,6 @@ if (NOT (APPLE OR WIN32 OR UNIX))
     target_sources(OpenNFS PUBLIC ${VULKAN_SOURCE_FILES})
     add_definitions(-DVULKAN_BUILD)
 endif ()
-
-#[[GLFW Configuration]]
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(lib/glfw/ "${CMAKE_CURRENT_BINARY_DIR}/glfw")
-target_link_libraries(OpenNFS glfw)
 
 #[[Google Test Framework Configuration]]
 #[[
