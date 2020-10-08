@@ -19,12 +19,11 @@ jobs:
       
     - name: Install Dependencies
       shell: bash
-      run: wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add - \
-           sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.1.92-xenial.list http://packages.lunarg.com/vulkan/1.1.92/lunarg-vulkan-1.1.92-xenial.list \
-           sudo apt update \
-           sudo apt install lunarg-vulkan-sdk \
-           sudo apt-get -y install freeglut3 freeglut3-dev \
-           sudo apt-get -y install xorg-dev libglu1-mesa-dev 
+      run: |
+           wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+           sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.1.92-xenial.list http://packages.lunarg.com/vulkan/1.1.92/lunarg-vulkan-1.1.92-xenial.list
+           sudo apt update
+           sudo apt install -y lunarg-vulkan-sdk freeglut3 freeglut3-dev xorg-dev libglu1-mesa-dev
            
     - name: Checkout submodules
       run: git submodule update --init --recursive
