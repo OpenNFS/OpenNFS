@@ -180,13 +180,11 @@ struct Transformer_zScene // hashcode: 0xA8EF3F3A (dec: -1460715718)
     // Transformer_zScene', parent hashcode: 0x00000000 (dec: 0)
 };
 
-struct TRACK
-{
+struct TRACK {
     std::string name;
 };
 
-class NFS4PS1
-{
+class NFS4PS1 {
 public:
     static std::shared_ptr<Car> LoadCar(const std::string &carVivPath);
     static std::shared_ptr<NFS3_4_DATA::PS1::TRACK> LoadTrack(const std::string &trackGrpPath);

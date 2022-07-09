@@ -3,15 +3,9 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-enum LightType : uint8_t
-{
-    TRACK_LIGHT,
-    SPOT_LIGHT,
-    GLOBAL_LIGHT
-};
+enum LightType : uint8_t { TRACK_LIGHT, SPOT_LIGHT, GLOBAL_LIGHT };
 
-class BaseLight
-{
+class BaseLight {
 public:
     BaseLight(LightType type, glm::vec3 position, glm::vec4 colour);
     LightType type;

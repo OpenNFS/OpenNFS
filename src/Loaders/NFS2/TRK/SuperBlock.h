@@ -4,13 +4,10 @@
 #include "../Common.h"
 #include "TrackBlock.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
+namespace LibOpenNFS {
+    namespace NFS2 {
         template <typename Platform>
-        class SuperBlock : IRawData
-        {
+        class SuperBlock : IRawData {
         public:
             SuperBlock() = default;
             explicit SuperBlock(std::ifstream &trk, NFSVer version);

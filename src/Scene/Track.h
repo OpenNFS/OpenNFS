@@ -15,10 +15,10 @@
 
 constexpr uint16_t kCullTreeInitialSize = 4000;
 
-class Track
-{
+class Track {
 public:
     Track() : cullTree(kCullTreeInitialSize), nBlocks(0), nfsVersion(UNKNOWN){};
+    ~Track();
     void GenerateSpline();
     void GenerateAabbTree();
 

@@ -2,8 +2,7 @@
 
 using namespace LibOpenNFS::NFS3;
 
-bool SpeedsFile::Load(const std::string& speedBinPath, SpeedsFile& speedFile)
-{
+bool SpeedsFile::Load(const std::string& speedBinPath, SpeedsFile& speedFile) {
     LOG(INFO) << "Loading FRD File located at " << speedBinPath;
     std::ifstream speedBin(speedBinPath, std::ios::in | std::ios::binary);
 
@@ -13,15 +12,13 @@ bool SpeedsFile::Load(const std::string& speedBinPath, SpeedsFile& speedFile)
     return loadStatus;
 }
 
-void SpeedsFile::Save(const std::string& speedBinPath, SpeedsFile& speedFile)
-{
+void SpeedsFile::Save(const std::string& speedBinPath, SpeedsFile& speedFile) {
     LOG(INFO) << "Saving SPEED BIN File to " << speedBinPath;
     std::ofstream speedBin(speedBinPath, std::ios::out | std::ios::binary);
     speedFile._SerializeOut(speedBin);
 }
 
-bool SpeedsFile::_SerializeIn(std::ifstream& ifstream)
-{
+bool SpeedsFile::_SerializeIn(std::ifstream& ifstream) {
     // Tactical grab of the file size
     ifstream.ignore(std::numeric_limits<std::streamsize>::max());
     m_uFileSize = ifstream.gcount();
@@ -34,19 +31,16 @@ bool SpeedsFile::_SerializeIn(std::ifstream& ifstream)
     return true;
 }
 
-void SpeedsFile::_SerializeOut(std::ofstream& ofstream)
-{
+void SpeedsFile::_SerializeOut(std::ofstream& ofstream) {
     ofstream.write((char*) speeds.data(), m_uFileSize);
     ofstream.close();
 }
 
-void SpeedsFile::SaveCSV(const std::string& speedsCsvPath, SpeedsFile& speedFile)
-{
+void SpeedsFile::SaveCSV(const std::string& speedsCsvPath, SpeedsFile& speedFile) {
     LOG(INFO) << "Saving SPEED BIN File to CSV: " << speedsCsvPath;
     std::ofstream speedCsv(speedsCsvPath, std::ios::out | std::ios::binary);
 
-    for (auto& speed : speedFile.speeds)
-    {
+    for (auto& speed : speedFile.speeds) {
         speedCsv << static_cast<uint16_t>(speed) << "," << std::endl;
     }
 

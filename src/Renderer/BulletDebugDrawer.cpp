@@ -1,7 +1,6 @@
 #include "BulletDebugDrawer.h"
 
-BulletDebugDrawer::BulletDebugDrawer()
-{
+BulletDebugDrawer::BulletDebugDrawer() {
     // Configure VAO for line render data
     glGenVertexArrays(1, &m_lineVAO);
     glBindVertexArray(m_lineVAO);
@@ -26,21 +25,18 @@ BulletDebugDrawer::BulletDebugDrawer()
     glBindVertexArray(0);
 }
 
-void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color)
-{
-    if (m_debugLines.size() < MAX_NUM_LINES)
-    {
+void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) {
+    if (m_debugLines.size() < MAX_NUM_LINES) {
         m_debugLines.emplace_back(BulletLine(from, to));
         m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
         m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
     }
 }
 
-void BulletDebugDrawer::Render(const std::shared_ptr<BaseCamera> &camera)
-{
+void BulletDebugDrawer::Render(const BaseCamera &camera) {
     // Activate corresponding render state
     m_bulletShader.use();
-    m_bulletShader.loadProjectionViewMatrix(camera->projectionMatrix * camera->viewMatrix);
+    m_bulletShader.loadProjectionViewMatrix(camera.projectionMatrix * camera.viewMatrix);
 
     // Update content of VBO memory
     glBindVertexArray(m_lineVAO);

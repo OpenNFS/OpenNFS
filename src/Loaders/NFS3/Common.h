@@ -3,8 +3,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-struct PolygonData
-{
+struct PolygonData {
     uint16_t vertex[4];
     uint16_t textureId;
     uint16_t hs_texflags;   // only used in road lane polygonblock ?
@@ -12,8 +11,7 @@ struct PolygonData
     unsigned char unknown2; // F9
 };
 
-struct AnimData
-{
+struct AnimData {
     glm::ivec3 pt;
     int16_t od1, od2, od3, od4;
 };

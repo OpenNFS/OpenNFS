@@ -27,14 +27,12 @@
 #include "DebugRenderer.h"
 #include "MenuRenderer.h"
 
-struct VisibleSet
-{
+struct VisibleSet {
     std::vector<std::shared_ptr<Entity>> entities;
     std::vector<std::shared_ptr<BaseLight>> lights;
 };
 
-class Renderer
-{
+class Renderer {
 public:
     Renderer(const std::shared_ptr<GLFWwindow> &window,
              const std::shared_ptr<Logger> &onfsLogger,
@@ -44,13 +42,11 @@ public:
 
     ~Renderer();
 
-    static void GlfwError(int id, const char *description)
-    {
+    static void GlfwError(int id, const char *description) {
         LOG(WARNING) << description;
     }
 
-    static void WindowSizeCallback(GLFWwindow *window, int width, int height)
-    {
+    static void WindowSizeCallback(GLFWwindow *window, int width, int height) {
         Config::get().resX = width;
         Config::get().resY = height;
     }
@@ -58,8 +54,8 @@ public:
     static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName);
     static void DrawMetadata(Entity *targetEntity);
     bool Render(float totalTime,
-                const std::shared_ptr<BaseCamera> &activeCamera,
-                const std::shared_ptr<HermiteCamera> &hermiteCamera,
+                const BaseCamera &activeCamera,
+                const HermiteCamera &hermiteCamera,
                 const std::shared_ptr<GlobalLight> &activeLight,
                 ParamData &userParams,
                 AssetData &loadedAssets,
@@ -68,9 +64,9 @@ public:
 private:
     void _InitialiseIMGUI();
     bool _DrawMenuBar(AssetData &loadedAssets);
-    void _DrawDebugUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
-    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
-    static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
+    void _DrawDebugUI(ParamData &userParams, const BaseCamera &camera);
+    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams);
+    static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams);
 
     std::shared_ptr<GLFWwindow> m_window;
     std::shared_ptr<Logger> m_logger;

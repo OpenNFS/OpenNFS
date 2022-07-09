@@ -3,8 +3,7 @@
 #include <glm/vec3.hpp>
 #include "Model.h"
 
-class Quad : public Model
-{
+class Quad : public Model {
 public:
     Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY);
     Quad();

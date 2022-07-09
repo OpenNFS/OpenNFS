@@ -2,8 +2,7 @@
 
 #include "../Common/IRawData.h"
 
-class HrzFile : IRawData
-{
+class HrzFile : IRawData {
 public:
     HrzFile() = default;
     static bool Load(const std::string &hrzPath, HrzFile &hrzFile);

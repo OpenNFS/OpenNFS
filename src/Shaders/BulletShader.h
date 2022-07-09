@@ -4,8 +4,7 @@
 
 #include <glm/detail/type_mat4x4.hpp>
 
-class BulletShader : public BaseShader
-{
+class BulletShader : public BaseShader {
 public:
     explicit BulletShader();
     void loadProjectionViewMatrix(const glm::mat4 &projectionViewMatrix);

@@ -19,8 +19,7 @@
 
 typedef boost::variant<TrackModel, std::shared_ptr<BaseLight>, Sound, Car*> EngineModel;
 
-class Entity : public IAABB
-{
+class Entity : public IAABB {
 public:
     Entity(uint32_t parentTrackblockID,
            uint32_t entityID,

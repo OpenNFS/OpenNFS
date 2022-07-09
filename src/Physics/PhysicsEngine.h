@@ -24,14 +24,12 @@
 #include "../Renderer/BulletDebugDrawer.h"
 #include "Car.h"
 
-struct WorldRay
-{
+struct WorldRay {
     glm::vec3 origin;
     glm::vec3 direction;
 };
 
-class PhysicsEngine
-{
+class PhysicsEngine {
 public:
     PhysicsEngine();
     ~PhysicsEngine();

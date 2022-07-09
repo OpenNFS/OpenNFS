@@ -2,8 +2,7 @@
 
 using namespace LibOpenNFS::NFS3;
 
-bool FceFile::Load(const std::string &fcePath, FceFile &fceFile)
-{
+bool FceFile::Load(const std::string &fcePath, FceFile &fceFile) {
     LOG(INFO) << "Loading FCE File located at " << fcePath;
     std::ifstream fce(fcePath, std::ios::in | std::ios::binary);
 
@@ -13,15 +12,13 @@ bool FceFile::Load(const std::string &fcePath, FceFile &fceFile)
     return loadStatus;
 }
 
-void FceFile::Save(const std::string &fcePath, FceFile &fceFile)
-{
+void FceFile::Save(const std::string &fcePath, FceFile &fceFile) {
     LOG(INFO) << "Saving FCE File to " << fcePath;
     std::ofstream fce(fcePath, std::ios::out | std::ios::binary);
     fceFile._SerializeOut(fce);
 }
 
-bool FceFile::_SerializeIn(std::ifstream &ifstream)
-{
+bool FceFile::_SerializeIn(std::ifstream &ifstream) {
     SAFE_READ(ifstream, &unknown, sizeof(uint32_t));
     SAFE_READ(ifstream, &nTriangles, sizeof(uint32_t));
     SAFE_READ(ifstream, &nVertices, sizeof(uint32_t));
@@ -51,8 +48,7 @@ bool FceFile::_SerializeIn(std::ifstream &ifstream)
 
     carParts.resize(nParts);
 
-    for (uint32_t partIdx = 0; partIdx < nParts; ++partIdx)
-    {
+    for (uint32_t partIdx = 0; partIdx < nParts; ++partIdx) {
         carParts[partIdx].vertices.resize(partNumVertices[partIdx]);
         carParts[partIdx].normals.resize(partNumVertices[partIdx]);
         carParts[partIdx].triangles.resize(partNumTriangles[partIdx]);
@@ -70,7 +66,6 @@ bool FceFile::_SerializeIn(std::ifstream &ifstream)
     return true;
 }
 
-void FceFile::_SerializeOut(std::ofstream &ofstream)
-{
+void FceFile::_SerializeOut(std::ofstream &ofstream) {
     ASSERT(false, "FCE output serialization is not currently implemented");
 }

@@ -23,8 +23,7 @@
 
 const float NFS3_SCALE_FACTOR = 10.f;
 
-class NFS3Loader
-{
+class NFS3Loader {
 public:
     static std::shared_ptr<Car> LoadCar(const std::string &carBasePath);
     static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath);

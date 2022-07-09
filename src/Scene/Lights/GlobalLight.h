@@ -7,8 +7,7 @@
 
 const float RADIANS_PER_TICK = 0.001f;
 
-class GlobalLight : public BaseLight
-{
+class GlobalLight : public BaseLight {
 public:
     explicit GlobalLight(glm::vec3 lookAt, glm::vec3 position);
     void Update(float timeScaleFactor);

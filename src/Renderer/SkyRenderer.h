@@ -6,12 +6,11 @@
 #include "../Camera/BaseCamera.h"
 #include "../Scene/Lights/GlobalLight.h"
 
-class SkyRenderer
-{
+class SkyRenderer {
 public:
     explicit SkyRenderer();
     ~SkyRenderer();
-    void Render(const std::shared_ptr<BaseCamera> &camera, const std::shared_ptr<GlobalLight> &light, float elapsedTime);
+    void Render(const BaseCamera &camera, const std::shared_ptr<GlobalLight> &light, float elapsedTime);
 
 private:
     // Load cloud, sun, moon and tint textures

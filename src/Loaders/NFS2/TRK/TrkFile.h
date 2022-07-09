@@ -4,13 +4,10 @@
 
 #include "SuperBlock.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
+namespace LibOpenNFS {
+    namespace NFS2 {
         template <typename Platform>
-        class TrkFile : IRawData
-        {
+        class TrkFile : IRawData {
         public:
             TrkFile() = default;
             static bool Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version);

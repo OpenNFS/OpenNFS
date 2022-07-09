@@ -5,8 +5,7 @@
 
 using namespace LibOpenNFS::NFS2;
 
-bool PshFile::Load(const std::string &pshPath, PshFile &pshFile)
-{
+bool PshFile::Load(const std::string &pshPath, PshFile &pshFile) {
     LOG(INFO) << "Loading PSH File located at " << pshPath;
     std::ifstream psh(pshPath, std::ios::in | std::ios::binary);
 
@@ -16,23 +15,20 @@ bool PshFile::Load(const std::string &pshPath, PshFile &pshFile)
     return loadStatus;
 }
 
-void PshFile::Save(const std::string &pshPath, PshFile &pshFile)
-{
+void PshFile::Save(const std::string &pshPath, PshFile &pshFile) {
     LOG(INFO) << "Saving PSH File to " << pshPath;
     std::ofstream psh(pshPath, std::ios::out | std::ios::binary);
     pshFile._SerializeOut(psh);
 }
 
-bool PshFile::_SerializeIn(std::ifstream &ifstream)
-{
+bool PshFile::_SerializeIn(std::ifstream &ifstream) {
     // Check we're in a valid TRK file
     SAFE_READ(ifstream, &header, sizeof(HEADER));
 
     LOG(INFO) << header.nDirectories << " images inside PSH";
 
     // Header should contain TRAC
-    if (memcmp(header.header, "SHPP", sizeof(header.header)) != 0 && memcmp(header.chk, "GIMX", sizeof(header.chk)) != 0)
-    {
+    if (memcmp(header.header, "SHPP", sizeof(header.header)) != 0 && memcmp(header.chk, "GIMX", sizeof(header.chk)) != 0) {
         LOG(WARNING) << "Invalid PSH Header(s)";
         return false;
     }
@@ -44,8 +40,7 @@ bool PshFile::_SerializeIn(std::ifstream &ifstream)
     return true;
 }
 
-bool PshFile::Extract(const std::string &outputPath, PshFile &pshFile)
-{
+bool PshFile::Extract(const std::string &outputPath, PshFile &pshFile) {
     /* LOG(INFO) << "Extracting PSH file to " << outputPath;
      std::ifstream psh(pshPath, std::ios::in | std::ios::binary);
 
@@ -211,7 +206,6 @@ bool PshFile::Extract(const std::string &outputPath, PshFile &pshFile)
     return true;
 }
 
-void PshFile::_SerializeOut(std::ofstream &ofstream)
-{
+void PshFile::_SerializeOut(std::ofstream &ofstream) {
     ASSERT(false, "GEO output serialization is not currently implemented");
 }

@@ -8,21 +8,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 
-enum WindowStatus : uint8_t
-{
-    UI,
-    GAME
-};
+enum WindowStatus : uint8_t { UI, GAME };
 
-enum CameraMode : uint8_t
-{
-    FOLLOW_CAR,
-    HERMITE_FLYTHROUGH,
-    FREE_LOOK
-};
+enum CameraMode : uint8_t { FOLLOW_CAR, HERMITE_FLYTHROUGH, FREE_LOOK };
 
-class BaseCamera
-{
+class BaseCamera {
 public:
     BaseCamera(CameraMode mode, const std::shared_ptr<GLFWwindow> &window);
     BaseCamera() = default;

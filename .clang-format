@@ -16,7 +16,7 @@ AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: true
 BinPackParameters: true
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Allman
+BreakBeforeBraces: Attach
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
 ColumnLimit: 180

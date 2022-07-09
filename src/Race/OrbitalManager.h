@@ -5,11 +5,10 @@
 
 const float SKYDOME_RADIUS = 200.f;
 
-class OrbitalManager
-{
+class OrbitalManager {
 public:
     explicit OrbitalManager();
-    void Update(const std::shared_ptr<BaseCamera> &camera, float timeScaleFactor);
+    void Update(const BaseCamera &camera, float timeScaleFactor);
     std::shared_ptr<GlobalLight> GetActiveGlobalLight();
 
 private:

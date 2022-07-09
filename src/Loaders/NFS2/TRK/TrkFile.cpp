@@ -3,8 +3,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version)
-{
+bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version) {
     LOG(INFO) << "Loading TRK File located at " << trkPath;
     std::ifstream trk(trkPath, std::ios::in | std::ios::binary);
     trkFile.version = version;
@@ -16,22 +15,19 @@ bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVe
 }
 
 template <typename Platform>
-void TrkFile<Platform>::Save(const std::string &trkPath, TrkFile &trkFile)
-{
+void TrkFile<Platform>::Save(const std::string &trkPath, TrkFile &trkFile) {
     LOG(INFO) << "Saving TRK File to " << trkPath;
     std::ofstream trk(trkPath, std::ios::out | std::ios::binary);
     trkFile._SerializeOut(trk);
 }
 
 template <typename Platform>
-bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
-{
+bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream) {
     // Check we're in a valid TRK file
     SAFE_READ(ifstream, header, HEADER_LENGTH);
 
     // Header should contain TRAC
-    if (memcmp(header, "TRAC", sizeof(header)) != 0)
-    {
+    if (memcmp(header, "TRAC", sizeof(header)) != 0) {
         LOG(WARNING) << "Invalid TRK Header";
         return false;
     }
@@ -52,8 +48,7 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, blockReferenceCoords.data(), nBlocks * sizeof(VERT_HIGHP));
 
     // Go read the superblocks in
-    for (uint32_t superBlockIdx = 0; superBlockIdx < nSuperBlocks; ++superBlockIdx)
-    {
+    for (uint32_t superBlockIdx = 0; superBlockIdx < nSuperBlocks; ++superBlockIdx) {
         LOG(DEBUG) << "SuperBlock " << superBlockIdx + 1 << " of " << nSuperBlocks;
         // Jump to the super block
         ifstream.seekg(superBlockOffsets[superBlockIdx], std::ios_base::beg);
@@ -64,8 +59,7 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream)
 }
 
 template <typename Platform>
-void TrkFile<Platform>::_SerializeOut(std::ofstream &ofstream)
-{
+void TrkFile<Platform>::_SerializeOut(std::ofstream &ofstream) {
     ASSERT(false, "TRK output serialization is not currently implemented");
 }
 

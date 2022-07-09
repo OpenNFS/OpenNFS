@@ -21,8 +21,7 @@
 const float NFS2_SCALE_FACTOR = 1000000.0f;
 
 template <typename Platform>
-class NFS2Loader
-{
+class NFS2Loader {
 public:
     static std::shared_ptr<Car> LoadCar(const std::string &carBasePath, NFSVer nfsVersion);
     static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath, NFSVer nfsVersion);

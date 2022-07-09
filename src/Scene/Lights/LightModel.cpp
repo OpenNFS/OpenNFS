@@ -1,15 +1,13 @@
 #include "LightModel.h"
 #include "../../Util/Utils.h"
 
-LightModel::LightModel() : Model("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3())
-{
+LightModel::LightModel() : Model("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
     m_vertexIndices = {0, 1,
-                        2,        // first triangle (bottom left - top left - top right)
-                        0, 2, 3}; // second triangle (bottom left - top right - bottom right)
+                       2,        // first triangle (bottom left - top left - top right)
+                       0, 2, 3}; // second triangle (bottom left - top right - bottom right)
 
     // Unindex data and Fill unused normal buffer
-    for (auto &vertexIndex : m_vertexIndices)
-    {
+    for (auto &vertexIndex : m_vertexIndices) {
         m_vertices.push_back(verts[vertexIndex]);
     }
 
@@ -20,23 +18,19 @@ LightModel::LightModel() : Model("Light", std::vector<glm::vec3>(), std::vector<
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
 }
 
-void LightModel::destroy()
-{
+void LightModel::destroy() {
     glDeleteBuffers(LightVBO::Length, m_lightVertexBuffers);
 }
 
-void LightModel::render()
-{
-    if (enabled)
-    {
+void LightModel::render() {
+    if (enabled) {
         glBindVertexArray(VertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
         glBindVertexArray(0);
     }
 }
 
-bool LightModel::genBuffers()
-{
+bool LightModel::genBuffers() {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     glGenBuffers(LightVBO::Length, m_lightVertexBuffers);

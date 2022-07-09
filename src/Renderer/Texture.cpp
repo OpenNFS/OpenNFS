@@ -1,7 +1,6 @@
 #include "Texture.h"
 
-Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo)
-{
+Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo) {
     this->tag            = tag;
     this->id             = id;
     this->data           = data;
@@ -15,36 +14,29 @@ Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_
     this->rawTextureInfo = rawTextureInfo;
 }
 
-Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const std::string &trackName)
-{
+Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const std::string &trackName) {
     std::stringstream filename;
     GLubyte *data;
     GLsizei width;
     GLsizei height;
 
-    switch (tag)
-    {
-    case NFS_3:
-    {
+    switch (tag) {
+    case NFS_3: {
         LibOpenNFS::NFS3::TexBlock trackTexture = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
         width                                   = trackTexture.width;
         height                                  = trackTexture.height;
 
         std::stringstream filename_alpha;
 
-        if (trackTexture.isLane)
-        {
+        if (trackTexture.isLane) {
             filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << ".BMP";
             filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << "-a.BMP";
-        }
-        else
-        {
+        } else {
             filename << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << ".BMP";
             filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << "-a.BMP";
         }
 
-        if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height))
-        {
+        if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height)) {
             LOG(WARNING) << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!";
             // If the texture is missing, load a "MISSING" texture of identical size.
             ASSERT(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height),
@@ -54,17 +46,14 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
 
         return Texture(
           tag, static_cast<uint32_t>(trackTexture.qfsIndex), data, static_cast<uint32_t>(trackTexture.width), static_cast<uint32_t>(trackTexture.height), rawTrackTexture);
-    }
-    break;
+    } break;
     case NFS_2:
     case NFS_2_SE:
     case NFS_2_PS1:
-    case NFS_3_PS1:
-    {
+    case NFS_3_PS1: {
         LibOpenNFS::NFS2::TEXTURE_BLOCK trackTexture = boost::get<LibOpenNFS::NFS2::TEXTURE_BLOCK>(rawTrackTexture);
         uint8_t alphaColour                          = 0;
-        switch (tag)
-        {
+        switch (tag) {
         case NFS_2:
             alphaColour = 0u;
             break;
@@ -80,8 +69,7 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
         ASSERT(ImageLoader::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture " << filename.str() << " did not load succesfully!");
 
         return Texture(tag, (uint32_t) trackTexture.texNumber, data, static_cast<uint32_t>(width), static_cast<uint32_t>(height), rawTrackTexture);
-    }
-    break;
+    } break;
     default:
         ASSERT(false, "Trying to load texture from unknown NFS version");
         break;
@@ -90,23 +78,18 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
     return Texture(UNKNOWN, 0, nullptr, 0, 0, rawTrackTexture);
 }
 
-bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::string trackName, NFSVer nfsVer)
-{
+bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::string trackName, NFSVer nfsVer) {
     std::stringstream nfsTexArchivePath;
-    std::string fullTrackPath = trackPath + "/" + trackName;
-    std::string onfsTrackAssetDir =  TRACK_PATH + ToString(nfsVer) + "/" + trackName;
+    std::string fullTrackPath     = trackPath + "/" + trackName;
+    std::string onfsTrackAssetDir = TRACK_PATH + ToString(nfsVer) + "/" + trackName;
 
-    if (boost::filesystem::exists(onfsTrackAssetDir))
-    {
+    if (boost::filesystem::exists(onfsTrackAssetDir)) {
         return true;
-    }
-    else
-    {
+    } else {
         boost::filesystem::create_directories(onfsTrackAssetDir);
     }
 
-    switch (nfsVer)
-    {
+    switch (nfsVer) {
     case NFS_2:
         nfsTexArchivePath << trackPath << "0.qfs";
         break;
@@ -119,13 +102,11 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
     case NFS_3:
         nfsTexArchivePath << fullTrackPath << "0.qfs";
         break;
-    case NFS_3_PS1:
-    {
+    case NFS_3_PS1: {
         std::string pshPath = trackPath;
         pshPath.replace(pshPath.find("zz"), 2, "");
         nfsTexArchivePath << pshPath << "0.psh";
-    }
-    break;
+    } break;
     case NFS_4:
         nfsTexArchivePath << trackPath << "/tr0.qfs";
         break;
@@ -138,22 +119,18 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
     LOG(INFO) << "Extracting track textures";
     std::string onfsTrackAssetTextureDir = onfsTrackAssetDir + "/textures/";
 
-    switch (nfsVer)
-    {
+    switch (nfsVer) {
     case NFS_2_PS1:
     case NFS_3_PS1:
         return ImageLoader::ExtractPSH(nfsTexArchivePath.str(), onfsTrackAssetTextureDir);
-    case NFS_3:
-    {
+    case NFS_3: {
         std::stringstream nfsSkyTexArchivePath;
         nfsSkyTexArchivePath << fullTrackPath.substr(0, fullTrackPath.find_last_of('/')) << "/sky.fsh";
-        if (boost::filesystem::exists(nfsSkyTexArchivePath.str()))
-        {
+        if (boost::filesystem::exists(nfsSkyTexArchivePath.str())) {
             std::string onfsTrackAssetSkyTexDir = onfsTrackAssetDir + "/sky_textures/";
             ASSERT(ImageLoader::ExtractQFS(nfsSkyTexArchivePath.str(), onfsTrackAssetSkyTexDir), "Unable to extract sky textures from " << nfsSkyTexArchivePath.str());
         }
-    }
-    break;
+    } break;
     default:
         break;
     }
@@ -161,15 +138,13 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
     return ImageLoader::ExtractQFS(nfsTexArchivePath.str(), onfsTrackAssetTextureDir);
 }
 
-int32_t Texture::hsStockTextureIndexRemap(int32_t textureIndex)
-{
+int32_t Texture::hsStockTextureIndexRemap(int32_t textureIndex) {
     int32_t remappedIndex = textureIndex;
 
     int32_t nStockTextures = 30;
 
     // Remap texture index between 0 and MAX_TEXTURE_ARRAY_SIZE if exceeds
-    if (textureIndex >= 2048)
-    {
+    if (textureIndex >= 2048) {
         remappedIndex = MAX_TEXTURE_ARRAY_SIZE - nStockTextures + (textureIndex - 2048);
     }
 
@@ -178,13 +153,11 @@ int32_t Texture::hsStockTextureIndexRemap(int32_t textureIndex)
     return remappedIndex;
 }
 
-std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags, RawTextureInfo rawTrackTexture)
-{
+std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags, RawTextureInfo rawTrackTexture) {
     std::bitset<32> textureAlignment(textureFlags);
     std::vector<glm::vec2> uvs;
 
-    switch (tag)
-    {
+    switch (tag) {
     case NFS_1:
         ASSERT(false, "Unimplemented");
         break;
@@ -192,10 +165,8 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
     case NFS_2_SE:
     case NFS_2_PS1:
     case NFS_3_PS1:
-        switch (meshType)
-        {
-        case XOBJ:
-        {
+        switch (meshType) {
+        case XOBJ: {
             bool horizontalFlip           = false; // textureAlignment[8];
             bool verticalFlip             = false; // textureAlignment[9];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -208,25 +179,20 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
-            for (auto &uv : uvs)
-            {
-                if (horizontalFlip)
-                {
+            for (auto &uv : uvs) {
+                if (horizontalFlip) {
                     uv.x = 1.0f - uv.x;
                 }
-                if (verticalFlip)
-                {
+                if (verticalFlip) {
                     uv.y = 1.0f - uv.y;
                 }
                 uv.x *= maxU;
                 uv.y *= maxV;
             }
-        }
-        break;
+        } break;
         case OBJ_POLY:
             break;
-        case ROAD:
-        {
+        case ROAD: {
             bool horizontalFlip           = false; // textureAlignment[8];
             bool verticalFlip             = false; // textureAlignment[9];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -239,21 +205,17 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             uvs.emplace_back(((glm::vec2(1.0f, 1.0f) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(0.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(1.0f, 0.0f) - originTransform) * uvRotationTransform) + originTransform);
-            for (auto &uv : uvs)
-            {
-                if (horizontalFlip)
-                {
+            for (auto &uv : uvs) {
+                if (horizontalFlip) {
                     uv.x = 1.0f - uv.x;
                 }
-                if (verticalFlip)
-                {
+                if (verticalFlip) {
                     uv.y = 1.0f - uv.y;
                 }
                 uv.x *= this->maxU;
                 uv.y *= this->maxV;
             }
-        }
-        break;
+        } break;
         case GLOBAL:
             break;
         case CAR:
@@ -313,11 +275,9 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         break;
         }
         break;*/
-    case NFS_3:
-    {
+    case NFS_3: {
         LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
-        switch (meshType)
-        {
+        switch (meshType) {
         case XOBJ:
             uvs.emplace_back((1.0f - texBlock.corners[0]) * maxU, (1.0f - texBlock.corners[1]) * maxV);
             uvs.emplace_back((1.0f - texBlock.corners[2]) * maxU, (1.0f - texBlock.corners[3]) * maxV);
@@ -341,14 +301,11 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         case CAR:
             break;
         }
-    }
-    break;
-    case NFS_4:
-    {
+    } break;
+    case NFS_4: {
         // TODO: Needs to be an NFS4 texblock after NFS4 new gen parser bringup
         LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
-        switch (meshType)
-        {
+        switch (meshType) {
         //(flags>>2)&3 indicates the multiple of 90° by which the
         // texture should be rotated (0 for no rotation, 1 for 90°,
         // 2 for 180°, 3 for 270°) ; a non-zero value of flags&0x10
@@ -365,8 +322,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         // ux, uy, and uz ::	The y-axis of the wrap.
         // ou and ov :: Origin in the texture.
         // su and sv :: Scale factor in the texture
-        case XOBJ:
-        {
+        case XOBJ: {
             bool horizontalFlip           = textureAlignment[4];
             bool verticalFlip             = textureAlignment[5];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -379,26 +335,21 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             uvs.emplace_back(((glm::vec2(1.0f - texBlock.corners[0], 1.0f - texBlock.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(1.0f - texBlock.corners[4], 1.0f - texBlock.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(1.0f - texBlock.corners[6], 1.0f - texBlock.corners[7]) - originTransform) * uvRotationTransform) + originTransform);
-            for (auto &uv : uvs)
-            {
-                if (horizontalFlip)
-                {
+            for (auto &uv : uvs) {
+                if (horizontalFlip) {
                     uv.x = 1.0f - uv.x;
                 }
-                if (verticalFlip)
-                {
+                if (verticalFlip) {
                     uv.y = 1.0f - uv.y;
                 }
                 uv.x *= maxU;
                 uv.y *= maxV;
             }
-        }
-        break;
+        } break;
         case OBJ_POLY:
         case ROAD:
         case LANE:
-        case GLOBAL:
-        {
+        case GLOBAL: {
             bool horizontalFlip           = textureAlignment[4];
             bool verticalFlip             = textureAlignment[5];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -411,26 +362,21 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             uvs.emplace_back(((glm::vec2(texBlock.corners[0], 1.0f - texBlock.corners[1]) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(texBlock.corners[4], 1.0f - texBlock.corners[5]) - originTransform) * uvRotationTransform) + originTransform);
             uvs.emplace_back(((glm::vec2(texBlock.corners[6], 1.0f - texBlock.corners[7]) - originTransform) * uvRotationTransform) + originTransform);
-            for (auto &uv : uvs)
-            {
-                if (horizontalFlip)
-                {
+            for (auto &uv : uvs) {
+                if (horizontalFlip) {
                     uv.x = 1.0f - uv.x;
                 }
-                if (verticalFlip)
-                {
+                if (verticalFlip) {
                     uv.y = 1.0f - uv.y;
                 }
                 uv.x *= maxU;
                 uv.y *= maxV;
             }
-        }
-        break;
+        } break;
         case CAR:
             break;
         }
-    }
-    break;
+    } break;
     case NFS_5:
         break;
     case UNKNOWN:
@@ -440,8 +386,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
     return uvs;
 }
 
-GLuint Texture::MakeTextureArray(std::map<uint32_t, Texture> &textures, bool repeatable)
-{
+GLuint Texture::MakeTextureArray(std::map<uint32_t, Texture> &textures, bool repeatable) {
     ASSERT(textures.size() < MAX_TEXTURE_ARRAY_SIZE, "Configured maximum texture array size of " << MAX_TEXTURE_ARRAY_SIZE << " has been exceeded");
 
     size_t max_width = 0, max_height = 0;
@@ -451,8 +396,7 @@ GLuint Texture::MakeTextureArray(std::map<uint32_t, Texture> &textures, bool rep
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture_name);
 
     // Find the maximum width and height, so we can avoid overestimating with blanket values (256x256) and thereby scale UV's uneccesarily
-    for (auto &texture : textures)
-    {
+    for (auto &texture : textures) {
         if (texture.second.width > max_width)
             max_width = texture.second.width;
         if (texture.second.height > max_height)
@@ -470,8 +414,7 @@ GLuint Texture::MakeTextureArray(std::map<uint32_t, Texture> &textures, bool rep
                    MAX_TEXTURE_ARRAY_SIZE); // I should really call this on textures.size(), but the layer numbers are not linear up to
                                             // textures.size(). HS Bloats tex index up over 2048.
 
-    for (auto &texture : textures)
-    {
+    for (auto &texture : textures) {
         ASSERT(texture.second.width <= max_width, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_width << ") for Array");
         ASSERT(texture.second.height <= max_height, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_height << ") for Array");
         // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
@@ -506,13 +449,10 @@ GLuint Texture::MakeTextureArray(std::map<uint32_t, Texture> &textures, bool rep
         texture.second.id    = texture_name;
     }
 
-    if (repeatable)
-    {
+    if (repeatable) {
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    }
-    else
-    {
+    } else {
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }

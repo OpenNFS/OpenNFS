@@ -7,8 +7,7 @@
 #include "../Shaders/DepthShader.h"
 #include "../Config.h"
 
-class ShadowMapRenderer
-{
+class ShadowMapRenderer {
 public:
     ShadowMapRenderer();
     ~ShadowMapRenderer();

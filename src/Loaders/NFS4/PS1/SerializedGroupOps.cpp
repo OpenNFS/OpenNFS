@@ -7,8 +7,7 @@
 
 #define this test
 
-SerializedGroup *LocateGroupType__15SerializedGroupii(SerializedGroup *this, int type, int index)
-{
+SerializedGroup *LocateGroupType__15SerializedGroupii(SerializedGroup *this, int type, int index) {
     /*  bool bVar1;
       uint8_t uVar2;
       int iVar3;

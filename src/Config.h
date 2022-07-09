@@ -67,19 +67,16 @@ const std::string DEFAULT_TRACK_NFS_VER = ToString(NFS_3);
 const int DEFAULT_NUM_RACERS            = 0;
 
 /* --------------- ONFS Runtime parameters here -----------------*/
-class Config
-{
+class Config {
 public:
-    static Config& get()
-    {
+    static Config& get() {
         static Config instance;
         return instance;
     }
     void ParseFile(std::ifstream& inStream);
     void InitFromCommandLine(int argc, char** argv);
     template <typename _T>
-    _T getValue(const std::string& key)
-    {
+    _T getValue(const std::string& key) {
         return storedConfig[key].as<_T>();
     };
     // Better named parameters instead of using var_map with command-line arg name
@@ -94,10 +91,6 @@ public:
     bool headless     = false;
     float fov         = DEFAULT_FOV;
     uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
-    /* -- Training Params -- */
-    bool trainingMode     = false;
-    uint16_t nGenerations = 0;
-    uint32_t nTicks;
     /* -- Tool Params -- */
     bool renameAssets = false;
 
@@ -108,8 +101,7 @@ private:
     variables_map storedConfig;
 };
 
-struct ParamData
-{
+struct ParamData {
     float timeScaleFactor       = 1.f;
     ImVec4 sunAttenuation       = ImVec4(0.f, 0.f, 0.f, 1.0f);
     float trackSpecReflectivity = 1;
@@ -131,16 +123,14 @@ struct ParamData
     bool simulateCars           = true;
 };
 
-struct AssetData
-{
+struct AssetData {
     NFSVer carTag;
     std::string car;
     NFSVer trackTag;
     std::string track;
 };
 
-struct NfsAssetList
-{
+struct NfsAssetList {
     NFSVer tag;
     std::vector<std::string> tracks;
     std::vector<std::string> cars;

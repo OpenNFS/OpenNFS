@@ -4,8 +4,7 @@
 
 #include <glm/detail/type_mat4x4.hpp>
 
-class RaceNetShader : public BaseShader
-{
+class RaceNetShader : public BaseShader {
 public:
     explicit RaceNetShader();
     void loadColor(glm::vec3 color);

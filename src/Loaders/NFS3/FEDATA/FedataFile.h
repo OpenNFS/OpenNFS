@@ -2,15 +2,12 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
+namespace LibOpenNFS {
+    namespace NFS3 {
         static const uint32_t COLOUR_TABLE_OFFSET      = 0xA7;
         static const uint32_t MENU_NAME_FILEPOS_OFFSET = 0x37;
 
-        class FedataFile : IRawData
-        {
+        class FedataFile : IRawData {
         public:
             FedataFile() = default;
 

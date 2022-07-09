@@ -3,12 +3,9 @@
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
-        class StructureRefBlock : private IRawData
-        {
+namespace LibOpenNFS {
+    namespace NFS2 {
+        class StructureRefBlock : private IRawData {
         public:
             StructureRefBlock() = default;
             explicit StructureRefBlock(std::ifstream &trk);

@@ -5,10 +5,8 @@
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
+namespace LibOpenNFS {
+    namespace NFS3 {
         const uint8_t NUM_POLYGON_BLOCKS = 7;
         const uint8_t NUM_POLYOBJ_CHUNKS = 4;
 
@@ -22,8 +20,7 @@ namespace LibOpenNFS
             std::vector<std::vector<PolygonData>> poly; // the polygons themselves
         };
 
-        class PolyBlock : private IRawData
-        {
+        class PolyBlock : private IRawData {
         public:
             PolyBlock() = default;
             explicit PolyBlock(std::ifstream &frd, uint32_t nTrackBlockPolys);

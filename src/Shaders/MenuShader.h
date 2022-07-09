@@ -4,8 +4,7 @@
 
 #include <glm/detail/type_mat4x4.hpp>
 
-class MenuShader : public BaseShader
-{
+class MenuShader : public BaseShader {
 public:
     explicit MenuShader();
     void loadLayer(GLint layer);

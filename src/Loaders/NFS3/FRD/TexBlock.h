@@ -2,12 +2,9 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
-        class TexBlock : public IRawData
-        {
+namespace LibOpenNFS {
+    namespace NFS3 {
+        class TexBlock : public IRawData {
         public:
             TexBlock() = default;
             explicit TexBlock(std::ifstream &frd);

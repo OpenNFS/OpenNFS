@@ -2,10 +2,8 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
+namespace LibOpenNFS {
+    namespace NFS3 {
         struct PositionData // enumerate polygons which lie at center
         {
             uint16_t polygon;
@@ -42,25 +40,21 @@ namespace LibOpenNFS
             char unknown3;
         }; // !!! does not list the animated XOBJs
 
-        struct SoundSource
-        {
+        struct SoundSource {
             glm::ivec3 refpoint;
             uint32_t type;
         };
 
-        struct LightSource
-        {
+        struct LightSource {
             glm::ivec3 refpoint;
             uint32_t type;
         };
 
-        struct PolyObject
-        {
+        struct PolyObject {
             uint8_t unknown[20];
         };
 
-        class TrkBlock : public IRawData
-        {
+        class TrkBlock : public IRawData {
         public:
             TrkBlock() = default;
             explicit TrkBlock(std::ifstream &frd);

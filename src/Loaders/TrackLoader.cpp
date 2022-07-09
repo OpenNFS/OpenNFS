@@ -5,15 +5,13 @@
 /*#include "NFS4/PC/NFS4Loader.h"
 #include "NFS4/PS1/NFS4PS1Loader.h"*/
 
-std::shared_ptr<Track> TrackLoader::LoadTrack(NFSVer trackVersion, const std::string &trackName)
-{
+std::shared_ptr<Track> TrackLoader::LoadTrack(NFSVer trackVersion, const std::string &trackName) {
     std::shared_ptr<Track> loadedTrack;
 
     std::stringstream trackPath;
     trackPath << RESOURCE_PATH << ToString(trackVersion);
 
-    switch (trackVersion)
-    {
+    switch (trackVersion) {
     case NFS_2:
         trackPath << NFS_2_TRACK_PATH << trackName;
         loadedTrack = NFS2Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str(), NFS_2);

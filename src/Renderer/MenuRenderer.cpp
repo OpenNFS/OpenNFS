@@ -7,8 +7,7 @@
 
 using json = nlohmann::json;
 
-MenuRenderer::MenuRenderer()
-{
+MenuRenderer::MenuRenderer() {
     FT_Library ft;
     ASSERT(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
 
@@ -19,11 +18,9 @@ MenuRenderer::MenuRenderer()
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Disable byte-alignment restriction
 
-    for (GLubyte c = 0; c < 128; c++)
-    {
+    for (GLubyte c = 0; c < 128; c++) {
         // Load character glyph
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-        {
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
             LOG(WARNING) << "FREETYPE: Failed to load Glyph";
             continue;
         }
@@ -72,21 +69,17 @@ MenuRenderer::MenuRenderer()
     LOG(INFO) << "Menu resources loaded successfully";
 }
 
-MenuRenderer::~MenuRenderer()
-{
+MenuRenderer::~MenuRenderer() {
     // Lets delete all of the loaded textures
-    for (std::map<GLchar, Character>::iterator it = m_characterMap.begin(); it != m_characterMap.end(); ++it)
-    {
+    for (std::map<GLchar, Character>::iterator it = m_characterMap.begin(); it != m_characterMap.end(); ++it) {
         glDeleteTextures(1, &it->second.textureID);
     }
-    for (std::map<std::string, MenuResource>::iterator it = m_menuResourceMap.begin(); it != m_menuResourceMap.end(); ++it)
-    {
+    for (std::map<std::string, MenuResource>::iterator it = m_menuResourceMap.begin(); it != m_menuResourceMap.end(); ++it) {
         glDeleteTextures(1, &it->second.textureID);
     }
 }
 
-std::map<std::string, MenuResource> MenuRenderer::LoadResources(const std::string &resourceFile)
-{
+std::map<std::string, MenuResource> MenuRenderer::LoadResources(const std::string &resourceFile) {
     // Read the resource JSON file
     std::ifstream jsonFile(resourceFile);
     ASSERT(jsonFile.is_open(), "Couldn't open menu resource file " << resourceFile);
@@ -95,8 +88,7 @@ std::map<std::string, MenuResource> MenuRenderer::LoadResources(const std::strin
     json resourcesJson;
     jsonFile >> resourcesJson;
 
-    for (auto &el : resourcesJson["resources"].items())
-    {
+    for (auto &el : resourcesJson["resources"].items()) {
         std::string elementName = el.value()["name"];
 
         // Load the image into the GPU and get corresponding handle
@@ -111,8 +103,7 @@ std::map<std::string, MenuResource> MenuRenderer::LoadResources(const std::strin
     return resources;
 }
 
-void MenuRenderer::Render()
-{
+void MenuRenderer::Render() {
     m_projectionMatrix = glm::ortho(0.0f, (float) Config::get().resX, 0.0f, (float) Config::get().resY);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -122,8 +113,7 @@ void MenuRenderer::Render()
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour)
-{
+void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
     ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
     // Allow for hot reload of shader
     m_fontShader.HotReload();
@@ -136,8 +126,7 @@ void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, G
 
     glBindVertexArray(m_fontQuadVAO);
     // Iterate through all characters
-    for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
-    {
+    for (std::string::const_iterator c = text.begin(); c != text.end(); ++c) {
         Character ch = m_characterMap[*c];
 
         GLfloat xpos = x + ch.bearing.x * scale;
@@ -166,8 +155,7 @@ void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, G
     m_fontShader.unbind();
 }
 
-void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat scale)
-{
+void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat scale) {
     ASSERT(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 
     // TODO: Actually implement this rescaling scaling properly
@@ -177,8 +165,7 @@ void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GL
     RenderResource(resourceID, layer, x, y, ratioX * m_menuResourceMap[resourceID].width, ratioY * m_menuResourceMap[resourceID].height, scale);
 }
 
-void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale)
-{
+void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) {
     ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
     ASSERT(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 

@@ -16,8 +16,7 @@
 #include "RacerManager.h"
 #include "OrbitalManager.h"
 
-class RaceSession
-{
+class RaceSession {
 public:
     RaceSession(const std::shared_ptr<GLFWwindow> &window,
                 const std::shared_ptr<Logger> &onfsLogger,
@@ -27,7 +26,7 @@ public:
     AssetData Simulate();
 
 private:
-    std::shared_ptr<BaseCamera> _GetActiveCamera();
+    BaseCamera &_GetActiveCamera();
     void _UpdateCameras(float deltaTime);
     void _GetInputsAndClear();
 
@@ -38,9 +37,9 @@ private:
     std::shared_ptr<GLFWwindow> m_window;
     std::shared_ptr<Track> m_track;
     std::shared_ptr<PlayerAgent> m_playerAgent;
-    std::shared_ptr<FreeCamera> m_freeCamera;
-    std::shared_ptr<HermiteCamera> m_hermiteCamera;
-    std::shared_ptr<CarCamera> m_carCamera;
+    FreeCamera m_freeCamera;
+    HermiteCamera m_hermiteCamera;
+    CarCamera m_carCamera;
 
     PhysicsEngine m_physicsEngine;
     Renderer m_renderer;

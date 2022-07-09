@@ -8,20 +8,19 @@
 #include "../RaceNet/Agents/CarAgent.h"
 #include "../Config.h"
 
-class TrackRenderer
-{
+class TrackRenderer {
 public:
     explicit TrackRenderer() = default;
     ~TrackRenderer();
     void Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
-                const std::shared_ptr<BaseCamera> &camera,
+                const BaseCamera &camera,
                 GLuint trackTextureArrayID,
                 const std::vector<std::shared_ptr<Entity>> &visibleEntities,
                 const std::vector<shared_ptr<BaseLight>> &lights,
                 const ParamData &userParams,
                 GLuint depthTextureID,
                 float ambientFactor);
-    void RenderLights(const std::shared_ptr<BaseCamera> &camera, const std::vector<shared_ptr<BaseLight>> &lights);
+    void RenderLights(const BaseCamera &camera, const std::vector<shared_ptr<BaseLight>> &lights);
 
 private:
     // Create and compile our GLSL programs from the shaders

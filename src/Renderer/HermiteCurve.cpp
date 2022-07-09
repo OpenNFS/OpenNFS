@@ -4,15 +4,13 @@
 // Based on http://paulbourke.net/miscellaneous/interpolation/
 // tension: 1 high, 0 normal, -1 low
 // bias: 0 is even, positive is towards first segment, negative towards the other
-HermiteCurve::HermiteCurve(const std::vector<glm::vec3> &curvePoints, float curveTension, float curveBias)
-{
+HermiteCurve::HermiteCurve(const std::vector<glm::vec3> &curvePoints, float curveTension, float curveBias) {
     m_points  = curvePoints;
     m_tension = curveTension;
     m_bias    = curveBias;
 }
 
-glm::vec3 HermiteCurve::GetPointAt(float t)
-{
+glm::vec3 HermiteCurve::GetPointAt(float t) {
     float point  = (m_points.size() - 1) * t;
     int intPoint = (int) point;
 
@@ -26,8 +24,7 @@ glm::vec3 HermiteCurve::GetPointAt(float t)
     return Interpolate(point0, point1, point2, point3, weight, m_tension, m_bias);
 }
 
-glm::vec3 HermiteCurve::Interpolate(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t, float tension, float bias)
-{
+glm::vec3 HermiteCurve::Interpolate(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t, float tension, float bias) {
     glm::vec3 m0 = (p1 - p0) * ((1 + bias) * (1 - tension) / 2) + (p2 - p1) * ((1 - bias) * (1 - tension) / 2);
 
     glm::vec3 m1 = (p2 - p1) * ((1 + bias) * (1 - tension) / 2) + (p3 - p2) * ((1 - bias) * (1 - tension) / 2);

@@ -1,7 +1,6 @@
 #include "PhysicsEngine.h"
 
-WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screenHeight, glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix)
-{
+WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screenHeight, glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix) {
     // The ray Start and End positions, in Normalized Device Coordinates
     glm::vec4 lRayStart_NDC(((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
                             ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f,
@@ -34,8 +33,7 @@ WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screen
     return worldRay;
 }
 
-PhysicsEngine::PhysicsEngine() : debugDrawer(std::make_shared<BulletDebugDrawer>())
-{
+PhysicsEngine::PhysicsEngine() : debugDrawer(std::make_shared<BulletDebugDrawer>()) {
     m_pBroadphase = new btDbvtBroadphase();
     // Set up the collision configuration and dispatcher
     m_pCollisionConfiguration = new btDefaultCollisionConfiguration();
@@ -48,30 +46,24 @@ PhysicsEngine::PhysicsEngine() : debugDrawer(std::make_shared<BulletDebugDrawer>
     m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
 }
 
-void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs)
-{
+void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) {
     m_pDynamicsWorld->stepSimulation(time, 100);
 
-    for (auto &car : m_activeVehicles)
-    {
+    for (auto &car : m_activeVehicles) {
         car->Update(m_pDynamicsWorld);
     }
 
-    if (m_track != nullptr)
-    {
+    if (m_track != nullptr) {
         // TrackModel updates propagate for active track blocks, based upon track blocks racer vehicles are on
-        for (auto &residentTrackblockID : racerResidentTrackblockIDs)
-        {
-            for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects)
-            {
+        for (auto &residentTrackblockID : racerResidentTrackblockIDs) {
+            for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects) {
                 objects.Update();
             }
         }
     }
 }
 
-Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool &entityTargeted)
-{
+Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool &entityTargeted) {
     WorldRay worldRayFromScreenPosition = ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix);
     glm::vec3 outEnd                    = worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f;
 
@@ -80,40 +72,31 @@ Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::m
 
     m_pDynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd), rayCallback);
 
-    if (rayCallback.hasHit())
-    {
+    if (rayCallback.hasHit()) {
         entityTargeted = true;
         return static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer());
-    }
-    else
-    {
+    } else {
         entityTargeted = false;
         return nullptr;
     }
 }
 
-void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track)
-{
+void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
     m_track = track;
 
-    for (auto &trackBlock : m_track->trackBlocks)
-    {
-        for (auto &road : trackBlock.track)
-        {
+    for (auto &trackBlock : m_track->trackBlocks) {
+        for (auto &road : trackBlock.track) {
             road._GenCollisionMesh();
             m_pDynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
         }
-        for (auto &object : trackBlock.objects)
-        {
+        for (auto &object : trackBlock.objects) {
             object._GenCollisionMesh();
             uint32_t collisionMask = COL_RAY;
             // Set collision masks
-            if (object.collideable)
-            {
+            if (object.collideable) {
                 collisionMask |= COL_CAR;
             }
-            if (object.dynamic)
-            {
+            if (object.dynamic) {
                 collisionMask |= COL_TRACK;
             }
             // Move Rigid body to correct place in world
@@ -121,8 +104,7 @@ void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track)
             object.rigidBody->setWorldTransform(initialTransform);
             m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }
-        for (auto &light : trackBlock.lights)
-        {
+        for (auto &light : trackBlock.lights) {
             light._GenCollisionMesh();
             m_pDynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
         }
@@ -131,8 +113,7 @@ void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track)
     // this->_GenerateVroadBarriers();
 }
 
-void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car)
-{
+void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car) {
     car->SetRaycaster(new btDefaultVehicleRaycaster(m_pDynamicsWorld));
     car->SetVehicle(new btRaycastVehicle(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
     car->GetVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
@@ -154,8 +135,7 @@ void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car)
     car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
     car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
 
-    for (uint8_t wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx)
-    {
+    for (uint8_t wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx) {
         btWheelInfo &wheel               = car->GetVehicle()->getWheelInfo(wheelIdx);
         wheel.m_suspensionStiffness      = car->vehicleProperties.suspensionStiffness;
         wheel.m_wheelsDampingRelaxation  = car->vehicleProperties.suspensionDamping;
@@ -168,42 +148,33 @@ void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car)
     m_activeVehicles.push_back(car);
 }
 
-btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld()
-{
+btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld() {
     return m_pDynamicsWorld;
 }
 
-PhysicsEngine::~PhysicsEngine()
-{
-    for (auto &car : m_activeVehicles)
-    {
+PhysicsEngine::~PhysicsEngine() {
+    for (auto &car : m_activeVehicles) {
         m_pDynamicsWorld->removeVehicle(car->GetVehicle());
     }
-    if (m_track != nullptr)
-    {
-        for (auto &trackBlock : m_track->trackBlocks)
-        {
-            for (auto &road : trackBlock.track)
-            {
+    if (m_track != nullptr) {
+        for (auto &trackBlock : m_track->trackBlocks) {
+            for (auto &road : trackBlock.track) {
                 m_pDynamicsWorld->removeRigidBody(road.rigidBody);
                 delete road.rigidBody->getMotionState();
                 delete road.rigidBody;
             }
-            for (auto &object : trackBlock.objects)
-            {
+            for (auto &object : trackBlock.objects) {
                 m_pDynamicsWorld->removeRigidBody(object.rigidBody);
                 delete object.rigidBody->getMotionState();
                 delete object.rigidBody;
             }
-            for (auto &light : trackBlock.lights)
-            {
+            for (auto &light : trackBlock.lights) {
                 m_pDynamicsWorld->removeRigidBody(light.rigidBody);
                 delete light.rigidBody->getMotionState();
                 delete light.rigidBody;
             }
         }
-        for (auto &vroadBarrier : m_track->vroadBarriers)
-        {
+        for (auto &vroadBarrier : m_track->vroadBarriers) {
             m_pDynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
             delete vroadBarrier.rigidBody->getMotionState();
             delete vroadBarrier.rigidBody;
@@ -216,8 +187,7 @@ PhysicsEngine::~PhysicsEngine()
     delete m_pBroadphase;
 }
 
-void PhysicsEngine::_GenerateVroadBarriers()
-{
+void PhysicsEngine::_GenerateVroadBarriers() {
     /*if ((m_track->nfsVersion == NFS_3 || m_track->nfsVersion == NFS_4) && !Config::get().sparkMode)
     {
         uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;

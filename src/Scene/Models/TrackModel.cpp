@@ -8,12 +8,10 @@ TrackModel::TrackModel(std::vector<glm::vec3> &vertices,
                        std::vector<uint32_t> &vertexIndices,
                        std::vector<glm::vec4> &shadingData,
                        std::vector<uint32_t> &debugData,
-                       glm::vec3 centerPosition) : m_textureIndices(textureIndices), m_debugData(debugData),
-    Model("TrackMesh", vertices, uvs, normals, vertexIndices, true, centerPosition)
-{
+                       glm::vec3 centerPosition) :
+    m_textureIndices(textureIndices), m_debugData(debugData), Model("TrackMesh", vertices, uvs, normals, vertexIndices, true, centerPosition) {
     // Index Shading data
-    for (uint32_t m_vertex_index : vertexIndices)
-    {
+    for (uint32_t m_vertex_index : vertexIndices) {
         m_shadingData.push_back(shadingData[m_vertex_index]);
     }
     enable();
@@ -27,15 +25,13 @@ TrackModel::TrackModel(std::vector<glm::vec3> &vertices,
                        std::vector<uint32_t> &textureIndices,
                        std::vector<uint32_t> &vertexIndices,
                        std::vector<glm::vec4> &shadingData,
-                       glm::vec3 centerPosition) : m_textureIndices(textureIndices),
-    Model("TrackMesh", vertices, uvs, normals, vertexIndices, true, centerPosition)
-{
+                       glm::vec3 centerPosition) :
+    m_textureIndices(textureIndices), Model("TrackMesh", vertices, uvs, normals, vertexIndices, true, centerPosition) {
     // Fill the unused buffer with data
     m_debugData.resize(m_textureIndices.size());
 
     // Index Shading data
-    for (const auto &vertexIndex : vertexIndices)
-    {
+    for (const auto &vertexIndex : vertexIndices) {
         m_shadingData.push_back(shadingData[vertexIndex]);
     }
     enable();
@@ -43,15 +39,13 @@ TrackModel::TrackModel(std::vector<glm::vec3> &vertices,
     update();
 }
 
-void TrackModel::update()
-{
+void TrackModel::update() {
     RotationMatrix    = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix       = TranslationMatrix * RotationMatrix;
 }
 
-void TrackModel::destroy()
-{
+void TrackModel::destroy() {
     glDeleteBuffers(1, &m_vertexBuffer);
     glDeleteBuffers(1, &m_uvBuffer);
     glDeleteBuffers(1, &m_textureIndexBuffer);
@@ -60,18 +54,15 @@ void TrackModel::destroy()
     glDeleteBuffers(1, &m_debugBuffer);
 }
 
-void TrackModel::render()
-{
-    if (enabled)
-    {
+void TrackModel::render() {
+    if (enabled) {
         glBindVertexArray(VertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
         glBindVertexArray(0);
     }
 }
 
-bool TrackModel::genBuffers()
-{
+bool TrackModel::genBuffers() {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     // 1st attribute buffer : Vertices
@@ -134,6 +125,6 @@ bool TrackModel::genBuffers()
     return true;
 }
 
-TrackModel::TrackModel() : Model("TrackModel", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0))
-{
+TrackModel::TrackModel() :
+    Model("TrackModel", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)) {
 }

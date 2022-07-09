@@ -2,12 +2,9 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
-        struct HEADER
-        {
+namespace LibOpenNFS {
+    namespace NFS3 {
+        struct HEADER {
             char fntfChk[4];
             uint32_t fileSize;
             uint16_t version;
@@ -19,8 +16,7 @@ namespace LibOpenNFS
             uint32_t fontMapOffset;
         };
 
-        struct CHAR_TABLE_ENTRY
-        {
+        struct CHAR_TABLE_ENTRY {
             uint16_t asciiCode;
             uint8_t width;
             uint8_t height;
@@ -32,8 +28,7 @@ namespace LibOpenNFS
             uint8_t topPadding;
         };
 
-        class FfnFile : IRawData
-        {
+        class FfnFile : IRawData {
         public:
             FfnFile() = default;
 

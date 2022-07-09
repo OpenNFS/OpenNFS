@@ -3,21 +3,18 @@
 const std::string vertexSrc = "../shaders/SkydomeVertexShader.vert";
 const std::string fragSrc   = "../shaders/SkydomeFragmentShader.frag";
 
-SkydomeShader::SkydomeShader() : super(vertexSrc, fragSrc)
-{
+SkydomeShader::SkydomeShader() : super(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }
 
-void SkydomeShader::bindAttributes()
-{
+void SkydomeShader::bindAttributes() {
     bindAttribute(0, "vertexPosition_modelspace");
     bindAttribute(1, "vertexUV");
     bindAttribute(2, "normal");
 }
 
-void SkydomeShader::getAllUniformLocations()
-{
+void SkydomeShader::getAllUniformLocations() {
     // Vertex Shader Uniforms
     sunPositionLocation          = getUniformLocation("sunPosition");
     transformationMatrixLocation = getUniformLocation("transformationMatrix");
@@ -36,25 +33,21 @@ void SkydomeShader::getAllUniformLocations()
     timeLocation           = getUniformLocation("time");
 }
 
-void SkydomeShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation)
-{
+void SkydomeShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation) {
     loadMat4(viewMatrixLocation, &view[0][0]);
     loadMat4(projectionMatrixLocation, &projection[0][0]);
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void SkydomeShader::loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix)
-{
+void SkydomeShader::loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix) {
     loadMat3(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
 }
 
-void SkydomeShader::loadSunPosition(const std::shared_ptr<GlobalLight> &light)
-{
+void SkydomeShader::loadSunPosition(const std::shared_ptr<GlobalLight> &light) {
     loadVec3(sunPositionLocation, light->position);
 }
 
-void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID)
-{
+void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID) {
     loadSampler2D(clouds1TextureLocation, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, clouds1TextureID);
@@ -80,16 +73,13 @@ void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureI
     glBindTexture(GL_TEXTURE_2D, tint2TextureID);
 }
 
-void SkydomeShader::loadWeatherMixFactor(float weatherMixFactor)
-{
+void SkydomeShader::loadWeatherMixFactor(float weatherMixFactor) {
     loadFloat(weatherLocation, weatherMixFactor);
 }
 
-void SkydomeShader::loadTime(float time)
-{
+void SkydomeShader::loadTime(float time) {
     loadFloat(timeLocation, time);
 }
 
-void SkydomeShader::customCleanup()
-{
+void SkydomeShader::customCleanup() {
 }

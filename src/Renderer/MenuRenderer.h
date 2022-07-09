@@ -11,23 +11,20 @@
 #include "../Util/Logger.h"
 #include "../Util/ImageLoader.h"
 
-struct MenuResource
-{
+struct MenuResource {
     GLuint textureID;
     int width;
     int height;
 };
 
-struct Character
-{
+struct Character {
     GLuint textureID;   // ID handle of the glyph texture
     glm::ivec2 size;    // Size of glyph
     glm::ivec2 bearing; // Offset from baseline to left/top of glyph
     GLuint advance;     // Offset to advance to next glyph
 };
 
-class MenuRenderer
-{
+class MenuRenderer {
 private:
     // Maps to ease opengl display of character/menu resource
     std::map<GLchar, Character> m_characterMap;

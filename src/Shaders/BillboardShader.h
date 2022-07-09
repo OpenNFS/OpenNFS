@@ -4,8 +4,7 @@
 #include "../Util/ImageLoader.h"
 #include "../Scene/Lights/TrackLight.h"
 
-class BillboardShader : public BaseShader
-{
+class BillboardShader : public BaseShader {
 public:
     BillboardShader();
     void loadLight(const std::shared_ptr<TrackLight> &light);

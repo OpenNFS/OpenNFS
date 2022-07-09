@@ -6,13 +6,11 @@
 #include "NFS4/PS1/NFS4PS1Loader.h"
 #include "NFS5/NFS5Loader.h"*/
 
-std::shared_ptr<Car> CarLoader::LoadCar(NFSVer nfsVersion, const std::string &carName)
-{
+std::shared_ptr<Car> CarLoader::LoadCar(NFSVer nfsVersion, const std::string &carName) {
     std::stringstream carPath;
     carPath << RESOURCE_PATH << ToString(nfsVersion);
 
-    switch (nfsVersion)
-    {
+    switch (nfsVersion) {
     case NFS_2:
         carPath << NFS_2_CAR_PATH << carName;
         return NFS2Loader<LibOpenNFS::NFS2::PC>::LoadCar(carPath.str(), nfsVersion);

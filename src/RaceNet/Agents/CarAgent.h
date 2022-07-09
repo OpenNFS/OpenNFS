@@ -1,19 +1,15 @@
 #pragma once
 
-#include "../RaceNet.h"
-#include "../RaceNEAT.h"
 #include "../../Loaders/CarLoader.h"
 #include "../../Scene/Track.h"
 
-enum AgentType : uint8_t
-{
+enum AgentType : uint8_t {
     TRAINING = 0,
     RACING,
     PLAYER,
 };
 
-class CarAgent
-{
+class CarAgent {
 public:
     CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &track);
     void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset);
@@ -22,7 +18,6 @@ public:
 
     std::string name;
     std::shared_ptr<Car> vehicle;
-    RaceNet raceNet;
     uint32_t nearestTrackblockID = 0;
 
 protected:

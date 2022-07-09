@@ -2,8 +2,7 @@
 #include "../../Util/Utils.h"
 
 Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) :
-    super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position)
-{
+    super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
     std::vector<glm::vec3> verts;
     verts.emplace_back(glm::vec3(fromX, fromY, 0)); // bottom left corner
     verts.emplace_back(glm::vec3(toY, fromX, 0));   // top left corner
@@ -25,8 +24,7 @@ Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float
     m_vertices.clear();
 
     // Unindex data and Fill unused normal buffer
-    for (unsigned int m_vertex_index : m_vertexIndices)
-    {
+    for (unsigned int m_vertex_index : m_vertexIndices) {
         m_vertices.push_back(verts[m_vertex_index]);
         m_normals.emplace_back(glm::vec3(0, 0, 0));
     }
@@ -38,8 +36,7 @@ Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Quad");
 }
 
-void Quad::update()
-{
+void Quad::update() {
     orientation_vec = glm::vec3(-SIMD_HALF_PI, 0, 0);
     orientation     = glm::normalize(glm::quat(orientation_vec));
     RotationMatrix  = glm::toMat4(orientation);
@@ -48,25 +45,21 @@ void Quad::update()
     ModelMatrix       = TranslationMatrix * RotationMatrix;
 }
 
-void Quad::destroy()
-{
+void Quad::destroy() {
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &uvbuffer);
     glDeleteBuffers(1, &normalBuffer);
 }
 
-void Quad::render()
-{
-    if (enabled)
-    {
+void Quad::render() {
+    if (enabled) {
         glBindVertexArray(VertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
         glBindVertexArray(0);
     }
 }
 
-bool Quad::genBuffers()
-{
+bool Quad::genBuffers() {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     // Verts
@@ -110,6 +103,5 @@ bool Quad::genBuffers()
     return true;
 }
 
-Quad::Quad() : super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0))
-{
+Quad::Quad() : super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)) {
 }

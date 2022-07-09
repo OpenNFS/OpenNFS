@@ -1,12 +1,9 @@
 #include "TrackUtils.h"
 
-namespace TrackUtils
-{
-    std::shared_ptr<TrackLight> MakeLight(glm::vec3 position, uint32_t nfsType)
-    {
+namespace TrackUtils {
+    std::shared_ptr<TrackLight> MakeLight(glm::vec3 position, uint32_t nfsType) {
         // Use Data from NFSHS NFS3 Tracks TR.INI
-        switch (nfsType)
-        {
+        switch (nfsType) {
         case 0:
             return std::make_shared<TrackLight>(position, glm::vec4(222, 234, 235, 255) / 255.f, nfsType, 0, 0, 0, 5.00f);
         case 1:
@@ -77,13 +74,11 @@ namespace TrackUtils
     }
 
     // Break Packed uint32_t RGBA per vertex colour data for baked lighting of RGB into 4 normalised floats and store into vec4
-    glm::vec4 ShadingDataToVec4(uint32_t packedRgba)
-    {
+    glm::vec4 ShadingDataToVec4(uint32_t packedRgba) {
         return glm::vec4(((packedRgba >> 16) & 0xFF) / 255.0f, ((packedRgba >> 8) & 0xFF) / 255.0f, (packedRgba & 0xFF) / 255.0f, ((packedRgba >> 24) & 0xFF) / 255.0f);
     }
 
-    glm::vec4 ShadingDataToVec4(uint16_t packedRgba)
-    {
+    glm::vec4 ShadingDataToVec4(uint16_t packedRgba) {
         // BGR565
         // return glm::vec4(((packedRgba >> 11) & 0x1F) / 32.0f, ((packedRgba >> 5) & 0x3F) / 64.0f, ((packedRgba ) & 0x1F) / 32.0f, 0.2f);
         // RGB565 (best, but blueish)

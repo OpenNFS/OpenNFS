@@ -17,8 +17,7 @@
 // TODO: Refactor this pattern out entirely, should pass everything the texture needs as ONFS intermediate
 typedef boost::variant<LibOpenNFS::NFS3::TexBlock, LibOpenNFS::NFS2::TEXTURE_BLOCK> RawTextureInfo;
 
-class Texture
-{
+class Texture {
 public:
     Texture() = default;
     explicit Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo);

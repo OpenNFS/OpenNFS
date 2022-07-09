@@ -2,13 +2,11 @@
 
 using namespace LibOpenNFS::NFS3;
 
-TrkBlock::TrkBlock(std::ifstream &frd)
-{
+TrkBlock::TrkBlock(std::ifstream &frd) {
     ASSERT(this->_SerializeIn(frd), "Failed to serialize TrkBlock from file stream");
 }
 
-bool TrkBlock::_SerializeIn(std::ifstream &frd)
-{
+bool TrkBlock::_SerializeIn(std::ifstream &frd) {
     SAFE_READ(frd, &ptCentre, sizeof(glm::vec3));
     SAFE_READ(frd, &ptBounding, sizeof(glm::vec3) * 4);
     SAFE_READ(frd, &nVertices, sizeof(uint32_t));
@@ -18,8 +16,7 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     SAFE_READ(frd, &nVerticesDup, sizeof(uint32_t));
     SAFE_READ(frd, &nObjectVert, sizeof(uint32_t));
 
-    if (nVertices == 0)
-    {
+    if (nVertices == 0) {
         return false;
     }
 
@@ -75,8 +72,7 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd)
     return true;
 }
 
-void TrkBlock::_SerializeOut(std::ofstream &frd)
-{
+void TrkBlock::_SerializeOut(std::ofstream &frd) {
     frd.write((char *) &ptCentre, sizeof(glm::vec3));
     frd.write((char *) &ptBounding, sizeof(glm::vec3) * 4);
     frd.write((char *) &nVertices, sizeof(uint32_t));

@@ -3,13 +3,11 @@
 
 constexpr float carScaleFactor = 1000.f;
 
-std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath)
-{
+std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath) {
     boost::filesystem::path p(carVivPath);
     std::string vivName = p.filename().string();
     std::string carName = vivName.substr(3, vivName.size() - 7);
-    for (char &letter : carName)
-    {
+    for (char &letter : carName) {
         if (letter <= 'Z' && letter >= 'A')
             letter -= ('Z' - 'z');
     }
@@ -29,10 +27,8 @@ std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath)
 
     ImageLoader::ExtractPSH(pshPath.str(), carOutPath.str());
 
-    for (boost::filesystem::directory_iterator itr(carOutPath.str()); itr != boost::filesystem::directory_iterator(); ++itr)
-    {
-        if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos)
-        {
+    for (boost::filesystem::directory_iterator itr(carOutPath.str()); itr != boost::filesystem::directory_iterator(); ++itr) {
+        if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
             remappedTextureIds[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
             GLubyte *data;
@@ -51,8 +47,7 @@ std::shared_ptr<Car> NFS4PS1::LoadCar(const std::string &carVivPath)
     return std::make_shared<Car>(carData, NFS_4_PS1, carName, textureArrayId);
 }
 
-std::shared_ptr<NFS3_4_DATA::PS1::TRACK> NFS4PS1::LoadTrack(const std::string &trackGrpPath)
-{
+std::shared_ptr<NFS3_4_DATA::PS1::TRACK> NFS4PS1::LoadTrack(const std::string &trackGrpPath) {
     std::cout << "--- Loading NFS4 PS1  ---" << std::endl;
     auto track = std::make_shared<TRACK>(TRACK());
 
@@ -71,12 +66,9 @@ std::shared_ptr<NFS3_4_DATA::PS1::TRACK> NFS4PS1::LoadTrack(const std::string &t
     return track;
 }
 
-void NFS4PS1::LoadGRP(const std::string &grpPath)
-{
+void NFS4PS1::LoadGRP(const std::string &grpPath) {
     // Build a buffer of the file in memory
-    struct stat fstat
-    {
-    };
+    struct stat fstat {};
     stat(grpPath.c_str(), &fstat);
     char *grp = (char *) malloc(static_cast<size_t>(fstat.st_size + 1));
 
@@ -217,17 +209,14 @@ void NFS4PS1::LoadGRP(const std::string &grpPath)
     fclose(grpFile);
 }
 
-std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsigned int, Texture> carTextures)
-{
+std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsigned int, Texture> carTextures) {
     // All Vertices are stored so that the model is rotated 90 degs on X, 180 on Z. Remove this at Vert load time.
     glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(glm::radians(90.f), 0, glm::radians(180.f))));
     LOG(INFO) << "Parsing NFS4 PS1 GEO File located at " << geoPath;
     std::vector<CarModel> carMeshes;
 
     // Build a buffer of the file in memory
-    struct stat fstat
-    {
-    };
+    struct stat fstat {};
     stat(geoPath.c_str(), &fstat);
     char *mem = (char *) malloc(static_cast<size_t>(fstat.st_size + 1));
 
@@ -241,8 +230,7 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
     // Diablo == 0x0D
     int carType = 0; //(int)(carObj->render).palCopyNum[0xd];
 
-    for (uint8_t partIdx = 0; partIdx < 57; ++partIdx)
-    {
+    for (uint8_t partIdx = 0; partIdx < 57; ++partIdx) {
         // Prep the ONFS CarModel data
         float specularDamper       = 0.2f;
         float specularReflectivity = 0.02f;
@@ -258,41 +246,33 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
         fileOffset += sizeof(Transformer_zObj);
         scene->obj[partIdx] = Nobj;
         // Apply some part specific translation offsets
-        if (partIdx == 39)
-        {
+        if (partIdx == 39) {
             Nobj->translation.x -= 0x7ae;
-        }
-        else if (partIdx == 40)
-        {
+        } else if (partIdx == 40) {
             Nobj->translation.x += 0x7ae;
         }
 
         glm::vec3 center = rotationMatrix * glm::vec3{Nobj->translation.x >> 8, Nobj->translation.y >> 8, Nobj->translation.z >> 8};
         center /= carScaleFactor;
 
-        if (Nobj->numVertex != 0)
-        {
+        if (Nobj->numVertex != 0) {
             Nobj->vertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
             fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
             // Alignment
-            if (Nobj->numVertex % 2)
-            {
+            if (Nobj->numVertex % 2) {
                 fileOffset += 2;
             }
             // Lets get those verts, regardless of whether normals are packed in the file
-            for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx)
-            {
+            for (uint16_t vertIdx = 0; vertIdx < Nobj->numVertex; ++vertIdx) {
                 glm::vec3 vertex = glm::vec3(Nobj->vertex[vertIdx].x, Nobj->vertex[vertIdx].y, Nobj->vertex[vertIdx].z);
                 vertex /= carScaleFactor;
                 vertices.emplace_back(vertex);
             }
-            if ((R3DCar_ObjectInfo[partIdx][1] & 1U) != 0 && carType < 0x1c)
-            {
+            if ((R3DCar_ObjectInfo[partIdx][1] & 1U) != 0 && carType < 0x1c) {
                 Nobj->Nvertex = reinterpret_cast<COORD16 *>(mem + fileOffset);
                 fileOffset += (uint32_t) Nobj->numVertex * sizeof(COORD16);
                 // Alignment again
-                if (Nobj->numVertex % 2)
-                {
+                if (Nobj->numVertex % 2) {
                     fileOffset += 2;
                 }
                 // Get normals
@@ -306,12 +286,10 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
                 /*}*/
             }
         }
-        if (Nobj->numFacet != 0)
-        {
+        if (Nobj->numFacet != 0) {
             Nobj->facet = reinterpret_cast<Transformer_zFacet *>(mem + fileOffset);
             fileOffset += (uint32_t) Nobj->numFacet * sizeof(Transformer_zFacet);
-            for (uint32_t facetIdx = 0; facetIdx < Nobj->numFacet; ++facetIdx)
-            {
+            for (uint32_t facetIdx = 0; facetIdx < Nobj->numFacet; ++facetIdx) {
                 Texture glTexture = carTextures[(Nobj->facet + facetIdx)->textureIndex];
 
                 polygonFlags.emplace_back(Nobj->facet[facetIdx].flag);
@@ -338,8 +316,7 @@ std::vector<CarModel> NFS4PS1::LoadGEO(const std::string &geoPath, std::map<unsi
             }
         }
         // TODO: No polygonFlags for now
-        if (Nobj->numVertex && Nobj->numFacet)
-        {
+        if (Nobj->numVertex && Nobj->numFacet) {
             carMeshes.emplace_back(
               CarModel(std::string(geoPartNames[partIdx]), vertices, uvs, textureIndices, normals, indices, center, specularDamper, specularReflectivity, envReflectivity));
         }

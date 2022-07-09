@@ -12,8 +12,7 @@ const std::vector<glm::vec3> verts = {
   glm::vec3(kLightSize, -kLightSize, 0),  // bottom right corner
 };
 
-class LightModel : public Model
-{
+class LightModel : public Model {
 public:
     LightModel();
 
@@ -24,11 +23,6 @@ public:
 
 private:
     // OpenGL data
-    enum LightVBO : uint8_t
-    {
-        VERTEX = 0,
-        UV,
-        Length
-    };
+    enum LightVBO : uint8_t { VERTEX = 0, UV, Length };
     GLuint m_lightVertexBuffers[LightVBO::Length]{};
 };

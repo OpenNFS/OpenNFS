@@ -3,30 +3,23 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
-        struct VERT_HIGHP
-        {
+namespace LibOpenNFS {
+    namespace NFS2 {
+        struct VERT_HIGHP {
             int32_t x, z, y;
         };
 
-        struct ANIM_POS
-        {
+        struct ANIM_POS {
             VERT_HIGHP position;
             int16_t unknown[4];
         };
 
-        struct PC
-        {
-            struct VERT
-            {
+        struct PC {
+            struct VERT {
                 int16_t x, z, y;
             };
 
-            struct POLYGONDATA
-            {
+            struct POLYGONDATA {
                 int16_t texture;
                 int16_t otherSideTex;
                 uint8_t vertex[4];
@@ -34,16 +27,14 @@ namespace LibOpenNFS
 
             // TODO: Move this GEO data back to GeoFile.h once I find a clean way to template a shared struct name
 #pragma pack(push, 2)
-            struct HEADER
-            {
+            struct HEADER {
                 uint32_t padding;     // Possible value: 0x00, 0x01, 0x02
                 uint32_t unknown[32]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for
                 // calculating the position of the blocks)
                 uint64_t unknown2; //  always 0x00
             };
 
-            struct BLOCK_HEADER
-            {
+            struct BLOCK_HEADER {
                 uint32_t nVerts; // If nVert = 0x00, jump sizeof(GEO_BLOCK_HEADER) forwards, if odd, add 1
                 uint32_t nPolygons;
                 int32_t position[3]; // Absolute XYZ of the block
@@ -58,15 +49,13 @@ namespace LibOpenNFS
 #pragma pack(pop)
 
             // Maybe this is a platform specific VERT HIGH P scenario?
-            struct BLOCK_3D
-            {
+            struct BLOCK_3D {
                 int16_t x;
                 int16_t y;
                 int16_t z;
             };
 
-            struct POLY_3D
-            {
+            struct POLY_3D {
                 uint32_t texMapType;
                 uint8_t vertex[4];
                 char texName[4];
@@ -109,15 +98,12 @@ namespace LibOpenNFS
             }};
         };
 
-        struct PS1
-        {
-            struct VERT
-            {
+        struct PS1 {
+            struct VERT {
                 int16_t x, z, y, w;
             };
 
-            struct POLYGONDATA
-            {
+            struct POLYGONDATA {
                 uint8_t texture;
                 uint8_t otherSideTex;
                 uint8_t vertex[4];
@@ -125,16 +111,14 @@ namespace LibOpenNFS
 
             // TODO: Move this GEO data back to GeoFile.h once I find a clean way to template a shared struct name
 #pragma pack(push, 2)
-            struct HEADER
-            {
+            struct HEADER {
                 uint32_t padding;     // Possible value: 0x00, 0x01, 0x02
                 uint16_t unknown[64]; // useless list with values, which increase by 0x4 (maybe global offset list, which is needed for
                 // calculating the position of the blocks)
                 uint64_t unknown2; //  always 0x00
             };
 
-            struct BLOCK_HEADER
-            {
+            struct BLOCK_HEADER {
                 uint32_t nVerts;
                 uint32_t unknown1; // Block type? Changes how many padding bytes there are uint16_t[(unknown1 + extraPadByte)*2]
                 uint32_t nNormals; // Extra verts for higher LOD?
@@ -145,43 +129,36 @@ namespace LibOpenNFS
             };
 
             // Maybe this is a platform specific VERT HIGH P scenario?
-            struct BLOCK_3D
-            {
+            struct BLOCK_3D {
                 int16_t x;
                 int16_t y;
                 int16_t z;
             };
 
-            struct POLY_3D
-            {
+            struct POLY_3D {
                 uint16_t texMap[2];    // [1] seems to be useless. Value of 102 in bottom right of some meshes, small triangle.
                 uint16_t vertex[3][4]; // Literally wtf, 3 groups of 4 numbers that look like the vert indexes. One set [1] is usually
                 // 0,0,0,0 or 1,1,1,1
                 char texName[4];
             };
 
-            struct XBLOCK_1
-            {
+            struct XBLOCK_1 {
                 int16_t unknown[4];
             };
 
-            struct XBLOCK_2
-            {
+            struct XBLOCK_2 {
                 int16_t unknown[4];
             };
 
-            struct XBLOCK_3
-            {
+            struct XBLOCK_3 {
                 int16_t unknown[8];
             };
 
-            struct XBLOCK_4
-            {
+            struct XBLOCK_4 {
                 int16_t unknown[5];
             };
 
-            struct XBLOCK_5
-            {
+            struct XBLOCK_5 {
                 int16_t unknown[9];
             };
 #pragma pack(pop)

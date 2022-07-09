@@ -4,8 +4,7 @@
 
 #include <glm/detail/type_mat4x4.hpp>
 
-class FontShader : public BaseShader
-{
+class FontShader : public BaseShader {
 public:
     explicit FontShader();
     void loadLayer(GLint layer);

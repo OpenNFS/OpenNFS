@@ -32,27 +32,21 @@
     if ((file).read((char *) (structure), (size)).gcount() != (size)) \
     return false
 
-struct DimensionData
-{
+struct DimensionData {
     glm::vec3 minVertex;
     glm::vec3 maxVertex;
 };
 
-namespace Utils
-{
-    class Timer
-    {
+namespace Utils {
+    class Timer {
     public:
-        Timer() : m_beg(clock_::now())
-        {
+        Timer() : m_beg(clock_::now()) {
         }
-        void reset()
-        {
+        void reset() {
             m_beg = clock_::now();
         }
 
-        double elapsed() const
-        {
+        double elapsed() const {
             return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(clock_::now() - m_beg).count());
         }
 
@@ -106,8 +100,7 @@ namespace Utils
     // Easily convert propietary and platform specific Vertices to glm::vec3. NFS2_DATA::PC::GEO::BLOCK_3D, NFS2_DATA::PS1::GEO::BLOCK_3D,
     // NFS3_4_DATA::FLOATPT etc.
     template <class NFSVertexStruct>
-    glm::vec3 PointToVec(NFSVertexStruct block_3d)
-    {
+    glm::vec3 PointToVec(NFSVertexStruct block_3d) {
         return glm::vec3(block_3d.x, block_3d.y, block_3d.z);
     }
 } // namespace Utils

@@ -5,13 +5,10 @@
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
+namespace LibOpenNFS {
+    namespace NFS2 {
         template <typename Platform>
-        class StructureBlock : private IRawData
-        {
+        class StructureBlock : private IRawData {
         public:
             StructureBlock() = default;
             explicit StructureBlock(std::ifstream &ifstream);

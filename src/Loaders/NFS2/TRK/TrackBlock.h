@@ -6,13 +6,10 @@
 #include "../Common.h"
 #include "ExtraObjectBlock.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
+namespace LibOpenNFS {
+    namespace NFS2 {
         template <typename Platform>
-        class TrackBlock : IRawData
-        {
+        class TrackBlock : IRawData {
         public:
             TrackBlock() = default;
             explicit TrackBlock(std::ifstream &trk, NFSVer version);

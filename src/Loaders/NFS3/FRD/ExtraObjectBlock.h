@@ -3,12 +3,9 @@
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
-        struct ExtraObjectData
-        {
+namespace LibOpenNFS {
+    namespace NFS3 {
+        struct ExtraObjectData {
             uint32_t crosstype; // type 4, or more rarely 3 (animated)
             uint32_t crossno;   // obj number from REFXOBJ table in TRKBLOCK
             uint32_t unknown;
@@ -29,8 +26,7 @@ namespace LibOpenNFS
             std::vector<PolygonData> polyData;
         };
 
-        class ExtraObjectBlock : IRawData
-        {
+        class ExtraObjectBlock : IRawData {
         public:
             ExtraObjectBlock() = default;
 

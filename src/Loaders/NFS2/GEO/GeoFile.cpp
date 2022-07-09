@@ -1,12 +1,9 @@
 #include "GeoFile.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
+namespace LibOpenNFS {
+    namespace NFS2 {
         template <typename Platform>
-        bool GeoFile<Platform>::Load(const std::string &geoPath, GeoFile &geoFile)
-        {
+        bool GeoFile<Platform>::Load(const std::string &geoPath, GeoFile &geoFile) {
             LOG(INFO) << "Loading GEO File located at " << geoPath;
             std::ifstream geo(geoPath, std::ios::in | std::ios::binary);
 
@@ -17,19 +14,19 @@ namespace LibOpenNFS
         }
 
         template <typename Platform>
-        void GeoFile<Platform>::Save(const std::string &geoPath, GeoFile &geoFile)
-        {
+        void GeoFile<Platform>::Save(const std::string &geoPath, GeoFile &geoFile) {
             LOG(INFO) << "Saving FCE File to " << geoPath;
             std::ofstream geo(geoPath, std::ios::out | std::ios::binary);
             geoFile._SerializeOut(geo);
         }
 
         template <>
-        bool GeoFile<PC>::_SerializeIn(std::ifstream &ifstream)
-        {
-            // std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids)
-            float carScaleFactor     = 2000.f;
-            glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
+        bool GeoFile<PC>::_SerializeIn(std::ifstream &ifstream) {
+            // std::vector<CarModel> NFS2<PC>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t>
+            // remapped_texture_ids)
+            float carScaleFactor = 2000.f;
+            glm::quat rotationMatrix =
+              glm::normalize(glm::quat(glm::vec3(0, 0, 0))); // All Vertices are stored so that the model is rotated 90 degs on X. Remove this at Vert load time.
 
             std::vector<CarModel> car_meshes;
 
@@ -90,7 +87,8 @@ namespace LibOpenNFS
 
                 for (uint32_t vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx)
                 {
-                    verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
+                    verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z /
+            carScaleFactor));
                 }
 
                 for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx)
@@ -138,8 +136,9 @@ namespace LibOpenNFS
                     texture_indices.emplace_back(remapped_texture_ids[textureName]);
                 }
                 glm::vec3 center = glm::vec3(
-                  (geoBlockHeader->position[0] / 256.f) / carScaleFactor, (geoBlockHeader->position[1] / 256.f) / carScaleFactor, (geoBlockHeader->position[2] / 256.f) / carScaleFactor);
-                car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity, envReflectivity));
+                  (geoBlockHeader->position[0] / 256.f) / carScaleFactor, (geoBlockHeader->position[1] / 256.f) / carScaleFactor, (geoBlockHeader->position[2] / 256.f) /
+            carScaleFactor); car_meshes.emplace_back(CarModel(PC_PART_NAMES[part_Idx], verts, uvs, texture_indices, norms, indices, center, specularDamper, specularReflectivity,
+            envReflectivity));
 
                 delete geoBlockHeader;
                 delete[] vertices;
@@ -149,9 +148,9 @@ namespace LibOpenNFS
         }
 
         template <>
-        bool GeoFile<PS1>::_SerializeIn(std::ifstream &ifstream)
-        {
-            // std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t> remapped_texture_ids)
+        bool GeoFile<PS1>::_SerializeIn(std::ifstream &ifstream) {
+            // std::vector<CarModel> NFS2<PS1>::LoadGEO(const std::string &geo_path, std::map<unsigned int, Texture> car_textures, std::map<std::string, uint32_t>
+            // remapped_texture_ids)
             /*glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(0, 0, 0)));
             float carScaleFactor     = 2000.f;
 
@@ -283,7 +282,8 @@ namespace LibOpenNFS
 
                 for (uint32_t vert_Idx = 0; vert_Idx < geoBlockHeader->nVerts; ++vert_Idx)
                 {
-                    verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z / carScaleFactor));
+                    verts.emplace_back(rotationMatrix * glm::vec3(vertices[vert_Idx].x / carScaleFactor, vertices[vert_Idx].y / carScaleFactor, vertices[vert_Idx].z /
+            carScaleFactor));
                 }
 
                 for (uint32_t poly_Idx = 0; poly_Idx < geoBlockHeader->nPolygons; ++poly_Idx)
@@ -402,12 +402,11 @@ namespace LibOpenNFS
         }
 
         template <typename Platform>
-        void GeoFile<Platform>::_SerializeOut(std::ofstream &ofstream)
-        {
+        void GeoFile<Platform>::_SerializeOut(std::ofstream &ofstream) {
             ASSERT(false, "GEO output serialization is not currently implemented");
         }
 
         template class GeoFile<PS1>;
         template class GeoFile<PC>;
-    }
-}
+    } // namespace NFS2
+} // namespace LibOpenNFS

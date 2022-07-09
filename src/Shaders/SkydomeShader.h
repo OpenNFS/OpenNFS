@@ -4,8 +4,7 @@
 #include "../Util/Utils.h"
 #include "../Scene/Lights/GlobalLight.h"
 
-class SkydomeShader : public BaseShader
-{
+class SkydomeShader : public BaseShader {
 public:
     SkydomeShader();
     void loadSunPosition(const std::shared_ptr<GlobalLight> &light);

@@ -2,8 +2,7 @@
 
 using namespace LibOpenNFS::NFS3;
 
-bool FedataFile::Load(const std::string &fedataPath, FedataFile &fedataFile, uint8_t nPriColours)
-{
+bool FedataFile::Load(const std::string &fedataPath, FedataFile &fedataFile, uint8_t nPriColours) {
     LOG(INFO) << "Loading Fedata File located at " << fedataPath;
     std::ifstream fedata(fedataPath, std::ios::in | std::ios::binary);
 
@@ -14,15 +13,13 @@ bool FedataFile::Load(const std::string &fedataPath, FedataFile &fedataFile, uin
     return loadStatus;
 }
 
-void FedataFile::Save(const std::string &fedataPath, FedataFile &fedataFile)
-{
+void FedataFile::Save(const std::string &fedataPath, FedataFile &fedataFile) {
     LOG(INFO) << "Saving Fedata File to " << fedataPath;
     std::ofstream fedata(fedataPath, std::ios::out | std::ios::binary);
     fedataFile._SerializeOut(fedata);
 }
 
-bool FedataFile::_SerializeIn(std::ifstream &ifstream)
-{
+bool FedataFile::_SerializeIn(std::ifstream &ifstream) {
     // TODO: Hugely incomplete. Old style parser shoehorned into new format, need all structs. No seekg. /AS
     // Go get the offset of car name
     uint32_t menuNameOffset = 0;
@@ -40,8 +37,7 @@ bool FedataFile::_SerializeIn(std::ifstream &ifstream)
     std::vector<uint32_t> colourNameOffsets(m_nPriColours);
     SAFE_READ(ifstream, colourNameOffsets.data(), m_nPriColours * sizeof(uint32_t));
 
-    for (uint8_t colourIdx = 0; colourIdx < m_nPriColours; ++colourIdx)
-    {
+    for (uint8_t colourIdx = 0; colourIdx < m_nPriColours; ++colourIdx) {
         ifstream.seekg(colourNameOffsets[colourIdx], std::ios::beg);
         std::string colourName;
         std::getline(ifstream, colourName, '\0');
@@ -51,7 +47,6 @@ bool FedataFile::_SerializeIn(std::ifstream &ifstream)
     return true;
 }
 
-void FedataFile::_SerializeOut(std::ofstream &ofstream)
-{
+void FedataFile::_SerializeOut(std::ofstream &ofstream) {
     ASSERT(false, "Fedata output serialization is not currently implemented");
 }

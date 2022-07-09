@@ -1,7 +1,6 @@
 #include "RaceNetRenderer.h"
 
-RaceNetRenderer::RaceNetRenderer(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Logger> &onfs_logger) : m_window(window), logger(onfs_logger)
-{
+RaceNetRenderer::RaceNetRenderer(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Logger> &onfs_logger) : m_window(window), logger(onfs_logger) {
     projectionMatrix = glm::ortho(minX, maxX, minY, maxY, -1.0f, 1.0f);
 
     /*------- ImGui -------*/
@@ -11,8 +10,7 @@ RaceNetRenderer::RaceNetRenderer(const std::shared_ptr<GLFWwindow> &window, cons
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList, std::shared_ptr<Track> &trackToRender)
-{
+void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList, std::shared_ptr<Track> &trackToRender) {
     raceNetShader.HotReload(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -28,24 +26,20 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList,
     std::vector<int> visibleTrackBlocks = GetVisibleTrackBlocks(trackToRender);
 
     // Only bother to render cars if the track is visible
-    if (!visibleTrackBlocks.empty())
-    {
+    if (!visibleTrackBlocks.empty()) {
         raceNetShader.use();
         raceNetShader.loadProjectionMatrix(projectionMatrix);
         // Draw TrackModel
         raceNetShader.loadColor(glm::vec3(0.f, 0.5f, 0.5f));
-        for (auto &visibleTrackBlockID : visibleTrackBlocks)
-        {
-            for (auto &track_block_entity : trackToRender->trackBlocks[visibleTrackBlockID].track)
-            {
+        for (auto &visibleTrackBlockID : visibleTrackBlocks) {
+            for (auto &track_block_entity : trackToRender->trackBlocks[visibleTrackBlockID].track) {
                 raceNetShader.loadTransformationMatrix(boost::get<TrackModel>(track_block_entity.raw).ModelMatrix);
                 boost::get<TrackModel>(track_block_entity.raw).render();
             }
         }
 
         // Draw Cars
-        for (auto &car_agent : carList)
-        {
+        for (auto &car_agent : carList) {
             std::swap(car_agent.vehicle->carBodyModel.position.y, car_agent.vehicle->carBodyModel.position.z);
             std::swap(car_agent.vehicle->carBodyModel.orientation.y, car_agent.vehicle->carBodyModel.orientation.z);
             car_agent.vehicle->carBodyModel.update();
@@ -61,8 +55,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList,
     // Draw some useful info
     ImGui::Text("Tick %d", tick);
     ImGui::Text("Name Fitness Vroad AvgSpeed");
-    for (auto &carAgent : carList)
-    {
+    for (auto &carAgent : carList) {
         ImGui::Text("%s %d %d %f", carAgent.name.c_str(), carAgent.fitness, carAgent.ticksInsideVroad, carAgent.averageSpeed);
     }
 
@@ -78,14 +71,11 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList,
     glfwSwapBuffers(m_window.get());
 }
 
-std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<Track> &track_to_render)
-{
+std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<Track> &track_to_render) {
     std::vector<int> activeTrackBlockIds;
 
-    for (auto &track_block : track_to_render->trackBlocks)
-    {
-        if ((track_block.position.x > minX) && (track_block.position.x < maxX) && (track_block.position.z < minY) && (track_block.position.z > maxY))
-        {
+    for (auto &track_block : track_to_render->trackBlocks) {
+        if ((track_block.position.x > minX) && (track_block.position.x < maxX) && (track_block.position.z < minY) && (track_block.position.z > maxY)) {
             activeTrackBlockIds.emplace_back(track_block.id);
         }
     }
@@ -93,8 +83,7 @@ std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<Track> &track
     return activeTrackBlockIds;
 }
 
-void RaceNetRenderer::RescaleUI()
-{
+void RaceNetRenderer::RescaleUI() {
     if (ImGui::IsAnyItemActive())
         return;
 
@@ -103,8 +92,7 @@ void RaceNetRenderer::RescaleUI()
     float currentZoomLevel     = ImGui::GetIO().MouseWheel * 4.0f;
 
     // If panning, update projection matrix
-    if (ImGui::GetIO().MouseDown[0])
-    {
+    if (ImGui::GetIO().MouseDown[0]) {
         float xChange = ImGui::GetIO().MouseDelta.x;
         float yChange = ImGui::GetIO().MouseDelta.y;
 
@@ -117,8 +105,7 @@ void RaceNetRenderer::RescaleUI()
     }
 
     // If scrolling, update projection matrix
-    if (prevZoomLevel != currentZoomLevel)
-    {
+    if (prevZoomLevel != currentZoomLevel) {
         prevZoomLevel = currentZoomLevel;
 
         minX += currentZoomLevel;
@@ -130,8 +117,7 @@ void RaceNetRenderer::RescaleUI()
     }
 }
 
-RaceNetRenderer::~RaceNetRenderer()
-{
+RaceNetRenderer::~RaceNetRenderer() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

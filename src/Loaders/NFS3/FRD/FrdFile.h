@@ -7,14 +7,11 @@
 #include "ExtraObjectBlock.h"
 #include "TexBlock.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
+namespace LibOpenNFS {
+    namespace NFS3 {
         static const uint8_t HEADER_LENGTH = 28;
 
-        class FrdFile : IRawData
-        {
+        class FrdFile : IRawData {
         public:
             FrdFile() = default;
             static bool Load(const std::string &frdPath, FrdFile &frdFile);

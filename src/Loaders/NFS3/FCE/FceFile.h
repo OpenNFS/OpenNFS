@@ -2,17 +2,13 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
-        struct Colour
-        {
+namespace LibOpenNFS {
+    namespace NFS3 {
+        struct Colour {
             uint32_t H, S, B, T;
         };
 
-        struct Triangle
-        {
+        struct Triangle {
             uint32_t texPage;
             uint32_t vertex[3];  // Local indexes, add part first Vert index from "partFirstVertIndices"
             uint16_t padding[6]; // 00FF
@@ -20,15 +16,13 @@ namespace LibOpenNFS
             float uvTable[6]; // U1 U2 U3, V1 V2 V3
         };
 
-        struct CarPart
-        {
+        struct CarPart {
             std::vector<glm::vec3> vertices;
             std::vector<glm::vec3> normals;
             std::vector<Triangle> triangles;
         };
 
-        class FceFile : IRawData
-        {
+        class FceFile : IRawData {
         public:
             FceFile() = default;
 

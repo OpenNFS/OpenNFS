@@ -2,25 +2,21 @@
 
 #include "Model.h"
 
-class CarColour
-{
+class CarColour {
 public:
     std::string colourName;
     glm::vec3 colour;
-    CarColour(const std::string &colourName, glm::vec3 colour)
-    {
+    CarColour(const std::string &colourName, glm::vec3 colour) {
         this->colourName = colourName;
         this->colour     = colour;
     }
 };
 
-class Dummy
-{
+class Dummy {
 public:
     std::string name;
     glm::vec3 position;
-    Dummy(const char *dummyName, glm::vec3 position)
-    {
+    Dummy(const char *dummyName, glm::vec3 position) {
         std::string nameTemp(dummyName);
 
         this->name     = nameTemp;
@@ -28,8 +24,7 @@ public:
     }
 };
 
-class CarModel : public Model
-{
+class CarModel : public Model {
 public:
     // Test
     CarModel(std::string name,
@@ -125,8 +120,7 @@ private:
     typedef Model super;
 };
 
-class CarData
-{
+class CarData {
 public:
     CarData() : carName("Unset"){};
     std::string carName;

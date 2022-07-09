@@ -2,12 +2,9 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
-        class SpeedsFile : IRawData
-        {
+namespace LibOpenNFS {
+    namespace NFS3 {
+        class SpeedsFile : IRawData {
         public:
             SpeedsFile() = default;
             static bool Load(const std::string &speedBinPath, SpeedsFile &speedFile);

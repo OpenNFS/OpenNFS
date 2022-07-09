@@ -11,8 +11,7 @@
 #include "../Physics/Car.h"
 #include "../../shaders/ShaderPreamble.h"
 
-class CarShader : public BaseShader
-{
+class CarShader : public BaseShader {
 public:
     explicit CarShader();
     void loadCarColor(glm::vec3 color);

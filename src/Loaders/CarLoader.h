@@ -4,8 +4,7 @@
 
 #include "../Physics/Car.h"
 
-class CarLoader
-{
+class CarLoader {
 public:
     static std::shared_ptr<Car> LoadCar(NFSVer nfsVersion, const std::string &carName);
 };

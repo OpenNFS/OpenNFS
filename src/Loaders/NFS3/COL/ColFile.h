@@ -3,53 +3,45 @@
 #include "../../Common/IRawData.h"
 #include "../Common.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS3
-    {
+namespace LibOpenNFS {
+    namespace NFS3 {
 #define XBID_TEXTUREINFO 2
 #define XBID_STRUCT3D 8
 #define XBID_OBJECT 7
 #define XBID_OBJECT2 18
 #define XBID_VROAD 15
 
-        struct ExtraBlockHeader
-        {
+        struct ExtraBlockHeader {
             uint32_t size;
             uint16_t xbid;
             uint16_t nrec;
         };
 
-        struct ColTextureInfo
-        {
+        struct ColTextureInfo {
             uint16_t id;       // position in .QFS file
             uint16_t unknown1; // zero ?
             uint16_t unknown2; // texture offset ?
             uint16_t unknown3;
         };
 
-        struct ColVertex
-        {
+        struct ColVertex {
             glm::vec3 pt;     // relative coord
             uint32_t unknown; // like the unknVertices structures in FRD
         };
 
-        struct ColPolygon
-        {
+        struct ColPolygon {
             uint16_t texture;
             char v[4]; // vertices
         };
 
-        struct ColStruct3D
-        {
+        struct ColStruct3D {
             uint32_t size;
             uint16_t nVert, nPoly;
             std::vector<ColVertex> vertex;
             std::vector<ColPolygon> polygon;
         };
 
-        struct ColObject
-        {
+        struct ColObject {
             uint16_t size;
             uint8_t type;     // 1 = basic object, 3 = animated ...
             uint8_t struct3D; // reference in previous block
@@ -61,16 +53,14 @@ namespace LibOpenNFS
             std::vector<AnimData> animData; // same structure as in xobjs
         };
 
-        struct ColVRoad
-        {
+        struct ColVRoad {
             glm::ivec3 refPt;
             uint32_t unknown; // Unknown data
             glm::i8vec4 normal, forward, right;
             uint32_t leftWall, rightWall;
         };
 
-        class ColFile : IRawData
-        {
+        class ColFile : IRawData {
         public:
             ColFile() = default;
             static bool Load(const std::string &colPath, ColFile &colFile);

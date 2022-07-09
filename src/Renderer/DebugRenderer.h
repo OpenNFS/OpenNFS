@@ -4,14 +4,13 @@
 #include "../Camera/BaseCamera.h"
 #include "../Scene/Track.h"
 
-class DebugRenderer
-{
+class DebugRenderer {
 public:
     explicit DebugRenderer(const std::shared_ptr<BulletDebugDrawer> &bulletDebugDrawer);
-    void Render(const std::shared_ptr<BaseCamera> &camera);
+    void Render(const BaseCamera &camera);
     void DrawTrackCollision(const std::shared_ptr<Track> &track);
     void DrawAABB(const AABB &aabb);
-    void DrawFrustum(const std::shared_ptr<BaseCamera> &camera);
+    void DrawFrustum(const BaseCamera &camera);
     void DrawCarRaycasts(const std::shared_ptr<Car> &car);
     void DrawVroad(const std::shared_ptr<Track> &track);
     void DrawCameraAnimation(const std::shared_ptr<Track> &track);

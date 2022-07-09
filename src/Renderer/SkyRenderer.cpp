@@ -1,13 +1,11 @@
 #include "SkyRenderer.h"
 
-SkyRenderer::SkyRenderer()
-{
+SkyRenderer::SkyRenderer() {
     // Load track HRZ parameters into shader
     this->_LoadAssets();
 }
 
-void SkyRenderer::_LoadAssets()
-{
+void SkyRenderer::_LoadAssets() {
     std::string clouds1_texture_path("../resources/misc/skydome/clouds1.tga");
     std::string clouds2_texture_path("../resources/misc/skydome/clouds2.tga");
     std::string sun_texture_path("../resources/misc/skydome/sun.tga");
@@ -31,20 +29,17 @@ void SkyRenderer::_LoadAssets()
     ASSERT(tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "../resources/misc/skydome/sphere.obj", nullptr, true, true), err);
 
     // TODO: Generify the Utils loader to detect norms and uvs, else backfill with vecs of 0's
-    for (size_t s = 0; s < shapes.size(); s++)
-    {
+    for (size_t s = 0; s < shapes.size(); s++) {
         std::vector<glm::vec3> verts      = std::vector<glm::vec3>();
         std::vector<glm::vec3> norms      = std::vector<glm::vec3>();
         std::vector<glm::vec2> uvs        = std::vector<glm::vec2>();
         std::vector<unsigned int> indices = std::vector<unsigned int>();
         // Loop over faces(polygon)
         size_t index_offset = 0;
-        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
-        {
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
             int fv = shapes[s].mesh.num_face_vertices[f];
             // Loop over vertices in the face.
-            for (size_t v = 0; v < fv; v++)
-            {
+            for (size_t v = 0; v < fv; v++) {
                 // access to vertex
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
                 indices.emplace_back((const unsigned int &) idx.vertex_index);
@@ -64,12 +59,11 @@ void SkyRenderer::_LoadAssets()
     m_skydomeModel.update();
 }
 
-void SkyRenderer::Render(const std::shared_ptr<BaseCamera> &camera, const std::shared_ptr<GlobalLight> &light, float elapsedTime)
-{
+void SkyRenderer::Render(const BaseCamera &camera, const std::shared_ptr<GlobalLight> &light, float elapsedTime) {
     m_skydomeShader.use();
     m_skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
     m_skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(SIMD_PI, SIMD_PI, 0))))); // No star rotation
-    m_skydomeShader.loadMatrices(camera->projectionMatrix, camera->viewMatrix, m_skydomeModel.ModelMatrix);
+    m_skydomeShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, m_skydomeModel.ModelMatrix);
     m_skydomeShader.loadSunPosition(light);
     m_skydomeShader.loadTime(elapsedTime);
     m_skydomeShader.loadWeatherMixFactor(1.0f);
@@ -79,8 +73,7 @@ void SkyRenderer::Render(const std::shared_ptr<BaseCamera> &camera, const std::s
     m_skydomeShader.HotReload();
 }
 
-SkyRenderer::~SkyRenderer()
-{
+SkyRenderer::~SkyRenderer() {
     glDeleteTextures(1, &clouds1TextureID);
     glDeleteTextures(1, &clouds2TextureID);
     glDeleteTextures(1, &sunTextureID);

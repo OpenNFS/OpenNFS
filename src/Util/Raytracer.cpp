@@ -1,7 +1,6 @@
 #include "Raytracer.h"
 
-Raytracer::Raytracer(float rho, float theta, int nBlocks, TRKBLOCK *trk, POLYGONBLOCK *poly, XOBJBLOCK *xobj)
-{
+Raytracer::Raytracer(float rho, float theta, int nBlocks, TRKBLOCK *trk, POLYGONBLOCK *poly, XOBJBLOCK *xobj) {
     int startbl = 0;
     int endbl   = nBlocks;
 
@@ -14,8 +13,7 @@ Raytracer::Raytracer(float rho, float theta, int nBlocks, TRKBLOCK *trk, POLYGON
     }
 }
 
-FLOATPT VectorNormalize(FLOATPT nc)
-{
+FLOATPT VectorNormalize(FLOATPT nc) {
     float length = sqrt((nc.x * nc.x) + (nc.y * nc.y) + (nc.z * nc.z));
     nc.x         = nc.x / length;
     nc.y         = nc.y / length;
@@ -23,8 +21,7 @@ FLOATPT VectorNormalize(FLOATPT nc)
     return nc;
 }
 
-FLOATPT NormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c)
-{
+FLOATPT NormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c) {
     FLOATPT v1, v2, out;
 
     v1.x = c.x - a.x;
@@ -42,8 +39,7 @@ FLOATPT NormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c)
     return VectorNormalize(out);
 }
 
-FLOATPT QuadNormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c, FLOATPT d)
-{
+FLOATPT QuadNormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c, FLOATPT d) {
     struct FLOATPT n1, n2, nc;
     n1 = NormalVectorCalc(a, b, c);
     n2 = NormalVectorCalc(a, c, d);
@@ -52,8 +48,7 @@ FLOATPT QuadNormalVectorCalc(FLOATPT a, FLOATPT b, FLOATPT c, FLOATPT d)
     return nc;
 }
 
-FLOATPT SumVector(FLOATPT Vect1, FLOATPT Vect2)
-{
+FLOATPT SumVector(FLOATPT Vect1, FLOATPT Vect2) {
     struct FLOATPT SumVect;
     SumVect.x = Vect1.x + Vect2.x;
     SumVect.y = Vect1.y + Vect2.y;
@@ -63,8 +58,7 @@ FLOATPT SumVector(FLOATPT Vect1, FLOATPT Vect2)
     return SumVect;
 }
 
-FLOATPT VertexNormal(int blk, int VertexIndex, TRKBLOCK *trk, POLYGONBLOCK *poly)
-{
+FLOATPT VertexNormal(int blk, int VertexIndex, TRKBLOCK *trk, POLYGONBLOCK *poly) {
     FLOATPT a, b, c, d;
     FLOATPT normal;
     LPPOLYGONDATA p;
@@ -77,12 +71,9 @@ FLOATPT VertexNormal(int blk, int VertexIndex, TRKBLOCK *trk, POLYGONBLOCK *poly
     v       = trk[blk].vert;
     p       = poly[blk].poly[4];
     int num = poly[blk].sz[4];
-    for (int32_t j = 0; j < num; j++, p++)
-    {
-        for (uint32_t k = 0; k < 4; k++)
-        {
-            if (p->vertex[k] == VertexIndex)
-            {
+    for (int32_t j = 0; j < num; j++, p++) {
+        for (uint32_t k = 0; k < 4; k++) {
+            if (p->vertex[k] == VertexIndex) {
                 a      = v[p->vertex[0]];
                 b      = v[p->vertex[1]];
                 c      = v[p->vertex[2]];
@@ -94,8 +85,7 @@ FLOATPT VertexNormal(int blk, int VertexIndex, TRKBLOCK *trk, POLYGONBLOCK *poly
     return normal;
 }
 
-int intersect_triangle(double orig[3], double dir[3], double vert0[3], double vert1[3], double vert2[3], double *t, double *u, double *v)
-{
+int intersect_triangle(double orig[3], double dir[3], double vert0[3], double vert1[3], double vert2[3], double *t, double *u, double *v) {
     double edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
     double det, inv_det;
 
@@ -126,8 +116,7 @@ int intersect_triangle(double orig[3], double dir[3], double vert0[3], double ve
 
     CROSS(qvec, tvec, edge1);
 
-    if (det > EPSILON)
-    {
+    if (det > EPSILON) {
         *u = DOT(tvec, pvec);
         if (*u < 0.0 || *u > det)
             return 0;
@@ -159,8 +148,7 @@ int intersect_triangle(double orig[3], double dir[3], double vert0[3], double ve
     return 1;
 }
 
-void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBLOCK *poly, XOBJBLOCK *xobj)
-{
+void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBLOCK *poly, XOBJBLOCK *xobj) {
     int i, j, j2, k, num, num2, blk2;
     int result;
     double uu, vv, tt;
@@ -198,18 +186,15 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
 
     p2   = poly[blk].poly[4];
     num2 = poly[blk].sz[4];
-    for (j2 = 0; j2 < num2; j2++, p2++)
-    {
-        for (k = 0; k < 4; k++)
-        {
+    for (j2 = 0; j2 < num2; j2++, p2++) {
+        for (k = 0; k < 4; k++) {
             // bool tested = new bool[t->nVertices];
             /*for (uint32_t temp=0; temp>trk[blk].nVertices; temp++)
                 tested[temp]=false;*/
 
             assert(p2->vertex[k] >= 0 && p2->vertex[k] < t->nVertices);
 
-            if ((p2->vertex[k] < 0) || (p2->vertex[k] > t->nVertices))
-            {
+            if ((p2->vertex[k] < 0) || (p2->vertex[k] > t->nVertices)) {
                 std::cout << "FAILED! K: " << k << ", J2:" << j2 << ", BLK:" << blk << std::endl;
                 return;
             }
@@ -240,8 +225,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
             result = 0;
             i      = 0;
 
-            while ((t->nbdData[i].blk != -1) && (i < 300))
-            {
+            while ((t->nbdData[i].blk != -1) && (i < 300)) {
                 assert(i >= 0 && i < 300);
 
                 blk2 = t->nbdData[i].blk;
@@ -254,16 +238,13 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                 // Track Polygons
                 //--------------
 
-                for (j = 0; j < num; j++, p++)
-                {
-                    if (blk == 0 && j2 == 0 && k == 1)
-                    {
+                for (j = 0; j < num; j++, p++) {
+                    if (blk == 0 && j2 == 0 && k == 1) {
                         std::cout << "keke" << std::endl;
                     }
 
                     // p->texture
-                    if (result != 1)
-                    {
+                    if (result != 1) {
                         assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
                         corner1[0] = (double) v2[p->vertex[0]].x;
                         corner1[2] = (double) v2[p->vertex[0]].z;
@@ -283,15 +264,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                         Pos[1] = StartPos[1];
                         Pos[2] = StartPos[2];
                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                    }
-                    else
-                    {
+                    } else {
                         j = num;
                         i = 300;
                     }
 
-                    if (result != 1)
-                    {
+                    if (result != 1) {
                         corner1[0] = (double) v2[p->vertex[0]].x;
                         corner1[2] = (double) v2[p->vertex[0]].z;
                         corner1[1] = (double) v2[p->vertex[0]].y;
@@ -309,15 +287,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                         Pos[1] = StartPos[1];
                         Pos[2] = StartPos[2];
                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                    }
-                    else
-                    {
+                    } else {
                         j = num;
                         i = 300;
                     }
 
-                    if (result == 1)
-                    {
+                    if (result == 1) {
                         std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
                     }
                 }
@@ -327,16 +302,13 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                 // if (result!=1) {
                 num = poly[blk2].sz[5];
                 p   = poly[blk2].poly[5];
-                for (j = 0; j < num; j++, p++)
-                {
-                    if (blk == 0 && j2 == 0 && k == 1)
-                    {
+                for (j = 0; j < num; j++, p++) {
+                    if (blk == 0 && j2 == 0 && k == 1) {
                         std::cout << "keke" << std::endl;
                     }
 
                     // p->texture
-                    if (result != 1)
-                    {
+                    if (result != 1) {
                         assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
                         corner1[0] = (double) v2[p->vertex[0]].x;
                         corner1[2] = (double) v2[p->vertex[0]].z;
@@ -356,15 +328,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                         Pos[1] = StartPos[1];
                         Pos[2] = StartPos[2];
                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                    }
-                    else
-                    {
+                    } else {
                         // j=num;
                         i = 300;
                     }
 
-                    if (result != 1)
-                    {
+                    if (result != 1) {
                         corner1[0] = (double) v2[p->vertex[0]].x;
                         corner1[2] = (double) v2[p->vertex[0]].z;
                         corner1[1] = (double) v2[p->vertex[0]].y;
@@ -382,15 +351,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                         Pos[1] = StartPos[1];
                         Pos[2] = StartPos[2];
                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                    }
-                    else
-                    {
+                    } else {
                         // j=num;
                         i = 300;
                     }
 
-                    if (result == 1)
-                    {
+                    if (result == 1) {
                         std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
                     }
                 }
@@ -398,24 +364,19 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                 // Lane Polygons End
                 // Blue Objects
                 //------------
-                for (long chunkcounter = 0; chunkcounter < 4; chunkcounter++)
-                {
+                for (long chunkcounter = 0; chunkcounter < 4; chunkcounter++) {
                     long numobj = poly[blk2].obj[chunkcounter].nobj;
-                    for (long objcounter = 0; objcounter < numobj; objcounter++)
-                    {
+                    for (long objcounter = 0; objcounter < numobj; objcounter++) {
                         num = poly[blk2].obj[chunkcounter].numpoly[objcounter];
 
                         p = poly[blk2].obj[chunkcounter].poly[objcounter];
-                        for (j = 0; j < num; j++, p++)
-                        {
-                            if (blk == 0 && j2 == 0 && k == 1)
-                            {
+                        for (j = 0; j < num; j++, p++) {
+                            if (blk == 0 && j2 == 0 && k == 1) {
                                 std::cout << "keke" << std::endl;
                             }
 
                             // p->texture
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
                                 corner1[0] = (double) v2[p->vertex[2]].x;
                                 corner1[2] = (double) v2[p->vertex[2]].z;
@@ -435,15 +396,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
 
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 corner1[0] = (double) v2[p->vertex[1]].x;
                                 corner1[2] = (double) v2[p->vertex[1]].z;
                                 corner1[1] = (double) v2[p->vertex[1]].y;
@@ -461,15 +419,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
                             // Make same with another side:
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
                                 corner1[0] = (double) v2[p->vertex[0]].x;
                                 corner1[2] = (double) v2[p->vertex[0]].z;
@@ -489,15 +444,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
 
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 corner1[0] = (double) v2[p->vertex[0]].x;
                                 corner1[2] = (double) v2[p->vertex[0]].z;
                                 corner1[1] = (double) v2[p->vertex[0]].y;
@@ -515,15 +467,12 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
 
-                            if (result == 1)
-                            {
+                            if (result == 1) {
                                 std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
                             }
                         }
@@ -534,20 +483,15 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                 // Blue Polygons End.
                 // Xtra Object Start
 
-                for (uint32_t XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++)
-                {
+                for (uint32_t XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
                     FLOATPT *vert_array = xobj[blk2].obj[XObjCounter].vert;
-                    if (xobj[blk2].obj[XObjCounter].crosstype != 6)
-                    {
-                        for (uint32_t XObjPoly = 0; XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++)
-                        {
+                    if (xobj[blk2].obj[XObjCounter].crosstype != 6) {
+                        for (uint32_t XObjPoly = 0; XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++) {
                             POLYGONDATA &quad  = xobj[blk2].obj[XObjCounter].polyData[XObjPoly];
                             FLOATPT &ref_point = xobj[blk2].obj[XObjCounter].ptRef;
 
-                            if (result != 1)
-                            {
-                                if (xobj[blk2].obj[XObjCounter].crosstype != 1)
-                                {
+                            if (result != 1) {
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
                                     corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
                                     corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
                                     corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
@@ -559,9 +503,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                     corner3[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
                                     corner3[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
                                     corner3[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
-                                }
-                                else
-                                {
+                                } else {
                                     corner1[0] = (double) vert_array[quad.vertex[0]].x;
                                     corner1[2] = (double) vert_array[quad.vertex[0]].z;
                                     corner1[1] = (double) vert_array[quad.vertex[0]].y;
@@ -579,17 +521,13 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
 
-                            if (result != 1)
-                            {
-                                if (xobj[blk2].obj[XObjCounter].crosstype != 1)
-                                {
+                            if (result != 1) {
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
                                     corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
                                     corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
                                     corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
@@ -601,9 +539,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                     corner3[0] = (double) vert_array[quad.vertex[1]].x + ref_point.x;
                                     corner3[2] = (double) vert_array[quad.vertex[1]].z + ref_point.z;
                                     corner3[1] = (double) vert_array[quad.vertex[1]].y + ref_point.y;
-                                }
-                                else
-                                {
+                                } else {
                                     corner1[0] = (double) vert_array[quad.vertex[0]].x;
                                     corner1[2] = (double) vert_array[quad.vertex[0]].z;
                                     corner1[1] = (double) vert_array[quad.vertex[0]].y;
@@ -621,17 +557,13 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
                             // usually Dualsided, so another look with reversed vertex order:
-                            if (result != 1)
-                            {
-                                if (xobj[blk2].obj[XObjCounter].crosstype != 1)
-                                {
+                            if (result != 1) {
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
                                     corner1[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
                                     corner1[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
                                     corner1[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
@@ -643,9 +575,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                     corner3[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
                                     corner3[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
                                     corner3[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
-                                }
-                                else
-                                {
+                                } else {
                                     corner1[0] = (double) vert_array[quad.vertex[2]].x;
                                     corner1[2] = (double) vert_array[quad.vertex[2]].z;
                                     corner1[1] = (double) vert_array[quad.vertex[2]].y;
@@ -663,17 +593,13 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
 
-                            if (result != 1)
-                            {
-                                if (xobj[blk2].obj[XObjCounter].crosstype != 1)
-                                {
+                            if (result != 1) {
+                                if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
                                     corner1[0] = (double) vert_array[quad.vertex[1]].x + ref_point.x;
                                     corner1[2] = (double) vert_array[quad.vertex[1]].z + ref_point.z;
                                     corner1[1] = (double) vert_array[quad.vertex[1]].y + ref_point.y;
@@ -685,9 +611,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                     corner3[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
                                     corner3[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
                                     corner3[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
-                                }
-                                else
-                                {
+                                } else {
                                     corner1[0] = (double) vert_array[quad.vertex[1]].x;
                                     corner1[2] = (double) vert_array[quad.vertex[1]].z;
                                     corner1[1] = (double) vert_array[quad.vertex[1]].y;
@@ -705,9 +629,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
@@ -726,8 +648,7 @@ void BlockShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBL
     }
 }
 
-void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBLOCK *poly, XOBJBLOCK *xobj)
-{
+void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONBLOCK *poly, XOBJBLOCK *xobj) {
     int i, j, j2, k, num, num2, blk2;
     int result;
     double uu, vv, tt;
@@ -767,26 +688,21 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
     x=rsin(phi)cos(theta), y=rsin(phi)sin(theta), z=rcos(phi), r=sqrt(x*x+y*y+z*z)...
     */
 
-    for (long chkchunkcounter = 0; chkchunkcounter < 4; chkchunkcounter++)
-    {
+    for (long chkchunkcounter = 0; chkchunkcounter < 4; chkchunkcounter++) {
         long chknumobj = poly[blk].obj[chkchunkcounter].nobj;
-        for (long chkobjcounter = 0; chkobjcounter < chknumobj; chkobjcounter++)
-        {
+        for (long chkobjcounter = 0; chkobjcounter < chknumobj; chkobjcounter++) {
             num2 = poly[blk].obj[chkchunkcounter].numpoly[chkobjcounter];
             p2   = poly[blk].obj[chkchunkcounter].poly[chkobjcounter];
 
-            for (j2 = 0; j2 < num2; j2++, p2++)
-            {
-                for (k = 0; k < 4; k++)
-                {
+            for (j2 = 0; j2 < num2; j2++, p2++) {
+                for (k = 0; k < 4; k++) {
                     // bool tested = new bool[t->nVertices];
                     /*for (uint32_t temp=0; temp>trk[blk].nVertices; temp++)
                         tested[temp]=false;*/
 
                     assert(p2->vertex[k] >= 0 && p2->vertex[k] < t->nVertices);
 
-                    if ((p2->vertex[k] < 0) || (p2->vertex[k] > t->nVertices))
-                    {
+                    if ((p2->vertex[k] < 0) || (p2->vertex[k] > t->nVertices)) {
                         std::cout << "FAILED! K: " << k << ", J2:" << j2 << ", BLK:" << blk << std::endl;
                         return;
                     }
@@ -817,8 +733,7 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                     result = 0;
                     i      = 0;
 
-                    while ((t->nbdData[i].blk != -1) && (i < 300))
-                    {
+                    while ((t->nbdData[i].blk != -1) && (i < 300)) {
                         assert(i >= 0 && i < 300);
 
                         blk2 = t->nbdData[i].blk;
@@ -831,16 +746,13 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                         // Track Polygons
                         //--------------
 
-                        for (j = 0; j < num; j++, p++)
-                        {
-                            if (blk == 0 && j2 == 0 && k == 1)
-                            {
+                        for (j = 0; j < num; j++, p++) {
+                            if (blk == 0 && j2 == 0 && k == 1) {
                                 std::cout << "keke" << std::endl;
                             }
 
                             // p->texture
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
                                 corner1[0] = (double) v2[p->vertex[0]].x;
                                 corner1[2] = (double) v2[p->vertex[0]].z;
@@ -860,15 +772,12 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 j = num;
                                 i = 300;
                             }
 
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 corner1[0] = (double) v2[p->vertex[0]].x;
                                 corner1[2] = (double) v2[p->vertex[0]].z;
                                 corner1[1] = (double) v2[p->vertex[0]].y;
@@ -886,15 +795,12 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 j = num;
                                 i = 300;
                             }
 
-                            if (result == 1)
-                            {
+                            if (result == 1) {
                                 std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
                             }
                         }
@@ -904,16 +810,13 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                         // if (result!=1) {
                         num = poly[blk2].sz[5];
                         p   = poly[blk2].poly[5];
-                        for (j = 0; j < num; j++, p++)
-                        {
-                            if (blk == 0 && j2 == 0 && k == 1)
-                            {
+                        for (j = 0; j < num; j++, p++) {
+                            if (blk == 0 && j2 == 0 && k == 1) {
                                 std::cout << "keke" << std::endl;
                             }
 
                             // p->texture
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
                                 corner1[0] = (double) v2[p->vertex[0]].x;
                                 corner1[2] = (double) v2[p->vertex[0]].z;
@@ -933,15 +836,12 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
 
-                            if (result != 1)
-                            {
+                            if (result != 1) {
                                 corner1[0] = (double) v2[p->vertex[0]].x;
                                 corner1[2] = (double) v2[p->vertex[0]].z;
                                 corner1[1] = (double) v2[p->vertex[0]].y;
@@ -959,15 +859,12 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                 Pos[1] = StartPos[1];
                                 Pos[2] = StartPos[2];
                                 result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                            }
-                            else
-                            {
+                            } else {
                                 // j=num;
                                 i = 300;
                             }
 
-                            if (result == 1)
-                            {
+                            if (result == 1) {
                                 std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
                             }
                         }
@@ -983,24 +880,19 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                         // for (i = 0; i < poly[nBlock].obj[k].numpoly[j]; i++)
                         //{
                         // poly[nBlock].obj[k].poly[j][i];
-                        for (long chunkcounter = 0; chunkcounter < 4; chunkcounter++)
-                        {
+                        for (long chunkcounter = 0; chunkcounter < 4; chunkcounter++) {
                             long numobj = poly[blk2].obj[chunkcounter].nobj;
-                            for (long objcounter = 0; objcounter < numobj; objcounter++)
-                            {
+                            for (long objcounter = 0; objcounter < numobj; objcounter++) {
                                 num = poly[blk2].obj[chunkcounter].numpoly[objcounter];
 
                                 p = poly[blk2].obj[chunkcounter].poly[objcounter];
-                                for (j = 0; j < num; j++, p++)
-                                {
-                                    if (blk == 0 && j2 == 0 && k == 1)
-                                    {
+                                for (j = 0; j < num; j++, p++) {
+                                    if (blk == 0 && j2 == 0 && k == 1) {
                                         std::cout << "keke" << std::endl;
                                     }
 
                                     // p->texture
-                                    if (result != 1)
-                                    {
+                                    if (result != 1) {
                                         assert(p->vertex[0] >= 0 && p->vertex[0] < trk[blk2].nVertices);
                                         corner1[0] = (double) v2[p->vertex[0]].x;
                                         corner1[2] = (double) v2[p->vertex[0]].z;
@@ -1020,15 +912,12 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                         Pos[1] = StartPos[1];
                                         Pos[2] = StartPos[2];
                                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         // j=num;
                                         i = 300;
                                     }
 
-                                    if (result != 1)
-                                    {
+                                    if (result != 1) {
                                         corner1[0] = (double) v2[p->vertex[0]].x;
                                         corner1[2] = (double) v2[p->vertex[0]].z;
                                         corner1[1] = (double) v2[p->vertex[0]].y;
@@ -1046,9 +935,7 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                         Pos[1] = StartPos[1];
                                         Pos[2] = StartPos[2];
                                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         // j=num;
                                         i = 300;
                                     }
@@ -1105,8 +992,7 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                         i=300;
                                     }*/
 
-                                    if (result == 1)
-                                    {
+                                    if (result == 1) {
                                         std::cout << "COLLISION! (BLK/POLY/Node) " << blk << "/" << j2 << "/" << k << " Collided with (BLK/Poly) " << blk2 << "/" << j << std::endl;
                                     }
                                 }
@@ -1117,20 +1003,15 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                         // Blue Polygons End.
                         // Xtra Object Start
                         // if (result=!1) {
-                        for (uint32_t XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++)
-                        {
+                        for (uint32_t XObjCounter = 0; XObjCounter < xobj[blk2].nobj; XObjCounter++) {
                             FLOATPT *vert_array = xobj[blk2].obj[XObjCounter].vert;
-                            if (xobj[blk2].obj[XObjCounter].crosstype != 6)
-                            {
-                                for (uint32_t XObjPoly = 0; XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++)
-                                {
+                            if (xobj[blk2].obj[XObjCounter].crosstype != 6) {
+                                for (uint32_t XObjPoly = 0; XObjPoly < xobj[blk2].obj[XObjCounter].nPolygons; XObjPoly++) {
                                     POLYGONDATA &quad  = xobj[blk2].obj[XObjCounter].polyData[XObjPoly];
                                     FLOATPT &ref_point = xobj[blk2].obj[XObjCounter].ptRef;
 
-                                    if (result != 1)
-                                    {
-                                        if (xobj[blk2].obj[XObjCounter].crosstype != 1)
-                                        {
+                                    if (result != 1) {
+                                        if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
                                             corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
                                             corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
                                             corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
@@ -1142,9 +1023,7 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                             corner3[0] = (double) vert_array[quad.vertex[2]].x + ref_point.x;
                                             corner3[2] = (double) vert_array[quad.vertex[2]].z + ref_point.z;
                                             corner3[1] = (double) vert_array[quad.vertex[2]].y + ref_point.y;
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             corner1[0] = (double) vert_array[quad.vertex[0]].x;
                                             corner1[2] = (double) vert_array[quad.vertex[0]].z;
                                             corner1[1] = (double) vert_array[quad.vertex[0]].y;
@@ -1162,17 +1041,13 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                         Pos[1] = StartPos[1];
                                         Pos[2] = StartPos[2];
                                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         // j=num;
                                         i = 300;
                                     }
 
-                                    if (result != 1)
-                                    {
-                                        if (xobj[blk2].obj[XObjCounter].crosstype != 1)
-                                        {
+                                    if (result != 1) {
+                                        if (xobj[blk2].obj[XObjCounter].crosstype != 1) {
                                             corner1[0] = (double) vert_array[quad.vertex[0]].x + ref_point.x;
                                             corner1[2] = (double) vert_array[quad.vertex[0]].z + ref_point.z;
                                             corner1[1] = (double) vert_array[quad.vertex[0]].y + ref_point.y;
@@ -1184,9 +1059,7 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                             corner3[0] = (double) vert_array[quad.vertex[1]].x + ref_point.x;
                                             corner3[2] = (double) vert_array[quad.vertex[1]].z + ref_point.z;
                                             corner3[1] = (double) vert_array[quad.vertex[1]].y + ref_point.y;
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             corner1[0] = (double) vert_array[quad.vertex[0]].x;
                                             corner1[2] = (double) vert_array[quad.vertex[0]].z;
                                             corner1[1] = (double) vert_array[quad.vertex[0]].y;
@@ -1204,9 +1077,7 @@ void ObjectShadingFixer(int blk, float theta, float rho, TRKBLOCK *trk, POLYGONB
                                         Pos[1] = StartPos[1];
                                         Pos[2] = StartPos[2];
                                         result = intersect_triangle(Pos, RayDir, corner1, corner2, corner3, &tt, &uu, &vv);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         // j=num;
                                         i = 300;
                                     }

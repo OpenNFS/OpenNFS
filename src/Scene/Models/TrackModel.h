@@ -2,8 +2,7 @@
 
 #include "Model.h"
 
-class TrackModel : public Model
-{
+class TrackModel : public Model {
 public:
     TrackModel(std::vector<glm::vec3> &vertices, std::vector<glm::vec3> &normals, std::vector<glm::vec2> &uvs, std::vector<uint32_t> &textureIndices,
                std::vector<uint32_t> &vertexIndices, std::vector<glm::vec4> &shadingData, std::vector<uint32_t> &debugData, glm::vec3 centerPosition);

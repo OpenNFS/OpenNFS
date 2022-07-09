@@ -18,8 +18,7 @@ CarModel::CarModel(std::string name,
                    float specular_damper,
                    float specular_reflectivity,
                    float env_reflectivity) :
-    super(name, verts, uvs, norms, indices, true, center_position)
-{
+    super(name, verts, uvs, norms, indices, true, center_position) {
     m_texture_indices = texture_indices;
     isMultiTextured   = true;
     // Fill the unused buffer with data
@@ -29,8 +28,7 @@ CarModel::CarModel(std::string name,
     specularReflectivity = specular_reflectivity;
     envReflectivity      = env_reflectivity;
     m_normals.clear();
-    for (unsigned int m_vertex_index : m_vertexIndices)
-    {
+    for (unsigned int m_vertex_index : m_vertexIndices) {
         m_normals.push_back(norms[m_vertex_index]);
     }
 
@@ -53,13 +51,11 @@ CarModel::CarModel(std::string name,
                    float specular_damper,
                    float specular_reflectivity,
                    float env_reflectivity) :
-    super(name, verts, uvs, norms, indices, true, center_position)
-{
+    super(name, verts, uvs, norms, indices, true, center_position) {
     m_texture_indices = texture_indices;
     isMultiTextured   = true;
     // Fill the unused buffer with data
-    for (int i = 0; i < m_texture_indices.size(); ++i)
-    {
+    for (int i = 0; i < m_texture_indices.size(); ++i) {
         m_polygon_flags.emplace_back(0);
     }
     // Can't call basic constructor as genBuffers() call would run before m_textureIndices was available
@@ -87,13 +83,11 @@ CarModel::CarModel(std::string name,
                    float specular_damper,
                    float specular_reflectivity,
                    float env_reflectivity) :
-    super(name, verts, uvs, norms, indices, true, center_position)
-{
+    super(name, verts, uvs, norms, indices, true, center_position) {
     m_polygon_flags = poly_flags;
     hasPolyFlags    = true;
     // Fill the unused buffer with data
-    for (int i = 0; i < m_vertexIndices.size(); ++i)
-    {
+    for (int i = 0; i < m_vertexIndices.size(); ++i) {
         m_texture_indices.emplace_back(0);
     }
     // TODO: Refactor to allow an inline constructor call
@@ -102,8 +96,7 @@ CarModel::CarModel(std::string name,
     specularReflectivity = specular_reflectivity;
     envReflectivity      = env_reflectivity;
     m_normals.clear();
-    for (unsigned int m_vertex_index : m_vertexIndices)
-    {
+    for (unsigned int m_vertex_index : m_vertexIndices) {
         m_normals.push_back(norms[m_vertex_index]);
     }
 
@@ -124,23 +117,19 @@ CarModel::CarModel(std::string name,
                    float specular_damper,
                    float specular_reflectivity,
                    float env_reflectivity) :
-    super(name, verts, uvs, norms, indices, false, center_position)
-{
+    super(name, verts, uvs, norms, indices, false, center_position) {
     // Fill the unused buffer with data
-    for (int i = 0; i < m_normals.size(); ++i)
-    {
+    for (int i = 0; i < m_normals.size(); ++i) {
         m_texture_indices.emplace_back(0);
     }
-    for (int i = 0; i < m_texture_indices.size(); ++i)
-    {
+    for (int i = 0; i < m_texture_indices.size(); ++i) {
         m_polygon_flags.emplace_back(0);
     }
     specularDamper       = specular_damper;
     specularReflectivity = specular_reflectivity;
     envReflectivity      = env_reflectivity;
     m_normals.clear();
-    for (unsigned int m_vertex_index : m_vertexIndices)
-    {
+    for (unsigned int m_vertex_index : m_vertexIndices) {
         m_normals.push_back(norms[m_vertex_index]);
     }
 
@@ -148,21 +137,17 @@ CarModel::CarModel(std::string name,
     ASSERT(genBuffers(), "Unable to generate GL Buffers for Car Model ");
 }
 
-CarModel::CarModel() : super("CarModel", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0))
-{
+CarModel::CarModel() : super("CarModel", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)) {
 }
 
-void CarModel::update()
-{
+void CarModel::update() {
     RotationMatrix    = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);
     ModelMatrix       = TranslationMatrix * RotationMatrix;
 }
 
-void CarModel::destroy()
-{
-    if (!Config::get().vulkanRender)
-    {
+void CarModel::destroy() {
+    if (!Config::get().vulkanRender) {
         glDeleteBuffers(1, &vertexBuffer);
         glDeleteBuffers(1, &uvBuffer);
         glDeleteBuffers(1, &normalBuffer);
@@ -171,18 +156,15 @@ void CarModel::destroy()
     }
 }
 
-void CarModel::render()
-{
-    if (enabled)
-    {
+void CarModel::render() {
+    if (enabled) {
         glBindVertexArray(VertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
         glBindVertexArray(0);
     }
 }
 
-bool CarModel::genBuffers()
-{
+bool CarModel::genBuffers() {
     if (Config::get().vulkanRender)
         return true;
 

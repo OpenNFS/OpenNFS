@@ -2,8 +2,7 @@
 
 #include <glm/glm.hpp>
 
-class AABB
-{
+class AABB {
 public:
     explicit AABB() = default;
     AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition);

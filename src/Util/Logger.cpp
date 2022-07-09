@@ -2,8 +2,7 @@
 
 using namespace g3;
 
-Logger::Logger()
-{
+Logger::Logger() {
     // Set up logging framework
     static std::unique_ptr<LogWorker> gMainLogger = LogWorker::createLogWorker();
     auto defaultHandler                           = gMainLogger->addSink(std::make_unique<FileSink>("OpenNFS", LOG_FILE_PATH, ""), &FileSink::fileWrite);

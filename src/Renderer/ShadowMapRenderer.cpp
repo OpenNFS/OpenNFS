@@ -1,7 +1,6 @@
 #include "ShadowMapRenderer.h"
 
-ShadowMapRenderer::ShadowMapRenderer()
-{
+ShadowMapRenderer::ShadowMapRenderer() {
     // Configure depth map FBO
     glGenFramebuffers(1, &m_fboDepthMap);
     // Create depth texture
@@ -28,8 +27,7 @@ void ShadowMapRenderer::Render(float nearPlane,
                                const std::shared_ptr<GlobalLight> &light,
                                GLuint trackTextureArrayID,
                                const std::vector<std::shared_ptr<Entity>> &visibleEntities,
-                               const std::vector<std::shared_ptr<CarAgent>> &racers)
-{
+                               const std::vector<std::shared_ptr<CarAgent>> &racers) {
     /* ------- SHADOW MAPPING ------- */
     m_depthShader.use();
     m_depthShader.loadLightSpaceMatrix(light->lightSpaceMatrix);
@@ -40,18 +38,15 @@ void ShadowMapRenderer::Render(float nearPlane,
     glClear(GL_DEPTH_BUFFER_BIT);
 
     /* Render the track using this simple shader to get depth texture to test against during draw */
-    for (auto &entity : visibleEntities)
-    {
+    for (auto &entity : visibleEntities) {
         m_depthShader.loadTransformMatrix(boost::get<TrackModel>(entity->raw).ModelMatrix);
         boost::get<TrackModel>(entity->raw).render();
     }
 
     /* And the Cars */
-    for (auto &racer : racers)
-    {
+    for (auto &racer : racers) {
         m_depthShader.bindTextureArray(racer->vehicle->renderInfo.textureArrayID);
-        for (auto &misc_model : racer->vehicle->miscModels)
-        {
+        for (auto &misc_model : racer->vehicle->miscModels) {
             m_depthShader.loadTransformMatrix(misc_model.ModelMatrix);
             misc_model.render();
         }
@@ -72,8 +67,7 @@ void ShadowMapRenderer::Render(float nearPlane,
     m_depthShader.HotReload();
 }
 
-ShadowMapRenderer::~ShadowMapRenderer()
-{
+ShadowMapRenderer::~ShadowMapRenderer() {
     glDeleteFramebuffers(1, &m_fboDepthMap);
     m_depthShader.cleanup();
 };

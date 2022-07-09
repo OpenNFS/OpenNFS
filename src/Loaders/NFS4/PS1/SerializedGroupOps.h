@@ -98,6 +98,4 @@ struct SaveSurface // hashcode: 0x904D8D27 (dec: -1873965785)
     struct tSaveSurface *fStack; // size=8, offset=4 //  hashcode: 0x00000000 (dec: 0), parent name: 'struct SaveSurface', parent hashcode: 0x00000000 (dec: 0)
 };
 
-class SerializedGroupOps
-{
-};
+class SerializedGroupOps {};

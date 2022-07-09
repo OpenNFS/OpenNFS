@@ -2,32 +2,26 @@
 
 using namespace LibOpenNFS::NFS3;
 
-ExtraObjectBlock::ExtraObjectBlock(std::ifstream &frd)
-{
+ExtraObjectBlock::ExtraObjectBlock(std::ifstream &frd) {
     ASSERT(this->_SerializeIn(frd), "Failed to serialize ExtraObjectBlock from file stream");
 }
 
-bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream)
-{
+bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream) {
     SAFE_READ(ifstream, &(nobj), sizeof(uint32_t));
     obj.reserve(nobj);
 
-    for (uint32_t xobjIdx = 0; xobjIdx < nobj; ++xobjIdx)
-    {
+    for (uint32_t xobjIdx = 0; xobjIdx < nobj; ++xobjIdx) {
         ExtraObjectData x;
 
         SAFE_READ(ifstream, &x.crosstype, sizeof(uint32_t));
         SAFE_READ(ifstream, &x.crossno, sizeof(uint32_t));
         SAFE_READ(ifstream, &x.unknown, sizeof(uint32_t));
 
-        if (x.crosstype == 4)
-        {
+        if (x.crosstype == 4) {
             // Basic objects
             SAFE_READ(ifstream, &x.ptRef, sizeof(glm::vec3));
             SAFE_READ(ifstream, &x.AnimMemory, sizeof(uint32_t));
-        }
-        else if (x.crosstype == 3)
-        {
+        } else if (x.crosstype == 3) {
             // Animated objects
             SAFE_READ(ifstream, &x.unknown3, sizeof(uint16_t) * 9);
             SAFE_READ(ifstream, &x.type3, sizeof(uint8_t));
@@ -36,8 +30,7 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream)
             SAFE_READ(ifstream, &x.AnimDelay, sizeof(uint16_t));
 
             // Sanity Check
-            if (x.type3 != 3)
-            {
+            if (x.type3 != 3) {
                 return false;
             }
 
@@ -45,8 +38,7 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream)
             SAFE_READ(ifstream, x.animData.data(), sizeof(AnimData) * x.nAnimLength);
             // make a ref point from first anim position
             x.ptRef = Utils::FixedToFloat(x.animData[0].pt);
-        }
-        else
+        } else
             return false; // unknown object type
 
         // Get number of vertices
@@ -73,24 +65,19 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream)
     return true;
 }
 
-void ExtraObjectBlock::_SerializeOut(std::ofstream &ofstream)
-{
+void ExtraObjectBlock::_SerializeOut(std::ofstream &ofstream) {
     ofstream.write((char *) &(nobj), sizeof(uint32_t));
 
-    for (uint32_t xobjIdx = 0; xobjIdx < nobj; ++xobjIdx)
-    {
+    for (uint32_t xobjIdx = 0; xobjIdx < nobj; ++xobjIdx) {
         ofstream.write((char *) &obj[xobjIdx].crosstype, sizeof(uint32_t));
         ofstream.write((char *) &obj[xobjIdx].crossno, sizeof(uint32_t));
         ofstream.write((char *) &obj[xobjIdx].unknown, sizeof(uint32_t));
 
-        if (obj[xobjIdx].crosstype == 4)
-        {
+        if (obj[xobjIdx].crosstype == 4) {
             // Basic objects
             ofstream.write((char *) &obj[xobjIdx].ptRef, sizeof(glm::vec3));
             ofstream.write((char *) &obj[xobjIdx].AnimMemory, sizeof(uint32_t));
-        }
-        else if (obj[xobjIdx].crosstype == 3)
-        {
+        } else if (obj[xobjIdx].crosstype == 3) {
             // Animated objects
             ofstream.write((char *) &obj[xobjIdx].unknown3, sizeof(uint16_t) * 9);
             ofstream.write((char *) &obj[xobjIdx].type3, sizeof(uint8_t));

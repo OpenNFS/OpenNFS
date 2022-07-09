@@ -8,7 +8,6 @@
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
 
-#include "../RaceNet/RaceNet.h"
 #include "../Scene/Lights/Spotlight.h"
 #include "../Scene/Models/CarModel.h"
 #include "../Util/ImageLoader.h"
@@ -16,8 +15,7 @@
 #include "../Enums.h"
 
 // Raycasting Data
-enum RayDirection : uint8_t
-{
+enum RayDirection : uint8_t {
     LEFT_RAY          = 0,
     FORWARD_LEFT_RAY  = 8,
     FORWARD_RAY       = 9,
@@ -30,16 +28,9 @@ constexpr float kFarDistance       = 5.f;
 constexpr float kAngleBetweenRays  = 10.f;
 constexpr float kCastDistance      = 1.f;
 
-enum Wheels : uint8_t
-{
-    FRONT_LEFT = 0,
-    FRONT_RIGHT,
-    REAR_LEFT,
-    REAR_RIGHT
-};
+enum Wheels : uint8_t { FRONT_LEFT = 0, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT };
 
-struct VehicleProperties
-{
+struct VehicleProperties {
     float mass;
 
     // Engine
@@ -68,8 +59,7 @@ struct VehicleProperties
     glm::vec3 colour;
 };
 
-struct VehicleState
-{
+struct VehicleState {
     // Engine
     float gEngineForce;   // Force to apply to engine
     float gBreakingForce; // Breaking force
@@ -81,23 +71,20 @@ struct VehicleState
     bool isSteering;
 };
 
-struct RangefinderInfo
-{
+struct RangefinderInfo {
     float rangefinders[kNumRangefinders];
     glm::vec3 castPositions[kNumRangefinders];
     glm::vec3 upCastPosition, downCastPosition;
     float upDistance = 0.f, downDistance = 0.f;
 };
 
-struct RenderInfo
-{
+struct RenderInfo {
     bool isMultitexturedModel = false;
     GLuint textureID{};      // TGA texture ID
     GLuint textureArrayID{}; // Multitextured texture ID
 };
 
-class Car
-{
+class Car {
 public:
     explicit Car(const CarData& carData, NFSVer nfsVersion, const std::string& carID);
     Car(const CarData& carData, NFSVer nfsVersion, const std::string& carID, GLuint textureArrayID); // Multitextured car
@@ -112,24 +99,19 @@ public:
     float GetCarBodyOrientation();
 
     // Physics Engine registration
-    void SetVehicle(btRaycastVehicle* vehicle)
-    {
+    void SetVehicle(btRaycastVehicle* vehicle) {
         m_vehicle = vehicle;
     }
-    void SetRaycaster(btVehicleRaycaster* vehicleRayCaster)
-    {
+    void SetRaycaster(btVehicleRaycaster* vehicleRayCaster) {
         m_vehicleRayCaster = vehicleRayCaster;
     }
-    btRigidBody* GetVehicleRigidBody()
-    {
+    btRigidBody* GetVehicleRigidBody() {
         return m_carChassis;
     }
-    btVehicleRaycaster* GetRaycaster()
-    {
+    btVehicleRaycaster* GetRaycaster() {
         return m_vehicleRayCaster;
     }
-    btRaycastVehicle* GetVehicle()
-    {
+    btRaycastVehicle* GetVehicle() {
         return m_vehicle;
     }
 

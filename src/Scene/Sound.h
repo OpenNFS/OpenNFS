@@ -2,8 +2,7 @@
 
 #include <glm/vec3.hpp>
 
-class Sound
-{
+class Sound {
 public:
     Sound(glm::vec3 position, uint32_t type);
     Sound() = default;

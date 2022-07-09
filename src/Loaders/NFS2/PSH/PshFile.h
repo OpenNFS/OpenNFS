@@ -2,26 +2,21 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
-        struct HEADER
-        {
+namespace LibOpenNFS {
+    namespace NFS2 {
+        struct HEADER {
             char header[4];        //  "SHPP"
             uint32_t length;       // Inclusive Length of the PSH file
             uint32_t nDirectories; // Number of directory entries
             char chk[4];           // "GIMX"
         };
 
-        struct DIR_ENTRY
-        {
+        struct DIR_ENTRY {
             char imageName[4];
             uint32_t imageOffset; // Offset to start of the image, len implied by difference between offsets to next
         };
 
-        struct IMAGE_HEADER
-        {
+        struct IMAGE_HEADER {
             uint8_t imageType; // Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0 The bottom 2 bits of the image type byte specify
             // the bit depth of the image: 0 - 4-bit indexed colour 2 - 16-bit direct colour 3 - 24-bit direct colour
             uint8_t unknown[3];
@@ -30,8 +25,7 @@ namespace LibOpenNFS
             uint16_t unknown2[4];
         };
 
-        struct PALETTE_HEADER
-        {
+        struct PALETTE_HEADER {
             uint32_t unknown;
             uint16_t paletteWidth;    // Always 16
             uint16_t paletteHeight;   // Always 1
@@ -39,8 +33,7 @@ namespace LibOpenNFS
             uint16_t unknown2[3];     // [0] always 0 [1] always 0 [2] often 240, sometimes 0
         };
 
-        class PshFile : IRawData
-        {
+        class PshFile : IRawData {
         public:
             PshFile() = default;
 

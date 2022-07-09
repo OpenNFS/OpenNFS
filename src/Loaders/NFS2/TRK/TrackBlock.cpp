@@ -3,15 +3,13 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-TrackBlock<Platform>::TrackBlock(std::ifstream &trk, NFSVer version)
-{
+TrackBlock<Platform>::TrackBlock(std::ifstream &trk, NFSVer version) {
     this->version = version;
     ASSERT(this->_SerializeIn(trk), "Failed to serialize TrackBlock from file stream");
 }
 
 template <typename Platform>
-bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
-{
+bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
     std::streampos trackBlockOffset = ifstream.tellg();
     // Read Header
     SAFE_READ(ifstream, &blockSize, sizeof(uint32_t));
@@ -31,8 +29,7 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     SAFE_READ(ifstream, unknownPad, 3 * sizeof(uint16_t));
 
     // Sanity Checks
-    if (blockSize != blockSizeDup)
-    {
+    if (blockSize != blockSizeDup) {
         LOG(DEBUG) << "   --- Bad Block";
         return false;
     }
@@ -50,32 +47,28 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream)
     extraBlockOffsets.resize(nExtraBlocks);
     SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
 
-    for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx)
-    {
+    for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx) {
         ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);
         extraObjectBlocks.push_back(ExtraObjectBlock<Platform>(ifstream, this->version));
         // Map the the block type to the vector index, original ordering is then maintained for output serialisation
-        extraObjectBlockMap[(ExtraBlockID)extraObjectBlocks.back().id] = extraBlockIdx;
+        extraObjectBlockMap[(ExtraBlockID) extraObjectBlocks.back().id] = extraBlockIdx;
     }
 
     return true;
 }
 
 template <typename Platform>
-void TrackBlock<Platform>::_SerializeOut(std::ofstream &ofstream)
-{
+void TrackBlock<Platform>::_SerializeOut(std::ofstream &ofstream) {
     ASSERT(false, "TrackBlock output serialization is not currently implemented");
 }
 
 template <typename Platform>
-ExtraObjectBlock<Platform> TrackBlock<Platform>::GetExtraObjectBlock(ExtraBlockID eBlockType)
-{
+ExtraObjectBlock<Platform> TrackBlock<Platform>::GetExtraObjectBlock(ExtraBlockID eBlockType) {
     return extraObjectBlocks[extraObjectBlockMap[eBlockType]];
 }
 
 template <typename Platform>
-bool TrackBlock<Platform>::IsBlockPresent(ExtraBlockID eBlockType)
-{
+bool TrackBlock<Platform>::IsBlockPresent(ExtraBlockID eBlockType) {
     return extraObjectBlockMap.count(eBlockType);
 }
 

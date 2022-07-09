@@ -13,13 +13,11 @@
 #include "../../../Scene/TrackBlock.h"
 #include "../../../nfs_data.h"
 
-struct FLOATPT
-{
+struct FLOATPT {
     float x, z, y;
 };
 
-struct INTPT
-{
+struct INTPT {
     int32_t x, z, y;
 };
 
@@ -67,20 +65,17 @@ struct REFXOBJ // description of a block's XOBJects.
     char unknown3;
 }; // !!! does not list the animated XOBJs
 
-struct SOUNDSRC
-{
+struct SOUNDSRC {
     INTPT refpoint;
     uint32_t type;
 };
 
-struct LIGHTSRC
-{
+struct LIGHTSRC {
     INTPT refpoint;
     uint32_t type;
 };
 
-struct TRKBLOCK
-{
+struct TRKBLOCK {
     FLOATPT ptCentre;
     FLOATPT ptBounding[4];
     uint32_t nVertices;                           // total stored
@@ -101,8 +96,7 @@ struct TRKBLOCK
     uint32_t hs_neighbors[8];
 };
 
-struct POLYGONDATA
-{
+struct POLYGONDATA {
     uint16_t vertex[4];
     uint16_t texture;
     uint16_t hs_texflags; // only used in road lane polygonblock ?
@@ -123,8 +117,7 @@ struct OBJPOLYBLOCK // a POLYOBJ chunk
     LPPOLYGONDATA *poly; // the polygons themselves
 };
 
-struct POLYGONBLOCK
-{
+struct POLYGONBLOCK {
     uint32_t sz[7], szdup[7];
     // 7 blocks == low res / 0 / med. res / 0 / high res / 0 / ??central
     LPPOLYGONDATA poly[7];
@@ -133,14 +126,12 @@ struct POLYGONBLOCK
     // the 1st chunk is described anyway in the TRKBLOCK
 };
 
-struct ANIMDATA
-{
+struct ANIMDATA {
     INTPT pt;
     int16_t od1, od2, od3, od4;
 };
 
-struct XOBJDATA
-{
+struct XOBJDATA {
     uint32_t crosstype; // type 4, or more rarely 3 (animated)
     uint32_t crossno;   // obj number from REFXOBJ table in TRKBLOCK
     uint32_t unknown;
@@ -161,8 +152,7 @@ struct XOBJDATA
     POLYGONDATA *polyData; // polygon data
 };
 
-struct XOBJBLOCK
-{
+struct XOBJBLOCK {
     uint32_t nobj;
     XOBJDATA *obj;
 };
@@ -187,43 +177,37 @@ struct TEXTUREBLOCK // WARNING: packed but not byte-aligned !!!
 #define XBID_OBJECT2 18
 #define XBID_VROAD 15
 
-struct XBHEAD
-{
+struct XBHEAD {
     uint32_t size;
     uint16_t xbid;
     uint16_t nrec;
 };
 
-struct COLTEXTUREINFO
-{
+struct COLTEXTUREINFO {
     uint16_t texture;  // position in .QFS file
     uint16_t unknown1; // zero ?
     uint16_t unknown2; // texture offset ?
     uint16_t unknown3;
 };
 
-struct COLVERTEX
-{
+struct COLVERTEX {
     FLOATPT pt;       // relative coord
     uint32_t unknown; // like the unknVertices structures in FRD
 };
 
-struct COLPOLYGON
-{
+struct COLPOLYGON {
     uint16_t texture;
     char v[4]; // vertices
 };
 
-struct COLSTRUCT3D
-{
+struct COLSTRUCT3D {
     uint32_t size;
     uint16_t nVert, nPoly;
     COLVERTEX *vertex;
     COLPOLYGON *polygon;
 };
 
-struct COLOBJECT
-{
+struct COLOBJECT {
     uint16_t size;
     char type;     // 1 = basic object, 3 = animated ...
     char struct3D; // reference in previous block
@@ -235,21 +219,18 @@ struct COLOBJECT
     ANIMDATA *animData; // same structure as in xobjs
 };
 
-struct COLVECTOR
-{
+struct COLVECTOR {
     signed char x, z, y, unknown;
 };
 
-struct COLVROAD
-{
+struct COLVROAD {
     INTPT refPt;
     uint32_t unknown; // Unknown data
     COLVECTOR normal, forward, right;
     uint32_t leftWall, rightWall;
 };
 
-struct HS_VROADBLOCK
-{ // HS's equivalent to a COLVROAD
+struct HS_VROADBLOCK { // HS's equivalent to a COLVROAD
     FLOATPT refPt;
     FLOATPT normal, forward, right;
     float leftWall, rightWall;
@@ -257,8 +238,7 @@ struct HS_VROADBLOCK
     uint32_t unknown2[5];
 };
 
-struct COLFILE
-{
+struct COLFILE {
     char collID[4];          // Header of file 'COLL'
     uint32_t version;        // Version number 11
     uint32_t fileLength;     // File length in bytes
@@ -277,15 +257,12 @@ struct COLFILE
     uint32_t *hs_extra;      // for the extra HS data in COLVROAD
 };
 
-struct FCE
-{
-    struct TVECTOR
-    {
+struct FCE {
+    struct TVECTOR {
         float x, y, z;
     };
 
-    struct TRIANGLE
-    {
+    struct TRIANGLE {
         uint32_t texPage;
         uint32_t vertex[3];  // Local indexes, add part first Vert index from "partFirstVertIndices"
         uint16_t padding[6]; // 00FF
@@ -293,10 +270,8 @@ struct FCE
         float uvTable[6]; // U1 U2 U3, V1 V2 V3
     };
 
-    struct NFS4
-    {
-        struct COLOUR
-        {
+    struct NFS4 {
+        struct COLOUR {
             uint8_t H, S, B, T;
         };
 
@@ -309,14 +284,12 @@ struct FCE
         //   Next only used with flashing lights:
         //    T : Number between 1 and 9 with 9 being longest time and 0 being constant (normal max 5)
         //    D : Number between 0 and 9 with 9 being longest delay and 0 no delay (normal max 2)
-        struct DUMMY
-        {
+        struct DUMMY {
             char data[64];
             // char kind, colour, breakable, flashing, intensity, time, delay;
         };
 
-        struct HEADER
-        {
+        struct HEADER {
             uint32_t header; // Value always seems to be 14 10 10 00
             uint32_t unknown;
             uint32_t nTriangles;
@@ -366,17 +339,14 @@ struct FCE
     };
 };
 
-struct FEDATA
-{
-    struct NFS4
-    {
+struct FEDATA {
+    struct NFS4 {
         static const int COLOUR_TABLE_OFFSET      = 0x043C;
         static const int MENU_NAME_FILEPOS_OFFSET = 0x03C8;
     };
 };
 
-class NFS4
-{
+class NFS4 {
 public:
     static std::shared_ptr<Car> LoadCar(const std::string &car_base_path, NFSVer version); // Car
     static std::shared_ptr<TRACK> LoadTrack(const std::string &track_base_path);           // TrackModel

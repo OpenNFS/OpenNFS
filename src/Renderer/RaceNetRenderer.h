@@ -14,10 +14,8 @@
 #include "../Util/Logger.h"
 #include "../Config.h"
 #include "../Shaders/RaceNetShader.h"
-#include "../RaceNet/Agents/TrainingAgent.h"
 
-class RaceNetRenderer
-{
+class RaceNetRenderer {
 public:
     explicit RaceNetRenderer(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Logger> &onfs_logger);
     ~RaceNetRenderer();

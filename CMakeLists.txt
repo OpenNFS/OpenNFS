@@ -172,14 +172,10 @@ set(SOURCE_FILES
         src/Shaders/DepthShader.h
         src/Util/Logger.cpp
         src/Util/Logger.h
-        src/RaceNet/RaceNet.cpp
-        src/RaceNet/RaceNet.h
-        src/RaceNet/TrainingGround.cpp
-        src/RaceNet/TrainingGround.h
-        src/Renderer/RaceNetRenderer.cpp
+       #[[ src/Renderer/RaceNetRenderer.cpp
         src/Renderer/RaceNetRenderer.h
         src/Shaders/RaceNetShader.cpp
-        src/Shaders/RaceNetShader.h
+        src/Shaders/RaceNetShader.h]]
         src/Scene/Models/Quad.cpp
         src/Scene/Models/Quad.h
         src/Renderer/ShadowMapRenderer.cpp
@@ -187,8 +183,6 @@ set(SOURCE_FILES
         src/Shaders/ShaderSet.cpp
         src/Shaders/ShaderSet.h
         shaders/ShaderPreamble.h
-        src/RaceNet/RaceNEAT.cpp
-        src/RaceNet/RaceNEAT.h
         src/RaceNet/Agents/CarAgent.cpp
         src/RaceNet/Agents/CarAgent.h
         src/Race/RaceSession.cpp
@@ -227,8 +221,6 @@ set(SOURCE_FILES
         src/Renderer/DebugRenderer.h
         src/Race/RacerManager.cpp
         src/Race/RacerManager.h
-        src/RaceNet/Agents/TrainingAgent.cpp
-        src/RaceNet/Agents/TrainingAgent.h
         src/RaceNet/Agents/RacerAgent.cpp
         src/RaceNet/Agents/RacerAgent.h
         src/RaceNet/Agents/PlayerAgent.cpp

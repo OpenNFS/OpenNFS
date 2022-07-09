@@ -8,8 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-class RacerManager
-{
+class RacerManager {
 public:
     explicit RacerManager() = default;
     RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<Track> &track, PhysicsEngine &physicsEngine);

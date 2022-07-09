@@ -1,8 +1,7 @@
 #include "NFS5Loader.h"
 
 // CAR
-std::shared_ptr<Car> NFS5::LoadCar(const std::string& carBasePath)
-{
+std::shared_ptr<Car> NFS5::LoadCar(const std::string& carBasePath) {
     boost::filesystem::path p(carBasePath);
     std::string carName = p.filename().string();
 
@@ -12,8 +11,7 @@ std::shared_ptr<Car> NFS5::LoadCar(const std::string& carBasePath)
 
     // Create output directory for ONFS Car assets if doesn't exist
     boost::filesystem::path outputPath(decompressedCrpPath.str());
-    if (!boost::filesystem::exists(outputPath.parent_path()))
-    {
+    if (!boost::filesystem::exists(outputPath.parent_path())) {
         boost::filesystem::create_directories(outputPath.parent_path());
     }
 
@@ -49,22 +47,20 @@ std::shared_ptr<Car> NFS5::LoadCar(const std::string& carBasePath)
         }
     }
 
-    GLuint texture_array_id = MakeTextureArray(car_textures, false);*/
+    GLuint textureArray_id = MakeTextureArray(car_textures, false);*/
 
     return std::make_shared<Car>(LoadCRP(decompressedCrpPath.str()), NFS_5, carName);
 }
 
 // Hook into CrpLib using ZModeler Import.cpp mechanism
-CarData NFS5::LoadCRP(const std::string& crpPath)
-{
+CarData NFS5::LoadCRP(const std::string& crpPath) {
     LOG(INFO) << "Parsing CRP File located at " << crpPath << " with Arushan's CrpLib";
 
     CarData carData;
     CCrpFile* crp = new CCrpFile();
     ASSERT(crp->Open(crpPath), "Could not open CRP file located at " << crpPath);
 
-    for (int i = 0; i < crp->GetArticleCount(); i++)
-    {
+    for (int i = 0; i < crp->GetArticleCount(); i++) {
         CEntry* arti = crp->GetArticle(i);
 
         CEntry* en         = arti->GetSubEntry(ID_NAME);
@@ -75,16 +71,13 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
 
         CEntry* enEf = arti->GetSubEntry(ID_EFFECT);
 
-        if (enEf == NULL)
-        {
-            for (int v = 0; v < base->GetLevelCount(); v++)
-            {
+        if (enEf == NULL) {
+            for (int v = 0; v < base->GetLevelCount(); v++) {
                 int lev = base->GetLevel(v)->Level;
 
                 char partName[100];
                 sprintf(partName, "(%d,%d)%s", base->GetBaseInfo()->GeomIndex, base->GetBaseInfo()->TypeIndex, partNameOrig);
-                switch (lev)
-                {
+                switch (lev) {
                 case 0:
                     strcat(partName, "_def");
                     break;
@@ -123,8 +116,7 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
                 en             = arti->GetDataEntry(ID_NORMAL, lev);
                 CVector4* deNm = NULL;
                 tVector4* nm   = NULL;
-                if (en != NULL)
-                {
+                if (en != NULL) {
                     deNm = (CVector4*) en->GetData();
                     nm   = deNm->GetItem(0);
                 }
@@ -132,8 +124,7 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
                 CVector2* deUv = NULL;
                 tVector2* uv   = NULL;
                 en             = arti->GetDataEntry(ID_UV, lev);
-                if (en != NULL)
-                {
+                if (en != NULL) {
                     deUv = (CVector2*) en->GetData();
                     uv   = deUv->GetItem(0);
                 }
@@ -143,11 +134,9 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
                 int inCount = 0;
 
                 CEntry* enPr = NULL;
-                do
-                {
+                do {
                     enPr = arti->GetPartEntry(lev, maxPr + 1);
-                    if (enPr != NULL)
-                    {
+                    if (enPr != NULL) {
                         maxPr++;
                         inCount += enPr->GetCount();
                     }
@@ -167,18 +156,15 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
                 float specularReflectivity = 0.02f;
                 float envReflectivity      = 0.4f;
 
-                for (int j = 0; j < vtCount; j++)
-                {
+                for (int j = 0; j < vtCount; j++) {
                     vertices.emplace_back(glm::vec3(vt[j].x / 5, vt[j].y / 5, vt[j].z / 5));
-                    if (nm != NULL)
-                    {
+                    if (nm != NULL) {
                         normals.emplace_back(glm::vec3(nm[j].x, nm[j].y, nm[j].z));
                     }
                 }
 
                 CEntry* tr = (CEntry*) arti->GetDataEntry(ID_TRANSFORM, lev);
-                if (tr != NULL)
-                {
+                if (tr != NULL) {
                     CMatrix* deTr = (CMatrix*) tr->GetData();
                     glm::mat4 mat = glm::make_mat4(deTr->GetValues());
                     center        = mat[3];
@@ -187,21 +173,18 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
 
                 int k = 0, l = 0;
                 bool doNotAdd = false;
-                for (int j = 0; j <= maxPr; j++)
-                {
+                for (int j = 0; j <= maxPr; j++) {
                     enPr      = arti->GetPartEntry(lev, j);
                     CPart* pr = (CPart*) enPr->GetData();
 
-                    if (pr->FindIndex(ID_INDEX_VERTEX) == -1)
-                    {
+                    if (pr->FindIndex(ID_INDEX_VERTEX) == -1) {
                         doNotAdd = true;
                         break;
                     }
 
                     CEntry* enMt  = crp->GetMisc(ID_MATERIAL, pr->GetMaterial());
                     CMaterial* mt = (CMaterial*) enMt->GetData();
-                    if (mt->GetTpgIndex() < 4)
-                    {
+                    if (mt->GetTpgIndex() < 4) {
                         LOG(INFO) << partName << " TP: " << mt->GetTpgIndex() << " TN: " << enMt->GetIndex();
                     }
 
@@ -210,24 +193,21 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
 
                     int uvOff = 0;
                     int uvAdj = 0;
-                    if (uv != NULL)
-                    {
+                    if (uv != NULL) {
                         uvOff = pr->GetIndex(pr->FindIndex(ID_INDEX_UV))->Offset;
                         uvAdj = pr->GetInfo(pr->FindInfo(ID_INFO_UV))->GetOffsetIndex();
                     }
 
                     unsigned char* indicesRaw = pr->GetIndices(0);
 
-                    for (k = 0; k < (enPr->GetCount() / 3); k++, l++)
-                    {
+                    for (k = 0; k < (enPr->GetCount() / 3); k++, l++) {
                         polygonFlags.emplace_back(0);
                         polygonFlags.emplace_back(0);
                         polygonFlags.emplace_back(0);
                         indices.emplace_back(indicesRaw[vtOff + k * 3 + 0] + vtAdj);
                         indices.emplace_back(indicesRaw[vtOff + k * 3 + 1] + vtAdj);
                         indices.emplace_back(indicesRaw[vtOff + k * 3 + 2] + vtAdj);
-                        if (uv != NULL)
-                        {
+                        if (uv != NULL) {
                             uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff + k * 3 + 0] + uvAdj].u, uv[indicesRaw[uvOff + k * 3 + 0] + uvAdj].v));
                             uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff + k * 3 + 1] + uvAdj].u, uv[indicesRaw[uvOff + k * 3 + 1] + uvAdj].v));
                             uvs.emplace_back(glm::vec2(uv[indicesRaw[uvOff + k * 3 + 2] + uvAdj].u, uv[indicesRaw[uvOff + k * 3 + 2] + uvAdj].v));
@@ -247,9 +227,7 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
                 if (v != 0 || base->GetBaseInfo()->TypeIndex != 0)
                     carData.meshes.back().enabled = false;
             }
-        }
-        else
-        {
+        } else {
             CEffect* ef   = (CEffect*) enEf->GetData();
             CMatrix* enTr = (CMatrix*) arti->GetSubEntry(ID_TRANSFORM)->GetData();
 
@@ -281,11 +259,9 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
     {
         CEntry* en = NULL;
         int loc    = crp->FindMisc(ID_BPLANES);
-        if (loc > -1)
-        {
+        if (loc > -1) {
             en = crp->GetMisc(loc++);
-            while (en && en->GetId() == ID_BPLANES)
-            {
+            while (en && en->GetId() == ID_BPLANES) {
                 CBPlanes* bplane = (CBPlanes*) en->GetData();
                 /*tObject* pObj = new tObject("BoundPlane", bplane->GetCount()*4, bplane->GetCount()*2);
                 tVector4* vt = bplane->GetVertices();
@@ -309,8 +285,7 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
     {
         CEntry* en = NULL;
         int loc    = crp->FindMisc((ENTRY_ID) 0x576E646F);
-        if (loc > -1)
-        {
+        if (loc > -1) {
             en = crp->GetMisc(loc++);
 
             CEntry en2(ID_BPLANES, 0);
@@ -343,8 +318,7 @@ CarData NFS5::LoadCRP(const std::string& crpPath)
     return carData;
 }
 
-void NFS5::DumpCrpTextures(const std::string& crpPath)
-{
+void NFS5::DumpCrpTextures(const std::string& crpPath) {
     LOG(INFO) << "Dumping FSH texture packs located in " << crpPath;
 
     std::ifstream crp(crpPath, std::ios::in | std::ios::binary);
@@ -364,12 +338,10 @@ void NFS5::DumpCrpTextures(const std::string& crpPath)
 
     std::vector<CRP::FSH_PART> fshParts;
 
-    for (uint32_t miscPartIdx = 0; miscPartIdx < crpFileHeader->nMiscData; ++miscPartIdx)
-    {
+    for (uint32_t miscPartIdx = 0; miscPartIdx < crpFileHeader->nMiscData; ++miscPartIdx) {
         uint32_t currentCrpOffset = static_cast<uint32_t>(articleTableEnd + (miscPartIdx * 16));
 
-        switch (miscPartTable[miscPartIdx].getPartType())
-        {
+        switch (miscPartTable[miscPartIdx].getPartType()) {
         case CRP::MiscPart:
         case CRP::MaterialPart:
             continue;
@@ -387,8 +359,7 @@ void NFS5::DumpCrpTextures(const std::string& crpPath)
     delete crpFileHeader;
 
     // Lets dump the FSH's quickly so I can be sure this parser is coming along well
-    for (auto& fshPart : fshParts)
-    {
+    for (auto& fshPart : fshParts) {
         // Build the output FSH file path
         std::stringstream fshPath, fshOutputPath;
         boost::filesystem::path outputPath(crpPath);
@@ -416,10 +387,8 @@ void NFS5::DumpCrpTextures(const std::string& crpPath)
 }
 
 // Debug
-void NFS5::DumpArticleVertsToObj(CRP::ARTICLE_DATA article)
-{
-    for (uint32_t vertexTableIdx = 0; vertexTableIdx < article.vertPartTableData.size(); ++vertexTableIdx)
-    {
+void NFS5::DumpArticleVertsToObj(CRP::ARTICLE_DATA article) {
+    for (uint32_t vertexTableIdx = 0; vertexTableIdx < article.vertPartTableData.size(); ++vertexTableIdx) {
         std::ofstream obj;
         std::stringstream objPath;
         objPath << "./assets/nfs5_test/gt1_crp_arti_" << article.index << "_vpart_" << vertexTableIdx << ".obj";
@@ -429,8 +398,7 @@ void NFS5::DumpArticleVertsToObj(CRP::ARTICLE_DATA article)
         obj << "o "
             << "NFS5_Test_VertPart_" << vertexTableIdx << std::endl;
         // And then the verts
-        for (uint32_t vertIdx = 0; vertIdx < article.vertPartTableData[vertexTableIdx].size(); ++vertIdx)
-        {
+        for (uint32_t vertIdx = 0; vertIdx < article.vertPartTableData[vertexTableIdx].size(); ++vertIdx) {
             obj << "v " << article.vertPartTableData[vertexTableIdx][vertIdx].x << " " << article.vertPartTableData[vertexTableIdx][vertIdx].y << " "
                 << article.vertPartTableData[vertexTableIdx][vertIdx].z << std::endl;
         }

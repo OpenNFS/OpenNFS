@@ -8,8 +8,7 @@
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
 
-class TrackShader : public BaseShader
-{
+class TrackShader : public BaseShader {
 public:
     TrackShader();
     void bindTextureArray(GLuint textureArrayID);

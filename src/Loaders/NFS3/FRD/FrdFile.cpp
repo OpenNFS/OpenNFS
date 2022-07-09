@@ -2,8 +2,7 @@
 
 using namespace LibOpenNFS::NFS3;
 
-bool FrdFile::Load(const std::string &frdPath, FrdFile &frdFile)
-{
+bool FrdFile::Load(const std::string &frdPath, FrdFile &frdFile) {
     LOG(INFO) << "Loading FRD File located at " << frdPath;
     std::ifstream frd(frdPath, std::ios::in | std::ios::binary);
 
@@ -13,15 +12,13 @@ bool FrdFile::Load(const std::string &frdPath, FrdFile &frdFile)
     return loadStatus;
 }
 
-void FrdFile::Save(const std::string &frdPath, FrdFile &frdFile)
-{
+void FrdFile::Save(const std::string &frdPath, FrdFile &frdFile) {
     LOG(INFO) << "Saving FRD File to " << frdPath;
     std::ofstream frd(frdPath, std::ios::out | std::ios::binary);
     frdFile._SerializeOut(frd);
 }
 
-void FrdFile::MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB)
-{
+void FrdFile::MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &frdFileB) {
     // Mergearooney
     // TODO: Of course it couldn't be this simple :(
     frdFileA.nBlocks += frdFileB.nBlocks;
@@ -32,14 +29,12 @@ void FrdFile::MergeFRD(const std::string &frdPath, FrdFile &frdFileA, FrdFile &f
     FrdFile::Save(frdPath, frdFileA);
 }
 
-bool FrdFile::_SerializeIn(std::ifstream &ifstream)
-{
+bool FrdFile::_SerializeIn(std::ifstream &ifstream) {
     SAFE_READ(ifstream, header, HEADER_LENGTH);
     SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
     ++nBlocks;
 
-    if (nBlocks < 1 || nBlocks > 500)
-    {
+    if (nBlocks < 1 || nBlocks > 500) {
         return false;
     }
 
@@ -51,16 +46,11 @@ bool FrdFile::_SerializeIn(std::ifstream &ifstream)
     int32_t hsMagic = 0;
     SAFE_READ(ifstream, &hsMagic, sizeof(int32_t));
 
-    if ((hsMagic < 0) || (hsMagic > 5000))
-    {
+    if ((hsMagic < 0) || (hsMagic > 5000)) {
         version = NFSVer::NFS_3;
-    }
-    else if (((hsMagic + 7) / 8) == nBlocks)
-    {
+    } else if (((hsMagic + 7) / 8) == nBlocks) {
         version = NFSVer::NFS_4;
-    }
-    else
-    {
+    } else {
         // Unknown file type
         return false;
     }
@@ -69,57 +59,48 @@ bool FrdFile::_SerializeIn(std::ifstream &ifstream)
     ifstream.seekg(-4, std::ios_base::cur);
 
     // Track Data
-    for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
-    {
+    for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx) {
         trackBlocks.push_back(TrkBlock(ifstream));
     }
     // Geometry
-    for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx)
-    {
+    for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx) {
         polygonBlocks.push_back(PolyBlock(ifstream, trackBlocks[blockIdx].nPolygons));
     }
     // Extra Track Geometry
-    for (uint32_t blockIdx = 0; blockIdx <= 4 * nBlocks; ++blockIdx)
-    {
+    for (uint32_t blockIdx = 0; blockIdx <= 4 * nBlocks; ++blockIdx) {
         extraObjectBlocks.push_back(ExtraObjectBlock(ifstream));
     }
     // Texture Table
     SAFE_READ(ifstream, &nTextures, sizeof(uint32_t));
     textureBlocks.reserve(nTextures);
-    for (uint32_t tex_Idx = 0; tex_Idx < nTextures; tex_Idx++)
-    {
+    for (uint32_t tex_Idx = 0; tex_Idx < nTextures; tex_Idx++) {
         textureBlocks.push_back(TexBlock(ifstream));
     }
 
     return true;
 }
 
-void FrdFile::_SerializeOut(std::ofstream &ofstream)
-{
+void FrdFile::_SerializeOut(std::ofstream &ofstream) {
     // Write FRD Header
     ofstream.write((char *) &header, HEADER_LENGTH);
     uint32_t nBlocksHeader = nBlocks - 1;
     ofstream.write((char *) &nBlocksHeader, sizeof(uint32_t));
 
     // Track Data
-    for (auto &trackBlock : trackBlocks)
-    {
+    for (auto &trackBlock : trackBlocks) {
         trackBlock._SerializeOut(ofstream);
     }
     // Geometry
-    for (auto &polyBlock : polygonBlocks)
-    {
+    for (auto &polyBlock : polygonBlocks) {
         polyBlock._SerializeOut(ofstream);
     }
     // Extra Track Geometry
-    for (auto &extraObjectBlock : extraObjectBlocks)
-    {
+    for (auto &extraObjectBlock : extraObjectBlocks) {
         extraObjectBlock._SerializeOut(ofstream);
     }
     // Texture Table
     ofstream.write((char *) &nTextures, sizeof(uint32_t));
-    for (auto &textureBlock : textureBlocks)
-    {
+    for (auto &textureBlock : textureBlocks) {
         textureBlock._SerializeOut(ofstream);
     }
 

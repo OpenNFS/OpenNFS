@@ -15,8 +15,7 @@
 
 using namespace std;
 
-class BaseShader
-{
+class BaseShader {
 public:
     BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path);
     BaseShader(const std::string &vertex_file_path, const std::string &geometry_file_path, const std::string &fragment_file_path);

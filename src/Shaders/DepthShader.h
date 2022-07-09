@@ -4,8 +4,7 @@
 #include "../Util/Utils.h"
 #include "../Scene/Lights/LightModel.h"
 
-class DepthShader : public BaseShader
-{
+class DepthShader : public BaseShader {
 public:
     DepthShader();
     void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);

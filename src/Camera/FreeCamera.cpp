@@ -1,12 +1,10 @@
 #include "FreeCamera.h"
 
-FreeCamera::FreeCamera(const std::shared_ptr<GLFWwindow> &window, glm::vec3 initialPosition) : BaseCamera(CameraMode::FREE_LOOK, window)
-{
+FreeCamera::FreeCamera(const std::shared_ptr<GLFWwindow> &window, glm::vec3 initialPosition) : BaseCamera(CameraMode::FREE_LOOK, window) {
     position = initialPosition;
 }
 
-void FreeCamera::ComputeMatricesFromInputs(float deltaTime)
-{
+void FreeCamera::ComputeMatricesFromInputs(float deltaTime) {
     // Get mouse position and compute new orientation with it
     m_horizontalAngle += m_mouseSpeedDamper * (Config::get().resX / 2 - ImGui::GetIO().MousePos.x);
     m_verticalAngle += m_mouseSpeedDamper * (Config::get().resY / 2 - ImGui::GetIO().MousePos.y);
@@ -24,35 +22,27 @@ void FreeCamera::ComputeMatricesFromInputs(float deltaTime)
     glm::vec3 up = glm::cross(right, m_direction);
 
     // Speed boost
-    if (ImGui::GetIO().KeyShift)
-    {
+    if (ImGui::GetIO().KeyShift) {
         m_speed = 100.0f;
-    }
-    else
-    {
+    } else {
         m_speed = 3.0f;
     }
 
-    if (ImGui::GetIO().MouseDown[1])
-    {
+    if (ImGui::GetIO().MouseDown[1]) {
         // Move forward
-        if (glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS)
-        {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS) {
             position += m_direction * deltaTime * m_speed;
         }
         // Move backward
-        if (glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS)
-        {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS) {
             position -= m_direction * deltaTime * m_speed;
         }
         // Strafe right
-        if (glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS)
-        {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS) {
             position += right * deltaTime * m_speed;
         }
         // Strafe left
-        if (glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS)
-        {
+        if (glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS) {
             position -= right * deltaTime * m_speed;
         }
     }

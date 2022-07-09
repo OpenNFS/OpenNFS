@@ -5,36 +5,32 @@
 #include "StructureRefBlock.h"
 #include "StructureBlock.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
+namespace LibOpenNFS {
+    namespace NFS2 {
         // LibONFS Helper
-        enum ExtraBlockID : uint8_t
-        {
-            TEXTURE_BLOCK_ID = 2,
-            NEIGHBOUR_BLOCK_ID = 4,
-            POLY_TYPE_BLOCK_ID = 5,
-            MEDIAN_BLOCK_ID = 6,
+        enum ExtraBlockID : uint8_t {
+            TEXTURE_BLOCK_ID         = 2,
+            NEIGHBOUR_BLOCK_ID       = 4,
+            POLY_TYPE_BLOCK_ID       = 5,
+            MEDIAN_BLOCK_ID          = 6,
             STRUCTURE_REF_BLOCK_A_ID = 7,
             STRUCTURE_BLOCK_ID       = 8,
-            LANE_BLOCK_ID = 9,
-            UNKNOWN_BLOCK_ID_A = 10,
-            UNKNOWN_BLOCK_ID_B = 11,
-            UNKNOWN_BLOCK_ID_C = 12,
-            VROAD_BLOCK_ID = 13,
-            UNKNOWN_BLOCK_ID_D = 14,
-            COLLISION_BLOCK_ID = 15,
-            UNKNOWN_BLOCK_ID_E = 16,
-            UNKNOWN_BLOCK_ID_F = 17,
+            LANE_BLOCK_ID            = 9,
+            UNKNOWN_BLOCK_ID_A       = 10,
+            UNKNOWN_BLOCK_ID_B       = 11,
+            UNKNOWN_BLOCK_ID_C       = 12,
+            VROAD_BLOCK_ID           = 13,
+            UNKNOWN_BLOCK_ID_D       = 14,
+            COLLISION_BLOCK_ID       = 15,
+            UNKNOWN_BLOCK_ID_E       = 16,
+            UNKNOWN_BLOCK_ID_F       = 17,
             STRUCTURE_REF_BLOCK_B_ID = 18,
             STRUCTURE_REF_BLOCK_C_ID = 19,
-            UNKNOWN_BLOCK_ID_G = 20,
+            UNKNOWN_BLOCK_ID_G       = 20,
         };
 
         // ---- COL Specific Extra Blocks ----
-        struct TEXTURE_BLOCK
-        {
+        struct TEXTURE_BLOCK {
             // XBID = 2
             uint16_t texNumber; // Texture number in QFS file
             uint16_t alignmentData;
@@ -42,8 +38,7 @@ namespace LibOpenNFS
             uint8_t RGBlack[3]; // Usually black
         };
 
-        struct COLLISION_BLOCK
-        {
+        struct COLLISION_BLOCK {
             // XBID = 15
             VERT_HIGHP trackPosition; // Position auint32_t track on a single line, either at center or side of road
             int8_t vertVec[3];        // The three vectors are mutually orthogonal, and are normalized so that
@@ -64,22 +59,19 @@ namespace LibOpenNFS
 
         // ---- TRK Specific Extra Blocks ----
         // Matches number of NP1 polygons in corresponding trackblock
-        struct POLY_TYPE
-        {
+        struct POLY_TYPE {
             // XBID = 5
             uint8_t xblockRef; // Refers to an entry in the XBID=13 extrablock
             uint8_t carBehaviour;
         };
 
         // Matches number of full resolution polygons
-        struct MEDIAN_BLOCK
-        {
+        struct MEDIAN_BLOCK {
             // XBID = 6
             uint8_t refPoly[8];
         };
 
-        struct LANE_BLOCK
-        {
+        struct LANE_BLOCK {
             // XBID = 9
             uint8_t vertRef;  // Inside B3D structure: 0 to nFullRes + nStickToNext
             uint8_t trackPos; // Position auint32_t track inside block (0 to 7)
@@ -87,20 +79,17 @@ namespace LibOpenNFS
             uint8_t polyRef;  // Inside Full-res B3D structure, 0 to nFullRes
         };
 
-        struct VROAD_VEC
-        {
+        struct VROAD_VEC {
             int16_t x, z, y;
         };
 
-        struct VROAD
-        {
+        struct VROAD {
             VROAD_VEC normalVec;
             VROAD_VEC forwardVec;
         };
 
         template <typename Platform>
-        class ExtraObjectBlock : IRawData
-        {
+        class ExtraObjectBlock : IRawData {
         public:
             ExtraObjectBlock() = default;
             explicit ExtraObjectBlock(std::ifstream &trk, NFSVer version);
@@ -143,7 +132,7 @@ namespace LibOpenNFS
             // Type 10?
             uint16_t nUnknownVerts = 0;
             std::vector<typename Platform::VERT> unknownVerts;
-            
+
             // Type 13
             uint16_t nVroad = 0;
             std::vector<VROAD> vroadData; // Reference using XBID 5

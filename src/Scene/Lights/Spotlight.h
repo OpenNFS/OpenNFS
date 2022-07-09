@@ -2,8 +2,7 @@
 
 #include <glm/vec3.hpp>
 
-class Spotlight
-{
+class Spotlight {
 public:
     Spotlight(glm::vec3 position, glm::vec3 direction, glm::vec3 colour, float cutoff);
     Spotlight() = default;

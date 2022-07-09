@@ -1,57 +1,46 @@
 #include "Utils.h"
 
-namespace Utils
-{
-    float RandomFloat(float min, float max)
-    {
+namespace Utils {
+    float RandomFloat(float min, float max) {
         static std::mt19937 mt(std::random_device{}());
         std::uniform_real_distribution<double> fdis(min, max);
 
         return static_cast<float>(fdis(mt));
     }
 
-    glm::vec3 bulletToGlm(const btVector3 &v)
-    {
+    glm::vec3 bulletToGlm(const btVector3 &v) {
         return glm::vec3(v.getX(), v.getY(), v.getZ());
     }
 
-    btVector3 glmToBullet(const glm::vec3 &v)
-    {
+    btVector3 glmToBullet(const glm::vec3 &v) {
         return btVector3(v.x, v.y, v.z);
     }
 
-    glm::quat bulletToGlm(const btQuaternion &q)
-    {
+    glm::quat bulletToGlm(const btQuaternion &q) {
         return glm::quat(q.getW(), q.getX(), q.getY(), q.getZ());
     }
 
-    btQuaternion glmToBullet(const glm::quat &q)
-    {
+    btQuaternion glmToBullet(const glm::quat &q) {
         return btQuaternion(q.x, q.y, q.z, q.w);
     }
 
-    btMatrix3x3 glmToBullet(const glm::mat3 &m)
-    {
+    btMatrix3x3 glmToBullet(const glm::mat3 &m) {
         return btMatrix3x3(m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]);
     }
 
     // btTransform does not contain a full 4x4 matrix, so this transform is lossy.
     // Affine transformations are OK but perspective transformations are not.
-    btTransform glmToBullet(const glm::mat4 &m)
-    {
+    btTransform glmToBullet(const glm::mat4 &m) {
         glm::mat3 m3(m);
         return btTransform(glmToBullet(m3), glmToBullet(glm::vec3(m[3][0], m[3][1], m[3][2])));
     }
 
-    glm::mat4 bulletToGlm(const btTransform &t)
-    {
+    glm::mat4 bulletToGlm(const btTransform &t) {
         glm::mat4 m              = glm::mat4();
         const btMatrix3x3 &basis = t.getBasis();
         // rotation
-        for (int r = 0; r < 3; r++)
-        {
-            for (int c = 0; c < 3; c++)
-            {
+        for (int r = 0; r < 3; r++) {
+            for (int c = 0; c < 3; c++) {
                 m[c][r] = basis[r][c];
             }
         }
@@ -68,14 +57,12 @@ namespace Utils
         return m;
     }
 
-    DimensionData GenDimensions(std::vector<glm::vec3> vertices)
-    {
+    DimensionData GenDimensions(std::vector<glm::vec3> vertices) {
         DimensionData modelDimensions = {};
         modelDimensions.maxVertex     = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
         modelDimensions.minVertex     = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
 
-        for (auto &vertex : vertices)
-        {
+        for (auto &vertex : vertices) {
             modelDimensions.minVertex.x = glm::min(modelDimensions.minVertex.x, vertex.x);
             modelDimensions.minVertex.y = glm::min(modelDimensions.minVertex.y, vertex.y);
             modelDimensions.minVertex.z = glm::min(modelDimensions.minVertex.z, vertex.z);
@@ -88,8 +75,7 @@ namespace Utils
         return modelDimensions;
     }
 
-    uint32_t SwapEndian(uint32_t x)
-    {
+    uint32_t SwapEndian(uint32_t x) {
         int swapped;
 
         swapped = (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
@@ -97,14 +83,12 @@ namespace Utils
         return static_cast<uint32_t>(swapped);
     }
 
-    glm::vec3 FixedToFloat(glm::vec3 fixedPoint)
-    {
+    glm::vec3 FixedToFloat(glm::vec3 fixedPoint) {
         return fixedPoint / 65536.0f;
     }
 
     // Move these to a native resource handler class
-    std::vector<CarModel> LoadOBJ(std::string obj_path)
-    {
+    std::vector<CarModel> LoadOBJ(std::string obj_path) {
         std::vector<CarModel> meshes;
 
         tinyobj::attrib_t attrib;
@@ -112,26 +96,22 @@ namespace Utils
         std::vector<tinyobj::material_t> materials;
         std::string err;
         std::string warn;
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path.c_str(), nullptr, true, true))
-        {
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path.c_str(), nullptr, true, true)) {
             LOG(WARNING) << err;
             return meshes;
         }
         // Loop over shapes
-        for (size_t s = 0; s < shapes.size(); s++)
-        {
+        for (size_t s = 0; s < shapes.size(); s++) {
             std::vector<glm::vec3> verts      = std::vector<glm::vec3>();
             std::vector<glm::vec3> norms      = std::vector<glm::vec3>();
             std::vector<glm::vec2> uvs        = std::vector<glm::vec2>();
             std::vector<unsigned int> indices = std::vector<unsigned int>();
             // Loop over faces(polygon)
             size_t index_offset = 0;
-            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
-            {
+            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
                 int fv = shapes[s].mesh.num_face_vertices[f];
                 // Loop over vertices in the face.
-                for (size_t v = 0; v < fv; v++)
-                {
+                for (size_t v = 0; v < fv; v++) {
                     // access to vertex
                     tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
                     indices.emplace_back((const unsigned int &) idx.vertex_index);
@@ -151,26 +131,21 @@ namespace Utils
         return meshes;
     }
 
-    bool ExtractVIV(const std::string &viv_path, const std::string &output_dir)
-    {
+    bool ExtractVIV(const std::string &viv_path, const std::string &output_dir) {
         LOG(INFO) << "Extracting VIV file: " << viv_path << " to " << output_dir;
         std::ifstream viv(viv_path, std::ios::in | std::ios::binary);
         ASSERT(viv.is_open(), "Couldn't open viv file at " << viv_path);
 
-        if (boost::filesystem::exists(output_dir))
-        {
+        if (boost::filesystem::exists(output_dir)) {
             LOG(INFO) << "VIV has already been extracted, skipping";
             return true;
-        }
-        else
-        {
+        } else {
             boost::filesystem::create_directories(output_dir);
         }
 
         char vivHeader[4];
         viv.read((char *) vivHeader, sizeof(vivHeader));
-        if (memcmp(vivHeader, "BIGF", sizeof(vivHeader)))
-        {
+        if (memcmp(vivHeader, "BIGF", sizeof(vivHeader))) {
             LOG(WARNING) << "Not a valid VIV file (BIGF header missing)";
             viv.close();
             return false;
@@ -191,8 +166,7 @@ namespace Utils
 
         std::streampos currentPos = viv.tellg();
 
-        for (uint8_t fileIdx = 0; fileIdx < nFiles; ++fileIdx)
-        {
+        for (uint8_t fileIdx = 0; fileIdx < nFiles; ++fileIdx) {
             viv.seekg(currentPos, std::ios_base::beg);
             uint32_t filePos = 0, fileSize = 0;
             viv.read((char *) &filePos, sizeof(uint32_t));
@@ -204,8 +178,7 @@ namespace Utils
             int pos = 0;
             char c  = ' ';
             viv.read(&c, sizeof(char));
-            while (c != '\0')
-            {
+            while (c != '\0') {
                 fileName[pos] = tolower(c);
                 pos++;
                 viv.read(&c, sizeof(char));
@@ -217,8 +190,7 @@ namespace Utils
             std::stringstream out_file_path;
             out_file_path << output_dir << fileName;
             std::ofstream out(out_file_path.str(), std::ios::out | std::ios::binary);
-            if (!out.is_open())
-            {
+            if (!out.is_open()) {
                 LOG(WARNING) << "Error while creating output file " << fileName;
                 viv.close();
                 return false;
@@ -238,13 +210,11 @@ namespace Utils
     }
 
     // Modified Arushan CRP decompressor. Removes LZ77 style decompression from CRPs
-    bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath)
-    {
+    bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath) {
         LOG(INFO) << "Decompressing CRP File located at " << compressedCrpPath;
 
         // Bail early if decompressed CRP present already
-        if (boost::filesystem::exists(decompressedCrpPath))
-        {
+        if (boost::filesystem::exists(decompressedCrpPath)) {
             LOG(INFO) << "Already decompressed, skipping";
             return true;
         }
@@ -269,16 +239,14 @@ namespace Utils
         unsigned int id = 0;
         file.read((char *) &id, 4);
         // Uncompressed CRP
-        if ((id & 0x0000FFFF) != 0xFB10)
-        {
+        if ((id & 0x0000FFFF) != 0xFB10) {
             file.close();
             LOG(INFO) << "CRP is already decompressed, skipping";
             boost::filesystem::copy_file(compressedCrpPath, decompressedCrpPath, boost::filesystem::copy_option::overwrite_if_exists);
             return true;
         }
         // Compressed CRP
-        else
-        {
+        else {
             // Create uncompressed data array
             file.seekg(2);
             unsigned int elhi, elmd, ello;
@@ -297,20 +265,16 @@ namespace Utils
             datapos = len = offset = inbyte = tmp1 = tmp2 = tmp3 = 0;
             file.read((char *) &inbyte, 1);
             // Decompress
-            while ((!file.eof()) && (inbyte < 0xFC))
-            {
-                if (!(inbyte & 0x80))
-                {
+            while ((!file.eof()) && (inbyte < 0xFC)) {
+                if (!(inbyte & 0x80)) {
                     file.read((char *) &tmp1, 1);
                     len = inbyte & 0x03;
-                    if (len != 0)
-                    {
+                    if (len != 0) {
                         file.read((char *) (data + datapos), len);
                         datapos += len;
                     }
                     len = ((inbyte & 0x1C) >> 2) + 3;
-                    if (len != 0)
-                    {
+                    if (len != 0) {
                         offset = ((inbyte >> 5) << 8) + tmp1 + 1;
                         dstpos = data + datapos;
                         srcpos = data + datapos - offset;
@@ -318,20 +282,16 @@ namespace Utils
                         while (len--)
                             *dstpos++ = *srcpos++;
                     }
-                }
-                else if (!(inbyte & 0x40))
-                {
+                } else if (!(inbyte & 0x40)) {
                     file.read((char *) &tmp1, 1);
                     file.read((char *) &tmp2, 1);
                     len = (tmp1 >> 6) & 0x03;
-                    if (len != 0)
-                    {
+                    if (len != 0) {
                         file.read((char *) (data + datapos), len);
                         datapos += len;
                     }
                     len = (inbyte & 0x3F) + 4;
-                    if (len != 0)
-                    {
+                    if (len != 0) {
                         offset = ((tmp1 & 0x3F) * 256) + tmp2 + 1;
                         srcpos = data + datapos - offset;
                         dstpos = data + datapos;
@@ -339,21 +299,17 @@ namespace Utils
                         while (len--)
                             *dstpos++ = *srcpos++;
                     }
-                }
-                else if (!(inbyte & 0x20))
-                {
+                } else if (!(inbyte & 0x20)) {
                     file.read((char *) &tmp1, 1);
                     file.read((char *) &tmp2, 1);
                     file.read((char *) &tmp3, 1);
                     len = inbyte & 0x03;
-                    if (len != 0)
-                    {
+                    if (len != 0) {
                         file.read((char *) (data + datapos), len);
                         datapos += len;
                     }
                     len = (((inbyte >> 2) & 0x03) * 256) + tmp3 + 5;
-                    if (len != 0)
-                    {
+                    if (len != 0) {
                         offset = ((inbyte & 0x10) << 0x0C) + (tmp1 * 256) + tmp2 + 1;
                         srcpos = data + datapos - offset;
                         dstpos = data + datapos;
@@ -361,12 +317,9 @@ namespace Utils
                         while (len--)
                             *dstpos++ = *srcpos++;
                     }
-                }
-                else
-                {
+                } else {
                     len = ((inbyte & 0x1F) * 4) + 4;
-                    if (len != 0)
-                    {
+                    if (len != 0) {
                         file.read((char *) (data + datapos), len);
                         datapos += len;
                     }
@@ -374,11 +327,9 @@ namespace Utils
                 inbyte = tmp1 = tmp2 = tmp3 = 0;
                 file.read((char *) &inbyte, 1);
             }
-            if ((!file.eof()) && (datapos < length))
-            {
+            if ((!file.eof()) && (datapos < length)) {
                 len = inbyte & 0x03;
-                if (len != 0)
-                {
+                if (len != 0) {
                     file.read((char *) (data + datapos), len);
                 }
             }
@@ -398,8 +349,7 @@ namespace Utils
         return true;
     }
 
-    glm::vec3 HSLToRGB(glm::vec4 hsl)
-    {
+    glm::vec3 HSLToRGB(glm::vec4 hsl) {
         float H = hsl.x / 255.f;
         float S = hsl.y / 255.f;
         float L = hsl.z / 255.f;
@@ -411,18 +361,14 @@ namespace Utils
         return rgb;
     }
 
-    glm::vec3 ParseRGBString(const std::string &rgb_string)
-    {
+    glm::vec3 ParseRGBString(const std::string &rgb_string) {
         std::stringstream tempComponent;
         uint8_t commaCount = 0;
         glm::vec3 rgbValue;
 
-        for (int char_Idx = 0; char_Idx < rgb_string.length(); ++char_Idx)
-        {
-            if (rgb_string[char_Idx] == ',')
-            {
-                switch (commaCount)
-                {
+        for (int char_Idx = 0; char_Idx < rgb_string.length(); ++char_Idx) {
+            if (rgb_string[char_Idx] == ',') {
+                switch (commaCount) {
                 case 0:
                     rgbValue.x = (float) stoi(tempComponent.str());
                     break;
@@ -437,13 +383,10 @@ namespace Utils
                     break;
                 }
                 tempComponent.str("");
-                if (++commaCount >= 3)
-                {
+                if (++commaCount >= 3) {
                     break;
                 }
-            }
-            else
-            {
+            } else {
                 tempComponent << rgb_string[char_Idx];
             }
         }
@@ -451,15 +394,13 @@ namespace Utils
         return rgbValue;
     }
 
-    glm::vec3 CalculateQuadNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4)
-    {
+    glm::vec3 CalculateQuadNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4) {
         glm::vec3 triANormal = CalculateNormal(p1, p2, p3);
         glm::vec3 triBNormal = CalculateNormal(p1, p3, p4);
         return glm::normalize(triANormal + triBNormal);
     }
 
-    glm::vec3 CalculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3)
-    {
+    glm::vec3 CalculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
         glm::vec3 vertexNormal(0, 0, 0);
 
         glm::vec3 U = p2 - p1;
@@ -472,8 +413,7 @@ namespace Utils
         return vertexNormal;
     }
 
-    btTransform MakeTransform(glm::vec3 position, glm::quat orientation)
-    {
+    btTransform MakeTransform(glm::vec3 position, glm::quat orientation) {
         btTransform transform;
         transform.setOrigin(glmToBullet(position));
         transform.setRotation(glmToBullet(orientation));

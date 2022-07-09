@@ -2,16 +2,14 @@
 
 #include "../Common/IRawData.h"
 
-struct CameraAnimPoint
-{
+struct CameraAnimPoint {
     glm::ivec3 pt;
     int16_t od1, od2, od3, od4; // OD2 seems to be something more than just rotation, like zoom or some shit
                                 // OD3 seems to set perspective
                                 // OD4 similar to OD1, induces wavyness but animation remains
 };
 
-class CanFile : IRawData
-{
+class CanFile : IRawData {
 public:
     CanFile() = default;
     static bool Load(const std::string &canPath, CanFile &canFile);

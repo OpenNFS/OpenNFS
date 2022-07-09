@@ -6,13 +6,10 @@
 #include "../Common.h"
 #include "../TRK/ExtraObjectBlock.h"
 
-namespace LibOpenNFS
-{
-    namespace NFS2
-    {
+namespace LibOpenNFS {
+    namespace NFS2 {
         template <typename Platform>
-        class ColFile : IRawData
-        {
+        class ColFile : IRawData {
         public:
             ColFile() = default;
             static bool Load(const std::string &colPath, ColFile &colFile, NFSVer version);
