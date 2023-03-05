@@ -3,7 +3,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version) {
+bool TrkFile<Platform>::Load(const std::string &trkPath, TrkFile &trkFile, NFSVersion version) {
     LOG(INFO) << "Loading TRK File located at " << trkPath;
     std::ifstream trk(trkPath, std::ios::in | std::ios::binary);
     trkFile.version = version;

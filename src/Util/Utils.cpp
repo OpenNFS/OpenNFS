@@ -136,11 +136,11 @@ namespace Utils {
         std::ifstream viv(viv_path, std::ios::in | std::ios::binary);
         ASSERT(viv.is_open(), "Couldn't open viv file at " << viv_path);
 
-        if (boost::filesystem::exists(output_dir)) {
+        if (std::filesystem::exists(output_dir)) {
             LOG(INFO) << "VIV has already been extracted, skipping";
             return true;
         } else {
-            boost::filesystem::create_directories(output_dir);
+            std::filesystem::create_directories(output_dir);
         }
 
         char vivHeader[4];
@@ -214,7 +214,7 @@ namespace Utils {
         LOG(INFO) << "Decompressing CRP File located at " << compressedCrpPath;
 
         // Bail early if decompressed CRP present already
-        if (boost::filesystem::exists(decompressedCrpPath)) {
+        if (std::filesystem::exists(decompressedCrpPath)) {
             LOG(INFO) << "Already decompressed, skipping";
             return true;
         }
@@ -242,7 +242,7 @@ namespace Utils {
         if ((id & 0x0000FFFF) != 0xFB10) {
             file.close();
             LOG(INFO) << "CRP is already decompressed, skipping";
-            boost::filesystem::copy_file(compressedCrpPath, decompressedCrpPath, boost::filesystem::copy_option::overwrite_if_exists);
+            std::filesystem::copy_file(compressedCrpPath, decompressedCrpPath, std::filesystem::copy_options::overwrite_existing);
             return true;
         }
         // Compressed CRP

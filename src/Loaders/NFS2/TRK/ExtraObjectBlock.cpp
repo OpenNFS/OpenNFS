@@ -3,7 +3,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-ExtraObjectBlock<Platform>::ExtraObjectBlock(std::ifstream &trk, NFSVer version) {
+ExtraObjectBlock<Platform>::ExtraObjectBlock(std::ifstream &trk, NFSVersion version) {
     this->version = version;
     ASSERT(this->_SerializeIn(trk), "Failed to serialize ExtraObjectBlock from file stream");
 }
@@ -74,7 +74,7 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
     // break;
     case 13:
         nVroad = nRecords;
-        if (this->version == NFS_2_PS1) {
+        if (this->version == NFSVersion::NFS_2_PS1) {
             ps1VroadData.resize(nVroad);
             SAFE_READ(ifstream, ps1VroadData.data(), nVroad * sizeof(VROAD_VEC));
         } else {

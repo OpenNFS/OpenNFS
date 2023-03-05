@@ -137,7 +137,7 @@ VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const Bas
         }
         for (auto &lightEntity : track->trackBlocks[trackBlockID].lights) {
             if (camera.viewFrustum.CheckIntersection(lightEntity.GetAABB())) {
-                visibleSet.lights.emplace_back(boost::get<shared_ptr<BaseLight>>(lightEntity.raw));
+                visibleSet.lights.emplace_back(std::get<shared_ptr<BaseLight>>(lightEntity.raw));
             }
         }
     }
@@ -196,8 +196,8 @@ void Renderer::_InitialiseIMGUI() {
 
 void Renderer::DrawMetadata(Entity *targetEntity) {
     ImGui::Begin("Engine Entity");
-    ImGui::Text("%s", ToString(targetEntity->tag));
-    ImGui::Text("%s", ToString(targetEntity->type));
+    ImGui::Text("%s", get_string(targetEntity->tag).c_str());
+    ImGui::Text("%s", get_string(targetEntity->type).c_str());
     // Only display these if they're relevant
     if (targetEntity->parentTrackblockID != -1) {
         ImGui::Text("TrkBlk: %d", targetEntity->parentTrackblockID);
@@ -218,7 +218,7 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
     case EntityType::LANE:
         break;
     case EntityType::LIGHT: {
-        std::shared_ptr<BaseLight> targetBaseLight = boost::get<std::shared_ptr<BaseLight>>(targetEntity->raw);
+        std::shared_ptr<BaseLight> targetBaseLight = std::get<std::shared_ptr<BaseLight>>(targetEntity->raw);
         std::shared_ptr<TrackLight> targetLight    = std::static_pointer_cast<TrackLight>(targetBaseLight);
         ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z, targetLight->colour.w);
         ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z, 0.0f);
@@ -246,7 +246,7 @@ void Renderer::DrawMetadata(Entity *targetEntity) {
     case EntityType::VROAD_CEIL:
         break;
     case EntityType::CAR:
-        Car *targetCar = boost::get<Car *>(targetEntity->raw);
+        Car *targetCar = std::get<Car *>(targetEntity->raw);
         ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
         for (auto &carColour : targetCar->assetData.colours) {
             ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
@@ -335,7 +335,7 @@ bool Renderer::_DrawMenuBar(AssetData &loadedAssets) {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Track")) {
             for (auto &installedNFS : m_nfsAssetList) {
-                if (ImGui::BeginMenu(ToString(installedNFS.tag))) {
+                if (ImGui::BeginMenu(get_string(installedNFS.tag).c_str())) {
                     for (auto &track : installedNFS.tracks) {
                         if (ImGui::MenuItem(track.c_str())) {
                             loadedAssets.trackTag = installedNFS.tag;
@@ -350,7 +350,7 @@ bool Renderer::_DrawMenuBar(AssetData &loadedAssets) {
         }
         if (ImGui::BeginMenu("Car")) {
             for (auto &installedNFS : m_nfsAssetList) {
-                if (ImGui::BeginMenu(ToString(installedNFS.tag))) {
+                if (ImGui::BeginMenu(get_string(installedNFS.tag).c_str())) {
                     for (auto &car : installedNFS.cars) {
                         if (ImGui::MenuItem(car.c_str())) {
                             loadedAssets.carTag = installedNFS.tag;

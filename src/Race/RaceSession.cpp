@@ -114,7 +114,7 @@ AssetData RaceSession::Simulate() {
     }
 
     // Just set a flag temporarily to let main know that we outta here
-    m_loadedAssets.trackTag = UNKNOWN;
+    m_loadedAssets.trackTag = NFSVersion::UNKNOWN;
     return m_loadedAssets;
 }
 

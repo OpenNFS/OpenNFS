@@ -44,9 +44,9 @@ void write_little_endian(unsigned int uint16_t, int num_bytes, FILE *wav_file) {
 }
 
 MusicLoader::MusicLoader(const std::string &song_base_path) {
-    boost::filesystem::path p(song_base_path);
+    std::filesystem::path p(song_base_path);
     std::string song_name = p.filename().string();
-    stringstream mus_path, map_path;
+    std::stringstream mus_path, map_path;
 
     LOG(INFO) << "Loading Song " << song_name << " from " << song_base_path;
 

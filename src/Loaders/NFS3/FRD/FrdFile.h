@@ -22,7 +22,7 @@ namespace LibOpenNFS {
             char header[HEADER_LENGTH];
             uint32_t nBlocks;
             uint32_t nTextures;
-            NFSVer version;
+            NFSVersion version;
             std::vector<TrkBlock> trackBlocks;
             std::vector<PolyBlock> polygonBlocks;
             std::vector<ExtraObjectBlock> extraObjectBlocks;

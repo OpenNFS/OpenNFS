@@ -7,11 +7,9 @@
 #include <sstream>
 #include <set>
 #include <stdio.h>
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 #include "../Util/Utils.h"
-
-using namespace std;
 
 typedef struct MAPHeader {
     char szID[4];

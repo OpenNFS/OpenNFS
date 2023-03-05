@@ -1,6 +1,6 @@
 #include "Texture.h"
 
-Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo) {
+Texture::Texture(NFSVersion tag, uint32_t id, GLubyte *data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo) {
     this->tag            = tag;
     this->id             = id;
     this->data           = data;
@@ -14,15 +14,15 @@ Texture::Texture(NFSVer tag, uint32_t id, GLubyte *data, uint32_t width, uint32_
     this->rawTextureInfo = rawTextureInfo;
 }
 
-Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const std::string &trackName) {
+Texture Texture::LoadTexture(NFSVersion tag, RawTextureInfo rawTrackTexture, const std::string &trackName) {
     std::stringstream filename;
     GLubyte *data;
     GLsizei width;
     GLsizei height;
 
     switch (tag) {
-    case NFS_3: {
-        LibOpenNFS::NFS3::TexBlock trackTexture = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
+    case NFSVersion::NFS_3: {
+        LibOpenNFS::NFS3::TexBlock trackTexture = std::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
         width                                   = trackTexture.width;
         height                                  = trackTexture.height;
 
@@ -32,8 +32,8 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
             filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << ".BMP";
             filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex + 9 << "-a.BMP";
         } else {
-            filename << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << ".BMP";
-            filename_alpha << TRACK_PATH << ToString(NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << "-a.BMP";
+            filename << TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << ".BMP";
+            filename_alpha << TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.qfsIndex << "-a.BMP";
         }
 
         if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height)) {
@@ -47,24 +47,24 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
         return Texture(
           tag, static_cast<uint32_t>(trackTexture.qfsIndex), data, static_cast<uint32_t>(trackTexture.width), static_cast<uint32_t>(trackTexture.height), rawTrackTexture);
     } break;
-    case NFS_2:
-    case NFS_2_SE:
-    case NFS_2_PS1:
-    case NFS_3_PS1: {
-        LibOpenNFS::NFS2::TEXTURE_BLOCK trackTexture = boost::get<LibOpenNFS::NFS2::TEXTURE_BLOCK>(rawTrackTexture);
+    case NFSVersion::NFS_2:
+    case NFSVersion::NFS_2_SE:
+    case NFSVersion::NFS_2_PS1:
+    case NFSVersion::NFS_3_PS1: {
+        LibOpenNFS::NFS2::TEXTURE_BLOCK trackTexture = std::get<LibOpenNFS::NFS2::TEXTURE_BLOCK>(rawTrackTexture);
         uint8_t alphaColour                          = 0;
         switch (tag) {
-        case NFS_2:
+        case NFSVersion::NFS_2:
             alphaColour = 0u;
             break;
-        case NFS_2_SE:
+        case NFSVersion::NFS_2_SE:
             alphaColour = 248u;
             break;
-        case NFS_2_PS1:
-        case NFS_3_PS1:
+        case NFSVersion::NFS_2_PS1:
+        case NFSVersion::NFS_3_PS1:
             break;
         }
-        filename << TRACK_PATH << ToString(tag) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.texNumber << ".BMP";
+        filename << TRACK_PATH << get_string(tag) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.texNumber << ".BMP";
 
         ASSERT(ImageLoader::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture " << filename.str() << " did not load succesfully!");
 
@@ -75,42 +75,42 @@ Texture Texture::LoadTexture(NFSVer tag, RawTextureInfo rawTrackTexture, const s
         break;
     }
     // Execution will never reach here, appease compiler
-    return Texture(UNKNOWN, 0, nullptr, 0, 0, rawTrackTexture);
+    return Texture(NFSVersion::UNKNOWN, 0, nullptr, 0, 0, rawTrackTexture);
 }
 
-bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::string trackName, NFSVer nfsVer) {
+bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::string trackName, NFSVersion nfsVer) {
     std::stringstream nfsTexArchivePath;
     std::string fullTrackPath     = trackPath + "/" + trackName;
-    std::string onfsTrackAssetDir = TRACK_PATH + ToString(nfsVer) + "/" + trackName;
+    std::string onfsTrackAssetDir = TRACK_PATH + get_string(nfsVer) + "/" + trackName;
 
-    if (boost::filesystem::exists(onfsTrackAssetDir)) {
+    if (std::filesystem::exists(onfsTrackAssetDir)) {
         return true;
     } else {
-        boost::filesystem::create_directories(onfsTrackAssetDir);
+        std::filesystem::create_directories(onfsTrackAssetDir);
     }
 
     switch (nfsVer) {
-    case NFS_2:
+    case NFSVersion::NFS_2:
         nfsTexArchivePath << trackPath << "0.qfs";
         break;
-    case NFS_2_SE:
+    case NFSVersion::NFS_2_SE:
         nfsTexArchivePath << trackPath << "0m.qfs";
         break;
-    case NFS_2_PS1:
+    case NFSVersion::NFS_2_PS1:
         nfsTexArchivePath << trackPath << "0.psh";
         break;
-    case NFS_3:
+    case NFSVersion::NFS_3:
         nfsTexArchivePath << fullTrackPath << "0.qfs";
         break;
-    case NFS_3_PS1: {
+    case NFSVersion::NFS_3_PS1: {
         std::string pshPath = trackPath;
         pshPath.replace(pshPath.find("zz"), 2, "");
         nfsTexArchivePath << pshPath << "0.psh";
     } break;
-    case NFS_4:
+    case NFSVersion::NFS_4:
         nfsTexArchivePath << trackPath << "/tr0.qfs";
         break;
-    case UNKNOWN:
+    case NFSVersion::UNKNOWN:
     default:
         ASSERT(false, "Trying to extract track textures from unknown NFS version");
         break;
@@ -120,13 +120,13 @@ bool Texture::ExtractTrackTextures(const std::string &trackPath, const ::std::st
     std::string onfsTrackAssetTextureDir = onfsTrackAssetDir + "/textures/";
 
     switch (nfsVer) {
-    case NFS_2_PS1:
-    case NFS_3_PS1:
+    case NFSVersion::NFS_2_PS1:
+    case NFSVersion::NFS_3_PS1:
         return ImageLoader::ExtractPSH(nfsTexArchivePath.str(), onfsTrackAssetTextureDir);
-    case NFS_3: {
+    case NFSVersion::NFS_3: {
         std::stringstream nfsSkyTexArchivePath;
         nfsSkyTexArchivePath << fullTrackPath.substr(0, fullTrackPath.find_last_of('/')) << "/sky.fsh";
-        if (boost::filesystem::exists(nfsSkyTexArchivePath.str())) {
+        if (std::filesystem::exists(nfsSkyTexArchivePath.str())) {
             std::string onfsTrackAssetSkyTexDir = onfsTrackAssetDir + "/sky_textures/";
             ASSERT(ImageLoader::ExtractQFS(nfsSkyTexArchivePath.str(), onfsTrackAssetSkyTexDir), "Unable to extract sky textures from " << nfsSkyTexArchivePath.str());
         }
@@ -158,15 +158,15 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
     std::vector<glm::vec2> uvs;
 
     switch (tag) {
-    case NFS_1:
+    case NFSVersion::NFS_1:
         ASSERT(false, "Unimplemented");
         break;
-    case NFS_2:
-    case NFS_2_SE:
-    case NFS_2_PS1:
-    case NFS_3_PS1:
+    case NFSVersion::NFS_2:
+    case NFSVersion::NFS_2_SE:
+    case NFSVersion::NFS_2_PS1:
+    case NFSVersion::NFS_3_PS1:
         switch (meshType) {
-        case XOBJ: {
+        case EntityType::XOBJ: {
             bool horizontalFlip           = false; // textureAlignment[8];
             bool verticalFlip             = false; // textureAlignment[9];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -190,9 +190,9 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 uv.y *= maxV;
             }
         } break;
-        case OBJ_POLY:
+        case EntityType::OBJ_POLY:
             break;
-        case ROAD: {
+        case EntityType::ROAD: {
             bool horizontalFlip           = false; // textureAlignment[8];
             bool verticalFlip             = false; // textureAlignment[9];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -216,9 +216,9 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 uv.y *= this->maxV;
             }
         } break;
-        case GLOBAL:
+        case EntityType::GLOBAL:
             break;
-        case CAR:
+        case EntityType::CAR:
             break;
         }
         break;
@@ -275,10 +275,10 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         break;
         }
         break;*/
-    case NFS_3: {
-        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
+    case NFSVersion::NFS_3: {
+        LibOpenNFS::NFS3::TexBlock texBlock = std::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
         switch (meshType) {
-        case XOBJ:
+        case EntityType::XOBJ:
             uvs.emplace_back((1.0f - texBlock.corners[0]) * maxU, (1.0f - texBlock.corners[1]) * maxV);
             uvs.emplace_back((1.0f - texBlock.corners[2]) * maxU, (1.0f - texBlock.corners[3]) * maxV);
             uvs.emplace_back((1.0f - texBlock.corners[4]) * maxU, (1.0f - texBlock.corners[5]) * maxV);
@@ -286,9 +286,9 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             uvs.emplace_back((1.0f - texBlock.corners[4]) * maxU, (1.0f - texBlock.corners[5]) * maxV);
             uvs.emplace_back((1.0f - texBlock.corners[6]) * maxU, (1.0f - texBlock.corners[7]) * maxV);
             break;
-        case OBJ_POLY:
-        case LANE:
-        case ROAD:
+        case EntityType::OBJ_POLY:
+        case EntityType::LANE:
+        case EntityType::ROAD:
             uvs.emplace_back(texBlock.corners[0] * maxU, (1.0f - texBlock.corners[1]) * maxV);
             uvs.emplace_back(texBlock.corners[2] * maxU, (1.0f - texBlock.corners[3]) * maxV);
             uvs.emplace_back(texBlock.corners[4] * maxU, (1.0f - texBlock.corners[5]) * maxV);
@@ -296,15 +296,15 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             uvs.emplace_back(texBlock.corners[4] * maxU, (1.0f - texBlock.corners[5]) * maxV);
             uvs.emplace_back(texBlock.corners[6] * maxU, (1.0f - texBlock.corners[7]) * maxV);
             break;
-        case GLOBAL:
+        case EntityType::GLOBAL:
             break;
-        case CAR:
+        case EntityType::CAR:
             break;
         }
     } break;
-    case NFS_4: {
+    case NFSVersion::NFS_4: {
         // TODO: Needs to be an NFS4 texblock after NFS4 new gen parser bringup
-        LibOpenNFS::NFS3::TexBlock texBlock = boost::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
+        LibOpenNFS::NFS3::TexBlock texBlock = std::get<LibOpenNFS::NFS3::TexBlock>(rawTrackTexture);
         switch (meshType) {
         //(flags>>2)&3 indicates the multiple of 90° by which the
         // texture should be rotated (0 for no rotation, 1 for 90°,
@@ -322,7 +322,7 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         // ux, uy, and uz ::	The y-axis of the wrap.
         // ou and ov :: Origin in the texture.
         // su and sv :: Scale factor in the texture
-        case XOBJ: {
+        case EntityType::XOBJ: {
             bool horizontalFlip           = textureAlignment[4];
             bool verticalFlip             = textureAlignment[5];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -346,10 +346,10 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 uv.y *= maxV;
             }
         } break;
-        case OBJ_POLY:
-        case ROAD:
-        case LANE:
-        case GLOBAL: {
+        case EntityType::OBJ_POLY:
+        case EntityType::ROAD:
+        case EntityType::LANE:
+        case EntityType::GLOBAL: {
             bool horizontalFlip           = textureAlignment[4];
             bool verticalFlip             = textureAlignment[5];
             glm::vec2 originTransform     = glm::vec2(0.5f, 0.5f);
@@ -373,13 +373,13 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
                 uv.y *= maxV;
             }
         } break;
-        case CAR:
+        case EntityType::CAR:
             break;
         }
     } break;
-    case NFS_5:
+    case NFSVersion::NFS_5:
         break;
-    case UNKNOWN:
+    case NFSVersion::UNKNOWN:
         break;
     }
 

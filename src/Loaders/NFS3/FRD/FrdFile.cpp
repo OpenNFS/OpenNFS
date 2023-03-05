@@ -47,9 +47,9 @@ bool FrdFile::_SerializeIn(std::ifstream &ifstream) {
     SAFE_READ(ifstream, &hsMagic, sizeof(int32_t));
 
     if ((hsMagic < 0) || (hsMagic > 5000)) {
-        version = NFSVer::NFS_3;
+        version = NFSVersion::NFS_3;
     } else if (((hsMagic + 7) / 8) == nBlocks) {
-        version = NFSVer::NFS_4;
+        version = NFSVersion::NFS_4;
     } else {
         // Unknown file type
         return false;

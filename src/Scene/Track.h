@@ -17,13 +17,13 @@ constexpr uint16_t kCullTreeInitialSize = 4000;
 
 class Track {
 public:
-    Track() : cullTree(kCullTreeInitialSize), nBlocks(0), nfsVersion(UNKNOWN){};
+    Track() : cullTree(kCullTreeInitialSize), nBlocks(0), nfsVersion(NFSVersion::UNKNOWN){};
     ~Track();
     void GenerateSpline();
     void GenerateAabbTree();
 
     // Metadata
-    NFSVer nfsVersion;
+    NFSVersion nfsVersion;
     std::string name;
     uint32_t nBlocks;
     std::vector<CameraAnimPoint> cameraAnimation;

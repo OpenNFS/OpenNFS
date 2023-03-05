@@ -6,12 +6,9 @@
 #include <vector>
 #include <fstream>
 #include <map>
-#include <boost/program_options.hpp>
 
-#include "Enums.h"
+#include "NFSVersion.h"
 #include "Util/Logger.h"
-
-using namespace boost::program_options;
 
 /* --------------- ONFS Compile time parameters here -----------------*/
 /* Some graphics parameters can be found at file SHADER_PREAMBLE_PATH */
@@ -62,8 +59,8 @@ const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks
 // ----- Defaults -----
 const std::string DEFAULT_CAR           = "corv";
 const std::string DEFAULT_TRACK         = "trk003";
-const std::string DEFAULT_CAR_NFS_VER   = ToString(NFS_3);
-const std::string DEFAULT_TRACK_NFS_VER = ToString(NFS_3);
+const std::string DEFAULT_CAR_NFS_VER   = get_string(NFSVersion::NFS_3);
+const std::string DEFAULT_TRACK_NFS_VER = get_string(NFSVersion::NFS_3);
 const int DEFAULT_NUM_RACERS            = 0;
 
 /* --------------- ONFS Runtime parameters here -----------------*/
@@ -75,17 +72,12 @@ public:
     }
     void ParseFile(std::ifstream& inStream);
     void InitFromCommandLine(int argc, char** argv);
-    template <typename _T>
-    _T getValue(const std::string& key) {
-        return storedConfig[key].as<_T>();
-    };
     // Better named parameters instead of using var_map with command-line arg name
     std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
     std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
     uint16_t nRacers = DEFAULT_NUM_RACERS;
     /* -- Physics/AI Params -- */
     bool useFullVroad = true;
-    bool sparkMode    = false;
     /* -- Render Params -- */
     bool vulkanRender = false;
     bool headless     = false;
@@ -98,7 +90,6 @@ private:
     Config() = default;
     Config(const Config&);
     Config& operator=(const Config&);
-    variables_map storedConfig;
 };
 
 struct ParamData {
@@ -124,14 +115,14 @@ struct ParamData {
 };
 
 struct AssetData {
-    NFSVer carTag;
+    NFSVersion carTag;
     std::string car;
-    NFSVer trackTag;
+    NFSVersion trackTag;
     std::string track;
 };
 
 struct NfsAssetList {
-    NFSVer tag;
+    NFSVersion tag;
     std::vector<std::string> tracks;
     std::vector<std::string> cars;
 };

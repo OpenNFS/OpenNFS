@@ -34,7 +34,7 @@ void RacerManager::_SpawnRacers(PhysicsEngine &physicsEngine) {
     if (Config::get().nRacers == 0)
         return;
 
-    std::shared_ptr<Car> racerVehicle = CarLoader::LoadCar(NFSVer::NFS_3, "f355");
+    std::shared_ptr<Car> racerVehicle = CarLoader::LoadCar(NFSVersion::NFS_3, "f355");
     float racerSpawnOffset            = -0.25f;
     for (uint8_t racerIdx = 0; racerIdx < Config::get().nRacers; ++racerIdx) {
         std::shared_ptr<RacerAgent> racer = std::make_shared<RacerAgent>(racerIdx % 23, racerVehicle, m_currentTrack);

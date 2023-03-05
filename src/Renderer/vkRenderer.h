@@ -19,7 +19,7 @@
 #include <array>
 #include <set>
 
-#include "../Enums.h"
+#include "../NFSVersion.h"
 #include "../Physics/Car.h"
 #include "../Loaders/CarLoader.h"
 

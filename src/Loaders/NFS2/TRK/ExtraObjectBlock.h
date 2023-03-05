@@ -92,11 +92,11 @@ namespace LibOpenNFS {
         class ExtraObjectBlock : IRawData {
         public:
             ExtraObjectBlock() = default;
-            explicit ExtraObjectBlock(std::ifstream &trk, NFSVer version);
+            explicit ExtraObjectBlock(std::ifstream &trk, NFSVersion version);
             void _SerializeOut(std::ofstream &ofstream) override;
 
             // ONFS attribute
-            NFSVer version;
+            NFSVersion version;
 
             // Raw file data
             uint32_t recSize  = 0;

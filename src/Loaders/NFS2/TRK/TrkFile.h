@@ -10,14 +10,14 @@ namespace LibOpenNFS {
         class TrkFile : IRawData {
         public:
             TrkFile() = default;
-            static bool Load(const std::string &trkPath, TrkFile &trkFile, NFSVer version);
+            static bool Load(const std::string &trkPath, TrkFile &trkFile, NFSVersion version);
             static void Save(const std::string &trkPath, TrkFile &trkFile);
 
             static const uint8_t HEADER_LENGTH         = 4;
             static const uint8_t UNKNOWN_HEADER_LENGTH = 5;
 
             // ONFS attribute
-            NFSVer version;
+            NFSVersion version;
 
             // Raw File data
             unsigned char header[HEADER_LENGTH];

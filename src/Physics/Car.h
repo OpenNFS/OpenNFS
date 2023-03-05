@@ -12,7 +12,7 @@
 #include "../Scene/Models/CarModel.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
-#include "../Enums.h"
+#include "../NFSVersion.h"
 
 // Raycasting Data
 enum RayDirection : uint8_t {
@@ -86,8 +86,8 @@ struct RenderInfo {
 
 class Car {
 public:
-    explicit Car(const CarData& carData, NFSVer nfsVersion, const std::string& carID);
-    Car(const CarData& carData, NFSVer nfsVersion, const std::string& carID, GLuint textureArrayID); // Multitextured car
+    explicit Car(const CarData& carData, NFSVersion nfsVersion, const std::string& carID);
+    Car(const CarData& carData, NFSVersion nfsVersion, const std::string& carID, GLuint textureArrayID); // Multitextured car
     ~Car();
     void Update(btDynamicsWorld* dynamicsWorld);
     void SetPosition(glm::vec3 position, glm::quat orientation);
@@ -117,7 +117,7 @@ public:
 
     std::string name;
     std::string id;
-    NFSVer tag;
+    NFSVersion tag;
     CarData assetData;
 
     // Car configuration data

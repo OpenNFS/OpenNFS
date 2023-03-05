@@ -2,12 +2,11 @@
 
 #ifdef VULKAN_BUILD
 #define GLFW_INCLUDE_VULKAN
-
 #include "Renderer/vkRenderer.h"
-
 #endif
 
 #include <cstdlib>
+#include <filesystem>
 #include <string>
 #include <iostream>
 #include <GL/glew.h>
@@ -22,7 +21,7 @@
 #include "Renderer/Renderer.h"
 #include "Race/RaceSession.h"
 
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 class OpenNFSEngine {
 public:
@@ -50,13 +49,13 @@ public:
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         std::shared_ptr<GLFWwindow> window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
-        AssetData loadedAssets             = {getEnum(Config::get().carTag), Config::get().car, getEnum(Config::get().trackTag), Config::get().track};
+        AssetData loadedAssets             = {get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track};
 
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
-        ASSERT(loadedAssets.trackTag != UNKNOWN, "Unknown track type!");
+        ASSERT(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
 
         /*------- Render --------*/
-        while (loadedAssets.trackTag != UNKNOWN) {
+        while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
             /*------ ASSET LOAD ------*/
             // Load Track Data
             auto const &track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
@@ -95,10 +94,10 @@ private:
 
         for (directory_iterator itr(basePath); itr != directory_iterator(); ++itr) {
             NfsAssetList currentNFS;
-            currentNFS.tag = UNKNOWN;
+            currentNFS.tag = NFSVersion::UNKNOWN;
 
-            if (itr->path().filename().string() == ToString(NFS_2_SE)) {
-                currentNFS.tag = NFS_2_SE;
+            if (itr->path().filename().string() == get_string(NFSVersion::NFS_2_SE)) {
+                currentNFS.tag = NFSVersion::NFS_2_SE;
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_SE_TRACK_PATH;
@@ -117,8 +116,8 @@ private:
                 ASSERT(exists(carBasePath), "NFS 2 Special Edition car folder: " << carBasePath << " is missing");
 
                 // TODO: Work out where NFS2 SE Cars are stored
-            } else if (itr->path().filename().string() == ToString(NFS_2)) {
-                currentNFS.tag = NFS_2;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_2)) {
+                currentNFS.tag = NFSVersion::NFS_2;
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_TRACK_PATH;
@@ -141,8 +140,8 @@ private:
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == ToString(NFS_2_PS1)) {
-                currentNFS.tag = NFS_2_PS1;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_2_PS1)) {
+                currentNFS.tag = NFSVersion::NFS_2_PS1;
 
                 for (directory_iterator trackItr(itr->path().string()); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".trk") != std::string::npos) {
@@ -155,8 +154,8 @@ private:
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == ToString(NFS_3_PS1)) {
-                currentNFS.tag = NFS_3_PS1;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_3_PS1)) {
+                currentNFS.tag = NFSVersion::NFS_3_PS1;
 
                 for (directory_iterator trackItr(itr->path().string()); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".trk") != std::string::npos) {
@@ -169,8 +168,8 @@ private:
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == ToString(NFS_3)) {
-                currentNFS.tag = NFS_3;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_3)) {
+                currentNFS.tag = NFSVersion::NFS_3;
 
                 std::string sfxPath = itr->path().string() + "/gamedata/render/pc/sfx.fsh";
                 ASSERT(exists(sfxPath), "NFS 3 SFX Resource: " << sfxPath << " is missing");
@@ -207,8 +206,8 @@ private:
                         currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                     }
                 }
-            } else if (itr->path().filename().string() == ToString(NFS_4_PS1)) {
-                currentNFS.tag = NFS_4_PS1;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_4_PS1)) {
+                currentNFS.tag = NFSVersion::NFS_4_PS1;
 
                 for (directory_iterator dirItr(itr->path().string()); dirItr != directory_iterator(); ++dirItr) {
                     if (dirItr->path().filename().string().find("zzz") == 0 && dirItr->path().filename().string().find(".viv") != std::string::npos) {
@@ -217,8 +216,8 @@ private:
                         currentNFS.tracks.emplace_back(dirItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == ToString(NFS_4)) {
-                currentNFS.tag = NFS_4;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_4)) {
+                currentNFS.tag = NFSVersion::NFS_4;
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_4_TRACK_PATH;
@@ -258,8 +257,8 @@ private:
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                 }
-            } else if (itr->path().filename().string() == ToString(MCO)) {
-                currentNFS.tag = MCO;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::MCO)) {
+                currentNFS.tag = NFSVersion::MCO;
 
                 std::string trackBasePath = itr->path().string() + MCO_TRACK_PATH;
                 ASSERT(exists(trackBasePath), "Motor City Online track folder: " << trackBasePath << " is missing");
@@ -273,8 +272,8 @@ private:
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                 }
-            } else if (itr->path().filename().string() == ToString(NFS_5)) {
-                currentNFS.tag = NFS_5;
+            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_5)) {
+                currentNFS.tag = NFSVersion::NFS_5;
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_5_TRACK_PATH;
@@ -317,12 +316,12 @@ private:
         ASSERT(installedNFS.size(), "No Need for Speed games detected in resources directory");
 
         for (auto nfs : installedNFS) {
-            LOG(INFO) << "Detected: " << ToString(nfs.tag);
+            LOG(INFO) << "Detected: " << get_string(nfs.tag);
         }
     }
 
     static bool FilePathSortByDepthReverse(path a, path b) {
-        return (a.size() > b.size());
+        return (a.string().size() > b.string().size());
     }
 
     void RenameAssetsToLowercase() {
@@ -333,8 +332,8 @@ private:
         for (directory_iterator itr(RESOURCE_PATH); itr != directory_iterator(); ++itr) {
             // Yucky way of iterating Enum
             for (uint8_t uNfsIdx = 0; uNfsIdx < 11; ++uNfsIdx) {
-                NFSVer version = (NFSVer) uNfsIdx;
-                if (itr->path().filename().string() == ToString(version)) {
+                NFSVersion version = (NFSVersion) uNfsIdx;
+                if (itr->path().filename().string() == get_string(version)) {
                     baseNfsPaths.push_back(itr->path());
                 }
             }

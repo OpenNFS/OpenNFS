@@ -23,8 +23,8 @@ const float NFS2_SCALE_FACTOR = 1000000.0f;
 template <typename Platform>
 class NFS2Loader {
 public:
-    static std::shared_ptr<Car> LoadCar(const std::string &carBasePath, NFSVer nfsVersion);
-    static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath, NFSVer nfsVersion);
+    static std::shared_ptr<Car> LoadCar(const std::string &carBasePath, NFSVersion nfsVersion);
+    static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath, NFSVersion nfsVersion);
 
 private:
     static CarData _ParseGEOModels(const LibOpenNFS::NFS2::GeoFile<Platform> &geoFile);

@@ -10,11 +10,11 @@ namespace LibOpenNFS {
         class SuperBlock : IRawData {
         public:
             SuperBlock() = default;
-            explicit SuperBlock(std::ifstream &trk, NFSVer version);
+            explicit SuperBlock(std::ifstream &trk, NFSVersion version);
             void _SerializeOut(std::ofstream &ofstream) override;
 
             // ONFS attribute
-            NFSVer version;
+            NFSVersion version;
 
             // Raw file data
             uint32_t superBlockSize;

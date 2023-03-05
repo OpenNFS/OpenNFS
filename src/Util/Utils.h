@@ -5,6 +5,7 @@
 #include <vector>
 #include <random>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <cassert>
@@ -20,13 +21,11 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <GL/glew.h>
 
 #include "Logger.h"
 #include "../Scene/Models/CarModel.h"
-#include "../Enums.h"
+#include "../NFSVersion.h"
 
 #define SAFE_READ(file, structure, size)                              \
     if ((file).read((char *) (structure), (size)).gcount() != (size)) \

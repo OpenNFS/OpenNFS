@@ -1,5 +1,7 @@
 #include "PhysicsEngine.h"
 
+#include "CollisionMasks.h"
+
 WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screenHeight, glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix) {
     // The ray Start and End positions, in Normalized Device Coordinates
     glm::vec4 lRayStart_NDC(((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
@@ -100,7 +102,7 @@ void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
                 collisionMask |= COL_TRACK;
             }
             // Move Rigid body to correct place in world
-            btTransform initialTransform = Utils::MakeTransform(boost::get<TrackModel>(object.raw).initialPosition, boost::get<TrackModel>(object.raw).orientation);
+            btTransform initialTransform = Utils::MakeTransform(std::get<TrackModel>(object.raw).initialPosition, std::get<TrackModel>(object.raw).orientation);
             object.rigidBody->setWorldTransform(initialTransform);
             m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }
@@ -190,15 +192,15 @@ PhysicsEngine::~PhysicsEngine() {
 void PhysicsEngine::_GenerateVroadBarriers() {
     /*if ((m_track->nfsVersion == NFS_3 || m_track->nfsVersion == NFS_4) && !Config::get().sparkMode)
     {
-        uint32_t nVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
+        uint32_t nVroad = std::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
         for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
         {
             if (vroad_Idx < nVroad - 1)
             {
                 glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
 
-                COLVROAD curVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroad[vroad_Idx];
-                COLVROAD nextVroad = boost::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroad[vroad_Idx + 1];
+                COLVROAD curVroad = std::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroad[vroad_Idx];
+                COLVROAD nextVroad = std::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroad[vroad_Idx + 1];
                 INTPT curVroadRefPt = curVroad.refPt;
                 INTPT nextVroadRefPt = nextVroad.refPt;
 

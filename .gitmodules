@@ -1,6 +1,3 @@
-[submodule "lib/boost-cmake"]
-	path = lib/boost-cmake
-	url = https://github.com/Orphis/boost-cmake.git
 [submodule "lib/glm"]
 	path = lib/glm
 	url = https://github.com/g-truc/glm.git

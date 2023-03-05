@@ -6,24 +6,24 @@
 #include "NFS4/PS1/NFS4PS1Loader.h"
 #include "NFS5/NFS5Loader.h"*/
 
-std::shared_ptr<Car> CarLoader::LoadCar(NFSVer nfsVersion, const std::string &carName) {
+std::shared_ptr<Car> CarLoader::LoadCar(NFSVersion nfsVersion, const std::string &carName) {
     std::stringstream carPath;
-    carPath << RESOURCE_PATH << ToString(nfsVersion);
+    carPath << RESOURCE_PATH << get_string(nfsVersion);
 
     switch (nfsVersion) {
-    case NFS_2:
+    case NFSVersion::NFS_2:
         carPath << NFS_2_CAR_PATH << carName;
         return NFS2Loader<LibOpenNFS::NFS2::PC>::LoadCar(carPath.str(), nfsVersion);
-    case NFS_2_SE:
+    case NFSVersion::NFS_2_SE:
         carPath << NFS_2_SE_CAR_PATH << carName;
         return NFS2Loader<LibOpenNFS::NFS2::PC>::LoadCar(carPath.str(), nfsVersion);
-    case NFS_2_PS1:
+    case NFSVersion::NFS_2_PS1:
         carPath << "/" << carName;
         return NFS2Loader<LibOpenNFS::NFS2::PC>::LoadCar(carPath.str(), nfsVersion);
-    case NFS_3:
+    case NFSVersion::NFS_3:
         carPath << NFS_3_CAR_PATH << carName;
         return NFS3Loader::LoadCar(carPath.str());
-    case NFS_3_PS1:
+    case NFSVersion::NFS_3_PS1:
         carPath << "/" << carName;
         return NFS2Loader<LibOpenNFS::NFS2::PS1>::LoadCar(carPath.str(), nfsVersion);
     /*case NFS_4:

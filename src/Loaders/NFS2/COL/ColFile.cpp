@@ -3,7 +3,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-bool ColFile<Platform>::Load(const std::string &colPath, ColFile &colFile, NFSVer version) {
+bool ColFile<Platform>::Load(const std::string &colPath, ColFile &colFile, NFSVersion version) {
     LOG(INFO) << "Loading COL File located at " << colPath;
     std::ifstream col(colPath, std::ios::in | std::ios::binary);
     colFile.version = version;

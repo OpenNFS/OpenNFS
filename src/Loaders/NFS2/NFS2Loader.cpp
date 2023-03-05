@@ -5,8 +5,8 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVer nfsVersion) {
-    boost::filesystem::path p(carBasePath);
+std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVersion nfsVersion) {
+    std::filesystem::path p(carBasePath);
     std::string carName = p.filename().string();
 
     std::string geoPath = carBasePath + ".geo";
@@ -21,27 +21,27 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
 
     // TODO: Refactor all of this to nexgen style
     switch (nfsVersion) {
-    case NFS_3_PS1:
-    case NFS_2_PS1:
-        carOutPath = CAR_PATH + ToString(nfsVersion) + "/" + carName + "/";
+    case NFSVersion::NFS_3_PS1:
+    case NFSVersion::NFS_2_PS1:
+        carOutPath = CAR_PATH + get_string(nfsVersion) + "/" + carName + "/";
         ImageLoader::ExtractPSH(pshPath, carOutPath);
         break;
-    case NFS_2:
-    case NFS_2_SE:
-        carOutPath = CAR_PATH + ToString(nfsVersion) + "/" + carName + "/";
+    case NFSVersion::NFS_2:
+    case NFSVersion::NFS_2_SE:
+        carOutPath = CAR_PATH + get_string(nfsVersion) + "/" + carName + "/";
         ImageLoader::ExtractQFS(qfsPath, carOutPath);
         break;
     default:
-        ASSERT(false, "I shouldn't be loading this version (" << nfsVersion << ") and you know it");
+        ASSERT(false, "I shouldn't be loading this version (" << get_string(nfsVersion) << ") and you know it");
     }
 
-    for (boost::filesystem::directory_iterator itr(carOutPath); itr != boost::filesystem::directory_iterator(); ++itr) {
+    for (std::filesystem::directory_iterator itr(carOutPath); itr != std::filesystem::directory_iterator(); ++itr) {
         if (itr->path().filename().string().find("BMP") != std::string::npos && itr->path().filename().string().find("-a") == std::string::npos) {
             // Map texture names, strings, into numbers so I can use them for indexes into the eventual Texture Array
             remappedTextureIds[itr->path().filename().replace_extension("").string()] = remappedTextureID++;
             switch (nfsVersion) {
-            case NFS_3_PS1:
-            case NFS_2_PS1:
+            case NFSVersion::NFS_3_PS1:
+            case NFSVersion::NFS_2_PS1:
                 GLubyte *data;
                 GLsizei width;
                 GLsizei height;
@@ -51,8 +51,8 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
                 //   Texture(nfsVersion, remappedTextureIds[itr->path().filename().replace_extension("").string()], data, static_cast<unsigned int>(width),
                 //           static_cast<unsigned int>(height), nullptr);
                 break;
-            case NFS_2:
-            case NFS_2_SE:
+            case NFSVersion::NFS_2:
+            case NFSVersion::NFS_2_SE:
                 bmpread_t bmpAttr; // This will leak.
                 ASSERT(bmpread(itr->path().string().c_str(), BMPREAD_ANY_SIZE | BMPREAD_ALPHA, &bmpAttr), "Texture " << itr->path().string() << " did not load succesfully!");
                 // carTextures[remappedTextureIds[itr->path().filename().replace_extension("").string()]] =
@@ -60,7 +60,7 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
                 //          static_cast<unsigned int>(bmpAttr.height), nullptr);
                 break;
             default:
-                ASSERT(false, "I shouldn't be loading this version (" << nfsVersion << ") and you know it");
+                ASSERT(false, "I shouldn't be loading this version (" << get_string(nfsVersion) << ") and you know it");
             }
         }
     }
@@ -72,28 +72,28 @@ std::shared_ptr<Car> NFS2Loader<Platform>::LoadCar(const std::string &carBasePat
     GLint textureArrayID = Texture::MakeTextureArray(carTextures, false);
     CarData carData      = _ParseGEOModels(geoFile);
     // carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
-    return std::make_shared<Car>(carData, NFSVer::NFS_2, carName, textureArrayID);
+    return std::make_shared<Car>(carData, NFSVersion::NFS_2, carName, textureArrayID);
 }
 
 template <>
-std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePath, NFSVer nfsVersion) {
+std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePath, NFSVersion nfsVersion) {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
 
     auto track        = std::make_shared<Track>(Track());
     track->nfsVersion = nfsVersion;
 
-    boost::filesystem::path p(trackBasePath);
+    std::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
     std::string trkPath, colPath, canPath;
 
     trkPath = trackBasePath + ".trk";
     colPath = trackBasePath + ".col";
     switch (track->nfsVersion) {
-    case NFS_2:
-    case NFS_2_SE:
-        canPath = RESOURCE_PATH + ToString(track->nfsVersion) + "/gamedata/tracks/data/pc/" + track->name + "00.can";
+    case NFSVersion::NFS_2:
+    case NFSVersion::NFS_2_SE:
+        canPath = RESOURCE_PATH + get_string(track->nfsVersion) + "/gamedata/tracks/data/pc/" + track->name + "00.can";
         break;
-    case NFS_2_PS1:
+    case NFSVersion::NFS_2_PS1:
         canPath = trackBasePath + "00.can";
         break;
     default:
@@ -128,12 +128,12 @@ std::shared_ptr<Track> NFS2Loader<PC>::LoadTrack(const std::string &trackBasePat
 }
 
 template <>
-std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePath, NFSVer nfsVersion) {
+std::shared_ptr<Track> NFS2Loader<PS1>::LoadTrack(const std::string &trackBasePath, NFSVersion nfsVersion) {
     LOG(INFO) << "Loading Track located at " << trackBasePath;
     auto track        = std::make_shared<Track>(Track());
     track->nfsVersion = nfsVersion;
 
-    boost::filesystem::path p(trackBasePath);
+    std::filesystem::path p(trackBasePath);
     track->name = p.filename().string();
     std::string trkPath, colPath;
 
@@ -274,7 +274,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                         TEXTURE_BLOCK polygonTexture = polyToQfsTexTable[structures[structureIdx].polygonTable[polyIdx].texture];
                         Texture glTexture            = track->textureMap[polygonTexture.texNumber];
                         // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(XOBJ, polygonTexture.alignmentData, polygonTexture);
+                        std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(EntityType::XOBJ, polygonTexture.alignmentData, polygonTexture);
                         structureUVs.insert(structureUVs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         // Calculate the normal, as no provided data
@@ -298,7 +298,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                                                            structureVertexIndices,
                                                            structureShadingData,
                                                            orientation * (Utils::PointToVec(structureReferenceCoordinates) / NFS2_SCALE_FACTOR));
-                    Entity trackBlockEntity   = Entity(rawTrackBlock.serialNum, structureIdx, track->nfsVersion, OBJ_POLY, structureModel, 0);
+                    Entity trackBlockEntity   = Entity(rawTrackBlock.serialNum, structureIdx, track->nfsVersion, EntityType::OBJ_POLY, structureModel, 0);
                     trackBlock.objects.emplace_back(trackBlockEntity);
                 }
             }
@@ -325,7 +325,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                 trackBlockVertices.emplace_back(orientation *
                                                 (((Utils::PointToVec(blockRefCoord) + (256.f * Utils::PointToVec(rawTrackBlock.vertexTable[vertIdx]))) / NFS2_SCALE_FACTOR)));
 
-                if (track->nfsVersion == NFS_3_PS1) {
+                if (track->nfsVersion == NFSVersion::NFS_3_PS1) {
                     trackBlockShadingData.emplace_back(TrackUtils::ShadingDataToVec4((uint16_t) ((PS1::VERT *) &rawTrackBlock.vertexTable[vertIdx])->w)); // And I oop
                 } else {
                     trackBlockShadingData.emplace_back(glm::vec4(1.f, 1.f, 1.f, 1.f));
@@ -338,7 +338,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
                 TEXTURE_BLOCK polygonTexture = polyToQfsTexTable[rawTrackBlock.polygonTable[polyIdx].texture];
                 Texture glTexture            = track->textureMap[polygonTexture.texNumber];
                 // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(ROAD, polygonTexture.alignmentData, polygonTexture);
+                std::vector<glm::vec2> transformedUVs = glTexture.GenerateUVs(EntityType::ROAD, polygonTexture.alignmentData, polygonTexture);
                 trackBlockUVs.insert(trackBlockUVs.end(), transformedUVs.begin(), transformedUVs.end());
                 // Calculate the normal, as no provided data
                 glm::vec3 normal = Utils::CalculateQuadNormal(trackBlockVertices[rawTrackBlock.polygonTable[polyIdx].vertex[0]],
@@ -355,7 +355,7 @@ std::vector<OpenNFS::TrackBlock> NFS2Loader<Platform>::_ParseTRKModels(const Trk
             }
 
             TrackModel trackBlockModel(trackBlockVertices, trackBlockNormals, trackBlockUVs, trackBlockTextureIndices, trackBlockVertexIndices, trackBlockShadingData, glm::vec3());
-            Entity trackBlockEntity = Entity(rawTrackBlock.serialNum, rawTrackBlock.serialNum, track->nfsVersion, ROAD, trackBlockModel, 0);
+            Entity trackBlockEntity = Entity(rawTrackBlock.serialNum, rawTrackBlock.serialNum, track->nfsVersion, EntityType::ROAD, trackBlockModel, 0);
             trackBlock.track.push_back(trackBlockEntity);
 
             // Add the parsed ONFS trackblock to the list of trackblocks
@@ -440,7 +440,7 @@ std::vector<Entity> NFS2Loader<Platform>::_ParseCOLModels(ColFile<Platform> &col
         }
         for (uint16_t vertIdx = 0; vertIdx < structures[structureIdx].nVerts; ++vertIdx) {
             globalStructureVertices.emplace_back(orientation * ((256.f * Utils::PointToVec(structures[structureIdx].vertexTable[vertIdx])) / NFS2_SCALE_FACTOR));
-            if (track->nfsVersion == NFS_3_PS1) {
+            if (track->nfsVersion == NFSVersion::NFS_3_PS1) {
                 globalStructureShadingData.emplace_back(TrackUtils::ShadingDataToVec4((uint16_t) ((PS1::VERT *) &structures[structureIdx].vertexTable[vertIdx])->w)); // And I oop
             } else {
                 globalStructureShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
@@ -476,7 +476,7 @@ std::vector<Entity> NFS2Loader<Platform>::_ParseCOLModels(ColFile<Platform> &col
         glm::vec3 position = orientation * (Utils::PointToVec(structureReferenceCoordinates) / NFS2_SCALE_FACTOR);
         TrackModel globalStructureModel(globalStructureVertices, globalStructureNormals, globalStructureUVs, globalStructureTextureIndices, globalStructureVertexIndices,
                                         globalStructureShadingData, position);
-        colEntities.emplace_back(Entity(0, structureIdx, NFS_2, GLOBAL, globalStructureModel, 0));
+        colEntities.emplace_back(Entity(0, structureIdx, NFSVersion::NFS_2, EntityType::GLOBAL, globalStructureModel, 0));
     }
 
     return colEntities;

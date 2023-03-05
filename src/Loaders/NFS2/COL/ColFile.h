@@ -12,7 +12,7 @@ namespace LibOpenNFS {
         class ColFile : IRawData {
         public:
             ColFile() = default;
-            static bool Load(const std::string &colPath, ColFile &colFile, NFSVer version);
+            static bool Load(const std::string &colPath, ColFile &colFile, NFSVersion version);
             static void Save(const std::string &colPath, ColFile &colFile);
             ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
@@ -20,7 +20,7 @@ namespace LibOpenNFS {
             static const uint8_t HEADER_LENGTH = 4;
 
             // ONFS attribute
-            NFSVer version;
+            NFSVersion version;
 
             // Raw File data
             unsigned char header[HEADER_LENGTH];

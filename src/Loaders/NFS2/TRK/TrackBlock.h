@@ -12,13 +12,13 @@ namespace LibOpenNFS {
         class TrackBlock : IRawData {
         public:
             TrackBlock() = default;
-            explicit TrackBlock(std::ifstream &trk, NFSVer version);
+            explicit TrackBlock(std::ifstream &trk, NFSVersion version);
             void _SerializeOut(std::ofstream &ofstream) override;
             ExtraObjectBlock<Platform> GetExtraObjectBlock(ExtraBlockID eBlockType);
             bool IsBlockPresent(ExtraBlockID eBlockType);
 
             // ONFS attribute
-            NFSVer version;
+            NFSVersion version;
 
             // Raw file data
             uint32_t blockSize;

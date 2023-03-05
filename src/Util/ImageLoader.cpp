@@ -73,12 +73,12 @@ bool ImageLoader::SaveImage(const char *szPathName, void *lpBits, uint16_t w, ui
 
 bool ImageLoader::ExtractQFS(const std::string &qfs_input, const std::string &output_dir) {
     LOG(INFO) << "Extracting QFS file: " << qfs_input << " to " << output_dir;
-    if (boost::filesystem::exists(output_dir)) {
+    if (std::filesystem::exists(output_dir)) {
         LOG(INFO) << "Textures already exist at " << output_dir << ", nothing to extract";
         return true;
     }
 
-    boost::filesystem::create_directories(output_dir);
+    std::filesystem::create_directories(output_dir);
 
     // Fshtool molests the current working directory, save and restore
     char cwd[1024];
@@ -365,12 +365,12 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, GLubyt
 bool ImageLoader::ExtractPSH(const std::string &psh_path, const std::string &output_path) {
     LOG(INFO) << "Extracting PSH file: " << psh_path << " to " << output_path;
 
-    if (boost::filesystem::exists(output_path)) {
+    if (std::filesystem::exists(output_path)) {
         LOG(INFO) << "Textures already exist at " << output_path << ". Nothing to extract";
         return true;
     }
 
-    boost::filesystem::create_directories(output_path);
+    std::filesystem::create_directories(output_path);
     std::ifstream psh(psh_path, std::ios::in | std::ios::binary);
 
     PSH::HEADER *pshHeader = new PSH::HEADER();

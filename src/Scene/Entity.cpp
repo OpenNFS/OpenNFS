@@ -3,7 +3,7 @@
 
 Entity::Entity(uint32_t parentTrackblockID,
                uint32_t entityID,
-               NFSVer nfsVersion,
+               NFSVersion nfsVersion,
                EntityType entityType,
                EngineModel glMesh,
                uint32_t flags,
@@ -31,12 +31,12 @@ void Entity::_GenCollisionMesh() {
     glm::quat orientation = glm::quat(0, 0, 0, 1);
 
     switch (type) {
-    case SOUND:
-    case CAR:
-    case LANE:
+    case EntityType::SOUND:
+    case EntityType::CAR:
+    case EntityType::LANE:
         return;
-    case LIGHT: {
-        std::shared_ptr<BaseLight> baseLight   = boost::get<std::shared_ptr<BaseLight>>(raw);
+    case EntityType::LIGHT: {
+        std::shared_ptr<BaseLight> baseLight   = std::get<std::shared_ptr<BaseLight>>(raw);
         std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
         // Light mesh billboarded, generated (Bullet) AABB too large. Divide verts by scale factor to make smaller.
         std::vector<glm::vec3> vertices = trackLight->model.m_vertices;
@@ -50,7 +50,7 @@ void Entity::_GenCollisionMesh() {
         }
         m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
     } break;
-    case VROAD: {
+    case EntityType::VROAD: {
         float wallHeight    = 1.0f;
         auto *mesh          = new btTriangleMesh();
         glm::vec3 triangle  = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
@@ -64,7 +64,7 @@ void Entity::_GenCollisionMesh() {
         mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
         m_collisionShape = new btConvexTriangleMeshShape(mesh);
     } break;
-    case VROAD_CEIL: {
+    case EntityType::VROAD_CEIL: {
         float ceilHeight    = 0.5f;
         auto *mesh          = new btTriangleMesh();
         glm::vec3 triangle  = glm::vec3(startPointA.x, startPointA.y + ceilHeight, startPointA.z);
@@ -78,13 +78,13 @@ void Entity::_GenCollisionMesh() {
         mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
         m_collisionShape = new btConvexTriangleMeshShape(mesh);
     } break;
-    case ROAD:
-    case GLOBAL:
-    case XOBJ:
-    case OBJ_POLY: {
-        std::vector<glm::vec3> vertices = boost::get<TrackModel>(raw).m_vertices;
-        center                          = boost::get<TrackModel>(raw).initialPosition;
-        orientation                     = boost::get<TrackModel>(raw).orientation;
+    case EntityType::ROAD:
+    case EntityType::GLOBAL:
+    case EntityType::XOBJ:
+    case EntityType::OBJ_POLY: {
+        std::vector<glm::vec3> vertices = std::get<TrackModel>(raw).m_vertices;
+        center                          = std::get<TrackModel>(raw).initialPosition;
+        orientation                     = std::get<TrackModel>(raw).orientation;
         if (dynamic) {
             // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
             auto *mesh = new btTriangleMesh();
@@ -123,66 +123,66 @@ void Entity::_GenCollisionMesh() {
 
 void Entity::_GenBoundingBox() {
     switch (type) {
-    case XOBJ:
-    case OBJ_POLY:
-    case LANE:
-    case ROAD:
-    case GLOBAL: {
-        DimensionData meshDimensions = Utils::GenDimensions(boost::get<TrackModel>(raw).m_vertices);
-        m_boundingBox                = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<TrackModel>(raw).initialPosition);
+    case EntityType::XOBJ:
+    case EntityType::OBJ_POLY:
+    case EntityType::LANE:
+    case EntityType::ROAD:
+    case EntityType::GLOBAL: {
+        DimensionData meshDimensions = Utils::GenDimensions(std::get<TrackModel>(raw).m_vertices);
+        m_boundingBox                = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, std::get<TrackModel>(raw).initialPosition);
         return;
     }
-    case LIGHT: {
+    case EntityType::LIGHT: {
         // For now, only tracklights will have entities created
-        std::shared_ptr<BaseLight> baseLight = boost::get<std::shared_ptr<BaseLight>>(raw);
+        std::shared_ptr<BaseLight> baseLight = std::get<std::shared_ptr<BaseLight>>(raw);
         ASSERT(baseLight->type == LightType::TRACK_LIGHT, "Not ready to handle other light types at entity creation time");
         std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
         DimensionData meshDimensions           = Utils::GenDimensions(trackLight->model.m_vertices);
         m_boundingBox                          = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
         return;
     }
-    case SOUND:
-    case CAR:
-    case VROAD:
-    case VROAD_CEIL:
+    case EntityType::SOUND:
+    case EntityType::CAR:
+    case EntityType::VROAD:
+    case EntityType::VROAD_CEIL:
         return;
     default:
-        ASSERT(false, "Shouldn't be adding a " << ToString(type) << " entity to the AABB tree!");
+        ASSERT(false, "Shouldn't be adding a " << get_string(type) << " entity to the AABB tree!");
         break;
     }
 }
 
 void Entity::Update() {
     // We don't want to update Entities that aren't dynamic
-    if (!((type == OBJ_POLY || type == XOBJ) && dynamic)) {
+    if (!((type == EntityType::OBJ_POLY || type == EntityType::XOBJ) && dynamic)) {
         return;
     }
     btTransform trans;
     m_motionState->getWorldTransform(trans);
-    boost::get<TrackModel>(raw).position    = Utils::bulletToGlm(trans.getOrigin());
-    boost::get<TrackModel>(raw).orientation = Utils::bulletToGlm(trans.getRotation());
-    boost::get<TrackModel>(raw).update();
+    std::get<TrackModel>(raw).position    = Utils::bulletToGlm(trans.getOrigin());
+    std::get<TrackModel>(raw).orientation = Utils::bulletToGlm(trans.getRotation());
+    std::get<TrackModel>(raw).update();
 }
 
 void Entity::_SetCollisionParameters() {
     switch (tag) {
-    case NFS_3:
+    case NFSVersion::NFS_3:
         switch (type) {
-        case VROAD:
+        case EntityType::VROAD:
             collideable = true;
             dynamic     = false;
             break;
-        case LIGHT:
+        case EntityType::LIGHT:
             collideable = false;
             break;
-        case SOUND:
+        case EntityType::SOUND:
             collideable = false;
             break;
-        case ROAD:
+        case EntityType::ROAD:
             collideable = true;
             break;
-        case OBJ_POLY:
-        case XOBJ:
+        case EntityType::OBJ_POLY:
+        case EntityType::XOBJ:
             collideable = false;
             break;
             switch ((flags >> 4) & 0x7) {
@@ -223,11 +223,11 @@ void Entity::_SetCollisionParameters() {
 
 AABB Entity::GetAABB() const {
     switch (type) {
-    case SOUND:
-    case CAR:
-    case VROAD:
-    case VROAD_CEIL:
-        ASSERT(false, "Shouldn't be adding a " << ToString(type) << " entity to the AABB tree!");
+    case EntityType::SOUND:
+    case EntityType::CAR:
+    case EntityType::VROAD:
+    case EntityType::VROAD_CEIL:
+        ASSERT(false, "Shouldn't be adding a " << get_string(type) << " entity to the AABB tree!");
         break;
     default:
         break;

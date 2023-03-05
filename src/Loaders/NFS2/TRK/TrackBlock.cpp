@@ -3,7 +3,7 @@
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
-TrackBlock<Platform>::TrackBlock(std::ifstream &trk, NFSVer version) {
+TrackBlock<Platform>::TrackBlock(std::ifstream &trk, NFSVersion version) {
     this->version = version;
     ASSERT(this->_SerializeIn(trk), "Failed to serialize TrackBlock from file stream");
 }

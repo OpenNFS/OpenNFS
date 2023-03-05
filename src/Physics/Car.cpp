@@ -1,5 +1,6 @@
 #include "Car.h"
 
+#include "CollisionMasks.h"
 #include "../Scene/Entity.h"
 
 // Forward casts should extend further than L/R
@@ -7,12 +8,12 @@ constexpr float kCastDistances[kNumRangefinders] = {
   1.f, 1.f, 1.f, 1.f, 1.f, 1.5f, 2.f, 3.f, 5.f, 5.f, 5.f, 3.f, 2.f, 2.f, 1.5f, 1.f, 1.f, 1.f, 1.f,
 };
 
-Car::Car(const CarData &carData, NFSVer nfsVersion, const std::string &carID, GLuint textureArrayID) : Car(carData, nfsVersion, carID) {
+Car::Car(const CarData &carData, NFSVersion nfsVersion, const std::string &carID, GLuint textureArrayID) : Car(carData, nfsVersion, carID) {
     renderInfo.textureArrayID       = textureArrayID;
     renderInfo.isMultitexturedModel = true;
 }
 
-Car::Car(const CarData &carData, NFSVer nfsVersion, const std::string &carID) : id(carID), assetData(carData), tag(nfsVersion) {
+Car::Car(const CarData &carData, NFSVersion nfsVersion, const std::string &carID) : id(carID), assetData(carData), tag(nfsVersion) {
     // Vehicle names are only encoded in mesh Asset files for NFS 3 and 4, we must rely upon part of the filename for other titles
     name = carData.carName.empty() ? id : carData.carName;
 
@@ -212,15 +213,15 @@ void Car::_ApplyInputs() {
 void Car::_LoadTextures() {
     std::stringstream carTexturePath;
     int width, height;
-    carTexturePath << CAR_PATH << ToString(tag) << "/" << id;
+    carTexturePath << CAR_PATH << get_string(tag) << "/" << id;
 
-    if (tag == NFS_3 || tag == NFS_4) {
+    if (tag == NFSVersion::NFS_3 || tag == NFSVersion::NFS_4) {
         carTexturePath << "/car00.tga";
         renderInfo.textureID = ImageLoader::LoadImage(carTexturePath.str(), &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
-    } else if (tag == MCO) {
+    } else if (tag == NFSVersion::MCO) {
         std::stringstream car_alpha_texture_path;
         carTexturePath << "/Textures/0000.BMP";
-        car_alpha_texture_path << CAR_PATH << ToString(tag) << "/" << id << "/Textures/0000-a.BMP";
+        car_alpha_texture_path << CAR_PATH << get_string(tag) << "/" << id << "/Textures/0000-a.BMP";
         GLubyte *imageData;
         if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(), &imageData, &width, &height)) {
             glGenTextures(1, &renderInfo.textureID);
@@ -259,12 +260,12 @@ void Car::_GenPhysicsModel() {
     // Shift center of Mass
     float centerOfMassShiftY;
     switch (tag) {
-    case NFS_3:
-    case NFS_4:
-    case MCO:
+    case NFSVersion::NFS_3:
+    case NFSVersion::NFS_4:
+    case NFSVersion::MCO:
         centerOfMassShiftY = 0.f;
         break;
-    case NFS_3_PS1:
+    case NFSVersion::NFS_3_PS1:
         centerOfMassShiftY = 0.1f;
         break;
     default:
@@ -310,7 +311,7 @@ void Car::_GenRaycasts(btDynamicsWorld *dynamicsWorld) {
         rangefinderInfo.castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistances[rangeIdx]);
         rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]));
         // Don't Raycast against other opponents for now. Ghost through them. Only interested in VROAD edge.
-        rayCallbacks[rangeIdx]->m_collisionFilterMask = COL_TRACK;
+        rayCallbacks[rangeIdx]->m_collisionFilterMask = CollisionMasks::COL_TRACK;
         // Perform the raycast
         dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]), *rayCallbacks[rangeIdx]);
         // Check whether we hit anything
@@ -346,12 +347,12 @@ void Car::_GenRaycasts(btDynamicsWorld *dynamicsWorld) {
 // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to manipulate
 void Car::_SetModels(std::vector<CarModel> carModels) {
     switch (tag) {
-    case NFS_1:
+    case NFSVersion::NFS_1:
         break;
-    case NFS_2_PS1:
-    case NFS_2_SE:
-    case NFS_2:
-    case NFS_3_PS1: {
+    case NFSVersion::NFS_2_PS1:
+    case NFSVersion::NFS_2_SE:
+    case NFSVersion::NFS_2:
+    case NFSVersion::NFS_3_PS1: {
         if (carModels.size() < 3) {
             carModels[0].enable();
             leftFrontWheelModel  = carModels[0];
@@ -386,7 +387,7 @@ void Car::_SetModels(std::vector<CarModel> carModels) {
             }
         }
     } break;
-    case NFS_3: {
+    case NFSVersion::NFS_3: {
         carBodyModel = carModels[0];
         carBodyModel.enable();
         leftFrontWheelModel = carModels[1];
@@ -403,7 +404,7 @@ void Car::_SetModels(std::vector<CarModel> carModels) {
             }
         }
     } break;
-    case NFS_4:
+    case NFSVersion::NFS_4:
         for (auto &carModel : carModels) {
             if (carModel.m_name == ":HB") {
                 carModel.enable();
@@ -428,7 +429,7 @@ void Car::_SetModels(std::vector<CarModel> carModels) {
             }
         }
         break;
-    case NFS_4_PS1:
+    case NFSVersion::NFS_4_PS1:
         for (auto &carModel : carModels) {
             if (carModel.m_name.find("Right Body High") != std::string::npos) {
                 carModel.enable();
@@ -453,7 +454,7 @@ void Car::_SetModels(std::vector<CarModel> carModels) {
             }
         }
         break;
-    case MCO:
+    case NFSVersion::MCO:
         for (auto &carModel : carModels) {
             if (carModel.m_name == ":Hbody") {
                 carModel.enable();
@@ -478,9 +479,9 @@ void Car::_SetModels(std::vector<CarModel> carModels) {
             }
         }
         break;
-    case UNKNOWN:
+    case NFSVersion::UNKNOWN:
         break;
-    case NFS_5: {
+    case NFSVersion::NFS_5: {
         for (auto &carModel : carModels) {
             if (carModel.m_name.find("Body_ig1") != std::string::npos) {
                 carModel.enable();
@@ -507,7 +508,7 @@ void Car::_SetModels(std::vector<CarModel> carModels) {
     }
 
     // Go find headlight position data inside dummies
-    if (tag == NFS_3 || tag == NFS_4) {
+    if (tag == NFSVersion::NFS_3 || tag == NFSVersion::NFS_4) {
         for (auto &dummy : assetData.dummies) {
             if (dummy.name.find("HFLO") != std::string::npos) {
                 leftHeadlight.cutOff   = glm::cos(glm::radians(12.5f));

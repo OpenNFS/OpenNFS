@@ -6,5 +6,5 @@
 
 class CarLoader {
 public:
-    static std::shared_ptr<Car> LoadCar(NFSVer nfsVersion, const std::string &carName);
+    static std::shared_ptr<Car> LoadCar(NFSVersion nfsVersion, const std::string &carName);
 };

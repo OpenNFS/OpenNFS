@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 project(OpenNFS)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include(CheckCXXCompilerFlag)
@@ -159,7 +159,7 @@ set(SOURCE_FILES
         src/Scene/Sound.h
         src/Scene/Entity.cpp
         src/Scene/Entity.h
-        src/Enums.h
+        src/NFSVersion.h
         src/Renderer/CarRenderer.cpp
         src/Renderer/CarRenderer.h
         src/Renderer/TrackRenderer.cpp
@@ -239,7 +239,7 @@ set(SOURCE_FILES
         src/Loaders/TrackLoader.h
         src/Scene/VirtualRoad.cpp
         src/Scene/VirtualRoad.h
-        )
+        src/Physics/CollisionMasks.h)
 
 add_executable(OpenNFS ${SOURCE_FILES} ${LIB_OPENNFS_SOURCES} ${CRP_LIB_SOURCES})
 
@@ -262,10 +262,6 @@ include_directories(include/bmpread)
 add_subdirectory(lib/freetype2)
 include_directories(lib/freetype2/include)
 target_link_libraries(OpenNFS freetype)
-
-#[[BOOST]]
-add_subdirectory(lib/boost-cmake)
-target_link_libraries(OpenNFS Boost::program_options Boost::filesystem Boost::system Boost::boost)
 
 #[[G3Log (Because Boost-cmake logging won't build]]
 set(G3_SHARED_LIB OFF CACHE BOOL "Compile g3log as static library")

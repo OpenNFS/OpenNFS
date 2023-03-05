@@ -7,7 +7,7 @@ using namespace TrackUtils;
 
 // CAR
 std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path, NFSVer version) {
-    boost::filesystem::path p(car_base_path);
+    std::filesystem::path p(car_base_path);
     std::string car_name = p.filename().replace_extension("").string();
 
     std::stringstream viv_path, car_out_path, fce_path, fsh_path;
@@ -27,7 +27,7 @@ std::shared_ptr<Car> NFS4::LoadCar(const std::string &car_base_path, NFSVer vers
     ASSERT(ExtractVIV(viv_path.str(), car_out_path.str()), "Unable to extract " << viv_path.str() << " to " << car_out_path.str());
 
     if (version == MCO) {
-        if (boost::filesystem::exists(fsh_path.str())) {
+        if (std::filesystem::exists(fsh_path.str())) {
             ImageLoader::ExtractQFS(fsh_path.str(), car_out_path.str() + "/Textures/");
         } else {
             LOG(INFO) << "Can't find MCO car texture at " << fsh_path.str() << " (More work needed to identify when certain fsh's are used)";
@@ -41,7 +41,7 @@ std::shared_ptr<TRACK> NFS4::LoadTrack(const std::string &track_base_path) {
     std::cout << "--- Loading NFS4 Track ---" << std::endl;
     auto track = std::make_shared<TRACK>(TRACK());
 
-    boost::filesystem::path p(track_base_path);
+    std::filesystem::path p(track_base_path);
     track->name = p.filename().string();
     std::stringstream frd_path, can_path;
 
@@ -158,8 +158,8 @@ CarData NFS4::LoadFCE(const std::string &fce_path, NFSVer version) {
 
     // Go get car colours from FEDATA
     if (version == NFS_4) {
-        boost::filesystem::path fcePath(fce_path);
-        boost::filesystem::path fceBaseDir = fcePath.parent_path();
+        std::filesystem::path fcePath(fce_path);
+        std::filesystem::path fceBaseDir = fcePath.parent_path();
         std::ifstream fedata(fceBaseDir.string() + "/fedata.eng", std::ios::in | std::ios::binary);
         // Go get the offset of car name
         fedata.seekg(FEDATA::NFS4::MENU_NAME_FILEPOS_OFFSET, std::ios::beg);
