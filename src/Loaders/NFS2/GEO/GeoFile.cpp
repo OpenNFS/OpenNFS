@@ -1,5 +1,7 @@
 #include "GeoFile.h"
 
+#include "../../../Scene/Models/CarModel.h"
+
 namespace LibOpenNFS {
     namespace NFS2 {
         template <typename Platform>

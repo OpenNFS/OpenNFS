@@ -1,13 +1,6 @@
 #include "Utils.h"
 
 namespace Utils {
-    float RandomFloat(float min, float max) {
-        static std::mt19937 mt(std::random_device{}());
-        std::uniform_real_distribution<double> fdis(min, max);
-
-        return static_cast<float>(fdis(mt));
-    }
-
     glm::vec3 bulletToGlm(const btVector3 &v) {
         return glm::vec3(v.getX(), v.getY(), v.getZ());
     }
@@ -57,6 +50,13 @@ namespace Utils {
         return m;
     }
 
+    float RandomFloat(float min, float max) {
+        static std::mt19937 mt(std::random_device{}());
+        std::uniform_real_distribution<double> fdis(min, max);
+
+        return static_cast<float>(fdis(mt));
+    }
+
     DimensionData GenDimensions(std::vector<glm::vec3> vertices) {
         DimensionData modelDimensions = {};
         modelDimensions.maxVertex     = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
@@ -85,50 +85,6 @@ namespace Utils {
 
     glm::vec3 FixedToFloat(glm::vec3 fixedPoint) {
         return fixedPoint / 65536.0f;
-    }
-
-    // Move these to a native resource handler class
-    std::vector<CarModel> LoadOBJ(std::string obj_path) {
-        std::vector<CarModel> meshes;
-
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string err;
-        std::string warn;
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path.c_str(), nullptr, true, true)) {
-            LOG(WARNING) << err;
-            return meshes;
-        }
-        // Loop over shapes
-        for (size_t s = 0; s < shapes.size(); s++) {
-            std::vector<glm::vec3> verts      = std::vector<glm::vec3>();
-            std::vector<glm::vec3> norms      = std::vector<glm::vec3>();
-            std::vector<glm::vec2> uvs        = std::vector<glm::vec2>();
-            std::vector<unsigned int> indices = std::vector<unsigned int>();
-            // Loop over faces(polygon)
-            size_t index_offset = 0;
-            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-                int fv = shapes[s].mesh.num_face_vertices[f];
-                // Loop over vertices in the face.
-                for (size_t v = 0; v < fv; v++) {
-                    // access to vertex
-                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                    indices.emplace_back((const unsigned int &) idx.vertex_index);
-
-                    verts.emplace_back(
-                      glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.1, attrib.vertices[3 * idx.vertex_index + 1] * 0.1, attrib.vertices[3 * idx.vertex_index + 2] * 0.1));
-                    norms.emplace_back(glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1], attrib.normals[3 * idx.normal_index + 2]));
-                    uvs.emplace_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0], 1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]));
-                }
-                index_offset += fv;
-                // per-face material
-                shapes[s].mesh.material_ids[f];
-            }
-            CarModel obj_mesh = CarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01f, 0.0f, 0.5f);
-            meshes.emplace_back(obj_mesh);
-        }
-        return meshes;
     }
 
     bool ExtractVIV(const std::string &viv_path, const std::string &output_dir) {

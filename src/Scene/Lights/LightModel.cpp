@@ -1,4 +1,5 @@
 #include "LightModel.h"
+
 #include "../../Util/Utils.h"
 
 LightModel::LightModel() : Model("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {

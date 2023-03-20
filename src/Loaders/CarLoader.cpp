@@ -46,3 +46,46 @@ std::shared_ptr<Car> CarLoader::LoadCar(NFSVersion nfsVersion, const std::string
         ASSERT(false, "Unknown car type!");
     }
 }
+
+std::vector<CarModel> CarLoader::LoadOBJ(std::string obj_path) {
+    std::vector<CarModel> meshes;
+
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string err;
+    std::string warn;
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, obj_path.c_str(), nullptr, true, true)) {
+        LOG(WARNING) << err;
+        return meshes;
+    }
+    // Loop over shapes
+    for (auto & shape : shapes) {
+        std::vector<glm::vec3> verts      = std::vector<glm::vec3>();
+        std::vector<glm::vec3> norms      = std::vector<glm::vec3>();
+        std::vector<glm::vec2> uvs        = std::vector<glm::vec2>();
+        std::vector<unsigned int> indices = std::vector<unsigned int>();
+        // Loop over faces(polygon)
+        size_t index_offset = 0;
+        for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++) {
+            int fv = shape.mesh.num_face_vertices[f];
+            // Loop over vertices in the face.
+            for (size_t v = 0; v < fv; v++) {
+                // access to vertex
+                tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
+                indices.emplace_back((const unsigned int &) idx.vertex_index);
+
+                verts.emplace_back(
+                  glm::vec3(attrib.vertices[3 * idx.vertex_index + 0] * 0.1, attrib.vertices[3 * idx.vertex_index + 1] * 0.1, attrib.vertices[3 * idx.vertex_index + 2] * 0.1));
+                norms.emplace_back(glm::vec3(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1], attrib.normals[3 * idx.normal_index + 2]));
+                uvs.emplace_back(glm::vec2(attrib.texcoords[2 * idx.texcoord_index + 0], 1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]));
+            }
+            index_offset += fv;
+            // per-face material
+            shape.mesh.material_ids[f];
+        }
+        CarModel obj_mesh = CarModel(shape.name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01f, 0.0f, 0.5f);
+        meshes.emplace_back(obj_mesh);
+    }
+    return meshes;
+}

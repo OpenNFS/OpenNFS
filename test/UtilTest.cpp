@@ -1,57 +1,32 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 
 #include "gtest/gtest.h"
-
-#include "../src/Renderer/Renderer.h"
-#include "../src/Shaders/RaceNetShader.h"
 #include "../src/Util/Logger.h"
 #include "../src/Util/Utils.h"
-#include "../src/RaceNet/Network.h"
-#include "../src/Race/RaceSession.h"
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <filesystem>
 #include <map>
-#include <boost/filesystem.hpp>
-
 
 class UtilTest : public testing::Test {
 public:
-    virtual void SetUp()
-    {
+    virtual void SetUp() {
         // Initialise Logging
         auto logger = std::make_shared<Logger>();
-        // And OpenGL
-        auto *window = Renderer::InitOpenGL(10, 10, "OpenNFS v" + ONFS_VERSION + " Test");
     }
 
     virtual void TearDown() {
-        glfwTerminate();
     }
 };
 
 // Test VIV files are extracted successfully, by comparing against known good data
-TEST_F(UtilTest, ExtractVIV){
-    using namespace boost::filesystem;
+TEST_F(UtilTest, ExtractVIV) {
+    using namespace std::filesystem;
 
-    const std::string vivPath = "../resources/NFS_3/gamedata/carmodel/diab/car.viv";
+    const std::string vivPath    = "../resources/NFS_3/gamedata/carmodel/diab/car.viv";
     const std::string targetPath = "./test/assets/car/NFS_3/diab/";
-    std::map<std::string, int> expectedVivContents {{"car.bnk", 217136},
-                                                    {"car.fce", 152948},
-                                                    {"car00.tga", 262188},
-                                                    {"carp.txt", 5023},
-                                                    {"dash.qfs", 516356},
-                                                    {"fedata.bri", 687},
-                                                    {"fedata.eng", 689},
-                                                    {"fedata.fre", 630},
-                                                    {"fedata.fsh", 131112},
-                                                    {"fedata.ger", 683},
-                                                    {"fedata.ita", 619},
-                                                    {"fedata.spa", 692},
-                                                    {"fedata.swe", 685},
-                                                    {"ocar.bnk", 69528},
-                                                    {"ocard.bnk", 69544},
-                                                    {"scar.bnk", 152288}};
+    std::map<std::string, int> expectedVivContents{{"car.bnk", 217136}, {"car.fce", 152948}, {"car00.tga", 262188},  {"carp.txt", 5023},  {"dash.qfs", 516356}, {"fedata.bri", 687},
+                                                   {"fedata.eng", 689}, {"fedata.fre", 630}, {"fedata.fsh", 131112}, {"fedata.ger", 683}, {"fedata.ita", 619},  {"fedata.spa", 692},
+                                                   {"fedata.swe", 685}, {"ocar.bnk", 69528}, {"ocard.bnk", 69544},   {"scar.bnk", 152288}};
 
     // Attempt to extract the VIV file
     Utils::ExtractVIV(vivPath, targetPath);

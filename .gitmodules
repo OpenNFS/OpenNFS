@@ -18,19 +18,13 @@
 	url = https://github.com/syoyo/tinyobjloader.git
 [submodule "g3log"]
 	path = lib/g3log
-	url = https://github.com/AmrikSadhra/g3log.git
+	url = https://github.com/KjellKod/g3log.git
 [submodule "lib/soloud"]
 	path = lib/soloud
 	url = https://github.com/jarikomppa/soloud.git
 [submodule "include/ImGuiColorTextEdit"]
 	path = include/ImGuiColorTextEdit
 	url = https://github.com/BalazsJako/ImGuiColorTextEdit.git
-[submodule "lib/libzmq"]
-	path = lib/libzmq
-	url = https://github.com/zeromq/libzmq.git
-[submodule "lib/tinyai"]
-	path = lib/tinyai
-	url = https://github.com/hav4ik/tinyai.git
 [submodule "lib/freetype2"]
 	path = lib/freetype2
 	url = https://github.com/aseprite/freetype2.git

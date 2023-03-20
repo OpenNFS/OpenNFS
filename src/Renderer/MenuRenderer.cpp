@@ -71,10 +71,10 @@ MenuRenderer::MenuRenderer() {
 
 MenuRenderer::~MenuRenderer() {
     // Lets delete all of the loaded textures
-    for (std::map<GLchar, Character>::iterator it = m_characterMap.begin(); it != m_characterMap.end(); ++it) {
+    for (auto it = m_characterMap.begin(); it != m_characterMap.end(); ++it) {
         glDeleteTextures(1, &it->second.textureID);
     }
-    for (std::map<std::string, MenuResource>::iterator it = m_menuResourceMap.begin(); it != m_menuResourceMap.end(); ++it) {
+    for (auto it = m_menuResourceMap.begin(); it != m_menuResourceMap.end(); ++it) {
         glDeleteTextures(1, &it->second.textureID);
     }
 }
