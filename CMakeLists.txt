@@ -10,13 +10,18 @@ include(AddCompilerFlag)
 include(OptimizeForArchitecture)
 include(CompileGLSLToSPIRV)
 
+#[[Parameter Override]]
+if(APPLE OR WIN32)
+    set(USE_VULKAN OFF) #[[Avoid Vulkan on Mac until I add MoltenVK support. Windows too until Vulkan SDK on VSTS container]]
+    set(STATIC_BUILD OFF) #[[Static linking broken under Mac OSX (and UNIX too? + MSVC doesnt support this flag)]]
+endif()
+
 if(${DEV})
     OptimizeForArchitecture()
     MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
 endif()
 
-#[[Static linking broken under Mac OSX (and UNIX too? + MSVC doesnt support this flag)]]
-if (NOT (APPLE OR UNIX OR MSVC))
+if (${STATIC_BUILD})
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 
@@ -58,22 +63,12 @@ set(IMGUI_SOURCES
         include/imgui/imgui_widgets.cpp
         include/imgui/backends/imgui_impl_glfw.cpp
         include/imgui/backends/imgui_impl_opengl3.cpp
-        #[[include/ImGuiColorTextEdit/TextEditor.cpp
-        include/ImGuiColorTextEdit/TextEditor.h]])
+        #[[include/ImGuiColorTextEdit/TextEditor.cpp]])
 
 set(SOURCE_FILES
         ${IMGUI_SOURCES}
         ${CRP_LIB_SOURCES}
         ${LIB_OPENNFS_SOURCES}
-        #[[
-        src/Renderer/RaceNetRenderer.cpp
-        src/Shaders/RaceNetShader.cpp
-        src/Util/Raytracer.cpp
-        src/Loaders/NFS4/PC/NFS4Loader.cpp
-        src/Loaders/NFS4/PS1/NFS4PS1Loader.cpp
-        src/Loaders/NFS4/PS1/SerializedGroupOps.cpp
-        src/Loaders/NFS5/NFS5Loader.cpp
-        ]]
         include/bmpread/bmpread.c
         lib/glew-cmake/src/glew.c
         resources/asset/icon.rc
@@ -139,7 +134,14 @@ set(SOURCE_FILES
         src/Util/Logger.cpp
         src/Util/Utils.cpp
         src/main.cpp
-        tools/fshtool.c)
+        tools/fshtool.c
+        #[[src/Renderer/RaceNetRenderer.cpp
+        src/Shaders/RaceNetShader.cpp
+        src/Util/Raytracer.cpp
+        src/Loaders/NFS4/PC/NFS4Loader.cpp
+        src/Loaders/NFS4/PS1/NFS4PS1Loader.cpp
+        src/Loaders/NFS4/PS1/SerializedGroupOps.cpp
+        src/Loaders/NFS5/NFS5Loader.cpp]])
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
@@ -204,8 +206,7 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 list(APPEND ONFS_LIBRARIES ${OPENGL_LIBRARIES})
 
 #[[Vulkan Configuration]]
-#[[Avoid Vulkan on Mac, until I add MoltenVK support. Avoid Windows too until I add Vulkan SDK to VSTS container]]
-if (NOT (APPLE OR WIN32 OR UNIX))
+if (${USE_VULKAN})
     find_package(Vulkan REQUIRED)
     message("VULKAN FOUND")
     include_directories(${Vulkan_INCLUDE_DIRS})
@@ -232,5 +233,5 @@ foreach (_test_file ${TEST_SRC_FILES})
     set_tests_properties(${_test_name} PROPERTIES TIMEOUT 10)
 endforeach ()
 
-#[[Linking time!]]
+#[[Get linky widdit]]
 target_link_libraries(OpenNFS ${ONFS_LIBRARIES})
