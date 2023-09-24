@@ -6,9 +6,7 @@
 
 #include "Logger.h"
 
-extern "C" {
-#include "../../tools/fshtool.h"
-}
+
 
 #define MAKEuint16_t(a, b) ((uint16_t) (((uint8_t) (a)) | (((uint16_t) ((uint8_t) (b))) << 8)))
 
@@ -91,9 +89,6 @@ public:
     ~ImageLoader();
     static GLuint LoadImage(const std::string &imagePath, int *width, int *height, GLint wrapParam, GLint sampleParam);
     static bool SaveImage(const char *szPathName, void *lpBits, uint16_t w, uint16_t h);
-    static uint32_t abgr1555ToARGB8888(uint16_t abgr1555);
-    static bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
-    static bool ExtractPSH(const std::string &psh_path, const std::string &output_path);
     static bool LoadBmpCustomAlpha(const char *fname, GLubyte **bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
     static bool LoadBmpWithAlpha(const char *fname, const char *afname, GLubyte **bits, GLsizei *width_, GLsizei *height_);
 };

@@ -8,7 +8,7 @@ void Track::GenerateSpline() {
     // Build a spline through the center of the track
     std::vector<glm::vec3> cameraPoints;
     for (auto &trackBlock : trackBlocks) {
-        cameraPoints.emplace_back(glm::vec3(trackBlock.position.x, trackBlock.position.y + 0.2, trackBlock.position.z));
+        cameraPoints.emplace_back(trackBlock.position.x, trackBlock.position.y + 0.2, trackBlock.position.z);
     }
     centerSpline = HermiteCurve(cameraPoints, 0.1f, 0.0f);
 }

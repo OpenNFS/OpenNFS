@@ -1,10 +1,7 @@
 #pragma once
 
-#include <Common/Lights/GlobalLight.h>
-
 #include "../Camera/BaseCamera.h"
-
-const float SKYDOME_RADIUS = 200.f;
+#include "../Scene/GlobalLight.h"
 
 class OrbitalManager {
 public:
@@ -13,6 +10,8 @@ public:
     std::shared_ptr<GlobalLight> GetActiveGlobalLight();
 
 private:
+    const float SKYDOME_RADIUS = 200.f;
+
     std::shared_ptr<GlobalLight> m_sun;
     std::shared_ptr<GlobalLight> m_moon;
 };

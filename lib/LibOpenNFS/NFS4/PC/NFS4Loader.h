@@ -10,7 +10,7 @@
 #include "../../../../src/Config.h"
 #include "../../../../src/Util/ImageLoader.h"
 #include "../../../../src/Util/Utils.h"
-#include "../../../../src/Scene/TrackBlock.h"
+#include "Models/TrackBlock.h"
 #include "../../../nfs_data.h"
 
 struct FLOATPT {

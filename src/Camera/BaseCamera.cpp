@@ -1,5 +1,7 @@
 #include "BaseCamera.h"
 
+#include "../Config.h"
+
 BaseCamera::BaseCamera(CameraMode mode, const std::shared_ptr<GLFWwindow> &window) : m_window(window) {
     m_fov = Config::get().fov;
     // Initial position : on +Z

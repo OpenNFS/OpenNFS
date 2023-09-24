@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <vector>
 
-#include "Entity.h"
+#include "TrackEntity.h"
+
+using namespace LibOpenNFS;
 
 namespace OpenNFS {
     class TrackBlock {
@@ -16,10 +18,10 @@ namespace OpenNFS {
         uint32_t nVirtualRoadPositions;
         std::vector<uint32_t> neighbourIds;
 
-        std::vector<Entity> track;
-        std::vector<Entity> objects;
-        std::vector<Entity> lanes;
-        std::vector<Entity> lights;
-        std::vector<Entity> sounds;
+        std::vector<TrackEntity> track;
+        std::vector<TrackEntity> objects;
+        std::vector<TrackEntity> lanes;
+        std::vector<TrackEntity> lights;
+        std::vector<TrackEntity> sounds;
     };
 } // namespace OpenNFS

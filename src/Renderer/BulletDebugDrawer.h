@@ -14,8 +14,8 @@ class BulletLine {
 
 public:
     BulletLine(const btVector3 &from, const btVector3 &to) {
-        this->from = Utils::bulletToGlm(from);
-        this->to   = Utils::bulletToGlm(to);
+        this->from = ::Utils::bulletToGlm(from);
+        this->to   = ::Utils::bulletToGlm(to);
     }
 };
 

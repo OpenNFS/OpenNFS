@@ -1,8 +1,8 @@
 #pragma once
 
 #include "BaseShader.h"
-#include <Common/Lights/GlobalLight.h>
 
+#include "../Scene/GlobalLight.h"
 #include "../Util/Utils.h"
 
 class SkydomeShader : public BaseShader {

@@ -22,7 +22,7 @@ void HermiteCamera::UseSpline(float elapsedTime) {
     glm::vec3 cn  = position - lookAtPos;
     glm::vec3 tn  = position;
     float newRoll = (atan2(cn.z, cn.x) - atan2(tn.z, tn.x));
-    newRoll += (newRoll > SIMD_PI) ? -SIMD_PI * 2 : (newRoll < -SIMD_PI) ? SIMD_PI * 2 : 0;
+    newRoll += (newRoll > glm::pi<float>()) ? -glm::pi<float>() * 2 : (newRoll < -glm::pi<float>()) ? glm::pi<float>() * 2 : 0;
     m_roll = m_roll * 0.95f + (newRoll) *0.1f;
 
     // Create a new 'up' vector, based on the roll value

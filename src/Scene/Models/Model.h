@@ -5,8 +5,8 @@
 #include <vector>
 #include <cstdlib>
 #include <string>
-#include <glm/glm.hpp>
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <glm/gtc/quaternion.hpp>

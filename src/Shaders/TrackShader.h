@@ -3,10 +3,10 @@
 #include "BaseShader.h"
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
-#include <Common/Lights/BaseLight.h>
-#include <Common/Lights/Spotlight.h>
+#include <Models/BaseLight.h>
 
 #include "../Scene/Models/TrackModel.h"
+#include "../Scene/Spotlight.h"
 #include "../../shaders/ShaderPreamble.h"
 
 

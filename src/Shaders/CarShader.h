@@ -3,7 +3,7 @@
 #include "BaseShader.h"
 #include <sstream>
 #include <glm/detail/type_mat4x4.hpp>
-#include <Common/Lights/BaseLight.h>
+#include <Models/BaseLight.h>
 
 #include "../Config.h"
 #include "../Util/ImageLoader.h"

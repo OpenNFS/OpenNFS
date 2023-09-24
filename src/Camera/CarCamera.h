@@ -1,8 +1,8 @@
 #pragma once
 
-#include "BaseCamera.h"
-
 #include "../Physics/Car.h"
+
+#include "BaseCamera.h"
 
 class CarCamera : public BaseCamera {
 public:

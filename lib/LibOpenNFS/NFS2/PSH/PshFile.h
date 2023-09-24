@@ -2,8 +2,8 @@
 
 #include "../../Common/IRawData.h"
 
-namespace LibOpenNFS {
-    namespace NFS2 {
+namespace LibOpenNFS::NFS2 {
+    class PshFile : IRawData {
         struct HEADER {
             char header[4];        //  "SHPP"
             uint32_t length;       // Inclusive Length of the PSH file
@@ -33,20 +33,18 @@ namespace LibOpenNFS {
             uint16_t unknown2[3];     // [0] always 0 [1] always 0 [2] often 240, sometimes 0
         };
 
-        class PshFile : IRawData {
-        public:
-            PshFile() = default;
+    public:
+        PshFile() = default;
 
-            static bool Load(const std::string &pshPath, PshFile &pshFile);
-            static void Save(const std::string &pshPath, PshFile &pshFile);
-            static bool Extract(const std::string &outputPath, PshFile &pshFile);
+        static bool Load(const std::string &pshPath, PshFile &pshFile);
+        static void Save(const std::string &pshPath, PshFile &pshFile);
+        static bool Extract(const std::string &outputPath, PshFile &pshFile);
 
-            HEADER header;
-            std::vector<DIR_ENTRY> directoryEntries;
+        HEADER header;
+        std::vector<DIR_ENTRY> directoryEntries;
 
-        private:
-            bool _SerializeIn(std::ifstream &ifstream) override;
-            void _SerializeOut(std::ofstream &ofstream) override;
-        };
-    } // namespace NFS2
-} // namespace LibOpenNFS
+    private:
+        bool _SerializeIn(std::ifstream &ifstream) override;
+        void _SerializeOut(std::ofstream &ofstream) override;
+    };
+} // namespace LibOpenNFS::NFS2

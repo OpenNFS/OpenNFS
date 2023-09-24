@@ -4,20 +4,20 @@
 Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) :
     super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
     std::vector<glm::vec3> verts;
-    verts.emplace_back(glm::vec3(fromX, fromY, 0)); // bottom left corner
-    verts.emplace_back(glm::vec3(toY, fromX, 0));   // top left corner
-    verts.emplace_back(glm::vec3(toX, toY, 0));     // top right corner
-    verts.emplace_back(glm::vec3(toX, fromY, 0));   // bottom right corner
+    verts.emplace_back(fromX, fromY, 0); // bottom left corner
+    verts.emplace_back(toY, fromX, 0);   // top left corner
+    verts.emplace_back(toX, toY, 0);     // top right corner
+    verts.emplace_back(toX, fromY, 0);   // bottom right corner
     unsigned int indices[] = {0, 1,
                               2,        // first triangle (bottom left - top left - top right)
                               0, 2, 3}; // second triangle (bottom left - top right - bottom right)
     m_uvs.clear();
-    m_uvs.emplace_back(glm::vec2(1.0f, 1.0f));
-    m_uvs.emplace_back(glm::vec2(0.0f, 1.0f));
-    m_uvs.emplace_back(glm::vec2(0.0f, 0.0f));
-    m_uvs.emplace_back(glm::vec2(1.0f, 1.0f));
-    m_uvs.emplace_back(glm::vec2(0.0f, 0.0f));
-    m_uvs.emplace_back(glm::vec2(1.0f, 0.0f));
+    m_uvs.emplace_back(1.0f, 1.0f);
+    m_uvs.emplace_back(0.0f, 1.0f);
+    m_uvs.emplace_back(0.0f, 0.0f);
+    m_uvs.emplace_back(1.0f, 1.0f);
+    m_uvs.emplace_back(0.0f, 0.0f);
+    m_uvs.emplace_back(1.0f, 0.0f);
 
     m_vertexIndices = std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0]));
     ;
@@ -26,7 +26,7 @@ Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float
     // Unindex data and Fill unused normal buffer
     for (unsigned int m_vertex_index : m_vertexIndices) {
         m_vertices.push_back(verts[m_vertex_index]);
-        m_normals.emplace_back(glm::vec3(0, 0, 0));
+        m_normals.emplace_back(0, 0, 0);
     }
 
     this->position = position;

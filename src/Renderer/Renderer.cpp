@@ -317,7 +317,6 @@ void Renderer::_DrawDebugUI(ParamData &userParams, const BaseCamera &camera) {
     ImGui::Checkbox("NBData", &userParams.useNbData);
     ImGui::NewLine();
     ImGui::ColorEdit3("Sun Atten", (float *) &userParams.sunAttenuation); // Edit 3 floats representing a color
-    // ImGui::SliderFloat3("NFS2 Rot Dbg", (float *) &userParams.nfs2_rotate, -M_PI, M_PI);
 
     ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
     ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);

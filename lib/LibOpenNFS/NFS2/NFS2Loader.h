@@ -10,12 +10,10 @@
 #include "GEO/GeoFile.h"
 #include "TRK/TrkFile.h"
 #include "COL/ColFile.h"
-#include "../../../src/Config.h"
-#include "../../../src/Util/Utils.h"
 #include "../../../src/Physics/Car.h"
-#include "../../../src/Scene/Track.h"
-#include "../../../src/Scene/VirtualRoad.h"
-#include "../../../src/Scene/TrackBlock.h"
+#include "Models/Track.h"
+#include "Models/VirtualRoad.h"
+#include "Models/TrackBlock.h"
 
 namespace LibOpenNFS::NFS2 {
     const float NFS2_SCALE_FACTOR = 1000000.0f;
@@ -31,6 +29,6 @@ namespace LibOpenNFS::NFS2 {
         static std::vector<OpenNFS::TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS2::TrkFile<Platform> &trkFile, LibOpenNFS::NFS2::ColFile<Platform> &colFile,
                                                                 const std::shared_ptr<Track> &track);
         static std::vector<VirtualRoad> _ParseVirtualRoad(LibOpenNFS::NFS2::ColFile<Platform> &colFile);
-        static std::vector<Entity> _ParseCOLModels(LibOpenNFS::NFS2::ColFile<Platform> &colFile, const std::shared_ptr<Track> &track);
+        static std::vector<TrackEntity> _ParseCOLModels(LibOpenNFS::NFS2::ColFile<Platform> &colFile, const std::shared_ptr<Track> &track);
     };
 } // namespace LibOpenNFS::NFS2

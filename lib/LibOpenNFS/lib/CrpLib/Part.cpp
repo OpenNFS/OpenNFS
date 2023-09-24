@@ -148,7 +148,7 @@ namespace CrpLib {
                 break;
             case RM_EXT_ENV_NS:
             case RM_INT_NS:
-                assert(false);
+                //assert(false);
                 break;
         }
 

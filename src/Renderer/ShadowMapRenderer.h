@@ -1,12 +1,12 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <Common/Lights/GlobalLight.h>
 
-#include "../Scene/Track.h"
-#include "../RaceNet/Agents/CarAgent.h"
-#include "../Shaders/DepthShader.h"
 #include "../Config.h"
+#include "../Scene/GlobalLight.h"
+#include "../Scene/Track.h"
+#include "../Shaders/DepthShader.h"
+#include "../RaceNet/Agents/CarAgent.h"
 
 class ShadowMapRenderer {
 public:

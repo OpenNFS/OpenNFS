@@ -69,10 +69,10 @@ Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::m
     WorldRay worldRayFromScreenPosition = ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix);
     glm::vec3 outEnd                    = worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f;
 
-    btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd));
+    btCollisionWorld::ClosestRayResultCallback rayCallback(::Utils::glmToBullet(worldRayFromScreenPosition.origin), ::Utils::glmToBullet(outEnd));
     rayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
 
-    m_pDynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd), rayCallback);
+    m_pDynamicsWorld->rayTest(::Utils::glmToBullet(worldRayFromScreenPosition.origin), ::Utils::glmToBullet(outEnd), rayCallback);
 
     if (rayCallback.hasHit()) {
         entityTargeted = true;
@@ -102,7 +102,7 @@ void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
                 collisionMask |= COL_TRACK;
             }
             // Move Rigid body to correct place in world
-            btTransform initialTransform = Utils::MakeTransform(std::get<TrackModel>(object.raw).initialPosition, std::get<TrackModel>(object.raw).orientation);
+            btTransform initialTransform = ::Utils::MakeTransform(std::get<TrackModel>(object.raw).initialPosition, std::get<TrackModel>(object.raw).orientation);
             object.rigidBody->setWorldTransform(initialTransform);
             m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
         }

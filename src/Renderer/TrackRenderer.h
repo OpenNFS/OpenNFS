@@ -1,12 +1,13 @@
 #pragma once
 
+#include <Models/BaseLight.h>
+
+#include "../Config.h"
 #include "../Camera/BaseCamera.h"
-#include <Common/Lights/BaseLight.h>
-#include <Common/Lights/GlobalLight.h>
+#include "../Scene/GlobalLight.h"
 #include "../Shaders/TrackShader.h"
 #include "../Shaders/BillboardShader.h"
 #include "../RaceNet/Agents/CarAgent.h"
-#include "../Config.h"
 
 class TrackRenderer {
 public:

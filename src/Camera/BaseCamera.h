@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Scene/TrackBlock.h"
+#include "Models/TrackBlock.h"
 #include "../Physics/Frustum.h"
 
 #include <GLFW/glfw3.h>

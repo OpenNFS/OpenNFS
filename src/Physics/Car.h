@@ -7,9 +7,9 @@
 #include <BulletDynamics/Vehicle/btRaycastVehicle.h>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
-#include <Common/Lights/Spotlight.h>
 
 #include "../Scene/Models/CarModel.h"
+#include "../Scene/Spotlight.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
 #include "Common/NFSVersion.h"

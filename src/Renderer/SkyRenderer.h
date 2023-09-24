@@ -1,11 +1,10 @@
 #pragma once
 
-#include <Common/Lights/GlobalLight.h>
-
-#include "../Util/ImageLoader.h"
+#include "../Camera/BaseCamera.h"
+#include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
 #include "../Shaders/SkydomeShader.h"
-#include "../Camera/BaseCamera.h"
+#include "../Util/ImageLoader.h"
 
 class SkyRenderer {
 public:

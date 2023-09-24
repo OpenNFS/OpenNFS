@@ -1,5 +1,7 @@
 #include "FreeCamera.h"
 
+#include "../Config.h"
+
 FreeCamera::FreeCamera(const std::shared_ptr<GLFWwindow> &window, glm::vec3 initialPosition) : BaseCamera(CameraMode::FREE_LOOK, window) {
     position = initialPosition;
 }

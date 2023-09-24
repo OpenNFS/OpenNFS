@@ -1,5 +1,7 @@
 #include "HrzFile.h"
 
+#include "Common/TextureUtils.h"
+
 namespace LibOpenNFS {
     bool HrzFile::Load(const std::string &hrzPath, HrzFile &hrzFile) {
         // LOG(INFO) << "Loading HRZ File located at " << hrzPath;
@@ -27,12 +29,12 @@ namespace LibOpenNFS {
             if (str.find("/* r,g,b value at top of Gourad shaded SKY area */") != std::string::npos) {
                 std::getline(ifstream, strSkyTopColour);
                 foundSkyTop  = true;
-                skyTopColour = Utils::ParseRGBString(strSkyTopColour);
+                skyTopColour = TextureUtils::ParseRGBString(strSkyTopColour);
             }
             if (str.find("/* r,g,b values for base of Gourad shaded SKY area */") != std::string::npos) {
                 std::getline(ifstream, strSkyBottomColour);
                 foundSkyBottom  = true;
-                skyBottomColour = Utils::ParseRGBString(strSkyBottomColour);
+                skyBottomColour = TextureUtils::ParseRGBString(strSkyBottomColour);
             }
         }
 

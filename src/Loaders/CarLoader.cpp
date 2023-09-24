@@ -1,5 +1,6 @@
 #include "CarLoader.h"
 
+#include <tiny_obj_loader.h>
 #include <NFS2/NFS2Loader.h>
 #include <NFS3/NFS3Loader.h>
 /*#include "NFS4/PC/NFS4Loader.h"

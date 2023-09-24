@@ -1,6 +1,8 @@
 #include "NFS3Loader.h"
 
 #include <filesystem>
+#include <Models/TrackGeometry.h>
+#include <Models/TrackEntity.h>
 
 namespace LibOpenNFS::NFS3 {
     std::shared_ptr<Car> Loader::LoadCar(const std::string &carBasePath) {
@@ -13,10 +15,13 @@ namespace LibOpenNFS::NFS3 {
         fcePath << CAR_PATH << get_string(NFSVersion::NFS_3) << "/" << carName << "/car.fce";
         fedataPath << carOutPath.str() << "fedata.eng";
 
+        VivFile vivFile;
         FceFile fceFile;
         FedataFile fedataFile;
 
         ASSERT(Utils::ExtractVIV(vivPath.str(), carOutPath.str()), "Unable to extract " << vivPath.str() << " to " << carOutPath.str());
+        ASSERT(VivFile::Load(vivPath.str(), vivFile), "Could not open VIV file: " << vivPath.str());
+        ASSERT(VivFile::Extract(carOutPath.str(), vivFile), "Could not extract VIV file: " << vivPath.str() << "to: " <<  carOutPath.str());
         ASSERT(FceFile::Load(fcePath.str(), fceFile), "Could not load FCE file: " << fcePath.str());
         if (!FedataFile::Load(fedataPath.str(), fedataFile, fceFile.nPriColours)) {
             LOG(WARNING) << "Could not load FeData file: " << fedataPath.str();
@@ -129,9 +134,9 @@ namespace LibOpenNFS::NFS3 {
                 indices.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].vertex[0]);
                 indices.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].vertex[1]);
                 indices.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].vertex[2]);
-                uvs.emplace_back(glm::vec2(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[0], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[3]));
-                uvs.emplace_back(glm::vec2(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[1], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[4]));
-                uvs.emplace_back(glm::vec2(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[2], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[5]));
+                uvs.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[0], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[3]);
+                uvs.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[1], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[4]);
+                uvs.emplace_back(fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[2], 1.0f - fceFile.carParts[partIdx].triangles[tri_Idx].uvTable[5]);
             }
             carData.meshes.emplace_back(CarModel(part_name, vertices, uvs, normals, indices, polygonFlags, center, specularDamper, specularReflectivity, envReflectivity));
         }
@@ -170,12 +175,11 @@ namespace LibOpenNFS::NFS3 {
             // Light and sound sources
             for (uint32_t lightNum = 0; lightNum < rawTrackBlock.nLightsrc; ++lightNum) {
                 glm::vec3 lightCenter = Utils::FixedToFloat(rawTrackBlock.lightsrc[lightNum].refpoint) / NFS3_SCALE_FACTOR;
-                trackBlock.lights.emplace_back(
-                  Entity(trackblockIdx, lightNum, NFSVersion::NFS_3, EntityType::LIGHT, Utils::MakeLight(lightCenter, rawTrackBlock.lightsrc[lightNum].type), 0));
+                trackBlock.lights.emplace_back(trackblockIdx, lightNum, NFSVersion::NFS_3, EntityType::LIGHT, Utils::MakeLight(lightCenter, rawTrackBlock.lightsrc[lightNum].type), 0);
             }
             for (uint32_t soundNum = 0; soundNum < rawTrackBlock.nSoundsrc; ++soundNum) {
                 glm::vec3 soundCenter = Utils::FixedToFloat(rawTrackBlock.soundsrc[soundNum].refpoint) / NFS3_SCALE_FACTOR;
-                trackBlock.sounds.emplace_back(Entity(trackblockIdx, soundNum, NFSVersion::NFS_3, EntityType::SOUND, Sound(soundCenter, rawTrackBlock.soundsrc[soundNum].type), 0));
+                trackBlock.sounds.emplace_back(trackblockIdx, soundNum, NFSVersion::NFS_3, EntityType::SOUND, Sound(soundCenter, rawTrackBlock.soundsrc[soundNum].type), 0);
             }
 
             // Get Trackblock roadVertices and per-vertex shading data
@@ -224,9 +228,9 @@ namespace LibOpenNFS::NFS3 {
 
                             accumulatedObjectFlags |= objectPolygons[polyIdx].flags;
                         }
-                        TrackModel trackBlockModel = TrackModel(trackBlockVerts, normals, uvs, textureIndices, vertexIndices, trackBlockShadingData, rawTrackBlockCenter);
-                        Entity trackBlockEntity =
-                          Entity(trackblockIdx, (j + 1) * (objectIdx + 1), NFSVersion::NFS_3, EntityType::OBJ_POLY, trackBlockModel, accumulatedObjectFlags);
+                        TrackGeometry trackBlockModel = TrackGeometry(trackBlockVerts, normals, uvs, textureIndices, vertexIndices, trackBlockShadingData, rawTrackBlockCenter);
+                        TrackEntity trackBlockEntity =
+                          TrackEntity(trackblockIdx, (j + 1) * (objectIdx + 1), NFSVersion::NFS_3, EntityType::OBJ_POLY, trackBlockModel, accumulatedObjectFlags);
                         trackBlock.objects.emplace_back(trackBlockEntity);
                     }
                 }
@@ -272,9 +276,9 @@ namespace LibOpenNFS::NFS3 {
 
                         accumulatedObjectFlags |= extraObjectData.polyData[k].flags;
                     }
-                    glm::vec3 extraObjectCenter = extraObjectData.ptRef / NFS3_SCALE_FACTOR;
-                    TrackModel extraObjectModel = TrackModel(extraObjectVerts, normals, uvs, textureIndices, vertexIndices, extraObjectShadingData, extraObjectCenter);
-                    Entity extraObjectEntity    = Entity(trackblockIdx, l, NFSVersion::NFS_3, EntityType::XOBJ, extraObjectModel, accumulatedObjectFlags);
+                    glm::vec3 extraObjectCenter    = extraObjectData.ptRef / NFS3_SCALE_FACTOR;
+                    TrackGeometry extraObjectModel = TrackGeometry(extraObjectVerts, normals, uvs, textureIndices, vertexIndices, extraObjectShadingData, extraObjectCenter);
+                    TrackEntity extraObjectEntity  = TrackEntity(trackblockIdx, l, NFSVersion::NFS_3, EntityType::XOBJ, extraObjectModel, accumulatedObjectFlags);
                     trackBlock.objects.emplace_back(extraObjectEntity);
                 }
             }
@@ -323,13 +327,11 @@ namespace LibOpenNFS::NFS3 {
 
                     accumulatedObjectFlags |= chunkPolygonData[polyIdx].flags;
                 }
-                TrackModel roadModel = TrackModel(roadVertices, normals, uvs, textureIndices, vertexIndices, roadShadingData, rawTrackBlockCenter);
+                TrackGeometry roadModel = TrackGeometry(roadVertices, normals, uvs, textureIndices, vertexIndices, roadShadingData, rawTrackBlockCenter);
                 if (lodChunkIdx == 6) {
-                    Entity laneEntity = Entity(trackblockIdx, -1, NFSVersion::NFS_3, EntityType::LANE, roadModel, accumulatedObjectFlags);
-                    trackBlock.lanes.emplace_back(laneEntity);
+                    trackBlock.lanes.emplace_back(trackblockIdx, -1, NFSVersion::NFS_3, EntityType::LANE, roadModel, accumulatedObjectFlags);
                 } else {
-                    Entity roadEntity = Entity(trackblockIdx, -1, NFSVersion::NFS_3, EntityType::ROAD, roadModel, accumulatedObjectFlags);
-                    trackBlock.track.emplace_back(roadEntity);
+                    trackBlock.track.emplace_back(trackblockIdx, -1, NFSVersion::NFS_3, EntityType::ROAD, roadModel, accumulatedObjectFlags);
                 }
             }
             trackBlocks.emplace_back(trackBlock);
@@ -355,7 +357,7 @@ namespace LibOpenNFS::NFS3 {
             glm::vec3 leftWall  = ((vroad.leftWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;
             glm::vec3 rightWall = ((vroad.rightWall / 65536.0f) / NFS3_SCALE_FACTOR) * right;
 
-            virtualRoad.push_back(VirtualRoad(position, glm::vec3(0, 0, 0), normal, forward, right, leftWall, rightWall, vroad.unknown));
+            virtualRoad.emplace_back(position, glm::vec3(0, 0, 0), normal, forward, right, leftWall, rightWall, vroad.unknown);
         }
 
         return virtualRoad;
@@ -405,7 +407,7 @@ namespace LibOpenNFS::NFS3 {
                 }
             }
             glm::vec3 position = glm::vec3(colFile.object[i].ptRef) / NFS3_SCALE_FACTOR;
-            colEntities.emplace_back(Entity(-1, i, NFSVersion::NFS_3, EntityType::GLOBAL, TrackModel(verts, norms, uvs, texture_indices, indices, shading_data, position), 0));
+            colEntities.emplace_back(-1, i, NFSVersion::NFS_3, EntityType::GLOBAL, TrackGeometry(verts, norms, uvs, texture_indices, indices, shading_data, position), 0);
         }
 
         return colEntities;

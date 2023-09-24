@@ -34,8 +34,8 @@ set(OpenGL_GL_PREFERENCE GLVND)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 
 file(GLOB CRP_LIB_SOURCES
-        include/CrpLib/*.h
-        include/CrpLib/*.cpp)
+        lib/LibOpenNFS/lib/CrpLib/*.h
+        lib/LibOpenNFS/lib/CrpLib/*.cpp)
 
 
 
@@ -93,10 +93,9 @@ set(SOURCE_FILES
         src/Scene/Models/Quad.cpp
         src/Scene/Models/TrackModel.cpp
         src/Scene/Models/LightModel.cpp
-        src/Scene/Sound.cpp
         src/Scene/Track.cpp
-        src/Scene/TrackBlock.cpp
-        src/Scene/VirtualRoad.cpp
+        src/Scene/GlobalLight.cpp
+        src/Scene/Spotlight.cpp
         src/Shaders/BaseShader.cpp
         src/Shaders/BillboardShader.cpp
         src/Shaders/BulletShader.cpp
@@ -112,7 +111,6 @@ set(SOURCE_FILES
         src/Util/Logger.cpp
         src/Util/Utils.cpp
         src/main.cpp
-        tools/fshtool.c
         #[[src/Renderer/RaceNetRenderer.cpp
         src/Shaders/RaceNetShader.cpp
         src/Util/Raytracer.cpp

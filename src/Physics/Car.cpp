@@ -286,7 +286,7 @@ void Car::_GenPhysicsModel() {
     m_carChassis = new btRigidBody(cInfo);
 
     // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
-    m_carChassis->setUserPointer(new Entity(-1, -1, tag, EntityType::CAR, this, 0));
+    m_carChassis->setUserPointer(new Entity(-1, -1, tag, LibOpenNFS::EntityType::CAR, this, 0));
     m_carChassis->setDamping(0.2f, 0.2f);
     m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
     m_carChassis->setAngularVelocity(btVector3(0, 0, 0));

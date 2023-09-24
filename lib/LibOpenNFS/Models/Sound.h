@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/vec3.hpp>
+#include "lib/glm/glm/vec3.hpp"
 
 class Sound {
 public:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BaseLight.h"
+#include "Models/BaseLight.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
