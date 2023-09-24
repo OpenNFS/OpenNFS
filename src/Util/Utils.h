@@ -24,10 +24,6 @@
 
 #include "Logger.h"
 
-#define SAFE_READ(file, structure, size)                              \
-    if ((file).read((char *) (structure), (size)).gcount() != (size)) \
-    return false
-
 struct DimensionData {
     glm::vec3 minVertex;
     glm::vec3 maxVertex;
@@ -62,20 +58,9 @@ namespace Utils {
 
     float RandomFloat(float min, float max);
     DimensionData GenDimensions(std::vector<glm::vec3> vertices);
-    uint32_t SwapEndian(uint32_t x);
-    glm::vec3 FixedToFloat(glm::vec3 fixedPoint);
-    bool ExtractVIV(const std::string &viv_path, const std::string &output_dir);
-    bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath);
-    glm::vec3 HSLToRGB(glm::vec4 hsl);
-    glm::vec3 ParseRGBString(const std::string &rgb_string);
-    glm::vec3 CalculateQuadNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4);
-    glm::vec3 CalculateNormal(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3);
     btTransform MakeTransform(glm::vec3 position, glm::quat orientation);
 
-    // Easily convert propietary and platform specific Vertices to glm::vec3. NFS2_DATA::PC::GEO::BLOCK_3D, NFS2_DATA::PS1::GEO::BLOCK_3D,
-    // NFS3_4_DATA::FLOATPT etc.
-    template <class NFSVertexStruct>
-    glm::vec3 PointToVec(NFSVertexStruct block_3d) {
-        return glm::vec3(block_3d.x, block_3d.y, block_3d.z);
-    }
+    std::vector<NfsAssetList> PopulateAssets();
+    static bool FilePathSortByDepthReverse(std::filesystem::path a, std::filesystem::path b);
+    void RenameAssetsToLowercase();
 } // namespace Utils

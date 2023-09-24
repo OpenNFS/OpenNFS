@@ -7,12 +7,12 @@
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <Common/Lights/GlobalLight.h>
 
 #include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
 #include "../Camera/CarCamera.h"
 #include "../Scene/Entity.h"
-#include "../Scene/Lights/GlobalLight.h"
 #include "../Scene/Track.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../RaceNet/Agents/CarAgent.h"

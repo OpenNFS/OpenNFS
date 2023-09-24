@@ -7,7 +7,7 @@
 #include <fstream>
 #include <map>
 
-#include "NFSVersion.h"
+#include "Common/NFSVersion.h"
 #include "Util/Logger.h"
 
 /* --------------- ONFS Compile time parameters here -----------------*/
@@ -46,8 +46,8 @@ const std::string NFS_5_CAR_PATH   = "/gamedata/carmodel/";
 
 // ----- Graphics -----
 const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
-const uint32_t DEFAULT_X_RESOLUTION   = 1920;
-const uint32_t DEFAULT_Y_RESOLUTION   = 1080;
+const uint32_t DEFAULT_X_RESOLUTION   = 2560;
+const uint32_t DEFAULT_Y_RESOLUTION   = 1600;
 const float DEFAULT_FOV               = 55.f;
 // Shadow Map Resolution
 const unsigned int SHADOW_WIDTH  = 2048; // Resolution of shadow map
@@ -100,6 +100,7 @@ struct ParamData {
     float farPlane              = 300.f;
     float trackSpecDamper       = 10;
     int blockDrawDistance       = 15;
+    bool useFrustumCull         = true;
     bool physicsDebugView       = false;
     bool drawHermiteFrustum     = false;
     bool drawTrackAABB          = false;
@@ -107,7 +108,6 @@ struct ParamData {
     bool attachCamToHermite     = false;
     bool useNbData              = true;
     bool attachCamToCar         = true;
-    bool frustumCull            = false;
     bool drawVroad              = false;
     bool drawCAN                = false;
     bool drawRaycast            = false;

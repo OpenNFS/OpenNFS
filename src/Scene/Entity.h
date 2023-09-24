@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <variant>
 
-#include "Lights/BaseLight.h"
+#include <Common/Lights/BaseLight.h>
 #include "Sound.h"
 #include "Models/TrackModel.h"
 

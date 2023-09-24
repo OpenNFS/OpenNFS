@@ -146,6 +146,10 @@ namespace CrpLib {
                 m_pInfo[2].RMOffs = 0xF;
                 m_pInfo[3].RMOffs = 0x10;
                 break;
+            case RM_EXT_ENV_NS:
+            case RM_INT_NS:
+                assert(false);
+                break;
         }
 
         m_IndiceCount = indiceCount * m_IndexCount;

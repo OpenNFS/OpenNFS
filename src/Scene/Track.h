@@ -8,7 +8,7 @@
 #include "TrackBlock.h"
 #include "VirtualRoad.h"
 
-#include "../Loaders/Shared/CanFile.h"
+#include <Shared/CanFile.h>
 #include "../Physics/AABBTree.h"
 #include "../Renderer/Texture.h"
 #include "../Renderer/HermiteCurve.h"

@@ -1,12 +1,14 @@
 #pragma once
 
 #include "BaseShader.h"
-#include "../Scene/Models/TrackModel.h"
-#include "../Scene/Lights/BaseLight.h"
-#include "../Scene/Lights/Spotlight.h"
-#include "../../shaders/ShaderPreamble.h"
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
+#include <Common/Lights/BaseLight.h>
+#include <Common/Lights/Spotlight.h>
+
+#include "../Scene/Models/TrackModel.h"
+#include "../../shaders/ShaderPreamble.h"
+
 
 class TrackShader : public BaseShader {
 public:

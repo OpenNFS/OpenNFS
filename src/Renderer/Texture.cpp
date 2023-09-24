@@ -63,6 +63,20 @@ Texture Texture::LoadTexture(NFSVersion tag, RawTextureInfo rawTrackTexture, con
         case NFSVersion::NFS_2_PS1:
         case NFSVersion::NFS_3_PS1:
             break;
+        case NFSVersion::UNKNOWN:
+            break;
+        case NFSVersion::NFS_1:
+            break;
+        case NFSVersion::NFS_3:
+            break;
+        case NFSVersion::NFS_4:
+            break;
+        case NFSVersion::NFS_4_PS1:
+            break;
+        case NFSVersion::MCO:
+            break;
+        case NFSVersion::NFS_5:
+            break;
         }
         filename << TRACK_PATH << get_string(tag) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << trackTexture.texNumber << ".BMP";
 
@@ -220,6 +234,16 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             break;
         case EntityType::CAR:
             break;
+        case EntityType::LANE:
+            break;
+        case EntityType::SOUND:
+            break;
+        case EntityType::LIGHT:
+            break;
+        case EntityType::VROAD:
+            break;
+        case EntityType::VROAD_CEIL:
+            break;
         }
         break;
     /*    switch (meshType)
@@ -300,6 +324,14 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
             break;
         case EntityType::CAR:
             break;
+        case EntityType::SOUND:
+            break;
+        case EntityType::LIGHT:
+            break;
+        case EntityType::VROAD:
+            break;
+        case EntityType::VROAD_CEIL:
+            break;
         }
     } break;
     case NFSVersion::NFS_4: {
@@ -375,11 +407,23 @@ std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textur
         } break;
         case EntityType::CAR:
             break;
+        case EntityType::SOUND:
+            break;
+        case EntityType::LIGHT:
+            break;
+        case EntityType::VROAD:
+            break;
+        case EntityType::VROAD_CEIL:
+            break;
         }
     } break;
     case NFSVersion::NFS_5:
         break;
     case NFSVersion::UNKNOWN:
+        break;
+    case NFSVersion::NFS_4_PS1:
+        break;
+    case NFSVersion::MCO:
         break;
     }
 

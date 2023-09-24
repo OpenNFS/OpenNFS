@@ -1,8 +1,8 @@
 #pragma once
 
 #include "BaseShader.h"
+#include "../Scene/Models/LightModel.h"
 #include "../Util/Utils.h"
-#include "../Scene/Lights/LightModel.h"
 
 class DepthShader : public BaseShader {
 public:

@@ -14,24 +14,24 @@ std::shared_ptr<Track> TrackLoader::LoadTrack(NFSVersion trackVersion, const std
     switch (trackVersion) {
     case NFSVersion::NFS_2:
         trackPath << NFS_2_TRACK_PATH << trackName;
-        loadedTrack = NFS2Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str(), NFSVersion::NFS_2);
+        loadedTrack = LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str(), NFSVersion::NFS_2);
         break;
     case NFSVersion::NFS_2_SE:
         trackPath << NFS_2_SE_TRACK_PATH << trackName;
-        loadedTrack = NFS2Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str(), NFSVersion::NFS_2_SE);
+        loadedTrack = LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str(), NFSVersion::NFS_2_SE);
         break;
     case NFSVersion::NFS_2_PS1:
         // Somewhat ironically, NFS2 PS1 tracks are more similar to NFS2 PC tracks than NFS3 PS1 tracks in format
         trackPath << "/" << trackName;
-        loadedTrack = NFS2Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str(), NFSVersion::NFS_2_PS1);
+        loadedTrack = LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadTrack(trackPath.str(), NFSVersion::NFS_2_PS1);
         break;
     case NFSVersion::NFS_3:
         trackPath << NFS_3_TRACK_PATH << trackName;
-        loadedTrack = NFS3Loader::LoadTrack(trackPath.str());
+        loadedTrack = LibOpenNFS::NFS3::Loader::LoadTrack(trackPath.str());
         break;
     case NFSVersion::NFS_3_PS1:
         trackPath << "/" << trackName;
-        loadedTrack = NFS2Loader<LibOpenNFS::NFS2::PS1>::LoadTrack(trackPath.str(), NFSVersion::NFS_3_PS1);
+        loadedTrack = LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PS1>::LoadTrack(trackPath.str(), NFSVersion::NFS_3_PS1);
         break;
         /* case NFS_4:
              trackPath << NFS_4_TRACK_PATH << trackName;

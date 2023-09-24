@@ -9,8 +9,8 @@
 #include <variant>
 #include <filesystem>
 
-#include "../Loaders/NFS2/TRK/ExtraObjectBlock.h"
-#include "../Loaders/NFS3/FRD/TexBlock.h"
+#include <NFS2/TRK/ExtraObjectBlock.h>
+#include <NFS3/FRD/TexBlock.h>
 #include "../Util/Utils.h"
 #include "../Util/ImageLoader.h"
 #include "../Scene/Entity.h"

@@ -1,5 +1,5 @@
 #include "Entity.h"
-#include "Lights/TrackLight.h"
+#include <Common/Lights/TrackLight.h>
 
 Entity::Entity(uint32_t parentTrackblockID,
                uint32_t entityID,
@@ -35,7 +35,7 @@ void Entity::_GenCollisionMesh() {
     case EntityType::CAR:
     case EntityType::LANE:
         return;
-    case EntityType::LIGHT: {
+    /*case EntityType::LIGHT: {
         std::shared_ptr<BaseLight> baseLight   = std::get<std::shared_ptr<BaseLight>>(raw);
         std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
         // Light mesh billboarded, generated (Bullet) AABB too large. Divide verts by scale factor to make smaller.
@@ -49,7 +49,7 @@ void Entity::_GenCollisionMesh() {
             m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
         }
         m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
-    } break;
+    } break;*/
     case EntityType::VROAD: {
         float wallHeight    = 1.0f;
         auto *mesh          = new btTriangleMesh();
@@ -132,7 +132,7 @@ void Entity::_GenBoundingBox() {
         m_boundingBox                = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, std::get<TrackModel>(raw).initialPosition);
         return;
     }
-    case EntityType::LIGHT: {
+    /*case EntityType::LIGHT: {
         // For now, only tracklights will have entities created
         std::shared_ptr<BaseLight> baseLight = std::get<std::shared_ptr<BaseLight>>(raw);
         ASSERT(baseLight->type == LightType::TRACK_LIGHT, "Not ready to handle other light types at entity creation time");
@@ -140,7 +140,7 @@ void Entity::_GenBoundingBox() {
         DimensionData meshDimensions           = Utils::GenDimensions(trackLight->model.m_vertices);
         m_boundingBox                          = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
         return;
-    }
+    }*/
     case EntityType::SOUND:
     case EntityType::CAR:
     case EntityType::VROAD:
@@ -211,6 +211,14 @@ void Entity::_SetCollisionParameters() {
                 dynamic     = false;
                 break;
             }
+            break;
+        case EntityType::LANE:
+            break;
+        case EntityType::GLOBAL:
+            break;
+        case EntityType::CAR:
+            break;
+        case EntityType::VROAD_CEIL:
             break;
         }
         break;

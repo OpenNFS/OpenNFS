@@ -44,7 +44,7 @@ void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<sha
             std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(light);
             m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix);
             m_billboardShader.loadLight(trackLight);
-            trackLight->model.render();
+            //trackLight->model.render();
         }
     }
     m_billboardShader.unbind();

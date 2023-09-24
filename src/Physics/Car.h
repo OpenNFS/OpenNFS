@@ -7,12 +7,12 @@
 #include <BulletDynamics/Vehicle/btRaycastVehicle.h>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
+#include <Common/Lights/Spotlight.h>
 
-#include "../Scene/Lights/Spotlight.h"
 #include "../Scene/Models/CarModel.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
-#include "../NFSVersion.h"
+#include "Common/NFSVersion.h"
 
 // Raycasting Data
 enum RayDirection : uint8_t {

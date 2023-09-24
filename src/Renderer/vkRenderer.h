@@ -19,7 +19,7 @@
 #include <array>
 #include <set>
 
-#include "../NFSVersion.h"
+#include "Common/NFSVersion.h"
 #include "../Physics/Car.h"
 #include "../Loaders/CarLoader.h"
 

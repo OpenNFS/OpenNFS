@@ -1,8 +1,9 @@
 #pragma once
 
 #include "BaseShader.h"
+#include <Common/Lights/TrackLight.h>
+
 #include "../Util/ImageLoader.h"
-#include "../Scene/Lights/TrackLight.h"
 
 class BillboardShader : public BaseShader {
 public:

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../Camera/BaseCamera.h"
-#include "../Scene/Lights/BaseLight.h"
-#include "../Scene/Lights/GlobalLight.h"
+#include <Common/Lights/BaseLight.h>
+#include <Common/Lights/GlobalLight.h>
 #include "../Shaders/TrackShader.h"
 #include "../Shaders/BillboardShader.h"
 #include "../RaceNet/Agents/CarAgent.h"

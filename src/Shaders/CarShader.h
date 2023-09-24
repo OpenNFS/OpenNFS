@@ -3,11 +3,11 @@
 #include "BaseShader.h"
 #include <sstream>
 #include <glm/detail/type_mat4x4.hpp>
+#include <Common/Lights/BaseLight.h>
 
 #include "../Config.h"
 #include "../Util/ImageLoader.h"
 #include "../Scene/Models/Model.h"
-#include "../Scene/Lights/BaseLight.h"
 #include "../Physics/Car.h"
 #include "../../shaders/ShaderPreamble.h"
 

@@ -122,12 +122,12 @@ VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const Bas
     // Perform frustum culling on the current camera, on local trackblocks
     for (auto &trackBlockID : _GetLocalTrackBlockIDs(track, camera, userParams)) {
         for (auto &trackEntity : track->trackBlocks[trackBlockID].track) {
-            if (camera.viewFrustum.CheckIntersection(trackEntity.GetAABB())) {
+            if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(trackEntity.GetAABB())) {
                 visibleSet.entities.emplace_back(std::make_shared<Entity>(trackEntity));
             }
         }
         for (auto &objectEntity : track->trackBlocks[trackBlockID].objects) {
-            if (camera.viewFrustum.CheckIntersection(objectEntity.GetAABB())) {
+            if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(objectEntity.GetAABB())) {
                 visibleSet.entities.emplace_back(std::make_shared<Entity>(objectEntity));
             }
         }
@@ -136,7 +136,7 @@ VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const Bas
             visibleSet.entities.emplace_back(std::make_shared<Entity>(laneEntity));
         }
         for (auto &lightEntity : track->trackBlocks[trackBlockID].lights) {
-            if (camera.viewFrustum.CheckIntersection(lightEntity.GetAABB())) {
+            if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(lightEntity.GetAABB())) {
                 visibleSet.lights.emplace_back(std::get<shared_ptr<BaseLight>>(lightEntity.raw));
             }
         }
@@ -296,12 +296,12 @@ void Renderer::_DrawDebugUI(ParamData &userParams, const BaseCamera &camera) {
     ImGui::Text("OpenNFS Engine");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
+    ImGui::Checkbox("Frustum Cull", &userParams.useFrustumCull);
     ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);
     ImGui::Checkbox("Classic Graphics", &userParams.useClassicGraphics);
     ImGui::Checkbox("Hermite Curve Cam", &userParams.attachCamToHermite);
     ImGui::Checkbox("Car Cam", &userParams.attachCamToCar);
     ImGui::Text("X %f Y %f Z %f", camera.position.x, camera.position.y, camera.position.z);
-    ImGui::Checkbox("Frustum Cull", &userParams.frustumCull);
     ImGui::Checkbox("Draw Herm Frustum", &userParams.drawHermiteFrustum);
     ImGui::Checkbox("Draw Track AABBs", &userParams.drawTrackAABB);
     ImGui::Checkbox("Raycast Viz", &userParams.drawRaycast);

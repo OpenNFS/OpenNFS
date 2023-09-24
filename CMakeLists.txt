@@ -17,8 +17,13 @@ if(APPLE OR WIN32)
 endif()
 
 if(${DEV})
+    if(APPLE)
+        # Silence Fshtool warnings til I deal with them
+        set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wno-pointer-sign -Wno-return-type")
+    endif()
     OptimizeForArchitecture()
-    MESSAGE(STATUS "Compiler flags are: " ${CMAKE_CXX_FLAGS})
+    MESSAGE(STATUS "CXX Compiler flags are: " ${CMAKE_CXX_FLAGS})
+    MESSAGE(STATUS "C Compiler flags are: " ${CMAKE_C_FLAGS})
 endif()
 
 if (${STATIC_BUILD})
@@ -32,28 +37,7 @@ file(GLOB CRP_LIB_SOURCES
         include/CrpLib/*.h
         include/CrpLib/*.cpp)
 
-set(LIB_OPENNFS_SOURCES
-        src/Loaders/NFS3/FRD/FrdFile.cpp
-        src/Loaders/NFS3/FRD/TrkBlock.cpp
-        src/Loaders/NFS3/FRD/PolyBlock.cpp
-        src/Loaders/NFS3/FRD/ExtraObjectBlock.cpp
-        src/Loaders/NFS3/FRD/TexBlock.cpp
-        src/Loaders/NFS3/COL/ColFile.cpp
-        src/Loaders/NFS3/FFN/FfnFile.cpp
-        src/Loaders/NFS3/FCE/FceFile.cpp
-        src/Loaders/NFS3/FEDATA/FedataFile.cpp
-        src/Loaders/NFS3/SPEEDS/SpeedsFile.cpp
-        src/Loaders/Shared/CanFile.cpp
-        src/Loaders/Shared/HrzFile.cpp
-        src/Loaders/NFS2/COL/ColFile.cpp
-        src/Loaders/NFS2/GEO/GeoFile.cpp
-        src/Loaders/NFS2/PSH/PshFile.cpp
-        src/Loaders/NFS2/TRK/ExtraObjectBlock.cpp
-        src/Loaders/NFS2/TRK/StructureBlock.cpp
-        src/Loaders/NFS2/TRK/StructureRefBlock.cpp
-        src/Loaders/NFS2/TRK/SuperBlock.cpp
-        src/Loaders/NFS2/TRK/TrackBlock.cpp
-        src/Loaders/NFS2/TRK/TrkFile.cpp)
+
 
 set(IMGUI_SOURCES
         include/imgui/imgui.cpp
@@ -68,7 +52,6 @@ set(IMGUI_SOURCES
 set(SOURCE_FILES
         ${IMGUI_SOURCES}
         ${CRP_LIB_SOURCES}
-        ${LIB_OPENNFS_SOURCES}
         include/bmpread/bmpread.c
         lib/glew-cmake/src/glew.c
         resources/asset/icon.rc
@@ -79,10 +62,9 @@ set(SOURCE_FILES
         src/Camera/HermiteCamera.cpp
         src/Config.cpp
         src/Loaders/CarLoader.cpp
-        src/Loaders/Common/TrackUtils.cpp
         src/Loaders/MusicLoader.cpp
-        src/Loaders/NFS2/NFS2Loader.cpp
-        src/Loaders/NFS3/NFS3Loader.cpp
+        lib/LibOpenNFS/NFS2/NFS2Loader.cpp
+        lib/LibOpenNFS/NFS3/NFS3Loader.cpp
         src/Loaders/TrackLoader.cpp
         src/Physics/AABB.cpp
         src/Physics/AABBTree.cpp
@@ -106,15 +88,11 @@ set(SOURCE_FILES
         src/Renderer/Texture.cpp
         src/Renderer/TrackRenderer.cpp
         src/Scene/Entity.cpp
-        src/Scene/Lights/BaseLight.cpp
-        src/Scene/Lights/GlobalLight.cpp
-        src/Scene/Lights/LightModel.cpp
-        src/Scene/Lights/Spotlight.cpp
-        src/Scene/Lights/TrackLight.cpp
         src/Scene/Models/CarModel.cpp
         src/Scene/Models/Model.cpp
         src/Scene/Models/Quad.cpp
         src/Scene/Models/TrackModel.cpp
+        src/Scene/Models/LightModel.cpp
         src/Scene/Sound.cpp
         src/Scene/Track.cpp
         src/Scene/TrackBlock.cpp
@@ -165,6 +143,11 @@ add_subdirectory(lib/freetype2)
 include_directories(lib/freetype2/include)
 list(APPEND ONFS_LIBRARIES freetype)
 
+#[[LibOpenNFS]]
+add_subdirectory(lib/LibOpenNFS)
+include_directories(lib/LibOpenNFS/include)
+list(APPEND ONFS_LIBRARIES LibOpenNFS)
+
 #[[G3Log]]
 set(G3_SHARED_LIB OFF CACHE BOOL "Compile g3log as static library")
 set(ADD_FATAL_EXAMPLE OFF CACHE BOOL "Don't bother compiling invalid code in g3log")
@@ -188,10 +171,6 @@ list(APPEND ONFS_LIBRARIES BulletDynamics BulletCollision LinearMath Bullet3Comm
 #[[GLEW Configuration]]
 add_subdirectory(lib/glew-cmake)
 list(APPEND ONFS_LIBRARIES libglew_static)
-
-#[[GLM Configuration]]
-add_subdirectory(lib/glm)
-list(APPEND ONFS_LIBRARIES glm)
 
 #[[GLFW Configuration]]
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

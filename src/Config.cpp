@@ -1,5 +1,7 @@
 #include "Config.h"
 
+#include <Common/Utils.h>
+
 void Config::ParseFile(std::ifstream &inStream) {
     ASSERT(false, "Config load from file not implemented! (yet)");
 }

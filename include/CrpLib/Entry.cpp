@@ -148,10 +148,7 @@ namespace CrpLib {
     }
 
     ICrpData *CEntry::GetData() {
-        if (this != NULL)
-            return m_pData;
-        else
-            return NULL;
+        return m_pData;
     }
 
     // -- modifiers --

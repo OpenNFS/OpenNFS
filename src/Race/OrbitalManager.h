@@ -1,7 +1,8 @@
 #pragma once
 
+#include <Common/Lights/GlobalLight.h>
+
 #include "../Camera/BaseCamera.h"
-#include "../Scene/Lights/GlobalLight.h"
 
 const float SKYDOME_RADIUS = 200.f;
 
