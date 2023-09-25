@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdlib>
 
+#include "Common/TextureUtils.h"
 #include "FCE/FceFile.h"
 #include "FEDATA/FedataFile.h"
 #include "FRD/FrdFile.h"
@@ -29,7 +30,7 @@ namespace LibOpenNFS::NFS3 {
 
     private:
         static CarData _ParseFCEModels(const LibOpenNFS::NFS3::FceFile &fceFile);
-        static std::vector<OpenNFS::TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS3::FrdFile &frdFile, const std::shared_ptr<Track> &track);
+        static std::vector<TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS3::FrdFile &frdFile, const std::shared_ptr<Track> &track);
         static std::vector<VirtualRoad> _ParseVirtualRoad(const LibOpenNFS::NFS3::ColFile &colFile);
         static std::vector<TrackEntity> _ParseCOLModels(const LibOpenNFS::NFS3::ColFile &colFile, const std::shared_ptr<Track> &track);
     };

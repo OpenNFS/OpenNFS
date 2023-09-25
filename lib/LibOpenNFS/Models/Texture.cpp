@@ -17,6 +17,115 @@ namespace LibOpenNFS {
         this->rawTextureInfo = rawTextureInfo;
     }
 
+    uint32_t Texture::GetWidth() const {
+        switch (tag) {
+        case NFSVersion::UNKNOWN:
+            break;
+        case NFSVersion::NFS_1:
+            break;
+        case NFSVersion::NFS_2:
+            break;
+        case NFSVersion::NFS_2_PS1:
+            break;
+        case NFSVersion::NFS_2_SE:
+            break;
+        case NFSVersion::NFS_3:
+            return std::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo).width;
+        case NFSVersion::NFS_3_PS1:
+            break;
+        case NFSVersion::NFS_4:
+            break;
+        case NFSVersion::NFS_4_PS1:
+            break;
+        case NFSVersion::MCO:
+            break;
+        case NFSVersion::NFS_5:
+            break;
+        }
+        return 0;
+    }
+
+    uint32_t Texture::GetHeight() const {
+        switch (tag) {
+        case NFSVersion::UNKNOWN:
+            break;
+        case NFSVersion::NFS_1:
+            break;
+        case NFSVersion::NFS_2:
+            break;
+        case NFSVersion::NFS_2_PS1:
+            break;
+        case NFSVersion::NFS_2_SE:
+            break;
+        case NFSVersion::NFS_3:
+            return std::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo).height;
+        case NFSVersion::NFS_3_PS1:
+            break;
+        case NFSVersion::NFS_4:
+            break;
+        case NFSVersion::NFS_4_PS1:
+            break;
+        case NFSVersion::MCO:
+            break;
+        case NFSVersion::NFS_5:
+            break;
+        }
+        return 0;
+    }
+
+    bool Texture::IsLane() const {
+        switch (tag) {
+        case NFSVersion::UNKNOWN:
+            break;
+        case NFSVersion::NFS_1:
+            break;
+        case NFSVersion::NFS_2:
+            break;
+        case NFSVersion::NFS_2_PS1:
+            break;
+        case NFSVersion::NFS_2_SE:
+            break;
+        case NFSVersion::NFS_3:
+            return std::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo).isLane;
+        case NFSVersion::NFS_3_PS1:
+            break;
+        case NFSVersion::NFS_4:
+            break;
+        case NFSVersion::NFS_4_PS1:
+            break;
+        case NFSVersion::MCO:
+            break;
+        case NFSVersion::NFS_5:
+            break;
+        }
+        return false;
+    }
+
+    uint32_t Texture::GetTextureID() const {
+        switch (tag) {
+        case NFSVersion::UNKNOWN:
+            break;
+        case NFSVersion::NFS_1:
+            break;
+        case NFSVersion::NFS_2:
+        case NFSVersion::NFS_2_PS1:
+        case NFSVersion::NFS_2_SE:
+        case NFSVersion::NFS_3_PS1:
+            return std::get<LibOpenNFS::NFS2::TEXTURE_BLOCK>(rawTextureInfo).texNumber;
+        case NFSVersion::NFS_3:
+            return std::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo).qfsIndex;
+        case NFSVersion::NFS_4:
+            break;
+        case NFSVersion::NFS_4_PS1:
+            break;
+        case NFSVersion::MCO:
+            break;
+        case NFSVersion::NFS_5:
+            break;
+        }
+        return 0;
+    }
+
     std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags) {
         std::bitset<32> textureAlignment(textureFlags);
         std::vector<glm::vec2> uvs;

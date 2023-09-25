@@ -23,12 +23,12 @@ namespace LibOpenNFS::NFS2 {
         case NFSVersion::NFS_3_PS1:
         case NFSVersion::NFS_2_PS1:
             carOutPath = CAR_PATH + get_string(nfsVersion) + "/" + carName + "/";
-            ImageLoader::ExtractPSH(pshPath, carOutPath);
+            //ImageLoader::ExtractPSH(pshPath, carOutPath);
             break;
         case NFSVersion::NFS_2:
         case NFSVersion::NFS_2_SE:
             carOutPath = CAR_PATH + get_string(nfsVersion) + "/" + carName + "/";
-            ImageLoader::ExtractQFS(qfsPath, carOutPath);
+            //ImageLoader::ExtractQFS(qfsPath, carOutPath);
             break;
         default:
             ASSERT(false, "I shouldn't be loading this version (" << get_string(nfsVersion) << ") and you know it");

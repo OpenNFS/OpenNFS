@@ -1,10 +1,11 @@
 #include "Entity.h"
-#include <Common/Lights/TrackLight.h>
+
+#include <Models/TrackLight.h>
 
 Entity::Entity(uint32_t parentTrackblockID,
                uint32_t entityID,
                NFSVersion nfsVersion,
-               EntityType entityType,
+               LibOpenNFS::EntityType entityType,
                EngineModel glMesh,
                uint32_t flags,
                glm::vec3 fromA,
@@ -31,9 +32,9 @@ void Entity::_GenCollisionMesh() {
     glm::quat orientation = glm::quat(0, 0, 0, 1);
 
     switch (type) {
-    case EntityType::SOUND:
-    case EntityType::CAR:
-    case EntityType::LANE:
+    case LibOpenNFS::EntityType::SOUND:
+    case LibOpenNFS::EntityType::CAR:
+        case LibOpenNFS::EntityType::LANE:
         return;
     /*case EntityType::LIGHT: {
         std::shared_ptr<BaseLight> baseLight   = std::get<std::shared_ptr<BaseLight>>(raw);
@@ -50,7 +51,7 @@ void Entity::_GenCollisionMesh() {
         }
         m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
     } break;*/
-    case EntityType::VROAD: {
+    case LibOpenNFS::EntityType::VROAD: {
         float wallHeight    = 1.0f;
         auto *mesh          = new btTriangleMesh();
         glm::vec3 triangle  = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
@@ -64,7 +65,7 @@ void Entity::_GenCollisionMesh() {
         mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
         m_collisionShape = new btConvexTriangleMeshShape(mesh);
     } break;
-    case EntityType::VROAD_CEIL: {
+    case LibOpenNFS::EntityType::VROAD_CEIL: {
         float ceilHeight    = 0.5f;
         auto *mesh          = new btTriangleMesh();
         glm::vec3 triangle  = glm::vec3(startPointA.x, startPointA.y + ceilHeight, startPointA.z);
@@ -78,10 +79,10 @@ void Entity::_GenCollisionMesh() {
         mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
         m_collisionShape = new btConvexTriangleMeshShape(mesh);
     } break;
-    case EntityType::ROAD:
-    case EntityType::GLOBAL:
-    case EntityType::XOBJ:
-    case EntityType::OBJ_POLY: {
+    case LibOpenNFS::EntityType::ROAD:
+    case LibOpenNFS::EntityType::GLOBAL:
+    case LibOpenNFS::EntityType::XOBJ:
+    case LibOpenNFS::EntityType::OBJ_POLY: {
         std::vector<glm::vec3> vertices = std::get<TrackModel>(raw).m_vertices;
         center                          = std::get<TrackModel>(raw).initialPosition;
         orientation                     = std::get<TrackModel>(raw).orientation;
@@ -123,11 +124,11 @@ void Entity::_GenCollisionMesh() {
 
 void Entity::_GenBoundingBox() {
     switch (type) {
-    case EntityType::XOBJ:
-    case EntityType::OBJ_POLY:
-    case EntityType::LANE:
-    case EntityType::ROAD:
-    case EntityType::GLOBAL: {
+    case LibOpenNFS::EntityType::XOBJ:
+    case LibOpenNFS::EntityType::OBJ_POLY:
+    case LibOpenNFS::EntityType::LANE:
+    case LibOpenNFS::EntityType::ROAD:
+    case LibOpenNFS::EntityType::GLOBAL: {
         DimensionData meshDimensions = Utils::GenDimensions(std::get<TrackModel>(raw).m_vertices);
         m_boundingBox                = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, std::get<TrackModel>(raw).initialPosition);
         return;
@@ -141,10 +142,10 @@ void Entity::_GenBoundingBox() {
         m_boundingBox                          = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
         return;
     }*/
-    case EntityType::SOUND:
-    case EntityType::CAR:
-    case EntityType::VROAD:
-    case EntityType::VROAD_CEIL:
+    case LibOpenNFS::EntityType::SOUND:
+    case LibOpenNFS::EntityType::CAR:
+    case LibOpenNFS::EntityType::VROAD:
+    case LibOpenNFS::EntityType::VROAD_CEIL:
         return;
     default:
         ASSERT(false, "Shouldn't be adding a " << get_string(type) << " entity to the AABB tree!");
@@ -154,7 +155,7 @@ void Entity::_GenBoundingBox() {
 
 void Entity::Update() {
     // We don't want to update Entities that aren't dynamic
-    if (!((type == EntityType::OBJ_POLY || type == EntityType::XOBJ) && dynamic)) {
+    if (!((type == LibOpenNFS::EntityType::OBJ_POLY || type == LibOpenNFS::EntityType::XOBJ) && dynamic)) {
         return;
     }
     btTransform trans;
@@ -168,21 +169,21 @@ void Entity::_SetCollisionParameters() {
     switch (tag) {
     case NFSVersion::NFS_3:
         switch (type) {
-        case EntityType::VROAD:
+        case LibOpenNFS::EntityType::VROAD:
             collideable = true;
             dynamic     = false;
             break;
-        case EntityType::LIGHT:
+        case LibOpenNFS::EntityType::LIGHT:
             collideable = false;
             break;
-        case EntityType::SOUND:
+        case LibOpenNFS::EntityType::SOUND:
             collideable = false;
             break;
-        case EntityType::ROAD:
+        case LibOpenNFS::EntityType::ROAD:
             collideable = true;
             break;
-        case EntityType::OBJ_POLY:
-        case EntityType::XOBJ:
+        case LibOpenNFS::EntityType::OBJ_POLY:
+        case LibOpenNFS::EntityType::XOBJ:
             collideable = false;
             break;
             switch ((flags >> 4) & 0x7) {
@@ -212,13 +213,13 @@ void Entity::_SetCollisionParameters() {
                 break;
             }
             break;
-        case EntityType::LANE:
+        case LibOpenNFS::EntityType::LANE:
             break;
-        case EntityType::GLOBAL:
+        case LibOpenNFS::EntityType::GLOBAL:
             break;
-        case EntityType::CAR:
+        case LibOpenNFS::EntityType::CAR:
             break;
-        case EntityType::VROAD_CEIL:
+        case LibOpenNFS::EntityType::VROAD_CEIL:
             break;
         }
         break;
@@ -231,10 +232,10 @@ void Entity::_SetCollisionParameters() {
 
 AABB Entity::GetAABB() const {
     switch (type) {
-    case EntityType::SOUND:
-    case EntityType::CAR:
-    case EntityType::VROAD:
-    case EntityType::VROAD_CEIL:
+    case LibOpenNFS::EntityType::SOUND:
+    case LibOpenNFS::EntityType::CAR:
+    case LibOpenNFS::EntityType::VROAD:
+    case LibOpenNFS::EntityType::VROAD_CEIL:
         ASSERT(false, "Shouldn't be adding a " << get_string(type) << " entity to the AABB tree!");
         break;
     default:

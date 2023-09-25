@@ -12,9 +12,8 @@
 #include <Shared/CanFile.h>
 #include "Texture.h"
 
-constexpr uint16_t kCullTreeInitialSize = 4000;
-
-class Track {
+namespace LibOpenNFS {
+    class Track {
 public:
     Track() = default;
     ~Track() = default;
@@ -27,10 +26,11 @@ public:
     std::vector<VirtualRoad> virtualRoad;
 
     // Geometry
-    std::vector<OpenNFS::TrackBlock> trackBlocks;
+    std::vector<TrackBlock> trackBlocks;
     std::vector<TrackEntity> globalObjects;
     std::vector<TrackEntity> vroadBarriers;
 
     // GL 3D Render Data
     std::map<uint32_t, Texture> textureMap;
 };
+}

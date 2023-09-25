@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include <Common/TextureUtils.h>
 
 #include "ImageLoader.h"
 
@@ -175,7 +176,7 @@ namespace Utils {
 
                 std::string sfxPath = itr->path().string() + "/gamedata/render/pc/sfx.fsh";
                 ASSERT(exists(sfxPath), "NFS 3 SFX Resource: " << sfxPath << " is missing");
-                ASSERT(ImageLoader::ExtractQFS(sfxPath, RESOURCE_PATH + "sfx/"), "Unable to extract SFX textures from " << sfxPath);
+                ASSERT(LibOpenNFS::TextureUtils::ExtractQFS(sfxPath, RESOURCE_PATH + "sfx/"), "Unable to extract SFX textures from " << sfxPath);
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_3_TRACK_PATH;

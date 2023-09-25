@@ -85,7 +85,7 @@ set(SOURCE_FILES
         src/Renderer/Renderer.cpp
         src/Renderer/ShadowMapRenderer.cpp
         src/Renderer/SkyRenderer.cpp
-        src/Renderer/Texture.cpp
+        src/Renderer/GLTexture.cpp
         src/Renderer/TrackRenderer.cpp
         src/Scene/Entity.cpp
         src/Scene/Models/CarModel.cpp

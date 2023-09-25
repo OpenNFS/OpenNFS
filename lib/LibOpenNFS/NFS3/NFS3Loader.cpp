@@ -15,13 +15,12 @@ namespace LibOpenNFS::NFS3 {
         fcePath << CAR_PATH << get_string(NFSVersion::NFS_3) << "/" << carName << "/car.fce";
         fedataPath << carOutPath.str() << "fedata.eng";
 
-        VivFile vivFile;
+        Shared::VivFile vivFile;
         FceFile fceFile;
         FedataFile fedataFile;
 
-        ASSERT(Utils::ExtractVIV(vivPath.str(), carOutPath.str()), "Unable to extract " << vivPath.str() << " to " << carOutPath.str());
-        ASSERT(VivFile::Load(vivPath.str(), vivFile), "Could not open VIV file: " << vivPath.str());
-        ASSERT(VivFile::Extract(carOutPath.str(), vivFile), "Could not extract VIV file: " << vivPath.str() << "to: " <<  carOutPath.str());
+        ASSERT(Shared::VivFile::Load(vivPath.str(), vivFile), "Could not open VIV file: " << vivPath.str());
+        ASSERT(Shared::VivFile::Extract(carOutPath.str(), vivFile), "Could not extract VIV file: " << vivPath.str() << "to: " <<  carOutPath.str());
         ASSERT(FceFile::Load(fcePath.str(), fceFile), "Could not load FCE file: " << fcePath.str());
         if (!FedataFile::Load(fedataPath.str(), fedataFile, fceFile.nPriColours)) {
             LOG(WARNING) << "Could not load FeData file: " << fedataPath.str();
@@ -144,7 +143,7 @@ namespace LibOpenNFS::NFS3 {
         return carData;
     }
 
-    std::vector<OpenNFS::TrackBlock> Loader::_ParseTRKModels(const FrdFile &frdFile, const std::shared_ptr<Track> &track) {
+    std::vector<LibOpenNFS::TrackBlock> Loader::_ParseTRKModels(const FrdFile &frdFile, const std::shared_ptr<Track> &track) {
         LOG(INFO) << "Parsing TRK file into ONFS GL structures";
         std::vector<OpenNFS::TrackBlock> trackBlocks;
         trackBlocks.reserve(frdFile.nBlocks);
@@ -294,7 +293,7 @@ namespace LibOpenNFS::NFS3 {
 
             for (uint32_t vertIdx = 0; vertIdx < rawTrackBlock.nVertices; ++vertIdx) {
                 roadVertices.emplace_back((rawTrackBlock.vert[vertIdx] / NFS3_SCALE_FACTOR) - rawTrackBlockCenter);
-                roadShadingData.emplace_back(Utils::ShadingDataToVec4(rawTrackBlock.vertShading[vertIdx]));
+                roadShadingData.emplace_back(TextureUtils::ShadingDataToVec4(rawTrackBlock.vertShading[vertIdx]));
             }
             // Get indices from Chunk 4 and 5 for High Res polys, Chunk 6 for Road Lanes
             for (uint32_t lodChunkIdx = 4; lodChunkIdx <= 6; lodChunkIdx++) {

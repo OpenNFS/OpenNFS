@@ -131,4 +131,64 @@ namespace LibOpenNFS {
 
         return returnCode;
     }
+
+    bool TextureUtils::ExtractTrackTextures(const std::string &trackPath, const ::std::string &trackName, NFSVersion nfsVer, const std::string &outPath) {
+        std::stringstream nfsTexArchivePath;
+        std::string fullTrackPath     = trackPath + "/" + trackName;
+
+        if (std::filesystem::exists(outPath)) {
+            return true;
+        } else {
+            std::filesystem::create_directories(outPath);
+        }
+
+        switch (nfsVer) {
+        case NFSVersion::NFS_2:
+            nfsTexArchivePath << trackPath << "0.qfs";
+            break;
+        case NFSVersion::NFS_2_SE:
+            nfsTexArchivePath << trackPath << "0m.qfs";
+            break;
+        case NFSVersion::NFS_2_PS1:
+            nfsTexArchivePath << trackPath << "0.psh";
+            break;
+        case NFSVersion::NFS_3:
+            nfsTexArchivePath << fullTrackPath << "0.qfs";
+            break;
+        case NFSVersion::NFS_3_PS1: {
+            std::string pshPath = trackPath;
+            pshPath.replace(pshPath.find("zz"), 2, "");
+            nfsTexArchivePath << pshPath << "0.psh";
+        } break;
+        case NFSVersion::NFS_4:
+            nfsTexArchivePath << trackPath << "/tr0.qfs";
+            break;
+        case NFSVersion::UNKNOWN:
+        default:
+            ASSERT(false, "Trying to extract track textures from unknown NFS version");
+            break;
+        }
+
+        //LOG(INFO) << "Extracting track textures";
+        std::string onfsTrackAssetTextureDir = outPath + "/textures/";
+
+        switch (nfsVer) {
+        case NFSVersion::NFS_2_PS1:
+        case NFSVersion::NFS_3_PS1:
+            return true;
+            //return ImageLoader::ExtractPSH(nfsTexArchivePath.str(), onfsTrackAssetTextureDir);
+        case NFSVersion::NFS_3: {
+            std::stringstream nfsSkyTexArchivePath;
+            nfsSkyTexArchivePath << fullTrackPath.substr(0, fullTrackPath.find_last_of('/')) << "/sky.fsh";
+            if (std::filesystem::exists(nfsSkyTexArchivePath.str())) {
+                std::string onfsTrackAssetSkyTexDir = outPath + "/sky_textures/";
+                ASSERT(ExtractQFS(nfsSkyTexArchivePath.str(), onfsTrackAssetSkyTexDir), "Unable to extract sky textures from " << nfsSkyTexArchivePath.str());
+            }
+        } break;
+        default:
+            break;
+        }
+
+        return ExtractQFS(nfsTexArchivePath.str(), onfsTrackAssetTextureDir);
+    }
 } // namespace LibOpenNFS

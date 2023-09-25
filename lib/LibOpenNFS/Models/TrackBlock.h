@@ -5,9 +5,7 @@
 
 #include "TrackEntity.h"
 
-using namespace LibOpenNFS;
-
-namespace OpenNFS {
+namespace LibOpenNFS {
     class TrackBlock {
     public:
         TrackBlock(uint32_t id, glm::vec3 position, uint32_t virtualRoadStartIndex, uint32_t nVirtualRoadPositions, const std::vector<uint32_t> &neighbourIds);
@@ -24,4 +22,4 @@ namespace OpenNFS {
         std::vector<TrackEntity> lights;
         std::vector<TrackEntity> sounds;
     };
-} // namespace OpenNFS
+} // namespace LibOpenNFS
