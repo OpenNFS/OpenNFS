@@ -5,6 +5,7 @@
 
 #include <string>
 #include <fstream>
+#include <cstdint>
 
 namespace CrpLib {
 
