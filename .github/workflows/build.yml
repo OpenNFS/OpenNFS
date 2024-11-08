@@ -1,0 +1,98 @@
+name: Build
+
+on: [push]
+
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libgl-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build
+        run: |
+          cmake -B bin -DCMAKE_BUILD_TYPE=Release .
+          cmake --build bin
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenNFS-Linux
+          path: |
+            bin/OpenNFS
+            resources
+            shaders
+            LICENSE
+            README.md
+
+  Windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build
+        run: |
+          cmake -B bin -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 .
+          cmake --build bin --config Release
+          cp bin\Release\OpenNFS.exe bin\OpenNFS.exe
+          cp LICENSE LICENSE.txt
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenNFS-Windows
+          path: |
+            bin/OpenNFS.exe
+            resources
+            shaders
+            LICENSE.txt
+            README.md
+
+  MacOS:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build
+        run: |
+          cmake -B bin -DCMAKE_BUILD_TYPE=Release .
+          cmake --build bin --config Release
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenNFS-MacOS
+          path: |
+            bin/OpenNFS
+            resources
+            shaders
+            LICENSE
+            README.md
+
+  Release:
+    needs: [Linux, Windows, MacOS]
+    if: ${{ github.ref_type == 'tag' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build: [Linux, Windows, MacOS]
+    steps:
+    - uses: actions/download-artifact@v4
+    - name: Zip artifacts
+      run: |
+        zip -r OpenNFS-${{matrix.build}}.zip OpenNFS-${{matrix.build}}
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: OpenNFS-${{matrix.build}}.zip
+        prerelease: true
+        name: OpenNFS ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
