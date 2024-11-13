@@ -63,8 +63,6 @@ set(SOURCE_FILES
         src/Config.cpp
         src/Loaders/CarLoader.cpp
         src/Loaders/MusicLoader.cpp
-        lib/LibOpenNFS/NFS2/NFS2Loader.cpp
-        lib/LibOpenNFS/NFS3/NFS3Loader.cpp
         src/Loaders/TrackLoader.cpp
         src/Physics/AABB.cpp
         src/Physics/AABBTree.cpp
@@ -88,11 +86,11 @@ set(SOURCE_FILES
         src/Renderer/GLTexture.cpp
         src/Renderer/TrackRenderer.cpp
         src/Scene/Entity.cpp
-        src/Scene/Models/CarModel.cpp
-        src/Scene/Models/Model.cpp
-        src/Scene/Models/Quad.cpp
-        src/Scene/Models/TrackModel.cpp
-        src/Scene/Models/LightModel.cpp
+        src/Renderer/Models/GLCarModel.cpp
+        src/Renderer/Models/GLModel.cpp
+        src/Renderer/Models/GLQuad.cpp
+        src/Renderer/Models/GLTrackModel.cpp
+        src/Renderer/Models/GLBillboardModel.cpp
         src/Scene/Track.cpp
         src/Scene/GlobalLight.cpp
         src/Scene/Spotlight.cpp

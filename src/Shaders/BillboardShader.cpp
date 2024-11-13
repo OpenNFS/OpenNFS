@@ -3,7 +3,7 @@
 const std::string vertexSrc = "../shaders/BillboardVertexShader.vert";
 const std::string fragSrc   = "../shaders/BillboardFragmentShader.frag";
 
-BillboardShader::BillboardShader() : super(vertexSrc, fragSrc) {
+BillboardShader::BillboardShader() : BaseShader(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
     load_bmp_texture();

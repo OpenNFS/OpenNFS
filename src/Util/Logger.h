@@ -17,15 +17,6 @@
 
 #include "../Config.h"
 
-#define ASSERT(condition, message)                                                                                       \
-    do {                                                                                                                 \
-        if (!(condition)) {                                                                                              \
-            LOG(FATAL) << "Assertion `" #condition "` failed in " << __FILE__ << " line " << __LINE__ << ": " << message; \
-            std::terminate();                                                                                            \
-        }                                                                                                                \
-    } while (false)
-
-
 static std::string FormatLog(const g3::LogMessage& msg) {
     const int levelFileLineWidth = 40;
 

@@ -1,8 +1,9 @@
-#include "LightModel.h"
+#include "GLBillboardModel.h"
 
-#include "../../../../src/Util/Utils.h"
+#include "../../Util/Utils.h"
 
-LightModel::LightModel() : Model("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
+GLBillboardModel::GLBillboardModel() :
+    GLModel("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
     m_vertexIndices = {0, 1,
                        2,        // first triangle (bottom left - top left - top right)
                        0, 2, 3}; // second triangle (bottom left - top right - bottom right)
@@ -16,14 +17,14 @@ LightModel::LightModel() : Model("Light", std::vector<glm::vec3>(), std::vector<
 
     enable();
 
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Light");
+    CHECK_F(genBuffers(), "Unable to generate GL Buffers for Light");
 }
 
-void LightModel::destroy() {
+void GLBillboardModel::destroy() {
     glDeleteBuffers(LightVBO::Length, m_lightVertexBuffers);
 }
 
-void LightModel::render() {
+void GLBillboardModel::render() {
     if (enabled) {
         glBindVertexArray(VertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
@@ -31,7 +32,7 @@ void LightModel::render() {
     }
 }
 
-bool LightModel::genBuffers() {
+bool GLBillboardModel::genBuffers() {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     glGenBuffers(LightVBO::Length, m_lightVertexBuffers);

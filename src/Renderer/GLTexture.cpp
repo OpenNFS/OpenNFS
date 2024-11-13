@@ -2,10 +2,10 @@
 
 #include <utility>
 
-GLTexture::GLTexture(LibOpenNFS::Texture texture, GLubyte *data) : texture(std::move(texture)), data(data) {
+GLTexture::GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data) : texture(std::move(texture)), data(data) {
 }
 
-GLTexture GLTexture::LoadTexture(NFSVersion tag, const LibOpenNFS::Texture &rawTrackTexture, const std::string &trackName) {
+GLTexture GLTexture::LoadTexture(NFSVersion tag, const LibOpenNFS::TrackTexture &rawTrackTexture, const std::string &trackName) {
     std::stringstream filename;
     GLubyte *data;
     GLsizei width;
@@ -22,17 +22,17 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, const LibOpenNFS::Texture &rawT
             filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID() + 9 << ".BMP";
             filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID() + 9 << "-a.BMP";
         } else {
-            filename << TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID()
-                     << ".BMP";
-            filename_alpha << TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID()
-                           << "-a.BMP";
+            filename << LibOpenNFS::TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4)
+                     << rawTrackTexture.GetTextureID() << ".BMP";
+            filename_alpha << LibOpenNFS::TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4)
+                           << rawTrackTexture.GetTextureID() << "-a.BMP";
         }
 
         if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height)) {
             LOG(WARNING) << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!";
             // If the texture is missing, load a "MISSING" texture of identical size.
-            ASSERT(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height),
-                   "Even the 'missing' texture is missing!");
+            CHECK_F(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height),
+                    "Even the 'missing' texture is missing!");
             // TODO: Override width and height to missing resource attributes
             return GLTexture(rawTrackTexture, data);
         }
@@ -56,17 +56,17 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, const LibOpenNFS::Texture &rawT
         }
         filename << TRACK_PATH << get_string(tag) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID() << ".BMP";
 
-        ASSERT(ImageLoader::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture " << filename.str() << " did not load succesfully!");
+        CHECK_F(ImageLoader::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture %s did not load succesfully!", filename.str().c_str());
 
         return GLTexture(rawTrackTexture, data);
     }
     default:
-        ASSERT(false, "Trying to load texture from unknown NFS version");
+        CHECK_F(false, "Trying to load texture from unknown NFS version");
     }
 }
 
 GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool repeatable) {
-    ASSERT(textures.size() < MAX_TEXTURE_ARRAY_SIZE, "Configured maximum texture array size of " << MAX_TEXTURE_ARRAY_SIZE << " has been exceeded");
+    CHECK_F(textures.size() < MAX_TEXTURE_ARRAY_SIZE, "Configured maximum texture array size of %d has been exceeded", MAX_TEXTURE_ARRAY_SIZE);
 
     size_t max_width = 0, max_height = 0;
     GLuint texture_name;
@@ -94,8 +94,8 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
                                             // textures.size(). HS Bloats tex index up over 2048.
 
     for (auto &texture : textures) {
-        ASSERT(texture.second.width <= max_width, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_width << ") for Array");
-        ASSERT(texture.second.height <= max_height, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_height << ") for Array");
+        CHECK_F(texture.second.width <= max_width, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_width << ") for Array");
+        CHECK_F(texture.second.height <= max_height, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_height << ") for Array");
         // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
                         0,
@@ -156,7 +156,7 @@ int32_t GLTexture::hsStockTextureIndexRemap(int32_t textureIndex) {
             remappedIndex = MAX_TEXTURE_ARRAY_SIZE - nStockTextures + (textureIndex - 2048);
         }
 
-        ASSERT(remappedIndex <= MAX_TEXTURE_ARRAY_SIZE, "Texture index still exceeds max texture array size, post-remap");
+        CHECK_F(remappedIndex <= MAX_TEXTURE_ARRAY_SIZE, "Texture index still exceeds max texture array size, post-remap");
 
         return remappedIndex;
     }

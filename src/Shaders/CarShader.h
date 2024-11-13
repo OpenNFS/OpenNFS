@@ -1,13 +1,11 @@
 #pragma once
 
 #include "BaseShader.h"
-#include <sstream>
 #include <glm/detail/type_mat4x4.hpp>
-#include <Models/BaseLight.h>
+#include <Entities/BaseLight.h>
 
 #include "../Config.h"
 #include "../Util/ImageLoader.h"
-#include "../Scene/Models/Model.h"
 #include "../Physics/Car.h"
 #include "../../shaders/ShaderPreamble.h"
 
@@ -16,7 +14,7 @@ public:
     explicit CarShader();
     void loadCarColor(glm::vec3 color);
     void loadCarTexture(GLuint textureID);
-    void loadLights(const std::vector<shared_ptr<BaseLight>> &lights);
+    void loadLights(const std::vector<BaseLight *> &lights);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view);
     void loadTransformationMatrix(const glm::mat4 &transformation);
@@ -48,6 +46,4 @@ protected:
     GLint hasPolyFlagsLocation;    // PolyFlagged
 
     GLuint envMapTextureID = 0;
-
-    typedef BaseShader super;
 };

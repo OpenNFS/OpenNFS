@@ -19,12 +19,7 @@ const std::string ONFS_GL_VERSION = "330";
 const std::string LOG_FILE_PATH        = "./";
 const std::string SHADER_PREAMBLE_PATH = "../shaders/ShaderPreamble.h";
 
-const std::string ASSET_PATH    = "./assets/";
-const std::string CAR_PATH      = ASSET_PATH + "car/";
-const std::string TRACK_PATH    = ASSET_PATH + "tracks/";
 const std::string RESOURCE_PATH = "../resources/";
-
-const std::string BEST_NETWORK_PATH = ASSET_PATH + "bestRacer.net";
 
 const std::string NFS_2_TRACK_PATH = "/gamedata/tracks/pc/";
 const std::string NFS_2_CAR_PATH   = "/gamedata/carmodel/pc/";

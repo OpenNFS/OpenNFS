@@ -11,6 +11,7 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <LibOpenNFS.h>
 
 #include "Config.h"
 #include "Util/Logger.h"
@@ -37,7 +38,7 @@ public:
             vkRenderer renderer;
             renderer.run();
 #else
-            ASSERT(false, "This build of OpenNFS was not compiled with Vulkan support!");
+            CHECK_F(false, "This build of OpenNFS was not compiled with Vulkan support!");
 #endif
         } else {
             run();
@@ -52,7 +53,7 @@ public:
         AssetData loadedAssets             = {get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track};
 
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
-        ASSERT(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
+        CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
 
         /*------- Render --------*/
         while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
@@ -78,11 +79,11 @@ private:
     std::vector<NfsAssetList> installedNFS;
 
     static void InitDirectories() {
-        if (!(exists(CAR_PATH))) {
-            create_directories(CAR_PATH);
+        if (!(exists(LibOpenNFS::CAR_PATH))) {
+            create_directories(LibOpenNFS::CAR_PATH);
         }
-        if (!(exists(TRACK_PATH))) {
-            create_directories(TRACK_PATH);
+        if (!(exists(LibOpenNFS::TRACK_PATH))) {
+            create_directories(LibOpenNFS::TRACK_PATH);
         }
     }
 };

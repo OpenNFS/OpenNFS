@@ -3,7 +3,7 @@
 const std::string vertexSrc = "../shaders/FontVertexShader.vert";
 const std::string fragSrc   = "../shaders/FontFragmentShader.frag";
 
-FontShader::FontShader() : super(vertexSrc, fragSrc) {
+FontShader::FontShader() : BaseShader(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }

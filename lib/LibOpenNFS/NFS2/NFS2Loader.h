@@ -21,7 +21,7 @@ namespace LibOpenNFS::NFS2 {
     template <typename Platform>
     class Loader {
     public:
-        static std::shared_ptr<Car> LoadCar(const std::string &carBasePath, NFSVersion nfsVersion);
+        static std::shared_ptr<OpenNFS::Car> LoadCar(const std::string &carBasePath, NFSVersion nfsVersion);
         static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath, NFSVersion nfsVersion);
 
     private:

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "BaseShader.h"
-#include "../Scene/Models/LightModel.h"
 #include "../Util/Utils.h"
 
 class DepthShader : public BaseShader {
@@ -19,6 +18,4 @@ protected:
     GLint lightSpaceMatrixLocation;
     GLint transformationMatrixLocation;
     GLint textureArrayLocation;
-
-    typedef BaseShader super;
 };

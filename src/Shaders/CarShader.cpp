@@ -3,7 +3,7 @@
 const std::string vertexSrc = "../shaders/CarVertexShader.vert";
 const std::string fragSrc   = "../shaders/CarFragmentShader.frag";
 
-CarShader::CarShader() : super(vertexSrc, fragSrc) {
+CarShader::CarShader() : BaseShader(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
     loadEnvMapTextureData();
@@ -92,7 +92,7 @@ void CarShader::loadTransformationMatrix(const glm::mat4 &transformation) {
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void CarShader::loadLights(const std::vector<shared_ptr<BaseLight>> &lights) {
+void CarShader::loadLights(const std::vector<BaseLight *> &lights) {
     for (int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i) {
         if (i < lights.size()) {
             loadVec3(lightPositionLocation[i], lights[i]->position);

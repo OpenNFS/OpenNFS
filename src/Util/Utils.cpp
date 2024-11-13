@@ -105,7 +105,7 @@ namespace Utils {
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_SE_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(exists(trackBasePath), "NFS 2 Special Edition track folder: " << trackBasePath << " is missing");
+                CHECK_F(exists(trackBasePath), "NFS 2 Special Edition track folder: %s is missing", trackBasePath.c_str());
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".trk") != std::string::npos) {
@@ -116,7 +116,7 @@ namespace Utils {
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_2_SE_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(exists(carBasePath), "NFS 2 Special Edition car folder: " << carBasePath << " is missing");
+                CHECK_F(exists(carBasePath), "NFS 2 Special Edition car folder: %s is missing", carBasePath.c_str());
 
                 // TODO: Work out where NFS2 SE Cars are stored
             } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_2)) {
@@ -125,7 +125,7 @@ namespace Utils {
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(exists(trackBasePath), "NFS 2 track folder: " << trackBasePath << " is missing");
+                CHECK_F(exists(trackBasePath), "NFS 2 track folder: %s is missing", trackBasePath.c_str());
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".trk") != std::string::npos) {
@@ -136,7 +136,7 @@ namespace Utils {
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_2_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(exists(carBasePath), "NFS 2 car folder: " << carBasePath << " is missing");
+                CHECK_F(exists(carBasePath), "NFS 2 car folder: %s is missing", carBasePath.c_str());
 
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find(".geo") != std::string::npos) {
@@ -175,13 +175,13 @@ namespace Utils {
                 currentNFS.tag = NFSVersion::NFS_3;
 
                 std::string sfxPath = itr->path().string() + "/gamedata/render/pc/sfx.fsh";
-                ASSERT(exists(sfxPath), "NFS 3 SFX Resource: " << sfxPath << " is missing");
-                ASSERT(LibOpenNFS::TextureUtils::ExtractQFS(sfxPath, RESOURCE_PATH + "sfx/"), "Unable to extract SFX textures from " << sfxPath);
+                CHECK_F(exists(sfxPath), "NFS 3 SFX Resource: %s is missing", sfxPath.c_str());
+                CHECK_F(LibOpenNFS::TextureUtils::ExtractQFS(sfxPath, RESOURCE_PATH + "sfx/"), "Unable to extract SFX textures from %s", sfxPath.c_str());
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_3_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(exists(trackBasePath), "NFS 3 Hot Pursuit track folder: " << trackBasePath << " is missing");
+                CHECK_F(exists(trackBasePath), "NFS 3 Hot Pursuit track folder: %s is missing", trackBasePath.c_str());
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     currentNFS.tracks.emplace_back(trackItr->path().filename().string());
@@ -190,7 +190,7 @@ namespace Utils {
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_3_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(exists(carBasePath), "NFS 3 Hot Pursuit car folder: " << carBasePath << " is missing");
+                CHECK_F(exists(carBasePath), "NFS 3 Hot Pursuit car folder: %s is missing", carBasePath.c_str());
 
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find("traffic") == std::string::npos) {
@@ -225,7 +225,7 @@ namespace Utils {
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_4_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(exists(trackBasePath), "NFS 4 High Stakes track folder: " << trackBasePath << " is missing");
+                CHECK_F(exists(trackBasePath), "NFS 4 High Stakes track folder: %s is missing", trackBasePath.c_str());
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     currentNFS.tracks.emplace_back(trackItr->path().filename().string());
@@ -234,7 +234,7 @@ namespace Utils {
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_4_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(exists(carBasePath), "NFS 4 High Stakes car folder: " << carBasePath << " is missing");
+                CHECK_F(exists(carBasePath), "NFS 4 High Stakes car folder: %s is missing", carBasePath.c_str());
 
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find("traffic") == std::string::npos) {
@@ -264,14 +264,14 @@ namespace Utils {
                 currentNFS.tag = NFSVersion::MCO;
 
                 std::string trackBasePath = itr->path().string() + MCO_TRACK_PATH;
-                ASSERT(exists(trackBasePath), "Motor City Online track folder: " << trackBasePath << " is missing");
+                CHECK_F(exists(trackBasePath), "Motor City Online track folder: %s is missing", trackBasePath.c_str());
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     currentNFS.tracks.emplace_back(trackItr->path().filename().string());
                 }
 
                 std::string carBasePath = itr->path().string() + MCO_CAR_PATH;
-                ASSERT(exists(carBasePath), "Motor City Online car folder: " << carBasePath << " is missing");
+                CHECK_F(exists(carBasePath), "Motor City Online car folder: %s is missing", carBasePath.c_str());
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                 }
@@ -281,7 +281,7 @@ namespace Utils {
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_5_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                ASSERT(exists(trackBasePath), "NFS 5 track folder: " << trackBasePath << " is missing");
+                CHECK_F(exists(trackBasePath), "NFS 5 track folder: %s is missing", trackBasePath.c_str());
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".crp") != std::string::npos) {
@@ -292,7 +292,7 @@ namespace Utils {
                 std::stringstream carBasePathStream;
                 carBasePathStream << itr->path().string() << NFS_5_CAR_PATH;
                 std::string carBasePath(carBasePathStream.str());
-                ASSERT(exists(carBasePath), "NFS 5 car folder: " << carBasePath << " is missing");
+                CHECK_F(exists(carBasePath), "NFS 5 car folder: %s is missing", carBasePath.c_str());
 
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     if (carItr->path().filename().string().find(".crp") != std::string::npos) {
@@ -314,9 +314,9 @@ namespace Utils {
             installedNFS.emplace_back(currentNFS);
         }
 
-        ASSERT(hasMisc, "Missing \'misc\' folder in resources directory");
-        ASSERT(hasUI, "Missing \'ui\' folder in resources directory");
-        ASSERT(!installedNFS.empty(), "No Need for Speed games detected in resources directory");
+        CHECK_F(hasMisc, "Missing \'misc\' folder in resources directory");
+        CHECK_F(hasUI, "Missing \'ui\' folder in resources directory");
+        CHECK_F(!installedNFS.empty(), "No Need for Speed games detected in resources directory");
 
         for (auto const &nfs : installedNFS) {
             LOG(INFO) << "Detected: " << get_string(nfs.tag);

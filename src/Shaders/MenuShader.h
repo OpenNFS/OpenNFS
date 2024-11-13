@@ -21,6 +21,4 @@ protected:
     GLint projectionMatrixLocation;
     GLint layerLocation;
     GLint colourLocation;
-
-    typedef BaseShader super;
 };

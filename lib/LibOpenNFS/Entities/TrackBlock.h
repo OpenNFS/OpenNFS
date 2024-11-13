@@ -4,6 +4,8 @@
 #include <vector>
 
 #include "TrackEntity.h"
+#include "TrackLight.h"
+#include "TrackSound.h"
 
 namespace LibOpenNFS {
     class TrackBlock {
@@ -19,7 +21,7 @@ namespace LibOpenNFS {
         std::vector<TrackEntity> track;
         std::vector<TrackEntity> objects;
         std::vector<TrackEntity> lanes;
-        std::vector<TrackEntity> lights;
-        std::vector<TrackEntity> sounds;
+        std::vector<TrackLight> lights;
+        std::vector<TrackSound> sounds;
     };
 } // namespace LibOpenNFS

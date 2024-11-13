@@ -14,24 +14,24 @@
 #include "Shared/CanFile.h"
 #include "Shared/HrzFile.h"
 #include "Shared/VivFile.h"
-#include "../../../src/Physics/Car.h"
-#include "Models/Track.h"
-#include "Models/TrackBlock.h"
-#include "Models/VirtualRoad.h"
-#include "Models/Texture.h"
+#include "Entities/Car.h"
+#include "Entities/Track.h"
+#include "Entities/TrackBlock.h"
+#include "Entities/TrackVRoad.h"
+#include "Entities/TrackTexture.h"
 
 namespace LibOpenNFS::NFS3 {
     const float NFS3_SCALE_FACTOR = 10.f;
 
     class Loader {
     public:
-        static std::shared_ptr<Car> LoadCar(const std::string &carBasePath);
-        static std::shared_ptr<Track> LoadTrack(const std::string &trackBasePath);
+        static Car LoadCar(const std::string &carBasePath);
+        static Track LoadTrack(const std::string &trackBasePath);
 
     private:
-        static CarData _ParseFCEModels(const LibOpenNFS::NFS3::FceFile &fceFile);
-        static std::vector<TrackBlock> _ParseTRKModels(const LibOpenNFS::NFS3::FrdFile &frdFile, const std::shared_ptr<Track> &track);
-        static std::vector<VirtualRoad> _ParseVirtualRoad(const LibOpenNFS::NFS3::ColFile &colFile);
-        static std::vector<TrackEntity> _ParseCOLModels(const LibOpenNFS::NFS3::ColFile &colFile, const std::shared_ptr<Track> &track);
+        static Car::MetaData _ParseAssetData(const FceFile &fceFile, const FedataFile &fedataFile);
+        static std::vector<TrackBlock> _ParseTRKModels(const FrdFile &frdFile, const Track &track);
+        static std::vector<TrackVRoad> _ParseVirtualRoad(const ColFile &colFile);
+        static std::vector<TrackEntity> _ParseCOLModels(const ColFile &colFile, const Track &track);
     };
 } // namespace LibOpenNFS::NFS3

@@ -9,10 +9,10 @@ using json = nlohmann::json;
 
 MenuRenderer::MenuRenderer() {
     FT_Library ft;
-    ASSERT(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
+    CHECK_F(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
 
     FT_Face face;
-    ASSERT(!FT_New_Face(ft, "../resources/ui/fonts/earth.ttf", 0, &face), "FREETYPE: Failed to load font");
+    CHECK_F(!FT_New_Face(ft, "../resources/ui/fonts/earth.ttf", 0, &face), "FREETYPE: Failed to load font");
 
     FT_Set_Pixel_Sizes(face, 0, 48);
 
@@ -82,7 +82,7 @@ MenuRenderer::~MenuRenderer() {
 std::map<std::string, MenuResource> MenuRenderer::LoadResources(const std::string &resourceFile) {
     // Read the resource JSON file
     std::ifstream jsonFile(resourceFile);
-    ASSERT(jsonFile.is_open(), "Couldn't open menu resource file " << resourceFile);
+    CHECK_F(jsonFile.is_open(), "Couldn't open menu resource file " << resourceFile);
 
     std::map<std::string, MenuResource> resources;
     json resourcesJson;
@@ -114,7 +114,7 @@ void MenuRenderer::Render() {
 }
 
 void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
-    ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
+    CHECK_F(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
     // Allow for hot reload of shader
     m_fontShader.HotReload();
 
@@ -156,7 +156,7 @@ void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, G
 }
 
 void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat scale) {
-    ASSERT(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
+    CHECK_F(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 
     // TODO: Actually implement this rescaling scaling properly
     float ratioX = 1.0f; // (float) m_menuResourceMap[resourceID].width / Config::get().resX;
@@ -166,8 +166,8 @@ void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GL
 }
 
 void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) {
-    ASSERT(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
-    ASSERT(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
+    CHECK_F(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
+    CHECK_F(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
 
     GLfloat xpos = x;
     GLfloat ypos = y;

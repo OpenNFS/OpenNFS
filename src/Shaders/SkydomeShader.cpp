@@ -3,7 +3,7 @@
 const std::string vertexSrc = "../shaders/SkydomeVertexShader.vert";
 const std::string fragSrc   = "../shaders/SkydomeFragmentShader.frag";
 
-SkydomeShader::SkydomeShader() : super(vertexSrc, fragSrc) {
+SkydomeShader::SkydomeShader() : BaseShader(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }

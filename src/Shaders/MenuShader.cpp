@@ -3,7 +3,7 @@
 const std::string vertexSrc = "../shaders/MenuVertexShader.vert";
 const std::string fragSrc   = "../shaders/MenuFragmentShader.frag";
 
-MenuShader::MenuShader() : super(vertexSrc, fragSrc) {
+MenuShader::MenuShader() : BaseShader(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }

@@ -3,7 +3,7 @@
 const std::string vertexSrc = "../shaders/DepthVertexShader.vert";
 const std::string fragSrc   = "../shaders/DepthFragmentShader.frag";
 
-DepthShader::DepthShader() : super(vertexSrc, fragSrc) {
+DepthShader::DepthShader() : BaseShader(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }

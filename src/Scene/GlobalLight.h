@@ -1,11 +1,13 @@
 #pragma once
 
-#include "Models/BaseLight.h"
+#include "Entities/BaseLight.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 const float RADIANS_PER_TICK = 0.001f;
+
+using namespace LibOpenNFS;
 
 class GlobalLight : public BaseLight {
 public:

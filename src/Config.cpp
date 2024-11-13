@@ -3,7 +3,7 @@
 #include <Common/Utils.h>
 
 void Config::ParseFile(std::ifstream &inStream) {
-    ASSERT(false, "Config load from file not implemented! (yet)");
+    CHECK_F(false, "Config load from file not implemented! (yet)");
 }
 
 void Config::InitFromCommandLine(int argc, char **argv) {

@@ -1,9 +1,9 @@
-#include "Texture.h"
+#include "TrackTexture.h"
 
-#include "Texture.h"
+#include "TrackTexture.h"
 
 namespace LibOpenNFS {
-    Texture::Texture(NFSVersion tag, uint32_t id, const std::vector<uint8_t> &data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo) {
+    TrackTexture::TrackTexture(NFSVersion tag, uint32_t id, const std::vector<uint8_t> &data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo) {
         this->tag            = tag;
         this->id             = id;
         this->data           = data;
@@ -17,7 +17,7 @@ namespace LibOpenNFS {
         this->rawTextureInfo = rawTextureInfo;
     }
 
-    uint32_t Texture::GetWidth() const {
+    uint32_t TrackTexture::GetWidth() const {
         switch (tag) {
         case NFSVersion::UNKNOWN:
             break;
@@ -45,7 +45,7 @@ namespace LibOpenNFS {
         return 0;
     }
 
-    uint32_t Texture::GetHeight() const {
+    uint32_t TrackTexture::GetHeight() const {
         switch (tag) {
         case NFSVersion::UNKNOWN:
             break;
@@ -73,7 +73,7 @@ namespace LibOpenNFS {
         return 0;
     }
 
-    bool Texture::IsLane() const {
+    bool TrackTexture::IsLane() const {
         switch (tag) {
         case NFSVersion::UNKNOWN:
             break;
@@ -101,7 +101,7 @@ namespace LibOpenNFS {
         return false;
     }
 
-    uint32_t Texture::GetTextureID() const {
+    uint32_t TrackTexture::GetTextureID() const {
         switch (tag) {
         case NFSVersion::UNKNOWN:
             break;
@@ -126,14 +126,13 @@ namespace LibOpenNFS {
         return 0;
     }
 
-    std::vector<glm::vec2> Texture::GenerateUVs(EntityType meshType, uint32_t textureFlags) {
+    std::vector<glm::vec2> TrackTexture::GenerateUVs(EntityType meshType, uint32_t textureFlags) {
         std::bitset<32> textureAlignment(textureFlags);
         std::vector<glm::vec2> uvs;
 
         switch (tag) {
         case NFSVersion::NFS_1:
-            ASSERT(false, "Unimplemented");
-            break;
+            ASSERT(false, "NFS1 UV generation not implemented yet");
         case NFSVersion::NFS_2:
         case NFSVersion::NFS_2_SE:
         case NFSVersion::NFS_2_PS1:
@@ -201,8 +200,6 @@ namespace LibOpenNFS {
                 break;
             case EntityType::VROAD:
                 break;
-            case EntityType::VROAD_CEIL:
-                break;
             }
             break;
         /*    switch (meshType)
@@ -258,41 +255,6 @@ namespace LibOpenNFS {
             break;
             }
             break;*/
-        case NFSVersion::NFS_3: {
-            LibOpenNFS::NFS3::TexBlock texBlock = std::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo);
-            switch (meshType) {
-            case EntityType::XOBJ:
-                uvs.emplace_back((1.0f - texBlock.corners[0]) * maxU, (1.0f - texBlock.corners[1]) * maxV);
-                uvs.emplace_back((1.0f - texBlock.corners[2]) * maxU, (1.0f - texBlock.corners[3]) * maxV);
-                uvs.emplace_back((1.0f - texBlock.corners[4]) * maxU, (1.0f - texBlock.corners[5]) * maxV);
-                uvs.emplace_back((1.0f - texBlock.corners[0]) * maxU, (1.0f - texBlock.corners[1]) * maxV);
-                uvs.emplace_back((1.0f - texBlock.corners[4]) * maxU, (1.0f - texBlock.corners[5]) * maxV);
-                uvs.emplace_back((1.0f - texBlock.corners[6]) * maxU, (1.0f - texBlock.corners[7]) * maxV);
-                break;
-            case EntityType::OBJ_POLY:
-            case EntityType::LANE:
-            case EntityType::ROAD:
-                uvs.emplace_back(texBlock.corners[0] * maxU, (1.0f - texBlock.corners[1]) * maxV);
-                uvs.emplace_back(texBlock.corners[2] * maxU, (1.0f - texBlock.corners[3]) * maxV);
-                uvs.emplace_back(texBlock.corners[4] * maxU, (1.0f - texBlock.corners[5]) * maxV);
-                uvs.emplace_back(texBlock.corners[0] * maxU, (1.0f - texBlock.corners[1]) * maxV);
-                uvs.emplace_back(texBlock.corners[4] * maxU, (1.0f - texBlock.corners[5]) * maxV);
-                uvs.emplace_back(texBlock.corners[6] * maxU, (1.0f - texBlock.corners[7]) * maxV);
-                break;
-            case EntityType::GLOBAL:
-                break;
-            case EntityType::CAR:
-                break;
-            case EntityType::SOUND:
-                break;
-            case EntityType::LIGHT:
-                break;
-            case EntityType::VROAD:
-                break;
-            case EntityType::VROAD_CEIL:
-                break;
-            }
-        } break;
         case NFSVersion::NFS_4: {
             // TODO: Needs to be an NFS4 texblock after NFS4 new gen parser bringup
             LibOpenNFS::NFS3::TexBlock texBlock = std::get<LibOpenNFS::NFS3::TexBlock>(rawTextureInfo);
@@ -371,8 +333,6 @@ namespace LibOpenNFS {
             case EntityType::LIGHT:
                 break;
             case EntityType::VROAD:
-                break;
-            case EntityType::VROAD_CEIL:
                 break;
             }
         } break;

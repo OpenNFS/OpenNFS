@@ -1,14 +1,14 @@
 #pragma once
 
 #include "BaseShader.h"
-#include <Models/TrackLight.h>
+#include <Entities/TrackLight.h>
 
 #include "../Util/ImageLoader.h"
 
 class BillboardShader : public BaseShader {
 public:
     BillboardShader();
-    void loadLight(const std::shared_ptr<TrackLight> &light);
+    void loadLight(const std::shared_ptr<LibOpenNFS::TrackLight> &light);
     void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view);
 
 protected:
@@ -23,8 +23,6 @@ protected:
     GLint billboardPosLocation;
 
     GLuint textureID;
-
-    typedef BaseShader super;
 
     void loadBillboardTexture();
 

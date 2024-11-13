@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Models/BaseLight.h>
+#include <Entities/BaseLight.h>
 
 #include "../Config.h"
 #include "../Camera/BaseCamera.h"

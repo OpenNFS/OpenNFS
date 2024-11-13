@@ -59,7 +59,7 @@ namespace OpenNFS {
         if (m_track != nullptr) {
             // TrackModel updates propagate for active track blocks, based upon track blocks racer vehicles are on
             for (auto &residentTrackblockID : racerResidentTrackblockIDs) {
-                for (auto &objects : m_track->rawTrack->trackBlocks[residentTrackblockID].objects) {
+                for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects) {
                     //objects.Update();
                 }
             }
@@ -88,7 +88,7 @@ namespace OpenNFS {
     void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
         m_track = track;
 
-        for (auto &trackBlock : m_track->rawTrack->trackBlocks) {
+        /*for (auto &trackBlock : m_track->trackBlocks) {
             for (auto &road : trackBlock.track) {
                 road._GenCollisionMesh();
                 m_pDynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
@@ -104,7 +104,7 @@ namespace OpenNFS {
                     collisionMask |= COL_TRACK;
                 }
                 // Move Rigid body to correct place in world
-                btTransform initialTransform = ::Utils::MakeTransform(std::get<TrackModel>(object.raw).initialPosition, std::get<TrackModel>(object.raw).orientation);
+                btTransform initialTransform = ::Utils::MakeTransform(std::get<GLTrackModel>(object.raw).initialPosition, std::get<GLTrackModel>(object.raw).orientation);
                 object.rigidBody->setWorldTransform(initialTransform);
                 m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
             }
@@ -112,8 +112,7 @@ namespace OpenNFS {
                 light._GenCollisionMesh();
                 m_pDynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
             }
-        }
-
+        }*/
         // this->_GenerateVroadBarriers();
     }
 
@@ -133,11 +132,11 @@ namespace OpenNFS {
         btVector3 wheelDirectionCS0(0, -1, 0);
         btVector3 wheelAxleCS(-1, 0, 0);
         // Fronties
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightFrontWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.geometry->position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightFrontWheelModel.geometry->position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
         // Rearies
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.geometry->position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.geometry->position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
 
         for (uint8_t wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx) {
             btWheelInfo &wheel               = car->GetVehicle()->getWheelInfo(wheelIdx);
@@ -161,7 +160,7 @@ namespace OpenNFS {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
         if (m_track != nullptr) {
-            for (auto &trackBlock : m_track->rawTrack->trackBlocks) {
+            for (auto &trackBlock : m_track->trackBlocks) {
                 for (auto &road : trackBlock.track) {
                     m_pDynamicsWorld->removeRigidBody(road.rigidBody);
                     delete road.rigidBody->getMotionState();

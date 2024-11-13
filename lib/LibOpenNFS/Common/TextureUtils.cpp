@@ -93,7 +93,6 @@ namespace LibOpenNFS {
                     break;
                 default:
                     ASSERT(false, "Attempted to parse 4 component RGB");
-                    break;
                 }
                 tempComponent.str("");
                 if (++commaCount >= 3) {

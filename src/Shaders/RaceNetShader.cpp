@@ -3,7 +3,7 @@
 const std::string vertexSrc = "../shaders/RaceNetVertexShader.vert";
 const std::string fragSrc   = "../shaders/RaceNetFragmentShader.frag";
 
-RaceNetShader::RaceNetShader() : super(vertexSrc, fragSrc) {
+RaceNetShader::RaceNetShader() : BaseShader(vertexSrc, fragSrc) {
     bindAttributes();
     getAllUniformLocations();
 }

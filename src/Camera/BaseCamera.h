@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Models/TrackBlock.h"
-#include "../Physics/Frustum.h"
-
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
+#include <Entities/TrackBlock.h>
+
+#include "../Physics/Frustum.h"
 
 enum WindowStatus : uint8_t { UI, GAME };
 

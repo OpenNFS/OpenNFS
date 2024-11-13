@@ -16,10 +16,10 @@
 namespace LibOpenNFS {
     // TODO: Refactor this pattern out entirely, should pass everything the texture needs as ONFS intermediate
     typedef std::variant<LibOpenNFS::NFS3::TexBlock, LibOpenNFS::NFS2::TEXTURE_BLOCK> RawTextureInfo;
-    class Texture {
+    class TrackTexture {
     public:
-        Texture() = default;
-        explicit Texture(NFSVersion tag, uint32_t id, const std::vector<uint8_t> &data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo);
+        TrackTexture() = default;
+        explicit TrackTexture(NFSVersion tag, uint32_t id, const std::vector<uint8_t> &data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo);
         std::vector<glm::vec2> GenerateUVs(EntityType meshType, uint32_t textureFlags);
         uint32_t GetWidth() const;
         uint32_t GetHeight() const;

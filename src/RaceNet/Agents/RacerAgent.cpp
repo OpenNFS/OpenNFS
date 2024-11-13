@@ -10,7 +10,7 @@ namespace OpenNFS {
 
     RacerAgent::RacerAgent(uint16_t racerID, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &raceTrack) : CarAgent(AgentType::RACING, car, raceTrack) {
         name          = RACER_NAMES[racerID];
-        this->vehicle = std::make_shared<Car>(car->assetData, car->tag, car->id);
+        this->vehicle = std::make_shared<Car>(car->assetData);
 
         // TODO: DEBUG! Set a low max speed.
         this->vehicle->vehicleProperties.maxSpeed = 100.f;
@@ -44,9 +44,9 @@ namespace OpenNFS {
         }
     }
     void RacerAgent::_FollowTrack() {
-        glm::vec3 target = m_track->rawTrack->virtualRoad[(m_nearestVroadID + 10) % m_track->virtualRoad.size()].position;
+        glm::vec3 target = m_track->virtualRoad[(m_nearestVroadID + 10) % m_track->virtualRoad.size()].position;
         float angle      = glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
-                                              glm::normalize(target - this->vehicle->carBodyModel.position), glm::vec3(0, 1, 0));
+                                              glm::normalize(target - this->vehicle->carBodyModel.geometry->position), glm::vec3(0, 1, 0));
         // vehicle->ApplyAbsoluteSteerAngle(angle);
         if (angle < -0.15f) {
             vehicle->ApplySteeringRight(true);

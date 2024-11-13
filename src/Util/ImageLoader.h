@@ -6,8 +6,6 @@
 
 #include "Logger.h"
 
-
-
 #define MAKEuint16_t(a, b) ((uint16_t) (((uint8_t) (a)) | (((uint16_t) ((uint8_t) (b))) << 8)))
 
 // Define Windows Bitmap structs and macros with CP (CrossPlatform prefix) to avoid redef when conditionally including Windows.h for logging

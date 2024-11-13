@@ -33,6 +33,4 @@ protected:
     GLint clouds2TextureLocation; // heavy clouds texture (spherical UV projection)
     GLint weatherLocation;        // mixing factor (0.5 to 1.0)
     GLint timeLocation;
-
-    typedef BaseShader super;
 };

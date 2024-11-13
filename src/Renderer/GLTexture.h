@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <map>
 #include <string>
 #include <set>
 #include <sstream>
@@ -8,26 +9,21 @@
 #include <bitset>
 #include <variant>
 #include <filesystem>
-#include <Models/Texture.h>
+#include <Entities/TrackTexture.h>
+#include <LibOpenNFS.h>
 
-#include <NFS2/TRK/ExtraObjectBlock.h>
-#include <NFS3/FRD/TexBlock.h>
-#include "../Util/Utils.h"
 #include "../Util/ImageLoader.h"
-#include "../Scene/Entity.h"
-
 
 class GLTexture {
 public:
     GLTexture() = default;
-    explicit GLTexture(LibOpenNFS::Texture texture, GLubyte *data);
+    explicit GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data);
 
     // Utils
-    static GLTexture LoadTexture(NFSVersion tag, const LibOpenNFS::Texture &rawTrackTexture, const std::string &trackName);
-    static bool ExtractTrackTextures(const std::string &trackPath, const ::std::string &trackName, NFSVersion nfsVer);
+    static GLTexture LoadTexture(NFSVersion tag, const LibOpenNFS::TrackTexture &rawTrackTexture, const std::string &trackName);
     static int32_t hsStockTextureIndexRemap(int32_t textureIndex);
     static GLuint MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool repeatable);
 
-    LibOpenNFS::Texture texture;
+    LibOpenNFS::TrackTexture texture;
     GLubyte *data;
 };

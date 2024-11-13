@@ -18,7 +18,7 @@ ShadowMapRenderer::ShadowMapRenderer() {
     glReadBuffer(GL_NONE);
 
     // Always check that our framebuffer is ok
-    ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Depth FBO is nae good");
+    CHECK_F(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Depth FBO is nae good");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -39,8 +39,8 @@ void ShadowMapRenderer::Render(float nearPlane,
 
     /* Render the track using this simple shader to get depth texture to test against during draw */
     for (auto &entity : visibleEntities) {
-        m_depthShader.loadTransformMatrix(std::get<TrackModel>(entity->raw).ModelMatrix);
-        std::get<TrackModel>(entity->raw).render();
+        m_depthShader.loadTransformMatrix(std::get<GLTrackModel>(entity->raw).ModelMatrix);
+        std::get<GLTrackModel>(entity->raw).render();
     }
 
     /* And the Cars */

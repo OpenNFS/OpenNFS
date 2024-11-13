@@ -2,6 +2,8 @@
 
 #include <array>
 
+#include "Common/TextureUtils.h"
+
 namespace LibOpenNFS::NFS2 {
     template <typename Platform>
     std::shared_ptr<Car> Loader<Platform>::LoadCar(const std::string &carBasePath, NFSVersion nfsVersion) {
@@ -68,7 +70,7 @@ namespace LibOpenNFS::NFS2 {
         ASSERT(GeoFile<Platform>::Load(geoPath, geoFile), "Could not load GEO file: " << geoPath);
 
         // This must run before geometry load, as it will affect UV's
-        GLint textureArrayID = Texture::MakeTextureArray(carTextures, false);
+        GLint textureArrayID = GLTexture::MakeTextureArray(carTextures, false);
         CarData carData      = _ParseGEOModels(geoFile);
         // carData.meshes = LoadGEO(geo_path.str(), car_textures, remapped_texture_ids);
         return std::make_shared<Car>(carData, NFSVersion::NFS_2, carName, textureArrayID);
@@ -150,7 +152,7 @@ namespace LibOpenNFS::NFS2 {
         // Load up the textures
         auto textureBlock = colFile.GetExtraObjectBlock(ExtraBlockID::TEXTURE_BLOCK_ID);
         for (uint32_t texIdx = 0; texIdx < textureBlock.nTextures; texIdx++) {
-            track->textureMap[textureBlock.polyToQfsTexTable[texIdx].texNumber] = Texture::LoadTexture(track->nfsVersion, textureBlock.polyToQfsTexTable[texIdx], track->name);
+            track->textureMap[textureBlock.polyToQfsTexTable[texIdx].texNumber] = GLTexture::LoadTexture(track->nfsVersion, textureBlock.polyToQfsTexTable[texIdx], track->name);
         }
 
         track->textureArrayID = Texture::MakeTextureArray(track->textureMap, false);
@@ -445,7 +447,7 @@ namespace LibOpenNFS::NFS2 {
                 globalStructureVertices.emplace_back(orientation * ((256.f * Utils::PointToVec(structures[structureIdx].vertexTable[vertIdx])) / NFS2_SCALE_FACTOR));
                 if (track->nfsVersion == NFSVersion::NFS_3_PS1) {
                     globalStructureShadingData.emplace_back(
-                      Utils::ShadingDataToVec4((uint16_t) ((PS1::VERT *) &structures[structureIdx].vertexTable[vertIdx])->w)); // And I oop
+                      TextureUtils::ShadingDataToVec4((uint16_t) ((PS1::VERT *) &structures[structureIdx].vertexTable[vertIdx])->w)); // And I oop
                 } else {
                     globalStructureShadingData.emplace_back(glm::vec4(1.0, 1.0f, 1.0f, 1.0f));
                 }

@@ -19,6 +19,4 @@ protected:
     GLint transformationMatrixLocation;
     GLint projectionMatrixLocation;
     GLint colourLocation;
-
-    typedef BaseShader super;
 };

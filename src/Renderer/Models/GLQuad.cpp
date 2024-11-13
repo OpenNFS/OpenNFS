@@ -1,8 +1,8 @@
-#include "Quad.h"
+#include "GLQuad.h"
 #include "../../Util/Utils.h"
 
-Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) :
-    super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
+GLQuad::GLQuad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) :
+    GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
     std::vector<glm::vec3> verts;
     verts.emplace_back(fromX, fromY, 0); // bottom left corner
     verts.emplace_back(toY, fromX, 0);   // top left corner
@@ -33,10 +33,10 @@ Quad::Quad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float
     this->colour   = colour;
 
     enable();
-    ASSERT(genBuffers(), "Unable to generate GL Buffers for Quad");
+    CHECK_F(genBuffers(), "Unable to generate GL Buffers for Quad");
 }
 
-void Quad::update() {
+void GLQuad::update() {
     orientation_vec = glm::vec3(-SIMD_HALF_PI, 0, 0);
     orientation     = glm::normalize(glm::quat(orientation_vec));
     RotationMatrix  = glm::toMat4(orientation);
@@ -45,13 +45,13 @@ void Quad::update() {
     ModelMatrix       = TranslationMatrix * RotationMatrix;
 }
 
-void Quad::destroy() {
+void GLQuad::destroy() {
     glDeleteBuffers(1, &vertexbuffer);
     glDeleteBuffers(1, &uvbuffer);
     glDeleteBuffers(1, &normalBuffer);
 }
 
-void Quad::render() {
+void GLQuad::render() {
     if (enabled) {
         glBindVertexArray(VertexArrayID);
         glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
@@ -59,7 +59,7 @@ void Quad::render() {
     }
 }
 
-bool Quad::genBuffers() {
+bool GLQuad::genBuffers() {
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     // Verts
@@ -103,5 +103,5 @@ bool Quad::genBuffers() {
     return true;
 }
 
-Quad::Quad() : super("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)) {
+GLQuad::GLQuad() : GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)) {
 }
