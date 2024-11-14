@@ -17,7 +17,7 @@ jobs:
       - name: Build
         run: |
           cmake -B bin -DCMAKE_BUILD_TYPE=Release .
-          cmake --build bin
+          cmake --build bin --parallel 4
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -39,7 +39,7 @@ jobs:
       - name: Build
         run: |
           cmake -B bin -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 .
-          cmake --build bin --config Release
+          cmake --build bin --config Release --parallel 4
           cp bin\Release\OpenNFS.exe bin\OpenNFS.exe
           cp LICENSE LICENSE.txt
       - name: Publish artifacts
@@ -63,7 +63,7 @@ jobs:
       - name: Build
         run: |
           cmake -B bin -DCMAKE_BUILD_TYPE=Release .
-          cmake --build bin --config Release
+          cmake --build bin --config Release --parallel 3
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
