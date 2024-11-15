@@ -1,47 +1,27 @@
 #include "Track.h"
 
+#include "../Config.h"
+#include "Common/TextureUtils.h"
+
 namespace OpenNFS {
     Track::Track(const LibOpenNFS::Track &track) : LibOpenNFS::Track(track), cullTree(kCullTreeInitialSize) {
+        assetPath = TRACK_PATH + get_string(nfsVersion) + "/" + name;
         this->_LoadTextures();
         this->_GenerateSpline();
         this->_GenerateAabbTree();
     }
 
     Track::~Track() {
-        glDeleteTextures(textureMap.size(), &textureArrayID);
+        glDeleteTextures((GLsizei) textureMap.size(), &textureArrayID);
     }
 
     void Track::_LoadTextures() {
-        switch (nfsVersion) {
-        case NFSVersion::UNKNOWN:
-            break;
-        case NFSVersion::NFS_1:
-            break;
-        case NFSVersion::NFS_2:
-            break;
-        case NFSVersion::NFS_2_PS1:
-            break;
-        case NFSVersion::NFS_2_SE:
-            break;
-        case NFSVersion::NFS_3:
-            CHECK_F(GLTexture::ExtractTrackTextures(trackBasePath, trackNameStripped, NFSVersion::NFS_3), "Could not extract " << trackNameStripped << " QFS texture pack");
-            // Load QFS textures into GL objects
-            for (auto &frdTexBlock : frdFile.textureBlocks) {
-                textureMap[frdTexBlock.qfsIndex] = GLTexture::LoadTexture(NFSVersion::NFS_3, frdTexBlock, trackNameStripped);
-            }
-            textureArrayID = GLTexture::MakeTextureArray(textureMap, false);
-            break;
-        case NFSVersion::NFS_3_PS1:
-            break;
-        case NFSVersion::NFS_4:
-            break;
-        case NFSVersion::NFS_4_PS1:
-            break;
-        case NFSVersion::MCO:
-            break;
-        case NFSVersion::NFS_5:
-            break;
+        CHECK_F(LibOpenNFS::TextureUtils::ExtractTrackTextures(basePath, name, nfsVersion, assetPath), "Could not extract %s texture pack", name.c_str());
+        // Load textures into GL objects
+        for (auto &trackTexture : trackTextures) {
+            textureMap[trackTexture.id] = GLTexture::LoadTexture(nfsVersion, trackTexture);
         }
+        textureArrayID = GLTexture::MakeTextureArray(textureMap, false);
     }
 
     void Track::_GenerateSpline() {

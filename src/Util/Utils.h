@@ -20,25 +20,28 @@
 
 #include "Logger.h"
 
-struct DimensionData {
-    glm::vec3 minVertex;
-    glm::vec3 maxVertex;
-};
+namespace OpenNFS {
+    struct DimensionData {
+        glm::vec3 minVertex;
+        glm::vec3 maxVertex;
+    };
 
-namespace Utils {
-    glm::vec3 bulletToGlm(const btVector3 &v);
-    btVector3 glmToBullet(const glm::vec3 &v);
-    glm::quat bulletToGlm(const btQuaternion &q);
-    btQuaternion glmToBullet(const glm::quat &q);
-    btMatrix3x3 glmToBullet(const glm::mat3 &m);
-    btTransform glmToBullet(const glm::mat4 &m);
-    glm::mat4 bulletToGlm(const btTransform &t);
+    namespace Utils {
+        glm::vec3 bulletToGlm(const btVector3 &v);
+        btVector3 glmToBullet(const glm::vec3 &v);
+        glm::quat bulletToGlm(const btQuaternion &q);
+        btQuaternion glmToBullet(const glm::quat &q);
+        btMatrix3x3 glmToBullet(const glm::mat3 &m);
+        btTransform glmToBullet(const glm::mat4 &m);
+        glm::mat4 bulletToGlm(const btTransform &t);
 
-    float RandomFloat(float min, float max);
-    DimensionData GenDimensions(std::vector<glm::vec3> vertices);
-    btTransform MakeTransform(glm::vec3 position, glm::quat orientation);
+        float RandomFloat(float min, float max);
+        DimensionData GenDimensions(std::vector<glm::vec3> vertices);
+        btTransform MakeTransform(glm::vec3 position, glm::quat orientation);
 
-    std::vector<NfsAssetList> PopulateAssets();
-    static bool FilePathSortByDepthReverse(std::filesystem::path a, std::filesystem::path b);
-    void RenameAssetsToLowercase();
-} // namespace Utils
+        std::vector<NfsAssetList> PopulateAssets();
+        static bool FilePathSortByDepthReverse(std::filesystem::path a, std::filesystem::path b);
+        void RenameAssetsToLowercase();
+    } // namespace Utils
+
+} // namespace OpenNFS

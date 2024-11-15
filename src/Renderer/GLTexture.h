@@ -20,7 +20,7 @@ public:
     explicit GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data);
 
     // Utils
-    static GLTexture LoadTexture(NFSVersion tag, const LibOpenNFS::TrackTexture &rawTrackTexture, const std::string &trackName);
+    static GLTexture LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &trackTexture);
     static int32_t hsStockTextureIndexRemap(int32_t textureIndex);
     static GLuint MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool repeatable);
 

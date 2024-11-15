@@ -5,39 +5,27 @@
 GLTexture::GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data) : texture(std::move(texture)), data(data) {
 }
 
-GLTexture GLTexture::LoadTexture(NFSVersion tag, const LibOpenNFS::TrackTexture &rawTrackTexture, const std::string &trackName) {
-    std::stringstream filename;
+GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &trackTexture) {
     GLubyte *data;
     GLsizei width;
     GLsizei height;
 
     switch (tag) {
     case NFSVersion::NFS_3: {
-        width  = rawTrackTexture.GetWidth();
-        height = rawTrackTexture.GetHeight();
+        width  = (GLsizei) trackTexture.width;
+        height = (GLsizei) trackTexture.height;
 
-        std::stringstream filename_alpha;
-
-        if (rawTrackTexture.IsLane()) {
-            filename << "../resources/sfx/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID() + 9 << ".BMP";
-            filename_alpha << "../resources/sfx/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID() + 9 << "-a.BMP";
-        } else {
-            filename << LibOpenNFS::TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4)
-                     << rawTrackTexture.GetTextureID() << ".BMP";
-            filename_alpha << LibOpenNFS::TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4)
-                           << rawTrackTexture.GetTextureID() << "-a.BMP";
-        }
-
-        if (!ImageLoader::LoadBmpWithAlpha(filename.str().c_str(), filename_alpha.str().c_str(), &data, &width, &height)) {
-            LOG(WARNING) << "Texture " << filename.str() << " or " << filename_alpha.str() << " did not load succesfully!";
+        if (!ImageLoader::LoadBmpWithAlpha(trackTexture.fileReference.c_str(), trackTexture.alphaFileReference.c_str(), &data, &width, &height)) {
+            LOG(WARNING) << "Texture " << trackTexture.fileReference << " or " << trackTexture.alphaFileReference << " did not load succesfully!";
             // If the texture is missing, load a "MISSING" texture of identical size.
             CHECK_F(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height),
                     "Even the 'missing' texture is missing!");
-            // TODO: Override width and height to missing resource attributes
-            return GLTexture(rawTrackTexture, data);
+            // Override texture with attributes of 'missing' resource
+            trackTexture.width  = width;
+            trackTexture.height = height;
         }
 
-        return GLTexture(rawTrackTexture, data);
+        return GLTexture(trackTexture, data);
     }
     case NFSVersion::NFS_2:
     case NFSVersion::NFS_2_SE:
@@ -54,11 +42,12 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, const LibOpenNFS::TrackTexture 
         default:
             assert(false);
         }
-        filename << TRACK_PATH << get_string(tag) << "/" << trackName << "/textures/" << std::setfill('0') << std::setw(4) << rawTrackTexture.GetTextureID() << ".BMP";
 
-        CHECK_F(ImageLoader::LoadBmpCustomAlpha(filename.str().c_str(), &data, &width, &height, alphaColour), "Texture %s did not load succesfully!", filename.str().c_str());
+        CHECK_F(ImageLoader::LoadBmpCustomAlpha(trackTexture.fileReference.c_str(), &data, &width, &height, alphaColour),
+                "Texture %s did not load succesfully!",
+                trackTexture.fileReference.c_str());
 
-        return GLTexture(rawTrackTexture, data);
+        return GLTexture(trackTexture, data);
     }
     default:
         CHECK_F(false, "Trying to load texture from unknown NFS version");
@@ -147,16 +136,16 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
 }
 
 int32_t GLTexture::hsStockTextureIndexRemap(int32_t textureIndex) {
-        int32_t remappedIndex = textureIndex;
+    int32_t remappedIndex = textureIndex;
 
-        int32_t nStockTextures = 30;
+    int32_t nStockTextures = 30;
 
-        // Remap texture index between 0 and MAX_TEXTURE_ARRAY_SIZE if exceeds
-        if (textureIndex >= 2048) {
-            remappedIndex = MAX_TEXTURE_ARRAY_SIZE - nStockTextures + (textureIndex - 2048);
-        }
-
-        CHECK_F(remappedIndex <= MAX_TEXTURE_ARRAY_SIZE, "Texture index still exceeds max texture array size, post-remap");
-
-        return remappedIndex;
+    // Remap texture index between 0 and MAX_TEXTURE_ARRAY_SIZE if exceeds
+    if (textureIndex >= 2048) {
+        remappedIndex = MAX_TEXTURE_ARRAY_SIZE - nStockTextures + (textureIndex - 2048);
     }
+
+    CHECK_F(remappedIndex <= MAX_TEXTURE_ARRAY_SIZE, "Texture index still exceeds max texture array size, post-remap");
+
+    return remappedIndex;
+}

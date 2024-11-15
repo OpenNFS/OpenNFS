@@ -14,7 +14,7 @@ public:
     explicit CarShader();
     void loadCarColor(glm::vec3 color);
     void loadCarTexture(GLuint textureID);
-    void loadLights(const std::vector<BaseLight *> &lights);
+    void loadLights(const std::vector<LibOpenNFS::BaseLight *> &lights);
     void loadSpecular(float damper, float reflectivity, float env_reflectivity);
     void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view);
     void loadTransformationMatrix(const glm::mat4 &transformation);

@@ -19,7 +19,7 @@ namespace LibOpenNFS {
         // Break Packed uint32_t RGBA per vertex colour data for baked lighting of RGB into 4 normalised floats and store into vec4
         static glm::vec4 ShadingDataToVec4(uint32_t packed_rgba);
         static bool ExtractQFS(const std::string &qfs_input, const std::string &output_dir);
-        bool ExtractTrackTextures(const std::string &trackPath, const ::std::string &trackName, NFSVersion nfsVer, const std::string &outPath);
+        static bool ExtractTrackTextures(const std::string &trackPath, const ::std::string &trackName, NFSVersion nfsVer, const std::string &outPath);
     };
 
 } // namespace LibOpenNFS

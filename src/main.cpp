@@ -24,80 +24,83 @@
 
 using namespace std::filesystem;
 
-class OpenNFSEngine {
-public:
-    explicit OpenNFSEngine(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
-        if (Config::get().renameAssets) {
-            Utils::RenameAssetsToLowercase();
-        }
-        InitDirectories();
-        installedNFS = Utils::PopulateAssets();
+namespace OpenNFS {
+    class OpenNFSEngine {
+    public:
+        explicit OpenNFSEngine(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
+            if (Config::get().renameAssets) {
+                Utils::RenameAssetsToLowercase();
+            }
+            InitDirectories();
+            installedNFS = Utils::PopulateAssets();
 
-        if (Config::get().vulkanRender) {
+            if (Config::get().vulkanRender) {
 #ifdef VULKAN_BUILD
-            vkRenderer renderer;
-            renderer.run();
+                vkRenderer renderer;
+                renderer.run();
 #else
-            CHECK_F(false, "This build of OpenNFS was not compiled with Vulkan support!");
+                CHECK_F(false, "This build of OpenNFS was not compiled with Vulkan support!");
 #endif
-        } else {
-            run();
-        }
-    }
-
-    void run() {
-        LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
-
-        // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        std::shared_ptr<GLFWwindow> window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
-        AssetData loadedAssets             = {get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track};
-
-        // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
-        CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
-
-        /*------- Render --------*/
-        while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
-            /*------ ASSET LOAD ------*/
-            // Load Track Data
-            auto const &track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
-            // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky texture for car environment map)
-            auto const &car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
-
-            // Load Music
-            // MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
-
-            RaceSession race(window, logger, installedNFS, track, car);
-            loadedAssets = race.Simulate();
+            } else {
+                run();
+            }
         }
 
-        // Close OpenGL window and terminate GLFW
-        glfwTerminate();
-    }
+        void run() {
+            LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
-private:
-    std::shared_ptr<Logger> logger;
-    std::vector<NfsAssetList> installedNFS;
+            // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
+            std::shared_ptr<GLFWwindow> window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
+            AssetData loadedAssets             = {get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track};
 
-    static void InitDirectories() {
-        if (!(exists(LibOpenNFS::CAR_PATH))) {
-            create_directories(LibOpenNFS::CAR_PATH);
+            // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
+            CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
+
+            /*------- Render --------*/
+            while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
+                /*------ ASSET LOAD ------*/
+                // Load Track Data
+                auto const &track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+                // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky texture for car environment map)
+                auto const &car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+
+                // Load Music
+                // MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
+
+                RaceSession race(window, logger, installedNFS, track, car);
+                loadedAssets = race.Simulate();
+            }
+
+            // Close OpenGL window and terminate GLFW
+            glfwTerminate();
         }
-        if (!(exists(LibOpenNFS::TRACK_PATH))) {
-            create_directories(LibOpenNFS::TRACK_PATH);
+
+    private:
+        std::shared_ptr<Logger> logger;
+        std::vector<NfsAssetList> installedNFS;
+
+        static void InitDirectories() {
+            if (!(exists(LibOpenNFS::CAR_PATH))) {
+                create_directories(LibOpenNFS::CAR_PATH);
+            }
+            if (!(exists(LibOpenNFS::TRACK_PATH))) {
+                create_directories(LibOpenNFS::TRACK_PATH);
+            }
         }
+    };
+
+    int main(int argc, char **argv) {
+        Config::get().InitFromCommandLine(argc, argv);
+        std::shared_ptr<Logger> logger = std::make_shared<Logger>();
+
+        try {
+            OpenNFSEngine game(logger);
+        } catch (const std::runtime_error &e) {
+            LOG(WARNING) << e.what();
+            return EXIT_FAILURE;
+        }
+
+        return EXIT_SUCCESS;
     }
-};
 
-int main(int argc, char **argv) {
-    Config::get().InitFromCommandLine(argc, argv);
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
-
-    try {
-        OpenNFSEngine game(logger);
-    } catch (const std::runtime_error &e) {
-        LOG(WARNING) << e.what();
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
+} // namespace OpenNFS

@@ -30,6 +30,7 @@ namespace LibOpenNFS::NFS3 {
 
     private:
         static Car::MetaData _ParseAssetData(const FceFile &fceFile, const FedataFile &fedataFile);
+        static std::map<uint32_t, TrackTexture> _ParseTextures(const FrdFile &frdFile, const Track &track);
         static std::vector<TrackBlock> _ParseTRKModels(const FrdFile &frdFile, const Track &track);
         static std::vector<TrackVRoad> _ParseVirtualRoad(const ColFile &colFile);
         static std::vector<TrackEntity> _ParseCOLModels(const ColFile &colFile, const Track &track);

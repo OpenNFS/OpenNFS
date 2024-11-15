@@ -71,10 +71,10 @@ namespace OpenNFS {
           ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix);
         glm::vec3 outEnd = worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f;
 
-        btCollisionWorld::ClosestRayResultCallback rayCallback(::Utils::glmToBullet(worldRayFromScreenPosition.origin), ::Utils::glmToBullet(outEnd));
+        btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd));
         rayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
 
-        m_pDynamicsWorld->rayTest(::Utils::glmToBullet(worldRayFromScreenPosition.origin), ::Utils::glmToBullet(outEnd), rayCallback);
+        m_pDynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd), rayCallback);
 
         if (rayCallback.hasHit()) {
             entityTargeted = true;
@@ -160,7 +160,7 @@ namespace OpenNFS {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
         if (m_track != nullptr) {
-            for (auto &trackBlock : m_track->trackBlocks) {
+            /*for (auto &trackBlock : m_track->trackBlocks) {
                 for (auto &road : trackBlock.track) {
                     m_pDynamicsWorld->removeRigidBody(road.rigidBody);
                     delete road.rigidBody->getMotionState();
@@ -181,7 +181,7 @@ namespace OpenNFS {
                 m_pDynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
                 delete vroadBarrier.rigidBody->getMotionState();
                 delete vroadBarrier.rigidBody;
-            }
+            }*/
         }
         delete m_pDynamicsWorld;
         delete m_pSolver;

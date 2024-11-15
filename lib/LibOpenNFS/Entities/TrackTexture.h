@@ -14,23 +14,24 @@
 #include <NFS3/FRD/TexBlock.h>
 
 namespace LibOpenNFS {
-    // TODO: Refactor this pattern out entirely, should pass everything the texture needs as ONFS intermediate
-    typedef std::variant<LibOpenNFS::NFS3::TexBlock, LibOpenNFS::NFS2::TEXTURE_BLOCK> RawTextureInfo;
     class TrackTexture {
     public:
         TrackTexture() = default;
-        explicit TrackTexture(NFSVersion tag, uint32_t id, const std::vector<uint8_t> &data, uint32_t width, uint32_t height, RawTextureInfo rawTextureInfo);
+        explicit TrackTexture(uint32_t id, uint32_t width, uint32_t height, std::vector<glm::vec2> const& uvs, std::string const& fileReference,
+                              std::string const& alphaFileReference);
+        std::vector<glm::vec2> GenerateUVs(bool inverseU, bool inverseV, bool reverseOrder);
         std::vector<glm::vec2> GenerateUVs(EntityType meshType, uint32_t textureFlags);
-        uint32_t GetWidth() const;
-        uint32_t GetHeight() const;
-        bool    IsLane() const;
-        uint32_t GetTextureID() const;
 
-        NFSVersion tag;
-        uint32_t id, width, height, layer;
-        float minU, minV, maxU, maxV;
-    private:
-        RawTextureInfo rawTextureInfo;
-        std::vector<uint8_t> data;
+        std::string fileReference;
+        std::string alphaFileReference;
+        uint32_t id{0};
+        uint32_t width{0};
+        uint32_t height{0};
+        uint32_t layer{0};
+        std::vector<glm::vec2> uvs;
+        float minU{0.f};
+        float minV{0.f};
+        float maxU{0.f};
+        float maxV{0.f};
     };
 } // namespace LibOpenNFS
