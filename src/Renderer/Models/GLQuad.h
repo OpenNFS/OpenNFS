@@ -2,6 +2,7 @@
 
 #include "lib/glm/glm/vec3.hpp"
 #include "GLModel.h"
+/*
 
 class GLQuad : public GLModel {
 public:
@@ -21,3 +22,4 @@ private:
     GLuint uvbuffer;
     GLuint normalBuffer;
 };
+*/

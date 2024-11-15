@@ -508,6 +508,8 @@ namespace OpenNFS {
                     }
                 }
             } break;*/
+        default:
+            CHECK_F(false, "Unsupported NFSVersion %s", get_string(assetData.tag).c_str());
         }
 
         // Go find headlight position data inside dummies

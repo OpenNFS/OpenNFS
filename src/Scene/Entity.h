@@ -18,26 +18,22 @@
 namespace OpenNFS {
     class Entity : public IAABB {
     public:
-        Entity(LibOpenNFS::TrackEntity *track_entity, GLModel *model);
+        Entity(LibOpenNFS::TrackEntity *track_entity);
         void Update(); // Update Entity position based on Physics engine
         AABB GetAABB() const;
 
         LibOpenNFS::TrackEntity *track_entity;
-        GLModel *model;
-        btRigidBody *rigid_body;
-        uint32_t parent_trackblock_id;
-        bool collideable = false;
-        bool dynamic     = false;
+        std::unique_ptr<GLModel> model;
+        std::unique_ptr<btRigidBody> rigid_body;
 
         void _GenCollisionMesh();
 
     private:
         btTriangleMesh m_collisionMesh;
-        btCollisionShape *m_collisionShape;
-        btDefaultMotionState *m_motionState;
+        std::unique_ptr<btCollisionShape> m_collisionShape;
+        std::unique_ptr<btDefaultMotionState> m_motionState;
         AABB m_boundingBox;
 
-        void _SetCollisionParameters();
         void _GenBoundingBox();
     };
 } // namespace OpenNFS

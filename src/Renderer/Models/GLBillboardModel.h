@@ -2,6 +2,7 @@
 
 #include "glm/vec3.hpp"
 #include "GLModel.h"
+/*
 
 const float kBillboardSize = 3.0f;
 
@@ -26,3 +27,4 @@ private:
     enum LightVBO : uint8_t { VERTEX = 0, UV, Length };
     GLuint m_lightVertexBuffers[LightVBO::Length]{};
 };
+*/

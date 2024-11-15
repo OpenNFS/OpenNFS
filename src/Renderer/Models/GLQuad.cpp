@@ -1,5 +1,6 @@
 #include "GLQuad.h"
 #include "../../Util/Utils.h"
+/*
 
 GLQuad::GLQuad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) :
     GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
@@ -105,3 +106,4 @@ bool GLQuad::genBuffers() {
 
 GLQuad::GLQuad() : GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)) {
 }
+*/

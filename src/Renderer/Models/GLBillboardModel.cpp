@@ -1,6 +1,7 @@
 #include "GLBillboardModel.h"
 
 #include "../../Util/Utils.h"
+/*
 
 GLBillboardModel::GLBillboardModel() :
     GLModel("Light", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3()) {
@@ -51,4 +52,5 @@ bool GLBillboardModel::genBuffers() {
 
     glBindVertexArray(0);
     return true;
-}
+
+}*/

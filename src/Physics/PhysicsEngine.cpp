@@ -37,14 +37,14 @@ namespace OpenNFS {
     }
 
     PhysicsEngine::PhysicsEngine() : debugDrawer(std::make_shared<BulletDebugDrawer>()) {
-        m_pBroadphase = new btDbvtBroadphase();
+        m_pBroadphase = std::make_unique<btDbvtBroadphase>();
         // Set up the collision configuration and dispatcher
-        m_pCollisionConfiguration = new btDefaultCollisionConfiguration();
-        m_pDispatcher             = new btCollisionDispatcher(m_pCollisionConfiguration);
+        m_pCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
+        m_pDispatcher             = std::make_unique<btCollisionDispatcher>(m_pCollisionConfiguration.get());
         // The actual physics solver
-        m_pSolver = new btSequentialImpulseConstraintSolver;
+        m_pSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
         // The world.
-        m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
+        m_pDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_pDispatcher.get(), m_pBroadphase.get(), m_pSolver.get(), m_pCollisionConfiguration.get());
         m_pDynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
     }
@@ -53,14 +53,14 @@ namespace OpenNFS {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
         for (auto &car : m_activeVehicles) {
-            car->Update(m_pDynamicsWorld);
+            car->Update(m_pDynamicsWorld.get());
         }
 
         if (m_track != nullptr) {
             // TrackModel updates propagate for active track blocks, based upon track blocks racer vehicles are on
             for (auto &residentTrackblockID : racerResidentTrackblockIDs) {
                 for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects) {
-                    //objects.Update();
+                    // objects.Update();
                 }
             }
         }
@@ -88,36 +88,25 @@ namespace OpenNFS {
     void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
         m_track = track;
 
-        /*for (auto &trackBlock : m_track->trackBlocks) {
-            for (auto &road : trackBlock.track) {
-                road._GenCollisionMesh();
-                m_pDynamicsWorld->addRigidBody(road.rigidBody, COL_TRACK, COL_CAR | COL_RAY | COL_DYNAMIC_TRACK);
+        for (auto &entity : m_track->entities) {
+            int collisionMask  = COL_RAY;
+            int collisionGroup = COL_TRACK;
+            if (entity.track_entity->collideable) {
+                collisionMask |= COL_CAR;
             }
-            for (auto &object : trackBlock.objects) {
-                object._GenCollisionMesh();
-                uint32_t collisionMask = COL_RAY;
-                // Set collision masks
-                if (object.collideable) {
-                    collisionMask |= COL_CAR;
-                }
-                if (object.dynamic) {
-                    collisionMask |= COL_TRACK;
-                }
+            if (entity.track_entity->dynamic) {
+                collisionMask |= COL_TRACK;
+                collisionGroup = COL_DYNAMIC_TRACK;
                 // Move Rigid body to correct place in world
-                btTransform initialTransform = ::Utils::MakeTransform(std::get<GLTrackModel>(object.raw).initialPosition, std::get<GLTrackModel>(object.raw).orientation);
-                object.rigidBody->setWorldTransform(initialTransform);
-                m_pDynamicsWorld->addRigidBody(object.rigidBody, COL_DYNAMIC_TRACK, collisionMask);
+                btTransform initialTransform = Utils::MakeTransform(entity.model->geometry->initialPosition, entity.model->geometry->orientation);
+                entity.rigid_body->setWorldTransform(initialTransform);
             }
-            for (auto &light : trackBlock.lights) {
-                light._GenCollisionMesh();
-                m_pDynamicsWorld->addRigidBody(light.rigidBody, COL_TRACK, COL_RAY);
-            }
-        }*/
-        // this->_GenerateVroadBarriers();
+            m_pDynamicsWorld->addRigidBody(entity.rigid_body.get(), collisionGroup, collisionMask);
+        }
     }
 
     void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car) {
-        car->SetRaycaster(new btDefaultVehicleRaycaster(m_pDynamicsWorld));
+        car->SetRaycaster(new btDefaultVehicleRaycaster(m_pDynamicsWorld.get()));
         car->SetVehicle(new btRaycastVehicle(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
         car->GetVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
         car->GetVehicle()->setCoordinateSystem(0, 1, 2);
@@ -152,42 +141,17 @@ namespace OpenNFS {
     }
 
     btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld() {
-        return m_pDynamicsWorld;
+        return m_pDynamicsWorld.get();
     }
 
     PhysicsEngine::~PhysicsEngine() {
         for (auto &car : m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
-        if (m_track != nullptr) {
-            /*for (auto &trackBlock : m_track->trackBlocks) {
-                for (auto &road : trackBlock.track) {
-                    m_pDynamicsWorld->removeRigidBody(road.rigidBody);
-                    delete road.rigidBody->getMotionState();
-                    delete road.rigidBody;
-                }
-                for (auto &object : trackBlock.objects) {
-                    m_pDynamicsWorld->removeRigidBody(object.rigidBody);
-                    delete object.rigidBody->getMotionState();
-                    delete object.rigidBody;
-                }
-                for (auto &light : trackBlock.lights) {
-                    m_pDynamicsWorld->removeRigidBody(light.rigidBody);
-                    delete light.rigidBody->getMotionState();
-                    delete light.rigidBody;
-                }
-            }
-            for (auto &vroadBarrier : m_track->vroadBarriers) {
-                m_pDynamicsWorld->removeRigidBody(vroadBarrier.rigidBody);
-                delete vroadBarrier.rigidBody->getMotionState();
-                delete vroadBarrier.rigidBody;
-            }*/
+        for (auto &entity : m_track->entities) {
+            m_pDynamicsWorld->removeRigidBody(entity.rigid_body.get());
+            delete entity.rigid_body->getMotionState();
         }
-        delete m_pDynamicsWorld;
-        delete m_pSolver;
-        delete m_pDispatcher;
-        delete m_pCollisionConfiguration;
-        delete m_pBroadphase;
     }
 
     void PhysicsEngine::_GenerateVroadBarriers() {

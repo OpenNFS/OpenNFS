@@ -52,6 +52,7 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &track
     default:
         CHECK_F(false, "Trying to load texture from unknown NFS version");
     }
+    return GLTexture();
 }
 
 GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool repeatable) {
@@ -65,10 +66,10 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
 
     // Find the maximum width and height, so we can avoid overestimating with blanket values (256x256) and thereby scale UV's uneccesarily
     for (auto &texture : textures) {
-        if (texture.second.width > max_width)
-            max_width = texture.second.width;
-        if (texture.second.height > max_height)
-            max_height = texture.second.height;
+        if (texture.second.texture.width > max_width)
+            max_width = texture.second.texture.width;
+        if (texture.second.texture.height > max_height)
+            max_height = texture.second.texture.height;
     }
 
     std::vector<uint32_t> clear_data(max_width * max_height, 0);
@@ -83,8 +84,9 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
                                             // textures.size(). HS Bloats tex index up over 2048.
 
     for (auto &texture : textures) {
-        CHECK_F(texture.second.width <= max_width, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_width << ") for Array");
-        CHECK_F(texture.second.height <= max_height, "Texture " << texture.second.id << " exceeds maximum specified texture size (" << max_height << ") for Array");
+        CHECK_F(texture.second.texture.width <= max_width, "Texture %u exceeds maximum specified texture width (%zu) for Array", texture.second.texture.id, max_width);
+        CHECK_F(texture.second.texture.width <= max_width, "Texture %u exceeds maximum specified texture height (%zu) for Array", texture.second.texture.id, max_height);
+
         // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
                         0,
@@ -102,19 +104,20 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
                         0,
                         0,
                         hsStockTextureIndexRemap(texture.first),
-                        texture.second.width,
-                        texture.second.height,
+                        texture.second.texture.width,
+                        texture.second.texture.height,
                         1,
                         GL_RGBA,
                         GL_UNSIGNED_BYTE,
                         (const GLvoid *) texture.second.data);
 
-        texture.second.minU  = 0.00;
-        texture.second.minV  = 0.00;
-        texture.second.layer = hsStockTextureIndexRemap(texture.first);
-        texture.second.maxU  = (texture.second.width / static_cast<float>(max_width)) - 0.005f; // Attempt to remove potential for sampling texture from transparent area
-        texture.second.maxV  = (texture.second.height / static_cast<float>(max_height)) - 0.005f;
-        texture.second.id    = texture_name;
+        texture.second.texture.minU  = 0.00;
+        texture.second.texture.minV  = 0.00;
+        texture.second.texture.layer = hsStockTextureIndexRemap(texture.first);
+        texture.second.texture.maxU =
+          (texture.second.texture.width / static_cast<float>(max_width)) - 0.005f; // Attempt to remove potential for sampling texture from transparent area
+        texture.second.texture.maxV = (texture.second.texture.height / static_cast<float>(max_height)) - 0.005f;
+        texture.second.texture.id   = texture_name;
     }
 
     if (repeatable) {

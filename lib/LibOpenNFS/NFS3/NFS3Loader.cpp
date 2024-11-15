@@ -136,7 +136,7 @@ namespace LibOpenNFS::NFS3 {
         for (auto &frdTexBlock : frdFile.textureBlocks) {
             std::stringstream fileReference;
             std::stringstream alphaFileReference;
-            // Migrate out of TrackTexture, into the NFS3 loader!
+
             if (frdTexBlock.isLane) {
                 fileReference << "../resources/sfx/" << std::setfill('0') << std::setw(4) << frdTexBlock.qfsIndex + 9 << ".BMP";
                 alphaFileReference << "../resources/sfx/" << std::setfill('0') << std::setw(4) << frdTexBlock.qfsIndex + 9 << "-a.BMP";

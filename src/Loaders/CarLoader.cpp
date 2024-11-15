@@ -7,7 +7,7 @@
 #include "NFS5/NFS5Loader.h"*/
 
 namespace OpenNFS {
-    LibOpenNFS::Car _LoadCarAsset(NFSVersion nfsVersion, const std::string &carName) {
+    LibOpenNFS::Car CarLoader::_LoadCarAsset(NFSVersion nfsVersion, const std::string &carName) {
         std::stringstream carPath;
         carPath << RESOURCE_PATH << get_string(nfsVersion);
 

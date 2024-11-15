@@ -48,5 +48,7 @@ namespace OpenNFS {
         default:
             CHECK_F(false, "Unknown track type!");
         }
+
+        return std::make_shared<Track>();
     }
 } // namespace OpenNFS

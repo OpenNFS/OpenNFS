@@ -1,7 +1,7 @@
 #include "TrackLight.h"
 
 namespace LibOpenNFS {
-    TrackLight::TrackLight(uint32_t entityID, glm::vec3 position, uint32_t nfsType) : BaseLight(entityID, geometry, 0u, LightType::TRACK_LIGHT, position, glm::vec4()) {
+    TrackLight::TrackLight(uint32_t entityID, glm::vec3 position, uint32_t nfsType) : BaseLight(entityID, 0u, LightType::TRACK_LIGHT, position, glm::vec4()) {
         // Use Data from NFSHS NFS3 Tracks TR.INI
         switch (nfsType) {
         case 0:
@@ -164,7 +164,7 @@ namespace LibOpenNFS {
     }
 
     TrackLight::TrackLight(uint32_t entityID, glm::vec3 position, glm::vec4 colour, uint32_t unknown1, uint32_t unknown2, uint32_t unknown3, float unknown4) :
-        BaseLight(entityID, geometry, 0u, LightType::TRACK_LIGHT, position, colour) {
+        BaseLight(entityID, 0u, LightType::TRACK_LIGHT, position, colour) {
         this->unknown1 = unknown1;
         this->unknown2 = unknown2;
         this->unknown3 = unknown3;

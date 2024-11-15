@@ -82,7 +82,7 @@ MenuRenderer::~MenuRenderer() {
 std::map<std::string, MenuResource> MenuRenderer::LoadResources(const std::string &resourceFile) {
     // Read the resource JSON file
     std::ifstream jsonFile(resourceFile);
-    CHECK_F(jsonFile.is_open(), "Couldn't open menu resource file " << resourceFile);
+    CHECK_F(jsonFile.is_open(), "Couldn't open menu resource file %s", resourceFile.c_str());
 
     std::map<std::string, MenuResource> resources;
     json resourcesJson;
@@ -114,7 +114,7 @@ void MenuRenderer::Render() {
 }
 
 void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
-    CHECK_F(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
+    CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
     // Allow for hot reload of shader
     m_fontShader.HotReload();
 
@@ -156,7 +156,7 @@ void MenuRenderer::RenderText(const std::string &text, GLint layer, GLfloat x, G
 }
 
 void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat scale) {
-    CHECK_F(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
+    CHECK_F(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID %s not present in menu resource map", resourceID.c_str());
 
     // TODO: Actually implement this rescaling scaling properly
     float ratioX = 1.0f; // (float) m_menuResourceMap[resourceID].width / Config::get().resX;
@@ -166,8 +166,8 @@ void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GL
 }
 
 void MenuRenderer::RenderResource(const std::string &resourceID, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) {
-    CHECK_F(layer >= 0 && layer <= 200, "Layer: " << layer << " is outside of range 0-200");
-    CHECK_F(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID " << resourceID << " not present in menu resource map");
+    CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
+    CHECK_F(m_menuResourceMap.count(resourceID) > 0, "Requested resourceID %s not present in menu resource map", resourceID.c_str());
 
     GLfloat xpos = x;
     GLfloat ypos = y;

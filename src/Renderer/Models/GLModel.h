@@ -8,11 +8,6 @@
 #include <string>
 #include <Entities/Geometry.h>
 #include <GL/glew.h>
-#include <lib/glm/glm/glm.hpp>
-#include <lib/glm/glm/gtc/matrix_transform.hpp>
-#include <lib/glm/glm/gtc/quaternion.hpp>
-#include <lib/glm/glm/gtx/quaternion.hpp>
-#include <LinearMath/btDefaultMotionState.h>
 
 class GLModel {
 public:

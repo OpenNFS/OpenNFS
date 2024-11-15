@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "Common/NFSVersion.h"
-#include "Geometry.h"
+#include "TrackGeometry.h"
 
 namespace LibOpenNFS {
     enum class EntityType { XOBJ, OBJ_POLY, LANE, SOUND, LIGHT, ROAD, GLOBAL, CAR, VROAD };
@@ -20,13 +20,18 @@ namespace LibOpenNFS {
 
     class TrackEntity {
     public:
-        TrackEntity(uint32_t entityID, EntityType entityType, const Geometry &geometry, uint32_t flags = 0u);
+        TrackEntity(uint32_t entityID, EntityType entityType, const TrackGeometry &geometry, uint32_t flags = 0u);
         TrackEntity(uint32_t entityID, EntityType entityType, uint32_t flags = 0u);
 
         EntityType type;
-        Geometry geometry;
-        uint32_t entityID;
-        uint32_t flags;
+        TrackGeometry geometry;
+        uint32_t entityID{0};
+        uint32_t flags{0};
         bool hasGeometry{false};
+        bool collideable{false};
+        bool dynamic{false};
+
+    private:
+        void _SetCollisionParameters();
     };
 } // namespace LibOpenNFS

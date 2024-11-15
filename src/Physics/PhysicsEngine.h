@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/detail/type_mat4x4.hpp>
@@ -48,11 +47,11 @@ namespace OpenNFS {
         std::shared_ptr<OpenNFS::Track> m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
-        btBroadphaseInterface *m_pBroadphase;
-        btDefaultCollisionConfiguration *m_pCollisionConfiguration;
-        btCollisionDispatcher *m_pDispatcher;
-        btSequentialImpulseConstraintSolver *m_pSolver;
-        btDiscreteDynamicsWorld *m_pDynamicsWorld;
+        std::unique_ptr<btBroadphaseInterface> m_pBroadphase;
+        std::unique_ptr<btDefaultCollisionConfiguration> m_pCollisionConfiguration;
+        std::unique_ptr<btCollisionDispatcher> m_pDispatcher;
+        std::unique_ptr<btSequentialImpulseConstraintSolver> m_pSolver;
+        std::unique_ptr<btDiscreteDynamicsWorld> m_pDynamicsWorld;
     };
 
 } // namespace OpenNFS

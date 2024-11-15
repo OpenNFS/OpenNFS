@@ -1,7 +1,7 @@
 #include "glm/gtx/quaternion.hpp"
 #include "GlobalLight.h"
 
-GlobalLight::GlobalLight(glm::vec3 lookAt, glm::vec3 position) : BaseLight(LightType::GLOBAL_LIGHT, position, glm::vec4(0, 0, 0, 0)) {
+GlobalLight::GlobalLight(glm::vec3 lookAt, glm::vec3 position) : BaseLight(0, 0, LightType::GLOBAL_LIGHT, position, glm::vec4(0, 0, 0, 0)) {
     this->ChangeTarget(lookAt);
     this->Update(0.f);
 }

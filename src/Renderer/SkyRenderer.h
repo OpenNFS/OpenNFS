@@ -5,6 +5,7 @@
 #include "../Scene/Track.h"
 #include "../Shaders/SkydomeShader.h"
 #include "../Util/ImageLoader.h"
+#include "Models/GLCarModel.h"
 
 namespace OpenNFS {
     class SkyRenderer {

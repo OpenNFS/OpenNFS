@@ -22,15 +22,17 @@ namespace OpenNFS {
 
         // GL 3D Render Data
         HermiteCurve centerSpline;
+        GLuint textureArrayID = 0;
+        std::vector<Entity> entities;
 
     private:
         void _LoadTextures();
+        void _GenerateEntities();
         void _GenerateSpline();
         void _GenerateAabbTree();
 
         std::string assetPath;
         std::map<uint32_t, GLTexture> textureMap;
-        GLuint textureArrayID = 0;
         AABBTree cullTree;
     };
 } // namespace OpenNFS

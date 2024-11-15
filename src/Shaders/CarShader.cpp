@@ -92,7 +92,7 @@ void CarShader::loadTransformationMatrix(const glm::mat4 &transformation) {
     loadMat4(transformationMatrixLocation, &transformation[0][0]);
 }
 
-void CarShader::loadLights(const std::vector<BaseLight *> &lights) {
+void CarShader::loadLights(const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights) {
     for (int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i) {
         if (i < lights.size()) {
             loadVec3(lightPositionLocation[i], lights[i]->position);

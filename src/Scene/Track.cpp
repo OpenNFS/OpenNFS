@@ -19,9 +19,17 @@ namespace OpenNFS {
         CHECK_F(LibOpenNFS::TextureUtils::ExtractTrackTextures(basePath, name, nfsVersion, assetPath), "Could not extract %s texture pack", name.c_str());
         // Load textures into GL objects
         for (auto &trackTexture : trackTextures) {
-            textureMap[trackTexture.id] = GLTexture::LoadTexture(nfsVersion, trackTexture);
+            textureMap[trackTexture.first] = GLTexture::LoadTexture(nfsVersion, trackTexture.second);
         }
         textureArrayID = GLTexture::MakeTextureArray(textureMap, false);
+    }
+
+    void Track::_GenerateEntities() {
+        for (auto &trackBlock : trackBlocks) {
+            for (auto &trackObject : trackBlock.objects) {
+                entities.emplace_back(&trackObject);
+            }
+        }
     }
 
     void Track::_GenerateSpline() {
@@ -35,16 +43,8 @@ namespace OpenNFS {
 
     void Track::_GenerateAabbTree() {
         // Build an optimised BvH of AABB's so that culling for render becomes cheap
-        for (auto &trackBlock : trackBlocks) {
-            for (auto &baseTrackEntity : trackBlock.track) {
-                cullTree.insertObject(std::make_shared<Entity>(baseTrackEntity));
-            }
-            for (auto &trackObjectEntity : trackBlock.objects) {
-                cullTree.insertObject(std::make_shared<Entity>(trackObjectEntity));
-            }
-            for (auto &trackLaneEntity : trackBlock.lanes) {
-                cullTree.insertObject(std::make_shared<Entity>(trackLaneEntity));
-            }
+        for (auto &entity : entities) {
+            // cullTree.insertObject(entity);
         }
     }
 } // namespace OpenNFS

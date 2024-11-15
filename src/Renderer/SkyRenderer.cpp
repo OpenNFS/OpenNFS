@@ -1,6 +1,10 @@
 #include "SkyRenderer.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+
 namespace OpenNFS {
+
     SkyRenderer::SkyRenderer() {
         // Load track HRZ parameters into shader
         this->_LoadAssets();
@@ -27,7 +31,7 @@ namespace OpenNFS {
         std::vector<tinyobj::material_t> materials;
         std::string err;
         std::string warn;
-        CHECK_F(tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "../resources/misc/skydome/sphere.obj", nullptr, true, true), err);
+        CHECK_F(tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "../resources/misc/skydome/sphere.obj", nullptr, true, true), "%s", err.c_str());
 
         // TODO: Generify the Utils loader to detect norms and uvs, else backfill with vecs of 0's
         for (size_t s = 0; s < shapes.size(); s++) {
@@ -53,7 +57,8 @@ namespace OpenNFS {
                 // per-face material
                 shapes[s].mesh.material_ids[f];
             }
-            m_skydomeModel = GLCarModel(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0), 0.01f, 0.0f, 0.5f);
+            LibOpenNFS::CarGeometry geom(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0));
+            m_skydomeModel = GLCarModel(&geom, 0.01f, 0.0f, 0.5f);
             break;
         }
         m_skydomeModel.enable();
@@ -64,7 +69,7 @@ namespace OpenNFS {
         m_skydomeShader.use();
         m_skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
         m_skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(SIMD_PI, SIMD_PI, 0))))); // No star rotation
-        m_skydomeShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, m_skydomeModel.ModelMatrix);
+        m_skydomeShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, m_skydomeModel.geometry->ModelMatrix);
         m_skydomeShader.loadSunPosition(light);
         m_skydomeShader.loadTime(elapsedTime);
         m_skydomeShader.loadWeatherMixFactor(1.0f);

@@ -122,30 +122,11 @@ namespace OpenNFS {
 
         // Perform frustum culling on the current camera, on local trackblocks
         for (auto &trackBlockID : _GetLocalTrackBlockIDs(track, camera, userParams)) {
-            for (auto &trackEntity : track->trackBlocks[trackBlockID].track) {
+            for (auto &trackEntity : track->entities) {
                 if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(trackEntity.GetAABB())) {
-                    visibleSet.entities.emplace_back(std::make_shared<Entity>(trackEntity));
+                    visibleSet.entities.emplace_back(&trackEntity);
                 }
             }
-            for (auto &objectEntity : track->trackBlocks[trackBlockID].objects) {
-                if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(objectEntity.GetAABB())) {
-                    visibleSet.entities.emplace_back(std::make_shared<Entity>(objectEntity));
-                }
-            }
-            for (auto &laneEntity : track->trackBlocks[trackBlockID].lanes) {
-                // It's not worth checking for Lane AABB intersections
-                visibleSet.entities.emplace_back(std::make_shared<Entity>(laneEntity));
-            }
-            for (auto &lightEntity : track->trackBlocks[trackBlockID].lights) {
-                if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(lightEntity.GetAABB())) {
-                    visibleSet.lights.emplace_back(std::get<shared_ptr<BaseLight>>(lightEntity.raw));
-                }
-            }
-        }
-
-        // Global Objects are always visible
-        for (auto &globalEntity : track->globalObjects) {
-            visibleSet.entities.emplace_back(std::make_shared<Entity>(globalEntity));
         }
 
         // TODO: Fix the AABB tree
@@ -196,30 +177,18 @@ namespace OpenNFS {
     }
 
     void Renderer::DrawMetadata(Entity *targetEntity) {
+        TrackEntity *track_entity{targetEntity->track_entity};
         ImGui::Begin("Engine Entity");
-        ImGui::Text("%s", get_string(targetEntity->tag).c_str());
-        ImGui::Text("%s", get_string(targetEntity->type).c_str());
-        // Only display these if they're relevant
-        if (targetEntity->parentTrackblockID != -1) {
-            ImGui::Text("TrkBlk: %d", targetEntity->parentTrackblockID);
-        }
-        if (targetEntity->entityID != -1) {
-            ImGui::Text("ID: %d", targetEntity->entityID);
+        ImGui::Text("%s", get_string(track_entity->type).c_str());
+        if (track_entity->entityID != -1) {
+            ImGui::Text("ID: %d", track_entity->entityID);
         }
         ImGui::Separator();
 
         // Traverse the loader structures and print pretty with IMGUI
-        switch (targetEntity->type) {
-        case EntityType::VROAD:
-            break;
-        case EntityType::OBJ_POLY:
-            break;
-        case EntityType::GLOBAL:
-            break;
-        case EntityType::LANE:
-            break;
+        switch (track_entity->type) {
         case EntityType::LIGHT: {
-            std::shared_ptr<BaseLight> targetBaseLight = std::get<std::shared_ptr<BaseLight>>(targetEntity->raw);
+            std::shared_ptr<BaseLight> targetBaseLight = std::make_shared<BaseLight>(*((BaseLight *) targetEntity->track_entity));
             std::shared_ptr<TrackLight> targetLight    = std::static_pointer_cast<TrackLight>(targetBaseLight);
             ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z, targetLight->colour.w);
             ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z, 0.0f);
@@ -238,18 +207,10 @@ namespace OpenNFS {
             ImGui::Text("[3]: %d", targetLight->unknown3);
             ImGui::Text("[4]: %f", targetLight->unknown4);
         } break;
-        case EntityType::ROAD:
-            break;
-        case EntityType::XOBJ:
-            break;
-        case EntityType::SOUND:
-            break;
-        case EntityType::VROAD_CEIL:
-            break;
-        case EntityType::CAR:
-            Car *targetCar = std::get<Car *>(targetEntity->raw);
-            ImGui::Text("%s Supported Colours:", targetCar->name.c_str());
-            for (auto &carColour : targetCar->assetData.colours) {
+        case EntityType::CAR: {
+            /*Car *targetCar = std::get<Car *>(targetEntity->track_entity);
+            ImGui::Text("%s Supported Colours:", targetCar->assetData.metadata.name.c_str());
+            for (auto &carColour : targetCar->assetData.metadata.colours) {
                 ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
                 ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
             }
@@ -273,14 +234,16 @@ namespace OpenNFS {
             ImGui::SliderFloat("Steer Incr.", &targetCar->vehicleProperties.steeringIncrement, 0.f, 0.1f);
             ImGui::SliderFloat("Steer Clamp", &targetCar->vehicleProperties.steeringClamp, 0.f, 0.5f);
             ImGui::Text("Roll (deg) x: %f y: %f z: %f",
-                        glm::eulerAngles(targetCar->carBodyModel.orientation).x * 180 / SIMD_PI,
-                        glm::eulerAngles(targetCar->carBodyModel.orientation).y * 180 / SIMD_PI,
-                        glm::eulerAngles(targetCar->carBodyModel.orientation).z * 180 / SIMD_PI);
+                        glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).x * 180 / SIMD_PI,
+                        glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).y * 180 / SIMD_PI,
+                        glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).z * 180 / SIMD_PI);*/
+        } break;
+        default:
             break;
         }
-        ImGui::Text("Object Flags: %d", targetEntity->flags);
-        ImGui::Text("Collideable: %s", targetEntity->collideable ? "Yes" : "No");
-        ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
+        ImGui::Text("Object Flags: %d", targetEntity->track_entity->flags);
+        ImGui::Text("Collideable: %s", targetEntity->track_entity->collideable ? "Yes" : "No");
+        ImGui::Text("Dynamic: %s", targetEntity->track_entity->dynamic ? "Yes" : "No");
         ImGui::End();
     }
 

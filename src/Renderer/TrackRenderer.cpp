@@ -4,8 +4,8 @@ namespace OpenNFS {
     void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
                                const BaseCamera &camera,
                                GLuint trackTextureArrayID,
-                               const std::vector<std::shared_ptr<Entity>> &visibleEntities,
-                               const std::vector<shared_ptr<BaseLight>> &lights,
+                               const std::vector<Entity *> &visibleEntities,
+                               const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights,
                                const ParamData &userParams,
                                GLuint depthTextureID,
                                float ambientFactor) {
@@ -21,28 +21,28 @@ namespace OpenNFS {
         // m_trackShader.loadSpotlight(car->leftHeadlight);
 
         // TODO: Again, super silly.
-        for (auto &light : lights) {
-            if (light->type == LightType::GLOBAL_LIGHT) {
-                m_trackShader.loadLightSpaceMatrix(std::static_pointer_cast<GlobalLight>(light)->lightSpaceMatrix);
-            }
-        }
+        // for (auto &light : lights) {
+        //    if (light->type == LibOpenNFS::LightType::GLOBAL_LIGHT) {
+        //        m_trackShader.loadLightSpaceMatrix(std::static_pointer_cast<GlobalLight>(light)->lightSpaceMatrix);
+        //    }
+        //}
 
         // Render the per-trackblock data
         for (auto &entity : visibleEntities) {
-            m_trackShader.loadTransformMatrix(std::get<GLTrackModel>(entity->raw).ModelMatrix);
-            std::get<GLTrackModel>(entity->raw).render();
+            m_trackShader.loadTransformMatrix(entity->track_entity->geometry.ModelMatrix);
+            entity->model->render();
         }
 
         m_trackShader.unbind();
         m_trackShader.HotReload();
     }
 
-    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<shared_ptr<BaseLight>> &lights) {
+    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights) {
         m_billboardShader.use();
 
         for (auto &light : lights) {
-            if (light->type == LightType::TRACK_LIGHT) {
-                std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(light);
+            if (light->type == LibOpenNFS::LightType::TRACK_LIGHT) {
+                std::shared_ptr<LibOpenNFS::TrackLight> trackLight = std::static_pointer_cast<LibOpenNFS::TrackLight>(light);
                 m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix);
                 m_billboardShader.loadLight(trackLight);
                 // trackLight->model.render();

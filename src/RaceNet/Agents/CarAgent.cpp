@@ -1,8 +1,7 @@
 #include "CarAgent.h"
 
 namespace OpenNFS {
-    CarAgent::CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &track) :
-        vehicle(std::make_shared<Car>(car->assetData, car->assetData.tag, car->assetData.id)), m_track(track), m_agentType(agentType) {
+    CarAgent::CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &track) : vehicle(car), m_track(track), m_agentType(agentType) {
     }
 
     void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset) {

@@ -99,7 +99,7 @@ namespace LibOpenNFS::Shared {
         ASSERT(false, "VIV Output serialization is not implemented yet");
     }
 
-    uint32_t _SwapEndian(uint32_t const x) {
+    uint32_t VivFile::_SwapEndian(uint32_t const x) {
         return (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
     }
 } // namespace LibOpenNFS::Shared
