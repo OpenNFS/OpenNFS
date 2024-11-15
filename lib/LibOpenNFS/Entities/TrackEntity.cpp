@@ -1,9 +1,11 @@
 #include "TrackEntity.h"
+
+#include <utility>
 #include "Common/Utils.h"
 
 namespace LibOpenNFS {
-    TrackEntity::TrackEntity(uint32_t entityID, EntityType entityType, const TrackGeometry &geometry, uint32_t flags) :
-        type(entityType), geometry(geometry), flags(flags), entityID(entityID), hasGeometry(true) {
+    TrackEntity::TrackEntity(uint32_t entityID, EntityType entityType, TrackGeometry geometry, uint32_t flags) :
+        type(entityType), geometry(std::move(geometry)), flags(flags), entityID(entityID), hasGeometry(true) {
         this->_SetCollisionParameters();
     }
 
@@ -14,21 +16,23 @@ namespace LibOpenNFS {
     void TrackEntity::_SetCollisionParameters() {
         switch (type) {
         case EntityType::VROAD:
-            collideable = true;
-            dynamic     = false;
-            break;
         case EntityType::LIGHT:
-            collideable = false;
         case EntityType::SOUND:
+        case EntityType::LANE:
+        case EntityType::GLOBAL:
+        case EntityType::CAR:
             collideable = false;
+            dynamic     = false;
             break;
         case EntityType::ROAD:
             collideable = true;
+            dynamic     = false;
             break;
         case EntityType::OBJ_POLY:
         case EntityType::XOBJ:
-            collideable = false;
-            switch ((flags >> 4) & 0x7) {
+            collideable = true;
+            dynamic     = false;
+            /*switch ((flags >> 4) & 0x7) {
             case 1: // Hometown shack godray
                 collideable = false;
                 dynamic     = false;
@@ -53,16 +57,13 @@ namespace LibOpenNFS {
                 collideable = true;
                 dynamic     = false;
                 break;
-            }
-            break;
-        case EntityType::LANE:
-        case EntityType::GLOBAL:
-        case EntityType::CAR:
+            }*/
             break;
         default:
-            collideable = true;
+            collideable = false;
             dynamic     = false;
             // ASSERT(false, "Entity parameters are unset for %s", get_string(entityType).c_str());
+            break;
         }
     }
 } // namespace LibOpenNFS

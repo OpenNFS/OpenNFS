@@ -1,11 +1,11 @@
 #include "Track.h"
 
-#include "../Config.h"
 #include "Common/TextureUtils.h"
 
 namespace OpenNFS {
     Track::Track(const LibOpenNFS::Track &track) : LibOpenNFS::Track(track), cullTree(kCullTreeInitialSize) {
         assetPath = TRACK_PATH + get_string(nfsVersion) + "/" + name;
+        this->_GenerateEntities();
         this->_LoadTextures();
         this->_GenerateSpline();
         this->_GenerateAabbTree();
@@ -27,14 +27,25 @@ namespace OpenNFS {
     void Track::_GenerateEntities() {
         for (auto &trackBlock : trackBlocks) {
             for (auto &trackObject : trackBlock.objects) {
-                entities.emplace_back(&trackObject);
+                entities.emplace_back(std::make_shared<Entity>(&trackObject));
             }
+            for (auto &trackSurface : trackBlock.track) {
+                entities.emplace_back(std::make_shared<Entity>(&trackSurface));
+            }
+            for (auto &trackLane : trackBlock.lanes) {
+                entities.emplace_back(std::make_shared<Entity>(&trackLane));
+            }
+        }
+        // Update all models at least once to ensure GL Buffers are generated
+        for (auto &entity : entities) {
+            entity->model->update();
         }
     }
 
     void Track::_GenerateSpline() {
         // Build a spline through the center of the track
         std::vector<glm::vec3> cameraPoints;
+        cameraPoints.reserve(trackBlocks.size());
         for (auto &trackBlock : trackBlocks) {
             cameraPoints.emplace_back(trackBlock.position.x, trackBlock.position.y + 0.2, trackBlock.position.z);
         }

@@ -2,8 +2,7 @@
 #include "Entities/BaseLight.h"
 
 namespace OpenNFS {
-    Entity::Entity(LibOpenNFS::TrackEntity *track_entity) : track_entity(track_entity) {
-        this->model = std::make_unique<GLTrackModel>(&track_entity->geometry);
+    Entity::Entity(LibOpenNFS::TrackEntity *track_entity) : track_entity(track_entity), model(std::make_unique<GLTrackModel>(&track_entity->geometry)) {
         this->_GenCollisionMesh();
         this->_GenBoundingBox();
     }
@@ -13,8 +12,8 @@ namespace OpenNFS {
         glm::quat orientation = glm::quat(0, 0, 0, 1);
 
         switch (track_entity->type) {
-        default:
-            return;
+        case LibOpenNFS::EntityType::LANE:
+            break;
             //        case LibOpenNFS::EntityType::LIGHT: {
             //            std::shared_ptr<BaseLight> baseLight   = std::get<std::shared_ptr<BaseLight>>(raw);
             //            std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
@@ -58,6 +57,9 @@ namespace OpenNFS {
                 m_collisionShape = std::make_unique<btBvhTriangleMeshShape>(&m_collisionMesh, true, true);
             }
         } break;
+        default:
+            CHECK_F(false, "Unable to generate a collision box for entity type: %s", LibOpenNFS::get_string(track_entity->type).c_str());
+            return;
         }
 
         float const entityMass = track_entity->dynamic ? 100.f : 0.f;
@@ -68,9 +70,9 @@ namespace OpenNFS {
         }
 
         m_motionState = std::make_unique<btDefaultMotionState>(Utils::MakeTransform(center, orientation));
-        rigid_body    = std::make_unique<btRigidBody>(btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState.get(), m_collisionShape.get(), localInertia));
-        rigid_body->setFriction(btScalar(1.f));
-        rigid_body->setUserPointer(this);
+        rigidBody     = std::make_unique<btRigidBody>(btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState.get(), m_collisionShape.get(), localInertia));
+        rigidBody->setFriction(btScalar(1.f));
+        rigidBody->setUserPointer(this);
     }
 
     void Entity::_GenBoundingBox() {
@@ -90,7 +92,8 @@ namespace OpenNFS {
             CHECK_F(baseLight->type == LibOpenNFS::LightType::TRACK_LIGHT, "Not ready to handle other light types at entity creation time");
             // std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
             // DimensionData meshDimensions           = Utils::GenDimensions(trackLight->model.m_vertices);
-            // m_boundingBox                          = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
+            DimensionData meshDimensions(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
+            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
             return;
         }
         case LibOpenNFS::EntityType::SOUND:

@@ -101,20 +101,20 @@ namespace OpenNFS {
         float GetCarBodyOrientation();
 
         // Physics Engine registration
-        void SetVehicle(btRaycastVehicle* vehicle) {
-            m_vehicle = vehicle;
+        void SetVehicle(std::unique_ptr<btRaycastVehicle>&& vehicle) {
+            m_vehicle = std::move(vehicle);
         }
-        void SetRaycaster(btVehicleRaycaster* vehicleRayCaster) {
-            m_vehicleRayCaster = vehicleRayCaster;
+        void SetRaycaster(std::unique_ptr<btVehicleRaycaster>&& vehicleRayCaster) {
+            m_vehicleRayCaster = std::move(vehicleRayCaster);
         }
         btRigidBody* GetVehicleRigidBody() {
-            return m_carChassis;
+            return m_carChassis.get();
         }
         btVehicleRaycaster* GetRaycaster() {
-            return m_vehicleRayCaster;
+            return m_vehicleRayCaster.get();
         }
         btRaycastVehicle* GetVehicle() {
-            return m_vehicle;
+            return m_vehicle.get();
         }
 
         LibOpenNFS::Car assetData;
@@ -148,10 +148,10 @@ namespace OpenNFS {
         void _SetVehicleProperties();
 
         // Base Physics objects for car
-        btDefaultMotionState* m_vehicleMotionState{}; // Retrieving vehicle location in world
-        btRigidBody* m_carChassis{};
+        std::unique_ptr<btDefaultMotionState> m_vehicleMotionState{}; // Retrieving vehicle location in world
+        std::unique_ptr<btRigidBody> m_carChassis{};
         btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
-        btVehicleRaycaster* m_vehicleRayCaster{}; // Wheel simulation
-        btRaycastVehicle* m_vehicle{};
+        std::unique_ptr<btVehicleRaycaster> m_vehicleRayCaster{}; // Wheel simulation
+        std::unique_ptr<btRaycastVehicle> m_vehicle{};
     };
 } // namespace OpenNFS

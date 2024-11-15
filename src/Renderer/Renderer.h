@@ -28,7 +28,7 @@
 
 namespace OpenNFS {
     struct VisibleSet {
-        std::vector<Entity *> entities;
+        std::vector<std::shared_ptr<Entity>> entities;
         std::vector<std::shared_ptr<BaseLight>> lights;
     };
 
@@ -65,7 +65,7 @@ namespace OpenNFS {
         void _InitialiseIMGUI();
         bool _DrawMenuBar(AssetData &loadedAssets);
         void _DrawDebugUI(ParamData &userParams, const BaseCamera &camera);
-        static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams);
+        static std::vector<uint32_t> _GetLocalTrackBlockIDs(const std::shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams);
         static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams);
 
         std::shared_ptr<GLFWwindow> m_window;

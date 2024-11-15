@@ -51,7 +51,7 @@ namespace OpenNFS {
         glUniform1i(trackTextureArrayLocation, 0);
     }
 
-    void TrackShader::loadLights(const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights) {
+    void TrackShader::loadLights(const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights) {
         for (int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i) {
             if (i < lights.size()) {
                 loadVec3(lightPositionLocation[i], lights[i]->position);

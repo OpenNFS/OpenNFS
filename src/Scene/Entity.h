@@ -24,9 +24,7 @@ namespace OpenNFS {
 
         LibOpenNFS::TrackEntity *track_entity;
         std::unique_ptr<GLModel> model;
-        std::unique_ptr<btRigidBody> rigid_body;
-
-        void _GenCollisionMesh();
+        std::unique_ptr<btRigidBody> rigidBody;
 
     private:
         btTriangleMesh m_collisionMesh;
@@ -34,6 +32,7 @@ namespace OpenNFS {
         std::unique_ptr<btDefaultMotionState> m_motionState;
         AABB m_boundingBox;
 
+        void _GenCollisionMesh();
         void _GenBoundingBox();
     };
 } // namespace OpenNFS

@@ -222,7 +222,8 @@ namespace LibOpenNFS::NFS3 {
                             TexBlock polygonTexture = frdFile.textureBlocks[objectPolygons[polyIdx].textureId];
                             // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
                             TrackTexture trackTexture  = track.trackTextures.at(polygonTexture.qfsIndex);
-                            std::vector<glm::vec2> uvs = trackTexture.GenerateUVs(false, true, true);
+                            std::vector<glm::vec2> transformedUVs = trackTexture.GenerateUVs(false, true, false);
+                            uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                             // Calculate the normal, as the provided data is a little suspect
                             glm::vec3 normal = Utils::CalculateQuadNormal(rawTrackBlock.vert[objectPolygons[polyIdx].vertex[0]],
@@ -268,7 +269,8 @@ namespace LibOpenNFS::NFS3 {
                     for (uint32_t k = 0; k < extraObjectData.nPolygons; k++) {
                         TexBlock blockTexture      = frdFile.textureBlocks[extraObjectData.polyData[k].textureId];
                         TrackTexture trackTexture  = track.trackTextures.at(blockTexture.qfsIndex);
-                        std::vector<glm::vec2> uvs = trackTexture.GenerateUVs(true, true, true);
+                        std::vector<glm::vec2> transformedUVs = trackTexture.GenerateUVs(true, true, false);
+                        uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         glm::vec3 normal = Utils::CalculateQuadNormal(extraObjectVerts[extraObjectData.polyData[k].vertex[0]],
                                                                       extraObjectVerts[extraObjectData.polyData[k].vertex[1]],
@@ -317,7 +319,8 @@ namespace LibOpenNFS::NFS3 {
                 for (uint32_t polyIdx = 0; polyIdx < trackPolygonBlock.sz[lodChunkIdx]; polyIdx++) {
                     TexBlock polygonTexture    = frdFile.textureBlocks[chunkPolygonData[polyIdx].textureId];
                     TrackTexture trackTexture  = track.trackTextures.at(polygonTexture.qfsIndex);
-                    std::vector<glm::vec2> uvs = trackTexture.GenerateUVs(false, true, true);
+                    std::vector<glm::vec2> transformedUVs = trackTexture.GenerateUVs(false, true, false);
+                    uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     glm::vec3 normal = Utils::CalculateQuadNormal(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[0]],
                                                                   rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[1]],

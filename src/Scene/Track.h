@@ -23,7 +23,7 @@ namespace OpenNFS {
         // GL 3D Render Data
         HermiteCurve centerSpline;
         GLuint textureArrayID = 0;
-        std::vector<Entity> entities;
+        std::vector<std::shared_ptr<Entity>> entities;
 
     private:
         void _LoadTextures();

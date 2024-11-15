@@ -121,11 +121,9 @@ namespace OpenNFS {
         VisibleSet visibleSet;
 
         // Perform frustum culling on the current camera, on local trackblocks
-        for (auto &trackBlockID : _GetLocalTrackBlockIDs(track, camera, userParams)) {
-            for (auto &trackEntity : track->entities) {
-                if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(trackEntity.GetAABB())) {
-                    visibleSet.entities.emplace_back(&trackEntity);
-                }
+        for (auto &trackEntity : track->entities) {
+            if (!userParams.useFrustumCull || camera.viewFrustum.CheckIntersection(trackEntity->GetAABB())) {
+                visibleSet.entities.emplace_back(trackEntity);
             }
         }
 

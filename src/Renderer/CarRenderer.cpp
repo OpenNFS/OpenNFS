@@ -1,10 +1,10 @@
 #include "CarRenderer.h"
 
 namespace OpenNFS {
-    void CarRenderer::Render(const shared_ptr<Car> &car, const BaseCamera &camera, const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights) {
+    void CarRenderer::Render(const std::shared_ptr<Car> &car, const BaseCamera &camera, const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights) {
         m_carShader.use();
 
-        // This shader state doesnt change during a car renderpass
+        // This shader state doesn't change during a car renderpass
         m_carShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
         m_carShader.setPolyFlagged(((LibOpenNFS::CarGeometry *) car->carBodyModel.geometry)->m_polygon_flags.empty());
         m_carShader.loadCarColor(glm::vec3(1, 1, 1));

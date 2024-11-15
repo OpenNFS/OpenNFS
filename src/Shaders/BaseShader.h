@@ -12,8 +12,6 @@
 #include <glm/detail/type_mat4x4.hpp>
 #include "ShaderSet.h"
 
-using namespace std;
-
 class BaseShader {
 public:
     BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path);
@@ -33,7 +31,7 @@ protected:
     void loadVec3(GLint location, glm::vec3 value);
     void loadFloat(GLint location, float value);
     void loadSampler2D(GLint location, GLint textureUnit);
-    GLint getUniformLocation(string uniformName);
+    GLint getUniformLocation(std::string uniformName);
     void bindAttribute(GLuint attribute, std::string variableName);
     virtual void bindAttributes()         = 0;
     virtual void getAllUniformLocations() = 0;

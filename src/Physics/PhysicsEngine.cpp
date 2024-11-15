@@ -31,7 +31,7 @@ namespace OpenNFS {
 
         WorldRay worldRay;
         worldRay.origin = glm::vec3(lRayStart_world);
-        worldRay.direction - glm::normalize(lRayDir_world);
+        worldRay.direction = glm::normalize(lRayDir_world);
 
         return worldRay;
     }
@@ -56,13 +56,10 @@ namespace OpenNFS {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        if (m_track != nullptr) {
-            // TrackModel updates propagate for active track blocks, based upon track blocks racer vehicles are on
-            for (auto &residentTrackblockID : racerResidentTrackblockIDs) {
-                for (auto &objects : m_track->trackBlocks[residentTrackblockID].objects) {
-                    // objects.Update();
-                }
-            }
+        // TrackModel updates propagate for active track blocks, based upon track blocks racer vehicles are on
+        // for (auto &residentTrackblockID : racerResidentTrackblockIDs) {
+        for (auto &entity : m_track->entities) {
+            entity->Update();
         }
     }
 
@@ -89,26 +86,25 @@ namespace OpenNFS {
         m_track = track;
 
         for (auto &entity : m_track->entities) {
-            int collisionMask  = COL_RAY;
-            int collisionGroup = COL_TRACK;
-            if (entity.track_entity->collideable) {
-                collisionMask |= COL_CAR;
+            int collisionMask = COL_RAY | COL_CAR;
+            if (!entity->track_entity->collideable) {
+                continue;
             }
-            if (entity.track_entity->dynamic) {
+            if (entity->track_entity->dynamic) {
                 collisionMask |= COL_TRACK;
-                collisionGroup = COL_DYNAMIC_TRACK;
                 // Move Rigid body to correct place in world
-                btTransform initialTransform = Utils::MakeTransform(entity.model->geometry->initialPosition, entity.model->geometry->orientation);
-                entity.rigid_body->setWorldTransform(initialTransform);
+                btTransform initialTransform = Utils::MakeTransform(entity->model->geometry->initialPosition, entity->model->geometry->orientation);
+                entity->rigidBody->setWorldTransform(initialTransform);
+                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_DYNAMIC_TRACK, collisionMask);
+            } else {
+                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_TRACK, collisionMask);
             }
-            m_pDynamicsWorld->addRigidBody(entity.rigid_body.get(), collisionGroup, collisionMask);
         }
     }
 
     void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car) {
-        car->SetRaycaster(new btDefaultVehicleRaycaster(m_pDynamicsWorld.get()));
-        car->SetVehicle(new btRaycastVehicle(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
-        car->GetVehicleRigidBody()->setActivationState(DISABLE_DEACTIVATION);
+        car->SetRaycaster(std::make_unique<btDefaultVehicleRaycaster>(m_pDynamicsWorld.get()));
+        car->SetVehicle(std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
         car->GetVehicle()->setCoordinateSystem(0, 1, 2);
 
         m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(), m_pDynamicsWorld->getDispatcher());
@@ -127,7 +123,7 @@ namespace OpenNFS {
         car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.geometry->position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
         car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.geometry->position), wheelDirectionCS0, wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
 
-        for (uint8_t wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx) {
+        for (auto wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx) {
             btWheelInfo &wheel               = car->GetVehicle()->getWheelInfo(wheelIdx);
             wheel.m_suspensionStiffness      = car->vehicleProperties.suspensionStiffness;
             wheel.m_wheelsDampingRelaxation  = car->vehicleProperties.suspensionDamping;
@@ -149,8 +145,7 @@ namespace OpenNFS {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
         for (auto &entity : m_track->entities) {
-            m_pDynamicsWorld->removeRigidBody(entity.rigid_body.get());
-            delete entity.rigid_body->getMotionState();
+            m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
         }
     }
 

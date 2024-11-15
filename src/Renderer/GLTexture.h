@@ -24,6 +24,6 @@ public:
     static int32_t hsStockTextureIndexRemap(int32_t textureIndex);
     static GLuint MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool repeatable);
 
-    LibOpenNFS::TrackTexture texture;
+    LibOpenNFS::TrackTexture texture_asset;
     GLubyte *data;
 };

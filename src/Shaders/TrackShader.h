@@ -18,7 +18,7 @@ namespace OpenNFS {
         void loadTransformMatrix(const glm::mat4 &transformation);
         void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
         void loadSpecular(float damper, float reflectivity);
-        void loadLights(const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights);
+        void loadLights(const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights);
         void loadSpotlight(Spotlight spotlight);
         void loadShadowMapTexture(GLuint shadowMapTextureID);
         void loadAmbientFactor(float ambientFactor);

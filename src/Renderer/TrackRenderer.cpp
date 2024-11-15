@@ -4,13 +4,13 @@ namespace OpenNFS {
     void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
                                const BaseCamera &camera,
                                GLuint trackTextureArrayID,
-                               const std::vector<Entity *> &visibleEntities,
-                               const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights,
+                               const std::vector<std::shared_ptr<Entity>> &visibleEntities,
+                               const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights,
                                const ParamData &userParams,
                                GLuint depthTextureID,
                                float ambientFactor) {
         m_trackShader.use();
-        // This shader state doesnt change during a track renderpass
+        // This shader state doesn't change during a track renderpass
         m_trackShader.setClassic(userParams.useClassicGraphics);
         m_trackShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
         m_trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
@@ -37,7 +37,7 @@ namespace OpenNFS {
         m_trackShader.HotReload();
     }
 
-    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights) {
+    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights) {
         m_billboardShader.use();
 
         for (auto &light : lights) {

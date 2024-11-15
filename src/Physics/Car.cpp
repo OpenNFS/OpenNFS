@@ -279,16 +279,17 @@ namespace OpenNFS {
         m_collisionShapes.push_back(compound);
 
         // Set initial location of vehicle in the world
-        m_vehicleMotionState =
-          new btDefaultMotionState(btTransform(btQuaternion(Utils::glmToBullet(carBodyModel.geometry->orientation)), Utils::glmToBullet(carBodyModel.geometry->position)));
-        btRigidBody::btRigidBodyConstructionInfo cInfo(vehicleProperties.mass, m_vehicleMotionState, compound, localInertia);
-        m_carChassis = new btRigidBody(cInfo);
+        m_vehicleMotionState = std::make_unique<btDefaultMotionState>(
+          btTransform(btQuaternion(Utils::glmToBullet(carBodyModel.geometry->orientation)), Utils::glmToBullet(carBodyModel.geometry->position)));
+        btRigidBody::btRigidBodyConstructionInfo cInfo(vehicleProperties.mass, m_vehicleMotionState.get(), compound, localInertia);
+        m_carChassis = std::make_unique<btRigidBody>(cInfo);
 
         // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
         // m_carChassis->setUserPointer(new Entity(-1, -1, tag, LibOpenNFS::EntityType::CAR, this, 0));
         m_carChassis->setDamping(0.2f, 0.2f);
         m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
         m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
+        m_carChassis->setActivationState(DISABLE_DEACTIVATION);
     }
 
     void Car::_GenRaycasts(btDynamicsWorld *dynamicsWorld) {

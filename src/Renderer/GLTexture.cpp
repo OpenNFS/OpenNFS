@@ -2,7 +2,7 @@
 
 #include <utility>
 
-GLTexture::GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data) : texture(std::move(texture)), data(data) {
+GLTexture::GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data) : texture_asset(std::move(texture)), data(data) {
 }
 
 GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &trackTexture) {
@@ -31,18 +31,7 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &track
     case NFSVersion::NFS_2_SE:
     case NFSVersion::NFS_2_PS1:
     case NFSVersion::NFS_3_PS1: {
-        uint8_t alphaColour = 0;
-        switch (tag) {
-        case NFSVersion::NFS_2:
-            alphaColour = 0u;
-            break;
-        case NFSVersion::NFS_2_SE:
-            alphaColour = 248u;
-            break;
-        default:
-            assert(false);
-        }
-
+        uint8_t const alphaColour = tag == NFSVersion::NFS_2_SE ? 248u : 0;
         CHECK_F(ImageLoader::LoadBmpCustomAlpha(trackTexture.fileReference.c_str(), &data, &width, &height, alphaColour),
                 "Texture %s did not load succesfully!",
                 trackTexture.fileReference.c_str());
@@ -65,11 +54,11 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture_name);
 
     // Find the maximum width and height, so we can avoid overestimating with blanket values (256x256) and thereby scale UV's uneccesarily
-    for (auto &texture : textures) {
-        if (texture.second.texture.width > max_width)
-            max_width = texture.second.texture.width;
-        if (texture.second.texture.height > max_height)
-            max_height = texture.second.texture.height;
+    for (auto &[id, glTexture] : textures) {
+        if (glTexture.texture_asset.width > max_width)
+            max_width = glTexture.texture_asset.width;
+        if (glTexture.texture_asset.height > max_height)
+            max_height = glTexture.texture_asset.height;
     }
 
     std::vector<uint32_t> clear_data(max_width * max_height, 0);
@@ -83,16 +72,16 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
                    MAX_TEXTURE_ARRAY_SIZE); // I should really call this on textures.size(), but the layer numbers are not linear up to
                                             // textures.size(). HS Bloats tex index up over 2048.
 
-    for (auto &texture : textures) {
-        CHECK_F(texture.second.texture.width <= max_width, "Texture %u exceeds maximum specified texture width (%zu) for Array", texture.second.texture.id, max_width);
-        CHECK_F(texture.second.texture.width <= max_width, "Texture %u exceeds maximum specified texture height (%zu) for Array", texture.second.texture.id, max_height);
+    for (auto &[id, glTexture] : textures) {
+        CHECK_F(glTexture.texture_asset.width <= max_width, "Texture %u exceeds maximum specified texture width (%zu) for Array", glTexture.texture_asset.id, max_width);
+        CHECK_F(glTexture.texture_asset.width <= max_width, "Texture %u exceeds maximum specified texture height (%zu) for Array", glTexture.texture_asset.id, max_height);
 
         // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
                         0,
                         0,
                         0,
-                        hsStockTextureIndexRemap(texture.first),
+                        hsStockTextureIndexRemap(id),
                         static_cast<GLsizei>(max_width),
                         static_cast<GLsizei>(max_height),
                         1,
@@ -103,21 +92,21 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
                         0,
                         0,
                         0,
-                        hsStockTextureIndexRemap(texture.first),
-                        texture.second.texture.width,
-                        texture.second.texture.height,
+                        hsStockTextureIndexRemap(id),
+                        glTexture.texture_asset.width,
+                        glTexture.texture_asset.height,
                         1,
                         GL_RGBA,
                         GL_UNSIGNED_BYTE,
-                        (const GLvoid *) texture.second.data);
+                        (const GLvoid *) glTexture.data);
 
-        texture.second.texture.minU  = 0.00;
-        texture.second.texture.minV  = 0.00;
-        texture.second.texture.layer = hsStockTextureIndexRemap(texture.first);
-        texture.second.texture.maxU =
-          (texture.second.texture.width / static_cast<float>(max_width)) - 0.005f; // Attempt to remove potential for sampling texture from transparent area
-        texture.second.texture.maxV = (texture.second.texture.height / static_cast<float>(max_height)) - 0.005f;
-        texture.second.texture.id   = texture_name;
+        glTexture.texture_asset.minU  = 0.00;
+        glTexture.texture_asset.minV  = 0.00;
+        glTexture.texture_asset.layer = hsStockTextureIndexRemap(id);
+        // Attempt to remove potential for sampling texture from transparent area
+        glTexture.texture_asset.maxU = (glTexture.texture_asset.width / static_cast<float>(max_width)) - 0.005f;
+        glTexture.texture_asset.maxV = (glTexture.texture_asset.height / static_cast<float>(max_height)) - 0.005f;
+        glTexture.texture_asset.id   = texture_name;
     }
 
     if (repeatable) {

@@ -17,12 +17,12 @@ namespace OpenNFS {
         void Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
                     const BaseCamera &camera,
                     GLuint trackTextureArrayID,
-                    const std::vector<Entity *> &visibleEntities,
-                    const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights,
+                    const std::vector<std::shared_ptr<Entity>> &visibleEntities,
+                    const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights,
                     const ParamData &userParams,
                     GLuint depthTextureID,
                     float ambientFactor);
-        void RenderLights(const BaseCamera &camera, const std::vector<shared_ptr<LibOpenNFS::BaseLight>> &lights);
+        void RenderLights(const BaseCamera &camera, const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights);
 
     private:
         // Create and compile our GLSL programs from the shaders

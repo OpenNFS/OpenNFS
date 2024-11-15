@@ -12,7 +12,7 @@ namespace OpenNFS {
 
     void DebugRenderer::DrawTrackCollision(const std::shared_ptr<Track> &track) {
         for (auto &trackEntity : track->entities) {
-            this->DrawAABB(trackEntity.GetAABB());
+            this->DrawAABB(trackEntity->GetAABB());
         }
     }
 
