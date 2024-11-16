@@ -9,6 +9,9 @@ public:
     }
     GLTrackModel() : GLModel() {
     }
+    ~GLTrackModel() {
+        destroy();
+    };
 
     void update() override;
     void destroy() override;

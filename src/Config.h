@@ -56,7 +56,7 @@ const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks
 
 // ----- Defaults -----
 const std::string DEFAULT_CAR           = "corv";
-const std::string DEFAULT_TRACK         = "trk003";
+const std::string DEFAULT_TRACK         = "trk000";
 const std::string DEFAULT_CAR_NFS_VER   = get_string(NFSVersion::NFS_3);
 const std::string DEFAULT_TRACK_NFS_VER = get_string(NFSVersion::NFS_3);
 const int DEFAULT_NUM_RACERS            = 0;

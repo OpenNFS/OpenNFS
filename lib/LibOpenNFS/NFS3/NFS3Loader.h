@@ -21,7 +21,7 @@
 #include "Entities/TrackTexture.h"
 
 namespace LibOpenNFS::NFS3 {
-    const float NFS3_SCALE_FACTOR = 10.f;
+    const glm::vec3 NFS3_SCALE_FACTOR(-0.1, 0.1, 0.1f);
 
     class Loader {
     public:

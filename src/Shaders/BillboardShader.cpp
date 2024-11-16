@@ -45,11 +45,11 @@ namespace OpenNFS {
     }
 
     void BillboardShader::load_bmp_texture() {
-        GLubyte *data;
+        std::vector<uint8_t> data;
         GLsizei width;
         GLsizei height;
 
-        ImageLoader::LoadBmpWithAlpha("../resources/sfx/0004.BMP", "../resources/sfx/0004-a.BMP", &data, &width, &height);
+        ImageLoader::LoadBmpWithAlpha("../resources/sfx/0004.BMP", "../resources/sfx/0004-a.BMP", data, &width, &height);
         glGenTextures(1, &textureID);
         glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -57,6 +57,6 @@ namespace OpenNFS {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid *) data.data());
     }
 } // namespace OpenNFS

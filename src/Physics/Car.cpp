@@ -30,15 +30,6 @@ namespace OpenNFS {
     }
 
     Car::~Car() {
-        // Clean up the vehicle meshes
-        leftFrontWheelModel.destroy();
-        rightFrontWheelModel.destroy();
-        leftRearWheelModel.destroy();
-        rightRearWheelModel.destroy();
-        carBodyModel.destroy();
-        for (auto &miscModel : miscModels) {
-            miscModel.destroy();
-        }
         // And bullet collision shapes on heap
         m_collisionShapes.clear();
         // And the loaded GL textures
@@ -220,15 +211,15 @@ namespace OpenNFS {
             std::stringstream car_alpha_texture_path;
             carTexturePath << "/Textures/0000.BMP";
             car_alpha_texture_path << LibOpenNFS::CAR_PATH << get_string(assetData.tag) << "/" << assetData.id << "/Textures/0000-a.BMP";
-            GLubyte *imageData;
-            if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(), &imageData, &width, &height)) {
+            std::vector<uint8_t> imageData;
+            if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(), imageData, &width, &height)) {
                 glGenTextures(1, &renderInfo.textureID);
                 glBindTexture(GL_TEXTURE_2D, renderInfo.textureID);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData.data());
                 glGenerateMipmap(GL_TEXTURE_2D);
                 glBindTexture(GL_TEXTURE_2D, 0);
             }

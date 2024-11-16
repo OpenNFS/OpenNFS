@@ -17,7 +17,8 @@
 class GLTexture {
 public:
     GLTexture() = default;
-    explicit GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data);
+    explicit GLTexture(LibOpenNFS::TrackTexture texture, std::vector<uint8_t> &data);
+    GLubyte *GetData();
 
     // Utils
     static GLTexture LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &trackTexture);
@@ -25,5 +26,7 @@ public:
     static GLuint MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool repeatable);
 
     LibOpenNFS::TrackTexture texture_asset;
-    GLubyte *data;
+
+private:
+    std::vector<uint8_t> data;
 };

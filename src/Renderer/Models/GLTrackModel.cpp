@@ -2,8 +2,8 @@
 #include "../../Util/Utils.h"
 
 void GLTrackModel::update() {
-    if (!enabled) {
-        enable();
+    if (!buffersGenerated) {
+        buffersGenerated = true;
         CHECK_F(genBuffers(), "Unable to generate GL Buffers for Track Model");
     }
     geometry->RotationMatrix    = glm::toMat4(geometry->orientation);
@@ -12,12 +12,14 @@ void GLTrackModel::update() {
 }
 
 void GLTrackModel::destroy() {
-    glDeleteBuffers(1, &m_vertexBuffer);
-    glDeleteBuffers(1, &m_uvBuffer);
-    glDeleteBuffers(1, &m_textureIndexBuffer);
-    glDeleteBuffers(1, &m_shadingDataBuffer);
-    glDeleteBuffers(1, &m_normalBuffer);
-    glDeleteBuffers(1, &m_debugBuffer);
+    if (buffersGenerated) {
+        glDeleteBuffers(1, &m_vertexBuffer);
+        glDeleteBuffers(1, &m_uvBuffer);
+        glDeleteBuffers(1, &m_textureIndexBuffer);
+        glDeleteBuffers(1, &m_shadingDataBuffer);
+        glDeleteBuffers(1, &m_normalBuffer);
+        glDeleteBuffers(1, &m_debugBuffer);
+    }
 }
 
 void GLTrackModel::render() {
@@ -99,3 +101,4 @@ bool GLTrackModel::genBuffers() {
     glBindVertexArray(0);
     return true;
 }
+

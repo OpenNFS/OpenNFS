@@ -15,9 +15,8 @@ namespace OpenNFS {
         };
 
     void GLCarModel::update() {
-        // TODO: Move this to a separate function, as not all car models should be enabled (low LOD etc)
-        if (!enabled) {
-            enable();
+        if (!buffersGenerated) {
+            buffersGenerated = true;
             CHECK_F(genBuffers(), "Unable to generate GL Buffers for Track Model");
         }
         geometry->RotationMatrix    = glm::toMat4(geometry->orientation);
@@ -26,11 +25,13 @@ namespace OpenNFS {
     }
 
     void GLCarModel::destroy() {
-        glDeleteBuffers(1, &vertexBuffer);
-        glDeleteBuffers(1, &uvBuffer);
-        glDeleteBuffers(1, &normalBuffer);
-        glDeleteBuffers(1, &textureIndexBuffer);
-        glDeleteBuffers(1, &polyFlagBuffer);
+        if (buffersGenerated) {
+            glDeleteBuffers(1, &vertexBuffer);
+            glDeleteBuffers(1, &uvBuffer);
+            glDeleteBuffers(1, &normalBuffer);
+            glDeleteBuffers(1, &textureIndexBuffer);
+            glDeleteBuffers(1, &polyFlagBuffer);
+        }
     }
 
     void GLCarModel::render() {

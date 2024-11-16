@@ -23,6 +23,7 @@ public:
 
     /*--------- Model State --------*/
     bool enabled = false;
+    bool buffersGenerated = false;
     // Rendering
     LibOpenNFS::Geometry *geometry;
 

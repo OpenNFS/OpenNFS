@@ -9,6 +9,9 @@ namespace OpenNFS {
         GLCarModel(LibOpenNFS::CarGeometry *geometry, float specular_damper, float specular_reflectivity, float env_reflectivity);
         GLCarModel(LibOpenNFS::CarGeometry *geometry);
         GLCarModel() : GLModel(){};
+        ~GLCarModel() {
+            destroy();
+        }
 
         void update() override;
         void destroy() override;

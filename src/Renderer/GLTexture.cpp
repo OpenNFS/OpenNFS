@@ -2,25 +2,29 @@
 
 #include <utility>
 
-GLTexture::GLTexture(LibOpenNFS::TrackTexture texture, GLubyte *data) : texture_asset(std::move(texture)), data(data) {
+GLTexture::GLTexture(LibOpenNFS::TrackTexture texture, std::vector<uint8_t> &data) : texture_asset(std::move(texture)), data(data) {
+}
+
+GLubyte *GLTexture::GetData() {
+    return (GLubyte *) data.data();
 }
 
 GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &trackTexture) {
-    GLubyte *data;
     GLsizei width;
     GLsizei height;
+    std::vector<uint8_t> data;
 
     switch (tag) {
     case NFSVersion::NFS_3: {
-        if (!ImageLoader::LoadBmpWithAlpha(trackTexture.fileReference.c_str(), trackTexture.alphaFileReference.c_str(), &data, &width, &height)) {
+        if (!ImageLoader::LoadBmpWithAlpha(trackTexture.fileReference.c_str(), trackTexture.alphaFileReference.c_str(), data, &width, &height)) {
             LOG(WARNING) << "Texture " << trackTexture.fileReference << " or " << trackTexture.alphaFileReference << " did not load succesfully!";
             // If the texture is missing, load a "MISSING" texture of identical size.
-            CHECK_F(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height),
+            CHECK_F(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", data, &width, &height),
                     "Even the 'missing' texture is missing!");
+            // Override texture with missing texture attributes
+            trackTexture.width  = width;
+            trackTexture.height = height;
         }
-        // Override texture with parsed attributes, as original width and height have been transformed by maxU/V rescale logic
-        trackTexture.width  = width;
-        trackTexture.height = height;
 
         return GLTexture(trackTexture, data);
     }
@@ -28,9 +32,9 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &track
     case NFSVersion::NFS_2_SE:
     case NFSVersion::NFS_2_PS1:
     case NFSVersion::NFS_3_PS1: {
-        uint8_t const alphaColour = tag == NFSVersion::NFS_2_SE ? 248u : 0;
-        CHECK_F(ImageLoader::LoadBmpCustomAlpha(trackTexture.fileReference.c_str(), &data, &width, &height, alphaColour),
-                "Texture %s did not load succesfully!",
+        uint8_t const alphaColour = (tag == NFSVersion::NFS_2_SE) ? 248u : 0;
+        CHECK_F(ImageLoader::LoadBmpCustomAlpha(trackTexture.fileReference.c_str(), data, &width, &height, alphaColour),
+                "Texture %s did not load successfully!",
                 trackTexture.fileReference.c_str());
 
         return GLTexture(trackTexture, data);
@@ -95,10 +99,10 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
                         1,
                         GL_RGBA,
                         GL_UNSIGNED_BYTE,
-                        (const GLvoid *) glTexture.data);
+                        (const GLvoid *) glTexture.GetData());
 
         glTexture.texture_asset.layer = hsStockTextureIndexRemap(id);
-        glTexture.texture_asset.id   = texture_name;
+        glTexture.texture_asset.id    = texture_name;
     }
 
     if (repeatable) {
