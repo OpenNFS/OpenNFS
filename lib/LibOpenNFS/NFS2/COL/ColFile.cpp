@@ -1,5 +1,7 @@
 #include "ColFile.h"
 
+#include <cstring>
+
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
@@ -24,19 +26,19 @@ void ColFile<Platform>::Save(const std::string &colPath, ColFile &colFile) {
 template <typename Platform>
 bool ColFile<Platform>::_SerializeIn(std::ifstream &ifstream) {
     // Check we're in a valid TRK file
-    SAFE_READ(ifstream, header, HEADER_LENGTH);
+    onfs_check(safe_read(ifstream, header, HEADER_LENGTH));
     if (memcmp(header, "COLL", sizeof(header)) != 0)
         return false;
 
-    SAFE_READ(ifstream, &colVersion, sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, colVersion));
     if (colVersion != 11)
         return false;
 
-    SAFE_READ(ifstream, &size, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nExtraBlocks, sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, size));
+    onfs_check(safe_read(ifstream, nExtraBlocks));
 
     extraBlockOffsets.resize(nExtraBlocks);
-    SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, extraBlockOffsets));
 
     //LOG(INFO) << "Version: " << colVersion << " nExtraBlocks: " << nExtraBlocks;
     //LOG(DEBUG) << "Parsing COL Extrablocks";

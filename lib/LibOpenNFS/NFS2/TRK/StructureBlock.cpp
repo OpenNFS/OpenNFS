@@ -11,15 +11,15 @@ template <typename Platform>
 bool StructureBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
     std::streamoff padCheck = ifstream.tellg();
 
-    SAFE_READ(ifstream, &recSize, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nVerts, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nPoly, sizeof(uint16_t));
+    onfs_check(safe_read(ifstream, recSize));
+    onfs_check(safe_read(ifstream, nVerts));
+    onfs_check(safe_read(ifstream, nPoly));
 
     vertexTable.resize(nVerts);
-    SAFE_READ(ifstream, vertexTable.data(), nVerts * sizeof(typename Platform::VERT));
+    onfs_check(safe_read(ifstream, vertexTable));
 
     polygonTable.resize(nPoly);
-    SAFE_READ(ifstream, polygonTable.data(), nPoly * sizeof(typename Platform::POLYGONDATA));
+    onfs_check(safe_read(ifstream, polygonTable));
 
     ifstream.seekg(recSize - (ifstream.tellg() - padCheck), std::ios_base::cur); // Eat possible padding
 

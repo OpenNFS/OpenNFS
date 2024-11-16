@@ -25,7 +25,7 @@ void PshFile::Save(const std::string &pshPath, PshFile &pshFile) {
 
 bool PshFile::_SerializeIn(std::ifstream &ifstream) {
     // Check we're in a valid PSH file
-    SAFE_READ(ifstream, &header, sizeof(HEADER));
+    onfs_check(safe_read(ifstream, header));
 
     // LOG(INFO) << header.nDirectories << " images inside PSH";
 
@@ -37,7 +37,7 @@ bool PshFile::_SerializeIn(std::ifstream &ifstream) {
 
     // Get the offsets to each image in the PSH
     directoryEntries.resize(header.nDirectories);
-    SAFE_READ(ifstream, directoryEntries.data(), header.nDirectories * sizeof(DIR_ENTRY));
+    onfs_check(safe_read(ifstream, directoryEntries));
 
     return true;
 }

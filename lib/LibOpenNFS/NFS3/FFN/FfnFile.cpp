@@ -1,6 +1,6 @@
 #include "FfnFile.h"
 
-//#include "../../../../src/Util/ImageLoader.h"
+#include <cstring>
 
 using namespace LibOpenNFS::NFS3;
 
@@ -22,7 +22,7 @@ void FfnFile::Save(const std::string &ffnPath, FfnFile &ffnFile) {
 
 bool FfnFile::_SerializeIn(std::ifstream &ifstream) {
     // Get filesize so can check have parsed all bytes
-    SAFE_READ(ifstream, &header, sizeof(HEADER));
+    onfs_check(safe_read(ifstream, header));
 
     if (memcmp(header.fntfChk, "FNTF", sizeof(header.fntfChk)) != 0) {
         //LOG(WARNING) << "Invalid FFN Header";
@@ -30,7 +30,7 @@ bool FfnFile::_SerializeIn(std::ifstream &ifstream) {
     }
 
     characters.resize(header.numChars);
-    SAFE_READ(ifstream, characters.data(), sizeof(CHAR_TABLE_ENTRY) * header.numChars);
+    onfs_check(safe_read(ifstream, characters));
 
     uint32_t predictedAFontOffset = header.fontMapOffset;
 
@@ -51,7 +51,7 @@ bool FfnFile::_SerializeIn(std::ifstream &ifstream) {
 
     for (int y = 0; y < header.numChars; y++) {
         for (int x = 0; x < header.version; x++) {
-            SAFE_READ(ifstream, &indices[(x + y * header.version)], sizeof(uint8_t));
+            onfs_check(safe_read(ifstream, indices[(x + y * header.version)]));
         }
     }
 

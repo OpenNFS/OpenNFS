@@ -1,5 +1,7 @@
 #include "TrkFile.h"
 
+#include <cstring>
+
 using namespace LibOpenNFS::NFS2;
 
 template <typename Platform>
@@ -24,7 +26,7 @@ void TrkFile<Platform>::Save(const std::string &trkPath, TrkFile &trkFile) {
 template <typename Platform>
 bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream) {
     // Check we're in a valid TRK file
-    SAFE_READ(ifstream, header, HEADER_LENGTH);
+    onfs_check(safe_read(ifstream, header, HEADER_LENGTH));
 
     // Header should contain TRAC
     if (memcmp(header, "TRAC", sizeof(header)) != 0) {
@@ -33,19 +35,19 @@ bool TrkFile<Platform>::_SerializeIn(std::ifstream &ifstream) {
     }
 
     // Unknown header data
-    SAFE_READ(ifstream, unknownHeader, UNKNOWN_HEADER_LENGTH * sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, unknownHeader, UNKNOWN_HEADER_LENGTH * sizeof(uint32_t)));
 
     // Basic Track data
-    SAFE_READ(ifstream, &nSuperBlocks, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, nSuperBlocks));
+    onfs_check(safe_read(ifstream, nBlocks));
 
     // Offsets of Superblocks in TRK file
     superBlockOffsets.resize(nSuperBlocks);
-    SAFE_READ(ifstream, superBlockOffsets.data(), nSuperBlocks * sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, superBlockOffsets));
 
     // Reference coordinates for each block
     blockReferenceCoords.resize(nBlocks);
-    SAFE_READ(ifstream, blockReferenceCoords.data(), nBlocks * sizeof(VERT_HIGHP));
+    onfs_check(safe_read(ifstream, blockReferenceCoords));
 
     // Go read the superblocks in
     for (uint32_t superBlockIdx = 0; superBlockIdx < nSuperBlocks; ++superBlockIdx) {

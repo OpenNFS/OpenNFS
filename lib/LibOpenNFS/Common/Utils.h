@@ -11,6 +11,12 @@
         std::terminate();                                                                                            \
     }
 
+#define onfs_check(condition)                                                                              \
+    if (!(condition)) {                                                                                    \
+        std::cerr << "Check `" #condition "` failed in " << __FILE__ << " line " << __LINE__ << std::endl; \
+        return false;                                                                                      \
+    }
+
 namespace LibOpenNFS::Utils {
     glm::vec3 FixedToFloat(glm::vec3 fixedPoint);
     bool DecompressCRP(const std::string &compressedCrpPath, const std::string &decompressedCrpPath);

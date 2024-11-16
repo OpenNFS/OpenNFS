@@ -26,7 +26,7 @@ bool SpeedsFile::_SerializeIn(std::ifstream& ifstream) {
     ifstream.seekg(0, std::ios_base::beg);
 
     speeds.resize(m_uFileSize);
-    SAFE_READ(ifstream, speeds.data(), m_uFileSize);
+    onfs_check(safe_read(ifstream, speeds));
 
     return true;
 }

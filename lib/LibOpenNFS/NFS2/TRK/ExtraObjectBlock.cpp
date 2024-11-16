@@ -11,28 +11,28 @@ ExtraObjectBlock<Platform>::ExtraObjectBlock(std::ifstream &trk, NFSVersion vers
 template <typename Platform>
 bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
     // Read the header
-    SAFE_READ(ifstream, &recSize, sizeof(uint32_t));
-    SAFE_READ(ifstream, &id, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nRecords, sizeof(uint16_t));
+    onfs_check(safe_read(ifstream, recSize));
+    onfs_check(safe_read(ifstream, id));
+    onfs_check(safe_read(ifstream, nRecords));
 
     switch (id) {
     case 2: // First xblock always texture table (in COL)
         nTextures = nRecords;
         polyToQfsTexTable.resize(nTextures);
-        SAFE_READ(ifstream, polyToQfsTexTable.data(), nTextures * sizeof(TEXTURE_BLOCK));
+        onfs_check(safe_read(ifstream, polyToQfsTexTable));
         break;
     case 4:
         nNeighbours = nRecords;
         blockNeighbours.resize(nRecords);
-        SAFE_READ(ifstream, blockNeighbours.data(), nRecords * sizeof(uint16_t));
+        onfs_check(safe_read(ifstream, blockNeighbours));
         break;
     case 5:
         polyTypes.resize(nRecords);
-        SAFE_READ(ifstream, polyTypes.data(), nRecords * sizeof(POLY_TYPE));
+        onfs_check(safe_read(ifstream, polyTypes));
         break;
     case 6:
         medianData.resize(nRecords);
-        SAFE_READ(ifstream, medianData.data(), nRecords * sizeof(MEDIAN_BLOCK));
+        onfs_check(safe_read(ifstream, medianData));
         break;
     case 7:
     case 18:
@@ -50,8 +50,8 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
         break;
     case 9:
         nLanes = nRecords;
-        laneData.resize(nRecords);
-        SAFE_READ(ifstream, laneData.data(), nLanes * sizeof(LANE_BLOCK));
+        laneData.resize(nLanes);
+        onfs_check(safe_read(ifstream, laneData));
         break;
     // case 10: // PS1 Specific id, Misc purpose
     // {
@@ -76,16 +76,16 @@ bool ExtraObjectBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
         nVroad = nRecords;
         if (this->version == NFSVersion::NFS_2_PS1) {
             ps1VroadData.resize(nVroad);
-            SAFE_READ(ifstream, ps1VroadData.data(), nVroad * sizeof(VROAD_VEC));
+            onfs_check(safe_read(ifstream, ps1VroadData));
         } else {
             vroadData.resize(nVroad);
-            SAFE_READ(ifstream, vroadData.data(), nVroad * sizeof(VROAD));
+            onfs_check(safe_read(ifstream, vroadData));
         }
         break;
     case 15:
         nCollisionData = nRecords;
         collisionData.resize(nCollisionData);
-        SAFE_READ(ifstream, collisionData.data(), nCollisionData * sizeof(COLLISION_BLOCK));
+        onfs_check(safe_read(ifstream, collisionData));
         break;
     default:
         //LOG(WARNING) << "Unknown XBID: " << id << " nRecords: " << nRecords << " RecSize: " << recSize;

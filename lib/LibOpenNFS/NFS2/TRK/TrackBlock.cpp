@@ -12,21 +12,21 @@ template <typename Platform>
 bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
     std::streampos trackBlockOffset = ifstream.tellg();
     // Read Header
-    SAFE_READ(ifstream, &blockSize, sizeof(uint32_t));
-    SAFE_READ(ifstream, &blockSizeDup, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nExtraBlocks, sizeof(uint16_t));
-    SAFE_READ(ifstream, &unknown, sizeof(uint16_t));
-    SAFE_READ(ifstream, &serialNum, sizeof(uint32_t));
-    SAFE_READ(ifstream, clippingRect, 4 * sizeof(VERT_HIGHP));
-    SAFE_READ(ifstream, &extraBlockTblOffset, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nStickToNextVerts, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nLowResVert, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nMedResVert, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nHighResVert, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nLowResPoly, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nMedResPoly, sizeof(uint16_t));
-    SAFE_READ(ifstream, &nHighResPoly, sizeof(uint16_t));
-    SAFE_READ(ifstream, unknownPad, 3 * sizeof(uint16_t));
+    onfs_check(safe_read(ifstream, blockSize));
+    onfs_check(safe_read(ifstream, blockSizeDup));
+    onfs_check(safe_read(ifstream, nExtraBlocks));
+    onfs_check(safe_read(ifstream, unknown));
+    onfs_check(safe_read(ifstream, serialNum));
+    onfs_check(safe_read(ifstream, clippingRect, 4 * sizeof(VERT_HIGHP)));
+    onfs_check(safe_read(ifstream, extraBlockTblOffset));
+    onfs_check(safe_read(ifstream, nStickToNextVerts));
+    onfs_check(safe_read(ifstream, nLowResVert));
+    onfs_check(safe_read(ifstream, nMedResVert));
+    onfs_check(safe_read(ifstream, nHighResVert));
+    onfs_check(safe_read(ifstream, nLowResPoly, sizeof(uint16_t)));
+    onfs_check(safe_read(ifstream, nMedResPoly, sizeof(uint16_t)));
+    onfs_check(safe_read(ifstream, nHighResPoly, sizeof(uint16_t)));
+    onfs_check(safe_read(ifstream, unknownPad, 3 * sizeof(uint16_t)));
 
     // Sanity Checks
     if (blockSize != blockSizeDup) {
@@ -36,16 +36,16 @@ bool TrackBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
 
     // Read 3D Data
     vertexTable.resize(nStickToNextVerts + nHighResVert);
-    SAFE_READ(ifstream, vertexTable.data(), (nStickToNextVerts + nHighResVert) * sizeof(typename Platform::VERT));
+    onfs_check(safe_read(ifstream, vertexTable));
 
     polygonTable.resize(nLowResPoly + nMedResPoly + nHighResPoly);
-    SAFE_READ(ifstream, polygonTable.data(), (nLowResPoly + nMedResPoly + nHighResPoly) * sizeof(typename Platform::POLYGONDATA));
+    onfs_check(safe_read(ifstream, polygonTable));
 
     // Read Extrablock data
     ifstream.seekg((uint32_t) trackBlockOffset + 64u + extraBlockTblOffset, std::ios_base::beg);
     // Get extrablock offsets (relative to beginning of TrackBlock)
     extraBlockOffsets.resize(nExtraBlocks);
-    SAFE_READ(ifstream, extraBlockOffsets.data(), nExtraBlocks * sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, extraBlockOffsets));
 
     for (uint32_t extraBlockIdx = 0; extraBlockIdx < nExtraBlocks; ++extraBlockIdx) {
         ifstream.seekg((uint32_t) trackBlockOffset + extraBlockOffsets[extraBlockIdx], std::ios_base::beg);

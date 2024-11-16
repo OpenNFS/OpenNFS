@@ -199,8 +199,8 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     unsigned char ptrspace[44]; // some useless data from HS FRDs
 
     char header[28];           /* file header */
-    SAFE_READ(ar, header, 28); // header & numblocks
-    SAFE_READ(ar, &track->nBlocks, 4);
+    safe_read(ar, header, 28); // header & numblocks
+    safe_read(ar, &track->nBlocks, 4);
     track->nBlocks++;
     if ((track->nBlocks < 1) || (track->nBlocks > 500))
         return false; // 1st sanity check
@@ -209,7 +209,7 @@ bool NFS4::LoadFRD(const std::string &frd_path, const std::string &track_name, c
     track->poly = new POLYGONBLOCK[track->nBlocks]();
     track->xobj = new XOBJBLOCK[4 * track->nBlocks + 1]();
 
-    SAFE_READ(ar, &nPos, 4); // choose between NFS3 & NFSHS
+    safe_read(ar, &nPos, 4); // choose between NFS3 & NFSHS
     if (nPos > 5000)
         track->bHSMode = false;
     else if (((nPos + 7) / 8) == track->nBlocks)

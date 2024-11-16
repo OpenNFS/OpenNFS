@@ -29,8 +29,8 @@ namespace LibOpenNFS::NFS3 {
     }
 
     bool FrdFile::_SerializeIn(std::ifstream &ifstream) {
-        SAFE_READ(ifstream, header, HEADER_LENGTH);
-        SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, header, HEADER_LENGTH));
+        onfs_check(safe_read(ifstream, nBlocks));
         ++nBlocks;
 
         if (nBlocks < 1 || nBlocks > 500) {
@@ -43,7 +43,7 @@ namespace LibOpenNFS::NFS3 {
 
         // Detect NFS3 or NFSHS
         int32_t hsMagic = 0;
-        SAFE_READ(ifstream, &hsMagic, sizeof(int32_t));
+        onfs_check(safe_read(ifstream, hsMagic));
 
         if ((hsMagic < 0) || (hsMagic > 5000)) {
             version = NFSVersion::NFS_3;
@@ -70,7 +70,7 @@ namespace LibOpenNFS::NFS3 {
             extraObjectBlocks.push_back(ExtraObjectBlock(ifstream));
         }
         // Texture Table
-        SAFE_READ(ifstream, &nTextures, sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, nTextures));
         textureBlocks.reserve(nTextures);
         for (uint32_t tex_Idx = 0; tex_Idx < nTextures; tex_Idx++) {
             textureBlocks.push_back(TexBlock(ifstream));

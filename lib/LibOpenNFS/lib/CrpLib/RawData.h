@@ -3,6 +3,7 @@
 #include "Interfaces.h"
 #include "Entry.h"
 
+#include <cstdint>
 #include <string>
 #include <fstream>
 

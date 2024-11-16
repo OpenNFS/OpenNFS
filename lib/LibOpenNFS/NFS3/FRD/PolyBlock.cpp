@@ -8,14 +8,14 @@ PolyBlock::PolyBlock(std::ifstream &frd, uint32_t nTrackBlockPolys) : m_nTrackBl
 
 bool PolyBlock::_SerializeIn(std::ifstream &ifstream) {
     for (uint32_t polyBlockIdx = 0; polyBlockIdx < NUM_POLYGON_BLOCKS; polyBlockIdx++) {
-        SAFE_READ(ifstream, &sz[polyBlockIdx], sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, sz[polyBlockIdx]));
         if (sz[polyBlockIdx] != 0) {
-            SAFE_READ(ifstream, &szdup[polyBlockIdx], sizeof(uint32_t));
+            onfs_check(safe_read(ifstream, szdup[polyBlockIdx]));
             if (szdup[polyBlockIdx] != sz[polyBlockIdx]) {
                 return false;
             }
-            poly[polyBlockIdx] = std::vector<PolygonData>(sz[polyBlockIdx]);
-            SAFE_READ(ifstream, poly[polyBlockIdx].data(), sizeof(PolygonData) * sz[polyBlockIdx]);
+            poly[polyBlockIdx].resize(sz[polyBlockIdx]);
+            onfs_check(safe_read(ifstream, poly[polyBlockIdx]));
         }
     }
 
@@ -25,9 +25,9 @@ bool PolyBlock::_SerializeIn(std::ifstream &ifstream) {
     }
 
     for (auto &o : obj) {
-        SAFE_READ(ifstream, &o.n1, sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, o.n1));
         if (o.n1 > 0) {
-            SAFE_READ(ifstream, &o.n2, sizeof(uint32_t));
+            onfs_check(safe_read(ifstream, o.n2));
 
             o.types.resize(o.n2);
             o.numpoly.resize(o.n2);
@@ -37,13 +37,13 @@ bool PolyBlock::_SerializeIn(std::ifstream &ifstream) {
             o.nobj                = 0;
 
             for (uint32_t k = 0; k < o.n2; ++k) {
-                SAFE_READ(ifstream, &o.types[k], sizeof(uint32_t));
+                onfs_check(safe_read(ifstream, o.types[k]));
 
                 if (o.types[k] == 1) {
-                    SAFE_READ(ifstream, &o.numpoly[o.nobj], sizeof(uint32_t));
+                    onfs_check(safe_read(ifstream, o.numpoly[o.nobj]));
 
-                    o.poly[o.nobj] = std::vector<PolygonData>(o.numpoly[o.nobj]);
-                    SAFE_READ(ifstream, o.poly[o.nobj].data(), sizeof(PolygonData) * o.numpoly[o.nobj]);
+                    o.poly[o.nobj].resize(o.numpoly[o.nobj]);
+                    onfs_check(safe_read(ifstream, o.poly[o.nobj]));
 
                     polygonCount += o.numpoly[o.nobj];
                     ++o.nobj;

@@ -7,14 +7,14 @@ TrkBlock::TrkBlock(std::ifstream &frd) {
 }
 
 bool TrkBlock::_SerializeIn(std::ifstream &frd) {
-    SAFE_READ(frd, &ptCentre, sizeof(glm::vec3));
-    SAFE_READ(frd, &ptBounding, sizeof(glm::vec3) * 4);
-    SAFE_READ(frd, &nVertices, sizeof(uint32_t));
-    SAFE_READ(frd, &nHiResVert, sizeof(uint32_t));
-    SAFE_READ(frd, &nLoResVert, sizeof(uint32_t));
-    SAFE_READ(frd, &nMedResVert, sizeof(uint32_t));
-    SAFE_READ(frd, &nVerticesDup, sizeof(uint32_t));
-    SAFE_READ(frd, &nObjectVert, sizeof(uint32_t));
+    onfs_check(safe_read(frd, ptCentre, sizeof(glm::vec3)));
+    onfs_check(safe_read(frd, ptBounding, sizeof(glm::vec3) * 4));
+    onfs_check(safe_read(frd, nVertices));
+    onfs_check(safe_read(frd, nHiResVert, sizeof(uint32_t)));
+    onfs_check(safe_read(frd, nLoResVert, sizeof(uint32_t)));
+    onfs_check(safe_read(frd, nMedResVert, sizeof(uint32_t)));
+    onfs_check(safe_read(frd, nVerticesDup, sizeof(uint32_t)));
+    onfs_check(safe_read(frd, nObjectVert, sizeof(uint32_t)));
 
     if (nVertices == 0) {
         return false;
@@ -22,52 +22,52 @@ bool TrkBlock::_SerializeIn(std::ifstream &frd) {
 
     // Read Vertices
     vert.resize(nVertices);
-    SAFE_READ(frd, vert.data(), sizeof(glm::vec3) * nVertices);
+    onfs_check(safe_read(frd, vert));
 
     // Read Vertices
     vertShading.resize(nVertices);
-    SAFE_READ(frd, vertShading.data(), sizeof(uint32_t) * nVertices);
+    onfs_check(safe_read(frd, vertShading));
 
     // Read neighbouring block data
-    SAFE_READ(frd, nbdData, 4 * 0x12c);
+    onfs_check(safe_read(frd, nbdData, 4 * 0x12c));
 
     // Read trackblock metadata
-    SAFE_READ(frd, &nStartPos, sizeof(uint32_t));
-    SAFE_READ(frd, &nPositions, sizeof(uint32_t));
-    SAFE_READ(frd, &nPolygons, sizeof(uint32_t));
-    SAFE_READ(frd, &nVRoad, sizeof(uint32_t));
-    SAFE_READ(frd, &nXobj, sizeof(uint32_t));
-    SAFE_READ(frd, &nPolyobj, sizeof(uint32_t));
-    SAFE_READ(frd, &nSoundsrc, sizeof(uint32_t));
-    SAFE_READ(frd, &nLightsrc, sizeof(uint32_t));
+    onfs_check(safe_read(frd, nStartPos));
+    onfs_check(safe_read(frd, nPositions));
+    onfs_check(safe_read(frd, nPolygons));
+    onfs_check(safe_read(frd, nVRoad));
+    onfs_check(safe_read(frd, nXobj, sizeof(uint32_t)));
+    onfs_check(safe_read(frd, nPolyobj, sizeof(uint32_t)));
+    onfs_check(safe_read(frd, nSoundsrc, sizeof(uint32_t)));
+    onfs_check(safe_read(frd, nLightsrc, sizeof(uint32_t)));
 
     // Read track position data
     posData.resize(nPositions);
-    SAFE_READ(frd, posData.data(), sizeof(PositionData) * nPositions);
+    onfs_check(safe_read(frd, posData));
 
     // Read virtual road polygons
     polyData.resize(nPolygons);
-    SAFE_READ(frd, polyData.data(), sizeof(PolyVRoadData) * nPolygons);
+    onfs_check(safe_read(frd, polyData));
 
     // Read virtual road spline data
     vroadData.resize(nVRoad);
-    SAFE_READ(frd, vroadData.data(), sizeof(VRoadData) * nVRoad);
+    onfs_check(safe_read(frd, vroadData));
 
     // Read Extra object references
     xobj.resize(nXobj);
-    SAFE_READ(frd, xobj.data(), sizeof(RefExtraObject) * nXobj);
+    onfs_check(safe_read(frd, xobj));
 
     // ?? Read unknown
     polyObj.resize(nPolyobj);
-    SAFE_READ(frd, polyObj.data(), sizeof(PolyObject) * nPolyobj);
+    onfs_check(safe_read(frd, polyObj));
     // nPolyobj = 0;
 
     // Get the sound and light sources
     soundsrc.resize(nSoundsrc);
-    SAFE_READ(frd, soundsrc.data(), sizeof(SoundSource) * nSoundsrc);
+    onfs_check(safe_read(frd, soundsrc));
 
     lightsrc.resize(nLightsrc);
-    SAFE_READ(frd, lightsrc.data(), sizeof(LightSource) * nLightsrc);
+    onfs_check(safe_read(frd, lightsrc));
 
     return true;
 }

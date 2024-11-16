@@ -1,6 +1,8 @@
 #include "VivFile.h"
 
+#include <cstring>
 #include <sstream>
+#include <filesystem>
 
 namespace LibOpenNFS::Shared {
     bool VivFile::Load(const std::string &vivPath, VivFile &vivFile) {
@@ -45,22 +47,22 @@ namespace LibOpenNFS::Shared {
     }
 
     bool VivFile::_SerializeIn(std::ifstream &ifstream) {
-        SAFE_READ(ifstream, vivHeader, sizeof(vivHeader));
+        onfs_check(safe_read(ifstream, vivHeader));
 
         if (memcmp(vivHeader, "BIGF", sizeof(vivHeader))) {
             // LOG(WARNING) << "Not a valid VIV file (BIGF header missing)";
             return false;
         }
 
-        SAFE_READ(ifstream, &vivSize, sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, vivSize));
         vivSize = _SwapEndian(vivSize);
 
-        SAFE_READ(ifstream, &nFiles, sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, nFiles));
         nFiles = _SwapEndian(nFiles);
         files.resize(nFiles);
 
         // LOG(INFO) << "VIV contains " << nFiles << " files";
-        SAFE_READ(ifstream, &startPos, sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, startPos));
         startPos = _SwapEndian(startPos);
 
         std::streampos currentPos = ifstream.tellg();
@@ -68,10 +70,10 @@ namespace LibOpenNFS::Shared {
         for (uint8_t fileIdx = 0; fileIdx < nFiles; ++fileIdx) {
             ifstream.seekg(currentPos, std::ios_base::beg);
             uint32_t filePos = 0, fileSize = 0;
-            SAFE_READ(ifstream, &filePos, sizeof(uint32_t));
+            onfs_check(safe_read(ifstream, filePos));
             filePos = _SwapEndian(filePos);
 
-            SAFE_READ(ifstream, &fileSize, sizeof(uint32_t));
+            onfs_check(safe_read(ifstream, fileSize));
             fileSize = _SwapEndian(fileSize);
 
             VivEntry &curFile{files.at(fileIdx)};

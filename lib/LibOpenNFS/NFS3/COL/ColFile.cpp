@@ -1,5 +1,7 @@
 #include "ColFile.h"
 
+#include <cstring>
+
 using namespace LibOpenNFS::NFS3;
 
 bool ColFile::Load(const std::string &colPath, ColFile &colFile) {
@@ -19,37 +21,37 @@ void ColFile::Save(const std::string &colPath, ColFile &colFile) {
 }
 
 bool ColFile::_SerializeIn(std::ifstream &ifstream) {
-    SAFE_READ(ifstream, &header, sizeof(char) * 4);
-    SAFE_READ(ifstream, &version, sizeof(uint32_t));
-    SAFE_READ(ifstream, &fileLength, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, header, sizeof(char) * 4));
+    onfs_check(safe_read(ifstream, version));
+    onfs_check(safe_read(ifstream, fileLength));
+    onfs_check(safe_read(ifstream, nBlocks));
 
     if ((memcmp(header, "COLL", sizeof(char)) != 0) || (version != 11) || ((nBlocks != 2) && (nBlocks != 4) && (nBlocks != 5))) {
         //LOG(WARNING) << "Invalid COL file";
         return false;
     }
 
-    SAFE_READ(ifstream, xbTable, sizeof(uint32_t) * nBlocks);
+    onfs_check(safe_read(ifstream, xbTable, sizeof(uint32_t) * nBlocks));
 
     // texture XB
-    SAFE_READ(ifstream, &textureHead, sizeof(ExtraBlockHeader));
+    onfs_check(safe_read(ifstream, textureHead));
     if (textureHead.xbid != XBID_TEXTUREINFO) {
         return false;
     }
     texture.resize(textureHead.nrec);
-    SAFE_READ(ifstream, texture.data(), sizeof(ColTextureInfo) * textureHead.nrec);
+    onfs_check(safe_read(ifstream, texture));
 
     // struct3D XB
     if (nBlocks >= 4) {
-        SAFE_READ(ifstream, &struct3DHead, sizeof(ExtraBlockHeader));
+        onfs_check(safe_read(ifstream, struct3DHead));
         if (struct3DHead.xbid != XBID_STRUCT3D) {
             return false;
         }
         struct3D.resize(struct3DHead.nrec);
         for (uint32_t colRec_Idx = 0; colRec_Idx < struct3DHead.nrec; colRec_Idx++) {
-            SAFE_READ(ifstream, &struct3D[colRec_Idx].size, sizeof(uint32_t));
-            SAFE_READ(ifstream, &struct3D[colRec_Idx].nVert, sizeof(uint16_t));
-            SAFE_READ(ifstream, &struct3D[colRec_Idx].nPoly, sizeof(uint16_t));
+            onfs_check(safe_read(ifstream, struct3D[colRec_Idx].size));
+            onfs_check(safe_read(ifstream, struct3D[colRec_Idx].nVert));
+            onfs_check(safe_read(ifstream, struct3D[colRec_Idx].nPoly));
 
             int32_t delta = (8 + sizeof(ColVertex) * struct3D[colRec_Idx].nVert + sizeof(ColPolygon) * struct3D[colRec_Idx].nPoly) % 4;
             delta         = (4 - delta) % 4;
@@ -61,45 +63,45 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream) {
 
             // Grab the vertices
             struct3D[colRec_Idx].vertex.resize(struct3D[colRec_Idx].nVert);
-            SAFE_READ(ifstream, struct3D[colRec_Idx].vertex.data(), sizeof(ColVertex) * struct3D[colRec_Idx].nVert);
+            onfs_check(safe_read(ifstream, struct3D[colRec_Idx].vertex));
 
             // And Polygons
             struct3D[colRec_Idx].polygon.resize(struct3D[colRec_Idx].nPoly);
-            SAFE_READ(ifstream, struct3D[colRec_Idx].polygon.data(), sizeof(ColPolygon) * struct3D[colRec_Idx].nPoly);
+            onfs_check(safe_read(ifstream, struct3D[colRec_Idx].polygon));
 
             // Consume the delta, to eat alignment bytes
             int dummy;
             if (delta > 0) {
-                SAFE_READ(ifstream, &dummy, delta);
+                onfs_check(safe_read(ifstream, dummy, delta));
             }
         }
 
         // TODO: Share this code between both XOBJ parse runs
         // object XB
-        SAFE_READ(ifstream, &objectHead, sizeof(ExtraBlockHeader));
+        onfs_check(safe_read(ifstream, objectHead));
         if ((objectHead.xbid != XBID_OBJECT) && (objectHead.xbid != XBID_OBJECT2)) {
             return false;
         }
         object.resize(objectHead.nrec);
         for (uint32_t xobjIdx = 0; xobjIdx < objectHead.nrec; xobjIdx++) {
-            SAFE_READ(ifstream, &object[xobjIdx].size, sizeof(uint16_t));
-            SAFE_READ(ifstream, &object[xobjIdx].type, sizeof(uint8_t));
-            SAFE_READ(ifstream, &object[xobjIdx].struct3D, sizeof(uint8_t));
+            onfs_check(safe_read(ifstream, object[xobjIdx].size));
+            onfs_check(safe_read(ifstream, object[xobjIdx].type, sizeof(uint8_t)));
+            onfs_check(safe_read(ifstream, object[xobjIdx].struct3D, sizeof(uint8_t)));
 
             if (object[xobjIdx].type == 1) {
                 if (object[xobjIdx].size != 16) {
                     return false;
                 }
-                SAFE_READ(ifstream, &object[xobjIdx].ptRef, sizeof(glm::ivec3));
+                onfs_check(safe_read(ifstream, object[xobjIdx].ptRef, sizeof(glm::ivec3)));
             } else if (object[xobjIdx].type == 3) {
-                SAFE_READ(ifstream, &object[xobjIdx].animLength, sizeof(uint16_t));
-                SAFE_READ(ifstream, &object[xobjIdx].unknown, sizeof(uint16_t));
+                onfs_check(safe_read(ifstream, object[xobjIdx].animLength, sizeof(uint16_t)));
+                onfs_check(safe_read(ifstream, object[xobjIdx].unknown, sizeof(uint16_t)));
                 if (object[xobjIdx].size != 8 + 20 * object[xobjIdx].animLength) {
                     return false;
                 }
 
                 object[xobjIdx].animData.resize(object[xobjIdx].animLength);
-                SAFE_READ(ifstream, object[xobjIdx].animData.data(), sizeof(AnimData) * object[xobjIdx].animLength);
+                onfs_check(safe_read(ifstream, object[xobjIdx].animData));
                 // Make a ref point from first anim position
                 object[xobjIdx].ptRef = Utils::FixedToFloat(object[xobjIdx].animData[0].pt);
             } else {
@@ -111,30 +113,30 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream) {
 
     // object2 XB
     if (nBlocks == 5) {
-        SAFE_READ(ifstream, &object2Head, 8);
+        onfs_check(safe_read(ifstream, object2Head, 8));
         if ((object2Head.xbid != XBID_OBJECT) && (object2Head.xbid != XBID_OBJECT2)) {
             return false;
         }
         object2.resize(object2Head.nrec);
         for (uint32_t xobjIdx = 0; xobjIdx < object2Head.nrec; xobjIdx++) {
-            SAFE_READ(ifstream, &object2[xobjIdx].size, sizeof(uint16_t));
-            SAFE_READ(ifstream, &object2[xobjIdx].type, sizeof(uint8_t));
-            SAFE_READ(ifstream, &object2[xobjIdx].struct3D, sizeof(uint8_t));
+            onfs_check(safe_read(ifstream, object2[xobjIdx].size, sizeof(uint16_t)));
+            onfs_check(safe_read(ifstream, object2[xobjIdx].type, sizeof(uint8_t)));
+            onfs_check(safe_read(ifstream, object2[xobjIdx].struct3D, sizeof(uint8_t)));
 
             if (object2[xobjIdx].type == 1) {
                 if (object2[xobjIdx].size != 16) {
                     return false;
                 }
-                SAFE_READ(ifstream, &object2[xobjIdx].ptRef, sizeof(glm::ivec3));
+                onfs_check(safe_read(ifstream, object2[xobjIdx].ptRef, sizeof(glm::ivec3)));
             } else if (object2[xobjIdx].type == 3) {
-                SAFE_READ(ifstream, &object2[xobjIdx].animLength, sizeof(uint16_t));
-                SAFE_READ(ifstream, &object2[xobjIdx].unknown, sizeof(uint16_t));
+                onfs_check(safe_read(ifstream, object2[xobjIdx].animLength, sizeof(uint16_t)));
+                onfs_check(safe_read(ifstream, object2[xobjIdx].unknown, sizeof(uint16_t)));
                 if (object2[xobjIdx].size != 8 + 20 * object2[xobjIdx].animLength) {
                     return false;
                 }
 
                 object2[xobjIdx].animData.resize(object2[xobjIdx].animLength);
-                SAFE_READ(ifstream, object2[xobjIdx].animData.data(), sizeof(AnimData) * object2[xobjIdx].animLength);
+                onfs_check(safe_read(ifstream, object2[xobjIdx].animData));
                 // Make a ref point from first anim position
                 object2[xobjIdx].ptRef = Utils::FixedToFloat(object2[xobjIdx].animData[0].pt);
             } else {
@@ -145,12 +147,12 @@ bool ColFile::_SerializeIn(std::ifstream &ifstream) {
     }
 
     // vroad XB
-    SAFE_READ(ifstream, &vroadHead, 8);
+    onfs_check(safe_read(ifstream, vroadHead, 8));
     if (vroadHead.xbid != XBID_VROAD || (vroadHead.size != 8 + sizeof(ColVRoad) * vroadHead.nrec)) {
         return false;
     }
     vroad.resize(vroadHead.nrec);
-    SAFE_READ(ifstream, vroad.data(), sizeof(ColVRoad) * vroadHead.nrec);
+    onfs_check(safe_read(ifstream, vroad));
 
     return true;
 }

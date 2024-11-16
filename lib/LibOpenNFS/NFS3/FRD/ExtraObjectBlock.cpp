@@ -7,27 +7,27 @@ ExtraObjectBlock::ExtraObjectBlock(std::ifstream &frd) {
 }
 
 bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream) {
-    SAFE_READ(ifstream, &(nobj), sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, nobj));
     obj.reserve(nobj);
 
     for (uint32_t xobjIdx = 0; xobjIdx < nobj; ++xobjIdx) {
         ExtraObjectData x;
 
-        SAFE_READ(ifstream, &x.crosstype, sizeof(uint32_t));
-        SAFE_READ(ifstream, &x.crossno, sizeof(uint32_t));
-        SAFE_READ(ifstream, &x.unknown, sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, x.crosstype));
+        onfs_check(safe_read(ifstream, x.crossno));
+        onfs_check(safe_read(ifstream, x.unknown));
 
         if (x.crosstype == 4) {
             // Basic objects
-            SAFE_READ(ifstream, &x.ptRef, sizeof(glm::vec3));
-            SAFE_READ(ifstream, &x.AnimMemory, sizeof(uint32_t));
+            onfs_check(safe_read(ifstream, x.ptRef, sizeof(glm::vec3)));
+            onfs_check(safe_read(ifstream, x.AnimMemory));
         } else if (x.crosstype == 3) {
             // Animated objects
-            SAFE_READ(ifstream, &x.unknown3, sizeof(uint16_t) * 9);
-            SAFE_READ(ifstream, &x.type3, sizeof(uint8_t));
-            SAFE_READ(ifstream, &x.objno, sizeof(uint8_t));
-            SAFE_READ(ifstream, &x.nAnimLength, sizeof(uint16_t));
-            SAFE_READ(ifstream, &x.AnimDelay, sizeof(uint16_t));
+            onfs_check(safe_read(ifstream, x.unknown3, sizeof(uint16_t) * 9));
+            onfs_check(safe_read(ifstream, x.type3));
+            onfs_check(safe_read(ifstream, x.objno));
+            onfs_check(safe_read(ifstream, x.nAnimLength));
+            onfs_check(safe_read(ifstream, x.AnimDelay));
 
             // Sanity Check
             if (x.type3 != 3) {
@@ -35,29 +35,29 @@ bool ExtraObjectBlock::_SerializeIn(std::ifstream &ifstream) {
             }
 
             x.animData.resize(x.nAnimLength);
-            SAFE_READ(ifstream, x.animData.data(), sizeof(AnimData) * x.nAnimLength);
+            onfs_check(safe_read(ifstream, x.animData));
             // make a ref point from first anim position
             x.ptRef = Utils::FixedToFloat(x.animData[0].pt);
         } else
             return false; // unknown object type
 
         // Get number of vertices
-        SAFE_READ(ifstream, &(x.nVertices), sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, x.nVertices));
 
         // Get vertices
         x.vert.resize(x.nVertices);
-        SAFE_READ(ifstream, x.vert.data(), sizeof(glm::vec3) * x.nVertices);
+        onfs_check(safe_read(ifstream, x.vert));
 
         // Per vertex shading data (RGBA)
         x.vertShading.resize(x.nVertices);
-        SAFE_READ(ifstream, x.vertShading.data(), sizeof(uint32_t) * x.nVertices);
+        onfs_check(safe_read(ifstream, x.vertShading));
 
         // Get number of polygons
-        SAFE_READ(ifstream, &(x.nPolygons), sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, x.nPolygons));
 
         // Grab the polygons
         x.polyData.resize(x.nPolygons);
-        SAFE_READ(ifstream, x.polyData.data(), sizeof(PolygonData) * x.nPolygons);
+        onfs_check(safe_read(ifstream, x.polyData));
 
         obj.push_back(x);
     }

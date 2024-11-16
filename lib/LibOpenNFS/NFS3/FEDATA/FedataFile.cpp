@@ -22,18 +22,18 @@ bool FedataFile::_SerializeIn(std::ifstream &ifstream) {
     // Go get the offset of car name
     uint32_t menuNameOffset = 0;
     ifstream.seekg(MENU_NAME_FILEPOS_OFFSET, std::ios::beg);
-    SAFE_READ(ifstream, &menuNameOffset, sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, menuNameOffset));
     ifstream.seekg(menuNameOffset, std::ios::beg);
 
     char carMenuName[64];
-    SAFE_READ(ifstream, &carMenuName, sizeof(char) * 64);
+    onfs_check(safe_read(ifstream, carMenuName, sizeof(char) * 64));
     menuName = carMenuName;
 
     // Jump to location of FILEPOS table for car colour names
     ifstream.seekg(COLOUR_TABLE_OFFSET, std::ios::beg);
     // Read that table in
     std::vector<uint32_t> colourNameOffsets(m_nPriColours);
-    SAFE_READ(ifstream, colourNameOffsets.data(), m_nPriColours * sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, colourNameOffsets));
 
     for (uint8_t colourIdx = 0; colourIdx < m_nPriColours; ++colourIdx) {
         ifstream.seekg(colourNameOffsets[colourIdx], std::ios::beg);

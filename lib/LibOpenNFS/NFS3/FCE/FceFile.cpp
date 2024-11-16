@@ -18,32 +18,32 @@ namespace LibOpenNFS::NFS3 {
     }
 
     bool FceFile::_SerializeIn(std::ifstream &ifstream) {
-        SAFE_READ(ifstream, &unknown, sizeof(uint32_t));
-        SAFE_READ(ifstream, &nTriangles, sizeof(uint32_t));
-        SAFE_READ(ifstream, &nVertices, sizeof(uint32_t));
-        SAFE_READ(ifstream, &nArts, sizeof(uint32_t));
-        SAFE_READ(ifstream, &vertTblOffset, sizeof(uint32_t));
-        SAFE_READ(ifstream, &normTblOffset, sizeof(uint32_t));
-        SAFE_READ(ifstream, &triTblOffset, sizeof(uint32_t));
-        SAFE_READ(ifstream, &reserve1Offset, sizeof(uint32_t));
-        SAFE_READ(ifstream, &reserve2Offset, sizeof(uint32_t));
-        SAFE_READ(ifstream, &reserve3Offset, sizeof(uint32_t));
-        SAFE_READ(ifstream, &modelHalfSize, sizeof(glm::vec3));
-        SAFE_READ(ifstream, &nDummies, sizeof(uint32_t));
-        SAFE_READ(ifstream, &dummyCoords, sizeof(glm::vec3) * 16);
-        SAFE_READ(ifstream, &nParts, sizeof(uint32_t));
-        SAFE_READ(ifstream, &partCoords, sizeof(glm::vec3) * 64);
-        SAFE_READ(ifstream, &partFirstVertIndices, sizeof(uint32_t) * 64);
-        SAFE_READ(ifstream, &partNumVertices, sizeof(uint32_t) * 64);
-        SAFE_READ(ifstream, &partFirstTriIndices, sizeof(uint32_t) * 64);
-        SAFE_READ(ifstream, &partNumTriangles, sizeof(uint32_t) * 64);
-        SAFE_READ(ifstream, &nPriColours, sizeof(uint32_t));
-        SAFE_READ(ifstream, &primaryColours, sizeof(Colour) * 16);
-        SAFE_READ(ifstream, &nSecColours, sizeof(uint32_t));
-        SAFE_READ(ifstream, &secondaryColours, sizeof(Colour) * 16);
-        SAFE_READ(ifstream, &dummyNames, sizeof(char) * 16 * 64);
-        SAFE_READ(ifstream, &partNames, sizeof(char) * 64 * 64);
-        SAFE_READ(ifstream, &unknownTable, sizeof(uint32_t) * 64);
+        onfs_check(safe_read(ifstream, unknown));
+        onfs_check(safe_read(ifstream, nTriangles));
+        onfs_check(safe_read(ifstream, nVertices));
+        onfs_check(safe_read(ifstream, nArts));
+        onfs_check(safe_read(ifstream, vertTblOffset));
+        onfs_check(safe_read(ifstream, normTblOffset));
+        onfs_check(safe_read(ifstream, triTblOffset));
+        onfs_check(safe_read(ifstream, reserve1Offset));
+        onfs_check(safe_read(ifstream, reserve2Offset));
+        onfs_check(safe_read(ifstream, reserve3Offset));
+        onfs_check(safe_read(ifstream, modelHalfSize, sizeof(glm::vec3)));
+        onfs_check(safe_read(ifstream, nDummies));
+        onfs_check(safe_read(ifstream, dummyCoords, sizeof(glm::vec3) * 16));
+        onfs_check(safe_read(ifstream, nParts));
+        onfs_check(safe_read(ifstream, partCoords, sizeof(glm::vec3) * 64));
+        onfs_check(safe_read(ifstream, partFirstVertIndices, sizeof(uint32_t) * 64));
+        onfs_check(safe_read(ifstream, partNumVertices, sizeof(uint32_t) * 64));
+        onfs_check(safe_read(ifstream, partFirstTriIndices, sizeof(uint32_t) * 64));
+        onfs_check(safe_read(ifstream, partNumTriangles, sizeof(uint32_t) * 64));
+        onfs_check(safe_read(ifstream, nPriColours, sizeof(uint32_t)));
+        onfs_check(safe_read(ifstream, primaryColours, sizeof(Colour) * 16));
+        onfs_check(safe_read(ifstream, nSecColours, sizeof(uint32_t)));
+        onfs_check(safe_read(ifstream, secondaryColours, sizeof(Colour) * 16));
+        onfs_check(safe_read(ifstream, dummyNames, sizeof(char) * 16 * 64));
+        onfs_check(safe_read(ifstream, partNames, sizeof(char) * 64 * 64));
+        onfs_check(safe_read(ifstream, unknownTable, sizeof(uint32_t) * 64));
 
         carParts.resize(nParts);
 
@@ -53,13 +53,13 @@ namespace LibOpenNFS::NFS3 {
             carParts[partIdx].triangles.resize(partNumTriangles[partIdx]);
 
             ifstream.seekg(0x1F04 + vertTblOffset + (partFirstVertIndices[partIdx] * sizeof(glm::vec3)), std::ios_base::beg);
-            SAFE_READ(ifstream, carParts[partIdx].vertices.data(), partNumVertices[partIdx] * sizeof(glm::vec3));
+            onfs_check(safe_read(ifstream, carParts[partIdx].vertices));
 
             ifstream.seekg(0x1F04 + normTblOffset + (partFirstVertIndices[partIdx] * sizeof(glm::vec3)), std::ios_base::beg);
-            ifstream.read((char *) carParts[partIdx].normals.data(), partNumVertices[partIdx] * sizeof(glm::vec3));
+            onfs_check(safe_read(ifstream, carParts[partIdx].normals));
 
             ifstream.seekg(0x1F04 + triTblOffset + (partFirstTriIndices[partIdx] * sizeof(Triangle)), std::ios_base::beg);
-            ifstream.read((char *) carParts[partIdx].triangles.data(), partNumTriangles[partIdx] * sizeof(Triangle));
+            onfs_check(safe_read(ifstream, carParts[partIdx].triangles));
         }
 
         return true;

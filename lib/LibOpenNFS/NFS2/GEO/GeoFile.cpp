@@ -32,7 +32,7 @@ namespace LibOpenNFS {
 
             //std::vector<CarModel> car_meshes;
 
-            /*SAFE_READ(ifstream, &header, sizeof(PC::HEADER));
+            /*safe_read(ifstream, &header, sizeof(PC::HEADER));
 
             uint32_t part_Idx = -1;
 

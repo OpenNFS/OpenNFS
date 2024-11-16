@@ -17,14 +17,14 @@ void CanFile::Save(const std::string &canPath, CanFile &canFile) {
 }
 
 bool CanFile::_SerializeIn(std::ifstream &ifstream) {
-    SAFE_READ(ifstream, &size, sizeof(uint16_t));
-    SAFE_READ(ifstream, &type, sizeof(uint8_t));
-    SAFE_READ(ifstream, &struct3D, sizeof(uint8_t));
-    SAFE_READ(ifstream, &animLength, sizeof(uint16_t));
-    SAFE_READ(ifstream, &unknown, sizeof(uint16_t));
+    onfs_check(safe_read(ifstream, size));
+    onfs_check(safe_read(ifstream, type));
+    onfs_check(safe_read(ifstream, struct3D));
+    onfs_check(safe_read(ifstream, animLength));
+    onfs_check(safe_read(ifstream, unknown));
 
     animPoints.resize(animLength);
-    SAFE_READ(ifstream, animPoints.data(), sizeof(CameraAnimPoint) * animLength);
+    onfs_check(safe_read(ifstream, animPoints));
 
     return true;
 }

@@ -12,14 +12,14 @@ template <typename Platform>
 bool SuperBlock<Platform>::_SerializeIn(std::ifstream &ifstream) {
     // TODO: Gross, needs to be relative//passed in
     std::streampos superblockOffset = ifstream.tellg();
-    SAFE_READ(ifstream, &superBlockSize, sizeof(uint32_t));
-    SAFE_READ(ifstream, &nBlocks, sizeof(uint32_t));
-    SAFE_READ(ifstream, &padding, sizeof(uint32_t));
+    onfs_check(safe_read(ifstream, superBlockSize));
+    onfs_check(safe_read(ifstream, nBlocks));
+    onfs_check(safe_read(ifstream, padding));
 
     if (nBlocks != 0) {
         // Get the offsets of the child blocks within superblock
         blockOffsets.resize(nBlocks);
-        SAFE_READ(ifstream, blockOffsets.data(), nBlocks * sizeof(uint32_t));
+        onfs_check(safe_read(ifstream, blockOffsets));
 
         for (uint32_t blockIdx = 0; blockIdx < nBlocks; ++blockIdx) {
             // LOG(DEBUG) << "  Block " << block_Idx + 1 << " of " << superblock->nBlocks << " [" << trackblock->header->serialNum << "]";
