@@ -12,18 +12,15 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTexture &track
 
     switch (tag) {
     case NFSVersion::NFS_3: {
-        width  = (GLsizei) trackTexture.width;
-        height = (GLsizei) trackTexture.height;
-
         if (!ImageLoader::LoadBmpWithAlpha(trackTexture.fileReference.c_str(), trackTexture.alphaFileReference.c_str(), &data, &width, &height)) {
             LOG(WARNING) << "Texture " << trackTexture.fileReference << " or " << trackTexture.alphaFileReference << " did not load succesfully!";
             // If the texture is missing, load a "MISSING" texture of identical size.
             CHECK_F(ImageLoader::LoadBmpWithAlpha("../resources/misc/missing.bmp", "../resources/misc/missing-a.bmp", &data, &width, &height),
                     "Even the 'missing' texture is missing!");
-            // Override texture with attributes of 'missing' resource
-            trackTexture.width  = width;
-            trackTexture.height = height;
         }
+        // Override texture with parsed attributes, as original width and height have been transformed by maxU/V rescale logic
+        trackTexture.width  = width;
+        trackTexture.height = height;
 
         return GLTexture(trackTexture, data);
     }
@@ -100,12 +97,7 @@ GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool
                         GL_UNSIGNED_BYTE,
                         (const GLvoid *) glTexture.data);
 
-        glTexture.texture_asset.minU  = 0.00;
-        glTexture.texture_asset.minV  = 0.00;
         glTexture.texture_asset.layer = hsStockTextureIndexRemap(id);
-        // Attempt to remove potential for sampling texture from transparent area
-        glTexture.texture_asset.maxU = (glTexture.texture_asset.width / static_cast<float>(max_width)) - 0.005f;
-        glTexture.texture_asset.maxV = (glTexture.texture_asset.height / static_cast<float>(max_height)) - 0.005f;
         glTexture.texture_asset.id   = texture_name;
     }
 

@@ -46,7 +46,11 @@ namespace OpenNFS {
 
         /* And the Cars */
         for (auto &racer : racers) {
-            m_depthShader.bindTextureArray(racer->vehicle->renderInfo.textureArrayID);
+            if (racer->vehicle->renderInfo.isMultitexturedModel) {
+                m_depthShader.bindTextureArray(racer->vehicle->renderInfo.textureArrayID);
+            } else {
+                // m_depthShader.loadCarTexture(racer->vehicle->renderInfo.textureID);
+            }
             for (auto &misc_model : racer->vehicle->miscModels) {
                 m_depthShader.loadTransformMatrix(misc_model.geometry->ModelMatrix);
                 misc_model.render();

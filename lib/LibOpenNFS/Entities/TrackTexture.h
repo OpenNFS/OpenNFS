@@ -19,7 +19,7 @@ namespace LibOpenNFS {
         TrackTexture() = default;
         explicit TrackTexture(uint32_t id, uint32_t width, uint32_t height, std::vector<glm::vec2> const& uvs, std::string const& fileReference,
                               std::string const& alphaFileReference);
-        std::vector<glm::vec2> GenerateUVs(bool inverseU, bool inverseV, bool reverseOrder);
+        std::vector<glm::vec2> GenerateUVs(bool inverseU, bool inverseV);
         std::vector<glm::vec2> GenerateUVs(EntityType meshType, uint32_t textureFlags);
 
         std::string fileReference;

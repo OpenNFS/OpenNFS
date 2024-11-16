@@ -14,7 +14,6 @@
 namespace LibOpenNFS {
     class Track {
 public:
-        Track(const Track& track);
     Track(NFSVersion _nfsVersion, std::string const& _name, std::string const& _basePath);
     Track() = default;
 

@@ -83,7 +83,7 @@ namespace OpenNFS {
         case LibOpenNFS::EntityType::ROAD:
         case LibOpenNFS::EntityType::GLOBAL: {
             DimensionData meshDimensions = Utils::GenDimensions(model->geometry->m_vertices);
-            m_boundingBox                = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, model->geometry->initialPosition);
+            m_boundingBox = AABB(meshDimensions.minVertex + model->geometry->initialPosition, meshDimensions.maxVertex + model->geometry->initialPosition, glm::vec3());
             return;
         }
         case LibOpenNFS::EntityType::LIGHT: {

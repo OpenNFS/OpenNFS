@@ -18,8 +18,8 @@ namespace OpenNFS {
     void Track::_LoadTextures() {
         CHECK_F(LibOpenNFS::TextureUtils::ExtractTrackTextures(basePath, name, nfsVersion, assetPath), "Could not extract %s texture pack", name.c_str());
         // Load textures into GL objects
-        for (auto &trackTexture : trackTextures) {
-            textureMap[trackTexture.first] = GLTexture::LoadTexture(nfsVersion, trackTexture.second);
+        for (auto &[id, trackTexture] : trackTextures) {
+            textureMap[id] = GLTexture::LoadTexture(nfsVersion, trackTexture);
         }
         textureArrayID = GLTexture::MakeTextureArray(textureMap, false);
     }
@@ -55,7 +55,7 @@ namespace OpenNFS {
     void Track::_GenerateAabbTree() {
         // Build an optimised BvH of AABB's so that culling for render becomes cheap
         for (auto &entity : entities) {
-            // cullTree.insertObject(entity);
+            cullTree.insertObject(entity);
         }
     }
 } // namespace OpenNFS

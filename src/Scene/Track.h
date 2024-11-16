@@ -24,6 +24,7 @@ namespace OpenNFS {
         HermiteCurve centerSpline;
         GLuint textureArrayID = 0;
         std::vector<std::shared_ptr<Entity>> entities;
+        AABBTree cullTree;
 
     private:
         void _LoadTextures();
@@ -33,6 +34,5 @@ namespace OpenNFS {
 
         std::string assetPath;
         std::map<uint32_t, GLTexture> textureMap;
-        AABBTree cullTree;
     };
 } // namespace OpenNFS

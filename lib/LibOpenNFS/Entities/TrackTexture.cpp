@@ -1,7 +1,5 @@
 #include "TrackTexture.h"
 
-#include "TrackTexture.h"
-
 namespace LibOpenNFS {
     TrackTexture::TrackTexture(uint32_t id, uint32_t width, uint32_t height, std::vector<glm::vec2> const &uvs, std::string const &fileReference,
                                std::string const &alphaFileReference) {
@@ -18,16 +16,12 @@ namespace LibOpenNFS {
         this->maxV               = 0.f;
     }
 
-    std::vector<glm::vec2> TrackTexture::GenerateUVs(bool inverseU, bool inverseV, bool reverseOrder) {
+    std::vector<glm::vec2> TrackTexture::GenerateUVs(bool inverseU, bool inverseV) {
         std::vector<glm::vec2> temp_uvs = uvs;
 
         for (auto &uv : temp_uvs) {
-            uv.x = inverseU ? (1 - uv.x) : uv.x;
-            uv.y = inverseV ? (1 - uv.y) : uv.y;
-        }
-
-        if (reverseOrder) {
-            std::reverse(temp_uvs.begin(), temp_uvs.end());
+            uv.x = (inverseU ? (1 - uv.x) : uv.x) * maxU;
+            uv.y = (inverseV ? (1 - uv.y) : uv.y) * maxV;
         }
 
         return temp_uvs;
