@@ -18,7 +18,7 @@ Below is a table better describing the current level of asset load into OpenNFS:
 | Game     | Cars | Tracks | Music |
 |----------|------|--------|-------|
 | NFS6 PC  |      |        |       |
-| NFS5 PC  | 40%**| 20%**  |       |
+| NFS5 PC  | 40%**| 25%**  |       |
 | NFS4 PC  | 90%* | 90%*   |       |
 | NFS4 PS1 | 50%* |        |       |
 | NFS3 PC  | 100% | 100%   | 95%   |
@@ -50,11 +50,12 @@ OpenNFS does not bundle any EA intellectual property. A copy of the original gam
 
 ### Development builds on CI:
 
-All versions (Windows/Mac/Linux) are built on VSTS, but the current build artifacts only contain the OpenNFS executable. To use these builds, it is recommended to download a Github Release from the 'Releases' page, and replace the OpenNFS executable with that produced by CI. You will most likely also need to update the 'shaders' directory, using the latest available from Git. I will alter my CI scripts soon to produce zips that can be ran without these extra steps. 
+All versions (Windows/Mac/Linux) are built on GitHub Actions. To use these builds, just click on the last build for the main branch and download the version for your operating system there. The Need For Speed games files will still need to be supplied, but otherwise the builds are ready to use. 
 
-|Linux|Windows|Mac OS|
-|-----|-------|------|
-|![Linux](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Linux)|![Windows](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Windows_gcc)|![Linux](https://type2labs.visualstudio.com/OpenNFS/_apis/build/status/OpenNFS.OpenNFS?branchName=main&amp;jobName=Mac)|
+
+|Build Status|
+|-----|
+|[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/OpenNFS/OpenNFS/build.yml)](https://github.com/OpenNFS/OpenNFS/actions/workflows/build.yml)|
 
 ## Keep up to date
 
