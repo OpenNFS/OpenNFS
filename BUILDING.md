@@ -22,7 +22,7 @@ To install the dependencies needed on Ubuntu, run the following commands in a te
 
 ```sh
 sudo apt-get update
-sudo apt-get install build-essential cmake libgl-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+sudo apt-get install build-essential cmake libgl-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev
 ```
 
 ## Building
