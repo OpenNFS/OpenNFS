@@ -28,3 +28,7 @@ void TexBlock::_SerializeOut(std::ofstream &ofstream) {
     ofstream.write((char *) &isLane, sizeof(bool));
     ofstream.write((char *) &qfsIndex, sizeof(uint16_t));
 }
+
+std::vector<glm::vec2> TexBlock::GetUVs() {
+    return {{corners[0], corners[1]}, {corners[2], corners[3]}, {corners[4], corners[5]}, {corners[0], corners[1]}, {corners[4], corners[5]}, {corners[6], corners[7]}};
+}

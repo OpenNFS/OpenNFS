@@ -63,12 +63,12 @@ namespace LibOpenNFS::NFS3 {
         ASSERT(HrzFile::Load(hrzPath, hrzFile), "Could not load HRZ file (skybox/lighting):" << hrzPath);   // Load HRZ Data
         ASSERT(SpeedsFile::Load(binPath, speedFile), "Could not load speedsf.bin file (AI vroad speeds:" << binPath); // Load AI speed data
 
-        track.nBlocks         = frdFile.nBlocks;
-        track.cameraAnimation = canFile.animPoints;
-        track.trackTextures   = _ParseTextures(frdFile, track);
-        track.trackBlocks     = _ParseTRKModels(frdFile, track);
-        track.globalObjects   = _ParseCOLModels(colFile, track);
-        track.virtualRoad     = _ParseVirtualRoad(colFile);
+        track.nBlocks            = frdFile.nBlocks;
+        track.cameraAnimation    = canFile.animPoints;
+        track.trackTextureAssets = _ParseTextures(frdFile, track);
+        track.trackBlocks        = _ParseTRKModels(frdFile, track);
+        track.globalObjects      = _ParseCOLModels(colFile, track, frdFile.textureBlocks);
+        track.virtualRoad        = _ParseVirtualRoad(colFile);
 
         // LOG(INFO) << "Track loaded successfully";
 
@@ -129,12 +129,17 @@ namespace LibOpenNFS::NFS3 {
         return carMetadata;
     }
 
-    std::map<uint32_t, TrackTexture> Loader::_ParseTextures(const FrdFile &frdFile, const Track &track) {
-        std::map<uint32_t, TrackTexture> trackTextureMap;
+    std::map<uint32_t, TrackTextureAsset> Loader::_ParseTextures(const FrdFile &frdFile, const Track &track) {
+        std::map<uint32_t, TrackTextureAsset> textureAssetMap;
         size_t max_width = 0, max_height = 0;
 
         // Load QFS texture information into ONFS texture objects
         for (auto &frdTexBlock : frdFile.textureBlocks) {
+            // Some TexBlocks don't appear to be genuine, though their QfsIndex seems sane. Skip over them, as their height is
+            // disproportionate to the rest (approaching UINT16_MAX vs <= 256). This upsets Texture Array scaling.
+            if (frdTexBlock.unknown1 == 0xFF000000 && frdTexBlock.unknown2 == 0xFF000000) {
+                continue;
+            }
             std::stringstream fileReference;
             std::stringstream alphaFileReference;
 
@@ -151,21 +156,18 @@ namespace LibOpenNFS::NFS3 {
                 alphaFileReference << LibOpenNFS::TRACK_PATH << get_string(NFSVersion::NFS_3) << "/" << track.name << "/textures/" << std::setfill('0') << std::setw(4)
                                    << frdTexBlock.qfsIndex << "-a.BMP";
             }
-            std::vector<glm::vec2> uvs{{frdTexBlock.corners[0], frdTexBlock.corners[1]}, {frdTexBlock.corners[2], frdTexBlock.corners[3]},
-                                       {frdTexBlock.corners[4], frdTexBlock.corners[5]}, {frdTexBlock.corners[0], frdTexBlock.corners[1]},
-                                       {frdTexBlock.corners[4], frdTexBlock.corners[5]}, {frdTexBlock.corners[6], frdTexBlock.corners[7]}};
 
-            trackTextureMap[frdTexBlock.qfsIndex] = TrackTexture(frdTexBlock.qfsIndex, frdTexBlock.width, frdTexBlock.height, uvs, fileReference.str(), alphaFileReference.str());
+            textureAssetMap[frdTexBlock.qfsIndex] = TrackTextureAsset(frdTexBlock.qfsIndex, frdTexBlock.width, frdTexBlock.height, fileReference.str(), alphaFileReference.str());
         }
 
         // Now that maximum width/height is known, set the Max U/V for the texture
-        for (auto &[id, trackTexture] : trackTextureMap) {
+        for (auto &[id, textureAsset] : textureAssetMap) {
             // Attempt to remove potential for sampling texture from transparent area
-            trackTexture.maxU = (static_cast<float>(trackTexture.width) / static_cast<float>(max_width)) - 0.005f;
-            trackTexture.maxV = (static_cast<float>(trackTexture.height) / static_cast<float>(max_height)) - 0.005f;
+            textureAsset.maxU = (static_cast<float>(textureAsset.width) / static_cast<float>(max_width)) - 0.005f;
+            textureAsset.maxV = (static_cast<float>(textureAsset.height) / static_cast<float>(max_height)) - 0.005f;
         }
 
-        return trackTextureMap;
+        return textureAssetMap;
     }
 
     std::vector<TrackBlock> Loader::_ParseTRKModels(const FrdFile &frdFile, const Track &track) {
@@ -233,8 +235,8 @@ namespace LibOpenNFS::NFS3 {
                             // Texture for this polygon and it's loaded OpenGL equivalent
                             TexBlock polygonTexture = frdFile.textureBlocks[objectPolygons[polyIdx].textureId];
                             // Convert the UV's into ONFS space, to enable tiling/mirroring etc based on NFS texture flags
-                            TrackTexture trackTexture  = track.trackTextures.at(polygonTexture.qfsIndex);
-                            std::vector<glm::vec2> transformedUVs = trackTexture.GenerateUVs(false, true);
+                            TrackTextureAsset trackTextureAsset   = track.trackTextureAssets.at(polygonTexture.qfsIndex);
+                            std::vector<glm::vec2> transformedUVs = trackTextureAsset.ScaleUVs(polygonTexture.GetUVs(), false, true);
                             uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                             // Calculate the normal, as the provided data is a little suspect
@@ -279,9 +281,9 @@ namespace LibOpenNFS::NFS3 {
                     }
 
                     for (uint32_t k = 0; k < extraObjectData.nPolygons; k++) {
-                        TexBlock blockTexture      = frdFile.textureBlocks[extraObjectData.polyData[k].textureId];
-                        TrackTexture trackTexture  = track.trackTextures.at(blockTexture.qfsIndex);
-                        std::vector<glm::vec2> transformedUVs = trackTexture.GenerateUVs(true, true);
+                        TexBlock blockTexture                 = frdFile.textureBlocks[extraObjectData.polyData[k].textureId];
+                        TrackTextureAsset trackTextureAsset   = track.trackTextureAssets.at(blockTexture.qfsIndex);
+                        std::vector<glm::vec2> transformedUVs = trackTextureAsset.ScaleUVs(blockTexture.GetUVs(), true, true);
                         uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                         glm::vec3 normal = Utils::CalculateQuadNormal(extraObjectVerts[extraObjectData.polyData[k].vertex[0]],
@@ -329,9 +331,9 @@ namespace LibOpenNFS::NFS3 {
                 std::vector<PolygonData> chunkPolygonData = trackPolygonBlock.poly[lodChunkIdx];
 
                 for (uint32_t polyIdx = 0; polyIdx < trackPolygonBlock.sz[lodChunkIdx]; polyIdx++) {
-                    TexBlock polygonTexture    = frdFile.textureBlocks[chunkPolygonData[polyIdx].textureId];
-                    TrackTexture trackTexture  = track.trackTextures.at(polygonTexture.qfsIndex);
-                    std::vector<glm::vec2> transformedUVs = trackTexture.GenerateUVs(false, true);
+                    TexBlock polygonTexture               = frdFile.textureBlocks[chunkPolygonData[polyIdx].textureId];
+                    TrackTextureAsset trackTextureAsset   = track.trackTextureAssets.at(polygonTexture.qfsIndex);
+                    std::vector<glm::vec2> transformedUVs = trackTextureAsset.ScaleUVs(polygonTexture.GetUVs(), false, true);
                     uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                     glm::vec3 normal = Utils::CalculateQuadNormal(rawTrackBlock.vert[chunkPolygonData[polyIdx].vertex[0]],
@@ -384,7 +386,7 @@ namespace LibOpenNFS::NFS3 {
         return virtualRoad;
     }
 
-    std::vector<TrackEntity> Loader::_ParseCOLModels(const ColFile &colFile, const Track &track) {
+    std::vector<TrackEntity> Loader::_ParseCOLModels(const ColFile &colFile, const Track &track, std::vector<TexBlock> &texBlocks) {
         // LOG(INFO) << "Parsing COL file into ONFS GL structures";
         std::vector<TrackEntity> colEntities;
 
@@ -405,9 +407,10 @@ namespace LibOpenNFS::NFS3 {
             for (uint32_t polyIdx = 0; polyIdx < s.nPoly; ++polyIdx) {
                 // Remap the COL TextureID's using the COL texture block (XBID2)
                 ColTextureInfo colTexture = colFile.texture[s.polygon[polyIdx].texture];
+                TexBlock frdTexture       = texBlocks.at(colTexture.id);
                 // Retrieve the GL texture for it so can scale UVs into texture array
-                TrackTexture trackTexture  = track.trackTextures.at(colTexture.id);
-                std::vector<glm::vec2> transformedUVs = trackTexture.GenerateUVs(false, true);
+                TrackTextureAsset trackTextureAsset   = track.trackTextureAssets.at(colTexture.id);
+                std::vector<glm::vec2> transformedUVs = trackTextureAsset.ScaleUVs(frdTexture.GetUVs(), false, true);
                 uvs.insert(uvs.end(), transformedUVs.begin(), transformedUVs.end());
 
                 glm::vec3 normal =
@@ -417,7 +420,7 @@ namespace LibOpenNFS::NFS3 {
                 for (auto &quadToTriVertNumber : quadToTriVertNumbers) {
                     indices.emplace_back(s.polygon[polyIdx].v[quadToTriVertNumber]);
                     norms.emplace_back(normal);
-                    texture_indices.emplace_back(trackTexture.id);
+                    texture_indices.emplace_back(trackTextureAsset.id);
                 }
             }
             glm::vec3 position = glm::vec3(colFile.object[i].ptRef) * NFS3_SCALE_FACTOR;

@@ -9,6 +9,7 @@ namespace LibOpenNFS {
             TexBlock() = default;
             explicit TexBlock(std::ifstream &frd);
             void _SerializeOut(std::ofstream &ifstream) override;
+            std::vector<glm::vec2> GetUVs();
 
             uint16_t width, height;
             uint32_t unknown1; // Blending related, hometown covered bridges godrays

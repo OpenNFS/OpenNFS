@@ -9,7 +9,7 @@
 #include "TrackVRoad.h"
 
 #include <Shared/CanFile.h>
-#include "TrackTexture.h"
+#include "TrackTextureAsset.h"
 
 namespace LibOpenNFS {
     class Track {
@@ -26,7 +26,7 @@ public:
     std::vector<TrackVRoad> virtualRoad;
 
     // Geometry
-    std::map<uint32_t, TrackTexture> trackTextures;
+    std::map<uint32_t, TrackTextureAsset> trackTextureAssets;
     std::vector<TrackBlock> trackBlocks;
     std::vector<TrackEntity> globalObjects;
     std::vector<TrackEntity> vroadBarriers;

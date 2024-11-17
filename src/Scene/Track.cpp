@@ -18,8 +18,8 @@ namespace OpenNFS {
     void Track::_LoadTextures() {
         CHECK_F(LibOpenNFS::TextureUtils::ExtractTrackTextures(basePath, name, nfsVersion, assetPath), "Could not extract %s texture pack", name.c_str());
         // Load textures into GL objects
-        for (auto &[id, trackTexture] : trackTextures) {
-            textureMap[id] = GLTexture::LoadTexture(nfsVersion, trackTexture);
+        for (auto &[id, trackTextureAsset] : trackTextureAssets) {
+            textureMap[id] = GLTexture::LoadTexture(nfsVersion, trackTextureAsset);
         }
         textureArrayID = GLTexture::MakeTextureArray(textureMap, false);
     }

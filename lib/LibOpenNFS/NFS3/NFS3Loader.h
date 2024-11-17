@@ -18,7 +18,7 @@
 #include "Entities/Track.h"
 #include "Entities/TrackBlock.h"
 #include "Entities/TrackVRoad.h"
-#include "Entities/TrackTexture.h"
+#include "Entities/TrackTextureAsset.h"
 
 namespace LibOpenNFS::NFS3 {
     const glm::vec3 NFS3_SCALE_FACTOR(-0.1, 0.1, 0.1f);
@@ -30,9 +30,9 @@ namespace LibOpenNFS::NFS3 {
 
     private:
         static Car::MetaData _ParseAssetData(const FceFile &fceFile, const FedataFile &fedataFile);
-        static std::map<uint32_t, TrackTexture> _ParseTextures(const FrdFile &frdFile, const Track &track);
+        static std::map<uint32_t, TrackTextureAsset> _ParseTextures(const FrdFile &frdFile, const Track &track);
         static std::vector<TrackBlock> _ParseTRKModels(const FrdFile &frdFile, const Track &track);
         static std::vector<TrackVRoad> _ParseVirtualRoad(const ColFile &colFile);
-        static std::vector<TrackEntity> _ParseCOLModels(const ColFile &colFile, const Track &track);
+        static std::vector<TrackEntity> _ParseCOLModels(const ColFile &colFile, const Track &track, std::vector<TexBlock> &texBlocks);
     };
 } // namespace LibOpenNFS::NFS3

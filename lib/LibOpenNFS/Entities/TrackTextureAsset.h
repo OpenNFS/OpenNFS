@@ -14,12 +14,11 @@
 #include <NFS3/FRD/TexBlock.h>
 
 namespace LibOpenNFS {
-    class TrackTexture {
+    class TrackTextureAsset {
     public:
-        TrackTexture() = default;
-        explicit TrackTexture(uint32_t id, uint32_t width, uint32_t height, std::vector<glm::vec2> const& uvs, std::string const& fileReference,
-                              std::string const& alphaFileReference);
-        std::vector<glm::vec2> GenerateUVs(bool inverseU, bool inverseV);
+        TrackTextureAsset() = default;
+        explicit TrackTextureAsset(uint32_t id, uint32_t width, uint32_t height, std::string const& fileReference, std::string const& alphaFileReference);
+        std::vector<glm::vec2> ScaleUVs(std::vector<glm::vec2> uvs, bool inverseU, bool inverseV);
         std::vector<glm::vec2> GenerateUVs(EntityType meshType, uint32_t textureFlags);
 
         std::string fileReference;
