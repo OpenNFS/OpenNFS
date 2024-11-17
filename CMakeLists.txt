@@ -11,23 +11,18 @@ include(OptimizeForArchitecture)
 include(CompileGLSLToSPIRV)
 
 #[[Parameter Override]]
-if(APPLE OR WIN32)
+if (APPLE OR WIN32)
     set(USE_VULKAN OFF) #[[Avoid Vulkan on Mac until I add MoltenVK support. Windows too until Vulkan SDK on VSTS container]]
-    set(STATIC_BUILD OFF) #[[Static linking broken under Mac OSX (and UNIX too? + MSVC doesnt support this flag)]]
-endif()
+endif ()
 
-if(${DEV})
-    if(APPLE)
+if (${DEV})
+    if (APPLE)
         # Silence Fshtool warnings til I deal with them
-        set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wno-pointer-sign -Wno-return-type")
-    endif()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pointer-sign -Wno-return-type")
+    endif ()
     OptimizeForArchitecture()
     MESSAGE(STATUS "CXX Compiler flags are: " ${CMAKE_CXX_FLAGS})
     MESSAGE(STATUS "C Compiler flags are: " ${CMAKE_C_FLAGS})
-endif()
-
-if (${STATIC_BUILD})
-    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -36,7 +31,6 @@ add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 file(GLOB CRP_LIB_SOURCES
         lib/LibOpenNFS/lib/CrpLib/*.h
         lib/LibOpenNFS/lib/CrpLib/*.cpp)
-
 
 
 set(IMGUI_SOURCES
@@ -185,6 +179,7 @@ if (${USE_VULKAN})
 endif ()
 
 #[[Google Test Framework Configuration]]
+set(gtest_force_shared_crt ON CACHE BOOL "Prevent overriding the parent project's compiler/linker setting")
 add_subdirectory(lib/googletest)
 enable_testing()
 include_directories(lib/googletest/googletest/include)
