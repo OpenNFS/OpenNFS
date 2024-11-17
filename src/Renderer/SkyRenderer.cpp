@@ -54,8 +54,6 @@ namespace OpenNFS {
                     uvs.emplace_back(glm::vec2(0.0f, 0.0f));
                 }
                 index_offset += fv;
-                // per-face material
-                shapes[s].mesh.material_ids[f];
             }
             LibOpenNFS::CarGeometry geom(shapes[s].name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0));
             m_skydomeModel = GLCarModel(&geom, 0.01f, 0.0f, 0.5f);

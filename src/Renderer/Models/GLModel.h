@@ -13,6 +13,7 @@ class GLModel {
 public:
     GLModel(LibOpenNFS::Geometry *geometry);
     GLModel() = default;
+    virtual ~GLModel() = default;
 
     void enable();
 
