@@ -86,8 +86,8 @@ private:
 };
 
 int main(int argc, char **argv) {
-    Config::get().InitFromCommandLine(argc, argv);
     std::shared_ptr<Logger> logger = std::make_shared<Logger>();
+    Config::get().InitFromCommandLine(argc, argv);
 
     try {
         OpenNFSEngine game(logger);
