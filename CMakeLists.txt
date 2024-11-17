@@ -119,20 +119,11 @@ set(SOURCE_FILES
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
-#[[JSON]]
-include_directories(include/json)
-
-#[[STB]]
-include_directories(include/stb)
-
 #[[IMGUI]]
 include_directories(include/imgui)
 
-#[[TINYOBJLOADER]]
-include_directories(include/tinyobjloader)
-
-#[[BMPREAD]]
-include_directories(include/bmpread)
+#[[JSON/STB/IMGUI/TINYOBJLOADER/BMPREAD/ARGPARSE]]
+include_directories(include)
 
 #[[FREETYPE]]
 add_subdirectory(lib/freetype2)

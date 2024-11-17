@@ -120,10 +120,14 @@ namespace OpenNFS {
     VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams) {
         VisibleSet visibleSet;
 
-        // Perform frustum culling on the current camera, on local trackblocks
-        auto aabbCollisions = track->cullTree.queryOverlaps(camera.viewFrustum);
-        for (auto &collision : aabbCollisions) {
-            visibleSet.entities.emplace_back(std::static_pointer_cast<Entity>(collision));
+        if (userParams.useFrustumCull) {
+            // Perform frustum culling on the current camera, on local trackblocks
+            auto aabbCollisions = track->cullTree.queryOverlaps(camera.viewFrustum);
+            for (auto &collision : aabbCollisions) {
+                visibleSet.entities.emplace_back(std::static_pointer_cast<Entity>(collision));
+            }
+        } else {
+            visibleSet.entities = track->entities;
         }
 
         return visibleSet;

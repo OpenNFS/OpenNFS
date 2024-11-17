@@ -1,7 +1,7 @@
 #include "ImageLoader.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb/stb_image.h>
 
 GLuint ImageLoader::LoadImage(const std::string &imagePath, int *width, int *height, GLint wrapParam, GLint sampleParam) {
     GLuint textureID;

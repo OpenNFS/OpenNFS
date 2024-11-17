@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <map>
+#include <argparse/argparse.hpp>
 
 #include "Common/NFSVersion.h"
 #include "Util/Logger.h"
@@ -70,17 +71,21 @@ public:
     }
     void ParseFile(std::ifstream& inStream);
     void InitFromCommandLine(int argc, char** argv);
-    // Better named parameters instead of using var_map with command-line arg name
-    std::string car = DEFAULT_CAR, track = DEFAULT_TRACK;
-    std::string carTag = DEFAULT_CAR_NFS_VER, trackTag = DEFAULT_TRACK_NFS_VER;
+
+    // Cmd Line Arg backing variables
+    std::string car;
+    std::string track;
+    std::string carTag;
+    std::string trackTag;
     uint16_t nRacers = DEFAULT_NUM_RACERS;
     /* -- Physics/AI Params -- */
     bool useFullVroad = true;
     /* -- Render Params -- */
-    bool vulkanRender = false;
-    bool headless     = false;
-    float fov         = DEFAULT_FOV;
-    uint32_t resX = DEFAULT_X_RESOLUTION, resY = DEFAULT_Y_RESOLUTION;
+    bool vulkanRender;
+    bool headless;
+    float fov = DEFAULT_FOV;
+    uint32_t resX;
+    uint32_t resY;
     /* -- Tool Params -- */
     bool renameAssets = false;
 

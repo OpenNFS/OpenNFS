@@ -1,6 +1,6 @@
 #include "MenuRenderer.h"
 
-#include <json.hpp>
+#include <json/json.hpp>
 #include <ft2build.h>
 
 #include FT_FREETYPE_H
