@@ -90,8 +90,6 @@ namespace OpenNFS {
             // For now, only tracklights will have entities created
             auto *baseLight = static_cast<LibOpenNFS::BaseLight *>(track_entity);
             CHECK_F(baseLight->type == LibOpenNFS::LightType::TRACK_LIGHT, "Not ready to handle other light types at entity creation time");
-            // std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
-            // DimensionData meshDimensions           = Utils::GenDimensions(trackLight->model.m_vertices);
             DimensionData meshDimensions{glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)};
             m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
             return;

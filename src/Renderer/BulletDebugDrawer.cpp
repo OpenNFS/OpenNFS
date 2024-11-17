@@ -28,7 +28,7 @@ namespace OpenNFS {
 
     void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) {
         if (m_debugLines.size() < MAX_NUM_LINES) {
-            m_debugLines.emplace_back(BulletLine(from, to));
+            m_debugLines.emplace_back(from, to);
             m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
             m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
         }

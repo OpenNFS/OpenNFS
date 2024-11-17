@@ -20,7 +20,7 @@ namespace OpenNFS {
         }
     };
 
-    const uint32_t MAX_NUM_LINES         = 10000;
+    const uint32_t MAX_NUM_LINES         = 100000;
     const uint32_t INITIAL_LINE_BUF_SIZE = sizeof(BulletLine) * MAX_NUM_LINES;
 
     class BulletDebugDrawer : public btIDebugDraw {
