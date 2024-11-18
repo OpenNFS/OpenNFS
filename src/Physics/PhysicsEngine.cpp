@@ -29,9 +29,7 @@ namespace OpenNFS {
         glm::vec3 lRayDir_world(lRayEnd_world - lRayStart_world);
         lRayDir_world = glm::normalize(lRayDir_world);
 
-        WorldRay worldRay;
-        worldRay.origin = glm::vec3(lRayStart_world);
-        worldRay.direction = glm::normalize(lRayDir_world);
+        WorldRay worldRay{glm::vec3(lRayStart_world), glm::normalize(lRayDir_world)};
 
         return worldRay;
     }
@@ -56,14 +54,13 @@ namespace OpenNFS {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        // TrackModel updates propagate for active track blocks, based upon track blocks racer vehicles are on
-        // for (auto &residentTrackblockID : racerResidentTrackblockIDs) {
+        // TODO: TrackModel updates should only propagate for active track blocks, based upon track blocks racer vehicles are on
         for (auto &entity : m_track->entities) {
             entity->Update();
         }
     }
 
-    Entity *PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool &entityTargeted) {
+    std::optional<Entity *> PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) {
         WorldRay worldRayFromScreenPosition =
           ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX, Config::get().resY, viewMatrix, projectionMatrix);
         glm::vec3 outEnd = worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f;
@@ -73,13 +70,8 @@ namespace OpenNFS {
 
         m_pDynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd), rayCallback);
 
-        if (rayCallback.hasHit()) {
-            entityTargeted = true;
-            return static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer());
-        } else {
-            entityTargeted = false;
-            return nullptr;
-        }
+        Entity *targetedEntity = rayCallback.hasHit() ? (Entity *) rayCallback.m_collisionObject->getUserPointer() : nullptr;
+        return targetedEntity == nullptr ? std::optional<Entity *>(std::nullopt) : std::optional<Entity *>(targetedEntity);
     }
 
     void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
@@ -147,58 +139,5 @@ namespace OpenNFS {
         for (auto &entity : m_track->entities) {
             m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
         }
-    }
-
-    void PhysicsEngine::_GenerateVroadBarriers() {
-        /*if ((m_track->nfsVersion == NFS_3 || m_track->nfsVersion == NFS_4) && !Config::get().sparkMode)
-        {
-            uint32_t nVroad = std::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroadHead.nrec;
-            for (uint32_t vroad_Idx = 0; vroad_Idx < nVroad; ++vroad_Idx)
-            {
-                if (vroad_Idx < nVroad - 1)
-                {
-                    glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
-
-                    COLVROAD curVroad = std::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroad[vroad_Idx];
-                    COLVROAD nextVroad = std::get<std::shared_ptr<NFS3_4_DATA::TRACK>>(m_track->trackData)->col.vroad[vroad_Idx + 1];
-                    INTPT curVroadRefPt = curVroad.refPt;
-                    INTPT nextVroadRefPt = nextVroad.refPt;
-
-                    // Transform NFS3/4 coords into ONFS 3d space
-                    glm::vec3 curVroadPoint = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(curVroadRefPt)) / NFS3_SCALE_FACTOR;
-                    glm::vec3 nextVroadPoint = rotationMatrix *Utils::FixedToFloat(Utils::PointToVec(nextVroadRefPt)) / NFS3_SCALE_FACTOR;
-
-                    // Get VROAD right vector
-                    glm::vec3 curVroadRightVec = rotationMatrix * Utils::PointToVec(curVroad.right) / 128.f;
-                    glm::vec3 nextVroadRightVec = rotationMatrix * Utils::PointToVec(nextVroad.right) / 128.f;
-
-                    glm::vec3 curVroadLeftWall = ((curVroad.leftWall / 65536.0f) / 10.f) * curVroadRightVec;
-                    glm::vec3 curVroadRightWall = ((curVroad.rightWall / 65536.0f) / 10.f) * curVroadRightVec;
-                    glm::vec3 nextVroadLeftWall = ((nextVroad.leftWall / 65536.0f) / 10.f) * nextVroadRightVec;
-                    glm::vec3 nextVroadRightWall = ((nextVroad.rightWall / 65536.0f) / 10.f) * nextVroadRightVec;
-
-                    bool useFullVroad = Config::get().useFullVroad;
-
-                    // Get edges of road by adding to vroad right vector to vroad reference point
-                    glm::vec3 curLeftVroadEdge = curVroadPoint - (useFullVroad ? curVroadLeftWall : curVroadRightVec);
-                    glm::vec3 curRightVroadEdge = curVroadPoint + (useFullVroad ? curVroadRightWall : curVroadRightVec);
-                    glm::vec3 nextLeftVroadEdge = nextVroadPoint - (useFullVroad ? nextVroadLeftWall : nextVroadRightVec);
-                    glm::vec3 nextRightVroadEdge = nextVroadPoint + (useFullVroad ? nextVroadRightWall : nextVroadRightVec);
-
-                    // Add them to the physics world
-                    Entity leftVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, nullptr, 0, curLeftVroadEdge, nextLeftVroadEdge);
-                    Entity rightVroadBarrier = Entity(99, 99, NFSVer::NFS_3, VROAD, nullptr, 0, curRightVroadEdge, nextRightVroadEdge);
-                    Entity vroadCeiling = Entity(99, 99, NFSVer::NFS_3, VROAD_CEIL, nullptr, 0, curLeftVroadEdge, nextLeftVroadEdge,
-        curRightVroadEdge, nextRightVroadEdge); m_pDynamicsWorld->addRigidBody(leftVroadBarrier.rigidBody, COL_VROAD, COL_RAY | COL_CAR);
-                    m_pDynamicsWorld->addRigidBody(rightVroadBarrier.rigidBody, COL_VROAD, COL_RAY | COL_CAR);
-                    m_pDynamicsWorld->addRigidBody(vroadCeiling.rigidBody, COL_VROAD_CEIL, COL_RAY);
-
-                    // Keep track of them so can clean up later
-                    m_track->vroadBarriers.emplace_back(leftVroadBarrier);
-                    m_track->vroadBarriers.emplace_back(rightVroadBarrier);
-                    m_track->vroadBarriers.emplace_back(vroadCeiling);
-                }
-            }
-        }*/
     }
 } // namespace OpenNFS

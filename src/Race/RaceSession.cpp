@@ -82,26 +82,23 @@ namespace OpenNFS {
 
             m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
+            // Make the targeted entity 'sticky', else it vanishes after 1 frame
+            static std::optional<Entity *> targetedEntity{};
+            if (ImGui::GetIO().MouseReleased[0] && m_windowStatus == WindowStatus::GAME) {
+                targetedEntity = m_physicsEngine.CheckForPicking(activeCamera.viewMatrix, activeCamera.projectionMatrix);
+            }
+            if (targetedEntity.has_value() && !m_targetedEntity.has_value()) {
+                m_targetedEntity = targetedEntity;
+            }
+
             // Step the physics simulation
             m_physicsEngine.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
             if (m_userParams.physicsDebugView) {
                 m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
             }
 
-            bool assetChange =
-              m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams, m_loadedAssets, m_racerManager.racers);
-
-            /*
-             * TODO: Need to move this inside of the main render, else IMGUI will bug out as frame has ended
-             * if (ImGui::GetIO().MouseReleased[0] && m_windowStatus == WindowStatus::GAME)
-            {
-                bool entityTargeted = false;
-                Entity *targetedEntity = m_physicsEngine.CheckForPicking(activeCamera->viewMatrix, activeCamera->projectionMatrix,
-            entityTargeted); if (entityTargeted)
-                {
-                    Renderer::DrawMetadata(targetedEntity);
-                }
-            }*/
+            bool assetChange = m_renderer.Render(
+              m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity);
 
             if (assetChange) {
                 return m_loadedAssets;
@@ -120,8 +117,8 @@ namespace OpenNFS {
     }
 
     void RaceSession::_GetInputsAndClear() {
-        glClearColor(0.1f, 0.f, 0.5f, 1.f);
         // Clear the screen
+        glClearColor(0.1f, 0.f, 0.5f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glfwPollEvents();
         ImGui_ImplOpenGL3_NewFrame();

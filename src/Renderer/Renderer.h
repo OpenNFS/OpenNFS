@@ -52,14 +52,16 @@ namespace OpenNFS {
         }
 
         static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName);
-        static void DrawMetadata(Entity *targetEntity);
+        static void _DrawMetadata(Entity *targetEntity);
         bool Render(float totalTime,
                     const BaseCamera &activeCamera,
                     const HermiteCamera &hermiteCamera,
                     const std::shared_ptr<GlobalLight> &activeLight,
                     ParamData &userParams,
                     AssetData &loadedAssets,
-                    const std::vector<std::shared_ptr<CarAgent>> &racers);
+                    const std::vector<std::shared_ptr<CarAgent>> &racers,
+                    std::optional<Entity *>
+                      targetedEntity);
 
     private:
         void _InitialiseIMGUI();

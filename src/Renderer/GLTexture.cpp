@@ -36,13 +36,16 @@ GLTexture GLTexture::LoadTexture(NFSVersion tag, LibOpenNFS::TrackTextureAsset &
         CHECK_F(ImageLoader::LoadBmpCustomAlpha(trackTextureAsset.fileReference.c_str(), data, &width, &height, alphaColour),
                 "Texture %s did not load successfully!",
                 trackTextureAsset.fileReference.c_str());
+        // Write texture asset metadata as NFS2 doesn't populate them directly
+        trackTextureAsset.width  = width;
+        trackTextureAsset.height = height;
 
         return GLTexture(trackTextureAsset, data);
     }
     default:
         CHECK_F(false, "Trying to load texture from unknown NFS version");
     }
-    return GLTexture();
+    std::unreachable();
 }
 
 GLuint GLTexture::MakeTextureArray(std::map<uint32_t, GLTexture> &textures, bool repeatable) {

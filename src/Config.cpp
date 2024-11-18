@@ -12,6 +12,7 @@ void Config::InitFromCommandLine(int argc, char **argv) {
     // Option name/short name, description, bound variable for parameter
     program.add_argument("--vulkan").help("Use the Vulkan renderer instead of GL default").flag().store_into(vulkanRender);
     program.add_argument("--headless").help("Launch ONFS without a window").flag().store_into(headless);
+    program.add_argument("--nracers", "-r").help("Number of AI Racers to spawn").default_value(DEFAULT_NUM_RACERS).store_into(nRacers);
     program.add_argument("--car", "-c").help("Name of desired car").default_value(DEFAULT_CAR).store_into(car);
     program.add_argument("--carv", "-cv")
       .help("NFS Version containing desired car (NFS_2, NFS_3, NFS_3_PS1, NFS_4, NFS_4_PS1, NFS_5)")

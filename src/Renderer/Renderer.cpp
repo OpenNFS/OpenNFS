@@ -27,7 +27,6 @@ namespace OpenNFS {
 
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window";
-            getchar();
             glfwTerminate();
         }
         glfwMakeContextCurrent(window.get());
@@ -71,7 +70,9 @@ namespace OpenNFS {
                           const std::shared_ptr<GlobalLight> &activeLight,
                           ParamData &userParams,
                           AssetData &loadedAssets,
-                          const std::vector<std::shared_ptr<CarAgent>> &racers) {
+                          const std::vector<std::shared_ptr<CarAgent>> &racers,
+                          std::optional<Entity *>
+                            targetedEntity) {
         bool newAssetSelected = false;
 
         // Perform frustum culling to get visible entities, from perspective of active camera
@@ -104,6 +105,10 @@ namespace OpenNFS {
 
         if (this->_DrawMenuBar(loadedAssets)) {
             newAssetSelected = true;
+        }
+
+        if (targetedEntity.has_value()) {
+            _DrawMetadata(targetedEntity.value());
         }
 
         // Render the Debug UI
@@ -148,7 +153,7 @@ namespace OpenNFS {
             }
         }
 
-        if (userParams.useNbData) {
+        if (false) {
             // Use the provided neighbour data to work out which blocks to render
             activeTrackBlockIds = track->trackBlocks[closestBlockID].neighbourIds;
         } else {
@@ -170,7 +175,7 @@ namespace OpenNFS {
         ImGui::StyleColorsDark();
     }
 
-    void Renderer::DrawMetadata(Entity *targetEntity) {
+    void Renderer::_DrawMetadata(Entity *targetEntity) {
         TrackEntity *track_entity{targetEntity->track_entity};
         ImGui::Begin("Engine Entity");
         ImGui::Text("%s", get_string(track_entity->type).c_str());
@@ -269,10 +274,7 @@ namespace OpenNFS {
         ImGui::SameLine(0, -1.0f);
         ImGui::NewLine();
         ImGui::SameLine(0, 0.0f);
-        if (!userParams.useNbData) {
-            ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, m_track->nBlocks / 2);
-        }
-        ImGui::Checkbox("NBData", &userParams.useNbData);
+        ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, m_track->nBlocks / 2);
         ImGui::NewLine();
         ImGui::ColorEdit3("Sun Atten", (float *) &userParams.sunAttenuation); // Edit 3 floats representing a color
 

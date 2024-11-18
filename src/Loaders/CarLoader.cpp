@@ -1,6 +1,6 @@
 #include "CarLoader.h"
 
-/*#include <NFS2/NFS2Loader.h>*/
+#include <NFS2/NFS2Loader.h>
 #include <NFS3/NFS3Loader.h>
 /*#include "NFS4/PC/NFS4Loader.h"
 #include "NFS4/PS1/NFS4PS1Loader.h"
@@ -46,6 +46,7 @@ namespace OpenNFS {
         default:
             CHECK_F(false, "Unknown car type!");
         }
+        std::unreachable();
     }
 
     std::shared_ptr<Car> CarLoader::LoadCar(NFSVersion nfsVersion, const std::string &carName) {

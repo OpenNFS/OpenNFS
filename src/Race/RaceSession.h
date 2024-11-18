@@ -34,6 +34,7 @@ namespace OpenNFS {
         AssetData m_loadedAssets;
         WindowStatus m_windowStatus   = WindowStatus::GAME;
         CameraMode m_activeCameraMode = CameraMode::FREE_LOOK;
+        std::optional<Entity *> m_targetedEntity;
 
         std::shared_ptr<GLFWwindow> m_window;
         std::shared_ptr<Track> m_track;

@@ -36,7 +36,7 @@ namespace OpenNFS {
         void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs);
         void RegisterVehicle(const std::shared_ptr<Car> &car);
         void RegisterTrack(const std::shared_ptr<OpenNFS::Track> &track);
-        Entity *CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix, bool &entityTargeted);
+        std::optional<Entity *> CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix);
         btDiscreteDynamicsWorld *GetDynamicsWorld();
 
         std::shared_ptr<BulletDebugDrawer> debugDrawer;

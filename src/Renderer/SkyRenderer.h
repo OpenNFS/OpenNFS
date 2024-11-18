@@ -19,6 +19,7 @@ namespace OpenNFS {
         void _LoadAssets();
         SkydomeShader m_skydomeShader;
         // Sphere model for skydome
+        LibOpenNFS::CarGeometry m_skydomeGeom;
         GLCarModel m_skydomeModel;
         GLuint clouds1TextureID = 0, clouds2TextureID = 0, sunTextureID = 0, moonTextureID = 0, tintTextureID = 0, tint2TextureID = 0;
     };

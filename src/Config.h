@@ -1,11 +1,9 @@
 #pragma once
 
-#include <imgui.h>
 #include <cstdint>
 #include <string>
 #include <vector>
 #include <fstream>
-#include <map>
 #include <argparse/argparse.hpp>
 
 #include "Common/NFSVersion.h"
@@ -13,7 +11,7 @@
 
 /* --------------- ONFS Compile time parameters here -----------------*/
 /* Some graphics parameters can be found at file SHADER_PREAMBLE_PATH */
-const std::string ONFS_VERSION    = "0.3";
+const std::string ONFS_VERSION    = "0.4";
 const std::string ONFS_GL_VERSION = "330";
 
 // ----- File paths for asset load/write -----
@@ -60,7 +58,7 @@ const std::string DEFAULT_CAR           = "corv";
 const std::string DEFAULT_TRACK         = "trk000";
 const std::string DEFAULT_CAR_NFS_VER   = get_string(NFSVersion::NFS_3);
 const std::string DEFAULT_TRACK_NFS_VER = get_string(NFSVersion::NFS_3);
-const int DEFAULT_NUM_RACERS            = 0;
+const uint32_t DEFAULT_NUM_RACERS       = 0;
 
 /* --------------- ONFS Runtime parameters here -----------------*/
 class Config {
@@ -73,21 +71,22 @@ public:
     void InitFromCommandLine(int argc, char** argv);
 
     // Cmd Line Arg backing variables
+    /* -- User Vehicle/Track Params --*/
     std::string car;
     std::string track;
     std::string carTag;
     std::string trackTag;
-    uint16_t nRacers = DEFAULT_NUM_RACERS;
-    /* -- Physics/AI Params -- */
-    bool useFullVroad = true;
-    /* -- Render Params -- */
-    bool vulkanRender;
-    bool headless;
+    uint32_t nRacers = DEFAULT_NUM_RACERS;
+    /* ----- Physics/AI Params ----- */
+    bool useFullVroad{true};
+    /* ------- Render Params ------- */
+    bool vulkanRender{};
+    bool headless{};
     float fov = DEFAULT_FOV;
-    uint32_t resX;
-    uint32_t resY;
+    uint32_t resX{};
+    uint32_t resY{};
     /* -- Tool Params -- */
-    bool renameAssets = false;
+    bool renameAssets{};
 
 private:
     Config() = default;
@@ -109,7 +108,6 @@ struct ParamData {
     bool drawTrackAABB          = false;
     bool useClassicGraphics     = false;
     bool attachCamToHermite     = false;
-    bool useNbData              = true;
     bool attachCamToCar         = true;
     bool drawVroad              = false;
     bool drawCAN                = false;

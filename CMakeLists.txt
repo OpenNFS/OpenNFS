@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 project(OpenNFS)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 include(CheckCXXCompilerFlag)

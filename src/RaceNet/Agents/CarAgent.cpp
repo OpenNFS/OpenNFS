@@ -62,7 +62,7 @@ namespace OpenNFS {
 
     void CarAgent::_UpdateNearestVroad() {
         float lowestDistance     = FLT_MAX;
-        glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+        glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-glm::pi<float>() / 2, 0, 0)));
 
         // Use the nearest trackblock ID to avoid skipping the entire set of Vroad data
         uint32_t nodeNumber = m_track->trackBlocks[nearestTrackblockID].virtualRoadStartIndex;

@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <imgui.h>
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 

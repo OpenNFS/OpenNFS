@@ -56,7 +56,7 @@ public:
         while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
             /*------ ASSET LOAD ------*/
             // Load Track Data
-            auto const &track = TrackLoader::LoadTrack(loadedAssets.trackTag, loadedAssets.track);
+            auto const &track = TrackLoader::Load(loadedAssets.trackTag, loadedAssets.track);
             // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky texture for car environment map)
             auto const &car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
