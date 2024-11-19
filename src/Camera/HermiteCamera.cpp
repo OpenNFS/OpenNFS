@@ -26,7 +26,7 @@ void HermiteCamera::UseSpline(float elapsedTime) {
     m_roll = m_roll * 0.95f + (newRoll) *0.1f;
 
     // Create a new 'up' vector, based on the roll value
-    glm::vec3 up = glm::rotate(glm::mat4(1), (m_roll * 0.25f) + 0.75f, position) * glm::vec4(glm::vec3(0, 1, 0), 1.0);
+    glm::vec3 up = glm::rotate(glm::mat4(1), (m_roll * 0.25f), position) * glm::vec4(glm::vec3(0, 1, 0), 1.0);
 
     // Camera matrix
     viewMatrix = glm::lookAt(position,               // Camera is here

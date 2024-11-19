@@ -46,7 +46,7 @@ namespace OpenNFS {
         default:
             CHECK_F(false, "Unknown car type!");
         }
-        std::unreachable();
+        unreachable();
     }
 
     std::shared_ptr<Car> CarLoader::LoadCar(NFSVersion nfsVersion, const std::string &carName) {

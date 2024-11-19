@@ -44,6 +44,6 @@ namespace OpenNFS {
         default:
             CHECK_F(false, "Unknown track type!");
         }
-        std::unreachable();
+       unreachable();
     }
 } // namespace OpenNFS

@@ -13,7 +13,7 @@
 
 namespace OpenNFS {
     class Track : public LibOpenNFS::Track {
-        static constexpr uint16_t kCullTreeInitialSize = 4000;
+        static constexpr uint16_t kCullTreeInitialSize = 10000;
 
     public:
         explicit Track(const LibOpenNFS::Track &track);

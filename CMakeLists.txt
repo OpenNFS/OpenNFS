@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
 project(OpenNFS)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 include(CheckCXXCompilerFlag)
@@ -13,6 +13,11 @@ include(CompileGLSLToSPIRV)
 #[[Parameter Override]]
 if (APPLE OR WIN32)
     set(USE_VULKAN OFF) #[[Avoid Vulkan on Mac until I add MoltenVK support. Windows too until Vulkan SDK on VSTS container]]
+endif ()
+
+#[[Static linking broken under Mac OSX (and UNIX too? + MSVC doesnt support this flag)]]
+if (NOT (APPLE OR UNIX OR MSVC))
+    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 
 if (${DEV})
@@ -105,7 +110,6 @@ set(SOURCE_FILES
         src/main.cpp
         #[[src/Renderer/RaceNetRenderer.cpp
         src/Shaders/RaceNetShader.cpp
-        src/Util/Raytracer.cpp
         src/Loaders/NFS4/PC/NFS4Loader.cpp
         src/Loaders/NFS4/PS1/NFS4PS1Loader.cpp
         src/Loaders/NFS4/PS1/SerializedGroupOps.cpp
@@ -120,6 +124,8 @@ include_directories(include/imgui)
 include_directories(include)
 
 #[[FREETYPE]]
+set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "Disable HarfBuzz (used for improving auto-hinting of OpenType fonts).")
+set(FT_DISABLE_BROTLI  ON CACHE BOOL  "Disable support of compressed WOFF2 fonts.")
 add_subdirectory(lib/freetype2)
 include_directories(lib/freetype2/include)
 list(APPEND ONFS_LIBRARIES freetype)

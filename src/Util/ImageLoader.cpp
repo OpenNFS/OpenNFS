@@ -71,8 +71,6 @@ bool ImageLoader::SaveImage(const char *szPathName, void *lpBits, uint16_t w, ui
     return true;
 }
 
-
-
 // TODO: Integrate into LoadBmpCustomAlpha as a master bitmap loader
 bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour) {
     GLsizei width, height;
@@ -323,3 +321,4 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
     }
     return retval;
 }
+
