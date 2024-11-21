@@ -1,6 +1,5 @@
 #include "GLBillboardModel.h"
 
-#include "../../Util/Utils.h"
 /*
 
 GLBillboardModel::GLBillboardModel() :

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-AABB::AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition) : min(minVertex), max(maxVertex), position(centerPosition) {
+AABB::AABB(const glm::vec3 minVertex, const glm::vec3 maxVertex, const glm::vec3 centerPosition) : min(minVertex), max(maxVertex), position(centerPosition) {
     surfaceArea = this->_CalculateSurfaceArea();
 }
 

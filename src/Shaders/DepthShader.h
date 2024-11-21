@@ -8,7 +8,7 @@ public:
     DepthShader();
     void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
     void loadTransformMatrix(const glm::mat4 &transformationMatrix);
-    void bindTextureArray(GLuint textureArrayID);
+    void bindTextureArray(GLuint textureArrayID) const;
 
 protected:
     void bindAttributes() override;

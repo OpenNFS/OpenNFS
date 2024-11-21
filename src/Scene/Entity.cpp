@@ -8,8 +8,8 @@ namespace OpenNFS {
     }
 
     void Entity::_GenCollisionMesh() {
-        glm::vec3 center      = glm::vec3(0, 0, 0);
-        glm::quat orientation = glm::quat(0, 0, 0, 1);
+        auto center      = glm::vec3(0, 0, 0);
+        auto orientation = glm::quat(0, 0, 0, 1);
 
         switch (track_entity->type) {
         case LibOpenNFS::EntityType::LANE:
@@ -82,15 +82,15 @@ namespace OpenNFS {
         case LibOpenNFS::EntityType::LANE:
         case LibOpenNFS::EntityType::ROAD:
         case LibOpenNFS::EntityType::GLOBAL: {
-            DimensionData meshDimensions = Utils::GenDimensions(model->geometry->m_vertices);
-            m_boundingBox = AABB(meshDimensions.minVertex + model->geometry->initialPosition, meshDimensions.maxVertex + model->geometry->initialPosition, glm::vec3());
+            auto [minVertex, maxVertex] = Utils::GenDimensions(model->geometry->m_vertices);
+            m_boundingBox = AABB(minVertex + model->geometry->initialPosition, maxVertex + model->geometry->initialPosition, glm::vec3());
             return;
         }
         case LibOpenNFS::EntityType::LIGHT: {
             // For now, only tracklights will have entities created
-            auto *baseLight = static_cast<LibOpenNFS::BaseLight *>(track_entity);
+            const auto *baseLight = static_cast<LibOpenNFS::BaseLight *>(track_entity);
             CHECK_F(baseLight->type == LibOpenNFS::LightType::TRACK_LIGHT, "Not ready to handle other light types at entity creation time");
-            DimensionData meshDimensions{glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)};
+            constexpr DimensionData meshDimensions{glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)};
             m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
             return;
         }
@@ -100,7 +100,7 @@ namespace OpenNFS {
         }
     }
 
-    void Entity::Update() {
+    void Entity::Update() const {
         // We don't want to update Entities that aren't dynamic
         if (!track_entity->dynamic) {
             return;

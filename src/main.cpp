@@ -23,7 +23,7 @@ using namespace OpenNFS;
 
 class OpenNFSEngine {
 public:
-    explicit OpenNFSEngine(std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
+    explicit OpenNFSEngine(const std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
         if (Config::get().renameAssets) {
             OpenNFS::Utils::RenameAssetsToLowercase();
         }
@@ -42,12 +42,17 @@ public:
         }
     }
 
-    void run() {
+    void run() const {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        std::shared_ptr<GLFWwindow> window = Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION);
-        AssetData loadedAssets             = {get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track};
+        std::shared_ptr<GLFWwindow> const window{
+            Renderer::InitOpenGL(Config::get().resX, Config::get().resY,
+                                 "OpenNFS v" + ONFS_VERSION)
+        };
+        AssetData loadedAssets{
+            get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track
+        };
 
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
         CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
@@ -86,7 +91,7 @@ private:
 };
 
 int main(int argc, char **argv) {
-    std::shared_ptr<Logger> logger = std::make_shared<Logger>();
+    auto logger = std::make_shared<Logger>();
     Config::get().InitFromCommandLine(argc, argv);
 
     try {

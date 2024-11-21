@@ -6,7 +6,7 @@ namespace OpenNFS {
 
         // This shader state doesn't change during a car renderpass
         m_carShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
-        m_carShader.setPolyFlagged(((LibOpenNFS::CarGeometry *) car->carBodyModel.geometry)->m_polygon_flags.empty());
+        m_carShader.setPolyFlagged(((LibOpenNFS::CarGeometry *)car->carBodyModel.geometry)->m_polygon_flags.empty());
         m_carShader.loadCarColor(glm::vec3(1, 1, 1));
         m_carShader.loadLights(lights);
         m_carShader.loadEnvironmentMapTexture();

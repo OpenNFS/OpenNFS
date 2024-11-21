@@ -19,7 +19,7 @@ namespace OpenNFS {
     class Entity : public IAABB {
     public:
         Entity(LibOpenNFS::TrackEntity *track_entity);
-        void Update(); // Update Entity position based on Physics engine
+        void Update() const; // Update Entity position based on Physics engine
         AABB GetAABB() const;
 
         LibOpenNFS::TrackEntity *track_entity;

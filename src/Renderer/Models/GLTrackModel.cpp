@@ -42,7 +42,7 @@ bool GLTrackModel::genBuffers() {
                           GL_FLOAT,  // type
                           GL_FALSE,  // normalized?
                           0,         // stride
-                          (void *) 0 // array buffer offset
+                          (void *) nullptr // array buffer offset
     );
     glEnableVertexAttribArray(0);
     // 2nd attribute buffer : UVs

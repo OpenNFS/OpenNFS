@@ -29,6 +29,6 @@ namespace OpenNFS {
         LibOpenNFS::TrackTextureAsset texture_asset;
 
     private:
-        std::vector<uint8_t> data;
+        std::vector<GLubyte> data;
     };
 } // namespace OpenNFS

@@ -4,8 +4,8 @@ const std::string vertexSrc = "../shaders/SkydomeVertexShader.vert";
 const std::string fragSrc   = "../shaders/SkydomeFragmentShader.frag";
 
 SkydomeShader::SkydomeShader() : BaseShader(vertexSrc, fragSrc) {
-    bindAttributes();
-    getAllUniformLocations();
+    SkydomeShader::bindAttributes();
+    SkydomeShader::getAllUniformLocations();
 }
 
 void SkydomeShader::bindAttributes() {
@@ -47,7 +47,7 @@ void SkydomeShader::loadSunPosition(const std::shared_ptr<GlobalLight> &light) {
     loadVec3(sunPositionLocation, light->position);
 }
 
-void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID, GLuint tint2TextureID) {
+void SkydomeShader::loadTextures(const GLuint clouds1TextureID, const GLuint clouds2TextureID, const GLuint sunTextureID, const GLuint moonTextureID, const GLuint tintTextureID, const GLuint tint2TextureID) {
     loadSampler2D(clouds1TextureLocation, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, clouds1TextureID);
@@ -73,11 +73,11 @@ void SkydomeShader::loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureI
     glBindTexture(GL_TEXTURE_2D, tint2TextureID);
 }
 
-void SkydomeShader::loadWeatherMixFactor(float weatherMixFactor) {
+void SkydomeShader::loadWeatherMixFactor(const float weatherMixFactor) {
     loadFloat(weatherLocation, weatherMixFactor);
 }
 
-void SkydomeShader::loadTime(float time) {
+void SkydomeShader::loadTime(const float time) {
     loadFloat(timeLocation, time);
 }
 

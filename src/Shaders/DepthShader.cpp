@@ -4,8 +4,8 @@ const std::string vertexSrc = "../shaders/DepthVertexShader.vert";
 const std::string fragSrc   = "../shaders/DepthFragmentShader.frag";
 
 DepthShader::DepthShader() : BaseShader(vertexSrc, fragSrc) {
-    bindAttributes();
-    getAllUniformLocations();
+    DepthShader::bindAttributes();
+    DepthShader::getAllUniformLocations();
 }
 
 void DepthShader::bindAttributes() {
@@ -23,7 +23,7 @@ void DepthShader::getAllUniformLocations() {
 void DepthShader::customCleanup() {
 }
 
-void DepthShader::bindTextureArray(GLuint textureArrayID) {
+void DepthShader::bindTextureArray(const GLuint textureArrayID) const {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
     glUniform1i(textureArrayLocation, 0);

@@ -16,7 +16,7 @@ if (APPLE OR WIN32)
 endif ()
 
 #[[Static linking broken under Mac OSX (and UNIX too? + MSVC doesnt support this flag)]]
-if (NOT (APPLE OR UNIX OR MSVC))
+if (NOT (UNIX OR MSVC))
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-static")
 endif ()
 

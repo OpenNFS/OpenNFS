@@ -4,13 +4,13 @@ const std::string vertexSrc = "../shaders/CarVertexShader.vert";
 const std::string fragSrc   = "../shaders/CarFragmentShader.frag";
 
 CarShader::CarShader() : BaseShader(vertexSrc, fragSrc) {
-    bindAttributes();
-    getAllUniformLocations();
+    CarShader::bindAttributes();
+    CarShader::getAllUniformLocations();
     loadEnvMapTextureData();
 }
 
 void CarShader::loadEnvMapTextureData() {
-    std::string filename = "../resources/misc/sky_textures/CHRD.BMP";
+    std::string const filename {"../resources/misc/sky_textures/CHRD.BMP"};
     int width, height;
     envMapTextureID = ImageLoader::LoadImage(filename, &width, &height, GL_CLAMP_TO_EDGE, GL_LINEAR);
 }
@@ -46,11 +46,11 @@ void CarShader::getAllUniformLocations() {
     hasPolyFlagsLocation    = getUniformLocation("polyFlagged");
 }
 
-void CarShader::setMultiTextured(bool multiTextured) {
+void CarShader::setMultiTextured(const bool multiTextured) {
     loadBool(isMultiTexturedLocation, multiTextured);
 }
 
-void CarShader::setPolyFlagged(bool polyFlagged) {
+void CarShader::setPolyFlagged(const bool polyFlagged) {
     loadBool(hasPolyFlagsLocation, polyFlagged);
 }
 
@@ -58,14 +58,14 @@ void CarShader::customCleanup() {
     glDeleteTextures(1, &envMapTextureID);
 }
 
-void CarShader::bindTextureArray(GLuint textureArrayID) {
+void CarShader::bindTextureArray(const GLuint textureArrayID) {
     loadSampler2D(carTextureArrayLocation, 0);
     loadSampler2D(carTextureLocation, 1);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
 }
 
-void CarShader::loadCarTexture(GLuint textureID) {
+void CarShader::loadCarTexture(const GLuint textureID) {
     loadSampler2D(carTextureLocation, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -77,7 +77,7 @@ void CarShader::loadEnvironmentMapTexture() {
     glBindTexture(GL_TEXTURE_2D, envMapTextureID);
 }
 
-void CarShader::loadSpecular(float damper, float reflectivity, float env_reflectivity) {
+void CarShader::loadSpecular(const float damper, const float reflectivity, const float env_reflectivity) {
     loadFloat(shineDamperLocation, damper);
     loadFloat(reflectivityLocation, reflectivity);
     loadFloat(envReflectivityLocation, env_reflectivity);
@@ -106,6 +106,6 @@ void CarShader::loadLights(const std::vector<std::shared_ptr<LibOpenNFS::BaseLig
     }
 }
 
-void CarShader::loadCarColor(glm::vec3 color) {
+void CarShader::loadCarColor(const glm::vec3 color) {
     loadVec3(colourLocation, color);
 }

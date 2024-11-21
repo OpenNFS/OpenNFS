@@ -4,8 +4,8 @@ const std::string vertexSrc = "../shaders/BulletVertexShader.vert";
 const std::string fragSrc   = "../shaders/BulletFragmentShader.frag";
 
 BulletShader::BulletShader() : BaseShader(vertexSrc, fragSrc) {
-    bindAttributes();
-    getAllUniformLocations();
+    BulletShader::bindAttributes();
+    BulletShader::getAllUniformLocations();
 }
 
 void BulletShader::bindAttributes() {

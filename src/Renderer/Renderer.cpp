@@ -5,13 +5,14 @@ namespace OpenNFS {
                        const std::shared_ptr<Logger> &onfsLogger,
                        const std::vector<NfsAssetList> &installedNFS,
                        const std::shared_ptr<Track> &currentTrack,
-                       const std::shared_ptr<BulletDebugDrawer> &debugDrawer) :
-        m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_window(window), m_track(currentTrack), m_debugRenderer(debugDrawer) {
+                       const std::shared_ptr<BulletDebugDrawer> &debugDrawer) : m_logger(onfsLogger),
+        m_nfsAssetList(installedNFS), m_window(window), m_track(currentTrack), m_debugRenderer(debugDrawer) {
         this->_InitialiseIMGUI();
         LOG(DEBUG) << "Renderer Initialised";
     }
 
-    std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName) {
+    std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t const resolutionX, uint32_t const resolutionY,
+                                                     const std::string &windowName) {
         // Initialise GLFW
         CHECK_F(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&Renderer::GlfwError);
@@ -23,7 +24,9 @@ namespace OpenNFS {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
 
-        auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr), [](GLFWwindow *w) { glfwTerminate(); });
+        auto window = std::shared_ptr<GLFWwindow>(
+            glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr),
+            [](GLFWwindow *) { glfwTerminate(); });
 
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window";
@@ -64,15 +67,15 @@ namespace OpenNFS {
         return window;
     }
 
-    bool Renderer::Render(float totalTime,
+    bool Renderer::Render(float const totalTime,
                           const BaseCamera &activeCamera,
                           const HermiteCamera &hermiteCamera,
                           const std::shared_ptr<GlobalLight> &activeLight,
                           ParamData &userParams,
                           AssetData &loadedAssets,
-                          const std::vector<std::shared_ptr<CarAgent>> &racers,
-                          std::optional<Entity *>
-                            targetedEntity) {
+                          const std::vector<std::shared_ptr<CarAgent> > &racers,
+                          std::optional<Entity *> const
+                          targetedEntity) {
         bool newAssetSelected = false;
 
         // Perform frustum culling to get visible entities, from perspective of active camera
@@ -92,14 +95,16 @@ namespace OpenNFS {
         }
 
         // Render the environment
-        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track->textureArrayID, visibleSet.entities, racers);
+        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track->textureArrayID,
+                                   visibleSet.entities, racers);
         m_skyRenderer.Render(activeCamera, activeLight, totalTime);
-        m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleSet.entities, visibleSet.lights, userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
+        m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleSet.entities, visibleSet.lights,
+                               userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
         m_trackRenderer.RenderLights(activeCamera, visibleSet.lights);
         m_debugRenderer.Render(activeCamera);
 
         // Render the Car and racers
-        for (auto &racer : racers) {
+        for (auto &racer: racers) {
             m_carRenderer.Render(racer->vehicle, activeCamera, visibleSet.lights);
         }
 
@@ -122,13 +127,14 @@ namespace OpenNFS {
         return newAssetSelected;
     }
 
-    VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams) {
+    VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const BaseCamera &camera,
+                                      ParamData const &userParams) {
         VisibleSet visibleSet;
 
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks
             auto aabbCollisions = track->cullTree.queryOverlaps(camera.viewFrustum);
-            for (auto &collision : aabbCollisions) {
+            for (auto &collision: aabbCollisions) {
                 visibleSet.entities.emplace_back(std::static_pointer_cast<Entity>(collision));
             }
         } else {
@@ -138,14 +144,15 @@ namespace OpenNFS {
         return visibleSet;
     }
 
-    std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<Track> &track, const BaseCamera &camera, ParamData &userParams) {
+    std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<Track> &track,
+                                                           const BaseCamera &camera, ParamData const &userParams) {
         std::vector<uint32_t> activeTrackBlockIds;
         uint32_t closestBlockID = 0;
 
         float lowestDistance = FLT_MAX;
 
         // Get closest track block to camera position
-        for (auto &trackblock : track->trackBlocks) {
+        for (auto &trackblock: track->trackBlocks) {
             float distance = glm::distance(camera.position, trackblock.position);
             if (distance < lowestDistance) {
                 closestBlockID = trackblock.id;
@@ -158,8 +165,11 @@ namespace OpenNFS {
             activeTrackBlockIds = track->trackBlocks[closestBlockID].neighbourIds;
         } else {
             // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
-            for (auto trackblockIdx = closestBlockID - userParams.blockDrawDistance; trackblockIdx < closestBlockID + userParams.blockDrawDistance; ++trackblockIdx) {
-                uint32_t activeBlock = trackblockIdx < 0 ? ((uint32_t) track->trackBlocks.size() + trackblockIdx) : (trackblockIdx % (uint32_t) track->trackBlocks.size());
+            for (auto trackblockIdx = closestBlockID - userParams.blockDrawDistance;
+                 trackblockIdx < closestBlockID + userParams.blockDrawDistance; ++trackblockIdx) {
+                uint32_t activeBlock = trackblockIdx < 0
+                                           ? ((uint32_t) track->trackBlocks.size() + trackblockIdx)
+                                           : (trackblockIdx % (uint32_t) track->trackBlocks.size());
                 activeTrackBlockIds.emplace_back(activeBlock);
             }
         }
@@ -167,7 +177,7 @@ namespace OpenNFS {
         return activeTrackBlockIds;
     }
 
-    void Renderer::_InitialiseIMGUI() {
+    void Renderer::_InitialiseIMGUI() const {
         ImGui::CreateContext();
         ImGui_ImplGlfw_InitForOpenGL(m_window.get(), true);
         const std::string glVersion = "#version " + ONFS_GL_VERSION;
@@ -175,8 +185,8 @@ namespace OpenNFS {
         ImGui::StyleColorsDark();
     }
 
-    void Renderer::_DrawMetadata(Entity *targetEntity) {
-        TrackEntity *track_entity{targetEntity->track_entity};
+    void Renderer::_DrawMetadata(Entity *const targetEntity) {
+        TrackEntity const *track_entity{targetEntity->track_entity};
         ImGui::Begin("Engine Entity");
         ImGui::Text("%s", get_string(track_entity->type).c_str());
         if (track_entity->entityID != -1) {
@@ -186,59 +196,66 @@ namespace OpenNFS {
 
         // Traverse the loader structures and print pretty with IMGUI
         switch (track_entity->type) {
-        case EntityType::LIGHT: {
-            std::shared_ptr<BaseLight> targetBaseLight = std::make_shared<BaseLight>(*((BaseLight *) targetEntity->track_entity));
-            std::shared_ptr<TrackLight> targetLight    = std::static_pointer_cast<TrackLight>(targetBaseLight);
-            ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z, targetLight->colour.w);
-            ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y, targetLight->attenuation.z, 0.0f);
-            // Colour, type, attenuation, position and NFS unknowns
-            ImGui::ColorEdit4("Light Colour", (float *) &lightColour); // Edit 3 floats representing a color
-            targetLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
-            ImGui::SliderFloat3("Attenuation (A, B, C)", (float *) &lightAttenuation, 0, 10.0f);
-            targetLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
-            ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y, targetLight->position.z);
-            ImGui::Separator();
-            ImGui::Text("NFS Data");
-            ImGui::Text("Type: %hhu", targetLight->type);
-            ImGui::Text("Unknowns: ");
-            ImGui::Text("[1]: %d", targetLight->unknown1);
-            ImGui::Text("[2]: %d", targetLight->unknown2);
-            ImGui::Text("[3]: %d", targetLight->unknown3);
-            ImGui::Text("[4]: %f", targetLight->unknown4);
-        } break;
-        case EntityType::CAR: {
-            /*Car *targetCar = std::get<Car *>(targetEntity->track_entity);
-            ImGui::Text("%s Supported Colours:", targetCar->assetData.metadata.name.c_str());
-            for (auto &carColour : targetCar->assetData.metadata.colours) {
-                ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
-                ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
+            case EntityType::LIGHT: {
+                std::shared_ptr<BaseLight> const targetBaseLight{
+                    std::make_shared<BaseLight>(*((BaseLight *) targetEntity->track_entity))
+                };
+                std::shared_ptr<TrackLight> const targetLight{std::static_pointer_cast<TrackLight>(targetBaseLight)};
+                ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z,
+                                   targetLight->colour.w);
+                ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y,
+                                        targetLight->attenuation.z, 0.0f);
+                // Colour, type, attenuation, position and NFS unknowns
+                ImGui::ColorEdit4("Light Colour", (float *) &lightColour); // Edit 3 floats representing a color
+                targetLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
+                ImGui::SliderFloat3("Attenuation (A, B, C)", (float *) &lightAttenuation, 0, 10.0f);
+                targetLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
+                ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y,
+                            targetLight->position.z);
+                ImGui::Separator();
+                ImGui::Text("NFS Data");
+                ImGui::Text("Type: %hhu", targetLight->type);
+                ImGui::Text("Unknowns: ");
+                ImGui::Text("[1]: %d", targetLight->unknown1);
+                ImGui::Text("[2]: %d", targetLight->unknown2);
+                ImGui::Text("[3]: %d", targetLight->unknown3);
+                ImGui::Text("[4]: %f", targetLight->unknown4);
             }
-            ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f",
-                        targetCar->rangefinderInfo.upDistance,
-                        targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY],
-                        targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT_RAY],
-                        targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT_RAY]);
-            ImGui::Text("Speed %f", targetCar->GetVehicle()->getCurrentSpeedKmHour() / 10.f);
-            // Physics Parameters
-            ImGui::SliderFloat("Engine Force", &targetCar->vehicleState.gEngineForce, 0, 10000.0f);
-            ImGui::SliderFloat("Breaking Force", &targetCar->vehicleState.gBreakingForce, 0, 1000.0f);
-            ImGui::SliderFloat("Max Engine Force", &targetCar->vehicleProperties.maxEngineForce, 0, 10000.0f);
-            ImGui::SliderFloat("Max Breaking Force", &targetCar->vehicleProperties.maxBreakingForce, 0, 1000.0f);
-            ImGui::SliderFloat("Susp Rest.", &targetCar->vehicleProperties.suspensionRestLength, 0, 0.1f); // btScalar(0.030);
-            ImGui::SliderFloat("Susp Stiff.", &targetCar->vehicleProperties.suspensionStiffness, 0, 1000.f);
-            ImGui::SliderFloat("Susp Damp.", &targetCar->vehicleProperties.suspensionDamping, 0, 1000.f);
-            ImGui::SliderFloat("Susp Compr.", &targetCar->vehicleProperties.suspensionCompression, 0, 1000.f);
-            ImGui::SliderFloat("Friction.", &targetCar->vehicleProperties.wheelFriction, 0, 1.f);
-            ImGui::SliderFloat("Roll Infl.", &targetCar->vehicleProperties.rollInfluence, 0, 0.5);
-            ImGui::SliderFloat("Steer Incr.", &targetCar->vehicleProperties.steeringIncrement, 0.f, 0.1f);
-            ImGui::SliderFloat("Steer Clamp", &targetCar->vehicleProperties.steeringClamp, 0.f, 0.5f);
-            ImGui::Text("Roll (deg) x: %f y: %f z: %f",
-                        glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).x * 180 / SIMD_PI,
-                        glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).y * 180 / SIMD_PI,
-                        glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).z * 180 / SIMD_PI);*/
-        } break;
-        default:
             break;
+            case EntityType::CAR: {
+                /*Car *targetCar = std::get<Car *>(targetEntity->track_entity);
+                ImGui::Text("%s Supported Colours:", targetCar->assetData.metadata.name.c_str());
+                for (auto &carColour : targetCar->assetData.metadata.colours) {
+                    ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
+                    ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
+                }
+                ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f",
+                            targetCar->rangefinderInfo.upDistance,
+                            targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY],
+                            targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT_RAY],
+                            targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT_RAY]);
+                ImGui::Text("Speed %f", targetCar->GetVehicle()->getCurrentSpeedKmHour() / 10.f);
+                // Physics Parameters
+                ImGui::SliderFloat("Engine Force", &targetCar->vehicleState.gEngineForce, 0, 10000.0f);
+                ImGui::SliderFloat("Breaking Force", &targetCar->vehicleState.gBreakingForce, 0, 1000.0f);
+                ImGui::SliderFloat("Max Engine Force", &targetCar->vehicleProperties.maxEngineForce, 0, 10000.0f);
+                ImGui::SliderFloat("Max Breaking Force", &targetCar->vehicleProperties.maxBreakingForce, 0, 1000.0f);
+                ImGui::SliderFloat("Susp Rest.", &targetCar->vehicleProperties.suspensionRestLength, 0, 0.1f); // btScalar(0.030);
+                ImGui::SliderFloat("Susp Stiff.", &targetCar->vehicleProperties.suspensionStiffness, 0, 1000.f);
+                ImGui::SliderFloat("Susp Damp.", &targetCar->vehicleProperties.suspensionDamping, 0, 1000.f);
+                ImGui::SliderFloat("Susp Compr.", &targetCar->vehicleProperties.suspensionCompression, 0, 1000.f);
+                ImGui::SliderFloat("Friction.", &targetCar->vehicleProperties.wheelFriction, 0, 1.f);
+                ImGui::SliderFloat("Roll Infl.", &targetCar->vehicleProperties.rollInfluence, 0, 0.5);
+                ImGui::SliderFloat("Steer Incr.", &targetCar->vehicleProperties.steeringIncrement, 0.f, 0.1f);
+                ImGui::SliderFloat("Steer Clamp", &targetCar->vehicleProperties.steeringClamp, 0.f, 0.5f);
+                ImGui::Text("Roll (deg) x: %f y: %f z: %f",
+                            glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).x * 180 / SIMD_PI,
+                            glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).y * 180 / SIMD_PI,
+                            glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).z * 180 / SIMD_PI);*/
+            }
+            break;
+            default:
+                break;
         }
         ImGui::Text("Object Flags: %d", targetEntity->track_entity->flags);
         ImGui::Text("Collideable: %s", targetEntity->track_entity->collideable ? "Yes" : "No");
@@ -246,10 +263,11 @@ namespace OpenNFS {
         ImGui::End();
     }
 
-    void Renderer::_DrawDebugUI(ParamData &userParams, const BaseCamera &camera) {
+    void Renderer::_DrawDebugUI(ParamData &userParams, const BaseCamera &camera) const {
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
-        ImGui::Image(reinterpret_cast<ImTextureID>(m_shadowMapRenderer.m_depthTextureID), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+        ImGui::Image(reinterpret_cast<ImTextureID>(m_shadowMapRenderer.m_depthTextureID), ImVec2(256, 256),
+                     ImVec2(0, 0), ImVec2(1, -1));
         ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
         ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
         ImGui::End();
@@ -257,7 +275,8 @@ namespace OpenNFS {
         m_logger->onScreenLog.Draw("ONFS Log");
         // Draw UI (Tactically)
         ImGui::Text("OpenNFS Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                    ImGui::GetIO().Framerate);
         ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
         ImGui::Checkbox("Frustum Cull", &userParams.useFrustumCull);
         ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);
@@ -289,17 +308,17 @@ namespace OpenNFS {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
-    bool Renderer::_DrawMenuBar(AssetData &loadedAssets) {
+    bool Renderer::_DrawMenuBar(AssetData &loadedAssets) const {
         bool assetChange = false;
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("Track")) {
-                for (auto &installedNFS : m_nfsAssetList) {
+                for (auto &installedNFS: m_nfsAssetList) {
                     if (ImGui::BeginMenu(get_string(installedNFS.tag).c_str())) {
-                        for (auto &track : installedNFS.tracks) {
+                        for (auto &track: installedNFS.tracks) {
                             if (ImGui::MenuItem(track.c_str())) {
                                 loadedAssets.trackTag = installedNFS.tag;
-                                loadedAssets.track    = track;
-                                assetChange           = true;
+                                loadedAssets.track = track;
+                                assetChange = true;
                             }
                         }
                         ImGui::EndMenu();
@@ -308,13 +327,13 @@ namespace OpenNFS {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Car")) {
-                for (auto &installedNFS : m_nfsAssetList) {
+                for (auto &installedNFS: m_nfsAssetList) {
                     if (ImGui::BeginMenu(get_string(installedNFS.tag).c_str())) {
-                        for (auto &car : installedNFS.cars) {
+                        for (auto &car: installedNFS.cars) {
                             if (ImGui::MenuItem(car.c_str())) {
                                 loadedAssets.carTag = installedNFS.tag;
-                                loadedAssets.car    = car;
-                                assetChange         = true;
+                                loadedAssets.car = car;
+                                assetChange = true;
                             }
                         }
                         ImGui::EndMenu();

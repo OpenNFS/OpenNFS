@@ -17,7 +17,7 @@ public:
     BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path);
     BaseShader(const std::string &vertex_file_path, const std::string &geometry_file_path, const std::string &fragment_file_path);
     ~BaseShader();
-    void use();
+    void use() const;
     void unbind();
     void cleanup();
     void HotReload();
@@ -31,8 +31,8 @@ protected:
     void loadVec3(GLint location, glm::vec3 value);
     void loadFloat(GLint location, float value);
     void loadSampler2D(GLint location, GLint textureUnit);
-    GLint getUniformLocation(std::string uniformName);
-    void bindAttribute(GLuint attribute, std::string variableName);
+    [[nodiscard]] GLint getUniformLocation(const std::string &uniformName) const;
+    void bindAttribute(GLuint attribute, const std::string &variableName) const;
     virtual void bindAttributes()         = 0;
     virtual void getAllUniformLocations() = 0;
     virtual void customCleanup()          = 0;
