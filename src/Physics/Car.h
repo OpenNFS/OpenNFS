@@ -88,7 +88,7 @@ namespace OpenNFS {
 
     class Car {
     public:
-        explicit Car(const LibOpenNFS::Car& car);
+        explicit Car(LibOpenNFS::Car  car);
         Car(const LibOpenNFS::Car& car, GLuint textureArrayID); // Multitextured car
         ~Car();
         void Update(btDynamicsWorld* dynamicsWorld);
@@ -98,7 +98,7 @@ namespace OpenNFS {
         void ApplySteeringRight(bool apply);
         void ApplySteeringLeft(bool apply);
         void ApplyAbsoluteSteerAngle(float targetAngle);
-        float GetCarBodyOrientation();
+        float GetCarBodyOrientation() const;
 
         // Physics Engine registration
         void SetVehicle(std::unique_ptr<btRaycastVehicle>&& vehicle) {

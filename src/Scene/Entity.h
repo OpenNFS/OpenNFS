@@ -1,26 +1,21 @@
 #pragma once
 
-#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
-#include <BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <LinearMath/btDefaultMotionState.h>
-#include <unordered_map>
-#include <variant>
 #include <Entities/TrackEntity.h>
 
 #include "../Physics/AABB.h"
 #include "../Physics/IAABB.h"
 #include "../Renderer/Models/GLTrackModel.h"
-#include "../Util/Utils.h"
 
 namespace OpenNFS {
     class Entity : public IAABB {
     public:
-        Entity(LibOpenNFS::TrackEntity *track_entity);
-        void Update(); // Update Entity position based on Physics engine
-        AABB GetAABB() const;
+        explicit Entity(LibOpenNFS::TrackEntity *track_entity);
+        void Update() const; // Update Entity position based on Physics engine
+        AABB GetAABB() const override;
 
         LibOpenNFS::TrackEntity *track_entity;
         std::unique_ptr<GLModel> model;

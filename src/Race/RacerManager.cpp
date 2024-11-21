@@ -6,14 +6,14 @@ namespace OpenNFS {
         this->_SpawnRacers(physicsEngine);
     }
 
-    void RacerManager::Simulate() {
+    void RacerManager::Simulate() const {
         for (auto &racer : racers) {
             racer->Simulate();
         }
     }
 
     // Return a list of trackblocks on which racers directly reside
-    std::vector<uint32_t> RacerManager::GetRacerResidentTrackblocks() {
+    std::vector<uint32_t> RacerManager::GetRacerResidentTrackblocks() const {
         std::unordered_set<uint32_t> activeTrackblockIDs;
 
         for (auto &racer : racers) {
@@ -38,7 +38,7 @@ namespace OpenNFS {
         std::shared_ptr<Car> racerVehicle = CarLoader::LoadCar(NFSVersion::NFS_3, "f355");
         float racerSpawnOffset            = -0.25f;
         for (uint8_t racerIdx = 0; racerIdx < Config::get().nRacers; ++racerIdx) {
-            std::shared_ptr<RacerAgent> racer = std::make_shared<RacerAgent>(racerIdx % 23, racerVehicle, m_currentTrack);
+            auto racer = std::make_shared<RacerAgent>(racerIdx % 23, racerVehicle, m_currentTrack);
             physicsEngine.RegisterVehicle(racer->vehicle);
             racer->ResetToIndexInTrackblock(0, racerIdx + 1, racerSpawnOffset);
             racerSpawnOffset = -racerSpawnOffset;

@@ -11,9 +11,9 @@ namespace OpenNFS {
         void Simulate() override;
 
     private:
-        void _UseNeuralNetAI();
-        void _UsePrimitiveAI();
-        void _FollowTrack();
+        void _UseNeuralNetAI() const;
+        void _UsePrimitiveAI() const;
+        void _FollowTrack() const;
 
         RacerAIMode m_mode    = RacerAIMode::FollowTrack;
         uint32_t m_ticksAlive = 0;

@@ -85,7 +85,7 @@ GLuint* ShaderSet::AddProgram(const std::vector<std::pair<std::string, GLenum>>&
             }
         }
 
-        auto foundShader = mShaders.emplace(std::move(tmpShaderNameType), Shader{}).first;
+        const auto foundShader = mShaders.emplace(std::move(tmpShaderNameType), Shader{}).first;
         if (!foundShader->second.Handle) {
             foundShader->second.Handle = glCreateShader(shaderNameType.second);
             // Mask the hash to 16 bits because some implementations are limited to that number of bits.
@@ -96,11 +96,11 @@ GLuint* ShaderSet::AddProgram(const std::vector<std::pair<std::string, GLenum>>&
     }
 
     // ensure the programs have a canonical order
-    std::sort(begin(shaderNameTypes), end(shaderNameTypes));
-    shaderNameTypes.erase(std::unique(begin(shaderNameTypes), end(shaderNameTypes)), end(shaderNameTypes));
+    std::ranges::sort(shaderNameTypes);
+    shaderNameTypes.erase(std::ranges::unique(shaderNameTypes).begin(), end(shaderNameTypes));
 
     // find the program associated to these shaders (or create it if missing)
-    auto foundProgram = mPrograms.emplace(shaderNameTypes, Program{}).first;
+    const auto foundProgram = mPrograms.emplace(shaderNameTypes, Program{}).first;
     if (!foundProgram->second.InternalHandle) {
         // public handle is 0 until the program has linked without error
         foundProgram->second.PublicHandle = 0;
@@ -278,7 +278,7 @@ void ShaderSet::SetPreambleFile(const std::string& preambleFilename) {
 GLuint* ShaderSet::AddProgramFromExts(const std::vector<std::string>& shaders) {
     std::vector<std::pair<std::string, GLenum>> typedShaders;
     for (const std::string& shader : shaders) {
-        size_t extLoc = shader.find_last_of('.');
+        const size_t extLoc {shader.find_last_of('.')};
         if (extLoc == std::string::npos) {
             return nullptr;
         }

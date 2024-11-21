@@ -13,8 +13,8 @@ namespace OpenNFS {
     public:
         explicit RacerManager() = default;
         RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<Track> &track, PhysicsEngine &physicsEngine);
-        void Simulate();
-        std::vector<uint32_t> GetRacerResidentTrackblocks();
+        void Simulate() const;
+        std::vector<uint32_t> GetRacerResidentTrackblocks() const;
 
         std::vector<std::shared_ptr<CarAgent>> racers;
 

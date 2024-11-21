@@ -26,7 +26,7 @@ namespace OpenNFS {
         m_racerManager = RacerManager(m_playerAgent, m_track, m_physicsEngine);
     }
 
-    void RaceSession::_UpdateCameras(float deltaTime) {
+    void RaceSession::_UpdateCameras(const float deltaTime) {
         if (m_windowStatus == WindowStatus::GAME) {
             switch (m_activeCameraMode) {
             case FOLLOW_CAR:
@@ -48,13 +48,13 @@ namespace OpenNFS {
         if (m_userParams.attachCamToHermite) {
             m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
             return m_hermiteCamera;
-        } else if (m_userParams.attachCamToCar) {
+        }
+        if (m_userParams.attachCamToCar) {
             m_activeCameraMode = CameraMode::FOLLOW_CAR;
             return m_carCamera;
-        } else {
-            m_activeCameraMode = CameraMode::FREE_LOOK;
-            return m_freeCamera;
         }
+        m_activeCameraMode = CameraMode::FREE_LOOK;
+        return m_freeCamera;
     }
 
     AssetData RaceSession::Simulate() {
@@ -62,9 +62,9 @@ namespace OpenNFS {
             // glfwGetTime is called only once, the first time this function is called
             static double lastTime = glfwGetTime();
             // Compute time difference between current and last frame
-            double currentTime = glfwGetTime();
+            const double currentTime = glfwGetTime();
             // Update time between engine ticks
-            auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
+            const auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
 
             // Clear the screen for next input and grab focus
             this->_GetInputsAndClear();

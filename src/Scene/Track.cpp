@@ -35,12 +35,15 @@ namespace OpenNFS {
             for (auto &trackLane : trackBlock.lanes) {
                 entities.emplace_back(std::make_shared<Entity>(&trackLane));
             }
+            for (auto &trackLight : trackBlock.lights) {
+                entities.emplace_back(std::make_shared<Entity>(&trackLight));
+            }
             for (auto &trackGlobalObject : globalObjects) {
                 entities.emplace_back(std::make_shared<Entity>(&trackGlobalObject));
             }
         }
         // Enable all models to ensure GL Buffers are generated for track
-        for (auto &entity : entities) {
+        for (const auto &entity : entities) {
             entity->model->enable();
             entity->model->update();
         }

@@ -12,14 +12,14 @@ namespace OpenNFS {
     class TrackShader : public BaseShader {
     public:
         TrackShader();
-        void bindTextureArray(GLuint textureArrayID);
+        void bindTextureArray(GLuint textureArrayID) const;
         void loadProjectionViewMatrices(const glm::mat4 &projection,
                                         const glm::mat4 &view); // These don't change between Shader binds, better to set state once for a track render pass
         void loadTransformMatrix(const glm::mat4 &transformation);
         void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
         void loadSpecular(float damper, float reflectivity);
         void loadLights(const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights);
-        void loadSpotlight(Spotlight spotlight);
+        void loadSpotlight(const Spotlight &spotlight);
         void loadShadowMapTexture(GLuint shadowMapTextureID);
         void loadAmbientFactor(float ambientFactor);
         void setClassic(bool useClassic);

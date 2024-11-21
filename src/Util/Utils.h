@@ -3,13 +3,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <vector>
-#include <random>
-#include <iostream>
 #include <filesystem>
-#include <fstream>
-#include <string>
-#include <cstdio>
-#include <sstream>
 
 #include <LinearMath/btVector3.h>
 #include <LinearMath/btQuaternion.h>

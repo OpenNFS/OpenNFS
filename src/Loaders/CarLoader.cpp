@@ -7,7 +7,7 @@
 #include "NFS5/NFS5Loader.h"*/
 
 namespace OpenNFS {
-    LibOpenNFS::Car CarLoader::_LoadCarAsset(NFSVersion nfsVersion, const std::string &carName) {
+    LibOpenNFS::Car CarLoader::_LoadCarAsset(const NFSVersion nfsVersion, const std::string &carName) {
         std::stringstream carPath;
         carPath << RESOURCE_PATH << get_string(nfsVersion);
 
@@ -49,11 +49,10 @@ namespace OpenNFS {
         unreachable();
     }
 
-    std::shared_ptr<Car> CarLoader::LoadCar(NFSVersion nfsVersion, const std::string &carName) {
+    std::shared_ptr<Car> CarLoader::LoadCar(const NFSVersion nfsVersion, const std::string &carName) {
         LibOpenNFS::Car carAsset{_LoadCarAsset(nfsVersion, carName)};
         // Vehicle names are only encoded in mesh Asset files for NFS 3 and 4, we must rely upon part of the filename for other titles
-        auto &carAssetName{carAsset.metadata.name};
-        if (carAssetName.empty()) {
+        if (auto &carAssetName{carAsset.metadata.name}; carAssetName.empty()) {
             carAssetName = carName;
         }
         return std::make_shared<Car>(carAsset);

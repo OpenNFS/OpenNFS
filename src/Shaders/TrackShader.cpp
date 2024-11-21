@@ -5,8 +5,8 @@ namespace OpenNFS {
     const std::string fragSrc   = "../shaders/TrackFragmentShader.frag";
 
     TrackShader::TrackShader() : BaseShader(vertexSrc, fragSrc) {
-        bindAttributes();
-        getAllUniformLocations();
+        TrackShader::bindAttributes();
+        TrackShader::getAllUniformLocations();
     }
 
     void TrackShader::bindAttributes() {
@@ -45,7 +45,7 @@ namespace OpenNFS {
     void TrackShader::customCleanup() {
     }
 
-    void TrackShader::bindTextureArray(GLuint textureArrayID) {
+    void TrackShader::bindTextureArray(const GLuint textureArrayID) const {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
         glUniform1i(trackTextureArrayLocation, 0);
@@ -65,18 +65,18 @@ namespace OpenNFS {
         }
     }
 
-    void TrackShader::loadSpotlight(Spotlight spotlight) {
+    void TrackShader::loadSpotlight(const Spotlight &spotlight) {
         loadVec3(spotlightPositionLocation, spotlight.position);
         loadVec3(spotlightColourLocation, spotlight.colour);
         loadVec3(spotlightDirectionLocation, spotlight.direction);
         loadFloat(spotlightCutOffLocation, spotlight.cutOff);
     }
 
-    void TrackShader::setClassic(bool useClassic) {
+    void TrackShader::setClassic(const bool useClassic) {
         loadBool(useClassicLocation, useClassic);
     }
 
-    void TrackShader::loadSpecular(float damper, float reflectivity) {
+    void TrackShader::loadSpecular(const float damper, const float reflectivity) {
         loadFloat(shineDamperLocation, damper);
         loadFloat(reflectivityLocation, reflectivity);
     }
@@ -94,13 +94,13 @@ namespace OpenNFS {
         loadMat4(lightSpaceMatrixLocation, &lightSpaceMatrix[0][0]);
     }
 
-    void TrackShader::loadShadowMapTexture(GLuint shadowMapTextureID) {
+    void TrackShader::loadShadowMapTexture(const GLuint shadowMapTextureID) {
         loadSampler2D(shadowMapTextureLocation, 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, shadowMapTextureID);
     }
 
-    void TrackShader::loadAmbientFactor(float ambientFactor) {
+    void TrackShader::loadAmbientFactor(const float ambientFactor) {
         loadFloat(ambientFactorLocation, ambientFactor);
     }
 

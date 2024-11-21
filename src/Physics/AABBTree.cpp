@@ -3,7 +3,7 @@
 #include <cassert>
 #include <stack>
 
-AABBTree::AABBTree(unsigned initialSize) : _rootNodeIndex(AABB_NULL_NODE), _allocatedNodeCount(0), _nextFreeNodeIndex(0), _nodeCapacity(initialSize), _growthSize(initialSize) {
+AABBTree::AABBTree(const unsigned initialSize) : _rootNodeIndex(AABB_NULL_NODE), _allocatedNodeCount(0), _nextFreeNodeIndex(0), _nodeCapacity(initialSize), _growthSize(initialSize) {
     _nodes.resize(initialSize);
     for (unsigned nodeIndex = 0; nodeIndex < initialSize; nodeIndex++) {
         AABBNode& node     = _nodes[nodeIndex];
@@ -41,7 +41,7 @@ unsigned AABBTree::allocateNode() {
     return nodeIndex;
 }
 
-void AABBTree::deallocateNode(unsigned nodeIndex) {
+void AABBTree::deallocateNode(const unsigned nodeIndex) {
     AABBNode& deallocatedNode     = _nodes[nodeIndex];
     deallocatedNode.nextNodeIndex = _nextFreeNodeIndex;
     _nextFreeNodeIndex            = nodeIndex;
@@ -189,7 +189,7 @@ void AABBTree::insertLeaf(unsigned leafNodeIndex) {
     fixUpwardsTree(treeNodeIndex);
 }
 
-void AABBTree::removeLeaf(unsigned leafNodeIndex) {
+void AABBTree::removeLeaf(const unsigned leafNodeIndex) {
     // if the leaf is the root then we can just clear the root pointer and return
     if (leafNodeIndex == _rootNodeIndex) {
         _rootNodeIndex = AABB_NULL_NODE;
@@ -227,7 +227,7 @@ void AABBTree::removeLeaf(unsigned leafNodeIndex) {
     leafNode.parentNodeIndex = AABB_NULL_NODE;
 }
 
-void AABBTree::updateLeaf(unsigned leafNodeIndex, const AABB& newAaab) {
+void AABBTree::updateLeaf(const unsigned leafNodeIndex, const AABB& newAaab) {
     AABBNode& node = _nodes[leafNodeIndex];
 
     // if the node contains the new aabb then we just leave things

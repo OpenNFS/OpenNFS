@@ -51,10 +51,10 @@ typedef struct tagCP_BITMAPINFO {
 // Temporary, until LibOpenNFS PSH support
 struct PSH {
     struct HEADER {
-        char header[4];        //  "SHPP"
-        uint32_t length;       // Inclusive Length of the PSH file
+        char header[4]; //  "SHPP"
+        uint32_t length; // Inclusive Length of the PSH file
         uint32_t nDirectories; // Number of directory entries
-        char chk[4];           // "GIMX"
+        char chk[4]; // "GIMX"
     };
 
     struct DIR_ENTRY {
@@ -63,7 +63,8 @@ struct PSH {
     };
 
     struct IMAGE_HEADER {
-        uint8_t imageType; // Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0 The bottom 2 bits of the image type byte specify
+        uint8_t imageType;
+        // Image type: Observed values are 0x40, 0x42, 0x43, and 0xC0 The bottom 2 bits of the image type byte specify
         // the bit depth of the image: 0 - 4-bit indexed colour 2 - 16-bit direct colour 3 - 24-bit direct colour
         uint8_t unknown[3];
         uint16_t width;
@@ -73,10 +74,10 @@ struct PSH {
 
     struct PALETTE_HEADER {
         uint32_t unknown;
-        uint16_t paletteWidth;    // Always 16
-        uint16_t paletteHeight;   // Always 1
+        uint16_t paletteWidth; // Always 16
+        uint16_t paletteHeight; // Always 1
         uint16_t nPaletteEntries; // Always 16
-        uint16_t unknown2[3];     // [0] always 0 [1] always 0 [2] often 240, sometimes 0
+        uint16_t unknown2[3]; // [0] always 0 [1] always 0 [2] often 240, sometimes 0
     };
 };
 
@@ -84,9 +85,16 @@ class ImageLoader {
 private:
 public:
     explicit ImageLoader();
+
     ~ImageLoader();
+
     static GLuint LoadImage(const std::string &imagePath, int *width, int *height, GLint wrapParam, GLint sampleParam);
-    static bool SaveImage(const char *szPathName, void *lpBits, uint16_t w, uint16_t h);
-    static bool LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
-    static bool LoadBmpWithAlpha(const char *fname, const char *afname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_);
+
+    static bool SaveImage(const char *szPathName, const void *lpBits, uint16_t w, uint16_t h);
+
+    static bool LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_,
+                                   uint8_t alphaColour);
+
+    static bool LoadBmpWithAlpha(const char *fname, const char *afname, std::vector<uint8_t> &bits, GLsizei *width_,
+                                 GLsizei *height_);
 };

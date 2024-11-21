@@ -1,12 +1,13 @@
 #include "TrackLoader.h"
 
+#include "../Util/Utils.h"
 #include "NFS3/NFS3Loader.h"
 #include "NFS2/NFS2Loader.h"
 /*#include "NFS4/PC/NFS4Loader.h"
 #include "NFS4/PS1/NFS4PS1Loader.h"*/
 
 namespace OpenNFS {
-    std::shared_ptr<Track> TrackLoader::Load(NFSVersion trackVersion, const std::string &trackName) {
+    std::shared_ptr<Track> TrackLoader::Load(NFSVersion const trackVersion, const std::string &trackName) {
         std::stringstream trackPath;
         trackPath << RESOURCE_PATH << get_string(trackVersion);
 

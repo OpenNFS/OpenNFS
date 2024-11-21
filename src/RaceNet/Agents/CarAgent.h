@@ -14,7 +14,7 @@ namespace OpenNFS {
     public:
         CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<OpenNFS::Track> &track);
         void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset);
-        void ResetToVroad(int vroadIndex, float offset);
+        void ResetToVroad(int vroadIndex, float offset) const;
         virtual void Simulate() = 0;
 
         std::string name;
