@@ -4,7 +4,6 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <imgui.h>
 #include <memory>
 
 #include "../Physics/Frustum.h"
@@ -40,4 +39,4 @@ namespace OpenNFS {
         float m_speed = 3.0f; // 3 units / second
         float m_mouseSpeedDamper = 0.005f;
     };
-};
+}

@@ -1,16 +1,18 @@
 #include "CarAgent.h"
 
+#include "../../Physics/Car.h"
+
 namespace OpenNFS {
     CarAgent::CarAgent(AgentType const agentType, const std::shared_ptr<Car> &car,
                        const std::shared_ptr<Track> &track) : vehicle(car), m_track(track), m_agentType(agentType) {
     }
 
-    void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int const posIndex, float const offset) {
+    void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int const posIndex, float const offset) const {
         CHECK_F(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
         // Can move this by trk[trackBlockIndex].nodePositions
-        uint32_t nodeNumber = m_track->trackBlocks[trackBlockIndex].virtualRoadStartIndex;
-        uint32_t nPositions = m_track->trackBlocks[trackBlockIndex].nVirtualRoadPositions;
+        uint32_t nodeNumber {m_track->trackBlocks[trackBlockIndex].virtualRoadStartIndex};
+        uint32_t nPositions {m_track->trackBlocks[trackBlockIndex].nVirtualRoadPositions};
 
         if (posIndex <= nPositions) {
             nodeNumber += posIndex;

@@ -35,9 +35,9 @@ namespace OpenNFS {
             for (auto &trackLane : trackBlock.lanes) {
                 entities.emplace_back(std::make_shared<Entity>(trackLane));
             }
-            //for (auto &trackLight : trackBlock.lights) {
-            //    entities.emplace_back(std::make_shared<Entity>(&trackLight));
-            //}
+            for (auto &trackLight : trackBlock.lights) {
+                entities.emplace_back(std::make_shared<Entity>(trackLight));
+            }
             for (auto &trackGlobalObject : globalObjects) {
                 entities.emplace_back(std::make_shared<Entity>(trackGlobalObject));
             }

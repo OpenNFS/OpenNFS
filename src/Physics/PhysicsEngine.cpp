@@ -13,14 +13,6 @@ namespace OpenNFS {
         glm::vec4 lRayEnd_NDC(((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
                               ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f, 0.0, 1.0f);
 
-        // The Projection matrix goes from Camera Space to NDC.
-        // So inverse(ProjectionMatrix) goes from NDC to Camera Space.
-        glm::mat4 InverseProjectionMatrix = glm::inverse(ProjectionMatrix);
-
-        // The View Matrix goes from World Space to Camera Space.
-        // So inverse(ViewMatrix) goes from Camera Space to World Space.
-        glm::mat4 InverseViewMatrix = glm::inverse(ViewMatrix);
-
         // Faster way (just one inverse)
         glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
         glm::vec4 lRayStart_world = M * lRayStart_NDC;

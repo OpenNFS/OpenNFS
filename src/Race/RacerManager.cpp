@@ -1,5 +1,7 @@
 #include "RacerManager.h"
 
+#include "../Loaders/CarLoader.h"
+
 namespace OpenNFS {
     RacerManager::RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<Track> &track, PhysicsEngine &physicsEngine) : m_currentTrack(track) {
         this->_InitialisePlayerVehicle(playerAgent, physicsEngine);
@@ -20,7 +22,7 @@ namespace OpenNFS {
             activeTrackblockIDs.insert(racer->nearestTrackblockID);
         }
 
-        return std::vector<uint32_t>(activeTrackblockIDs.begin(), activeTrackblockIDs.end());
+        return std::vector(activeTrackblockIDs.begin(), activeTrackblockIDs.end());
     }
 
     // Reset player character to start and add the player vehicle into the list of racers

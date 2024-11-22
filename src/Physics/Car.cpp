@@ -125,16 +125,16 @@ namespace OpenNFS {
         btTransform trans;
         m_vehicleMotionState->getWorldTransform(trans);
         carBodyModel.position = Utils::bulletToGlm(trans.getOrigin()) + (
-                                              carBodyModel.initialPosition * glm::inverse(
-                                                  Utils::bulletToGlm(trans.getRotation())));
+                                    carBodyModel.initialPosition * glm::inverse(
+                                        Utils::bulletToGlm(trans.getRotation())));
         carBodyModel.orientation = Utils::bulletToGlm(trans.getRotation());
         carBodyModel.UpdateMatrices();
 
         // Might as well apply the body transform to the Miscellaneous models
         for (auto &miscModel: miscModels) {
             miscModel.position = Utils::bulletToGlm(trans.getOrigin()) + (
-                                               miscModel.initialPosition * glm::inverse(
-                                                   Utils::bulletToGlm(trans.getRotation())));
+                                     miscModel.initialPosition * glm::inverse(
+                                         Utils::bulletToGlm(trans.getRotation())));
             miscModel.orientation = Utils::bulletToGlm(trans.getRotation());
             miscModel.UpdateMatrices();
         }
@@ -152,7 +152,7 @@ namespace OpenNFS {
         for (int wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx) {
             m_vehicle->updateWheelTransform(wheelIdx, true);
             trans = m_vehicle->getWheelInfo(wheelIdx).m_worldTransform;
-            GLCarModel *wheelToUpdate {nullptr};
+            GLCarModel *wheelToUpdate{nullptr};
             switch (wheelIdx) {
                 case FRONT_LEFT:
                     wheelToUpdate = &leftFrontWheelModel;
@@ -199,13 +199,13 @@ namespace OpenNFS {
         }
 
         // Set front wheels steering value
-        m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, Wheels::FRONT_LEFT);
-        m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, Wheels::FRONT_RIGHT);
+        m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, FRONT_LEFT);
+        m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, FRONT_RIGHT);
         // Apply engine force to rear wheels (RWD only)
-        m_vehicle->applyEngineForce(vehicleState.gEngineForce, Wheels::REAR_LEFT);
-        m_vehicle->setBrake(vehicleState.gBreakingForce, Wheels::REAR_LEFT);
-        m_vehicle->applyEngineForce(vehicleState.gEngineForce, Wheels::REAR_RIGHT);
-        m_vehicle->setBrake(vehicleState.gBreakingForce, Wheels::REAR_RIGHT);
+        m_vehicle->applyEngineForce(vehicleState.gEngineForce, REAR_LEFT);
+        m_vehicle->setBrake(vehicleState.gBreakingForce, REAR_LEFT);
+        m_vehicle->applyEngineForce(vehicleState.gEngineForce, REAR_RIGHT);
+        m_vehicle->setBrake(vehicleState.gBreakingForce, REAR_RIGHT);
     }
 
     void Car::_LoadTextures() {
@@ -241,9 +241,9 @@ namespace OpenNFS {
     void Car::_GenPhysicsModel() {
         // Get the size of a wheel
         auto [wheelMinVertex, wheelMaxVertex] = Utils::GenDimensions(leftFrontWheelModel.m_vertices);
-        glm::vec3 wheelSize = glm::vec3((wheelMaxVertex.x - wheelMinVertex.x) / 2,
-                                        (wheelMaxVertex.y - wheelMinVertex.y) / 2,
-                                        (wheelMaxVertex.z - wheelMinVertex.z) / 2);
+        auto wheelSize = glm::vec3((wheelMaxVertex.x - wheelMinVertex.x) / 2,
+                                   (wheelMaxVertex.y - wheelMinVertex.y) / 2,
+                                   (wheelMaxVertex.z - wheelMinVertex.z) / 2);
         vehicleProperties.wheelRadius = wheelSize.z;
         vehicleProperties.wheelWidth = wheelSize.x;
 
@@ -251,8 +251,7 @@ namespace OpenNFS {
         auto [bodyMinVertex, bodyMaxVertex] = Utils::GenDimensions(carBodyModel.m_vertices);
         // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
         bodyMinVertex.y += 0.04f;
-        btCollisionShape *chassisShape = new btBoxShape(
-            Utils::glmToBullet((bodyMaxVertex - bodyMinVertex) / 2.f));
+        btCollisionShape *chassisShape = new btBoxShape(Utils::glmToBullet((bodyMaxVertex - bodyMinVertex) / 2.f));
         m_collisionShapes.push_back(chassisShape);
 
         auto *compound = new btCompoundShape();

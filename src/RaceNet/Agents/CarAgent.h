@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../../Loaders/CarLoader.h"
 #include "../../Scene/Track.h"
 
 namespace OpenNFS {
+    class Car;
+
     enum AgentType : uint8_t {
         TRAINING = 0,
         RACING,
@@ -12,8 +13,10 @@ namespace OpenNFS {
 
     class CarAgent {
     public:
-        CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<OpenNFS::Track> &track);
-        void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset);
+        virtual ~CarAgent() = default;
+
+        CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &track);
+        void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset) const;
         void ResetToVroad(int vroadIndex, float offset) const;
         virtual void Simulate() = 0;
 

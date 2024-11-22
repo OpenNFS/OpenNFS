@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include <backends/imgui_impl_opengl3.h>
+
 namespace OpenNFS {
     Renderer::Renderer(const std::shared_ptr<GLFWwindow> &window,
                        const std::shared_ptr<Logger> &onfsLogger,
@@ -33,7 +35,7 @@ namespace OpenNFS {
             glfwTerminate();
         }
         glfwMakeContextCurrent(window.get());
-        glfwSetWindowSizeCallback(window.get(), Renderer::WindowSizeCallback);
+        glfwSetWindowSizeCallback(window.get(), WindowSizeCallback);
 
         // Initialize GLEW
         glewExperimental = GL_TRUE; // Needed for core profile
@@ -147,26 +149,27 @@ namespace OpenNFS {
     std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<Track> &track,
                                                            const BaseCamera &camera, ParamData const &userParams) {
         std::vector<uint32_t> activeTrackBlockIds;
-        uint32_t closestBlockID = 0;
+        uint32_t nearestBlockID = 0;
 
         float lowestDistance = FLT_MAX;
 
         // Get closest track block to camera position
         for (auto &trackblock: track->trackBlocks) {
-            float distance = glm::distance(camera.position, trackblock.position);
+            const float distance = glm::distance(camera.position, trackblock.position);
             if (distance < lowestDistance) {
-                closestBlockID = trackblock.id;
+                nearestBlockID = trackblock.id;
                 lowestDistance = distance;
             }
         }
 
-        if (false) {
-            // Use the provided neighbour data to work out which blocks to render
-            activeTrackBlockIds = track->trackBlocks[closestBlockID].neighbourIds;
+        TrackBlock const& nearestTrackBlock {track->trackBlocks[nearestBlockID]};
+        // Use the provided neighbour data to work out which blocks to render if there is any
+        if (nearestTrackBlock.neighbourIds.empty()) {
+            activeTrackBlockIds = nearestTrackBlock.neighbourIds;
         } else {
             // Use a draw distance value to return closestBlock +- drawDistance inclusive blocks
-            for (auto trackblockIdx = closestBlockID - userParams.blockDrawDistance;
-                 trackblockIdx < closestBlockID + userParams.blockDrawDistance; ++trackblockIdx) {
+            for (int32_t trackblockIdx = nearestBlockID - userParams.blockDrawDistance;
+                 trackblockIdx < nearestBlockID + userParams.blockDrawDistance; ++trackblockIdx) {
                 uint32_t activeBlock = trackblockIdx < 0
                                            ? ((uint32_t) track->trackBlocks.size() + trackblockIdx)
                                            : (trackblockIdx % (uint32_t) track->trackBlocks.size());
@@ -197,7 +200,7 @@ namespace OpenNFS {
         // Traverse the loader structures and print pretty with IMGUI
         switch (track_entity->type) {
             case EntityType::LIGHT: {
-                auto targetBaseLight = dynamic_cast<BaseLight *>(targetEntity);
+                const auto targetBaseLight = dynamic_cast<BaseLight *>(targetEntity);
                 ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z,
                                    targetBaseLight->colour.w);
                 ImVec4 lightAttenuation(targetBaseLight->attenuation.x, targetBaseLight->attenuation.y,
@@ -288,7 +291,6 @@ namespace OpenNFS {
         ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, m_track->nBlocks / 2);
         ImGui::NewLine();
         ImGui::ColorEdit3("Sun Atten", (float *) &userParams.sunAttenuation); // Edit 3 floats representing a color
-
         ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
 

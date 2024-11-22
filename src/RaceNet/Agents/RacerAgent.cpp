@@ -1,5 +1,6 @@
 #include "RacerAgent.h"
 
+#include "../../Physics/Car.h"
 #include <glm/gtx/vector_angle.hpp>
 
 namespace OpenNFS {

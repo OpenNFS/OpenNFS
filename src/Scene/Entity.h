@@ -14,6 +14,7 @@ namespace OpenNFS {
     class Entity final : public LibOpenNFS::TrackEntity, public IAABB, public GLTrackModel {
     public:
         explicit Entity(TrackEntity const &track_entity);
+
         void Update(); // Update Entity position based on Physics engine
         AABB GetAABB() const override;
 

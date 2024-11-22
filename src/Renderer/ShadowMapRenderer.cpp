@@ -1,5 +1,7 @@
 #include "ShadowMapRenderer.h"
 
+#include "../Physics/Car.h"
+
 namespace OpenNFS {
     ShadowMapRenderer::ShadowMapRenderer() {
         // Configure depth map FBO
@@ -34,7 +36,6 @@ namespace OpenNFS {
         m_depthShader.loadLightSpaceMatrix(light->lightSpaceMatrix);
         m_depthShader.bindTextureArray(trackTextureArrayID);
 
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, m_fboDepthMap);
         glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -67,7 +68,6 @@ namespace OpenNFS {
             racer->vehicle->carBodyModel.Render();
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, Config::get().resX, Config::get().resY);
         m_depthShader.unbind();
         m_depthShader.HotReload();
     }

@@ -90,6 +90,9 @@ namespace OpenNFS {
         uint32_t resY{};
         /* -- Tool Params -- */
         bool renameAssets{};
+        // Easy state pass-around
+        uint32_t windowSizeX{};
+        uint32_t windowSizeY{};
 
     private:
         Config() = default;

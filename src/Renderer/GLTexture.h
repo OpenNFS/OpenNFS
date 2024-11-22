@@ -1,16 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <map>
-#include <string>
-#include <set>
-#include <sstream>
-#include <iostream>
-#include <bitset>
-#include <variant>
-#include <filesystem>
 #include <Entities/TrackTextureAsset.h>
-#include <LibOpenNFS.h>
 
 #include "../Util/ImageLoader.h"
 

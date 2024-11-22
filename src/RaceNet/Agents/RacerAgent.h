@@ -5,7 +5,7 @@
 namespace OpenNFS {
     enum RacerAIMode { NeuralNet, Primitive, FollowTrack };
 
-    class RacerAgent : public CarAgent {
+    class RacerAgent final : public CarAgent {
     public:
         RacerAgent(uint16_t racerID, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &raceTrack);
         void Simulate() override;
@@ -15,7 +15,7 @@ namespace OpenNFS {
         void _UsePrimitiveAI() const;
         void _FollowTrack() const;
 
-        RacerAIMode m_mode    = RacerAIMode::FollowTrack;
+        RacerAIMode m_mode    = FollowTrack;
         uint32_t m_ticksAlive = 0;
     };
 } // namespace OpenNFS

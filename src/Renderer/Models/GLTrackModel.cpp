@@ -31,7 +31,7 @@ void GLTrackModel::Render() {
 }
 
 bool GLTrackModel::GenBuffers() {
-    auto trackGeometry = dynamic_cast<LibOpenNFS::TrackGeometry*>(this);
+    auto trackGeometry = dynamic_cast<LibOpenNFS::TrackGeometry *>(this);
 
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);

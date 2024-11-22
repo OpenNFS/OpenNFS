@@ -1,24 +1,16 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <GL/glew.h>
 
-#include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
-#include "../Camera/CarCamera.h"
 #include "../Scene/Entity.h"
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
-#include "../Physics/PhysicsEngine.h"
 #include "../RaceNet/Agents/CarAgent.h"
 #include "../Util/Logger.h"
 #include "../Config.h"
 
-#include "HermiteCurve.h"
 #include "CarRenderer.h"
 #include "TrackRenderer.h"
 #include "SkyRenderer.h"
@@ -47,8 +39,8 @@ namespace OpenNFS {
         }
 
         static void WindowSizeCallback(GLFWwindow *window, int width, int height) {
-            Config::get().resX = width;
-            Config::get().resY = height;
+            Config::get().windowSizeX = width;
+            Config::get().windowSizeY = height;
         }
 
         static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY,

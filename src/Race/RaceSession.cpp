@@ -1,6 +1,7 @@
 #include "RaceSession.h"
 
 #include <imgui.h>
+#include <backends/imgui_impl_opengl3.h>
 
 namespace OpenNFS {
     RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,

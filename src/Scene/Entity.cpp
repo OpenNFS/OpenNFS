@@ -7,7 +7,7 @@
 
 namespace OpenNFS {
     Entity::Entity(TrackEntity const &track_entity) : TrackEntity(track_entity),
-                                                GLTrackModel(geometry) {
+                                                      GLTrackModel(geometry) {
         this->_GenCollisionMesh();
         this->_GenBoundingBox();
     }
@@ -17,36 +17,16 @@ namespace OpenNFS {
         auto orientation = glm::quat(0, 0, 0, 1);
 
         switch (type) {
+            case LibOpenNFS::EntityType::LIGHT:
             case LibOpenNFS::EntityType::LANE:
                 // Not collideable
                 break;
-            case LibOpenNFS::EntityType::LIGHT: {
-                // Light mesh billboarded, generated (Bullet) AABB too large. Divide verts by scale factor to make smaller.
-                //center = baseLight->position;
-                float lightBoundScaleF = 10.f;
-                for (int i = 0; i < m_vertices.size() - 2; i += 3) {
-                    auto triangle = glm::vec3((m_vertices[i].x / lightBoundScaleF),
-                                                   (m_vertices[i].y / lightBoundScaleF),
-                                                   (m_vertices[i].z / lightBoundScaleF));
-                    auto triangle1 = glm::vec3((m_vertices[i + 1].x / lightBoundScaleF),
-                                                    (m_vertices[i + 1].y / lightBoundScaleF), (m_vertices[i + 1].z /
-                                                        lightBoundScaleF));
-                    auto triangle2 = glm::vec3((m_vertices[i + 2].x / lightBoundScaleF),
-                                                    (m_vertices[i + 2].y / lightBoundScaleF), (m_vertices[i + 2].z
-                                                        / lightBoundScaleF));
-                    m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1),
-                                                Utils::glmToBullet(triangle2), false);
-                }
-                m_collisionShape = std::make_unique<btBvhTriangleMeshShape>(&m_collisionMesh, true, true);
-            }
-            break;
             case LibOpenNFS::EntityType::ROAD:
             case LibOpenNFS::EntityType::GLOBAL:
             case LibOpenNFS::EntityType::XOBJ:
             case LibOpenNFS::EntityType::OBJ_POLY: {
                 const std::vector<glm::vec3> &vertices = m_vertices;
                 center = initialPosition;
-                orientation = orientation;
                 if (dynamic) {
                     // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
                     auto mesh = std::make_unique<btTriangleMesh>();
@@ -72,8 +52,7 @@ namespace OpenNFS {
             }
             break;
             default:
-                CHECK_F(false, "Unable to generate a collision box for entity type: %s",
-                        LibOpenNFS::get_string(type).c_str());
+                CHECK_F(false, "Unable to generate a collision box for entity type: %s", LibOpenNFS::get_string(type).c_str());
                 return;
         }
 
@@ -88,7 +67,7 @@ namespace OpenNFS {
         rigidBody = std::make_unique<btRigidBody>(
             btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState.get(), m_collisionShape.get(),
                                                      localInertia));
-        rigidBody->setFriction(btScalar(1.f));
+        rigidBody->setFriction(1.f);
         rigidBody->setUserPointer(this);
     }
 
@@ -105,12 +84,8 @@ namespace OpenNFS {
                 return;
             }
             case LibOpenNFS::EntityType::LIGHT: {
-                // For now, only tracklights will have entities created
-                const auto *baseLight = dynamic_cast<LibOpenNFS::BaseLight *>(this);
-                CHECK_F(baseLight->type == LibOpenNFS::LightType::TRACK_LIGHT,
-                        "Not ready to handle other light types at entity creation time");
                 constexpr DimensionData meshDimensions{glm::vec3(0, 0, 0), glm::vec3(1, 1, 1)};
-                m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
+                m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, position);
                 return;
             }
             default:
