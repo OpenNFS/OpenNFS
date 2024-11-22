@@ -23,9 +23,9 @@ namespace OpenNFS {
         float const theta   {(target_car->GetCarBodyOrientation() + m_angleAroundCar)};
         float const offsetX {horizDistance * sin(glm::radians(theta))};
         float const offsetZ {horizDistance * cos(glm::radians(theta))};
-        position.x    = target_car->carBodyModel.geometry->position.x - offsetX;
-        position.z    = target_car->carBodyModel.geometry->position.z - offsetZ;
-        position.y    = target_car->carBodyModel.geometry->position.y + vertDistance;
+        position.x    = target_car->carBodyModel.position.x - offsetX;
+        position.z    = target_car->carBodyModel.position.z - offsetZ;
+        position.y    = target_car->carBodyModel.position.y + vertDistance;
     }
 
     void CarCamera::_CalculateZoom() {

@@ -47,12 +47,12 @@ namespace OpenNFS {
     const uint32_t DEFAULT_Y_RESOLUTION = 1600;
     const float DEFAULT_FOV = 55.f;
     // Shadow Map Resolution
-    const unsigned int SHADOW_WIDTH = 2048; // Resolution of shadow map
-    const unsigned int SHADOW_HEIGHT = 2048;
+    const uint32_t SHADOW_WIDTH = 2048; // Resolution of shadow map
+    const uint32_t SHADOW_HEIGHT = 2048;
     // Lighting parameters - These should be adjusted in tandem with ShaderPreamble MAX_CONTRIB limits
-    const int LIGHTS_PER_NB_BLOCK = 3;
+    const uint32_t LIGHTS_PER_NB_BLOCK = 3;
     // Number of lights per neighbouring trackblock to contribute to current trackblock lighting
-    const int NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks to search for lights
+    const uint32_t NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks to search for lights
 
     // ----- Defaults -----
     const std::string DEFAULT_CAR = "corv";

@@ -59,7 +59,7 @@ namespace OpenNFS {
     }
 
     void DebugRenderer::DrawCarRaycasts(const std::shared_ptr<Car> &car) const {
-        glm::vec3 const carBodyPosition{car->carBodyModel.geometry->position};
+        glm::vec3 const carBodyPosition{car->carBodyModel.position};
         for (uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx) {
             m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition),
                                           Utils::glmToBullet(car->rangefinderInfo.castPositions[rangeIdx]),

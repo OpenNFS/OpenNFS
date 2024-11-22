@@ -115,7 +115,7 @@ namespace OpenNFS {
     }
 
     float Car::GetCarBodyOrientation() const {
-        glm::quat const orientation{carBodyModel.geometry->orientation};
+        glm::quat const orientation{carBodyModel.orientation};
         return glm::degrees(
             atan2(2 * orientation.y * orientation.w - 2 * orientation.x * orientation.z,
                   1 - 2 * orientation.y * orientation.y - 2 * orientation.z * orientation.z));
@@ -124,19 +124,19 @@ namespace OpenNFS {
     void Car::_UpdateMeshesToMatchPhysics() {
         btTransform trans;
         m_vehicleMotionState->getWorldTransform(trans);
-        carBodyModel.geometry->position = Utils::bulletToGlm(trans.getOrigin()) + (
-                                              carBodyModel.geometry->initialPosition * glm::inverse(
+        carBodyModel.position = Utils::bulletToGlm(trans.getOrigin()) + (
+                                              carBodyModel.initialPosition * glm::inverse(
                                                   Utils::bulletToGlm(trans.getRotation())));
-        carBodyModel.geometry->orientation = Utils::bulletToGlm(trans.getRotation());
-        carBodyModel.update();
+        carBodyModel.orientation = Utils::bulletToGlm(trans.getRotation());
+        carBodyModel.UpdateMatrices();
 
         // Might as well apply the body transform to the Miscellaneous models
         for (auto &miscModel: miscModels) {
-            miscModel.geometry->position = Utils::bulletToGlm(trans.getOrigin()) + (
-                                               miscModel.geometry->initialPosition * glm::inverse(
+            miscModel.position = Utils::bulletToGlm(trans.getOrigin()) + (
+                                               miscModel.initialPosition * glm::inverse(
                                                    Utils::bulletToGlm(trans.getRotation())));
-            miscModel.geometry->orientation = Utils::bulletToGlm(trans.getRotation());
-            miscModel.update();
+            miscModel.orientation = Utils::bulletToGlm(trans.getRotation());
+            miscModel.UpdateMatrices();
         }
 
         // Update headlight direction vectors to match car body
@@ -152,31 +152,27 @@ namespace OpenNFS {
         for (int wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx) {
             m_vehicle->updateWheelTransform(wheelIdx, true);
             trans = m_vehicle->getWheelInfo(wheelIdx).m_worldTransform;
+            GLCarModel *wheelToUpdate {nullptr};
             switch (wheelIdx) {
-                case Wheels::FRONT_LEFT:
-                    leftFrontWheelModel.geometry->position = Utils::bulletToGlm(trans.getOrigin());
-                    leftFrontWheelModel.geometry->orientation = Utils::bulletToGlm(trans.getRotation());
-                    leftFrontWheelModel.update();
+                case FRONT_LEFT:
+                    wheelToUpdate = &leftFrontWheelModel;
                     break;
-                case Wheels::FRONT_RIGHT:
-                    rightFrontWheelModel.geometry->position = Utils::bulletToGlm(trans.getOrigin());
-                    rightFrontWheelModel.geometry->orientation = Utils::bulletToGlm(trans.getRotation());
-                    rightFrontWheelModel.update();
+                case FRONT_RIGHT:
+                    wheelToUpdate = &rightFrontWheelModel;
                     break;
-                case Wheels::REAR_LEFT:
-                    leftRearWheelModel.geometry->position = Utils::bulletToGlm(trans.getOrigin());
-                    leftRearWheelModel.geometry->orientation = Utils::bulletToGlm(trans.getRotation());
-                    leftRearWheelModel.update();
+                case REAR_LEFT:
+                    wheelToUpdate = &leftRearWheelModel;
                     break;
-                case Wheels::REAR_RIGHT:
-                    rightRearWheelModel.geometry->position = Utils::bulletToGlm(trans.getOrigin());
-                    rightRearWheelModel.geometry->orientation = Utils::bulletToGlm(trans.getRotation());
-                    rightRearWheelModel.update();
+                case REAR_RIGHT:
+                    wheelToUpdate = &rightRearWheelModel;
                     break;
                 default:
                     CHECK_F(false, "More than 4 wheels currently unsupported");
                     break;
             }
+            wheelToUpdate->position = Utils::bulletToGlm(trans.getOrigin());
+            wheelToUpdate->orientation = Utils::bulletToGlm(trans.getRotation());
+            wheelToUpdate->UpdateMatrices();
         }
     }
 
@@ -244,7 +240,7 @@ namespace OpenNFS {
 
     void Car::_GenPhysicsModel() {
         // Get the size of a wheel
-        auto [wheelMinVertex, wheelMaxVertex] = Utils::GenDimensions(leftFrontWheelModel.geometry->m_vertices);
+        auto [wheelMinVertex, wheelMaxVertex] = Utils::GenDimensions(leftFrontWheelModel.m_vertices);
         glm::vec3 wheelSize = glm::vec3((wheelMaxVertex.x - wheelMinVertex.x) / 2,
                                         (wheelMaxVertex.y - wheelMinVertex.y) / 2,
                                         (wheelMaxVertex.z - wheelMinVertex.z) / 2);
@@ -252,7 +248,7 @@ namespace OpenNFS {
         vehicleProperties.wheelWidth = wheelSize.x;
 
         // Generate the chassis collision mesh
-        auto [bodyMinVertex, bodyMaxVertex] = Utils::GenDimensions(carBodyModel.geometry->m_vertices);
+        auto [bodyMinVertex, bodyMaxVertex] = Utils::GenDimensions(carBodyModel.m_vertices);
         // Drop size of car chassis vertically to avoid colliding with ground on suspension compression
         bodyMinVertex.y += 0.04f;
         btCollisionShape *chassisShape = new btBoxShape(
@@ -288,8 +284,8 @@ namespace OpenNFS {
 
         // Set initial location of vehicle in the world
         m_vehicleMotionState = std::make_unique<btDefaultMotionState>(
-            btTransform(btQuaternion(Utils::glmToBullet(carBodyModel.geometry->orientation)),
-                        Utils::glmToBullet(carBodyModel.geometry->position)));
+            btTransform(btQuaternion(Utils::glmToBullet(carBodyModel.orientation)),
+                        Utils::glmToBullet(carBodyModel.position)));
         btRigidBody::btRigidBodyConstructionInfo cInfo(vehicleProperties.mass, m_vehicleMotionState.get(), compound,
                                                        localInertia);
         m_carChassis = std::make_unique<btRigidBody>(cInfo);
@@ -308,7 +304,7 @@ namespace OpenNFS {
         glm::vec3 const carBodyPosition{Utils::bulletToGlm(trans.getOrigin())};
 
         // Get base vectors
-        glm::vec3 const carUp{carBodyModel.geometry->ModelMatrix * glm::vec4(0, 1, 0, 0)};
+        glm::vec3 const carUp{carBodyModel.ModelMatrix * glm::vec4(0, 1, 0, 0)};
         glm::vec3 const carForward{Utils::bulletToGlm(m_vehicle->getForwardVector())};
 
         btCollisionWorld::ClosestRayResultCallback *rayCallbacks[kNumRangefinders];
@@ -381,58 +377,58 @@ namespace OpenNFS {
             case NFSVersion::NFS_2:
             case NFSVersion::NFS_3_PS1: {
                 if (carGeometries.size() < 3) {
-                    GLCarModel wheelModel{GLCarModel(&carGeometries[0])};
-                    wheelModel.enable();
+                    GLCarModel wheelModel{GLCarModel(carGeometries[0])};
+                    wheelModel.Enable();
                     leftFrontWheelModel = wheelModel;
                     rightFrontWheelModel = wheelModel;
                     leftRearWheelModel = wheelModel;
                     rightRearWheelModel = wheelModel;
 
-                    carBodyModel = GLCarModel(&carGeometries[1]);
-                    carBodyModel.enable();
+                    carBodyModel = GLCarModel(carGeometries[1]);
+                    carBodyModel.Enable();
                 } else {
                     for (auto &carGeometry: carGeometries) {
                         if (carGeometry.m_name == "High Main Body Part") {
-                            carBodyModel = GLCarModel(&carGeometry);
-                            carBodyModel.enable();
+                            carBodyModel = GLCarModel(carGeometry);
+                            carBodyModel.Enable();
                         } else if (carGeometry.m_name.find("High Front Left Wheel Part") != std::string::npos) {
-                            leftFrontWheelModel = GLCarModel(&carGeometry);
-                            leftFrontWheelModel.enable();
+                            leftFrontWheelModel = GLCarModel(carGeometry);
+                            leftFrontWheelModel.Enable();
                         } else if (carGeometry.m_name.find("High Front Right Wheel Part") != std::string::npos) {
-                            rightFrontWheelModel = GLCarModel(&carGeometry);
-                            rightFrontWheelModel.enable();
+                            rightFrontWheelModel = GLCarModel(carGeometry);
+                            rightFrontWheelModel.Enable();
                         } else if (carGeometry.m_name.find("High Rear Left Wheel Part") != std::string::npos) {
-                            leftRearWheelModel = GLCarModel(&carGeometry);
-                            leftRearWheelModel.enable();
+                            leftRearWheelModel = GLCarModel(carGeometry);
+                            leftRearWheelModel.Enable();
                         } else if (carGeometry.m_name.find("High Rear Right Wheel Part") != std::string::npos) {
-                            rightRearWheelModel = GLCarModel(&carGeometry);
-                            rightRearWheelModel.enable();
+                            rightRearWheelModel = GLCarModel(carGeometry);
+                            rightRearWheelModel.Enable();
                         } else if (carGeometry.m_name.find("High") != std::string::npos) {
                             // Everything with "High" in the name is an extra body part, enable it
-                            auto miscModel{GLCarModel(&carGeometry)};
-                            miscModel.enable();
+                            auto miscModel{GLCarModel(carGeometry)};
+                            miscModel.Enable();
                             miscModels.push_back(miscModel);
                         } else {
-                            miscModels.emplace_back(&carGeometry);
+                            miscModels.emplace_back(carGeometry);
                         }
                     }
                 }
             }
             break;
             case NFSVersion::NFS_3: {
-                carBodyModel = GLCarModel(&carGeometries[0]);
-                carBodyModel.enable();
-                leftFrontWheelModel = GLCarModel(&carGeometries[1]);
-                leftFrontWheelModel.enable();
-                rightFrontWheelModel = GLCarModel(&carGeometries[2]);
-                rightFrontWheelModel.enable();
-                leftRearWheelModel = GLCarModel(&carGeometries[3]);
-                leftRearWheelModel.enable();
-                rightRearWheelModel = GLCarModel(&carGeometries[4]);
-                rightRearWheelModel.enable();
+                carBodyModel = GLCarModel(carGeometries[0]);
+                carBodyModel.Enable();
+                leftFrontWheelModel = GLCarModel(carGeometries[1]);
+                leftFrontWheelModel.Enable();
+                rightFrontWheelModel = GLCarModel(carGeometries[2]);
+                rightFrontWheelModel.Enable();
+                leftRearWheelModel = GLCarModel(carGeometries[3]);
+                leftRearWheelModel.Enable();
+                rightRearWheelModel = GLCarModel(carGeometries[4]);
+                rightRearWheelModel.Enable();
                 if (carGeometries.size() >= 5) {
                     for (size_t partIdx = 5; partIdx < carGeometries.size(); ++partIdx) {
-                        miscModels.emplace_back(&carGeometries[partIdx]);
+                        miscModels.emplace_back(carGeometries[partIdx]);
                     }
                 }
             }
@@ -559,7 +555,7 @@ namespace OpenNFS {
             }
         } else {
             leftHeadlight.cutOff = rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
-            leftHeadlight.position = rightHeadlight.position = carBodyModel.geometry->position;
+            leftHeadlight.position = rightHeadlight.position = carBodyModel.position;
             leftHeadlight.colour = rightHeadlight.colour = glm::vec3(1, 1, 1);
         }
     }

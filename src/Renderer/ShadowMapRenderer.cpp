@@ -40,8 +40,8 @@ namespace OpenNFS {
 
         /* Render the track using this simple shader to get depth texture to test against during draw */
         for (auto &entity : visibleEntities) {
-            m_depthShader.loadTransformMatrix(entity->model->geometry->ModelMatrix);
-            entity->model->render();
+            m_depthShader.loadTransformMatrix(entity->ModelMatrix);
+            entity->Render();
         }
 
         /* And the Cars */
@@ -52,19 +52,19 @@ namespace OpenNFS {
                 // m_depthShader.loadCarTexture(racer->vehicle->renderInfo.textureID);
             }
             for (auto &misc_model : racer->vehicle->miscModels) {
-                m_depthShader.loadTransformMatrix(misc_model.geometry->ModelMatrix);
-                misc_model.render();
+                m_depthShader.loadTransformMatrix(misc_model.ModelMatrix);
+                misc_model.Render();
             }
-            m_depthShader.loadTransformMatrix(racer->vehicle->leftFrontWheelModel.geometry->ModelMatrix);
-            racer->vehicle->leftFrontWheelModel.render();
-            m_depthShader.loadTransformMatrix(racer->vehicle->leftRearWheelModel.geometry->ModelMatrix);
-            racer->vehicle->leftRearWheelModel.render();
-            m_depthShader.loadTransformMatrix(racer->vehicle->rightFrontWheelModel.geometry->ModelMatrix);
-            racer->vehicle->rightFrontWheelModel.render();
-            m_depthShader.loadTransformMatrix(racer->vehicle->rightRearWheelModel.geometry->ModelMatrix);
-            racer->vehicle->rightRearWheelModel.render();
-            m_depthShader.loadTransformMatrix(racer->vehicle->carBodyModel.geometry->ModelMatrix);
-            racer->vehicle->carBodyModel.render();
+            m_depthShader.loadTransformMatrix(racer->vehicle->leftFrontWheelModel.ModelMatrix);
+            racer->vehicle->leftFrontWheelModel.Render();
+            m_depthShader.loadTransformMatrix(racer->vehicle->leftRearWheelModel.ModelMatrix);
+            racer->vehicle->leftRearWheelModel.Render();
+            m_depthShader.loadTransformMatrix(racer->vehicle->rightFrontWheelModel.ModelMatrix);
+            racer->vehicle->rightFrontWheelModel.Render();
+            m_depthShader.loadTransformMatrix(racer->vehicle->rightRearWheelModel.ModelMatrix);
+            racer->vehicle->rightRearWheelModel.Render();
+            m_depthShader.loadTransformMatrix(racer->vehicle->carBodyModel.ModelMatrix);
+            racer->vehicle->carBodyModel.Render();
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, Config::get().resX, Config::get().resY);

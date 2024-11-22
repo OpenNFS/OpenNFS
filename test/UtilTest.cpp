@@ -2,6 +2,8 @@
 
 #include "../src/Util/Logger.h"
 
+using namespace OpenNFS;
+
 class UtilTest : public testing::Test {
 public:
     virtual void SetUp() {

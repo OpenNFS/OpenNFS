@@ -186,7 +186,7 @@ namespace OpenNFS {
     }
 
     void Renderer::_DrawMetadata(Entity *const targetEntity) {
-        TrackEntity const *track_entity{targetEntity->track_entity};
+        TrackEntity const *track_entity{targetEntity};
         ImGui::Begin("Engine Entity");
         ImGui::Text("%s", get_string(track_entity->type).c_str());
         if (track_entity->entityID != -1) {
@@ -197,29 +197,21 @@ namespace OpenNFS {
         // Traverse the loader structures and print pretty with IMGUI
         switch (track_entity->type) {
             case EntityType::LIGHT: {
-                std::shared_ptr<BaseLight> const targetBaseLight{
-                    std::make_shared<BaseLight>(*((BaseLight *) targetEntity->track_entity))
-                };
-                std::shared_ptr<TrackLight> const targetLight{std::static_pointer_cast<TrackLight>(targetBaseLight)};
-                ImVec4 lightColour(targetLight->colour.x, targetLight->colour.y, targetLight->colour.z,
-                                   targetLight->colour.w);
-                ImVec4 lightAttenuation(targetLight->attenuation.x, targetLight->attenuation.y,
-                                        targetLight->attenuation.z, 0.0f);
+                auto targetBaseLight = dynamic_cast<BaseLight *>(targetEntity);
+                ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z,
+                                   targetBaseLight->colour.w);
+                ImVec4 lightAttenuation(targetBaseLight->attenuation.x, targetBaseLight->attenuation.y,
+                                        targetBaseLight->attenuation.z, 0.0f);
                 // Colour, type, attenuation, position and NFS unknowns
-                ImGui::ColorEdit4("Light Colour", (float *) &lightColour); // Edit 3 floats representing a color
-                targetLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
-                ImGui::SliderFloat3("Attenuation (A, B, C)", (float *) &lightAttenuation, 0, 10.0f);
-                targetLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
-                ImGui::Text("x: %f y: %f z: %f ", targetLight->position.x, targetLight->position.y,
-                            targetLight->position.z);
+                ImGui::ColorEdit4("Light Colour", reinterpret_cast<float *>(&lightColour)); // Edit 3 floats representing a color
+                targetBaseLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
+                ImGui::SliderFloat3("Attenuation (A, B, C)", reinterpret_cast<float *>(&lightAttenuation), 0, 10.0f);
+                targetBaseLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
+                ImGui::Text("x: %f y: %f z: %f ", targetBaseLight->position.x, targetBaseLight->position.y,
+                            targetBaseLight->position.z);
                 ImGui::Separator();
                 ImGui::Text("NFS Data");
-                ImGui::Text("Type: %hhu", targetLight->type);
-                ImGui::Text("Unknowns: ");
-                ImGui::Text("[1]: %d", targetLight->unknown1);
-                ImGui::Text("[2]: %d", targetLight->unknown2);
-                ImGui::Text("[3]: %d", targetLight->unknown3);
-                ImGui::Text("[4]: %f", targetLight->unknown4);
+                ImGui::Text("Type: %hhu", targetBaseLight->type);
             }
             break;
             case EntityType::CAR: {
@@ -257,9 +249,9 @@ namespace OpenNFS {
             default:
                 break;
         }
-        ImGui::Text("Object Flags: %d", targetEntity->track_entity->flags);
-        ImGui::Text("Collideable: %s", targetEntity->track_entity->collideable ? "Yes" : "No");
-        ImGui::Text("Dynamic: %s", targetEntity->track_entity->dynamic ? "Yes" : "No");
+        ImGui::Text("Object Flags: %d", targetEntity->flags);
+        ImGui::Text("Collideable: %s", targetEntity->collideable ? "Yes" : "No");
+        ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
         ImGui::End();
     }
 

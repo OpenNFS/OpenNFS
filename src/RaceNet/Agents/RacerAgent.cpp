@@ -51,7 +51,7 @@ namespace OpenNFS {
         glm::vec3 const target{m_track->virtualRoad[(m_nearestVroadID + 10) % m_track->virtualRoad.size()].position};
         float const angle{
             glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
-                               glm::normalize(target - this->vehicle->carBodyModel.geometry->position),
+                               glm::normalize(target - this->vehicle->carBodyModel.position),
                                glm::vec3(0, 1, 0))
         };
         // vehicle->ApplyAbsoluteSteerAngle(angle);

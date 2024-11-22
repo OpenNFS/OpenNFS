@@ -50,7 +50,7 @@ namespace OpenNFS {
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
     }
 
-    void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) {
+    void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
         for (const auto &car: m_activeVehicles) {
@@ -90,14 +90,14 @@ namespace OpenNFS {
 
         for (const auto &entity: m_track->entities) {
             int collisionMask = COL_RAY | COL_CAR;
-            if (!entity->track_entity->collideable) {
+            if (!entity->collideable) {
                 continue;
             }
-            if (entity->track_entity->dynamic) {
+            if (entity->dynamic) {
                 collisionMask |= COL_TRACK;
                 // Move Rigid body to correct place in world
-                btTransform initialTransform = Utils::MakeTransform(entity->model->geometry->initialPosition,
-                                                                    entity->model->geometry->orientation);
+                btTransform initialTransform = Utils::MakeTransform(entity->initialPosition,
+                                                                    entity->orientation);
                 entity->rigidBody->setWorldTransform(initialTransform);
                 m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_DYNAMIC_TRACK, collisionMask);
             } else {
@@ -124,14 +124,14 @@ namespace OpenNFS {
         const btVector3 wheelDirectionCS0(0, -1, 0);
         const btVector3 wheelAxleCS(-1, 0, 0);
         // Fronties
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.geometry->position), wheelDirectionCS0,
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.position), wheelDirectionCS0,
                                     wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightFrontWheelModel.geometry->position), wheelDirectionCS0,
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightFrontWheelModel.position), wheelDirectionCS0,
                                     wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
         // Rearies
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.geometry->position), wheelDirectionCS0,
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.position), wheelDirectionCS0,
                                     wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.geometry->position), wheelDirectionCS0,
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.position), wheelDirectionCS0,
                                     wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
 
         for (auto wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx) {

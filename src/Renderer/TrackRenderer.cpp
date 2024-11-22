@@ -29,8 +29,8 @@ namespace OpenNFS {
 
         // Render the per-trackblock data
         for (auto &entity : visibleEntities) {
-            m_trackShader.loadTransformMatrix(entity->track_entity->geometry.ModelMatrix);
-            entity->model->render();
+            m_trackShader.loadTransformMatrix(entity->ModelMatrix);
+            entity->Render();
         }
 
         m_trackShader.unbind();

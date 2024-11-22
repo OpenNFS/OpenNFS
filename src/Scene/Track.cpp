@@ -27,25 +27,25 @@ namespace OpenNFS {
     void Track::_GenerateEntities() {
         for (auto &trackBlock : trackBlocks) {
             for (auto &trackObject : trackBlock.objects) {
-                entities.emplace_back(std::make_shared<Entity>(&trackObject));
+                entities.emplace_back(std::make_shared<Entity>(trackObject));
             }
             for (auto &trackSurface : trackBlock.track) {
-                entities.emplace_back(std::make_shared<Entity>(&trackSurface));
+                entities.emplace_back(std::make_shared<Entity>(trackSurface));
             }
             for (auto &trackLane : trackBlock.lanes) {
-                entities.emplace_back(std::make_shared<Entity>(&trackLane));
+                entities.emplace_back(std::make_shared<Entity>(trackLane));
             }
-            for (auto &trackLight : trackBlock.lights) {
-                entities.emplace_back(std::make_shared<Entity>(&trackLight));
-            }
+            //for (auto &trackLight : trackBlock.lights) {
+            //    entities.emplace_back(std::make_shared<Entity>(&trackLight));
+            //}
             for (auto &trackGlobalObject : globalObjects) {
-                entities.emplace_back(std::make_shared<Entity>(&trackGlobalObject));
+                entities.emplace_back(std::make_shared<Entity>(trackGlobalObject));
             }
         }
         // Enable all models to ensure GL Buffers are generated for track
-        for (const auto &entity : entities) {
-            entity->model->enable();
-            entity->model->update();
+        for (const auto &entity: entities) {
+            entity->Enable();
+            entity->UpdateMatrices();
         }
     }
 

@@ -2,28 +2,19 @@
 #include "../../Util/Utils.h"
 
 namespace OpenNFS {
-    GLCarModel::GLCarModel(LibOpenNFS::CarGeometry *geometry, const float specular_damper,
-                           const float specular_reflectivity, const float env_reflectivity) : GLModel(geometry) {
+    GLCarModel::GLCarModel(const CarGeometry &geometry, const float specular_damper,
+                           const float specular_reflectivity,
+                           const float env_reflectivity) : GLModel(), CarGeometry(geometry) {
         // Can't call basic constructor as genBuffers() call would run before m_textureIndices was available
         specularDamper = specular_damper;
         specularReflectivity = specular_reflectivity;
         envReflectivity = env_reflectivity;
     }
 
-    GLCarModel::GLCarModel(LibOpenNFS::CarGeometry *geometry) : GLModel(geometry) {
+    GLCarModel::GLCarModel(const CarGeometry &geometry) : GLModel(), CarGeometry(geometry) {
     }
 
-    void GLCarModel::update() {
-        if (!buffersGenerated) {
-            buffersGenerated = true;
-            CHECK_F(genBuffers(), "Unable to generate GL Buffers for Track Model");
-        }
-        geometry->RotationMatrix = glm::toMat4(geometry->orientation);
-        geometry->TranslationMatrix = glm::translate(glm::mat4(1.0), geometry->position);
-        geometry->ModelMatrix = geometry->TranslationMatrix * geometry->RotationMatrix;
-    }
-
-    void GLCarModel::destroy() {
+    GLCarModel::~GLCarModel() {
         if (buffersGenerated) {
             glDeleteBuffers(1, &vertexBuffer);
             glDeleteBuffers(1, &uvBuffer);
@@ -33,22 +24,32 @@ namespace OpenNFS {
         }
     }
 
-    void GLCarModel::render() {
+    void GLCarModel::UpdateMatrices() {
+        if (!buffersGenerated) {
+            buffersGenerated = true;
+            CHECK_F(GenBuffers(), "Unable to generate GL Buffers for %s Model", m_name.c_str());
+        }
+        RotationMatrix = glm::toMat4(orientation);
+        TranslationMatrix = glm::translate(glm::mat4(1.0), position);
+        ModelMatrix = TranslationMatrix * RotationMatrix;
+    }
+
+    void GLCarModel::Render() {
         if (enabled) {
             glBindVertexArray(VertexArrayID);
-            glDrawArrays(GL_TRIANGLES, 0, (GLsizei) geometry->m_vertices.size());
+            glDrawArrays(GL_TRIANGLES, 0, (GLsizei) m_vertices.size());
             glBindVertexArray(0);
         }
     }
 
-    bool GLCarModel::genBuffers() {
+    bool GLCarModel::GenBuffers() {
         glGenVertexArrays(1, &VertexArrayID);
         glBindVertexArray(VertexArrayID);
 
         // Verts
         glGenBuffers(1, &vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, geometry->m_vertices.size() * sizeof(glm::vec3), &(geometry->m_vertices[0]),
+        glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &(m_vertices[0]),
                      GL_STATIC_DRAW);
         glVertexAttribPointer(0, // attribute
                               3, // size
@@ -62,7 +63,7 @@ namespace OpenNFS {
         // UVs
         glGenBuffers(1, &uvBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-        glBufferData(GL_ARRAY_BUFFER, geometry->m_uvs.size() * sizeof(glm::vec2), &(geometry->m_uvs[0]),
+        glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &(m_uvs[0]),
                      GL_STATIC_DRAW);
         glVertexAttribPointer(1, // attribute
                               2, // size
@@ -76,7 +77,7 @@ namespace OpenNFS {
         // Normals
         glGenBuffers(1, &normalBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-        glBufferData(GL_ARRAY_BUFFER, geometry->m_normals.size() * sizeof(glm::vec3), &(geometry->m_normals[0]),
+        glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &(m_normals[0]),
                      GL_STATIC_DRAW);
         glVertexAttribPointer(2, // attribute
                               3, // size
@@ -91,8 +92,8 @@ namespace OpenNFS {
         glGenBuffers(1, &textureIndexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, textureIndexBuffer);
         glBufferData(GL_ARRAY_BUFFER,
-                     static_cast<LibOpenNFS::CarGeometry *>(geometry)->m_texture_indices.size() * sizeof(unsigned int),
-                     &(static_cast<LibOpenNFS::CarGeometry *>(geometry)->m_texture_indices[0]),
+                     m_texture_indices.size() * sizeof(unsigned int),
+                     &m_texture_indices[0],
                      GL_STATIC_DRAW);
         glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, 0, (void *) nullptr);
         // 4th attribute buffer : Texture Indices
@@ -101,8 +102,8 @@ namespace OpenNFS {
         glGenBuffers(1, &polyFlagBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, polyFlagBuffer);
         glBufferData(GL_ARRAY_BUFFER,
-                     static_cast<LibOpenNFS::CarGeometry *>(geometry)->m_polygon_flags.size() * sizeof(uint32_t),
-                     &(static_cast<LibOpenNFS::CarGeometry *>(geometry)->m_polygon_flags[0]),
+                     m_polygon_flags.size() * sizeof(uint32_t),
+                     &m_polygon_flags[0],
                      GL_STATIC_DRAW);
         glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, 0, (void *) nullptr);
         // 5th attribute buffer : Polygon Flags

@@ -33,7 +33,7 @@ namespace OpenNFS {
     public:
         PhysicsEngine();
         ~PhysicsEngine();
-        void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs);
+        void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const;
         void RegisterVehicle(const std::shared_ptr<Car> &car);
         void RegisterTrack(const std::shared_ptr<OpenNFS::Track> &track);
         std::optional<Entity *> CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix);

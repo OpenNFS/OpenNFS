@@ -64,11 +64,11 @@ namespace OpenNFS {
                 index_offset += fv;
             }
             m_skydomeGeom = CarGeometry(shape.name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0));
-            m_skydomeModel = GLCarModel(&m_skydomeGeom, 0.01f, 0.0f, 0.5f);
+            m_skydomeModel = GLCarModel(m_skydomeGeom, 0.01f, 0.0f, 0.5f);
             break;
         }
-        m_skydomeModel.enable();
-        m_skydomeModel.update();
+        m_skydomeModel.Enable();
+        m_skydomeModel.UpdateMatrices();
     }
 
     void SkyRenderer::Render(const BaseCamera &camera, const std::shared_ptr<GlobalLight> &light,
@@ -79,12 +79,12 @@ namespace OpenNFS {
         m_skydomeShader.loadStarRotationMatrix(
             glm::toMat3(glm::normalize(glm::quat(glm::vec3(glm::pi<float>(), glm::pi<float>(), 0)))));
         // No star rotation
-        m_skydomeShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, m_skydomeModel.geometry->ModelMatrix);
+        m_skydomeShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, m_skydomeModel.ModelMatrix);
         m_skydomeShader.loadSunPosition(light);
         m_skydomeShader.loadTime(elapsedTime);
         m_skydomeShader.loadWeatherMixFactor(1.0f);
         // Bind the sphere model
-        m_skydomeModel.render();
+        m_skydomeModel.Render();
         m_skydomeShader.unbind();
         m_skydomeShader.HotReload();
     }

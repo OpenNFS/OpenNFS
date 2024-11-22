@@ -3,26 +3,22 @@
 #include "GLModel.h"
 #include <Entities/TrackGeometry.h>
 
-class GLTrackModel : public GLModel {
+class GLTrackModel : public GLModel, public LibOpenNFS::TrackGeometry {
 public:
-    GLTrackModel(LibOpenNFS::TrackGeometry *geometry) : GLModel(geometry) {
+    GLTrackModel(const TrackGeometry &geometry) : TrackGeometry(geometry) {
     }
-    GLTrackModel() : GLModel() {
+    GLTrackModel() {
     }
-    ~GLTrackModel() {
-        destroy();
-    };
-
-    void update() override;
-    void destroy() override;
-    void render() override;
-    bool genBuffers() override;
+    ~GLTrackModel() override;
+    bool GenBuffers() override;
+    void UpdateMatrices() override;
+    void Render() override;
 
 private:
-    GLuint m_vertexBuffer;
-    GLuint m_uvBuffer;
-    GLuint m_textureIndexBuffer;
-    GLuint m_shadingDataBuffer;
-    GLuint m_normalBuffer;
-    GLuint m_debugBuffer;
+    GLuint m_vertexBuffer{};
+    GLuint m_uvBuffer{};
+    GLuint m_textureIndexBuffer{};
+    GLuint m_shadingDataBuffer{};
+    GLuint m_normalBuffer{};
+    GLuint m_debugBuffer{};
 };

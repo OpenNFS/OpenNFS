@@ -11,14 +11,12 @@
 #include "../Renderer/Models/GLTrackModel.h"
 
 namespace OpenNFS {
-    class Entity : public IAABB {
+    class Entity final : public LibOpenNFS::TrackEntity, public IAABB, public GLTrackModel {
     public:
-        explicit Entity(LibOpenNFS::TrackEntity *track_entity);
-        void Update() const; // Update Entity position based on Physics engine
+        explicit Entity(TrackEntity const &track_entity);
+        void Update(); // Update Entity position based on Physics engine
         AABB GetAABB() const override;
 
-        LibOpenNFS::TrackEntity *track_entity;
-        std::unique_ptr<GLModel> model;
         std::unique_ptr<btRigidBody> rigidBody;
 
     private:
