@@ -83,13 +83,12 @@ namespace OpenNFS {
 
             m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
-            // Make the targeted entity 'sticky', else it vanishes after 1 frame
-            static std::optional<Entity *> targetedEntity{};
-            if (ImGui::GetIO().MouseReleased[0] && m_windowStatus == WindowStatus::GAME) {
-                targetedEntity = m_physicsEngine.CheckForPicking(activeCamera.viewMatrix, activeCamera.projectionMatrix);
-            }
-            if (targetedEntity.has_value() && !m_targetedEntity.has_value()) {
-                m_targetedEntity = targetedEntity;
+            if (ImGui::GetIO().MouseClicked[0] && m_windowStatus == GAME) {
+                std::optional targetedEntity {m_physicsEngine.CheckForPicking(activeCamera.viewMatrix, activeCamera.projectionMatrix)};
+                // Make the targeted entity 'sticky', else it vanishes after 1 frame
+                if (targetedEntity.has_value()) {
+                    m_targetedEntity = targetedEntity;
+                }
             }
 
             // Step the physics simulation
@@ -127,10 +126,10 @@ namespace OpenNFS {
 
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
         if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse)) {
-            m_windowStatus                 = WindowStatus::GAME;
+            m_windowStatus                 = GAME;
             ImGui::GetIO().MouseDrawCursor = false;
         } else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            m_windowStatus                 = WindowStatus::UI;
+            m_windowStatus                 = UI;
             ImGui::GetIO().MouseDrawCursor = true;
         }
     }

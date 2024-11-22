@@ -66,6 +66,9 @@ namespace OpenNFS {
         LOG(DEBUG) << "Max Array Texture Layers: " << nMaxTextureLayers;
         LOG(DEBUG) << "OpenGL Initialisation successful";
 
+        Config::get().windowSizeX = resolutionX;
+        Config::get().windowSizeY = resolutionY;
+
         return window;
     }
 

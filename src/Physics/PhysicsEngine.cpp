@@ -3,7 +3,7 @@
 #include "CollisionMasks.h"
 
 namespace OpenNFS {
-    WorldRay ScreenPosToWorldRay(int mouseX, int mouseY, int screenWidth, int screenHeight, glm::mat4 ViewMatrix,
+    WorldRay ScreenPosToWorldRay(uint32_t mouseX, uint32_t mouseY, uint32_t screenWidth, uint32_t screenHeight, glm::mat4 ViewMatrix,
                                  glm::mat4 ProjectionMatrix) {
         // The ray Start and End positions, in Normalized Device Coordinates
         glm::vec4 lRayStart_NDC(((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
@@ -56,10 +56,11 @@ namespace OpenNFS {
     }
 
     std::optional<Entity *> PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix,
-                                                           const glm::mat4 &projectionMatrix) {
-        WorldRay worldRayFromScreenPosition =
-                ScreenPosToWorldRay(Config::get().resX / 2, Config::get().resY / 2, Config::get().resX,
-                                    Config::get().resY, viewMatrix, projectionMatrix);
+                                                           const glm::mat4 &projectionMatrix) const {
+        WorldRay worldRayFromScreenPosition{
+            ScreenPosToWorldRay(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y, Config::get().windowSizeX,
+                                Config::get().windowSizeY, viewMatrix, projectionMatrix)
+        };
         const glm::vec3 outEnd{worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f};
 
         btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(worldRayFromScreenPosition.origin),
@@ -69,12 +70,9 @@ namespace OpenNFS {
         m_pDynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd),
                                   rayCallback);
 
-        Entity *targetedEntity = rayCallback.hasHit()
-                                     ? (Entity *) rayCallback.m_collisionObject->getUserPointer()
-                                     : nullptr;
-        return targetedEntity == nullptr
-                   ? std::optional<Entity *>(std::nullopt)
-                   : std::optional<Entity *>(targetedEntity);
+        return rayCallback.hasHit()
+                   ? static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer())
+                   : std::optional<Entity *>(std::nullopt);
     }
 
     void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
@@ -112,7 +110,7 @@ namespace OpenNFS {
 
         // Wire up the wheels
         const float wheelRadius{car->vehicleProperties.wheelRadius};
-        const btScalar sRestLength {car->vehicleProperties.suspensionRestLength};
+        const btScalar sRestLength{car->vehicleProperties.suspensionRestLength};
         const btVector3 wheelDirectionCS0(0, -1, 0);
         const btVector3 wheelAxleCS(-1, 0, 0);
         // Fronties
