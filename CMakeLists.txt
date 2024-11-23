@@ -60,6 +60,7 @@ set(SOURCE_FILES
         src/Camera/FreeCamera.cpp
         src/Camera/HermiteCamera.cpp
         src/Config.cpp
+        src/Input/InputManager.cpp
         src/Loaders/CarLoader.cpp
         src/Loaders/MusicLoader.cpp
         src/Loaders/TrackLoader.cpp

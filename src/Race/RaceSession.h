@@ -6,6 +6,7 @@
 #include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
 #include "../Camera/CarCamera.h"
+#include "../Input/InputManager.h"
 #include "../Physics/PhysicsEngine.h"
 #include "../Scene/Track.h"
 #include "../Renderer/Renderer.h"
@@ -46,6 +47,7 @@ namespace OpenNFS {
         Renderer m_renderer;
         RacerManager m_racerManager;
         OrbitalManager m_orbitalManager;
+        InputManager m_inputManager;
 
         ParamData m_userParams;
         uint64_t m_ticks  = 0; // Engine ticks elapsed

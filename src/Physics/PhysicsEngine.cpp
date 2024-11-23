@@ -3,15 +3,15 @@
 #include "CollisionMasks.h"
 
 namespace OpenNFS {
-    WorldRay ScreenPosToWorldRay(uint32_t mouseX, uint32_t mouseY, uint32_t screenWidth, uint32_t screenHeight, glm::mat4 ViewMatrix,
+    WorldRay ScreenPosToWorldRay(float mouseX, float mouseY, uint32_t screenWidth, uint32_t screenHeight, glm::mat4 ViewMatrix,
                                  glm::mat4 ProjectionMatrix) {
         // The ray Start and End positions, in Normalized Device Coordinates
-        glm::vec4 lRayStart_NDC(((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
-                                ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f,
+        glm::vec4 lRayStart_NDC((mouseX / static_cast<float>(screenWidth) - 0.5f) * 2.0f,
+                                (mouseY / static_cast<float>(screenHeight) - 0.5f) * 2.0f,
                                 -1.0, // The near plane maps to Z=-1 in Normalized Device Coordinates
                                 1.0f);
-        glm::vec4 lRayEnd_NDC(((float) mouseX / (float) screenWidth - 0.5f) * 2.0f,
-                              ((float) mouseY / (float) screenHeight - 0.5f) * 2.0f, 0.0, 1.0f);
+        glm::vec4 lRayEnd_NDC((mouseX / static_cast<float>(screenWidth) - 0.5f) * 2.0f,
+                              (mouseY / static_cast<float>(screenHeight) - 0.5f) * 2.0f, 0.0, 1.0f);
 
         // Faster way (just one inverse)
         glm::mat4 M = glm::inverse(ProjectionMatrix * ViewMatrix);
@@ -42,7 +42,7 @@ namespace OpenNFS {
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
     }
 
-    void PhysicsEngine::StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const {
+    void PhysicsEngine::StepSimulation(const float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
         for (const auto &car: m_activeVehicles) {
