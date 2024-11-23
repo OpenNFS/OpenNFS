@@ -3,7 +3,8 @@
 #include "CollisionMasks.h"
 
 namespace OpenNFS {
-    WorldRay ScreenPosToWorldRay(float mouseX, float mouseY, uint32_t screenWidth, uint32_t screenHeight, glm::mat4 ViewMatrix,
+    WorldRay ScreenPosToWorldRay(float mouseX, float mouseY, uint32_t screenWidth, uint32_t screenHeight,
+                                 glm::mat4 ViewMatrix,
                                  glm::mat4 ProjectionMatrix) {
         // The ray Start and End positions, in Normalized Device Coordinates
         glm::vec4 lRayStart_NDC((mouseX / static_cast<float>(screenWidth) - 0.5f) * 2.0f,

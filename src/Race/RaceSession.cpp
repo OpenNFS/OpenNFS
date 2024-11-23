@@ -14,7 +14,8 @@ namespace OpenNFS {
                                                                            std::make_shared<PlayerAgent>(
                                                                                window, currentCar, currentTrack)),
                                                                        m_renderer(window, onfsLogger, installedNFS,
-                                                                           m_track, m_physicsEngine.debugDrawer) {
+                                                                           m_track, m_physicsEngine.debugDrawer),
+                                                                       m_inputManager(window) {
         m_loadedAssets = {
             m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track->nfsVersion,
             m_track->name

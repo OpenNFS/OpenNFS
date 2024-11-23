@@ -46,13 +46,24 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        std::shared_ptr<GLFWwindow> const window{
-            Renderer::InitOpenGL(Config::get().resX, Config::get().resY,
-                                 "OpenNFS v" + ONFS_VERSION)
-        };
+        std::shared_ptr<GLFWwindow> const window{Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION)};
         AssetData loadedAssets{
             get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track
         };
+
+        const std::function logInfoCallback = [](const std::string &logMessage) {
+            LogCapture(__FILE__, __LINE__, __FUNCTION__, INFO).stream() << logMessage;
+        };
+        const std::function logWarnCallback = [](const std::string &logMessage) {
+            LogCapture(__FILE__, __LINE__, __FUNCTION__, WARNING).stream() << logMessage;
+        };
+        const std::function logDebugCallback = [](const std::string &logMessage) {
+            LogCapture(__FILE__, __LINE__, __FUNCTION__, DEBUG).stream() << logMessage;
+        };
+
+        LibOpenNFS::RegisterLogCallback(LONFS_INFO, logInfoCallback);
+        LibOpenNFS::RegisterLogCallback(LONFS_WARNING, logWarnCallback);
+        LibOpenNFS::RegisterLogCallback(LONFS_DEBUG, logDebugCallback);
 
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
         CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
@@ -81,11 +92,11 @@ private:
     std::vector<NfsAssetList> installedNFS;
 
     static void InitDirectories() {
-        if (!(exists(LibOpenNFS::CAR_PATH))) {
-            create_directories(LibOpenNFS::CAR_PATH);
+        if (!(exists(OpenNFS::CAR_PATH))) {
+            create_directories(OpenNFS::CAR_PATH);
         }
-        if (!(exists(LibOpenNFS::TRACK_PATH))) {
-            create_directories(LibOpenNFS::TRACK_PATH);
+        if (!(exists(OpenNFS::TRACK_PATH))) {
+            create_directories(OpenNFS::TRACK_PATH);
         }
     }
 };

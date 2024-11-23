@@ -2,18 +2,14 @@
 
 namespace OpenNFS {
     InputManager::InputManager(const std::shared_ptr<GLFWwindow> &window) : m_window(window) {
+    }
 
-     }
-
-     void InputManager::Scan() {
-        glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS,
-        glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS;
-        glfwGetKey(m_window.get(), GLFW_KEY_SPACE) == GLFW_PRESS;
-        glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS;
-        glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS;
-
-        if (glfwGetKey(m_window.get(), GLFW_KEY_R) == GLFW_PRESS) {
-            ResetToVroad(m_nearestVroadID, 0.f);
-        }
-        }
+    void InputManager::Scan() {
+        inputs.accelerate = glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS;
+        inputs.reverse = glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS;
+        inputs.brakes = glfwGetKey(m_window.get(), GLFW_KEY_SPACE) == GLFW_PRESS;
+        inputs.right = glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS;
+        inputs.left = glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS;
+        inputs.reset = glfwGetKey(m_window.get(), GLFW_KEY_R) == GLFW_PRESS;
+    }
 } // OpenNFS

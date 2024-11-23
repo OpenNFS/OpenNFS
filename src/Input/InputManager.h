@@ -5,20 +5,23 @@
 #include <memory>
 
 namespace OpenNFS {
+    class InputManager {
+        struct Inputs {
+            bool accelerate{};
+            bool reverse{};
+            bool brakes{};
+            bool left{};
+            bool right{};
+            bool reset{};
+        };
 
-class InputManager {
-  struct Inputs {
-    bool accelerate{};
-    bool reverse{};
-    bool left{};
-    bool right{};
-}
-public:
-  InputManager(const std::shared_ptr<GLFWwindow> &window);
-  void Scan();
+    public:
+        InputManager(const std::shared_ptr<GLFWwindow> &window);
+        void Scan();
 
-  private:
-    std::shared_ptr<GLFWwindow> m_window;
-};
+        Inputs inputs{};
 
+    private:
+        std::shared_ptr<GLFWwindow> m_window;
+    };
 } // OpenNFS

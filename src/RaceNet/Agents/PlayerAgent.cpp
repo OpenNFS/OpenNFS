@@ -14,7 +14,6 @@ namespace OpenNFS {
         this->_UpdateNearestTrackblock();
         this->_UpdateNearestVroad();
 
-        // if (userParams.windowActive && !ImGui::GetIO().MouseDown[1]) { }
         vehicle->ApplyAccelerationForce(glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS, glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS);
         vehicle->ApplyBrakingForce(glfwGetKey(m_window.get(), GLFW_KEY_SPACE) == GLFW_PRESS);
         vehicle->ApplySteeringRight(glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS);

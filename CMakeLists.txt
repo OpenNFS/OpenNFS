@@ -1,13 +1,9 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.15)
 project(OpenNFS)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
-include(CheckCXXCompilerFlag)
-include(CheckCCompilerFlag)
-include(AddCompilerFlag)
-include(OptimizeForArchitecture)
 include(CompileGLSLToSPIRV)
 
 #[[Parameter Override]]
@@ -25,7 +21,6 @@ if (${DEV})
         # Silence Fshtool warnings til I deal with them
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pointer-sign -Wno-return-type")
     endif ()
-    OptimizeForArchitecture()
     MESSAGE(STATUS "CXX Compiler flags are: " ${CMAKE_CXX_FLAGS})
     MESSAGE(STATUS "C Compiler flags are: " ${CMAKE_C_FLAGS})
 endif ()
@@ -202,5 +197,5 @@ foreach (_test_file ${TEST_SRC_FILES})
     set_tests_properties(${_test_name} PROPERTIES TIMEOUT 10)
 endforeach ()
 
-#[[Get linky widdit]]
+#[[Link Up Ting]]
 target_link_libraries(OpenNFS ${ONFS_LIBRARIES})

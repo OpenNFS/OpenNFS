@@ -84,7 +84,7 @@ namespace OpenNFS {
         bool newAssetSelected = false;
 
         // Perform frustum culling to get visible entities, from perspective of active camera
-        VisibleSet visibleSet = _FrustumCull(m_track, activeCamera, userParams);
+        const auto [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, userParams);
 
         if (userParams.drawHermiteFrustum) {
             m_debugRenderer.DrawFrustum(hermiteCamera);
@@ -106,16 +106,16 @@ namespace OpenNFS {
 
         // Render the environment
         m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track->textureArrayID,
-                                   visibleSet.entities, racers);
+                                   visibleEntities, racers);
         m_skyRenderer.Render(activeCamera, activeLight, totalTime);
-        m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleSet.entities, visibleSet.lights,
+        m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleEntities, visibleLights,
                                userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
-        m_trackRenderer.RenderLights(activeCamera, visibleSet.lights);
+        m_trackRenderer.RenderLights(activeCamera, visibleLights);
         m_debugRenderer.Render(activeCamera);
 
         // Render the Car and racers
         for (auto &racer: racers) {
-            m_carRenderer.Render(racer->vehicle, activeCamera, visibleSet.lights);
+            m_carRenderer.Render(racer->vehicle, activeCamera, visibleLights);
         }
 
         if (this->_DrawMenuBar(loadedAssets)) {
@@ -178,8 +178,8 @@ namespace OpenNFS {
             for (int32_t trackblockIdx = nearestBlockID - userParams.blockDrawDistance;
                  trackblockIdx < nearestBlockID + userParams.blockDrawDistance; ++trackblockIdx) {
                 uint32_t activeBlock = trackblockIdx < 0
-                                           ? ((uint32_t) track->trackBlocks.size() + trackblockIdx)
-                                           : (trackblockIdx % (uint32_t) track->trackBlocks.size());
+                                           ? (static_cast<uint32_t>(track->trackBlocks.size()) + trackblockIdx)
+                                           : (trackblockIdx % static_cast<uint32_t>(track->trackBlocks.size()));
                 activeTrackBlockIds.emplace_back(activeBlock);
             }
         }
@@ -196,7 +196,10 @@ namespace OpenNFS {
     }
 
     void Renderer::_DrawMetadata(Entity *const targetEntity) {
-        TrackEntity const *track_entity{targetEntity};
+        const auto track_entity {dynamic_cast<TrackEntity const *>(targetEntity)};
+        if (track_entity == nullptr) {
+            return;
+        }
         ImGui::Begin("Engine Entity");
         ImGui::Text("%s", get_string(track_entity->type).c_str());
         if (track_entity->entityID != -1) {
@@ -222,38 +225,6 @@ namespace OpenNFS {
                 ImGui::Separator();
                 ImGui::Text("NFS Data");
                 ImGui::Text("Type: %hhu", targetBaseLight->type);
-            }
-            break;
-            case EntityType::CAR: {
-                /*Car *targetCar = std::get<Car *>(targetEntity->track_entity);
-                ImGui::Text("%s Supported Colours:", targetCar->assetData.metadata.name.c_str());
-                for (auto &carColour : targetCar->assetData.metadata.colours) {
-                    ImVec4 carColourIm(carColour.colour.x, carColour.colour.y, carColour.colour.z, 0);
-                    ImGui::ColorEdit4(carColour.colourName.c_str(), (float *) &carColourIm); // Edit 3 floats representing a color
-                }
-                ImGui::Text("Ray Distances U: %f F: %f R: %f L: %f",
-                            targetCar->rangefinderInfo.upDistance,
-                            targetCar->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY],
-                            targetCar->rangefinderInfo.rangefinders[RayDirection::RIGHT_RAY],
-                            targetCar->rangefinderInfo.rangefinders[RayDirection::LEFT_RAY]);
-                ImGui::Text("Speed %f", targetCar->GetVehicle()->getCurrentSpeedKmHour() / 10.f);
-                // Physics Parameters
-                ImGui::SliderFloat("Engine Force", &targetCar->vehicleState.gEngineForce, 0, 10000.0f);
-                ImGui::SliderFloat("Breaking Force", &targetCar->vehicleState.gBreakingForce, 0, 1000.0f);
-                ImGui::SliderFloat("Max Engine Force", &targetCar->vehicleProperties.maxEngineForce, 0, 10000.0f);
-                ImGui::SliderFloat("Max Breaking Force", &targetCar->vehicleProperties.maxBreakingForce, 0, 1000.0f);
-                ImGui::SliderFloat("Susp Rest.", &targetCar->vehicleProperties.suspensionRestLength, 0, 0.1f); // btScalar(0.030);
-                ImGui::SliderFloat("Susp Stiff.", &targetCar->vehicleProperties.suspensionStiffness, 0, 1000.f);
-                ImGui::SliderFloat("Susp Damp.", &targetCar->vehicleProperties.suspensionDamping, 0, 1000.f);
-                ImGui::SliderFloat("Susp Compr.", &targetCar->vehicleProperties.suspensionCompression, 0, 1000.f);
-                ImGui::SliderFloat("Friction.", &targetCar->vehicleProperties.wheelFriction, 0, 1.f);
-                ImGui::SliderFloat("Roll Infl.", &targetCar->vehicleProperties.rollInfluence, 0, 0.5);
-                ImGui::SliderFloat("Steer Incr.", &targetCar->vehicleProperties.steeringIncrement, 0.f, 0.1f);
-                ImGui::SliderFloat("Steer Clamp", &targetCar->vehicleProperties.steeringClamp, 0.f, 0.5f);
-                ImGui::Text("Roll (deg) x: %f y: %f z: %f",
-                            glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).x * 180 / SIMD_PI,
-                            glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).y * 180 / SIMD_PI,
-                            glm::eulerAngles(targetCar->carBodyModel.geometry->orientation).z * 180 / SIMD_PI);*/
             }
             break;
             default:
@@ -297,7 +268,7 @@ namespace OpenNFS {
         ImGui::SameLine(0, 0.0f);
         ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, m_track->nBlocks / 2);
         ImGui::NewLine();
-        ImGui::ColorEdit3("Sun Atten", (float *) &userParams.sunAttenuation); // Edit 3 floats representing a color
+        ImGui::ColorEdit3("Sun Atten", reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a color
         ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
 
