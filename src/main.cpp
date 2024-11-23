@@ -46,7 +46,9 @@ public:
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
-        std::shared_ptr<GLFWwindow> const window{Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION)};
+        std::shared_ptr<GLFWwindow> const window{
+            Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION)
+        };
         AssetData loadedAssets{
             get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track
         };
