@@ -8,17 +8,22 @@ namespace OpenNFS {
                              const std::shared_ptr<Logger> &onfsLogger,
                              const std::vector<NfsAssetList> &installedNFS,
                              const std::shared_ptr<Track> &currentTrack,
-                             const std::shared_ptr<Car> &currentCar) :
-        m_window(window),
-        m_track(currentTrack),
-        m_playerAgent(std::make_shared<PlayerAgent>(window, currentCar, currentTrack)),
-        m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer) {
-        m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track->nfsVersion, m_track->name};
+                             const std::shared_ptr<Car> &currentCar) : m_window(window),
+                                                                       m_track(currentTrack),
+                                                                       m_playerAgent(
+                                                                           std::make_shared<PlayerAgent>(
+                                                                               window, currentCar, currentTrack)),
+                                                                       m_renderer(window, onfsLogger, installedNFS,
+                                                                           m_track, m_physicsEngine.debugDrawer) {
+        m_loadedAssets = {
+            m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track->nfsVersion,
+            m_track->name
+        };
 
         // Set up the cameras
-        m_freeCamera    = FreeCamera(m_window, m_track->trackBlocks[0].position);
+        m_freeCamera = FreeCamera(m_window, m_track->trackBlocks[0].position);
         m_hermiteCamera = HermiteCamera(m_track->centerSpline, m_window);
-        m_carCamera     = CarCamera(m_window);
+        m_carCamera = CarCamera(m_window);
 
         // Generate the collision meshes
         m_physicsEngine.RegisterTrack(m_track);
@@ -30,17 +35,17 @@ namespace OpenNFS {
     void RaceSession::_UpdateCameras(const float deltaTime) {
         if (m_windowStatus == WindowStatus::GAME) {
             switch (m_activeCameraMode) {
-            case FOLLOW_CAR:
-                // Compute MVP from keyboard and mouse, centered around a target car
-                m_carCamera.FollowCar(m_playerAgent->vehicle);
-                break;
-            case HERMITE_FLYTHROUGH:
-                m_hermiteCamera.UseSpline(m_totalTime);
-                break;
-            case FREE_LOOK:
-                // Compute the MVP matrix from keyboard and mouse input
-                m_freeCamera.ComputeMatricesFromInputs(deltaTime);
-                break;
+                case FOLLOW_CAR:
+                    // Compute MVP from keyboard and mouse, centered around a target car
+                    m_carCamera.FollowCar(m_playerAgent->vehicle);
+                    break;
+                case HERMITE_FLYTHROUGH:
+                    m_hermiteCamera.UseSpline(m_totalTime);
+                    break;
+                case FREE_LOOK:
+                    // Compute the MVP matrix from keyboard and mouse input
+                    m_freeCamera.ComputeMatricesFromInputs(deltaTime);
+                    break;
             }
         }
     }
@@ -84,7 +89,9 @@ namespace OpenNFS {
             m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
             if (ImGui::GetIO().MouseClicked[0] && m_windowStatus == GAME) {
-                std::optional targetedEntity {m_physicsEngine.CheckForPicking(activeCamera.viewMatrix, activeCamera.projectionMatrix)};
+                std::optional targetedEntity{
+                    m_physicsEngine.CheckForPicking(activeCamera.viewMatrix, activeCamera.projectionMatrix)
+                };
                 // Make the targeted entity 'sticky', else it vanishes after 1 frame
                 if (targetedEntity.has_value()) {
                     m_targetedEntity = targetedEntity;
@@ -97,8 +104,11 @@ namespace OpenNFS {
                 m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
             }
 
-            bool assetChange = m_renderer.Render(
-              m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity);
+            const bool assetChange{
+                m_renderer.Render(
+                    m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams,
+                    m_loadedAssets, m_racerManager.racers, m_targetedEntity)
+            };
 
             if (assetChange) {
                 return m_loadedAssets;
@@ -125,11 +135,12 @@ namespace OpenNFS {
         ImGui::NewFrame();
 
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && (!ImGui::GetIO().WantCaptureMouse)) {
-            m_windowStatus                 = GAME;
+        if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && !ImGui::GetIO().
+            WantCaptureMouse) {
+            m_windowStatus = GAME;
             ImGui::GetIO().MouseDrawCursor = false;
         } else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            m_windowStatus                 = UI;
+            m_windowStatus = UI;
             ImGui::GetIO().MouseDrawCursor = true;
         }
     }

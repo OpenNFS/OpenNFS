@@ -27,15 +27,15 @@ namespace OpenNFS {
         void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const;
         void RegisterVehicle(const std::shared_ptr<Car> &car);
         void RegisterTrack(const std::shared_ptr<OpenNFS::Track> &track);
-        std::optional<Entity *> CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) const;
-        btDiscreteDynamicsWorld *GetDynamicsWorld();
+        [[nodiscard]] std::optional<Entity *> CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) const;
+        [[nodiscard]] btDiscreteDynamicsWorld *GetDynamicsWorld() const;
 
         std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
     private:
         void _GenerateVroadBarriers();
 
-        std::shared_ptr<OpenNFS::Track> m_track;
+        std::shared_ptr<Track> m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
         std::unique_ptr<btBroadphaseInterface> m_pBroadphase;

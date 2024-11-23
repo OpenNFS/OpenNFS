@@ -27,29 +27,23 @@ namespace OpenNFS {
         glm::vec3 const up {glm::cross(right, m_direction)};
 
         // Speed boost
-        if (ImGui::GetIO().KeyShift) {
-            m_speed = 100.0f;
-        } else {
-            m_speed = 3.0f;
+        m_speed = ImGui::GetIO().KeyShift  ? 20.0f : 3.0f;
+        
+        // Move forward
+        if (glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS) {
+            position += m_direction * deltaTime * m_speed;
         }
-
-        if (ImGui::GetIO().MouseDown[1]) {
-            // Move forward
-            if (glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS) {
-                position += m_direction * deltaTime * m_speed;
-            }
-            // Move backward
-            if (glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS) {
-                position -= m_direction * deltaTime * m_speed;
-            }
-            // Strafe right
-            if (glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS) {
-                position += right * deltaTime * m_speed;
-            }
-            // Strafe left
-            if (glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS) {
-                position -= right * deltaTime * m_speed;
-            }
+        // Move backward
+        if (glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS) {
+            position -= m_direction * deltaTime * m_speed;
+        }
+        // Strafe right
+        if (glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS) {
+            position += right * deltaTime * m_speed;
+        }
+        // Strafe left
+        if (glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS) {
+            position -= right * deltaTime * m_speed;
         }
 
         // Camera matrix

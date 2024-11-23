@@ -27,7 +27,7 @@ namespace OpenNFS {
 
     void ShadowMapRenderer::Render(float nearPlane,
                                    float farPlane,
-                                   const std::shared_ptr<GlobalLight> &light,
+                                   const GlobalLight *light,
                                    GLuint trackTextureArrayID,
                                    const std::vector<std::shared_ptr<Entity>> &visibleEntities,
                                    const std::vector<std::shared_ptr<CarAgent>> &racers) {

@@ -7,8 +7,8 @@ namespace OpenNFS {
                        const std::shared_ptr<Logger> &onfsLogger,
                        const std::vector<NfsAssetList> &installedNFS,
                        const std::shared_ptr<Track> &currentTrack,
-                       const std::shared_ptr<BulletDebugDrawer> &debugDrawer) : m_logger(onfsLogger),
-        m_nfsAssetList(installedNFS), m_window(window), m_track(currentTrack), m_debugRenderer(debugDrawer) {
+                       const std::shared_ptr<BulletDebugDrawer> &debugDrawer) : m_window(window),
+        m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_track(currentTrack), m_debugRenderer(debugDrawer) {
         this->_InitialiseIMGUI();
         LOG(DEBUG) << "Renderer Initialised";
     }
@@ -75,7 +75,7 @@ namespace OpenNFS {
     bool Renderer::Render(float const totalTime,
                           const BaseCamera &activeCamera,
                           const HermiteCamera &hermiteCamera,
-                          const std::shared_ptr<GlobalLight> &activeLight,
+                          const GlobalLight* activeLight,
                           ParamData &userParams,
                           AssetData &loadedAssets,
                           const std::vector<std::shared_ptr<CarAgent> > &racers,
@@ -85,7 +85,6 @@ namespace OpenNFS {
 
         // Perform frustum culling to get visible entities, from perspective of active camera
         VisibleSet visibleSet = _FrustumCull(m_track, activeCamera, userParams);
-        visibleSet.lights.insert(visibleSet.lights.begin(), activeLight);
 
         if (userParams.drawHermiteFrustum) {
             m_debugRenderer.DrawFrustum(hermiteCamera);
@@ -97,6 +96,12 @@ namespace OpenNFS {
 
         if (userParams.drawVroad) {
             m_debugRenderer.DrawVroad(m_track);
+        }
+
+        if (userParams.drawRaycast) {
+            for (const auto &racer : racers) {
+                m_debugRenderer.DrawCarRaycasts(racer->vehicle);
+            }
         }
 
         // Render the environment
@@ -138,8 +143,7 @@ namespace OpenNFS {
 
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks
-            auto aabbCollisions = track->cullTree.queryOverlaps(camera.viewFrustum);
-            for (auto &collision: aabbCollisions) {
+            for (auto &collision: track->cullTree.queryOverlaps(camera.viewFrustum)) {
                 visibleSet.entities.emplace_back(std::static_pointer_cast<Entity>(collision));
             }
         } else {

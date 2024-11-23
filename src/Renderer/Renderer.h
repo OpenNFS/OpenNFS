@@ -51,7 +51,7 @@ namespace OpenNFS {
         bool Render(float totalTime,
                     const BaseCamera &activeCamera,
                     const HermiteCamera &hermiteCamera,
-                    const std::shared_ptr<GlobalLight> &activeLight,
+                    const GlobalLight *activeLight,
                     ParamData &userParams,
                     AssetData &loadedAssets,
                     const std::vector<std::shared_ptr<CarAgent> > &racers,

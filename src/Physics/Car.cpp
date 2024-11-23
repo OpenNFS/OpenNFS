@@ -376,7 +376,7 @@ namespace OpenNFS {
             case NFSVersion::NFS_2:
             case NFSVersion::NFS_3_PS1: {
                 if (carGeometries.size() < 3) {
-                    GLCarModel wheelModel{GLCarModel(carGeometries[0])};
+                    GLCarModel wheelModel(carGeometries[0]);
                     wheelModel.Enable();
                     leftFrontWheelModel = wheelModel;
                     rightFrontWheelModel = wheelModel;
@@ -576,7 +576,7 @@ namespace OpenNFS {
         vehicleProperties.absoluteSteer = false;
         // Set car colour
         if (!assetData.metadata.colours.empty()) {
-            int const randomColourIdx{(int) Utils::RandomFloat(0.f, (float) assetData.metadata.colours.size())};
+            uint32_t const randomColourIdx{(uint32_t)Utils::RandomFloat(0.f, (float) assetData.metadata.colours.size())};
             vehicleProperties.colour = assetData.metadata.colours[randomColourIdx].colour;
         } else {
             vehicleProperties.colour = glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f),

@@ -3,8 +3,9 @@
 #include "../../Physics/Car.h"
 
 namespace OpenNFS {
-    PlayerAgent::PlayerAgent(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &raceTrack) : CarAgent(
-        PLAYER, car, raceTrack), m_window(window) {
+    PlayerAgent::PlayerAgent(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Car> &car,
+                             const std::shared_ptr<Track> &raceTrack) : CarAgent(
+                                                                            PLAYER, car, raceTrack), m_window(window) {
         name = "DumbPanda";
     }
 

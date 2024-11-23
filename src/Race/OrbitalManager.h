@@ -10,12 +10,12 @@ namespace OpenNFS {
 
         void Update(const BaseCamera &camera, float timeScaleFactor) const;
 
-        std::shared_ptr<GlobalLight> GetActiveGlobalLight();
+        [[nodiscard]] GlobalLight* GetActiveGlobalLight() const;
 
     private:
         const float SKYDOME_RADIUS = 200.f;
 
-        std::shared_ptr<GlobalLight> m_sun;
-        std::shared_ptr<GlobalLight> m_moon;
+        std::unique_ptr<GlobalLight> m_sun;
+        std::unique_ptr<GlobalLight> m_moon;
     };
 }

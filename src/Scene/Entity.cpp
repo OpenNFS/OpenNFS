@@ -13,9 +13,6 @@ namespace OpenNFS {
     }
 
     void Entity::_GenCollisionMesh() {
-        auto center = glm::vec3(0, 0, 0);
-        auto orientation = glm::quat(0, 0, 0, 1);
-
         switch (type) {
             case LibOpenNFS::EntityType::LIGHT:
             case LibOpenNFS::EntityType::LANE:
@@ -25,25 +22,23 @@ namespace OpenNFS {
             case LibOpenNFS::EntityType::GLOBAL:
             case LibOpenNFS::EntityType::XOBJ:
             case LibOpenNFS::EntityType::OBJ_POLY: {
-                const std::vector<glm::vec3> &vertices = m_vertices;
-                center = initialPosition;
                 if (dynamic) {
                     // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
                     auto mesh = std::make_unique<btTriangleMesh>();
-                    for (size_t vertIdx = 0; vertIdx < vertices.size() - 2; vertIdx += 3) {
-                        glm::vec3 triangle = vertices[vertIdx];
-                        glm::vec3 triangle1 = vertices[vertIdx + 1];
-                        glm::vec3 triangle2 = vertices[vertIdx + 2];
+                    for (size_t vertIdx = 0; vertIdx < m_vertices.size() - 2; vertIdx += 3) {
+                        glm::vec3 triangle = m_vertices[vertIdx];
+                        glm::vec3 triangle1 = m_vertices[vertIdx + 1];
+                        glm::vec3 triangle2 = m_vertices[vertIdx + 2];
                         mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1),
                                           Utils::glmToBullet(triangle2), false);
                     }
                     m_collisionShape = std::make_unique<btConvexTriangleMeshShape>(mesh.get(), true);
                 } else {
                     // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
-                    for (size_t vertIdx = 0; vertIdx < vertices.size() - 2; vertIdx += 3) {
-                        glm::vec3 triangle = vertices[vertIdx];
-                        glm::vec3 triangle1 = vertices[vertIdx + 1];
-                        glm::vec3 triangle2 = vertices[vertIdx + 2];
+                    for (size_t vertIdx = 0; vertIdx < m_vertices.size() - 2; vertIdx += 3) {
+                        glm::vec3 triangle = m_vertices[vertIdx];
+                        glm::vec3 triangle1 = m_vertices[vertIdx + 1];
+                        glm::vec3 triangle2 = m_vertices[vertIdx + 2];
                         m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1),
                                                     Utils::glmToBullet(triangle2), false);
                     }
@@ -63,7 +58,7 @@ namespace OpenNFS {
             m_collisionShape->calculateLocalInertia(entityMass, localInertia);
         }
 
-        m_motionState = std::make_unique<btDefaultMotionState>(Utils::MakeTransform(center, orientation));
+        m_motionState = std::make_unique<btDefaultMotionState>(Utils::MakeTransform(initialPosition, orientation));
         rigidBody = std::make_unique<btRigidBody>(
             btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState.get(), m_collisionShape.get(),
                                                      localInertia));

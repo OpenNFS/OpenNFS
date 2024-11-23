@@ -71,7 +71,7 @@ namespace OpenNFS {
         m_skydomeModel.UpdateMatrices();
     }
 
-    void SkyRenderer::Render(const BaseCamera &camera, const std::shared_ptr<GlobalLight> &light,
+    void SkyRenderer::Render(const BaseCamera &camera, const GlobalLight* light,
                              const float elapsedTime) {
         m_skydomeShader.use();
         m_skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID,

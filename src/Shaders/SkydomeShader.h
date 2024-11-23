@@ -9,7 +9,7 @@ namespace OpenNFS {
     public:
         SkydomeShader();
 
-        void loadSunPosition(const std::shared_ptr<GlobalLight> &light);
+        void loadSunPosition(const GlobalLight *light);
 
         void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view, const glm::mat4 &transformation);
 

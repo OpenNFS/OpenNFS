@@ -12,7 +12,7 @@ namespace OpenNFS {
     public:
         explicit SkyRenderer();
         ~SkyRenderer();
-        void Render(const BaseCamera &camera, const std::shared_ptr<GlobalLight> &light, float elapsedTime);
+        void Render(const BaseCamera &camera, const GlobalLight* light, float elapsedTime);
 
     private:
         // Load cloud, sun, moon and tint textures

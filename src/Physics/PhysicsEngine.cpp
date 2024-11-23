@@ -137,15 +137,15 @@ namespace OpenNFS {
         m_activeVehicles.push_back(car);
     }
 
-    btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld() {
+    btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld() const {
         return m_pDynamicsWorld.get();
     }
 
     PhysicsEngine::~PhysicsEngine() {
-        for (auto &car: m_activeVehicles) {
+        for (const auto &car: m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
-        for (auto &entity: m_track->entities) {
+        for (const auto &entity: m_track->entities) {
             m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
         }
     }

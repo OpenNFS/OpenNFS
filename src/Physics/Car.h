@@ -5,7 +5,6 @@
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletDynamics/Vehicle/btVehicleRaycaster.h>
 #include <BulletDynamics/Vehicle/btRaycastVehicle.h>
-#include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <btBulletDynamicsCommon.h>
 #include <Entities/Car.h>
 
@@ -13,7 +12,6 @@
 #include "../Scene/Spotlight.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
-#include "Common/NFSVersion.h"
 
 namespace OpenNFS {
     // Raycasting Data
@@ -98,7 +96,7 @@ namespace OpenNFS {
         void ApplySteeringRight(bool apply);
         void ApplySteeringLeft(bool apply);
         void ApplyAbsoluteSteerAngle(float targetAngle);
-        float GetCarBodyOrientation() const;
+        [[nodiscard]] float GetCarBodyOrientation() const;
 
         // Physics Engine registration
         void SetVehicle(std::unique_ptr<btRaycastVehicle>&& vehicle) {
@@ -107,13 +105,13 @@ namespace OpenNFS {
         void SetRaycaster(std::unique_ptr<btVehicleRaycaster>&& vehicleRayCaster) {
             m_vehicleRayCaster = std::move(vehicleRayCaster);
         }
-        btRigidBody* GetVehicleRigidBody() {
+        [[nodiscard]] btRigidBody* GetVehicleRigidBody() const {
             return m_carChassis.get();
         }
-        btVehicleRaycaster* GetRaycaster() {
+        [[nodiscard]] btVehicleRaycaster* GetRaycaster() const {
             return m_vehicleRayCaster.get();
         }
-        btRaycastVehicle* GetVehicle() {
+        [[nodiscard]] btRaycastVehicle* GetVehicle() const {
             return m_vehicle.get();
         }
 

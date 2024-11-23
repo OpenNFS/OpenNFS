@@ -45,7 +45,7 @@ namespace OpenNFS {
         loadMat3(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
     }
 
-    void SkydomeShader::loadSunPosition(const std::shared_ptr<GlobalLight> &light) {
+    void SkydomeShader::loadSunPosition(const GlobalLight *light) {
         loadVec3(sunPositionLocation, light->position);
     }
 

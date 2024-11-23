@@ -69,14 +69,9 @@ namespace OpenNFS::Utils {
         modelDimensions.maxVertex = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
         modelDimensions.minVertex = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
 
-        for (auto &vertex: vertices) {
-            modelDimensions.minVertex.x = glm::min(modelDimensions.minVertex.x, vertex.x);
-            modelDimensions.minVertex.y = glm::min(modelDimensions.minVertex.y, vertex.y);
-            modelDimensions.minVertex.z = glm::min(modelDimensions.minVertex.z, vertex.z);
-
-            modelDimensions.maxVertex.x = glm::max(modelDimensions.maxVertex.x, vertex.x);
-            modelDimensions.maxVertex.y = glm::max(modelDimensions.maxVertex.y, vertex.y);
-            modelDimensions.maxVertex.z = glm::max(modelDimensions.maxVertex.z, vertex.z);
+        for (const auto &vertex: vertices) {
+            modelDimensions.minVertex = glm::min(modelDimensions.minVertex, vertex);
+            modelDimensions.maxVertex = glm::max(modelDimensions.maxVertex, vertex);
         }
 
         return modelDimensions;

@@ -1,9 +1,9 @@
 #include "OrbitalManager.h"
 
 namespace OpenNFS {
-    OrbitalManager::OrbitalManager() : m_sun(std::make_shared<GlobalLight>(
+    OrbitalManager::OrbitalManager() : m_sun(std::make_unique<GlobalLight>(
                                            glm::vec3(0, 0, 0), glm::vec3(0, SKYDOME_RADIUS, 0))),
-                                       m_moon(std::make_shared<GlobalLight>(
+                                       m_moon(std::make_unique<GlobalLight>(
                                            glm::vec3(0, 0, 0), glm::vec3(0, -SKYDOME_RADIUS, 0))) {
     }
 
@@ -15,12 +15,12 @@ namespace OpenNFS {
         m_moon->Update(timeScaleFactor);
     }
 
-    std::shared_ptr<GlobalLight> OrbitalManager::GetActiveGlobalLight() {
+    GlobalLight *OrbitalManager::GetActiveGlobalLight() const {
         // TODO: Switch this over to be time based
         if (m_sun->position.y <= 0) {
-            return m_moon;
+            return m_moon.get();
         }
 
-        return m_sun;
+        return m_sun.get();
     }
 }
