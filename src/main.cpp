@@ -53,19 +53,6 @@ public:
             get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track
         };
 
-        const std::function logInfoCallback = [](const std::string &logMessage) {
-            LogCapture(__FILE__, __LINE__, __FUNCTION__, INFO).stream() << logMessage;
-        };
-        const std::function logWarnCallback = [](const std::string &logMessage) {
-            LogCapture(__FILE__, __LINE__, __FUNCTION__, WARNING).stream() << logMessage;
-        };
-        const std::function logDebugCallback = [](const std::string &logMessage) {
-            LogCapture(__FILE__, __LINE__, __FUNCTION__, DEBUG).stream() << logMessage;
-        };
-
-        LibOpenNFS::RegisterLogCallback(LONFS_INFO, logInfoCallback);
-        LibOpenNFS::RegisterLogCallback(LONFS_WARNING, logWarnCallback);
-        LibOpenNFS::RegisterLogCallback(LONFS_DEBUG, logDebugCallback);
 
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
         CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
@@ -106,6 +93,20 @@ private:
 int main(int argc, char **argv) {
     auto logger = std::make_shared<Logger>();
     Config::get().InitFromCommandLine(argc, argv);
+
+    const std::function logInfoCallback = [](const char* file, const int line, const char* func, const std::string &logMessage) {
+        LogCapture(file, line, func, INFO).stream() << logMessage;
+    };
+    const std::function logWarnCallback = [](const char* file, const int line, const char* func, const std::string &logMessage) {
+        LogCapture(file, line, func, WARNING).stream() << logMessage;
+    };
+    const std::function logDebugCallback = [](const char* file, const int line, const char* func, const std::string &logMessage) {
+        LogCapture(file, line, func, DEBUG).stream() << logMessage;
+    };
+
+    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::INFO, logInfoCallback);
+    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::WARNING, logWarnCallback);
+    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::DEBUG, logDebugCallback);
 
     try {
         OpenNFSEngine game(logger);
