@@ -12,7 +12,14 @@ namespace OpenNFS {
                                                                        m_track(currentTrack),
                                                                        m_playerAgent(
                                                                            std::make_shared<PlayerAgent>(
-                                                                               window, currentCar, currentTrack)),
+                                                                               m_inputManager, currentCar,
+                                                                               currentTrack)),
+                                                                       m_freeCamera(
+                                                                           m_inputManager,
+                                                                           m_track->trackBlocks[0].position),
+                                                                       m_hermiteCamera(
+                                                                           m_track->centerSpline, m_inputManager),
+                                                                       m_carCamera(m_inputManager),
                                                                        m_renderer(window, onfsLogger, installedNFS,
                                                                            m_track, m_physicsEngine.debugDrawer),
                                                                        m_inputManager(window) {
@@ -20,11 +27,6 @@ namespace OpenNFS {
             m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track->nfsVersion,
             m_track->name
         };
-
-        // Set up the cameras
-        m_freeCamera = FreeCamera(m_window, m_track->trackBlocks[0].position);
-        m_hermiteCamera = HermiteCamera(m_track->centerSpline, m_window);
-        m_carCamera = CarCamera(m_window);
 
         // Generate the collision meshes
         m_physicsEngine.RegisterTrack(m_track);
@@ -144,5 +146,7 @@ namespace OpenNFS {
             m_windowStatus = UI;
             ImGui::GetIO().MouseDrawCursor = true;
         }
+
+        m_inputManager.Scan();
     }
 } // namespace OpenNFS

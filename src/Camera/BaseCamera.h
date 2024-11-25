@@ -1,12 +1,10 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <memory>
 
 #include "../Physics/Frustum.h"
+#include "../Input/InputManager.h"
 
 namespace OpenNFS {
     enum WindowStatus : uint8_t { UI, GAME };
@@ -15,9 +13,7 @@ namespace OpenNFS {
 
     class BaseCamera {
     public:
-        BaseCamera(CameraMode mode, const std::shared_ptr<GLFWwindow> &window);
-
-        BaseCamera() = default;
+        BaseCamera(CameraMode mode, const InputManager &inputManager);
 
         void UpdateFrustum();
 
@@ -29,7 +25,7 @@ namespace OpenNFS {
         Frustum viewFrustum;
 
     protected:
-        std::shared_ptr<GLFWwindow> m_window;
+        const InputManager &m_inputManager;
         CameraMode m_mode;
         glm::vec3 m_direction;
         float m_fov;

@@ -1,16 +1,15 @@
 #pragma once
 
 #include "CarAgent.h"
-
-#include <GLFW/glfw3.h>
+#include "../../Input/InputManager.h"
 
 namespace OpenNFS {
     class PlayerAgent final : public CarAgent {
     public:
-        PlayerAgent(const std::shared_ptr<GLFWwindow> &window, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &raceTrack);
+        PlayerAgent(const InputManager &inputManager, const std::shared_ptr<Car> &car, const std::shared_ptr<Track> &raceTrack);
         void Simulate() override;
 
     private:
-        std::shared_ptr<GLFWwindow> m_window;
+        const InputManager &m_inputManager;
     };
 } // namespace OpenNFS

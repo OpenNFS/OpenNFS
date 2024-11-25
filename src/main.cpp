@@ -91,16 +91,19 @@ private:
 };
 
 int main(int argc, char **argv) {
-    auto logger = std::make_shared<Logger>();
+    const auto logger = std::make_shared<Logger>();
     Config::get().InitFromCommandLine(argc, argv);
 
-    const std::function logInfoCallback = [](const char* file, const int line, const char* func, const std::string &logMessage) {
+    const std::function logInfoCallback = [](const char *file, const int line, const char *func,
+                                             const std::string &logMessage) {
         LogCapture(file, line, func, INFO).stream() << logMessage;
     };
-    const std::function logWarnCallback = [](const char* file, const int line, const char* func, const std::string &logMessage) {
+    const std::function logWarnCallback = [](const char *file, const int line, const char *func,
+                                             const std::string &logMessage) {
         LogCapture(file, line, func, WARNING).stream() << logMessage;
     };
-    const std::function logDebugCallback = [](const char* file, const int line, const char* func, const std::string &logMessage) {
+    const std::function logDebugCallback = [](const char *file, const int line, const char *func,
+                                              const std::string &logMessage) {
         LogCapture(file, line, func, DEBUG).stream() << logMessage;
     };
 

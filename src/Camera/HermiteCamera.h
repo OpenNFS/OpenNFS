@@ -6,9 +6,7 @@
 namespace OpenNFS {
     class HermiteCamera : public BaseCamera {
     public:
-        explicit HermiteCamera() = default;
-
-        HermiteCamera(const HermiteCurve &trackCenterSpline, const std::shared_ptr<GLFWwindow> &window);
+        HermiteCamera(const HermiteCurve &trackCenterSpline, const InputManager &inputManager);
 
         void UseSpline(float elapsedTime);
 

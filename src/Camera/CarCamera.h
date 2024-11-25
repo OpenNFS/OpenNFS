@@ -7,16 +7,15 @@
 namespace OpenNFS {
     class CarCamera : public BaseCamera {
     public:
-        explicit CarCamera() = default;
-        CarCamera(const std::shared_ptr<GLFWwindow> &window);
+        CarCamera(const InputManager &inputManager);
         void FollowCar(const std::shared_ptr<Car> &targetCar);
 
     private:
         void _CalculateZoom();
         void _CalculatePitch();
         void _CalculateAngleAroundCar();
-        float _CalculateHorizontalDistance() const;
-        float _CalculateVerticalDistance() const;
+        [[nodiscard]] float _CalculateHorizontalDistance() const;
+        [[nodiscard]] float _CalculateVerticalDistance() const;
         void _CalculateCameraPosition(const std::shared_ptr<Car> &target_car, float horizDistance, float vertDistance);
 
         float m_distanceFromCar = 0.7f;

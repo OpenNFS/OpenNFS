@@ -1,7 +1,7 @@
 #include "CarCamera.h"
 
 namespace OpenNFS {
-    CarCamera::CarCamera(const std::shared_ptr<GLFWwindow> &window) : BaseCamera(CameraMode::FOLLOW_CAR, window) {
+    CarCamera::CarCamera(const InputManager &inputManager) : BaseCamera(CameraMode::FOLLOW_CAR, inputManager) {
     }
 
     void CarCamera::FollowCar(const std::shared_ptr<Car> &targetCar) {

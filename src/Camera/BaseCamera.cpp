@@ -3,7 +3,7 @@
 #include "../Config.h"
 
 namespace OpenNFS {
-    BaseCamera::BaseCamera(const CameraMode mode, const std::shared_ptr<GLFWwindow> &window) : m_window(window) {
+    BaseCamera::BaseCamera(const CameraMode mode, const InputManager &inputManager) : m_inputManager(inputManager) {
         m_fov = Config::get().fov;
         // Initial position : on +Z
         position = glm::vec3(0, 0, 0);
