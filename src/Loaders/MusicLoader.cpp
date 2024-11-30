@@ -27,10 +27,9 @@
 int32_t Clip16BitSample(int32_t sample) {
     if (sample > 32767)
         return 32767;
-    else if (sample < -32768)
+    if (sample < -32768)
         return (-32768);
-    else
-        return sample;
+    return sample;
 }
 
 void write_little_endian(unsigned int uint16_t, int num_bytes, FILE *wav_file) {
@@ -165,8 +164,8 @@ void MusicLoader::ParsePTHeader(FILE *file,
 
 void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE *mus_file, FILE *pcm_file) {
     uint32_t l = 0, r = 0;
-    uint16_t *outBufL = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
-    uint16_t *outBufR = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
+    auto outBufL = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
+    auto outBufR = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
 
     // TODO: Different stuff for MONO/Stereo
     int32_t lCurSampleLeft   = asfChunkHeader->lCurSampleLeft;
@@ -246,8 +245,8 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
     }
 
     for (auto t = 0; t < nSamples; ++t) {
-        write_little_endian((uint16_t) outBufL[t], 2, pcm_file);
-        write_little_endian((uint16_t) outBufR[t], 2, pcm_file);
+        write_little_endian(outBufL[t], 2, pcm_file);
+        write_little_endian(outBufR[t], 2, pcm_file);
     }
 
     free(outBufL);
@@ -257,7 +256,7 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
 bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file) {
     fseek(mus_file, static_cast<long>(sch1Offset), SEEK_SET);
 
-    ASFBlockHeader *chk = (ASFBlockHeader *) calloc(1, sizeof(ASFBlockHeader));
+    auto chk = (ASFBlockHeader *) calloc(1, sizeof(ASFBlockHeader));
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
     if (memcmp(chk->szBlockID, "SCHl", sizeof(chk->szBlockID)) != 0) {
         free(chk);
@@ -313,7 +312,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file) 
             return false;
         }
 
-        ASFChunkHeader *asfChunkHeader = (ASFChunkHeader *) calloc(1, sizeof(ASFChunkHeader));
+        auto asfChunkHeader = (ASFChunkHeader *) calloc(1, sizeof(ASFChunkHeader));
         fread(asfChunkHeader, sizeof(ASFChunkHeader), 1, mus_file);
         DecompressEAADPCM(asfChunkHeader, chk->dwSize - sizeof(ASFBlockHeader) - sizeof(ASFChunkHeader), mus_file, pcm_file);
         totalSCD1InterleaveSize += chk->dwSize;
@@ -336,17 +335,17 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     std::ifstream map(map_path, std::ios::in | std::ios::binary);
 
     // Read the MAP file header
-    MAPHeader *mapHeader = static_cast<MAPHeader *>(calloc(1, sizeof(MAPHeader)));
+    auto mapHeader = static_cast<MAPHeader *>(calloc(1, sizeof(MAPHeader)));
     map.read((char *) mapHeader, sizeof(MAPHeader));
     std::cout << (int) mapHeader->bNumSections << " Sections" << std::endl;
 
-    MAPSectionDef *sectionDefTable = static_cast<MAPSectionDef *>(calloc(mapHeader->bNumSections, sizeof(MAPSectionDef)));
+    auto sectionDefTable = static_cast<MAPSectionDef *>(calloc(mapHeader->bNumSections, sizeof(MAPSectionDef)));
     map.read((char *) sectionDefTable, mapHeader->bNumSections * sizeof(MAPSectionDef));
 
     // Skip over seemlingly useless records
     map.seekg(mapHeader->bNumRecords * 0x10, std::ios_base::cur); // bRecordSize may be incorrect, use 0x10 to be safe
 
-    uint32_t *startingPositions = static_cast<uint32_t *>(calloc(mapHeader->bNumSections, sizeof(long)));
+    auto startingPositions = static_cast<uint32_t *>(calloc(mapHeader->bNumSections, sizeof(long)));
 
     for (int startPos_Idx = 0; startPos_Idx < mapHeader->bNumSections; ++startPos_Idx) {
         uint32_t startingPosition;

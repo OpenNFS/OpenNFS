@@ -30,11 +30,11 @@ namespace OpenNFS {
         glm::mat4 bulletToGlm(const btTransform &t);
 
         float RandomFloat(float min, float max);
-        DimensionData GenDimensions(std::vector<glm::vec3> vertices);
+        DimensionData GenDimensions(const std::vector<glm::vec3> &vertices);
         btTransform MakeTransform(glm::vec3 position, glm::quat orientation);
 
         std::vector<NfsAssetList> PopulateAssets();
-        static bool FilePathSortByDepthReverse(std::filesystem::path a, std::filesystem::path b);
+        static bool FilePathSortByDepthReverse(const std::filesystem::path &a, const std::filesystem::path &b);
         void RenameAssetsToLowercase();
     } // namespace Utils
 

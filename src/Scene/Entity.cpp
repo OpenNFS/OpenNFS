@@ -24,7 +24,7 @@ namespace OpenNFS {
             case LibOpenNFS::EntityType::OBJ_POLY: {
                 if (dynamic) {
                     // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
-                    auto mesh = std::make_unique<btTriangleMesh>();
+                    const auto mesh = std::make_unique<btTriangleMesh>();
                     for (size_t vertIdx = 0; vertIdx < m_vertices.size() - 2; vertIdx += 3) {
                         glm::vec3 triangle = m_vertices[vertIdx];
                         glm::vec3 triangle1 = m_vertices[vertIdx + 1];

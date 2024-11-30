@@ -75,6 +75,6 @@ namespace OpenNFS {
     ShadowMapRenderer::~ShadowMapRenderer() {
         glDeleteFramebuffers(1, &m_fboDepthMap);
         m_depthShader.cleanup();
-    };
+    }
 
 } // namespace OpenNFS

@@ -45,7 +45,7 @@ namespace OpenNFS::Utils {
             }
         }
         // traslation
-        btVector3 origin = t.getOrigin();
+        const btVector3 &origin = t.getOrigin();
         m[3][0] = origin.getX();
         m[3][1] = origin.getY();
         m[3][2] = origin.getZ();
@@ -64,7 +64,7 @@ namespace OpenNFS::Utils {
         return static_cast<float>(fdis(mt));
     }
 
-    DimensionData GenDimensions(std::vector<glm::vec3> vertices) {
+    DimensionData GenDimensions(const std::vector<glm::vec3> &vertices) {
         DimensionData modelDimensions = {};
         modelDimensions.maxVertex = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
         modelDimensions.minVertex = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -326,7 +326,7 @@ namespace OpenNFS::Utils {
         return installedNFS;
     }
 
-    static bool FilePathSortByDepthReverse(std::filesystem::path a, std::filesystem::path b) {
+    static bool FilePathSortByDepthReverse(const std::filesystem::path &a, const std::filesystem::path &b) {
         return (a.string().size() > b.string().size());
     }
 

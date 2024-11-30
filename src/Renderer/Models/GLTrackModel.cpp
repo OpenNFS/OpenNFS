@@ -10,7 +10,7 @@ GLTrackModel::~GLTrackModel() {
         glDeleteBuffers(1, &m_normalBuffer);
         glDeleteBuffers(1, &m_debugBuffer);
     }
-};
+}
 
 void GLTrackModel::UpdateMatrices() {
     if (!buffersGenerated) {

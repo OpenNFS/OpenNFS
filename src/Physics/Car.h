@@ -141,7 +141,7 @@ namespace OpenNFS {
         void _ApplyInputs();
         void _LoadTextures();
         void _GenPhysicsModel();
-        void _GenRaycasts(btDynamicsWorld* dynamicsWorld);
+        void _GenRaycasts(const btDynamicsWorld* dynamicsWorld);
         void _SetModels(std::vector<LibOpenNFS::CarGeometry>& carGeometries);
         void _SetVehicleProperties();
 

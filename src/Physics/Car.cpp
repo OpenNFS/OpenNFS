@@ -296,7 +296,7 @@ namespace OpenNFS {
         m_carChassis->setActivationState(DISABLE_DEACTIVATION);
     }
 
-    void Car::_GenRaycasts(btDynamicsWorld *const dynamicsWorld) {
+    void Car::_GenRaycasts(const btDynamicsWorld *dynamicsWorld) {
         btTransform trans;
         m_vehicleMotionState->getWorldTransform(trans);
         glm::vec3 const carBodyPosition{Utils::bulletToGlm(trans.getOrigin())};
@@ -564,7 +564,7 @@ namespace OpenNFS {
         vehicleProperties.maxSpeed = 20.f;
         vehicleProperties.maxEngineForce = 3000.f;
         vehicleProperties.maxBreakingForce = 1000.f;
-        vehicleProperties.suspensionRestLength = btScalar(0.020);
+        vehicleProperties.suspensionRestLength = 0.020;
         vehicleProperties.suspensionStiffness = 750.f;
         vehicleProperties.suspensionDamping = 200.f;
         vehicleProperties.suspensionCompression = 500.4f;
