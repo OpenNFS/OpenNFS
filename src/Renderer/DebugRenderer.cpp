@@ -1,5 +1,7 @@
 #include "DebugRenderer.h"
 
+#include <NFS3/NFS3Loader.h>
+
 #include "Entities/TrackVRoad.h"
 
 namespace OpenNFS {
@@ -120,29 +122,31 @@ namespace OpenNFS {
         }
     }
 
-    void DebugRenderer::DrawCameraAnimation(const Track &track) {
-        /*for (uint8_t canIdx = 0; canIdx < track->cameraAnimation.size() - 1; ++canIdx)
+    void DebugRenderer::DrawCameraAnimation(const Track &track) const {
+        using namespace LibOpenNFS;
+
+        for (uint8_t canIdx = 0; canIdx < track.cameraAnimation.size() - 1; ++canIdx)
         {
-            glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));
+            glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-glm::pi<float>() / 2, 0, 0)));
 
             // Draw CAN positions
-            SHARED::CANPT refPt = track->cameraAnimation[canIdx];
-            SHARED::CANPT refPtNext = track->cameraAnimation[canIdx + 1];
-            glm::vec3 vroadPoint = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(refPt)) / NFS3_SCALE_FACTOR;
-            glm::vec3 vroadPointNext = rotationMatrix * Utils::FixedToFloat(Utils::PointToVec(refPtNext)) / NFS3_SCALE_FACTOR;
+            Shared::CameraAnimPoint refPt = track.cameraAnimation[canIdx];
+            Shared::CameraAnimPoint refPtNext = track.cameraAnimation[canIdx + 1];
+            glm::vec3 vroadPoint = rotationMatrix * LibOpenNFS::Utils::FixedToFloat( LibOpenNFS::Utils::PointToVec(refPt.pt)) * NFS3::NFS3_SCALE_FACTOR;
+            glm::vec3 vroadPointNext = rotationMatrix *  LibOpenNFS::Utils::FixedToFloat( LibOpenNFS::Utils::PointToVec(refPtNext.pt)) * NFS3::NFS3_SCALE_FACTOR;
             vroadPoint.y += 0.2f;
             vroadPointNext.y += 0.2f;
             m_bulletDebugDrawer->drawLine(
-                    Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center),
-                    Utils::glmToBullet(vroadPointNext + track->trackBlocks[0].center), btVector3(0, 1, 1));
+                    Utils::glmToBullet(vroadPoint + track.trackBlocks[0].position),
+                    Utils::glmToBullet(vroadPointNext + track.trackBlocks[0].position), btVector3(0, 1, 1));
 
             // Draw Rotations
             glm::quat RotationMatrix =
                     glm::normalize(glm::quat(glm::vec3(glm::radians(0.f), glm::radians(-90.f), 0))) *
                     glm::normalize(glm::quat(refPt.od1 / 65536.0f, refPt.od2 / 65536.0f, refPt.od3 / 65536.0f, refPt.od4 / 65536.0f));
             glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
-            m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center),
-                                          Utils::glmToBullet(vroadPoint + track->trackBlocks[0].center + direction), btVector3(0, 0.5, 0.5));
-        }*/
+            m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track.trackBlocks[0].position),
+                                          Utils::glmToBullet(vroadPoint + track.trackBlocks[0].position + direction), btVector3(0, 0.5, 0.5));
+        }
     }
 } // namespace OpenNFS

@@ -15,7 +15,7 @@ namespace OpenNFS {
         void DrawFrustum(const BaseCamera &camera) const;
         void DrawCarRaycasts(const std::shared_ptr<Car> &car) const;
         void DrawVroad(const Track &track) const;
-        void DrawCameraAnimation(const Track &track);
+        void DrawCameraAnimation(const Track &track) const;
 
     private:
         std::shared_ptr<BulletDebugDrawer> m_bulletDebugDrawer;

@@ -50,7 +50,7 @@ namespace OpenNFS {
         // Set the mouse at the center of the screen
         glfwPollEvents();
         // Dark blue background
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         // Enable depth test
         glEnable(GL_DEPTH_TEST);
         // Accept fragment if it closer to the camera than the former one
@@ -107,7 +107,9 @@ namespace OpenNFS {
         // Render the environment
         m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track.textureArrayID,
                                    visibleEntities, racers);
-        m_skyRenderer.Render(activeCamera, activeLight, totalTime);
+        if (userParams.drawSkydome) {
+            m_skyRenderer.Render(activeCamera, activeLight, totalTime);
+        }
         m_trackRenderer.Render(racers, activeCamera, m_track.textureArrayID, visibleEntities, visibleLights,
                                userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
@@ -263,6 +265,7 @@ namespace OpenNFS {
         ImGui::Checkbox("AI Sim", &userParams.simulateCars);
         ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
+        ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);
         ImGui::SameLine(0, -1.0f);
         ImGui::NewLine();
         ImGui::SameLine(0, 0.0f);

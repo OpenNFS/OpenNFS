@@ -121,6 +121,7 @@ namespace OpenNFS {
         bool drawCAN = false;
         bool drawRaycast = false;
         bool simulateCars = true;
+        bool drawSkydome = true;
     };
 
     struct AssetData {
