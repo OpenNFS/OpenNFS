@@ -125,7 +125,7 @@ namespace OpenNFS {
     void DebugRenderer::DrawCameraAnimation(const Track &track) const {
         using namespace LibOpenNFS;
 
-        for (uint8_t canIdx = 0; canIdx < track.cameraAnimation.size() - 1; ++canIdx)
+        for (size_t canIdx = 0; canIdx < track.cameraAnimation.size() - 1; ++canIdx)
         {
             glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-glm::pi<float>() / 2, 0, 0)));
 

@@ -104,6 +104,10 @@ namespace OpenNFS {
             }
         }
 
+        if (userParams.drawCAN) {
+            m_debugRenderer.DrawCameraAnimation(m_track);
+        }
+
         // Render the environment
         m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track.textureArrayID,
                                    visibleEntities, racers);
