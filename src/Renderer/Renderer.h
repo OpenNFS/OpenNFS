@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
+#include <optional>
 
 #include "../Camera/HermiteCamera.h"
 #include "../Scene/Entity.h"

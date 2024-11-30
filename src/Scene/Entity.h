@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
