@@ -11,8 +11,8 @@ namespace OpenNFS {
         m_bulletDebugDrawer->Render(camera);
     }
 
-    void DebugRenderer::DrawTrackCollision(const std::shared_ptr<Track> &track) {
-        for (const auto &trackEntity: track->entities) {
+    void DebugRenderer::DrawTrackCollision(const Track &track) const {
+        for (const auto &trackEntity: track.entities) {
             this->DrawAABB(trackEntity->GetAABB());
         }
     }
@@ -78,15 +78,15 @@ namespace OpenNFS {
                                                 2.0f * (car->rangefinderInfo.downDistance), 0));
     }
 
-    void DebugRenderer::DrawVroad(const std::shared_ptr<Track> &track) const {
+    void DebugRenderer::DrawVroad(const Track &track) const {
         float vRoadDisplayHeight = 0.2f;
-        uint32_t const nVroad = track->virtualRoad.size();
+        uint32_t const nVroad = track.virtualRoad.size();
 
         for (uint32_t vroadIdx = 0; vroadIdx < nVroad; ++vroadIdx) {
             // Render COL Vroad? Should I use TRK VROAD to work across HS too?
             if (vroadIdx < nVroad - 1) {
-                LibOpenNFS::TrackVRoad const &curVroad = track->virtualRoad[vroadIdx];
-                LibOpenNFS::TrackVRoad const &nextVroad = track->virtualRoad[vroadIdx + 1];
+                LibOpenNFS::TrackVRoad const &curVroad = track.virtualRoad[vroadIdx];
+                LibOpenNFS::TrackVRoad const &nextVroad = track.virtualRoad[vroadIdx + 1];
 
                 glm::vec3 vroadPoint = curVroad.position;
                 glm::vec3 vroadPointNext = nextVroad.position;
@@ -120,7 +120,7 @@ namespace OpenNFS {
         }
     }
 
-    void DebugRenderer::DrawCameraAnimation(const std::shared_ptr<Track> &track) {
+    void DebugRenderer::DrawCameraAnimation(const Track &track) {
         /*for (uint8_t canIdx = 0; canIdx < track->cameraAnimation.size() - 1; ++canIdx)
         {
             glm::quat rotationMatrix = glm::normalize(glm::quat(glm::vec3(-SIMD_PI / 2, 0, 0)));

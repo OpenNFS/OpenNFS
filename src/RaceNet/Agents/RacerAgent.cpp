@@ -12,7 +12,7 @@ namespace OpenNFS {
     };
 
     RacerAgent::RacerAgent(uint16_t const racerID, const std::shared_ptr<Car> &car,
-                           const std::shared_ptr<Track> &raceTrack) : CarAgent(AgentType::RACING, car, raceTrack) {
+                           const Track &raceTrack) : CarAgent(AgentType::RACING, car, raceTrack) {
         name = RACER_NAMES[racerID];
         this->vehicle = std::make_shared<Car>(car->assetData);
 
@@ -49,7 +49,7 @@ namespace OpenNFS {
     }
 
     void RacerAgent::_FollowTrack() const {
-        glm::vec3 const target{m_track->virtualRoad[(m_nearestVroadID + 10) % m_track->virtualRoad.size()].position};
+        glm::vec3 const target{m_track.virtualRoad[(m_nearestVroadID + 10) % m_track.virtualRoad.size()].position};
         float const angle{
             glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
                                glm::normalize(target - this->vehicle->carBodyModel.position),

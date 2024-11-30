@@ -84,10 +84,10 @@ bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bi
             if (auto *data = new unsigned char[size]) {
                 fseek(fp, 0L, 0);
                 if (fread(data, size, 1, fp) == 1) {
-                    CP_BITMAPFILEHEADER *file_header = (CP_BITMAPFILEHEADER *) data;
+                    auto file_header = (CP_BITMAPFILEHEADER *) data;
                     if (file_header->bfType == MAKEuint16_t('B', 'M')) {
                         if (file_header->bfSize == (uint32_t) size) {
-                            CP_BITMAPINFO *info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
+                            auto info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
                             // we only handle uncompressed bitmaps
                             if (info->bmiHeader.biCompression == CP_BI_RGB) {
                                 GLsizei width = info->bmiHeader.biWidth;
@@ -168,9 +168,9 @@ bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bi
                                         }
                                         if (retval) {
                                             if (info->bmiHeader.biHeight < 0) {
-                                                long *data_q = reinterpret_cast<long *>(bits.data());
+                                                auto data_q = reinterpret_cast<long *>(bits.data());
                                                 long wt = width * 4L;
-                                                long *dest_q = reinterpret_cast<long *>(
+                                                auto dest_q = reinterpret_cast<long *>(
                                                     bits.data() + (height - 1) * wt);
                                                 while (data_q < dest_q) {
                                                     for (w = width; w > 0; w--) {
@@ -213,13 +213,13 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
             fseek(fp, 0L, 0);
             fseek(fp_a, 0L, 0);
             if ((fread(data, size, 1, fp) == 1) && (fread(data_a, size_a, 1, fp_a) == 1)) {
-                CP_BITMAPFILEHEADER *file_header = (CP_BITMAPFILEHEADER *) data;
-                CP_BITMAPFILEHEADER *file_header_a = (CP_BITMAPFILEHEADER *) data_a;
+                auto file_header = (CP_BITMAPFILEHEADER *) data;
+                auto file_header_a = (CP_BITMAPFILEHEADER *) data_a;
                 if (file_header->bfType == MAKEuint16_t('B', 'M')) {
                     if (file_header->bfSize == (uint32_t) size) {
-                        CP_BITMAPINFO *info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
+                        auto info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
                         // we only handle uncompressed bitmaps
-                        CP_BITMAPINFO *info_a = (CP_BITMAPINFO *) (data_a + sizeof(CP_BITMAPFILEHEADER));
+                        auto info_a = (CP_BITMAPINFO *) (data_a + sizeof(CP_BITMAPFILEHEADER));
                         // we only handle uncompressed bitmaps
                         if (info->bmiHeader.biCompression == CP_BI_RGB) {
                             GLsizei width = info->bmiHeader.biWidth;
@@ -296,12 +296,12 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
                                     if (retval) {
                                         // mirror image if neccessary (never tested)
                                         if (info->bmiHeader.biHeight < 0) {
-                                            long *data_q = (long *) bits.data();
-                                            long wt = width * 4L;
-                                            long *dest_q = (long *) (bits.data() + (height - 1) * wt);
+                                            auto data_q = (long *) bits.data();
+                                            const long wt = width * 4L;
+                                            auto dest_q = (long *) (bits.data() + (height - 1) * wt);
                                             while (data_q < dest_q) {
                                                 for (w = width; w > 0; w--) {
-                                                    long tmp = *data_q;
+                                                    const long tmp = *data_q;
                                                     *data_q++ = *dest_q;
                                                     *dest_q++ = tmp;
                                                 }

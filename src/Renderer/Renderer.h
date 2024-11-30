@@ -29,7 +29,7 @@ namespace OpenNFS {
         Renderer(const std::shared_ptr<GLFWwindow> &window,
                  const std::shared_ptr<Logger> &onfsLogger,
                  const std::vector<NfsAssetList> &installedNFS,
-                 const std::shared_ptr<Track> &currentTrack,
+                 const Track &currentTrack,
                  const std::shared_ptr<BulletDebugDrawer> &debugDrawer);
 
         ~Renderer();
@@ -65,16 +65,16 @@ namespace OpenNFS {
 
         void _DrawDebugUI(ParamData &userParams, const BaseCamera &camera) const;
 
-        static std::vector<uint32_t> _GetLocalTrackBlockIDs(const std::shared_ptr<Track> &track,
+        static std::vector<uint32_t> _GetLocalTrackBlockIDs(const Track &track,
                                                             const BaseCamera &camera, ParamData const &userParams);
 
-        static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const BaseCamera &camera,
+        static VisibleSet _FrustumCull(const Track &track, const BaseCamera &camera,
                                        ParamData const &userParams);
 
         std::shared_ptr<GLFWwindow> m_window;
         std::shared_ptr<Logger> m_logger;
         std::vector<NfsAssetList> m_nfsAssetList;
-        std::shared_ptr<Track> m_track;
+        const Track& m_track;
 
         TrackRenderer m_trackRenderer;
         CarRenderer m_carRenderer;

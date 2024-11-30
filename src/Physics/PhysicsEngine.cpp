@@ -29,7 +29,8 @@ namespace OpenNFS {
         return worldRay;
     }
 
-    PhysicsEngine::PhysicsEngine() : debugDrawer(std::make_shared<BulletDebugDrawer>()) {
+    PhysicsEngine::PhysicsEngine(const Track &track) : debugDrawer(std::make_shared<BulletDebugDrawer>()),
+                                                       m_track(track) {
         m_pBroadphase = std::make_unique<btDbvtBroadphase>();
         // Set up the collision configuration and dispatcher
         m_pCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
@@ -41,9 +42,27 @@ namespace OpenNFS {
                                                                      m_pSolver.get(), m_pCollisionConfiguration.get());
         m_pDynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
+
+        // Register the Track
+        for (const auto &entity: m_track.entities) {
+            int collisionMask = COL_RAY | COL_CAR;
+            if (!entity->collideable) {
+                continue;
+            }
+            if (entity->dynamic) {
+                collisionMask |= COL_TRACK;
+                // Move Rigid body to correct place in world
+                btTransform initialTransform = Utils::MakeTransform(entity->initialPosition, entity->orientation);
+                entity->rigidBody->setWorldTransform(initialTransform);
+                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_DYNAMIC_TRACK, collisionMask);
+            } else {
+                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_TRACK, collisionMask);
+            }
+        }
     }
 
-    void PhysicsEngine::StepSimulation(const float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const {
+    void PhysicsEngine::StepSimulation(const float time,
+                                       const std::vector<uint32_t> &racerResidentTrackblockIDs) const {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
         for (const auto &car: m_activeVehicles) {
@@ -51,7 +70,7 @@ namespace OpenNFS {
         }
 
         // TODO: TrackModel updates should only propagate for active track blocks, based upon track blocks racer vehicles are on
-        for (const auto &entity: m_track->entities) {
+        for (const auto &entity: m_track.entities) {
             entity->Update();
         }
     }
@@ -74,27 +93,6 @@ namespace OpenNFS {
         return rayCallback.hasHit()
                    ? static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer())
                    : std::optional<Entity *>(std::nullopt);
-    }
-
-    void PhysicsEngine::RegisterTrack(const std::shared_ptr<Track> &track) {
-        m_track = track;
-
-        for (const auto &entity: m_track->entities) {
-            int collisionMask = COL_RAY | COL_CAR;
-            if (!entity->collideable) {
-                continue;
-            }
-            if (entity->dynamic) {
-                collisionMask |= COL_TRACK;
-                // Move Rigid body to correct place in world
-                btTransform initialTransform = Utils::MakeTransform(entity->initialPosition,
-                                                                    entity->orientation);
-                entity->rigidBody->setWorldTransform(initialTransform);
-                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_DYNAMIC_TRACK, collisionMask);
-            } else {
-                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_TRACK, collisionMask);
-            }
-        }
     }
 
     void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car) {
@@ -146,7 +144,7 @@ namespace OpenNFS {
         for (const auto &car: m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
-        for (const auto &entity: m_track->entities) {
+        for (const auto &entity: m_track.entities) {
             m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
         }
     }

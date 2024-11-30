@@ -3,12 +3,12 @@
 namespace OpenNFS {
     void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
                                const BaseCamera &camera,
-                               GLuint trackTextureArrayID,
+                               const GLuint trackTextureArrayID,
                                const std::vector<std::shared_ptr<Entity>> &visibleEntities,
                                const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights,
                                const ParamData &userParams,
-                               GLuint depthTextureID,
-                               float ambientFactor) {
+                               const GLuint depthTextureID,
+                               const float ambientFactor) {
         m_trackShader.use();
         // This shader state doesn't change during a track renderpass
         m_trackShader.setClassic(userParams.useClassicGraphics);

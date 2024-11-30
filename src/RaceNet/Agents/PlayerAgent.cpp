@@ -4,7 +4,7 @@
 
 namespace OpenNFS {
     PlayerAgent::PlayerAgent(const InputManager &inputManager, const std::shared_ptr<Car> &car,
-                             const std::shared_ptr<Track> &raceTrack) : CarAgent(
+                             const Track &raceTrack) : CarAgent(
                                                                             PLAYER, car, raceTrack), m_inputManager(inputManager) {
         name = "DumbPanda";
     }

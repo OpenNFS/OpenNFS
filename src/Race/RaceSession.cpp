@@ -7,32 +7,23 @@ namespace OpenNFS {
     RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
                              const std::shared_ptr<Logger> &onfsLogger,
                              const std::vector<NfsAssetList> &installedNFS,
-                             const std::shared_ptr<Track> &currentTrack,
+                             const Track &currentTrack,
                              const std::shared_ptr<Car> &currentCar) : m_window(window),
                                                                        m_track(currentTrack),
-                                                                       m_playerAgent(
-                                                                           std::make_shared<PlayerAgent>(
-                                                                               m_inputManager, currentCar,
-                                                                               currentTrack)),
-                                                                       m_freeCamera(
-                                                                           m_inputManager,
-                                                                           m_track->trackBlocks[0].position),
-                                                                       m_hermiteCamera(
-                                                                           m_track->centerSpline, m_inputManager),
+                                                                       m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
+                                                                       m_freeCamera(m_inputManager,m_track.trackBlocks[0].position),
+                                                                       m_hermiteCamera(m_track.centerSpline, m_inputManager),
                                                                        m_carCamera(m_inputManager),
-                                                                       m_renderer(window, onfsLogger, installedNFS,
-                                                                           m_track, m_physicsEngine.debugDrawer),
-                                                                       m_inputManager(window) {
+                                                                       m_physicsEngine(m_track),
+                                                                       m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer),
+                                                                       m_racerManager(m_track), m_inputManager(window) {
         m_loadedAssets = {
-            m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track->nfsVersion,
-            m_track->name
+            m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track.nfsVersion,
+            m_track.name
         };
 
-        // Generate the collision meshes
-        m_physicsEngine.RegisterTrack(m_track);
-
         // Set up the Racer Manager to spawn vehicles on track
-        m_racerManager = RacerManager(m_playerAgent, m_track, m_physicsEngine);
+        m_racerManager.Init(m_playerAgent, m_physicsEngine);
     }
 
     void RaceSession::_UpdateCameras(const float deltaTime) {
@@ -73,7 +64,7 @@ namespace OpenNFS {
             // Compute time difference between current and last frame
             const double currentTime = glfwGetTime();
             // Update time between engine ticks
-            const auto deltaTime = float(currentTime - lastTime); // Keep track of time between engine ticks
+            const auto deltaTime = static_cast<float>(currentTime - lastTime); // Keep track of time between engine ticks
 
             // Clear the screen for next input and grab focus
             this->_GetInputsAndClear();
@@ -133,6 +124,7 @@ namespace OpenNFS {
         // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glfwPollEvents();
+        m_inputManager.Scan();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -146,7 +138,5 @@ namespace OpenNFS {
             m_windowStatus = UI;
             ImGui::GetIO().MouseDrawCursor = true;
         }
-
-        m_inputManager.Scan();
     }
 } // namespace OpenNFS

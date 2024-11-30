@@ -22,11 +22,10 @@ namespace OpenNFS {
 
     class PhysicsEngine {
     public:
-        PhysicsEngine();
+        explicit PhysicsEngine(const Track &track);
         ~PhysicsEngine();
         void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const;
         void RegisterVehicle(const std::shared_ptr<Car> &car);
-        void RegisterTrack(const std::shared_ptr<OpenNFS::Track> &track);
         [[nodiscard]] std::optional<Entity *> CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) const;
         [[nodiscard]] btDiscreteDynamicsWorld *GetDynamicsWorld() const;
 
@@ -35,7 +34,7 @@ namespace OpenNFS {
     private:
         void _GenerateVroadBarriers();
 
-        std::shared_ptr<Track> m_track;
+        const Track& m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
         std::unique_ptr<btBroadphaseInterface> m_pBroadphase;
@@ -44,5 +43,4 @@ namespace OpenNFS {
         std::unique_ptr<btSequentialImpulseConstraintSolver> m_pSolver;
         std::unique_ptr<btDiscreteDynamicsWorld> m_pDynamicsWorld;
     };
-
 } // namespace OpenNFS

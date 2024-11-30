@@ -10,7 +10,7 @@ RaceNetRenderer::RaceNetRenderer(const std::shared_ptr<GLFWwindow> &window, cons
     ImGui::StyleColorsDark();
 }
 
-void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList, std::shared_ptr<Track> &trackToRender) {
+void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList, const Track &trackToRender) {
     raceNetShader.HotReload(); // Racenet shader hot reload
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -71,7 +71,7 @@ void RaceNetRenderer::Render(uint32_t tick, std::vector<TrainingAgent> &carList,
     glfwSwapBuffers(m_window.get());
 }
 
-std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(shared_ptr<Track> &track_to_render) {
+std::vector<int> RaceNetRenderer::GetVisibleTrackBlocks(const Track &track_to_render) {
     std::vector<int> activeTrackBlockIds;
 
     for (auto &track_block : track_to_render->trackBlocks) {

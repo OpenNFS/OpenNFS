@@ -22,7 +22,7 @@ namespace OpenNFS {
         RaceSession(const std::shared_ptr<GLFWwindow> &window,
                     const std::shared_ptr<Logger> &onfsLogger,
                     const std::vector<NfsAssetList> &installedNFS,
-                    const std::shared_ptr<Track> &currentTrack,
+                    const Track &currentTrack,
                     const std::shared_ptr<Car> &currentCar);
         AssetData Simulate();
 
@@ -37,7 +37,7 @@ namespace OpenNFS {
         std::optional<Entity *> m_targetedEntity;
 
         std::shared_ptr<GLFWwindow> m_window;
-        std::shared_ptr<Track> m_track;
+        const Track& m_track;
         std::shared_ptr<PlayerAgent> m_playerAgent;
         FreeCamera m_freeCamera;
         HermiteCamera m_hermiteCamera;

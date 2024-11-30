@@ -3,13 +3,16 @@
 #include "../Loaders/CarLoader.h"
 
 namespace OpenNFS {
-    RacerManager::RacerManager(const std::shared_ptr<PlayerAgent> &playerAgent, const std::shared_ptr<Track> &track, PhysicsEngine &physicsEngine) : m_currentTrack(track) {
+    RacerManager::RacerManager(const Track &track) : m_currentTrack(track) {
+    }
+
+    void RacerManager::Init(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsEngine &physicsEngine) {
         this->_InitialisePlayerVehicle(playerAgent, physicsEngine);
         this->_SpawnRacers(physicsEngine);
     }
 
     void RacerManager::Simulate() const {
-        for (auto &racer : racers) {
+        for (auto &racer: racers) {
             racer->Simulate();
         }
     }
@@ -18,7 +21,7 @@ namespace OpenNFS {
     std::vector<uint32_t> RacerManager::GetRacerResidentTrackblocks() const {
         std::unordered_set<uint32_t> activeTrackblockIDs;
 
-        for (auto &racer : racers) {
+        for (auto &racer: racers) {
             activeTrackblockIDs.insert(racer->nearestTrackblockID);
         }
 
@@ -26,7 +29,8 @@ namespace OpenNFS {
     }
 
     // Reset player character to start and add the player vehicle into the list of racers
-    void RacerManager::_InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsEngine &physicsEngine) {
+    void RacerManager::_InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent,
+                                                PhysicsEngine &physicsEngine) {
         physicsEngine.RegisterVehicle(playerAgent->vehicle);
         playerAgent->ResetToIndexInTrackblock(0, 0, 0.f);
         racers.emplace_back(playerAgent);
@@ -38,7 +42,7 @@ namespace OpenNFS {
             return;
 
         std::shared_ptr<Car> racerVehicle = CarLoader::LoadCar(NFSVersion::NFS_3, "f355");
-        float racerSpawnOffset            = -0.25f;
+        float racerSpawnOffset = -0.25f;
         for (uint8_t racerIdx = 0; racerIdx < Config::get().nRacers; ++racerIdx) {
             auto racer = std::make_shared<RacerAgent>(racerIdx % 23, racerVehicle, m_currentTrack);
             physicsEngine.RegisterVehicle(racer->vehicle);

@@ -6,7 +6,7 @@ namespace OpenNFS {
     Renderer::Renderer(const std::shared_ptr<GLFWwindow> &window,
                        const std::shared_ptr<Logger> &onfsLogger,
                        const std::vector<NfsAssetList> &installedNFS,
-                       const std::shared_ptr<Track> &currentTrack,
+                       const Track &currentTrack,
                        const std::shared_ptr<BulletDebugDrawer> &debugDrawer) : m_window(window),
         m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_track(currentTrack), m_debugRenderer(debugDrawer) {
         this->_InitialiseIMGUI();
@@ -105,10 +105,10 @@ namespace OpenNFS {
         }
 
         // Render the environment
-        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track->textureArrayID,
+        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track.textureArrayID,
                                    visibleEntities, racers);
         m_skyRenderer.Render(activeCamera, activeLight, totalTime);
-        m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleEntities, visibleLights,
+        m_trackRenderer.Render(racers, activeCamera, m_track.textureArrayID, visibleEntities, visibleLights,
                                userParams, m_shadowMapRenderer.m_depthTextureID, 0.5f);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
         m_debugRenderer.Render(activeCamera);
@@ -137,23 +137,23 @@ namespace OpenNFS {
         return newAssetSelected;
     }
 
-    VisibleSet Renderer::_FrustumCull(const std::shared_ptr<Track> &track, const BaseCamera &camera,
+    VisibleSet Renderer::_FrustumCull(const Track &track, const BaseCamera &camera,
                                       ParamData const &userParams) {
         VisibleSet visibleSet;
 
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks
-            for (auto &collision: track->cullTree.queryOverlaps(camera.viewFrustum)) {
+            for (auto &collision: track.cullTree.queryOverlaps(camera.viewFrustum)) {
                 visibleSet.entities.emplace_back(std::static_pointer_cast<Entity>(collision));
             }
         } else {
-            visibleSet.entities = track->entities;
+            visibleSet.entities = track.entities;
         }
 
         return visibleSet;
     }
 
-    std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const std::shared_ptr<Track> &track,
+    std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(const Track &track,
                                                            const BaseCamera &camera, ParamData const &userParams) {
         std::vector<uint32_t> activeTrackBlockIds;
         uint32_t nearestBlockID = 0;
@@ -161,7 +161,7 @@ namespace OpenNFS {
         float lowestDistance = FLT_MAX;
 
         // Get closest track block to camera position
-        for (auto &trackblock: track->trackBlocks) {
+        for (auto &trackblock: track.trackBlocks) {
             const float distance = glm::distance(camera.position, trackblock.position);
             if (distance < lowestDistance) {
                 nearestBlockID = trackblock.id;
@@ -169,7 +169,7 @@ namespace OpenNFS {
             }
         }
 
-        TrackBlock const& nearestTrackBlock {track->trackBlocks[nearestBlockID]};
+        TrackBlock const& nearestTrackBlock {track.trackBlocks[nearestBlockID]};
         // Use the provided neighbour data to work out which blocks to render if there is any
         if (nearestTrackBlock.neighbourIds.empty()) {
             activeTrackBlockIds = nearestTrackBlock.neighbourIds;
@@ -178,8 +178,8 @@ namespace OpenNFS {
             for (int32_t trackblockIdx = nearestBlockID - userParams.blockDrawDistance;
                  trackblockIdx < nearestBlockID + userParams.blockDrawDistance; ++trackblockIdx) {
                 uint32_t activeBlock = trackblockIdx < 0
-                                           ? (static_cast<uint32_t>(track->trackBlocks.size()) + trackblockIdx)
-                                           : (trackblockIdx % static_cast<uint32_t>(track->trackBlocks.size()));
+                                           ? (static_cast<uint32_t>(track.trackBlocks.size()) + trackblockIdx)
+                                           : (trackblockIdx % static_cast<uint32_t>(track.trackBlocks.size()));
                 activeTrackBlockIds.emplace_back(activeBlock);
             }
         }
@@ -266,7 +266,7 @@ namespace OpenNFS {
         ImGui::SameLine(0, -1.0f);
         ImGui::NewLine();
         ImGui::SameLine(0, 0.0f);
-        ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, m_track->nBlocks / 2);
+        ImGui::SliderInt("Draw Dist", &userParams.blockDrawDistance, 0, m_track.nBlocks / 2);
         ImGui::NewLine();
         ImGui::ColorEdit3("Sun Atten", reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a color
         ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);

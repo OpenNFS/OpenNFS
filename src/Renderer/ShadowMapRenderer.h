@@ -2,7 +2,6 @@
 
 #include <GL/glew.h>
 
-#include "../Config.h"
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
 #include "../Shaders/DepthShader.h"

@@ -101,7 +101,7 @@ namespace OpenNFS {
             GLuint textureID = ImageLoader::LoadImage(el.value()["path"], &width, &height, GL_CLAMP_TO_EDGE, GL_LINEAR);
             // Now store menu resource for later use
             MenuResource menuResource = {textureID, width, height};
-            resources.insert(std::pair<std::string, MenuResource>(elementName, menuResource));
+            resources.insert(std::pair(elementName, menuResource));
         }
         jsonFile.close();
 
@@ -133,7 +133,7 @@ namespace OpenNFS {
 
         glBindVertexArray(m_fontQuadVAO);
         // Iterate through all characters
-        for (std::string::const_iterator c = text.begin(); c != text.end(); ++c) {
+        for (auto c = text.begin(); c != text.end(); ++c) {
             Character ch = m_characterMap[*c];
 
             GLfloat xpos = x + ch.bearing.x * scale;
