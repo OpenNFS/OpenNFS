@@ -81,7 +81,7 @@ GLuint* ShaderSet::AddProgram(const std::vector<std::pair<std::string, GLenum>>&
         {
             std::ifstream ifs(tmpShaderNameType.Name);
             if (!ifs) {
-                fprintf(stderr, "Failed to open shader %s\n", tmpShaderNameType.Name.c_str());
+                LOGF(WARNING, "Failed to open shader %s\n", tmpShaderNameType.Name.c_str());
             }
         }
 
@@ -184,7 +184,7 @@ void ShaderSet::UpdatePrograms() {
                 log_s.replace(found_source, source_hash.size(), shader->first.Name);
             }
 
-            fprintf(stderr, "Error compiling %s:\n%s\n", shader->first.Name.c_str(), log_s.c_str());
+            LOGF(WARNING, "Error compiling %s:\n%s\n", shader->first.Name.c_str(), log_s.c_str());
         }
     }
 
@@ -241,26 +241,17 @@ void ShaderSet::UpdatePrograms() {
             GLint status;
             glGetProgramiv(program.second.InternalHandle, GL_LINK_STATUS, &status);
 
-            if (!status) {
-                fprintf(stderr, "Error linking");
-            } else {
-                fprintf(stderr, "Successfully linked");
-            }
+            constexpr size_t MAX_LOG_LENGTH = 512;
+            char linkerLogBuffer[MAX_LOG_LENGTH];
+            snprintf(linkerLogBuffer, MAX_LOG_LENGTH, "");
 
-            fprintf(stderr, " program (");
             for (const ShaderNameTypePair* shader : program.first) {
                 if (shader != program.first.front()) {
-                    fprintf(stderr, ", ");
+                    snprintf(linkerLogBuffer + strlen(linkerLogBuffer), MAX_LOG_LENGTH, ", ");
                 }
-
-                fprintf(stderr, "%s", shader->Name.c_str());
+                snprintf(linkerLogBuffer + strlen(linkerLogBuffer), MAX_LOG_LENGTH, "%s", shader->Name.c_str());
             }
-            fprintf(stderr, ")");
-            if (log[0] != '\0') {
-                fprintf(stderr, ":\n%s\n", log_s.c_str());
-            } else {
-                fprintf(stderr, "\n");
-            }
+            LOGF(DEBUG, "%s program (%s)", status ? "Successfully linked" : "Error linking", linkerLogBuffer);
 
             if (!status) {
                 program.second.PublicHandle = 0;

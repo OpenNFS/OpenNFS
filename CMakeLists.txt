@@ -28,11 +28,6 @@ endif ()
 set(OpenGL_GL_PREFERENCE GLVND)
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GLEW)
 
-file(GLOB CRP_LIB_SOURCES
-        lib/LibOpenNFS/lib/CrpLib/*.h
-        lib/LibOpenNFS/lib/CrpLib/*.cpp)
-
-
 set(IMGUI_SOURCES
         include/imgui/imgui.cpp
         include/imgui/imgui_demo.cpp
@@ -45,7 +40,6 @@ set(IMGUI_SOURCES
 
 set(SOURCE_FILES
         ${IMGUI_SOURCES}
-        ${CRP_LIB_SOURCES}
         include/bmpread/bmpread.c
         lib/glew-cmake/src/glew.c
         resources/asset/icon.rc

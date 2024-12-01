@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include "Common/NFSVersion.h"
 #include "Util/Logger.h"
@@ -11,59 +11,59 @@
 namespace OpenNFS {
     /* --------------- ONFS Compile time parameters here -----------------*/
     /* Some graphics parameters can be found at file SHADER_PREAMBLE_PATH */
-    const std::string ONFS_VERSION = "0.4";
-    const std::string ONFS_GL_VERSION = "330";
+    std::string const ONFS_VERSION = "0.4";
+    std::string const ONFS_GL_VERSION = "330";
 
     // ----- File paths for asset load/write -----
-    const std::string LOG_FILE_PATH = "./";
-    const std::string SHADER_PREAMBLE_PATH = "../shaders/ShaderPreamble.h";
+    std::string const LOG_FILE_PATH = "./";
+    std::string const SHADER_PREAMBLE_PATH = "../shaders/ShaderPreamble.h";
 
-    const std::string ASSET_PATH = "./assets/";
-    const std::string CAR_PATH = ASSET_PATH + "car/";
-    const std::string TRACK_PATH = ASSET_PATH + "tracks/";
-    const std::string RESOURCE_PATH = "../resources/";
+    std::string const ASSET_PATH = "./assets/";
+    std::string const CAR_PATH = ASSET_PATH + "car/";
+    std::string const TRACK_PATH = ASSET_PATH + "tracks/";
+    std::string const RESOURCE_PATH = "../resources/";
 
-    const std::string NFS_2_TRACK_PATH = "/gamedata/tracks/pc/";
-    const std::string NFS_2_CAR_PATH = "/gamedata/carmodel/pc/";
+    std::string const NFS_2_TRACK_PATH = "/gamedata/tracks/pc/";
+    std::string const NFS_2_CAR_PATH = "/gamedata/carmodel/pc/";
 
-    const std::string NFS_2_SE_TRACK_PATH = "/gamedata/tracks/se/";
-    const std::string NFS_2_SE_CAR_PATH = "/gamedata/carmodel/pc/";
+    std::string const NFS_2_SE_TRACK_PATH = "/gamedata/tracks/se/";
+    std::string const NFS_2_SE_CAR_PATH = "/gamedata/carmodel/pc/";
 
-    const std::string NFS_3_TRACK_PATH = "/gamedata/tracks/";
-    const std::string NFS_3_CAR_PATH = "/gamedata/carmodel/";
+    std::string const NFS_3_TRACK_PATH = "/gamedata/tracks/";
+    std::string const NFS_3_CAR_PATH = "/gamedata/carmodel/";
 
-    const std::string NFS_4_TRACK_PATH = "/data/tracks/";
-    const std::string NFS_4_CAR_PATH = "/data/cars/";
+    std::string const NFS_4_TRACK_PATH = "/data/tracks/";
+    std::string const NFS_4_CAR_PATH = "/data/cars/";
 
-    const std::string MCO_TRACK_PATH = "/data/tracks/";
-    const std::string MCO_CAR_PATH = "/data/models/";
+    std::string const MCO_TRACK_PATH = "/data/tracks/";
+    std::string const MCO_CAR_PATH = "/data/models/";
 
-    const std::string NFS_5_TRACK_PATH = "/gamedata/track/";
-    const std::string NFS_5_CAR_PATH = "/gamedata/carmodel/";
+    std::string const NFS_5_TRACK_PATH = "/gamedata/track/";
+    std::string const NFS_5_CAR_PATH = "/gamedata/carmodel/";
 
     // ----- Graphics -----
-    const uint16_t MAX_TEXTURE_ARRAY_SIZE = 512;
-    const uint32_t DEFAULT_X_RESOLUTION = 2560;
-    const uint32_t DEFAULT_Y_RESOLUTION = 1600;
-    const float DEFAULT_FOV = 55.f;
+    uint16_t const MAX_TEXTURE_ARRAY_SIZE = 512;
+    uint32_t const DEFAULT_X_RESOLUTION = 2560;
+    uint32_t const DEFAULT_Y_RESOLUTION = 1600;
+    float const DEFAULT_FOV = 55.f;
     // Shadow Map Resolution
-    const uint32_t SHADOW_WIDTH = 2048; // Resolution of shadow map
-    const uint32_t SHADOW_HEIGHT = 2048;
+    uint32_t const SHADOW_WIDTH = 2048; // Resolution of shadow map
+    uint32_t const SHADOW_HEIGHT = 2048;
     // Lighting parameters - These should be adjusted in tandem with ShaderPreamble MAX_CONTRIB limits
-    const uint32_t LIGHTS_PER_NB_BLOCK = 3;
+    uint32_t const LIGHTS_PER_NB_BLOCK = 3;
     // Number of lights per neighbouring trackblock to contribute to current trackblock lighting
-    const uint32_t NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks to search for lights
+    uint32_t const NEIGHBOUR_BLOCKS_FOR_LIGHTS = 1; // Number of neighbouring trackblocks to search for lights
 
     // ----- Defaults -----
-    const std::string DEFAULT_CAR = "corv";
-    const std::string DEFAULT_TRACK = "trk000";
-    const std::string DEFAULT_CAR_NFS_VER = get_string(NFSVersion::NFS_3);
-    const std::string DEFAULT_TRACK_NFS_VER = get_string(NFSVersion::NFS_3);
-    const uint32_t DEFAULT_NUM_RACERS = 0;
+    std::string const DEFAULT_CAR = "corv";
+    std::string const DEFAULT_TRACK = "trk000";
+    std::string const DEFAULT_CAR_NFS_VER = get_string(NFSVersion::NFS_3);
+    std::string const DEFAULT_TRACK_NFS_VER = get_string(NFSVersion::NFS_3);
+    uint32_t const DEFAULT_NUM_RACERS = 0;
 
     /* --------------- ONFS Runtime parameters here -----------------*/
     class Config {
-    public:
+      public:
         static Config &get() {
             static Config instance;
             return instance;
@@ -94,12 +94,12 @@ namespace OpenNFS {
         uint32_t windowSizeX{};
         uint32_t windowSizeY{};
 
-    private:
+      private:
         Config() = default;
 
-        Config(const Config &);
+        Config(Config const &);
 
-        Config &operator=(const Config &);
+        Config &operator=(Config const &);
     };
 
     struct ParamData {
@@ -109,7 +109,6 @@ namespace OpenNFS {
         float nearPlane = 160.f;
         float farPlane = 300.f;
         float trackSpecDamper = 10;
-        int blockDrawDistance = 15;
         bool useFrustumCull = true;
         bool physicsDebugView = false;
         bool drawHermiteFrustum = false;
@@ -136,4 +135,4 @@ namespace OpenNFS {
         std::vector<std::string> tracks;
         std::vector<std::string> cars;
     };
-}
+} // namespace OpenNFS

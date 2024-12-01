@@ -1,13 +1,12 @@
 #include "OrbitalManager.h"
 
 namespace OpenNFS {
-    OrbitalManager::OrbitalManager() : m_sun(std::make_unique<GlobalLight>(
-                                           glm::vec3(0, 0, 0), glm::vec3(0, SKYDOME_RADIUS, 0))),
-                                       m_moon(std::make_unique<GlobalLight>(
-                                           glm::vec3(0, 0, 0), glm::vec3(0, -SKYDOME_RADIUS, 0))) {
+    OrbitalManager::OrbitalManager()
+        : m_sun(std::make_unique<GlobalLight>(glm::vec3(0, 0, 0), glm::vec3(0, SKYDOME_RADIUS, 0))),
+          m_moon(std::make_unique<GlobalLight>(glm::vec3(0, 0, 0), glm::vec3(0, -SKYDOME_RADIUS, 0))) {
     }
 
-    void OrbitalManager::Update(const BaseCamera &camera, const float timeScaleFactor) const {
+    void OrbitalManager::Update(BaseCamera const &camera, float const timeScaleFactor) const {
         m_sun->ChangeTarget(camera.position);
         m_sun->Update(timeScaleFactor);
 
@@ -23,4 +22,4 @@ namespace OpenNFS {
 
         return m_sun.get();
     }
-}
+} // namespace OpenNFS

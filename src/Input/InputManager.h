@@ -19,14 +19,14 @@ namespace OpenNFS {
             bool cameraRight{};
         };
 
-    public:
-        explicit InputManager(const std::shared_ptr<GLFWwindow> &window);
+      public:
+        explicit InputManager(std::shared_ptr<GLFWwindow> const &window);
         void Scan();
         void ResetCursorPosition() const;
 
         Inputs inputs{};
 
-    private:
+      private:
         std::shared_ptr<GLFWwindow> m_window;
     };
-} // OpenNFS
+} // namespace OpenNFS

@@ -1,15 +1,16 @@
 #include "CarCamera.h"
 
 namespace OpenNFS {
-    CarCamera::CarCamera(const InputManager &inputManager) : BaseCamera(CameraMode::FOLLOW_CAR, inputManager) {
+    CarCamera::CarCamera(InputManager const &inputManager) : BaseCamera(CameraMode::FOLLOW_CAR, inputManager) {
     }
 
-    void CarCamera::FollowCar(const std::shared_ptr<Car> &targetCar) {
+    void CarCamera::FollowCar(std::shared_ptr<Car> const &targetCar) {
         // Blessed be ThinMatrix
         this->_CalculateZoom();
         this->_CalculatePitch();
         this->_CalculateAngleAroundCar();
-        this->_CalculateCameraPosition(targetCar, this->_CalculateHorizontalDistance(), this->_CalculateVerticalDistance());
+        this->_CalculateCameraPosition(targetCar, this->_CalculateHorizontalDistance(),
+                                       this->_CalculateVerticalDistance());
         m_yaw = 180 - ((targetCar->GetCarBodyOrientation() + m_angleAroundCar));
 
         viewMatrix = glm::mat4(1.0f);
@@ -19,30 +20,32 @@ namespace OpenNFS {
         viewMatrix = glm::translate(viewMatrix, negativeCameraPos);
     }
 
-    void CarCamera::_CalculateCameraPosition(const std::shared_ptr<Car> &target_car, const float horizDistance, const float vertDistance) {
-        float const theta   {(target_car->GetCarBodyOrientation() + m_angleAroundCar)};
-        float const offsetX {horizDistance * sin(glm::radians(theta))};
-        float const offsetZ {horizDistance * cos(glm::radians(theta))};
+    void CarCamera::_CalculateCameraPosition(std::shared_ptr<Car> const &target_car,
+                                             float const horizDistance,
+                                             float const vertDistance) {
+        float const theta{(target_car->GetCarBodyOrientation() + m_angleAroundCar)};
+        float const offsetX{horizDistance * sin(glm::radians(theta))};
+        float const offsetZ{horizDistance * cos(glm::radians(theta))};
         position.x = target_car->carBodyModel.position.x - offsetX;
         position.z = target_car->carBodyModel.position.z - offsetZ;
         position.y = target_car->carBodyModel.position.y + vertDistance;
     }
 
     void CarCamera::_CalculateZoom() {
-        float const zoomLevel {ImGui::GetIO().MouseWheel * 0.1f};
+        float const zoomLevel{ImGui::GetIO().MouseWheel * 0.1f};
         m_distanceFromCar -= zoomLevel;
     }
 
     void CarCamera::_CalculatePitch() {
         if (ImGui::GetIO().MouseDown[1]) {
-            float const pitchChange {ImGui::GetIO().MouseDelta.y * 0.1f};
+            float const pitchChange{ImGui::GetIO().MouseDelta.y * 0.1f};
             m_pitch -= pitchChange;
         }
     }
 
     void CarCamera::_CalculateAngleAroundCar() {
         if (ImGui::GetIO().MouseDown[0]) {
-            float const angleChange {ImGui::GetIO().MouseDelta.x * 0.3f};
+            float const angleChange{ImGui::GetIO().MouseDelta.x * 0.3f};
             m_angleAroundCar -= angleChange;
         }
     }

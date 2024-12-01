@@ -3,27 +3,26 @@
 #include "Renderer/vkRenderer.h"
 #endif
 
+#include <LibOpenNFS.h>
 #include <cstdlib>
 #include <filesystem>
-#include <string>
 #include <iostream>
-#include <LibOpenNFS.h>
+#include <string>
 
 #include "Config.h"
-#include "Util/Logger.h"
-#include "Scene/Track.h"
-#include "Loaders/TrackLoader.h"
 #include "Loaders/CarLoader.h"
 #include "Loaders/MusicLoader.h"
-#include "Renderer/Renderer.h"
+#include "Loaders/TrackLoader.h"
 #include "Race/RaceSession.h"
+#include "Renderer/Renderer.h"
+#include "Util/Logger.h"
 
 using namespace std::filesystem;
 using namespace OpenNFS;
 
 class OpenNFSEngine {
-public:
-    explicit OpenNFSEngine(const std::shared_ptr<Logger> &onfs_logger) : logger(onfs_logger) {
+  public:
+    explicit OpenNFSEngine(std::shared_ptr<Logger> const &onfs_logger) : logger(onfs_logger) {
         if (Config::get().renameAssets) {
             OpenNFS::Utils::RenameAssetsToLowercase();
         }
@@ -47,12 +46,9 @@ public:
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         std::shared_ptr<GLFWwindow> const window{
-            Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION)
-        };
-        AssetData loadedAssets{
-            get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track
-        };
-
+            Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION)};
+        AssetData loadedAssets{get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag),
+                               Config::get().track};
 
         // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
         CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
@@ -62,7 +58,8 @@ public:
             /*------ ASSET LOAD ------*/
             // Load Track Data
             auto const &track = TrackLoader::Load(loadedAssets.trackTag, loadedAssets.track);
-            // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky texture for car environment map)
+            // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky
+            // texture for car environment map)
             auto const &car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
 
             // Load Music
@@ -76,7 +73,7 @@ public:
         glfwTerminate();
     }
 
-private:
+  private:
     std::shared_ptr<Logger> logger;
     std::vector<NfsAssetList> installedNFS;
 
@@ -91,29 +88,27 @@ private:
 };
 
 int main(int argc, char **argv) {
-    const auto logger = std::make_shared<Logger>();
+    // Init the logger first, as used everywhere in ONFS
+    auto const logger = std::make_shared<Logger>();
     Config::get().InitFromCommandLine(argc, argv);
 
-    const std::function logInfoCallback = [](const char *file, const int line, const char *func,
-                                             const std::string &logMessage) {
-        LogCapture(file, line, func, INFO).stream() << logMessage;
-    };
-    const std::function logWarnCallback = [](const char *file, const int line, const char *func,
-                                             const std::string &logMessage) {
-        LogCapture(file, line, func, WARNING).stream() << logMessage;
-    };
-    const std::function logDebugCallback = [](const char *file, const int line, const char *func,
-                                              const std::string &logMessage) {
-        LogCapture(file, line, func, DEBUG).stream() << logMessage;
+    // Pass through our g3log streams as callbacks to LibOpenNFS. This looks strange, but we define a lambda that
+    // returns a std::function (the callback itself) to avoid duplicating broadly identical declarations for each log
+    // level
+    auto makeLogCallback = [=](auto &g3LogLevel) -> std::function<void(char const *, int, char const *, std::string)> {
+        return [g3LogLevel](char const *file, int const line, char const *func, std::string const &logMessage) {
+            LogCapture(file, line, func, g3LogLevel).stream() << logMessage;
+        };
     };
 
-    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::INFO, logInfoCallback);
-    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::WARNING, logWarnCallback);
-    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::DEBUG, logDebugCallback);
+    // Map G3log levels to LibOpenNFS levels
+    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::INFO, makeLogCallback(INFO));
+    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::WARNING, makeLogCallback(WARNING));
+    LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::DEBUG, makeLogCallback(DEBUG));
 
     try {
         OpenNFSEngine game(logger);
-    } catch (const std::runtime_error &e) {
+    } catch (std::runtime_error const &e) {
         LOG(WARNING) << e.what();
         return EXIT_FAILURE;
     }

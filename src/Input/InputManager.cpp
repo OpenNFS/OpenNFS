@@ -3,7 +3,7 @@
 #include "../Config.h"
 
 namespace OpenNFS {
-    InputManager::InputManager(const std::shared_ptr<GLFWwindow> &window) : m_window(window) {
+    InputManager::InputManager(std::shared_ptr<GLFWwindow> const &window) : m_window(window) {
     }
 
     void InputManager::Scan() {
@@ -23,4 +23,4 @@ namespace OpenNFS {
     void InputManager::ResetCursorPosition() const {
         glfwSetCursorPos(m_window.get(), Config::get().windowSizeX / 2, Config::get().windowSizeY / 2);
     }
-} // OpenNFS
+} // namespace OpenNFS

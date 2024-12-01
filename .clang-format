@@ -1,2 +1,5 @@
-BasedOnStyle: Mozilla
+BasedOnStyle: Microsoft
+BinPackParameters: OnePerLine
+NamespaceIndentation: All
+BreakBeforeBraces: Attach
 QualifierAlignment: Right

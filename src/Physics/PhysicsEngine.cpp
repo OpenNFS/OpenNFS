@@ -3,7 +3,10 @@
 #include "CollisionMasks.h"
 
 namespace OpenNFS {
-    WorldRay ScreenPosToWorldRay(float mouseX, float mouseY, uint32_t screenWidth, uint32_t screenHeight,
+    WorldRay ScreenPosToWorldRay(float mouseX,
+                                 float mouseY,
+                                 uint32_t screenWidth,
+                                 uint32_t screenHeight,
                                  glm::mat4 ViewMatrix,
                                  glm::mat4 ProjectionMatrix) {
         // The ray Start and End positions, in Normalized Device Coordinates
@@ -29,8 +32,8 @@ namespace OpenNFS {
         return worldRay;
     }
 
-    PhysicsEngine::PhysicsEngine(const Track &track) : debugDrawer(std::make_shared<BulletDebugDrawer>()),
-                                                       m_track(track) {
+    PhysicsEngine::PhysicsEngine(Track const &track)
+        : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
         m_pBroadphase = std::make_unique<btDbvtBroadphase>();
         // Set up the collision configuration and dispatcher
         m_pCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
@@ -44,7 +47,7 @@ namespace OpenNFS {
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
 
         // Register the Track
-        for (const auto &entity: m_track.entities) {
+        for (auto const &entity : m_track.entities) {
             int collisionMask = COL_RAY | COL_CAR;
             if (!entity->collideable) {
                 continue;
@@ -61,27 +64,27 @@ namespace OpenNFS {
         }
     }
 
-    void PhysicsEngine::StepSimulation(const float time,
-                                       const std::vector<uint32_t> &racerResidentTrackblockIDs) const {
+    void PhysicsEngine::StepSimulation(float const time,
+                                       std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
-        for (const auto &car: m_activeVehicles) {
+        for (auto const &car : m_activeVehicles) {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        // TODO: TrackModel updates should only propagate for active track blocks, based upon track blocks racer vehicles are on
-        for (const auto &entity: m_track.entities) {
+        // TODO: TrackModel updates should only propagate for active track blocks, based upon track blocks racer
+        // vehicles are on
+        for (auto const &entity : m_track.entities) {
             entity->Update();
         }
     }
 
-    std::optional<Entity *> PhysicsEngine::CheckForPicking(const glm::mat4 &viewMatrix,
-                                                           const glm::mat4 &projectionMatrix) const {
-        WorldRay worldRayFromScreenPosition{
-            ScreenPosToWorldRay(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y, Config::get().windowSizeX,
-                                Config::get().windowSizeY, viewMatrix, projectionMatrix)
-        };
-        const glm::vec3 outEnd{worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f};
+    std::optional<Entity *> PhysicsEngine::CheckForPicking(glm::mat4 const &viewMatrix,
+                                                           glm::mat4 const &projectionMatrix) const {
+        WorldRay worldRayFromScreenPosition{ScreenPosToWorldRay(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
+                                                                Config::get().windowSizeX, Config::get().windowSizeY,
+                                                                viewMatrix, projectionMatrix)};
+        glm::vec3 const outEnd{worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f};
 
         btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(worldRayFromScreenPosition.origin),
                                                                Utils::glmToBullet(outEnd));
@@ -90,12 +93,11 @@ namespace OpenNFS {
         m_pDynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd),
                                   rayCallback);
 
-        return rayCallback.hasHit()
-                   ? static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer())
-                   : std::optional<Entity *>(std::nullopt);
+        return rayCallback.hasHit() ? static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer())
+                                    : std::optional<Entity *>(std::nullopt);
     }
 
-    void PhysicsEngine::RegisterVehicle(const std::shared_ptr<Car> &car) {
+    void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> const &car) {
         car->SetRaycaster(std::make_unique<btDefaultVehicleRaycaster>(m_pDynamicsWorld.get()));
         car->SetVehicle(
             std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
@@ -108,10 +110,10 @@ namespace OpenNFS {
         m_pDynamicsWorld->addVehicle(car->GetVehicle());
 
         // Wire up the wheels
-        const float wheelRadius{car->vehicleProperties.wheelRadius};
-        const btScalar sRestLength{car->vehicleProperties.suspensionRestLength};
-        const btVector3 wheelDirectionCS0(0, -1, 0);
-        const btVector3 wheelAxleCS(-1, 0, 0);
+        float const wheelRadius{car->vehicleProperties.wheelRadius};
+        btScalar const sRestLength{car->vehicleProperties.suspensionRestLength};
+        btVector3 const wheelDirectionCS0(0, -1, 0);
+        btVector3 const wheelAxleCS(-1, 0, 0);
         // Fronties
         car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.position), wheelDirectionCS0,
                                     wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
@@ -141,10 +143,10 @@ namespace OpenNFS {
     }
 
     PhysicsEngine::~PhysicsEngine() {
-        for (const auto &car: m_activeVehicles) {
+        for (auto const &car : m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
-        for (const auto &entity: m_track.entities) {
+        for (auto const &entity : m_track.entities) {
             m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
         }
     }
