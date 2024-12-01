@@ -5,6 +5,11 @@
 #include <memory>
 
 namespace OpenNFS {
+    enum WindowStatus : uint8_t {
+        UI,
+        GAME
+    };
+
     class InputManager {
         struct Inputs {
             bool accelerate{};
@@ -23,10 +28,13 @@ namespace OpenNFS {
         explicit InputManager(std::shared_ptr<GLFWwindow> const &window);
         void Scan();
         void ResetCursorPosition() const;
+        [[nodiscard]] WindowStatus GetWindowStatus() const;
 
         Inputs inputs{};
 
+
       private:
         std::shared_ptr<GLFWwindow> m_window;
+        WindowStatus m_windowStatus {GAME};
     };
 } // namespace OpenNFS

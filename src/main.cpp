@@ -57,10 +57,10 @@ class OpenNFSEngine {
         while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
             /*------ ASSET LOAD ------*/
             // Load Track Data
-            auto const &track = TrackLoader::Load(loadedAssets.trackTag, loadedAssets.track);
+            auto const &track {TrackLoader::Load(loadedAssets.trackTag, loadedAssets.track)};
             // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky
             // texture for car environment map)
-            auto const &car = CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car);
+            auto const &car {CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car)};
 
             // Load Music
             // MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
@@ -89,17 +89,17 @@ class OpenNFSEngine {
 
 int main(int argc, char **argv) {
     // Init the logger first, as used everywhere in ONFS
-    auto const logger = std::make_shared<Logger>();
+    auto const logger {std::make_shared<Logger>()};
     Config::get().InitFromCommandLine(argc, argv);
 
     // Pass through our g3log streams as callbacks to LibOpenNFS. This looks strange, but we define a lambda that
     // returns a std::function (the callback itself) to avoid duplicating broadly identical declarations for each log
     // level
-    auto makeLogCallback = [=](auto &g3LogLevel) -> std::function<void(char const *, int, char const *, std::string)> {
+    auto makeLogCallback {[=](auto &g3LogLevel) -> std::function<void(char const *, int, char const *, std::string)> {
         return [g3LogLevel](char const *file, int const line, char const *func, std::string const &logMessage) {
             LogCapture(file, line, func, g3LogLevel).stream() << logMessage;
         };
-    };
+    }};
 
     // Map G3log levels to LibOpenNFS levels
     LibOpenNFS::RegisterLogCallback(LibOpenNFS::LogLevel::INFO, makeLogCallback(INFO));

@@ -32,8 +32,7 @@ namespace OpenNFS {
         void _GetInputsAndClear();
 
         AssetData m_loadedAssets;
-        WindowStatus m_windowStatus   = WindowStatus::GAME;
-        CameraMode m_activeCameraMode = CameraMode::FREE_LOOK;
+        CameraMode m_activeCameraMode {CameraMode::FREE_LOOK};
         std::optional<Entity *> m_targetedEntity;
 
         std::shared_ptr<GLFWwindow> m_window;
@@ -50,7 +49,7 @@ namespace OpenNFS {
         InputManager m_inputManager;
 
         ParamData m_userParams;
-        uint64_t m_ticks  = 0; // Engine ticks elapsed
-        float m_totalTime = 0;
+        uint64_t m_ticks {0}; // Engine ticks elapsed
+        float m_totalTime {0};
     };
 } // namespace OpenNFS

@@ -12,7 +12,7 @@
 
 namespace OpenNFS {
     class Track : public LibOpenNFS::Track {
-        static constexpr uint16_t kCullTreeInitialSize = 10000;
+        static constexpr uint16_t kCullTreeInitialSize {10000};
 
     public:
         explicit Track(const LibOpenNFS::Track &track);
@@ -21,7 +21,7 @@ namespace OpenNFS {
 
         // GL 3D Render Data
         HermiteCurve centerSpline;
-        GLuint textureArrayID = 0;
+        GLuint textureArrayID {0};
         std::vector<std::shared_ptr<Entity>> entities;
         AABBTree cullTree;
 

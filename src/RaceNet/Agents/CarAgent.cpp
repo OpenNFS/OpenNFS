@@ -3,16 +3,16 @@
 #include "../../Physics/Car.h"
 
 namespace OpenNFS {
-    CarAgent::CarAgent(AgentType const agentType, const std::shared_ptr<Car> &car,
-                       const Track &track) : vehicle(car), m_track(track), m_agentType(agentType) {
+    CarAgent::CarAgent(AgentType const agentType, std::shared_ptr<Car> const &car, Track const &track)
+        : vehicle(car), m_track(track), m_agentType(agentType) {
     }
 
     void CarAgent::ResetToIndexInTrackblock(int trackBlockIndex, int const posIndex, float const offset) const {
         CHECK_F(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
 
         // Can move this by trk[trackBlockIndex].nodePositions
-        uint32_t nodeNumber {m_track.trackBlocks[trackBlockIndex].virtualRoadStartIndex};
-        uint32_t nPositions {m_track.trackBlocks[trackBlockIndex].nVirtualRoadPositions};
+        uint32_t nodeNumber{m_track.trackBlocks[trackBlockIndex].virtualRoadStartIndex};
+        uint32_t nPositions{m_track.trackBlocks[trackBlockIndex].nVirtualRoadPositions};
 
         if (posIndex <= nPositions) {
             nodeNumber += posIndex;
@@ -38,14 +38,12 @@ namespace OpenNFS {
                 "Requested reset to vroad index: %d outside of num vroad chunks", vroadIndex);
 
         glm::vec3 vroadPoint = m_track.virtualRoad[vroadIndex].position + m_track.virtualRoad[vroadIndex].respawn;
-        glm::quat const carOrientation{
-            glm::conjugate(glm::toQuat(glm::lookAt(m_track.virtualRoad[vroadIndex].right,
+        glm::quat const carOrientation{glm::lookAt(vroadPoint - m_track.virtualRoad[vroadIndex].rightWall,
                                                    vroadPoint - m_track.virtualRoad[vroadIndex].forward,
-                                                   m_track.virtualRoad[vroadIndex].normal)))
-        };
+                                                   m_track.virtualRoad[vroadIndex].normal)};
 
         // Offset horizontally across the right vector from center
-        vroadPoint += offset * m_track.virtualRoad[vroadIndex].right;
+        vroadPoint += offset * m_track.virtualRoad[vroadIndex].rightWall;
 
         // Go and find the Vroad Data to reset to
         vehicle->SetPosition(vroadPoint, carOrientation);
@@ -55,8 +53,8 @@ namespace OpenNFS {
         float lowestDistance = FLT_MAX;
 
         // Get closest track block to car body position
-        for (auto &trackblock: m_track.trackBlocks) {
-            if (const float distance = glm::distance(vehicle->carBodyModel.position, trackblock.position);
+        for (auto &trackblock : m_track.trackBlocks) {
+            if (float const distance = glm::distance(vehicle->carBodyModel.position, trackblock.position);
                 distance < lowestDistance) {
                 nearestTrackblockID = trackblock.id;
                 lowestDistance = distance;
@@ -73,8 +71,8 @@ namespace OpenNFS {
 
         // Get closest vroad in trackblock set to car body position
         for (uint32_t vroadIdx = nodeNumber; vroadIdx < nodeNumber + nPositions; ++vroadIdx) {
-            const float distance = glm::distance(vehicle->carBodyModel.position,
-                                           m_track.virtualRoad[vroadIdx].position);
+            float const distance =
+                glm::distance(vehicle->carBodyModel.position, m_track.virtualRoad[vroadIdx].position);
 
             if (distance < lowestDistance) {
                 m_nearestVroadID = vroadIdx;

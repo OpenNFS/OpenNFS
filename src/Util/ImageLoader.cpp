@@ -8,7 +8,7 @@ GLuint ImageLoader::LoadImage(const std::string &imagePath, int *width, int *hei
     GLuint textureID;
     int nChannels;
 
-    unsigned char *image = stbi_load(imagePath.c_str(), width, height, &nChannels, STBI_rgb_alpha);
+    unsigned char *image {stbi_load(imagePath.c_str(), width, height, &nChannels, STBI_rgb_alpha)};
     CHECK_F(image != nullptr, "Failed to load texture %s", imagePath.c_str());
 
     glGenTextures(1, &textureID);
@@ -33,8 +33,8 @@ GLuint ImageLoader::LoadImage(const std::string &imagePath, int *width, int *hei
 // h    : Specifies the image height
 bool ImageLoader::SaveImage(const char *szPathName, const void *lpBits, const uint16_t w, const uint16_t h) {
     // Create a new file for writing
-    FILE *pFile = fopen(szPathName, "wb"); // wb -> w: writable b: binary, open as writable and binary
-    if (pFile == NULL) {
+    FILE *pFile {fopen(szPathName, "wb")}; // wb -> w: writable b: binary, open as writable and binary
+    if (pFile == nullptr) {
         return false;
     }
 

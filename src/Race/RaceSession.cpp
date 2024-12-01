@@ -27,7 +27,7 @@ namespace OpenNFS {
     }
 
     void RaceSession::_UpdateCameras(const float deltaTime) {
-        if (m_windowStatus == WindowStatus::GAME) {
+        if (m_inputManager.GetWindowStatus() == GAME) {
             switch (m_activeCameraMode) {
                 case FOLLOW_CAR:
                     // Compute MVP from keyboard and mouse, centered around a target car
@@ -46,14 +46,14 @@ namespace OpenNFS {
 
     BaseCamera &RaceSession::_GetActiveCamera() {
         if (m_userParams.attachCamToHermite) {
-            m_activeCameraMode = CameraMode::HERMITE_FLYTHROUGH;
+            m_activeCameraMode = HERMITE_FLYTHROUGH;
             return m_hermiteCamera;
         }
         if (m_userParams.attachCamToCar) {
-            m_activeCameraMode = CameraMode::FOLLOW_CAR;
+            m_activeCameraMode = FOLLOW_CAR;
             return m_carCamera;
         }
-        m_activeCameraMode = CameraMode::FREE_LOOK;
+        m_activeCameraMode = FREE_LOOK;
         return m_freeCamera;
     }
 
@@ -62,9 +62,9 @@ namespace OpenNFS {
             // glfwGetTime is called only once, the first time this function is called
             static double lastTime = glfwGetTime();
             // Compute time difference between current and last frame
-            const double currentTime = glfwGetTime();
+            const double currentTime {glfwGetTime()};
             // Update time between engine ticks
-            const auto deltaTime = static_cast<float>(currentTime - lastTime); // Keep track of time between engine ticks
+            const auto deltaTime {static_cast<float>(currentTime - lastTime)}; // Keep track of time between engine ticks
 
             // Clear the screen for next input and grab focus
             this->_GetInputsAndClear();
@@ -73,7 +73,7 @@ namespace OpenNFS {
             this->_UpdateCameras(deltaTime);
 
             // Set the active camera dependent upon user input and update Frustum
-            auto &activeCamera = this->_GetActiveCamera();
+            auto &activeCamera {this->_GetActiveCamera()};
             activeCamera.UpdateFrustum();
 
             if (m_userParams.simulateCars) {
@@ -82,7 +82,7 @@ namespace OpenNFS {
 
             m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
-            if (ImGui::GetIO().MouseClicked[0] && m_windowStatus == GAME) {
+            if (ImGui::GetIO().MouseClicked[0] && m_inputManager.GetWindowStatus() == GAME) {
                 std::optional targetedEntity{
                     m_physicsEngine.CheckForPicking(activeCamera.viewMatrix, activeCamera.projectionMatrix)
                 };
@@ -121,22 +121,10 @@ namespace OpenNFS {
     }
 
     void RaceSession::_GetInputsAndClear() {
-        // Clear the screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glfwPollEvents();
         m_inputManager.Scan();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
-        // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) && !ImGui::GetIO().
-            WantCaptureMouse) {
-            m_windowStatus = GAME;
-            ImGui::GetIO().MouseDrawCursor = false;
-        } else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            m_windowStatus = UI;
-            ImGui::GetIO().MouseDrawCursor = true;
-        }
     }
 } // namespace OpenNFS

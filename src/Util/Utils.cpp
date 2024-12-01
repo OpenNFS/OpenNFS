@@ -36,8 +36,8 @@ namespace OpenNFS::Utils {
     }
 
     glm::mat4 bulletToGlm(const btTransform &t) {
-        auto m = glm::mat4();
-        const btMatrix3x3 &basis = t.getBasis();
+        auto m {glm::mat4()};
+        const btMatrix3x3 &basis {t.getBasis()};
         // rotation
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
@@ -45,7 +45,7 @@ namespace OpenNFS::Utils {
             }
         }
         // traslation
-        const btVector3 &origin = t.getOrigin();
+        const btVector3 &origin {t.getOrigin()};
         m[3][0] = origin.getX();
         m[3][1] = origin.getY();
         m[3][2] = origin.getZ();
@@ -89,8 +89,8 @@ namespace OpenNFS::Utils {
         std::vector<NfsAssetList> installedNFS;
 
         path basePath(RESOURCE_PATH);
-        bool hasMisc = false;
-        bool hasUI = false;
+        bool hasMisc {false};
+        bool hasUI {false};
 
         for (directory_iterator itr(basePath); itr != directory_iterator(); ++itr) {
             NfsAssetList currentNFS;

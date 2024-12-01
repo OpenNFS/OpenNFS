@@ -7,8 +7,6 @@
 #include "../Input/InputManager.h"
 
 namespace OpenNFS {
-    enum WindowStatus : uint8_t { UI, GAME };
-
     enum CameraMode : uint8_t { FOLLOW_CAR, HERMITE_FLYTHROUGH, FREE_LOOK };
 
     class BaseCamera {
