@@ -21,7 +21,7 @@
 namespace OpenNFS {
 struct VisibleSet {
     std::vector<std::shared_ptr<Entity>> entities;
-    std::vector<const BaseLight*> lights;
+    std::vector<BaseLight const *> lights;
 };
 
 class Renderer {
@@ -44,7 +44,7 @@ class Renderer {
     static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY,
                                                   std::string const &windowName);
 
-    static void _DrawMetadata(Entity *targetEntity);
+    static void _DrawMetadata(Entity const *targetEntity);
 
     bool Render(float totalTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
                 GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,
@@ -55,7 +55,7 @@ class Renderer {
     bool _DrawMenuBar(AssetData &loadedAssets) const;
     void _DrawDebugUI(ParamData &userParams, BaseCamera const &camera) const;
     static std::vector<uint32_t> _GetLocalTrackBlockIDs(Track const &track, BaseCamera const &camera);
-    static VisibleSet _FrustumCull(Track const &track, BaseCamera const &camera, ParamData const &userParams);
+    static VisibleSet _FrustumCull(Track const &track, BaseCamera const &camera, GlobalLight const *globalLight, ParamData const &userParams);
 
     std::shared_ptr<GLFWwindow> m_window;
     std::shared_ptr<Logger> m_logger;

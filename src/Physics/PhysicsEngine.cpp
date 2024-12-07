@@ -3,12 +3,8 @@
 #include "CollisionMasks.h"
 
 namespace OpenNFS {
-    WorldRay ScreenPosToWorldRay(float mouseX,
-                                 float mouseY,
-                                 uint32_t screenWidth,
-                                 uint32_t screenHeight,
-                                 glm::mat4 ViewMatrix,
-                                 glm::mat4 ProjectionMatrix) {
+    WorldRay ScreenPosToWorldRay(
+        float mouseX, float mouseY, uint32_t screenWidth, uint32_t screenHeight, glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix) {
         // The ray Start and End positions, in Normalized Device Coordinates
         glm::vec4 lRayStart_NDC((mouseX / static_cast<float>(screenWidth) - 0.5f) * 2.0f,
                                 (mouseY / static_cast<float>(screenHeight) - 0.5f) * 2.0f,
@@ -32,8 +28,7 @@ namespace OpenNFS {
         return worldRay;
     }
 
-    PhysicsEngine::PhysicsEngine(Track const &track)
-        : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
+    PhysicsEngine::PhysicsEngine(Track const &track) : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
         m_pBroadphase = std::make_unique<btDbvtBroadphase>();
         // Set up the collision configuration and dispatcher
         m_pCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
@@ -41,8 +36,8 @@ namespace OpenNFS {
         // The actual physics solver
         m_pSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
         // The world.
-        m_pDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_pDispatcher.get(), m_pBroadphase.get(),
-                                                                     m_pSolver.get(), m_pCollisionConfiguration.get());
+        m_pDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_pDispatcher.get(), m_pBroadphase.get(), m_pSolver.get(),
+                                                                     m_pCollisionConfiguration.get());
         m_pDynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
 
@@ -64,15 +59,13 @@ namespace OpenNFS {
         }
     }
 
-    void PhysicsEngine::StepSimulation(float const time,
-                                       std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
+    void PhysicsEngine::StepSimulation(float const time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
         for (auto const &car : m_activeVehicles) {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        // TODO: TrackModel updates should only propagate for active track blocks, based upon track blocks racers are on
         for (auto const &entity : m_track.entities) {
             entity->Update();
         }
@@ -83,16 +76,13 @@ namespace OpenNFS {
                                                            glm::mat4 const &viewMatrix,
                                                            glm::mat4 const &projectionMatrix) const {
         auto const [origin, direction]{
-            ScreenPosToWorldRay(x, y, Config::get().windowSizeX,
-                                Config::get().windowSizeY, viewMatrix, projectionMatrix)};
+            ScreenPosToWorldRay(x, y, Config::get().windowSizeX, Config::get().windowSizeY, viewMatrix, projectionMatrix)};
         glm::vec3 const outEnd{origin + direction * 1000.0f};
 
-        btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(origin),
-                                                               Utils::glmToBullet(outEnd));
+        btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(origin), Utils::glmToBullet(outEnd));
         rayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
 
-        m_pDynamicsWorld->rayTest(Utils::glmToBullet(origin), Utils::glmToBullet(outEnd),
-                                  rayCallback);
+        m_pDynamicsWorld->rayTest(Utils::glmToBullet(origin), Utils::glmToBullet(outEnd), rayCallback);
 
         return rayCallback.hasHit() ? static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer())
                                     : std::optional<Entity *>(std::nullopt);
@@ -100,14 +90,12 @@ namespace OpenNFS {
 
     void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> const &car) {
         car->SetRaycaster(std::make_unique<btDefaultVehicleRaycaster>(m_pDynamicsWorld.get()));
-        car->SetVehicle(
-            std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
+        car->SetVehicle(std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
         car->GetVehicle()->setCoordinateSystem(0, 1, 2);
 
-        m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(
-            car->GetVehicleRigidBody()->getBroadphaseHandle(), m_pDynamicsWorld->getDispatcher());
-        m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR,
-                                       COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD | COL_CAR);
+        m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(),
+                                                                                          m_pDynamicsWorld->getDispatcher());
+        m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD | COL_CAR);
         m_pDynamicsWorld->addVehicle(car->GetVehicle());
 
         // Wire up the wheels
@@ -116,15 +104,15 @@ namespace OpenNFS {
         btVector3 const wheelDirectionCS0(0, -1, 0);
         btVector3 const wheelAxleCS(-1, 0, 0);
         // Fronties
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.position), wheelDirectionCS0,
-                                    wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightFrontWheelModel.position), wheelDirectionCS0,
-                                    wheelAxleCS, sRestLength, wheelRadius, car->tuning, true);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftFrontWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength,
+                                    wheelRadius, car->tuning, true);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightFrontWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength,
+                                    wheelRadius, car->tuning, true);
         // Rearies
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.position), wheelDirectionCS0,
-                                    wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
-        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.position), wheelDirectionCS0,
-                                    wheelAxleCS, sRestLength, wheelRadius, car->tuning, false);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->leftRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength,
+                                    wheelRadius, car->tuning, false);
+        car->GetVehicle()->addWheel(Utils::glmToBullet(car->rightRearWheelModel.position), wheelDirectionCS0, wheelAxleCS, sRestLength,
+                                    wheelRadius, car->tuning, false);
 
         for (auto wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx) {
             btWheelInfo &wheel = car->GetVehicle()->getWheelInfo(wheelIdx);

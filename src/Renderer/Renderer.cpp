@@ -8,8 +8,7 @@ namespace OpenNFS {
                        std::vector<NfsAssetList> const &installedNFS,
                        Track const &currentTrack,
                        std::shared_ptr<BulletDebugDrawer> const &debugDrawer)
-        : m_window(window), m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_track(currentTrack),
-          m_debugRenderer(debugDrawer) {
+        : m_window(window), m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_track(currentTrack), m_debugRenderer(debugDrawer) {
         this->_InitialiseIMGUI();
         LOG(DEBUG) << "Renderer Initialised";
     }
@@ -21,16 +20,14 @@ namespace OpenNFS {
         CHECK_F(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&Renderer::GlfwError);
 
-        // TODO: Disable MSAA for now until texture array adds padding
-        // glfwWindowHint(GLFW_SAMPLES, 2);
+        glfwWindowHint(GLFW_SAMPLES, 2);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
 
-        auto window = std::shared_ptr<GLFWwindow>(
-            glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr),
-            [](GLFWwindow *) { glfwTerminate(); });
+        auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr),
+                                                  [](GLFWwindow *) { glfwTerminate(); });
 
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window";
@@ -85,7 +82,7 @@ namespace OpenNFS {
         bool newAssetSelected = false;
 
         // Perform frustum culling to get visible entities, from perspective of active camera
-        auto const [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, userParams);
+        auto const [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, activeLight, userParams);
 
         if (userParams.drawHermiteFrustum) {
             m_debugRenderer.DrawFrustum(hermiteCamera);
@@ -110,8 +107,7 @@ namespace OpenNFS {
         }
 
         // Render the environment
-        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track.textureArrayID,
-                                   visibleEntities, racers);
+        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track.textureArrayID, visibleEntities, racers);
         if (userParams.drawSkydome) {
             m_skyRenderer.Render(activeCamera, activeLight, totalTime);
         }
@@ -144,20 +140,26 @@ namespace OpenNFS {
         return newAssetSelected;
     }
 
-    VisibleSet Renderer::_FrustumCull(Track const &track, BaseCamera const &camera, ParamData const &userParams) {
+    VisibleSet Renderer::_FrustumCull(Track const &track,
+                                      BaseCamera const &camera,
+                                      GlobalLight const *globalLight,
+                                      ParamData const &userParams) {
         VisibleSet visibleSet;
+        // The sun/moon should always contribute
+        visibleSet.lights.push_back(globalLight);
 
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks
             for (auto &collision : track.cullTree.queryOverlaps(camera.viewFrustum)) {
-                auto entity {std::dynamic_pointer_cast<Entity>(collision)};
-                visibleSet.entities.emplace_back(entity);
+                auto entity{std::dynamic_pointer_cast<Entity>(collision)};
                 if (entity->type == EntityType::LIGHT) {
                     visibleSet.lights.emplace_back(*entity);
+                } else {
+                    visibleSet.entities.emplace_back(entity);
                 }
             }
         } else {
-            visibleSet.entities = track.entities;
+            visibleSet.entities.insert(visibleSet.entities.end(), track.entities.begin(), track.entities.end());
         }
 
         return visibleSet;
@@ -185,11 +187,10 @@ namespace OpenNFS {
         } else {
             constexpr int32_t kBlockDistance{15};
             // Use a draw distance value to return closestBlock +- kBlockDrawDistance inclusive blocks
-            for (int32_t trackblockIdx = nearestBlockID - kBlockDistance;
-                 trackblockIdx < nearestBlockID + kBlockDistance; ++trackblockIdx) {
-                uint32_t activeBlock = trackblockIdx < 0
-                                           ? (static_cast<uint32_t>(track.trackBlocks.size()) + trackblockIdx)
-                                           : (trackblockIdx % static_cast<uint32_t>(track.trackBlocks.size()));
+            for (int32_t trackblockIdx = nearestBlockID - kBlockDistance; trackblockIdx < nearestBlockID + kBlockDistance;
+                 ++trackblockIdx) {
+                uint32_t activeBlock = trackblockIdx < 0 ? (static_cast<uint32_t>(track.trackBlocks.size()) + trackblockIdx)
+                                                         : (trackblockIdx % static_cast<uint32_t>(track.trackBlocks.size()));
                 activeTrackBlockIds.emplace_back(activeBlock);
             }
         }
@@ -205,7 +206,7 @@ namespace OpenNFS {
         ImGui::StyleColorsDark();
     }
 
-    void Renderer::_DrawMetadata(Entity *const targetEntity) {
+    void Renderer::_DrawMetadata(Entity const *targetEntity) {
         auto const track_entity{dynamic_cast<TrackEntity const *>(targetEntity)};
         if (track_entity == nullptr) {
             return;
@@ -220,19 +221,15 @@ namespace OpenNFS {
         // Traverse the loader structures and print pretty with IMGUI
         switch (track_entity->type) {
         case EntityType::LIGHT: {
-            auto const targetBaseLight = dynamic_cast<BaseLight *>(targetEntity);
-            ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z,
-                               targetBaseLight->colour.w);
-            ImVec4 lightAttenuation(targetBaseLight->attenuation.x, targetBaseLight->attenuation.y,
-                                    targetBaseLight->attenuation.z, 0.0f);
+            auto const targetBaseLight = targetEntity->baseLight;
+            ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z, targetBaseLight->colour.w);
+            ImVec4 lightAttenuation(targetBaseLight->attenuation.x, targetBaseLight->attenuation.y, targetBaseLight->attenuation.z, 0.0f);
             // Colour, type, attenuation, position and NFS unknowns
-            ImGui::ColorEdit4("Light Colour",
-                              reinterpret_cast<float *>(&lightColour)); // Edit 3 floats representing a color
+            ImGui::ColorEdit4("Light Colour", reinterpret_cast<float *>(&lightColour)); // Edit 3 floats representing a color
             targetBaseLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
             ImGui::SliderFloat3("Attenuation (A, B, C)", reinterpret_cast<float *>(&lightAttenuation), 0, 10.0f);
             targetBaseLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
-            ImGui::Text("x: %f y: %f z: %f ", targetBaseLight->position.x, targetBaseLight->position.y,
-                        targetBaseLight->position.z);
+            ImGui::Text("x: %f y: %f z: %f ", targetBaseLight->position.x, targetBaseLight->position.y, targetBaseLight->position.z);
             ImGui::Separator();
             ImGui::Text("NFS Data");
             ImGui::Text("Type: %hhu", targetBaseLight->type);
@@ -241,7 +238,7 @@ namespace OpenNFS {
             break;
         }
         ImGui::Text("Object Flags: %d", targetEntity->flags);
-        ImGui::Text("Collideable: %s", targetEntity->collidable ? "Yes" : "No");
+        ImGui::Text("Collidable: %s", targetEntity->collidable ? "Yes" : "No");
         ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
         ImGui::End();
     }
@@ -249,8 +246,7 @@ namespace OpenNFS {
     void Renderer::_DrawDebugUI(ParamData &userParams, BaseCamera const &camera) const {
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
-        ImGui::Image(reinterpret_cast<ImTextureID>(m_shadowMapRenderer.m_depthTextureID), ImVec2(256, 256),
-                     ImVec2(0, 0), ImVec2(1, -1));
+        ImGui::Image(reinterpret_cast<ImTextureID>(m_shadowMapRenderer.m_depthTextureID), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
         ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
         ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
         ImGui::End();
@@ -258,8 +254,7 @@ namespace OpenNFS {
         m_logger->onScreenLog.Draw("ONFS Log");
         // Draw UI (Tactically)
         ImGui::Text("OpenNFS Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                    ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
         ImGui::Checkbox("Frustum Cull", &userParams.useFrustumCull);
         ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);

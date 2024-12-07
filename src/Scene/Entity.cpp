@@ -5,9 +5,10 @@
 #include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
 
 namespace OpenNFS {
-    Entity::Entity(TrackEntity const &track_entity) : TrackEntity(track_entity), GLTrackModel(geometry) {
+    Entity::Entity(TrackEntity &track_entity) : TrackEntity(track_entity), GLTrackModel(geometry) {
         if (track_entity.type == LibOpenNFS::EntityType::LIGHT) {
-            baseLight = dynamic_cast<LibOpenNFS::BaseLight const *>(&track_entity);
+            baseLight = dynamic_cast<LibOpenNFS::BaseLight *>(&track_entity);
+            assert(baseLight);
         }
         this->_GenCollisionMesh();
         this->_GenBoundingBox();
@@ -15,9 +16,11 @@ namespace OpenNFS {
 
     void Entity::_GenCollisionMesh() {
         switch (type) {
-        case LibOpenNFS::EntityType::LIGHT:
         case LibOpenNFS::EntityType::LANE:
             // Not collidable
+            break;
+        case LibOpenNFS::EntityType::LIGHT:
+            m_collisionShape = std::make_unique<btBoxShape>(btVector3(5, 5, 5));
             break;
         case LibOpenNFS::EntityType::ROAD:
         case LibOpenNFS::EntityType::GLOBAL:
@@ -30,8 +33,7 @@ namespace OpenNFS {
                     glm::vec3 triangle0{m_vertices[vertIdx]};
                     glm::vec3 triangle1{m_vertices[vertIdx + 1]};
                     glm::vec3 triangle2{m_vertices[vertIdx + 2]};
-                    mesh->addTriangle(Utils::glmToBullet(triangle0), Utils::glmToBullet(triangle1),
-                                      Utils::glmToBullet(triangle2), false);
+                    mesh->addTriangle(Utils::glmToBullet(triangle0), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
                 }
                 m_collisionShape = std::make_unique<btConvexTriangleMeshShape>(mesh.get(), true);
             } else {
@@ -40,15 +42,14 @@ namespace OpenNFS {
                     glm::vec3 triangle0{m_vertices[vertIdx]};
                     glm::vec3 triangle1{m_vertices[vertIdx + 1]};
                     glm::vec3 triangle2{m_vertices[vertIdx + 2]};
-                    m_collisionMesh.addTriangle(Utils::glmToBullet(triangle0), Utils::glmToBullet(triangle1),
-                                                Utils::glmToBullet(triangle2), false);
+                    m_collisionMesh.addTriangle(Utils::glmToBullet(triangle0), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2),
+                                                false);
                 }
                 m_collisionShape = std::make_unique<btBvhTriangleMeshShape>(&m_collisionMesh, true, true);
             }
         } break;
         default:
-            CHECK_F(false, "Unable to generate a collision box for entity type: %s",
-                    LibOpenNFS::get_string(type).c_str());
+            CHECK_F(false, "Unable to generate a collision box for entity type: %s", LibOpenNFS::get_string(type).c_str());
             return;
         }
 
@@ -60,8 +61,8 @@ namespace OpenNFS {
         }
 
         m_motionState = std::make_unique<btDefaultMotionState>(Utils::MakeTransform(initialPosition, orientation));
-        rigidBody = std::make_unique<btRigidBody>(btRigidBody::btRigidBodyConstructionInfo(
-            entityMass, m_motionState.get(), m_collisionShape.get(), localInertia));
+        rigidBody = std::make_unique<btRigidBody>(
+            btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState.get(), m_collisionShape.get(), localInertia));
         rigidBody->setFriction(1.f);
         rigidBody->setUserPointer(this);
     }

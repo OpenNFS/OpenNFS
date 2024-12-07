@@ -19,9 +19,9 @@ void DebugRenderer::DrawTrackCollision(Track const &track) const {
     }
 }
 
-void DebugRenderer::DrawAABB(const AABB &aabb, const glm::vec3 &colour) const {
-    m_bulletDebugDrawer->drawBox(Utils::glmToBullet(aabb.min),
-                                 Utils::glmToBullet(aabb.max), Utils::glmToBullet(colour));
+void DebugRenderer::DrawAABB(const AABB &aabb, glm::vec3 const &colour) const {
+    m_bulletDebugDrawer->drawBox(Utils::glmToBullet(aabb.min), Utils::glmToBullet(aabb.max),
+                                 Utils::glmToBullet(colour));
 }
 
 void DebugRenderer::DrawFrustum(BaseCamera const &camera) const {

@@ -15,7 +15,7 @@
 namespace OpenNFS {
     class Entity final : public LibOpenNFS::TrackEntity, public IAABB, public GLTrackModel {
       public:
-        explicit Entity(TrackEntity const &track_entity);
+        explicit Entity(TrackEntity &track_entity);
         ~Entity() override = default;
         void Update(); // Update Entity position based on Physics engine
         AABB GetAABB() const override;
@@ -24,8 +24,8 @@ namespace OpenNFS {
         std::unique_ptr<btRigidBody> rigidBody;
 
         // TODO: Temp hackedy hack hack. Should be able to cast 'this' to BaseLight as it derives from TrackEntity...
-        LibOpenNFS::BaseLight const *baseLight {nullptr};
-        explicit operator const LibOpenNFS::BaseLight*() const {
+        LibOpenNFS::BaseLight *baseLight{nullptr};
+        explicit operator LibOpenNFS::BaseLight const *() const {
             return baseLight;
         }
 

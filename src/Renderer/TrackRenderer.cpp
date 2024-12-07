@@ -1,5 +1,7 @@
 #include "TrackRenderer.h"
 
+#include "../Scene/GlobalLight.h"
+
 namespace OpenNFS {
     void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
                                const BaseCamera &camera,
@@ -20,12 +22,10 @@ namespace OpenNFS {
         m_trackShader.loadLights(lights);
         // m_trackShader.loadSpotlight(car->leftHeadlight);
 
-        // TODO: Again, super silly.
-        // for (auto &light : lights) {
-        //    if (light->type == LibOpenNFS::LightType::GLOBAL_LIGHT) {
-        //        m_trackShader.loadLightSpaceMatrix(std::static_pointer_cast<GlobalLight>(light)->lightSpaceMatrix);
-        //    }
-        //}
+        // Global Light is always 0th index
+        const auto globalLight {dynamic_cast<const GlobalLight*>(lights.at(0))};
+        CHECK_F(globalLight->type == LibOpenNFS::LightType::GLOBAL_LIGHT, "Light 0 is not GLOBAL_LIGHT");
+        m_trackShader.loadLightSpaceMatrix(globalLight->lightSpaceMatrix);
 
         // Render the per-trackblock data
         for (auto &entity : visibleEntities) {
