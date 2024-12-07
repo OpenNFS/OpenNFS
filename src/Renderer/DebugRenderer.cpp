@@ -15,14 +15,13 @@ void DebugRenderer::Render(BaseCamera const &camera) const {
 
 void DebugRenderer::DrawTrackCollision(Track const &track) const {
     for (auto const &trackEntity : track.entities) {
-        this->DrawAABB(trackEntity->GetAABB());
+        this->DrawAABB(trackEntity->GetAABB(), trackEntity->GetDebugColour());
     }
 }
 
-void DebugRenderer::DrawAABB(const AABB &aabb) const {
-    btVector3 const colour{0, 0, 0};
-    m_bulletDebugDrawer->drawBox(Utils::glmToBullet(aabb.position + aabb.min),
-                                 Utils::glmToBullet(aabb.position + aabb.max), colour);
+void DebugRenderer::DrawAABB(const AABB &aabb, const glm::vec3 &colour) const {
+    m_bulletDebugDrawer->drawBox(Utils::glmToBullet(aabb.min),
+                                 Utils::glmToBullet(aabb.max), Utils::glmToBullet(colour));
 }
 
 void DebugRenderer::DrawFrustum(BaseCamera const &camera) const {

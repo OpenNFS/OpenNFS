@@ -1,45 +1,41 @@
 #include "RaceSession.h"
 
-#include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <imgui.h>
 
 namespace OpenNFS {
-    RaceSession::RaceSession(const std::shared_ptr<GLFWwindow> &window,
-                             const std::shared_ptr<Logger> &onfsLogger,
-                             const std::vector<NfsAssetList> &installedNFS,
-                             const Track &currentTrack,
-                             const std::shared_ptr<Car> &currentCar) : m_window(window),
-                                                                       m_track(currentTrack),
-                                                                       m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
-                                                                       m_freeCamera(m_inputManager,m_track.trackBlocks[0].position),
-                                                                       m_hermiteCamera(m_track.centerSpline, m_inputManager),
-                                                                       m_carCamera(m_inputManager),
-                                                                       m_physicsEngine(m_track),
-                                                                       m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer),
-                                                                       m_racerManager(m_track), m_inputManager(window) {
-        m_loadedAssets = {
-            m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track.nfsVersion,
-            m_track.name
-        };
+    RaceSession::RaceSession(std::shared_ptr<GLFWwindow> const &window,
+                             std::shared_ptr<Logger> const &onfsLogger,
+                             std::vector<NfsAssetList> const &installedNFS,
+                             Track const &currentTrack,
+                             std::shared_ptr<Car> const &currentCar)
+        : m_window(window), m_track(currentTrack),
+          m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
+          m_freeCamera(m_inputManager, m_track.trackBlocks[0].position),
+          m_hermiteCamera(m_track.centerSpline, m_inputManager), m_carCamera(m_inputManager), m_physicsEngine(m_track),
+          m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer), m_racerManager(m_track),
+          m_inputManager(window) {
+        m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id,
+                          m_track.nfsVersion, m_track.name};
 
         // Set up the Racer Manager to spawn vehicles on track
         m_racerManager.Init(m_playerAgent, m_physicsEngine);
     }
 
-    void RaceSession::_UpdateCameras(const float deltaTime) {
+    void RaceSession::_UpdateCameras(float const deltaTime) {
         if (m_inputManager.GetWindowStatus() == GAME) {
             switch (m_activeCameraMode) {
-                case FOLLOW_CAR:
-                    // Compute MVP from keyboard and mouse, centered around a target car
-                    m_carCamera.FollowCar(m_playerAgent->vehicle);
-                    break;
-                case HERMITE_FLYTHROUGH:
-                    m_hermiteCamera.UseSpline(m_totalTime);
-                    break;
-                case FREE_LOOK:
-                    // Compute the MVP matrix from keyboard and mouse input
-                    m_freeCamera.ComputeMatricesFromInputs(deltaTime);
-                    break;
+            case FOLLOW_CAR:
+                // Compute MVP from keyboard and mouse, centered around a target car
+                m_carCamera.FollowCar(m_playerAgent->vehicle);
+                break;
+            case HERMITE_FLYTHROUGH:
+                m_hermiteCamera.UseSpline(m_totalTime);
+                break;
+            case FREE_LOOK:
+                // Compute the MVP matrix from keyboard and mouse input
+                m_freeCamera.ComputeMatricesFromInputs(deltaTime);
+                break;
             }
         }
     }
@@ -62,9 +58,9 @@ namespace OpenNFS {
             // glfwGetTime is called only once, the first time this function is called
             static double lastTime = glfwGetTime();
             // Compute time difference between current and last frame
-            const double currentTime {glfwGetTime()};
+            double const currentTime{glfwGetTime()};
             // Update time between engine ticks
-            const auto deltaTime {static_cast<float>(currentTime - lastTime)}; // Keep track of time between engine ticks
+            auto const deltaTime{static_cast<float>(currentTime - lastTime)}; // Keep track of time between engine ticks
 
             // Clear the screen for next input and grab focus
             this->_GetInputsAndClear();
@@ -73,7 +69,7 @@ namespace OpenNFS {
             this->_UpdateCameras(deltaTime);
 
             // Set the active camera dependent upon user input and update Frustum
-            auto &activeCamera {this->_GetActiveCamera()};
+            auto &activeCamera{this->_GetActiveCamera()};
             activeCamera.UpdateFrustum();
 
             if (m_userParams.simulateCars) {
@@ -84,8 +80,8 @@ namespace OpenNFS {
 
             if (ImGui::GetIO().MouseClicked[0] && m_inputManager.GetWindowStatus() == GAME) {
                 std::optional targetedEntity{
-                    m_physicsEngine.CheckForPicking(activeCamera.viewMatrix, activeCamera.projectionMatrix)
-                };
+                    m_physicsEngine.CheckForPicking(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
+                                                    activeCamera.viewMatrix, activeCamera.projectionMatrix)};
                 // Make the targeted entity 'sticky', else it vanishes after 1 frame
                 if (targetedEntity.has_value()) {
                     m_targetedEntity = targetedEntity;
@@ -98,11 +94,9 @@ namespace OpenNFS {
                 m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
             }
 
-            const bool assetChange{
-                m_renderer.Render(
-                    m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(), m_userParams,
-                    m_loadedAssets, m_racerManager.racers, m_targetedEntity)
-            };
+            bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera,
+                                                     m_orbitalManager.GetActiveGlobalLight(), m_userParams,
+                                                     m_loadedAssets, m_racerManager.racers, m_targetedEntity)};
 
             if (assetChange) {
                 return m_loadedAssets;

@@ -5,10 +5,9 @@
 
 class GLTrackModel : public GLModel, public LibOpenNFS::TrackGeometry {
 public:
-    GLTrackModel(const TrackGeometry &geometry) : TrackGeometry(geometry) {
+    explicit GLTrackModel(const TrackGeometry &geometry) : TrackGeometry(geometry) {
     }
-    GLTrackModel() {
-    }
+    GLTrackModel() = default;
     ~GLTrackModel() override;
     bool GenBuffers() override;
     void UpdateMatrices() override;

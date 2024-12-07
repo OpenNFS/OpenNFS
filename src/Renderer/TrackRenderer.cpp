@@ -5,7 +5,7 @@ namespace OpenNFS {
                                const BaseCamera &camera,
                                const GLuint trackTextureArrayID,
                                const std::vector<std::shared_ptr<Entity>> &visibleEntities,
-                               const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights,
+                               const std::vector<const LibOpenNFS::BaseLight*> &lights,
                                const ParamData &userParams,
                                const GLuint depthTextureID,
                                const float ambientFactor) {
@@ -37,17 +37,17 @@ namespace OpenNFS {
         m_trackShader.HotReload();
     }
 
-    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<std::shared_ptr<LibOpenNFS::BaseLight>> &lights) {
+    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<const LibOpenNFS::BaseLight*> &lights) {
         m_billboardShader.use();
 
-        for (auto &light : lights) {
+        /*for (auto &light : lights) {
             if (light->type == LibOpenNFS::LightType::TRACK_LIGHT) {
                 std::shared_ptr<LibOpenNFS::TrackLight> trackLight = std::static_pointer_cast<LibOpenNFS::TrackLight>(light);
                 m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix);
                 m_billboardShader.loadLight(trackLight);
                 // trackLight->model.render();
             }
-        }
+        }*/
         m_billboardShader.unbind();
         m_billboardShader.HotReload();
     }

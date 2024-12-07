@@ -150,7 +150,11 @@ namespace OpenNFS {
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks
             for (auto &collision : track.cullTree.queryOverlaps(camera.viewFrustum)) {
-                visibleSet.entities.emplace_back(std::static_pointer_cast<Entity>(collision));
+                auto entity {std::dynamic_pointer_cast<Entity>(collision)};
+                visibleSet.entities.emplace_back(entity);
+                if (entity->type == EntityType::LIGHT) {
+                    visibleSet.lights.emplace_back(*entity);
+                }
             }
         } else {
             visibleSet.entities = track.entities;
@@ -237,7 +241,7 @@ namespace OpenNFS {
             break;
         }
         ImGui::Text("Object Flags: %d", targetEntity->flags);
-        ImGui::Text("Collideable: %s", targetEntity->collideable ? "Yes" : "No");
+        ImGui::Text("Collideable: %s", targetEntity->collidable ? "Yes" : "No");
         ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
         ImGui::End();
     }

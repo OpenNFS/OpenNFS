@@ -26,7 +26,7 @@ namespace OpenNFS {
         ~PhysicsEngine();
         void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const;
         void RegisterVehicle(const std::shared_ptr<Car> &car);
-        [[nodiscard]] std::optional<Entity *> CheckForPicking(const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) const;
+        [[nodiscard]] std::optional<Entity *> CheckForPicking(float x, float y, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) const;
         [[nodiscard]] btDiscreteDynamicsWorld *GetDynamicsWorld() const;
 
         std::shared_ptr<BulletDebugDrawer> debugDrawer;

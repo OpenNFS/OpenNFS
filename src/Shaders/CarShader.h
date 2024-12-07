@@ -3,42 +3,31 @@
 #include "BaseShader.h"
 #include <Entities/BaseLight.h>
 
-#include "../Util/ImageLoader.h"
-#include "../Physics/Car.h"
 #include "../../shaders/ShaderPreamble.h"
+#include "../Physics/Car.h"
+#include "../Util/ImageLoader.h"
 
 namespace OpenNFS {
     class CarShader : public BaseShader {
-    public:
+      public:
         explicit CarShader();
 
         void loadCarColor(glm::vec3 color);
 
         void loadCarTexture(GLuint textureID);
-
-        void loadLights(const std::vector<std::shared_ptr<LibOpenNFS::BaseLight> > &lights);
-
+        void loadLights(const std::vector<const LibOpenNFS::BaseLight*> &lights);
         void loadSpecular(float damper, float reflectivity, float env_reflectivity);
-
-        void loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view);
-
-        void loadTransformationMatrix(const glm::mat4 &transformation);
-
+        void loadProjectionViewMatrices(glm::mat4 const &projection, glm::mat4 const &view);
+        void loadTransformationMatrix(glm::mat4 const &transformation);
         void bindTextureArray(GLuint textureArrayID);
-
         void setMultiTextured(bool multiTextured);
-
         void setPolyFlagged(bool polyFlagged);
-
         void loadEnvironmentMapTexture();
 
-    protected:
+      protected:
         void bindAttributes() override;
-
         void getAllUniformLocations() override;
-
         void customCleanup() override;
-
         void loadEnvMapTextureData();
 
         GLint transformationMatrixLocation;
@@ -55,8 +44,8 @@ namespace OpenNFS {
         GLint envReflectivityLocation;
         GLint carTextureArrayLocation; // Multitextured
         GLint isMultiTexturedLocation; // Multitextured
-        GLint hasPolyFlagsLocation; // PolyFlagged
+        GLint hasPolyFlagsLocation;    // PolyFlagged
 
         GLuint envMapTextureID = 0;
     };
-}
+} // namespace OpenNFS

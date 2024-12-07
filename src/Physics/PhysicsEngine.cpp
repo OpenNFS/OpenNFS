@@ -49,7 +49,7 @@ namespace OpenNFS {
         // Register the Track
         for (auto const &entity : m_track.entities) {
             int collisionMask = COL_RAY | COL_CAR;
-            if (!entity->collideable) {
+            if (!entity->collidable) {
                 continue;
             }
             if (entity->dynamic) {
@@ -72,25 +72,26 @@ namespace OpenNFS {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        // TODO: TrackModel updates should only propagate for active track blocks, based upon track blocks racer
-        // vehicles are on
+        // TODO: TrackModel updates should only propagate for active track blocks, based upon track blocks racers are on
         for (auto const &entity : m_track.entities) {
             entity->Update();
         }
     }
 
-    std::optional<Entity *> PhysicsEngine::CheckForPicking(glm::mat4 const &viewMatrix,
+    std::optional<Entity *> PhysicsEngine::CheckForPicking(float const x,
+                                                           float const y,
+                                                           glm::mat4 const &viewMatrix,
                                                            glm::mat4 const &projectionMatrix) const {
-        WorldRay worldRayFromScreenPosition{ScreenPosToWorldRay(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
-                                                                Config::get().windowSizeX, Config::get().windowSizeY,
-                                                                viewMatrix, projectionMatrix)};
-        glm::vec3 const outEnd{worldRayFromScreenPosition.origin + worldRayFromScreenPosition.direction * 1000.0f};
+        auto const [origin, direction]{
+            ScreenPosToWorldRay(x, y, Config::get().windowSizeX,
+                                Config::get().windowSizeY, viewMatrix, projectionMatrix)};
+        glm::vec3 const outEnd{origin + direction * 1000.0f};
 
-        btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(worldRayFromScreenPosition.origin),
+        btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(origin),
                                                                Utils::glmToBullet(outEnd));
         rayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
 
-        m_pDynamicsWorld->rayTest(Utils::glmToBullet(worldRayFromScreenPosition.origin), Utils::glmToBullet(outEnd),
+        m_pDynamicsWorld->rayTest(Utils::glmToBullet(origin), Utils::glmToBullet(outEnd),
                                   rayCallback);
 
         return rayCallback.hasHit() ? static_cast<Entity *>(rayCallback.m_collisionObject->getUserPointer())

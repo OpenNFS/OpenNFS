@@ -21,7 +21,7 @@
 namespace OpenNFS {
 struct VisibleSet {
     std::vector<std::shared_ptr<Entity>> entities;
-    std::vector<std::shared_ptr<BaseLight>> lights;
+    std::vector<const BaseLight*> lights;
 };
 
 class Renderer {
