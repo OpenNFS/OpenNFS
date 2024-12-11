@@ -23,7 +23,7 @@ namespace OpenNFS {
         // m_trackShader.loadSpotlight(car->leftHeadlight);
 
         // Global Light is always 0th index
-        const auto globalLight {dynamic_cast<const GlobalLight*>(lights.at(0))};
+        auto const globalLight{dynamic_cast<GlobalLight const *>(lights.at(0))};
         CHECK_F(globalLight->type == LibOpenNFS::LightType::GLOBAL_LIGHT, "Light 0 is not GLOBAL_LIGHT");
         m_trackShader.loadLightSpaceMatrix(globalLight->lightSpaceMatrix);
 
@@ -37,17 +37,17 @@ namespace OpenNFS {
         m_trackShader.HotReload();
     }
 
-    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<const LibOpenNFS::BaseLight*> &lights) {
+    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<const BaseLight*> &lights) {
         m_billboardShader.use();
 
-        /*for (auto &light : lights) {
-            if (light->type == LibOpenNFS::LightType::TRACK_LIGHT) {
-                std::shared_ptr<LibOpenNFS::TrackLight> trackLight = std::static_pointer_cast<LibOpenNFS::TrackLight>(light);
-                m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix);
-                m_billboardShader.loadLight(trackLight);
-                // trackLight->model.render();
-            }
-        }*/
+        //for (auto &light : lights) {
+        //    if (light->type == TRACK_LIGHT) {
+        //        TrackLight const *trackLight {std::static_pointer_cast<const TrackLight>(light)};
+        //        m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix);
+        //        m_billboardShader.loadLight(trackLight);
+        //        // trackLight->model.render();
+        //    }
+        //}
         m_billboardShader.unbind();
         m_billboardShader.HotReload();
     }

@@ -7,12 +7,12 @@
 
 namespace OpenNFS {
     class BillboardShader : public BaseShader {
-    public:
+      public:
         BillboardShader();
-        void loadLight(const std::shared_ptr<LibOpenNFS::TrackLight> &light);
-        void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view);
+        void loadLight(LibOpenNFS::TrackLight const *light);
+        void loadMatrices(glm::mat4 const &projection, glm::mat4 const &view);
 
-    protected:
+      protected:
         void bindAttributes() override;
         void getAllUniformLocations() override;
         void customCleanup() override;

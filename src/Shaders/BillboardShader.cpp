@@ -1,8 +1,8 @@
 #include "BillboardShader.h"
 
 namespace OpenNFS {
-    const std::string vertexSrc = "../shaders/BillboardVertexShader.vert";
-    const std::string fragSrc   = "../shaders/BillboardFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/BillboardVertexShader.vert";
+    std::string const fragSrc = "../shaders/BillboardFragmentShader.frag";
 
     BillboardShader::BillboardShader() : BaseShader(vertexSrc, fragSrc) {
         BillboardShader::bindAttributes();
@@ -17,10 +17,10 @@ namespace OpenNFS {
 
     void BillboardShader::getAllUniformLocations() {
         projectionMatrixLocation = getUniformLocation("projectionMatrix");
-        viewMatrixLocation       = getUniformLocation("viewMatrix");
-        boardTextureLocation     = getUniformLocation("boardTextureSampler");
-        lightColourLocation      = getUniformLocation("lightColour");
-        billboardPosLocation     = getUniformLocation("billboardPos");
+        viewMatrixLocation = getUniformLocation("viewMatrix");
+        boardTextureLocation = getUniformLocation("boardTextureSampler");
+        lightColourLocation = getUniformLocation("lightColour");
+        billboardPosLocation = getUniformLocation("billboardPos");
     }
 
     void BillboardShader::loadBillboardTexture() {
@@ -29,13 +29,13 @@ namespace OpenNFS {
         glBindTexture(GL_TEXTURE_2D, textureID);
     }
 
-    void BillboardShader::loadLight(const std::shared_ptr<LibOpenNFS::TrackLight> &light) {
+    void BillboardShader::loadLight(LibOpenNFS::TrackLight const *light) {
         loadVec4(lightColourLocation, light->colour);
         loadVec3(billboardPosLocation, light->geometry.position);
         loadBillboardTexture();
     }
 
-    void BillboardShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view) {
+    void BillboardShader::loadMatrices(glm::mat4 const &projection, glm::mat4 const &view) {
         loadMat4(viewMatrixLocation, &view[0][0]);
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }

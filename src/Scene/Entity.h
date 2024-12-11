@@ -37,5 +37,7 @@ namespace OpenNFS {
 
         void _GenCollisionMesh();
         void _GenBoundingBox();
+
+        size_t animKeyframeIndex{0};
     };
 } // namespace OpenNFS

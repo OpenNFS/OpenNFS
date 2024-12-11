@@ -4,6 +4,8 @@
 #include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
 
+#include <NFS3/NFS3Loader.h>
+
 namespace OpenNFS {
     Entity::Entity(TrackEntity &track_entity) : TrackEntity(track_entity), GLTrackModel(geometry) {
         if (track_entity.type == LibOpenNFS::EntityType::LIGHT) {
@@ -91,13 +93,21 @@ namespace OpenNFS {
 
     void Entity::Update() {
         // We don't want to update Entities that aren't dynamic
-        if (!dynamic) {
+        if (!dynamic || animData.empty()) {
             return;
         }
+
         btTransform trans;
         m_motionState->getWorldTransform(trans);
-        position = Utils::bulletToGlm(trans.getOrigin());
-        orientation = Utils::bulletToGlm(trans.getRotation());
+
+        if (!animData.empty()) {
+            animKeyframeIndex = (animKeyframeIndex + 1) % animData.size();
+            position = glm::vec3(animData.at(animKeyframeIndex).pt) * LibOpenNFS::NFS3::NFS3_SCALE_FACTOR;
+        } else {
+            position = Utils::bulletToGlm(trans.getOrigin());
+            orientation = Utils::bulletToGlm(trans.getRotation());
+        }
+
         UpdateMatrices();
     }
 
