@@ -557,7 +557,7 @@ namespace OpenNFS {
         vehicleProperties.suspensionRestLength = 0.020;
         vehicleProperties.suspensionStiffness = 750.f;
         vehicleProperties.suspensionDamping = 200.f;
-        vehicleProperties.suspensionCompression = 500.4f;
+        vehicleProperties.suspensionCompression = 200.4f;
         vehicleProperties.wheelFriction = 0.45f;
         vehicleProperties.rollInfluence = 0.04f;
         vehicleProperties.steeringIncrement = 0.01f;

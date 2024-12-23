@@ -38,14 +38,22 @@ namespace OpenNFS {
 
         bool const going_backwards{m_lastTrackBlockID > m_nearestTrackblockID};
         bool const no_progress{m_ticksInBlock > kBlockTickLimit};
-        bool const upside_down{(vehicle->rangefinderInfo.upDistance <= 0.1f || vehicle->rangefinderInfo.downDistance > 1.f) && m_ticksInBlock > 20};
+        bool const upside_down{(vehicle->rangefinderInfo.upDistance <= 0.1f && vehicle->rangefinderInfo.downDistance > 1.f)};
+        if (going_backwards) {
+            ++m_ticksGoingBackwards;
+        }
 
         // If during simulation, car flips, reset.
-        if (upside_down || no_progress || going_backwards) {
+        if (upside_down || no_progress || (going_backwards && m_ticksGoingBackwards > 20)) {
             LOG(DEBUG) << "Racer ID: " << m_racerID << " no longer making forward progress, resetting to VRoad ID: " << m_nearestVroadID;
             m_ticksInBlock = 0;
             m_lastTrackBlockID = m_nearestTrackblockID;
-            ResetToVroad(m_nearestVroadID, 0.f);
+            m_ticksGoingBackwards = 0;
+            ResetToVroad(m_nearestVroadID, Utils::RandomFloat(-.5f, .5f));
+        }
+
+        if (m_nearestTrackblockID >= m_lastTrackBlockID) {
+            m_ticksGoingBackwards = 0;
         }
 
         if (m_lastTrackBlockID != m_nearestTrackblockID) {
@@ -56,20 +64,30 @@ namespace OpenNFS {
         }
     }
 
-    void RacerAgent::_FollowTrack() const {
-        glm::vec3 const target{m_track.virtualRoad[(m_nearestVroadID + 10) % m_track.virtualRoad.size()].position};
+    uint32_t RacerAgent::_CarSpeedToLookahead(float const carSpeed) const {
+        uint32_t const carSpeedRatio{static_cast<uint32_t>((carSpeed / vehicle->vehicleProperties.maxSpeed) * 10)};
+        uint32_t const offset{1 + (carSpeedRatio * 3)};
+        return m_nearestVroadID + offset;
+    }
+
+    float RacerAgent::_CarSpeedToSteeringDamper(float const carSpeed) const {
+        float const carSpeedRatio{carSpeed / vehicle->vehicleProperties.maxSpeed}; // 0 -> 1.0 (0.3 max, in practice)
+        // At Max speed: 0.5-0.3 = 0.2f. At Min speed: 0.5f - 0.f = 0.5f.
+        // Min steering damper = 0.1f
+        return std::min(kSteeringDamper - carSpeedRatio, 0.1f);
+    }
+
+    void RacerAgent::_FollowTrack() {
+        auto const speed{vehicle->GetVehicle()->getCurrentSpeedKmHour()};
+        uint32_t const futureVroad{_CarSpeedToLookahead(speed)};
+        glm::vec3 const target{m_track.virtualRoad[(futureVroad) % m_track.virtualRoad.size()].position};
         float const angle{glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
                                              glm::normalize(target - this->vehicle->carBodyModel.position), glm::vec3(0, 1, 0))};
-        // vehicle->ApplyAbsoluteSteerAngle(angle);
-        if (angle < -0.15f) {
-            vehicle->ApplySteeringRight(true);
-        } else if (angle > 0.15f) {
-            vehicle->ApplySteeringLeft(true);
-        } else {
-            vehicle->ApplySteeringRight(false);
-            vehicle->ApplySteeringLeft(false);
-        }
-        vehicle->ApplyAccelerationForce(true, false);
+        m_steeringAngle = (_CarSpeedToSteeringDamper(speed) * angle);
+        vehicle->ApplyAbsoluteSteerAngle(m_steeringAngle);
+        float const steeringDifference{std::abs(m_steeringAngle - angle)};
+        bool const accelerate{steeringDifference < 0.15f || speed <= kMinSpeed};
+        vehicle->ApplyAccelerationForce(accelerate, false);
     }
 
     void RacerAgent::_UsePrimitiveAI() const {

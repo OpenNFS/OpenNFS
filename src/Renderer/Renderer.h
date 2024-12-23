@@ -63,8 +63,8 @@ class Renderer {
     std::shared_ptr<Logger> m_logger;
     std::vector<NfsAssetList> m_nfsAssetList;
     Track const &m_track;
-    uint32_t m_cameraTargetVehicleID {0};
-    uint32_t m_numRacers {0};
+    uint32_t m_cameraTargetVehicleID{0};
+    uint32_t m_numRacers{0};
 
     TrackRenderer m_trackRenderer;
     CarRenderer m_carRenderer;

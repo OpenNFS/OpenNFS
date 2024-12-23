@@ -274,13 +274,15 @@ namespace OpenNFS {
         ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
         ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);
-        if (ImGui::Button("<" )) {
+        ImGui::Text("Camera Target");
+        ImGui::SameLine();
+        if (ImGui::Button("<")) {
             --m_cameraTargetVehicleID;
         }
         ImGui::SameLine();
         ImGui::Text("Vehicle ID: %u", m_cameraTargetVehicleID);
         ImGui::SameLine();
-        if (ImGui::Button(">" )) {
+        if (ImGui::Button(">")) {
             ++m_cameraTargetVehicleID;
         }
         m_cameraTargetVehicleID %= m_numRacers;
