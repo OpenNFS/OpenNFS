@@ -56,7 +56,7 @@ namespace OpenNFS {
         for (auto &trackblock : m_track.trackBlocks) {
             if (float const distance = glm::distance(vehicle->carBodyModel.position, trackblock.position);
                 distance < lowestDistance) {
-                nearestTrackblockID = trackblock.id;
+                m_nearestTrackblockID = trackblock.id;
                 lowestDistance = distance;
             }
         }
@@ -66,8 +66,8 @@ namespace OpenNFS {
         float lowestDistance = FLT_MAX;
 
         // Use the nearest trackblock ID to avoid skipping the entire set of Vroad data
-        uint32_t const nodeNumber{m_track.trackBlocks[nearestTrackblockID].virtualRoadStartIndex};
-        uint32_t const nPositions{m_track.trackBlocks[nearestTrackblockID].nVirtualRoadPositions};
+        uint32_t const nodeNumber{m_track.trackBlocks[m_nearestTrackblockID].virtualRoadStartIndex};
+        uint32_t const nPositions{m_track.trackBlocks[m_nearestTrackblockID].nVirtualRoadPositions};
 
         // Get closest vroad in trackblock set to car body position
         for (uint32_t vroadIdx = nodeNumber; vroadIdx < nodeNumber + nPositions; ++vroadIdx) {

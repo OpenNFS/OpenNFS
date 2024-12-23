@@ -22,7 +22,7 @@ namespace OpenNFS {
 
         std::string name;
         std::shared_ptr<Car> vehicle;
-        uint32_t nearestTrackblockID = 0;
+        uint32_t m_nearestTrackblockID = 0;
 
     protected:
         void _UpdateNearestTrackblock();

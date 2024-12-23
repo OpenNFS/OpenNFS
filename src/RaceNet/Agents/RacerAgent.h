@@ -16,7 +16,10 @@ namespace OpenNFS {
         void _UsePrimitiveAI() const;
         void _FollowTrack() const;
 
+        static constexpr uint32_t kBlockTickLimit {200};
         RacerAIMode m_mode    = FollowTrack;
-        uint32_t m_ticksAlive = 0;
+        uint32_t m_racerID = 0;
+        uint32_t m_ticksInBlock = 0;
+        uint32_t m_lastTrackBlockID = 0;
     };
 } // namespace OpenNFS

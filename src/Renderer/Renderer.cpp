@@ -80,6 +80,7 @@ namespace OpenNFS {
                           std::vector<std::shared_ptr<CarAgent>> const &racers,
                           std::optional<Entity *> const targetedEntity) {
         bool newAssetSelected = false;
+        m_numRacers = racers.size();
 
         // Perform frustum culling to get visible entities, from perspective of active camera
         auto const [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, activeLight, userParams);
@@ -138,6 +139,10 @@ namespace OpenNFS {
         glfwSwapBuffers(m_window.get());
 
         return newAssetSelected;
+    }
+
+    uint32_t Renderer::GetCameraTargetVehicleID() const {
+        return m_cameraTargetVehicleID;
     }
 
     VisibleSet Renderer::_FrustumCull(Track const &track,
@@ -243,7 +248,7 @@ namespace OpenNFS {
         ImGui::End();
     }
 
-    void Renderer::_DrawDebugUI(ParamData &userParams, BaseCamera const &camera) const {
+    void Renderer::_DrawDebugUI(ParamData &userParams, BaseCamera const &camera) {
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
         ImGui::Image(reinterpret_cast<ImTextureID>(m_shadowMapRenderer.m_depthTextureID), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
@@ -269,6 +274,16 @@ namespace OpenNFS {
         ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
         ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);
+        if (ImGui::Button("<" )) {
+            --m_cameraTargetVehicleID;
+        }
+        ImGui::SameLine();
+        ImGui::Text("Vehicle ID: %u", m_cameraTargetVehicleID);
+        ImGui::SameLine();
+        if (ImGui::Button(">" )) {
+            ++m_cameraTargetVehicleID;
+        }
+        m_cameraTargetVehicleID %= m_numRacers;
         ImGui::NewLine();
         ImGui::ColorEdit3("Sun Atten",
                           reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a color

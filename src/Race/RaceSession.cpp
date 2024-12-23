@@ -27,7 +27,7 @@ namespace OpenNFS {
             switch (m_activeCameraMode) {
             case FOLLOW_CAR:
                 // Compute MVP from keyboard and mouse, centered around a target car
-                m_carCamera.FollowCar(m_playerAgent->vehicle);
+                m_carCamera.FollowCar(m_racerManager.racers.at(m_renderer.GetCameraTargetVehicleID())->vehicle);
                 break;
             case HERMITE_FLYTHROUGH:
                 m_hermiteCamera.UseSpline(m_totalTime);

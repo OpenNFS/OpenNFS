@@ -50,10 +50,12 @@ class Renderer {
                 GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,
                 std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> targetedEntity);
 
+    [[nodiscard]] uint32_t GetCameraTargetVehicleID() const;
+
   private:
     void _InitialiseIMGUI() const;
     bool _DrawMenuBar(AssetData &loadedAssets) const;
-    void _DrawDebugUI(ParamData &userParams, BaseCamera const &camera) const;
+    void _DrawDebugUI(ParamData &userParams, BaseCamera const &camera);
     static std::vector<uint32_t> _GetLocalTrackBlockIDs(Track const &track, BaseCamera const &camera);
     static VisibleSet _FrustumCull(Track const &track, BaseCamera const &camera, GlobalLight const *globalLight, ParamData const &userParams);
 
@@ -61,6 +63,8 @@ class Renderer {
     std::shared_ptr<Logger> m_logger;
     std::vector<NfsAssetList> m_nfsAssetList;
     Track const &m_track;
+    uint32_t m_cameraTargetVehicleID {0};
+    uint32_t m_numRacers {0};
 
     TrackRenderer m_trackRenderer;
     CarRenderer m_carRenderer;

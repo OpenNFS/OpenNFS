@@ -22,7 +22,7 @@ namespace OpenNFS {
         std::unordered_set<uint32_t> activeTrackblockIDs;
 
         for (auto &racer: racers) {
-            activeTrackblockIDs.insert(racer->nearestTrackblockID);
+            activeTrackblockIDs.insert(racer->m_nearestTrackblockID);
         }
 
         return std::vector(activeTrackblockIDs.begin(), activeTrackblockIDs.end());
