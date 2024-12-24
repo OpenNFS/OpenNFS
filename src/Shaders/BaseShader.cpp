@@ -31,7 +31,7 @@ namespace OpenNFS {
         glUniform1i(location, textureUnit);
     }
 
-    void BaseShader::loadBool(const GLint location, const bool value) {
+    void BaseShader::loadUint(const GLint location, const uint32_t value) {
         glUniform1i(location, value);
     }
 

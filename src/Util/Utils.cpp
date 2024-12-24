@@ -8,6 +8,10 @@
 using namespace std::filesystem;
 
 namespace OpenNFS::Utils {
+    glm::mat4 rotAroundPoint(float const rad, glm::vec3 const &point, glm::vec3 const &axis) {
+        return glm::translate(glm::mat4(1), point) * glm::rotate(glm::mat4(1), rad, axis) * glm::translate(glm::mat4(1), -point);
+    }
+
     glm::vec3 bulletToGlm(const btVector3 &v) {
         return {v.getX(), v.getY(), v.getZ()};
     }

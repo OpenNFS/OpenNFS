@@ -17,9 +17,9 @@ namespace OpenNFS {
         [[nodiscard]] uint32_t _CarSpeedToLookahead(float carSpeed) const;
         [[nodiscard]] float _CarSpeedToSteeringDamper(float carSpeed) const;
 
-        static constexpr uint32_t kBlockTickLimit{200};
-        static constexpr float kSteeringDamper {.6f};
-        static constexpr float kMinSpeed {20.f};
+        static constexpr uint32_t kBlockTickLimit{300};
+        static constexpr float kSteeringDamper{.6f};
+        static constexpr float kMinSpeed{20.f};
         RacerAIMode m_mode    = FollowTrack;
         uint32_t m_racerID = 0;
         uint32_t m_ticksInBlock = 0;

@@ -97,8 +97,6 @@ void DebugRenderer::DrawVroad(Track const &track) const {
             vroadPointNext.y += vRoadDisplayHeight;
             m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext),
                                           btVector3(1, 0, 1));
-            m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext),
-                                          btVector3(1, 0, 1));
 
             glm::vec3 curVroadRightVec = curVroad.right;
 

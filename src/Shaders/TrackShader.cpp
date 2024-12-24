@@ -73,7 +73,7 @@ namespace OpenNFS {
     }
 
     void TrackShader::setClassic(const bool useClassic) {
-        loadBool(useClassicLocation, useClassic);
+        loadUint(useClassicLocation, useClassic);
     }
 
     void TrackShader::loadSpecular(const float damper, const float reflectivity) {

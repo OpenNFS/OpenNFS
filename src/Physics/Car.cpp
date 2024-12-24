@@ -551,7 +551,7 @@ namespace OpenNFS {
     void Car::_SetVehicleProperties() {
         // Load these from Carp.txt
         vehicleProperties.mass = 1750.f;
-        vehicleProperties.maxSpeed = 20.f;
+        vehicleProperties.maxSpeed = 100.f;
         vehicleProperties.maxEngineForce = 3000.f;
         vehicleProperties.maxBreakingForce = 1000.f;
         vehicleProperties.suspensionRestLength = 0.020;

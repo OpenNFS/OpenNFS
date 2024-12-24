@@ -14,8 +14,8 @@ namespace OpenNFS {
         m_yaw = 180 - ((targetCar->GetCarBodyOrientation() + m_angleAroundCar));
 
         viewMatrix = glm::mat4(1.0f);
-        viewMatrix = glm::rotate(viewMatrix, m_pitch * glm::pi<float>() / 180, glm::vec3(1, 0, 0));
-        viewMatrix = glm::rotate(viewMatrix, m_yaw * glm::pi<float>() / 180, glm::vec3(0, 1, 0));
+        viewMatrix = glm::rotate(viewMatrix, glm::radians(m_pitch), glm::vec3(1, 0, 0));
+        viewMatrix = glm::rotate(viewMatrix, glm::radians(m_yaw), glm::vec3(0, 1, 0));
         glm::vec3 const negativeCameraPos(-position);
         viewMatrix = glm::translate(viewMatrix, negativeCameraPos);
     }
@@ -51,10 +51,10 @@ namespace OpenNFS {
     }
 
     float CarCamera::_CalculateVerticalDistance() const {
-        return m_distanceFromCar * sin(m_pitch * (glm::pi<float>() / 180.0f));
+        return m_distanceFromCar * sin(glm::radians(m_pitch));
     }
 
     float CarCamera::_CalculateHorizontalDistance() const {
-        return m_distanceFromCar * cos(m_pitch * (glm::pi<float>() / 180));
+        return m_distanceFromCar * cos(glm::radians(m_pitch));
     }
 } // namespace OpenNFS

@@ -14,6 +14,7 @@
 #include "CarRenderer.h"
 #include "DebugRenderer.h"
 #include "MenuRenderer.h"
+#include "MiniMapRenderer.h"
 #include "ShadowMapRenderer.h"
 #include "SkyRenderer.h"
 #include "TrackRenderer.h"
@@ -72,5 +73,6 @@ class Renderer {
     ShadowMapRenderer m_shadowMapRenderer;
     DebugRenderer m_debugRenderer;
     MenuRenderer m_menuRenderer;
+    MiniMapRenderer m_miniMapRenderer;
 };
 } // namespace OpenNFS

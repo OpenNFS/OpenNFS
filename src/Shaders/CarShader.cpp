@@ -48,11 +48,11 @@ namespace OpenNFS {
     }
 
     void CarShader::setMultiTextured(const bool multiTextured) {
-        loadBool(isMultiTexturedLocation, multiTextured);
+        loadUint(isMultiTexturedLocation, multiTextured);
     }
 
     void CarShader::setPolyFlagged(const bool polyFlagged) {
-        loadBool(hasPolyFlagsLocation, polyFlagged);
+        loadUint(hasPolyFlagsLocation, polyFlagged);
     }
 
     void CarShader::customCleanup() {

@@ -21,6 +21,7 @@ namespace OpenNFS {
     };
 
     namespace Utils {
+        glm::mat4 rotAroundPoint(float const rad, glm::vec3 const &point, glm::vec3 const &axis);
         glm::vec3 bulletToGlm(const btVector3 &v);
         btVector3 glmToBullet(const glm::vec3 &v);
         glm::quat bulletToGlm(const btQuaternion &q);

@@ -98,9 +98,9 @@ set(SOURCE_FILES
         src/Util/Logger.cpp
         src/Util/Utils.cpp
         src/main.cpp
-        #[[src/Renderer/RaceNetRenderer.cpp
-        src/Shaders/RaceNetShader.cpp
-        src/Loaders/NFS4/PC/NFS4Loader.cpp
+        src/Renderer/MiniMapRenderer.cpp
+        src/Shaders/MiniMapShader.cpp
+        #[[src/Loaders/NFS4/PC/NFS4Loader.cpp
         src/Loaders/NFS4/PS1/NFS4PS1Loader.cpp
         src/Loaders/NFS4/PS1/SerializedGroupOps.cpp
         src/Loaders/NFS5/NFS5Loader.cpp]])
@@ -115,7 +115,7 @@ include_directories(include)
 
 #[[FREETYPE]]
 set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "Disable HarfBuzz (used for improving auto-hinting of OpenType fonts).")
-set(FT_DISABLE_BROTLI  ON CACHE BOOL  "Disable support of compressed WOFF2 fonts.")
+set(FT_DISABLE_BROTLI ON CACHE BOOL "Disable support of compressed WOFF2 fonts.")
 add_subdirectory(lib/freetype2)
 include_directories(lib/freetype2/include)
 list(APPEND ONFS_LIBRARIES freetype)

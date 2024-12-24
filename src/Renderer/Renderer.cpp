@@ -116,6 +116,8 @@ namespace OpenNFS {
                                m_shadowMapRenderer.m_depthTextureID, 0.5f);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
         m_debugRenderer.Render(activeCamera);
+        m_miniMapRenderer.Render(m_track, racers);
+
 
         // Render the Car and racers
         for (auto &racer : racers) {
