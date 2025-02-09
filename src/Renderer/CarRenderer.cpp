@@ -43,7 +43,7 @@ namespace OpenNFS {
 
         m_carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
         m_carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity, car->carBodyModel.envReflectivity);
-        m_carShader.loadCarColor(car->vehicleProperties.colour, car->vehicleProperties.colourSecondary); // The colour should only apply to the car body
+        m_carShader.loadCarColor(car->vehicleState.colour, car->vehicleState.colourSecondary); // The colour should only apply to the car body
         car->carBodyModel.Render();
 
         m_carShader.unbind();

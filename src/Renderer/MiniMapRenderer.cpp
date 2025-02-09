@@ -24,7 +24,7 @@ namespace OpenNFS {
         }
 
         for (auto &racer : racers) {
-            miniMapShader.loadColor(racer->vehicle->vehicleProperties.colour);
+            miniMapShader.loadColor(racer->vehicle->vehicleState.colour);
             auto racerMatrix {glm::scale(rotationMat * racer->vehicle->carBodyModel.ModelMatrix, glm::vec3(kVehicleScale, kVehicleScale, kVehicleScale))};
             miniMapShader.loadTransformationMatrix(racerMatrix);
             miniMapShader.loadLayer(0);

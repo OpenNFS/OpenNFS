@@ -16,7 +16,7 @@ namespace OpenNFS {
         this->vehicle = std::make_shared<Car>(car->assetData);
 
         // TODO: DEBUG! Set a low max speed.
-        this->vehicle->vehicleProperties.maxSpeed = 100.f;
+        this->vehicle->assetData.physicsData.maxSpeed = 100.f;
     }
 
     void RacerAgent::Simulate() {
@@ -65,13 +65,13 @@ namespace OpenNFS {
     }
 
     uint32_t RacerAgent::_CarSpeedToLookahead(float const carSpeed) const {
-        uint32_t const carSpeedRatio{static_cast<uint32_t>((carSpeed / vehicle->vehicleProperties.maxSpeed) * 10)};
+        uint32_t const carSpeedRatio{static_cast<uint32_t>((carSpeed / vehicle->assetData.physicsData.maxSpeed) * 10)};
         uint32_t const offset{1 + (carSpeedRatio * 3)};
         return m_nearestVroadID + offset;
     }
 
     float RacerAgent::_CarSpeedToSteeringDamper(float const carSpeed) const {
-        float const carSpeedRatio{carSpeed / vehicle->vehicleProperties.maxSpeed}; // 0 -> 1.0 (0.3 max, in practice)
+        float const carSpeedRatio{carSpeed / vehicle->assetData.physicsData.maxSpeed}; // 0 -> 1.0 (0.3 max, in practice)
         // At Max speed: 0.5-0.3 = 0.2f. At Min speed: 0.5f - 0.f = 0.5f.
         // Min steering damper = 0.1f
         return std::min(kSteeringDamper - carSpeedRatio, 0.1f);
