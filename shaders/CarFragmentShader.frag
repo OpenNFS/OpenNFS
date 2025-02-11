@@ -32,6 +32,9 @@ uniform bool polyFlagged;
 
 void main(){
     vec4 carTexColor = multiTextured ? texture(textureArray, vec3(UV, texIndex)).rgba : texture(carTextureSampler, UV ).rgba;
+    if(carTexColor.a < 1.0) {
+        carTexColor = carTexColor * vec4(carColour, 1.0 - carTexColor.a);
+    }
     vec4 envTexColor = texture( envMapTextureSampler, envUV ).rgba;
 
     vec3 unitNormal = normalize(surfaceNormal);
@@ -59,5 +62,5 @@ void main(){
     totalDiffuse = max(totalDiffuse, 0.7f); // Min brightness
 
 	// Output color = color of the texture at the specified UV
-	color = vec4(totalDiffuse, 1.0) * (carTexColor * vec4(carColour, 1.0) + envReflectivity*envTexColor) + vec4(totalSpecular, 1.0);
+	color = vec4(totalDiffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(totalSpecular, 1.0);
 }
