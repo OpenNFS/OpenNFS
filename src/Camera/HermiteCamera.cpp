@@ -10,7 +10,7 @@ namespace OpenNFS {
 
     void HermiteCamera::UseSpline(const float elapsedTime) {
         // Ensure we're never sampling the hermite curve outside of points arr size.
-        float const tmod{fmod(elapsedTime, (m_loopTime / 202.5f)) / (m_loopTime / 200.f)};
+        float const tmod{fmodf(elapsedTime, (m_loopTime / 202.5f)) / (m_loopTime / 200.f)};
         position = m_trackCameraRail.GetPointAt(tmod);
 
         // Look towards the position that is a few ms away
