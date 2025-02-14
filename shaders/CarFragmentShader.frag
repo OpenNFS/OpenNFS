@@ -22,8 +22,8 @@ uniform sampler2D carTextureSampler;
 uniform vec4 lightColour[MAX_CAR_CONTRIB_LIGHTS];
 uniform vec3 attenuation[MAX_CAR_CONTRIB_LIGHTS];
 
-uniform vec3 carColour;
-uniform vec3 carSecondaryColour;
+uniform vec4 carColour;
+uniform vec4 carSecondaryColour;
 uniform float shineDamper;
 uniform float reflectivity;
 uniform float envReflectivity;
@@ -33,10 +33,23 @@ uniform bool polyFlagged;
 
 void main(){
     vec4 carTexColor = multiTextured ? texture(textureArray, vec3(UV, texIndex)).rgba : texture(carTextureSampler, UV ).rgba;
-    if ((carTexColor.a < 0.8 && carTexColor.a > 0.75)) {
-        carTexColor = carTexColor * vec4(carSecondaryColour, 1.0 - carTexColor.a);
+    if (carTexColor.a < 0.35) {
+        color = vec4(0.0, 0.0, 0.0, 0.0);
+        return;
+    } else if ((carTexColor.a < 0.8 && carTexColor.a > 0.75)) {
+        carTexColor = carTexColor * carSecondaryColour;
+        if (carColour.a > 0.0f) {
+            carTexColor.r = carTexColor.r / carSecondaryColour.a;
+            carTexColor.g = carTexColor.g / carSecondaryColour.a;
+            carTexColor.b = carTexColor.b / carSecondaryColour.a;
+        }
     } else if (carTexColor.a < 0.75){
-        carTexColor = carTexColor * vec4(carColour, 1.0 - carTexColor.a);
+        carTexColor = carTexColor * carColour;
+        if (carColour.a > 0.0f) {
+            carTexColor.r = carTexColor.r / carColour.a;
+            carTexColor.g = carTexColor.g / carColour.a;
+            carTexColor.b = carTexColor.b / carColour.a;
+        }
     }
     vec4 envTexColor = texture( envMapTextureSampler, envUV ).rgba;
 

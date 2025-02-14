@@ -56,7 +56,8 @@ namespace OpenNFS {
         float rollInfluence; // Shift CoM
 
         // Visual
-        glm::vec3 colour;
+        glm::vec4 colour;
+        glm::vec4 colourSecondary;
     };
 
     struct VehicleState {
