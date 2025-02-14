@@ -7,7 +7,7 @@ namespace OpenNFS {
         // This shader state doesn't change during a car renderpass
         m_carShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
         m_carShader.setPolyFlagged(car->carBodyModel.m_polygon_flags.empty());
-        m_carShader.loadCarColor(glm::vec3(1, 1, 1));
+        m_carShader.loadCarColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         m_carShader.loadLights(lights);
         m_carShader.loadEnvironmentMapTexture();
         // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
@@ -43,7 +43,7 @@ namespace OpenNFS {
 
         m_carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
         m_carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity, car->carBodyModel.envReflectivity);
-        m_carShader.loadCarColor(car->vehicleProperties.colour); // The colour should only apply to the car body
+        m_carShader.loadCarColor(car->vehicleProperties.colour, car->vehicleProperties.colourSecondary); // The colour should only apply to the car body
         car->carBodyModel.Render();
 
         m_carShader.unbind();

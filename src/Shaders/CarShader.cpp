@@ -32,6 +32,7 @@ namespace OpenNFS {
         envMapTextureLocation = getUniformLocation("envMapTextureSampler");
         carTextureLocation = getUniformLocation("carTextureSampler");
         colourLocation = getUniformLocation("carColour");
+        colourSecondaryLocation = getUniformLocation("carSecondaryColour");
 
         for (int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i) {
             lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
@@ -107,7 +108,8 @@ namespace OpenNFS {
         }
     }
 
-    void CarShader::loadCarColor(const glm::vec3 color) {
-        loadVec3(colourLocation, color);
+    void CarShader::loadCarColor(const glm::vec4 color, const glm::vec4 color_secondary) {
+        loadVec4(colourLocation, color);
+        loadVec4(colourSecondaryLocation, color_secondary);
     }
 }

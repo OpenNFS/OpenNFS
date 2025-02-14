@@ -12,7 +12,7 @@ namespace OpenNFS {
       public:
         explicit CarShader();
 
-        void loadCarColor(glm::vec3 color);
+        void loadCarColor(glm::vec4 color, glm::vec4 color_secondary = {0.0, 0.0, 0.0, 0.0});
 
         void loadCarTexture(GLuint textureID);
         void loadLights(const std::vector<const LibOpenNFS::BaseLight*> &lights);

@@ -567,9 +567,12 @@ namespace OpenNFS {
         if (!assetData.metadata.colours.empty()) {
             uint32_t const randomColourIdx{(uint32_t)Utils::RandomFloat(0.f, (float)assetData.metadata.colours.size())};
             vehicleProperties.colour = assetData.metadata.colours[randomColourIdx].colour;
+            vehicleProperties.colourSecondary = assetData.metadata.colours[randomColourIdx].colourSecondary;
         } else {
             vehicleProperties.colour =
-                glm::vec3(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f));
+                glm::vec4(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), 1.0f);
+            vehicleProperties.colourSecondary =
+                glm::vec4(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), 0.0f);
         }
 
         // State
