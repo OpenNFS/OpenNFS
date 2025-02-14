@@ -36,6 +36,7 @@ namespace OpenNFS {
         GLint envMapTextureLocation;
         GLint carTextureLocation;
         GLint colourLocation;
+        GLint colourSecondaryLocation;
         GLint lightPositionLocation[MAX_CAR_CONTRIB_LIGHTS];
         GLint lightColourLocation[MAX_CAR_CONTRIB_LIGHTS];
         GLint attenuationLocation[MAX_CAR_CONTRIB_LIGHTS];
