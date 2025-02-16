@@ -63,7 +63,7 @@ namespace OpenNFS {
             btVector3(2.0f * (kFarDistance - car->rangefinderInfo.downDistance), 2.0f * (car->rangefinderInfo.downDistance), 0));
 
         for (auto &light : car->lights) {
-            auto const spotlight {((Spotlight *&)light)};
+            auto const spotlight{((Spotlight *&)light)};
             DrawDummy(spotlight->position, spotlight->direction);
         }
     }
@@ -72,8 +72,7 @@ namespace OpenNFS {
         constexpr float kDummySize{0.1f};
         auto const btPosition{Utils::glmToBullet(position)};
         auto const btDirection{Utils::glmToBullet(direction)};
-        m_bulletDebugDrawer->drawBox(btPosition - (btDirection * kDummySize),
-                                     btPosition + (btDirection * kDummySize),
+        m_bulletDebugDrawer->drawBox(btPosition - (btDirection * kDummySize), btPosition + (btDirection * kDummySize),
                                      Utils::glmToBullet(glm::vec3(44, 62, 80) / 255.f));
     }
 

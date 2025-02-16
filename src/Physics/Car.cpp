@@ -417,32 +417,31 @@ namespace OpenNFS {
                 }
             }
         } break;
-        /*case NFSVersion::NFS_4:
-            for (auto &carModel : carModels) {
-                if (carModel.geometry->m_name == ":HB") {
-                    carModel.enable();
-                    carBodyModel = carModel;
-                } else if (carModel.geometry->m_name == ":HLRW") {
-                    carModel.enable();
-                    leftRearWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":HLFW") {
-                    carModel.enable();
-                    leftFrontWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":HRRW") {
-                    carModel.enable();
-                    rightRearWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":HRFW") {
-                    carModel.enable();
-                    rightFrontWheelModel = carModel;
-                } else if (carModel.geometry->m_name.find('O') != std::string::npos) {
-                    carModel.enable();
-                    miscModels.emplace_back(carModel);
+        case NFSVersion::NFS_4:
+            for (auto &carGeometry : carGeometries) {
+                if (carGeometry.m_name == ":HB") {
+                    carBodyModel = GLCarModel(carGeometry);
+                    carBodyModel.Enable();
+                } else if (carGeometry.m_name == ":HLRW") {
+                    leftRearWheelModel = GLCarModel(carGeometry);
+                    leftRearWheelModel.Enable();
+                } else if (carGeometry.m_name == ":HLFW") {
+                    leftFrontWheelModel = GLCarModel(carGeometry);
+                    leftFrontWheelModel.Enable();
+                } else if (carGeometry.m_name == ":HRRW") {
+                    rightRearWheelModel = GLCarModel(carGeometry);
+                    rightRearWheelModel.Enable();
+                } else if (carGeometry.m_name == ":HRFW") {
+                    rightFrontWheelModel = GLCarModel(carGeometry);;
+                    rightFrontWheelModel.Enable();
+                } else if (carGeometry.m_name.find('O') != std::string::npos) {
+                    miscModels.emplace_back(carGeometry);
                 } else {
-                    miscModels.emplace_back(carModel);
+                    miscModels.emplace_back(carGeometry);
                 }
             }
             break;
-        case NFSVersion::NFS_4_PS1:
+        /*case NFSVersion::NFS_4_PS1:
             for (auto &carModel : carModels) {
                 if (carModel.geometry->m_name.find("Right Body High") != std::string::npos) {
                     carModel.enable();
