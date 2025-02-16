@@ -15,6 +15,7 @@ namespace OpenNFS {
         void DrawAABB(const AABB &aabb, glm::vec3 const &colour) const;
         void DrawFrustum(const BaseCamera &camera) const;
         void DrawCarRaycasts(const std::shared_ptr<Car> &car) const;
+        void DrawDummy(glm::vec3 position, glm::vec3 direction) const;
         void DrawVroad(const Track &track) const;
         void DrawCameraAnimation(const Track &track) const;
 

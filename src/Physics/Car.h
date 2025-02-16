@@ -97,8 +97,11 @@ namespace OpenNFS {
         RenderInfo renderInfo{};
 
         // Meshes and Headlights
-        Spotlight leftHeadlight{};
-        Spotlight rightHeadlight{};
+        std::vector<const LibOpenNFS::BaseLight*> lights;
+        Spotlight leftHeadLight;
+        Spotlight rightHeadLight;
+        Spotlight leftTailLight;
+        Spotlight rightTailLight;
         std::vector<GLCarModel> miscModels;
         GLCarModel leftFrontWheelModel;
         GLCarModel rightFrontWheelModel;

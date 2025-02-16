@@ -3,7 +3,7 @@
 #include "CarAgent.h"
 
 namespace OpenNFS {
-    enum RacerAIMode { NeuralNet, Primitive, FollowTrack };
+    enum RacerAIMode { NeuralNet, Primitive };
 
     class RacerAgent final : public CarAgent {
     public:
@@ -12,15 +12,14 @@ namespace OpenNFS {
 
     private:
         void _UseNeuralNetAI() const;
-        void _UsePrimitiveAI() const;
-        void _FollowTrack();
+        void _UsePrimitiveAI();
         [[nodiscard]] uint32_t _CarSpeedToLookahead(float carSpeed) const;
         [[nodiscard]] float _CarSpeedToSteeringDamper(float carSpeed) const;
 
         static constexpr uint32_t kBlockTickLimit{300};
         static constexpr float kSteeringDamper{.6f};
         static constexpr float kMinSpeed{20.f};
-        RacerAIMode m_mode    = FollowTrack;
+        RacerAIMode m_mode    = Primitive;
         uint32_t m_racerID = 0;
         uint32_t m_ticksInBlock = 0;
         uint32_t m_ticksGoingBackwards = 0;

@@ -95,7 +95,7 @@ namespace OpenNFS {
 
         m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(),
                                                                                           m_pDynamicsWorld->getDispatcher());
-        m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_VROAD | COL_CAR);
+        m_pDynamicsWorld->addRigidBody(car->GetVehicleRigidBody(), COL_CAR, COL_TRACK | COL_RAY | COL_DYNAMIC_TRACK | COL_CAR);
         m_pDynamicsWorld->addVehicle(car->GetVehicle());
 
         // Wire up the wheels

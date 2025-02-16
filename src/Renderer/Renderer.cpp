@@ -118,10 +118,9 @@ namespace OpenNFS {
         m_debugRenderer.Render(activeCamera);
         m_miniMapRenderer.Render(m_track, racers);
 
-
         // Render the Car and racers
         for (auto &racer : racers) {
-            m_carRenderer.Render(racer->vehicle, activeCamera, visibleLights);
+            m_carRenderer.Render(racer->vehicle, activeCamera);
         }
 
         if (this->_DrawMenuBar(loadedAssets)) {

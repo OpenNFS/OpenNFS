@@ -25,9 +25,6 @@ namespace OpenNFS {
         this->_UpdateNearestVroad();
 
         switch (m_mode) {
-        case FollowTrack:
-            this->_FollowTrack();
-            break;
         case NeuralNet:
             this->_UseNeuralNetAI();
             break;
@@ -77,23 +74,25 @@ namespace OpenNFS {
         return std::min(kSteeringDamper - carSpeedRatio, 0.1f);
     }
 
-    void RacerAgent::_FollowTrack() {
+    void RacerAgent::_UsePrimitiveAI() {
         auto const speed{vehicle->GetVehicle()->getCurrentSpeedKmHour()};
         uint32_t const futureVroad{_CarSpeedToLookahead(speed)};
         glm::vec3 const target{m_track.virtualRoad[(futureVroad) % m_track.virtualRoad.size()].position};
         float const angle{glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
                                              glm::normalize(target - this->vehicle->carBodyModel.position), glm::vec3(0, 1, 0))};
         m_steeringAngle = (_CarSpeedToSteeringDamper(speed) * angle);
-        vehicle->ApplyAbsoluteSteerAngle(m_steeringAngle);
         float const steeringDifference{std::abs(m_steeringAngle - angle)};
         bool const accelerate{steeringDifference < 0.15f || speed <= kMinSpeed};
+        bool const overrideLeft {vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY] < 1.f};
+        bool const overrideRight{vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY] < 1.f};
+        if (overrideLeft || overrideRight) {
+            vehicle->ApplySteeringLeft(overrideLeft);
+            vehicle->ApplySteeringRight(overrideRight);
+        } else {
+            vehicle->ApplyAbsoluteSteerAngle(m_steeringAngle);
+        }
         vehicle->ApplyAccelerationForce(accelerate, false);
-    }
-
-    void RacerAgent::_UsePrimitiveAI() const {
-        vehicle->ApplyAccelerationForce(true, false);
-        vehicle->ApplySteeringLeft(vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY] < 1.f);
-        vehicle->ApplySteeringRight(vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY] < 1.f);
+        vehicle->ApplyBrakingForce(vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY] <= 1.f);
     }
 
     void RacerAgent::_UseNeuralNetAI() const {

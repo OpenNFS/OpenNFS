@@ -3,11 +3,17 @@
 #include "../Physics/Car.h"
 
 namespace OpenNFS {
-    MiniMapRenderer::MiniMapRenderer() {
-        projectionMatrix = glm::ortho(minX, maxX, minY, maxY, -1.0f, 1.0f);
+    void MiniMapRenderer::_Rescale() {
+        left = -200.f;
+        right = 800.f;
+        bottom = -200.f;
+        top = 800.f;
+        projectionMatrix = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
     }
 
     void MiniMapRenderer::Render(Track const &track, std::vector<std::shared_ptr<CarAgent>> const &racers) {
+        _Rescale();
+
         miniMapShader.use();
         miniMapShader.loadProjectionMatrix(projectionMatrix);
         miniMapShader.loadColor(glm::vec3(1.f, 1.f, 1.f));

@@ -1,14 +1,15 @@
 #include "CarRenderer.h"
 
 namespace OpenNFS {
-    void CarRenderer::Render(const std::shared_ptr<Car> &car, const BaseCamera &camera, const std::vector<const LibOpenNFS::BaseLight*> &lights) {
+    void CarRenderer::Render(const std::shared_ptr<Car> &car, const BaseCamera &camera) {
         m_carShader.use();
 
         // This shader state doesn't change during a car renderpass
         m_carShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
         m_carShader.setPolyFlagged(car->carBodyModel.m_polygon_flags.empty());
         m_carShader.loadCarColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        m_carShader.loadLights(lights);
+        constexpr std::vector<const LibOpenNFS::BaseLight*> emptyLights;
+        m_carShader.loadLights(car->vehicleState.gBreakingForce == 0.f ? emptyLights : car->lights);
         m_carShader.loadEnvironmentMapTexture();
         // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
         m_carShader.setMultiTextured(car->renderInfo.isMultitexturedModel);

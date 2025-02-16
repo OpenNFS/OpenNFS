@@ -121,31 +121,35 @@ namespace OpenNFS {
     void Car::_UpdateMeshesToMatchPhysics() {
         btTransform trans;
         m_vehicleMotionState->getWorldTransform(trans);
-        carBodyModel.position = Utils::bulletToGlm(trans.getOrigin()) +
-                                (carBodyModel.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+        carBodyModel.position =
+            Utils::bulletToGlm(trans.getOrigin()) + (carBodyModel.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
         carBodyModel.orientation = Utils::bulletToGlm(trans.getRotation());
         carBodyModel.UpdateMatrices();
 
         // Might as well apply the body transform to the Miscellaneous models
         for (auto &miscModel : miscModels) {
-            miscModel.position = Utils::bulletToGlm(trans.getOrigin()) +
-                                 (miscModel.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+            miscModel.position =
+                Utils::bulletToGlm(trans.getOrigin()) + (miscModel.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
             miscModel.orientation = Utils::bulletToGlm(trans.getRotation());
             miscModel.UpdateMatrices();
         }
 
         // Update headlight direction vectors to match car body
-        leftHeadlight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
-        rightHeadlight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
-        leftHeadlight.position =
-            Utils::bulletToGlm(trans.getOrigin()) +
-            (leftHeadlight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
-        rightHeadlight.position =
-            Utils::bulletToGlm(trans.getOrigin()) +
-            (rightHeadlight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+        leftHeadLight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
+        rightHeadLight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
+        leftHeadLight.position =
+            Utils::bulletToGlm(trans.getOrigin()) + (leftHeadLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+        rightHeadLight.position = Utils::bulletToGlm(trans.getOrigin()) +
+                                  (rightHeadLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+        leftTailLight.direction = Utils::bulletToGlm(-m_vehicle->getForwardVector());
+        rightTailLight.direction = Utils::bulletToGlm(-m_vehicle->getForwardVector());
+        leftTailLight.position =
+            Utils::bulletToGlm(trans.getOrigin()) + (leftTailLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+        rightTailLight.position = Utils::bulletToGlm(trans.getOrigin()) +
+                                  (rightTailLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
 
         // Lets go update wheel geometry positions based on physics feedback
-        for (int wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx) {
+        for (auto wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx) {
             m_vehicle->updateWheelTransform(wheelIdx, true);
             trans = m_vehicle->getWheelInfo(wheelIdx).m_worldTransform;
             GLCarModel *wheelToUpdate{nullptr};
@@ -211,16 +215,15 @@ namespace OpenNFS {
 
         if (assetData.tag == NFSVersion::NFS_3 || assetData.tag == NFSVersion::NFS_4) {
             carTexturePath << "/car00.tga";
-            renderInfo.textureID = ImageLoader::LoadImage(carTexturePath.str(), &width, &height, GL_CLAMP_TO_BORDER,
-                                                          GL_LINEAR_MIPMAP_LINEAR);
+            renderInfo.textureID =
+                ImageLoader::LoadImage(carTexturePath.str(), &width, &height, GL_CLAMP_TO_BORDER, GL_LINEAR_MIPMAP_LINEAR);
         } else if (assetData.tag == NFSVersion::MCO) {
             std::stringstream car_alpha_texture_path;
             carTexturePath << "/Textures/0000.BMP";
-            car_alpha_texture_path << CAR_PATH << get_string(assetData.tag) << "/" << assetData.id
-                                   << "/Textures/0000-a.BMP";
+            car_alpha_texture_path << CAR_PATH << get_string(assetData.tag) << "/" << assetData.id << "/Textures/0000-a.BMP";
             std::vector<uint8_t> imageData;
-            if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(),
-                                              imageData, &width, &height)) {
+            if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(), imageData, &width,
+                                              &height)) {
                 glGenTextures(1, &renderInfo.textureID);
                 glBindTexture(GL_TEXTURE_2D, renderInfo.textureID);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -306,18 +309,15 @@ namespace OpenNFS {
         for (uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx) {
             // Calculate base vector from -90 + (rangeIdx * kAngleBetweenRays) from car forward vector
             castVectors[rangeIdx] =
-                carForward *
-                glm::normalize(glm::quat(glm::vec3(0, glm::radians(-90.f + (rangeIdx * kAngleBetweenRays)), 0)));
+                carForward * glm::normalize(glm::quat(glm::vec3(0, glm::radians(-90.f + (rangeIdx * kAngleBetweenRays)), 0)));
             // Calculate where the ray will cast out to
-            rangefinderInfo.castPositions[rangeIdx] =
-                carBodyPosition + (castVectors[rangeIdx] * kCastDistances[rangeIdx]);
+            rangefinderInfo.castPositions[rangeIdx] = carBodyPosition + (castVectors[rangeIdx] * kCastDistances[rangeIdx]);
             rayCallbacks[rangeIdx] = new btCollisionWorld::ClosestRayResultCallback(
                 Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]));
             // Don't Raycast against other opponents for now. Ghost through them. Only interested in VROAD edge.
             rayCallbacks[rangeIdx]->m_collisionFilterMask = CollisionMasks::COL_TRACK;
             // Perform the raycast
-            dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition),
-                                   Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]),
+            dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.castPositions[rangeIdx]),
                                    *rayCallbacks[rangeIdx]);
             // Check whether we hit anything
             if (rayCallbacks[rangeIdx]->hasHit()) {
@@ -333,24 +333,20 @@ namespace OpenNFS {
 
         btCollisionWorld::ClosestRayResultCallback upRayCallback(Utils::glmToBullet(carBodyPosition),
                                                                  Utils::glmToBullet(rangefinderInfo.upCastPosition));
-        btCollisionWorld::ClosestRayResultCallback downRayCallback(
-            Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.downCastPosition));
+        btCollisionWorld::ClosestRayResultCallback downRayCallback(Utils::glmToBullet(carBodyPosition),
+                                                                   Utils::glmToBullet(rangefinderInfo.downCastPosition));
         // Up raycast is used to check for flip over, and also whether inside VROAD
-        upRayCallback.m_collisionFilterMask = downRayCallback.m_collisionFilterMask = COL_TRACK | COL_VROAD_CEIL;
-        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.upCastPosition),
-                               upRayCallback);
-        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition),
-                               Utils::glmToBullet(rangefinderInfo.downCastPosition), downRayCallback);
+        upRayCallback.m_collisionFilterMask = downRayCallback.m_collisionFilterMask = COL_TRACK;
+        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.upCastPosition), upRayCallback);
+        dynamicsWorld->rayTest(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(rangefinderInfo.downCastPosition), downRayCallback);
 
         if (upRayCallback.hasHit()) {
-            rangefinderInfo.upDistance =
-                glm::distance(carBodyPosition, Utils::bulletToGlm(upRayCallback.m_hitPointWorld));
+            rangefinderInfo.upDistance = glm::distance(carBodyPosition, Utils::bulletToGlm(upRayCallback.m_hitPointWorld));
         } else {
             rangefinderInfo.upDistance = kFarDistance;
         }
         if (downRayCallback.hasHit()) {
-            rangefinderInfo.downDistance =
-                glm::distance(carBodyPosition, Utils::bulletToGlm(downRayCallback.m_hitPointWorld));
+            rangefinderInfo.downDistance = glm::distance(carBodyPosition, Utils::bulletToGlm(downRayCallback.m_hitPointWorld));
         } else {
             rangefinderInfo.downDistance = kFarDistance;
         }
@@ -530,21 +526,35 @@ namespace OpenNFS {
         if (assetData.tag == NFSVersion::NFS_3 || assetData.tag == NFSVersion::NFS_4) {
             for (auto &dummy : assetData.metadata.dummies) {
                 if (dummy.name.find("HFLO") != std::string::npos) {
-                    leftHeadlight.cutOff = glm::cos(glm::radians(12.5f));
-                    leftHeadlight.position = leftHeadlight.initialPosition = dummy.position;
-                    leftHeadlight.colour = glm::vec3(1, 1, 1);
+                    leftHeadLight.cutOff = glm::cos(glm::radians(12.5f));
+                    leftHeadLight.position = leftHeadLight.initialPosition = dummy.position;
+                    leftHeadLight.colour = glm::vec4(1, 1, 1, 0);
                 }
                 if (dummy.name.find("HFRE") != std::string::npos) {
-                    rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
-                    rightHeadlight.position = rightHeadlight.initialPosition = dummy.position;
-                    rightHeadlight.colour = glm::vec3(1, 1, 1);
+                    rightHeadLight.cutOff = glm::cos(glm::radians(12.5f));
+                    rightHeadLight.position = rightHeadLight.initialPosition = dummy.position;
+                    rightHeadLight.colour = glm::vec4(1, 1, 1, 0);
                 }
-                // TRLN, TRRN for tail lights
+                if (dummy.name.find("TRLN") != std::string::npos) {
+                    leftTailLight.cutOff = glm::cos(glm::radians(12.5f));
+                    leftTailLight.position = leftTailLight.initialPosition = dummy.position;
+                    leftTailLight.colour = glm::vec4(1, 0, 0, 0);
+                }
+                if (dummy.name.find("TRRN") != std::string::npos) {
+                    rightTailLight.cutOff = glm::cos(glm::radians(12.5f));
+                    rightTailLight.position = rightTailLight.initialPosition = dummy.position;
+                    rightTailLight.colour = glm::vec4(1, 0, 0, 0);
+                }
             }
+
+            lights.push_back(&leftTailLight);
+            lights.push_back(&rightTailLight);
+            lights.push_back(&leftHeadLight);
+            lights.push_back(&rightHeadLight);
         } else {
-            leftHeadlight.cutOff = rightHeadlight.cutOff = glm::cos(glm::radians(12.5f));
-            leftHeadlight.position = rightHeadlight.position = carBodyModel.position;
-            leftHeadlight.colour = rightHeadlight.colour = glm::vec3(1, 1, 1);
+            leftHeadLight.cutOff = rightHeadLight.cutOff = rightTailLight.cutOff = leftTailLight.cutOff = glm::cos(glm::radians(12.5f));
+            leftHeadLight.position = rightHeadLight.position = rightTailLight.position = leftTailLight.position = carBodyModel.position;
+            leftHeadLight.colour = rightHeadLight.colour = rightTailLight.colour = leftTailLight.colour = glm::vec4(1, 1, 1, 0);
         }
     }
 

@@ -22,6 +22,7 @@ namespace OpenNFS {
         void bindTextureArray(GLuint textureArrayID);
         void setMultiTextured(bool multiTextured);
         void setPolyFlagged(bool polyFlagged);
+        void setBraking(bool braking);
         void loadEnvironmentMapTexture();
 
       protected:
