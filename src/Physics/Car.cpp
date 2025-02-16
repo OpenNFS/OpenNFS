@@ -432,7 +432,7 @@ namespace OpenNFS {
                     rightRearWheelModel = GLCarModel(carGeometry);
                     rightRearWheelModel.Enable();
                 } else if (carGeometry.m_name == ":HRFW") {
-                    rightFrontWheelModel = GLCarModel(carGeometry);;
+                    rightFrontWheelModel = GLCarModel(carGeometry);
                     rightFrontWheelModel.Enable();
                 } else if (carGeometry.m_name.find('O') != std::string::npos) {
                     miscModels.emplace_back(carGeometry);

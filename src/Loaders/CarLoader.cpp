@@ -2,8 +2,8 @@
 
 #include <NFS2/NFS2Loader.h>
 #include <NFS3/NFS3Loader.h>
-/*#include "NFS4/PC/NFS4Loader.h"
-#include "NFS4/PS1/NFS4PS1Loader.h"
+#include <NFS4/PC/NFS4Loader.h>
+/*#include "NFS4/PS1/NFS4PS1Loader.h"
 #include "NFS5/NFS5Loader.h"*/
 
 namespace OpenNFS {
@@ -28,11 +28,10 @@ namespace OpenNFS {
             /*case NFSVersion::NFS_3_PS1:
                 carPath << "/" << carName;
                 return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PS1>::LoadCar(carPath.str(), nfsVersion);*/
-            /*case NFS_4:
-                carPath << NFS_4_CAR_PATH << carName;
-                return NFS4::LoadCar(carPath.str(), nfsVersion);
-                break;
-            case NFS_4_PS1:
+            case NFSVersion::NFS_4:
+                carBasePath << NFS_4_CAR_PATH << carName;
+                return LibOpenNFS::NFS4::Loader::LoadCar(carBasePath.str(), carOutPath.str(), nfsVersion);
+            /*case NFS_4_PS1:
                 carPath << "/" << carName << ".VIV";
                 return NFS4PS1::LoadCar(carPath.str());
                 break;
