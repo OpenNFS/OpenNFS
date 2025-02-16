@@ -99,8 +99,8 @@ namespace OpenNFS {
         m_pDynamicsWorld->addVehicle(car->GetVehicle());
 
         // Wire up the wheels
-        float const wheelRadius{car->vehicleProperties.wheelRadius};
-        btScalar const sRestLength{car->vehicleProperties.suspensionRestLength};
+        float const wheelRadius{car->assetData.physicsData.wheelRadius};
+        btScalar const sRestLength{car->assetData.physicsData.suspensionRestLength};
         btVector3 const wheelDirectionCS0(0, -1, 0);
         btVector3 const wheelAxleCS(-1, 0, 0);
         // Fronties
@@ -116,11 +116,11 @@ namespace OpenNFS {
 
         for (auto wheelIdx = 0; wheelIdx < car->GetVehicle()->getNumWheels(); ++wheelIdx) {
             btWheelInfo &wheel = car->GetVehicle()->getWheelInfo(wheelIdx);
-            wheel.m_suspensionStiffness = car->vehicleProperties.suspensionStiffness;
-            wheel.m_wheelsDampingRelaxation = car->vehicleProperties.suspensionDamping;
-            wheel.m_wheelsDampingCompression = car->vehicleProperties.suspensionCompression;
-            wheel.m_frictionSlip = car->vehicleProperties.wheelFriction;
-            wheel.m_rollInfluence = car->vehicleProperties.rollInfluence;
+            wheel.m_suspensionStiffness = car->assetData.physicsData.suspensionStiffness;
+            wheel.m_wheelsDampingRelaxation = car->assetData.physicsData.suspensionDamping;
+            wheel.m_wheelsDampingCompression = car->assetData.physicsData.suspensionCompression;
+            wheel.m_frictionSlip = car->assetData.physicsData.wheelFriction;
+            wheel.m_rollInfluence = car->assetData.physicsData.rollInfluence;
         }
 
         // Add vehicle to active vehicles list so they can be updated on step of physics engine

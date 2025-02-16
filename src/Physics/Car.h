@@ -30,36 +30,6 @@ namespace OpenNFS {
 
     enum Wheels : uint8_t { FRONT_LEFT = 0, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT };
 
-    struct VehicleProperties {
-        float mass;
-
-        // Engine
-        float maxEngineForce;   // Max engine force to apply
-        float maxBreakingForce; // Max breaking force
-        float maxSpeed;         // Max speed before stop applying engine force
-
-        // Steering
-        bool absoluteSteer;      // Use absolute steering
-        float steeringIncrement; // Steering speed
-        float steeringClamp;     // Max steering angle
-
-        // Wheel
-        float wheelRadius;
-        float wheelWidth;
-        float wheelFriction;
-        btScalar suspensionRestLength;
-
-        // Suspension
-        float suspensionStiffness;
-        float suspensionDamping;
-        float suspensionCompression;
-        float rollInfluence; // Shift CoM
-
-        // Visual
-        glm::vec4 colour;
-        glm::vec4 colourSecondary;
-    };
-
     struct VehicleState {
         // Engine
         float gEngineForce;   // Force to apply to engine
@@ -70,6 +40,9 @@ namespace OpenNFS {
         bool steerRight;
         bool steerLeft;
         bool isSteering;
+
+        glm::vec4 colour;
+        glm::vec4 colourSecondary;
     };
 
     struct RangefinderInfo {
@@ -119,7 +92,6 @@ namespace OpenNFS {
         LibOpenNFS::Car assetData;
 
         // Car configuration data
-        VehicleProperties vehicleProperties{};
         VehicleState vehicleState{};
         RangefinderInfo rangefinderInfo{};
         RenderInfo renderInfo{};
@@ -144,7 +116,7 @@ namespace OpenNFS {
         void _GenPhysicsModel();
         void _GenRaycasts(const btDynamicsWorld* dynamicsWorld);
         void _SetModels(std::vector<LibOpenNFS::CarGeometry>& carGeometries);
-        void _SetVehicleProperties();
+        void _SetVehicleState();
 
         // Base Physics objects for car
         std::unique_ptr<btDefaultMotionState> m_vehicleMotionState{}; // Retrieving vehicle location in world

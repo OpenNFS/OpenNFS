@@ -22,7 +22,7 @@ namespace OpenNFS {
         }
 
         // Configure performance data
-        this->_SetVehicleProperties();
+        this->_SetVehicleState();
 
         // Map mesh data to car data
         this->_SetModels(assetData.metadata.meshes);
@@ -54,14 +54,14 @@ namespace OpenNFS {
 
     void Car::ApplyAccelerationForce(bool const accelerate, bool const reverse) {
         if (accelerate) {
-            if (m_vehicle->getCurrentSpeedKmHour() < vehicleProperties.maxSpeed) {
-                vehicleState.gEngineForce = vehicleProperties.maxEngineForce;
+            if (m_vehicle->getCurrentSpeedKmHour() < assetData.physicsData.maxSpeed) {
+                vehicleState.gEngineForce = assetData.physicsData.maxEngineForce;
                 vehicleState.gBreakingForce = 0.f;
             } else {
                 vehicleState.gEngineForce = 0.f;
             }
         } else if (reverse) {
-            vehicleState.gEngineForce = -vehicleProperties.maxEngineForce;
+            vehicleState.gEngineForce = -assetData.physicsData.maxEngineForce;
             vehicleState.gBreakingForce = 0.f;
         } else {
             vehicleState.gEngineForce = 0.f;
@@ -78,17 +78,17 @@ namespace OpenNFS {
 
     void Car::ApplyAbsoluteSteerAngle(float const targetAngle) {
         // Allow the update() method to directly utilise this targetAngle value
-        vehicleProperties.absoluteSteer = true;
+        assetData.physicsData.absoluteSteer = true;
         // NN will always produce positive value, drop 0.5f from 0 -> 1 step output to allow -0.5 to 0.5
         float const finalSteering{targetAngle}; // - 0.5f;
         // Clamp value within steering extents
         vehicleState.gVehicleSteering =
-            std::max(-vehicleProperties.steeringClamp, std::min(finalSteering, vehicleProperties.steeringClamp));
+            std::max(-assetData.physicsData.steeringClamp, std::min(finalSteering, assetData.physicsData.steeringClamp));
     }
 
     void Car::ApplyBrakingForce(bool const apply) {
         if (apply) {
-            vehicleState.gBreakingForce = vehicleProperties.maxBreakingForce;
+            vehicleState.gBreakingForce = assetData.physicsData.maxBreakingForce;
         } else {
             vehicleState.gBreakingForce = 0.f;
         }
@@ -173,23 +173,23 @@ namespace OpenNFS {
     }
 
     void Car::_ApplyInputs() {
-        if (!vehicleProperties.absoluteSteer) {
+        if (!assetData.physicsData.absoluteSteer) {
             // update front wheels steering value
             if (vehicleState.steerRight) {
-                vehicleState.gVehicleSteering -= vehicleProperties.steeringIncrement;
-                if (vehicleState.gVehicleSteering < -vehicleProperties.steeringClamp) {
-                    vehicleState.gVehicleSteering = -vehicleProperties.steeringClamp;
+                vehicleState.gVehicleSteering -= assetData.physicsData.steeringIncrement;
+                if (vehicleState.gVehicleSteering < -assetData.physicsData.steeringClamp) {
+                    vehicleState.gVehicleSteering = -assetData.physicsData.steeringClamp;
                 }
             } else if (vehicleState.steerLeft) {
-                vehicleState.gVehicleSteering += vehicleProperties.steeringIncrement;
-                if (vehicleState.gVehicleSteering > vehicleProperties.steeringClamp) {
-                    vehicleState.gVehicleSteering = vehicleProperties.steeringClamp;
+                vehicleState.gVehicleSteering += assetData.physicsData.steeringIncrement;
+                if (vehicleState.gVehicleSteering > assetData.physicsData.steeringClamp) {
+                    vehicleState.gVehicleSteering = assetData.physicsData.steeringClamp;
                 }
             } else {
                 if (vehicleState.gVehicleSteering > 0) {
-                    vehicleState.gVehicleSteering -= vehicleProperties.steeringIncrement;
+                    vehicleState.gVehicleSteering -= assetData.physicsData.steeringIncrement;
                 } else if (vehicleState.gVehicleSteering < 0) {
-                    vehicleState.gVehicleSteering += vehicleProperties.steeringIncrement;
+                    vehicleState.gVehicleSteering += assetData.physicsData.steeringIncrement;
                 }
             }
         }
@@ -239,8 +239,8 @@ namespace OpenNFS {
         auto [wheelMinVertex, wheelMaxVertex] = Utils::GenDimensions(leftFrontWheelModel.m_vertices);
         auto wheelSize = glm::vec3((wheelMaxVertex.x - wheelMinVertex.x) / 2, (wheelMaxVertex.y - wheelMinVertex.y) / 2,
                                    (wheelMaxVertex.z - wheelMinVertex.z) / 2);
-        vehicleProperties.wheelRadius = wheelSize.z;
-        vehicleProperties.wheelWidth = wheelSize.x;
+        assetData.physicsData.wheelRadius = wheelSize.z;
+        assetData.physicsData.wheelWidth = wheelSize.x;
 
         // Generate the chassis collision mesh
         auto [bodyMinVertex, bodyMaxVertex] = Utils::GenDimensions(carBodyModel.m_vertices);
@@ -273,13 +273,13 @@ namespace OpenNFS {
         compound->addChildShape(localTrans, chassisShape);
 
         btVector3 localInertia(0, 0, 0);
-        compound->calculateLocalInertia(vehicleProperties.mass, localInertia);
+        compound->calculateLocalInertia(assetData.physicsData.mass, localInertia);
         m_collisionShapes.push_back(compound);
 
         // Set initial location of vehicle in the world
         m_vehicleMotionState = std::make_unique<btDefaultMotionState>(btTransform(
             btQuaternion(Utils::glmToBullet(carBodyModel.orientation)), Utils::glmToBullet(carBodyModel.position)));
-        btRigidBody::btRigidBodyConstructionInfo cInfo(vehicleProperties.mass, m_vehicleMotionState.get(), compound,
+        btRigidBody::btRigidBodyConstructionInfo cInfo(assetData.physicsData.mass, m_vehicleMotionState.get(), compound,
                                                        localInertia);
         m_carChassis = std::make_unique<btRigidBody>(cInfo);
 
@@ -548,31 +548,18 @@ namespace OpenNFS {
         }
     }
 
-    void Car::_SetVehicleProperties() {
-        // Load these from Carp.txt
-        vehicleProperties.mass = 1750.f;
-        vehicleProperties.maxSpeed = 100.f;
-        vehicleProperties.maxEngineForce = 3000.f;
-        vehicleProperties.maxBreakingForce = 1000.f;
-        vehicleProperties.suspensionRestLength = 0.020;
-        vehicleProperties.suspensionStiffness = 750.f;
-        vehicleProperties.suspensionDamping = 200.f;
-        vehicleProperties.suspensionCompression = 200.4f;
-        vehicleProperties.wheelFriction = 0.45f;
-        vehicleProperties.rollInfluence = 0.04f;
-        vehicleProperties.steeringIncrement = 0.01f;
-        vehicleProperties.steeringClamp = 0.15f;
-        vehicleProperties.absoluteSteer = false;
+    void Car::_SetVehicleState() {
         // Set car colour
         if (!assetData.metadata.colours.empty()) {
             uint32_t const randomColourIdx{(uint32_t)Utils::RandomFloat(0.f, (float)assetData.metadata.colours.size())};
-            vehicleProperties.colour = assetData.metadata.colours[randomColourIdx].colour;
-            vehicleProperties.colourSecondary = assetData.metadata.colours[randomColourIdx].colourSecondary;
+            vehicleState.colour = assetData.metadata.colours[randomColourIdx].colour;
+            vehicleState.colourSecondary = assetData.metadata.colours[randomColourIdx].colourSecondary;
         } else {
-            vehicleProperties.colour =
+            vehicleState.colour =
                 glm::vec4(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), 1.0f);
-            vehicleProperties.colourSecondary =
+                vehicleState.colourSecondary =
                 glm::vec4(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), 0.0f);
+
         }
 
         // State
