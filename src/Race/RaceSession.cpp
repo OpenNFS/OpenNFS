@@ -16,7 +16,7 @@ namespace OpenNFS {
           m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer), m_racerManager(m_track),
           m_inputManager(window) {
         m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id,
-                          m_track.nfsVersion, m_track.name};
+                          m_track.nfsVersion, m_track.tag};
 
         // Set up the Racer Manager to spawn vehicles on track
         m_racerManager.Init(m_playerAgent, m_physicsEngine);
