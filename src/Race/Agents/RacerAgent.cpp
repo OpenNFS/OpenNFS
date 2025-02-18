@@ -1,7 +1,7 @@
 #include "RacerAgent.h"
 
 #include "../../Physics/Car.h"
-#include <glm/gtx/vector_angle.hpp>
+#include "lib/glm/glm/gtx/vector_angle.hpp"
 
 namespace OpenNFS {
     // TODO: Read this from file

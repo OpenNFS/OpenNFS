@@ -5,7 +5,7 @@
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
 #include "../Shaders/DepthShader.h"
-#include "../RaceNet/Agents/CarAgent.h"
+#include "../Race/Agents/CarAgent.h"
 
 namespace OpenNFS {
     class ShadowMapRenderer {

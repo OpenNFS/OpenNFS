@@ -6,7 +6,7 @@ namespace OpenNFS {
     RacerManager::RacerManager(const Track &track) : m_currentTrack(track) {
     }
 
-    void RacerManager::Init(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsEngine &physicsEngine) {
+    void RacerManager::Init(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsManager &physicsEngine) {
         this->_InitialisePlayerVehicle(playerAgent, physicsEngine);
         this->_SpawnRacers(physicsEngine);
     }
@@ -29,15 +29,14 @@ namespace OpenNFS {
     }
 
     // Reset player character to start and add the player vehicle into the list of racers
-    void RacerManager::_InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent,
-                                                PhysicsEngine &physicsEngine) {
+    void RacerManager::_InitialisePlayerVehicle(const std::shared_ptr<PlayerAgent> &playerAgent, PhysicsManager &physicsEngine) {
         physicsEngine.RegisterVehicle(playerAgent->vehicle);
         playerAgent->ResetToIndexInTrackblock(0, 0, 0.f);
         racers.emplace_back(playerAgent);
     }
 
     // Spawn racers onto the track along Vroad positions at alternating offsets
-    void RacerManager::_SpawnRacers(PhysicsEngine &physicsEngine) {
+    void RacerManager::_SpawnRacers(PhysicsManager &physicsEngine) {
         if (Config::get().nRacers == 0)
             return;
 

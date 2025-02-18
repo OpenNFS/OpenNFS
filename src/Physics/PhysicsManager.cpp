@@ -1,4 +1,4 @@
-#include "PhysicsEngine.h"
+#include "PhysicsManager.h"
 
 #include "CollisionMasks.h"
 
@@ -28,7 +28,7 @@ namespace OpenNFS {
         return worldRay;
     }
 
-    PhysicsEngine::PhysicsEngine(Track const &track) : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
+    PhysicsManager::PhysicsManager(Track const &track) : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
         m_pBroadphase = std::make_unique<btDbvtBroadphase>();
         // Set up the collision configuration and dispatcher
         m_pCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
@@ -59,7 +59,7 @@ namespace OpenNFS {
         }
     }
 
-    void PhysicsEngine::StepSimulation(float const time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
+    void PhysicsManager::StepSimulation(float const time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
         for (auto const &car : m_activeVehicles) {
@@ -71,7 +71,7 @@ namespace OpenNFS {
         }
     }
 
-    std::optional<Entity *> PhysicsEngine::CheckForPicking(float const x,
+    std::optional<Entity *> PhysicsManager::CheckForPicking(float const x,
                                                            float const y,
                                                            glm::mat4 const &viewMatrix,
                                                            glm::mat4 const &projectionMatrix) const {
@@ -88,7 +88,7 @@ namespace OpenNFS {
                                     : std::optional<Entity *>(std::nullopt);
     }
 
-    void PhysicsEngine::RegisterVehicle(std::shared_ptr<Car> const &car) {
+    void PhysicsManager::RegisterVehicle(std::shared_ptr<Car> const &car) {
         car->SetRaycaster(std::make_unique<btDefaultVehicleRaycaster>(m_pDynamicsWorld.get()));
         car->SetVehicle(std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
         car->GetVehicle()->setCoordinateSystem(0, 1, 2);
@@ -127,11 +127,11 @@ namespace OpenNFS {
         m_activeVehicles.push_back(car);
     }
 
-    btDiscreteDynamicsWorld *PhysicsEngine::GetDynamicsWorld() const {
+    btDiscreteDynamicsWorld *PhysicsManager::GetDynamicsWorld() const {
         return m_pDynamicsWorld.get();
     }
 
-    PhysicsEngine::~PhysicsEngine() {
+    PhysicsManager::~PhysicsManager() {
         for (auto const &car : m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }

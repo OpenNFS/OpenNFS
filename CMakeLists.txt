@@ -57,13 +57,13 @@ set(SOURCE_FILES
         src/Physics/AABBTree.cpp
         src/Physics/Car.cpp
         src/Physics/Frustum.cpp
-        src/Physics/PhysicsEngine.cpp
+        src/Physics/PhysicsManager.cpp
         src/Race/OrbitalManager.cpp
         src/Race/RaceSession.cpp
         src/Race/RacerManager.cpp
-        src/RaceNet/Agents/CarAgent.cpp
-        src/RaceNet/Agents/PlayerAgent.cpp
-        src/RaceNet/Agents/RacerAgent.cpp
+        src/Race/Agents/CarAgent.cpp
+        src/Race/Agents/PlayerAgent.cpp
+        src/Race/Agents/RacerAgent.cpp
         src/Renderer/BulletDebugDrawer.cpp
         src/Renderer/CarRenderer.cpp
         src/Renderer/DebugRenderer.cpp

@@ -1,6 +1,7 @@
 #include "MiniMapRenderer.h"
 
 #include "../Physics/Car.h"
+#include "../Race/Agents/CarAgent.h"
 
 namespace OpenNFS {
     void MiniMapRenderer::_Rescale() {
@@ -12,7 +13,7 @@ namespace OpenNFS {
     }
 
     void MiniMapRenderer::Render(Track const &track, std::vector<std::shared_ptr<CarAgent>> const &racers) {
-        _Rescale();
+        this->_Rescale();
 
         miniMapShader.use();
         miniMapShader.loadProjectionMatrix(projectionMatrix);

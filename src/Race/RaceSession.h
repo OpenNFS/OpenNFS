@@ -3,18 +3,18 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "Agents/PlayerAgent.h"
+#include "../Camera/CarCamera.h"
 #include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
-#include "../Camera/CarCamera.h"
-#include "../Input/InputManager.h"
-#include "../Physics/PhysicsEngine.h"
-#include "../Scene/Track.h"
-#include "../Renderer/Renderer.h"
-#include "../RaceNet/Agents/PlayerAgent.h"
-#include "../Util/Logger.h"
 #include "../Config.h"
-#include "RacerManager.h"
+#include "../Input/InputManager.h"
+#include "../Physics/PhysicsManager.h"
+#include "../Renderer/Renderer.h"
+#include "../Scene/Track.h"
+#include "../Util/Logger.h"
 #include "OrbitalManager.h"
+#include "RacerManager.h"
 
 namespace OpenNFS {
     class RaceSession {
@@ -42,7 +42,7 @@ namespace OpenNFS {
         HermiteCamera m_hermiteCamera;
         CarCamera m_carCamera;
 
-        PhysicsEngine m_physicsEngine;
+        PhysicsManager m_physicsEngine;
         Renderer m_renderer;
         RacerManager m_racerManager;
         OrbitalManager m_orbitalManager;

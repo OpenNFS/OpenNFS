@@ -7,7 +7,7 @@
 #include "Entities/BaseLight.h"
 #include "../Shaders/TrackShader.h"
 #include "../Shaders/BillboardShader.h"
-#include "../RaceNet/Agents/CarAgent.h"
+#include "../Race/Agents/CarAgent.h"
 
 namespace OpenNFS {
     class TrackRenderer {

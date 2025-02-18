@@ -41,7 +41,7 @@ class OpenNFSEngine {
         }
     }
 
-    void run() const {
+    void run() {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
@@ -55,14 +55,8 @@ class OpenNFSEngine {
 
         /*------- Render --------*/
         while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
-            /*------ ASSET LOAD ------*/
-            // Load Track Data
             auto const &track {TrackLoader::Load(loadedAssets.trackTag, loadedAssets.track)};
-            // Load Car data from unpacked NFS files (TODO: Track first (for now), silly dependence on extracted sky
-            // texture for car environment map)
             auto const &car {CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car)};
-
-            // Load Music
             // MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
 
             RaceSession race(window, logger, installedNFS, track, car);
@@ -75,7 +69,7 @@ class OpenNFSEngine {
 
   private:
     std::shared_ptr<Logger> logger;
-    std::vector<NfsAssetList> installedNFS;
+    std::vector<NfsAssetList> installedNFS{};
 
     static void InitDirectories() {
         if (!(exists(OpenNFS::CAR_PATH))) {

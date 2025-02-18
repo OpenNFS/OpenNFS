@@ -20,10 +20,10 @@ namespace OpenNFS {
         glm::vec3 direction;
     };
 
-    class PhysicsEngine {
+    class PhysicsManager {
     public:
-        explicit PhysicsEngine(const Track &track);
-        ~PhysicsEngine();
+        explicit PhysicsManager(const Track &track);
+        ~PhysicsManager();
         void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const;
         void RegisterVehicle(const std::shared_ptr<Car> &car);
         [[nodiscard]] std::optional<Entity *> CheckForPicking(float x, float y, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) const;

@@ -3,11 +3,11 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "../RaceNet/Agents/CarAgent.h"
 #include "../Scene/Track.h"
 #include "../Shaders/MiniMapShader.h"
 
 namespace OpenNFS {
+    class CarAgent;
     class MiniMapRenderer {
       public:
         explicit MiniMapRenderer() = default;

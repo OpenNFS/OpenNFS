@@ -5,7 +5,7 @@
 
 #include "../Camera/HermiteCamera.h"
 #include "../Config.h"
-#include "../RaceNet/Agents/CarAgent.h"
+#include "../Race/Agents/CarAgent.h"
 #include "../Scene/Entity.h"
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
