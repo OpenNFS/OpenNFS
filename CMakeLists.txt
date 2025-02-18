@@ -99,11 +99,7 @@ set(SOURCE_FILES
         src/Util/Utils.cpp
         src/main.cpp
         src/Renderer/MiniMapRenderer.cpp
-        src/Shaders/MiniMapShader.cpp
-        #[[src/Loaders/NFS4/PC/NFS4Loader.cpp
-        src/Loaders/NFS4/PS1/NFS4PS1Loader.cpp
-        src/Loaders/NFS4/PS1/SerializedGroupOps.cpp
-        src/Loaders/NFS5/NFS5Loader.cpp]])
+        src/Shaders/MiniMapShader.cpp)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 
