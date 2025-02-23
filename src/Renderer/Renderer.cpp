@@ -252,7 +252,7 @@ namespace OpenNFS {
     void Renderer::_DrawDebugUI(ParamData &userParams, BaseCamera const &camera) {
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
-        ImGui::Image(reinterpret_cast<ImTextureID>(m_shadowMapRenderer.m_depthTextureID), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+        ImGui::Image(m_shadowMapRenderer.m_depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
         ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
         ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
         ImGui::End();

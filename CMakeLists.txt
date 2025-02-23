@@ -37,6 +37,7 @@ set(IMGUI_SOURCES
         include/imgui/backends/imgui_impl_glfw.cpp
         include/imgui/backends/imgui_impl_opengl3.cpp
         #[[include/ImGuiColorTextEdit/TextEditor.cpp]])
+add_definitions(-DIMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/src/Renderer/imgui_config.h")
 
 set(SOURCE_FILES
         ${IMGUI_SOURCES}
@@ -101,7 +102,8 @@ set(SOURCE_FILES
         src/Renderer/MiniMapRenderer.cpp
         src/Shaders/MiniMapShader.cpp)
 
-add_executable(OpenNFS ${SOURCE_FILES})
+add_executable(OpenNFS ${SOURCE_FILES}
+        src/Renderer/imgui_config.h)
 
 #[[IMGUI]]
 include_directories(include/imgui)
