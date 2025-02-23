@@ -1,0 +1,11 @@
+{
+  "layer": 0,
+  "text": "OpenNFS v{0] Pre-Alpha",
+  "textColour": "#82b92c",
+  "idleAsset": "PILL_BUTTON",
+  "hoverAsset": "PILL_BUTTON_HOVER",
+  "position": {
+    "x": 25,
+    "y": 25
+  }
+}

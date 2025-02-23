@@ -10,26 +10,22 @@
 
 #include "../Util/Logger.h"
 
-class ShaderSet
-{
+class ShaderSet {
     // typedefs for readability
     using ShaderHandle  = GLuint;
     using ProgramHandle = GLuint;
 
     // filename and shader type
-    struct ShaderNameTypePair
-    {
+    struct ShaderNameTypePair {
         std::string Name;
         GLenum Type;
-        bool operator<(const ShaderNameTypePair& rhs) const
-        {
+        bool operator<(const ShaderNameTypePair& rhs) const {
             return std::tie(Name, Type) < std::tie(rhs.Name, rhs.Type);
         }
     };
 
     // Shader in the ShaderSet system
-    struct Shader
-    {
+    struct Shader {
         ShaderHandle Handle;
         // Timestamp of the last update of the shader
         uint64_t Timestamp;
@@ -39,8 +35,7 @@ class ShaderSet
     };
 
     // Program in the ShaderSet system.
-    struct Program
-    {
+    struct Program {
         // The handle exposed externally ("public") and the most recent (succeeding/failed) linked program ("internal")
         // the public handle becomes 0 when a linking failure happens, until the linking error gets fixed.
         ProgramHandle PublicHandle;

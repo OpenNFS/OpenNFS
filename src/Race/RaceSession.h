@@ -3,51 +3,53 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "Agents/PlayerAgent.h"
+#include "../Camera/CarCamera.h"
 #include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
-#include "../Camera/CarCamera.h"
-#include "../Physics/PhysicsEngine.h"
-#include "../Loaders/CarLoader.h"
-#include "../Scene/Track.h"
-#include "../Renderer/Renderer.h"
-#include "../RaceNet/Agents/PlayerAgent.h"
-#include "../Util/Logger.h"
 #include "../Config.h"
-#include "RacerManager.h"
+#include "../Input/InputManager.h"
+#include "../Physics/PhysicsManager.h"
+#include "../Renderer/Renderer.h"
+#include "../Scene/Track.h"
+#include "../Util/Logger.h"
 #include "OrbitalManager.h"
+#include "RacerManager.h"
 
-class RaceSession
-{
-public:
-    RaceSession(const std::shared_ptr<GLFWwindow> &window,
-                const std::shared_ptr<Logger> &onfsLogger,
-                const std::vector<NfsAssetList> &installedNFS,
-                const std::shared_ptr<Track> &currentTrack,
-                const std::shared_ptr<Car> &currentCar);
-    AssetData Simulate();
+namespace OpenNFS {
+    class RaceSession {
+    public:
+        RaceSession(const std::shared_ptr<GLFWwindow> &window,
+                    const std::shared_ptr<Logger> &onfsLogger,
+                    const std::vector<NfsAssetList> &installedNFS,
+                    const Track &currentTrack,
+                    const std::shared_ptr<Car> &currentCar);
+        AssetData Simulate();
 
-private:
-    std::shared_ptr<BaseCamera> _GetActiveCamera();
-    void _UpdateCameras(float deltaTime);
-    void _GetInputsAndClear();
+    private:
+        BaseCamera &_GetActiveCamera();
+        void _UpdateCameras(float deltaTime);
+        void _GetInputsAndClear();
 
-    AssetData m_loadedAssets;
-    WindowStatus m_windowStatus   = WindowStatus::GAME;
-    CameraMode m_activeCameraMode = CameraMode::FREE_LOOK;
+        AssetData m_loadedAssets;
+        CameraMode m_activeCameraMode {CameraMode::FREE_LOOK};
+        std::optional<Entity *> m_targetedEntity;
 
-    std::shared_ptr<GLFWwindow> m_window;
-    std::shared_ptr<Track> m_track;
-    std::shared_ptr<PlayerAgent> m_playerAgent;
-    std::shared_ptr<FreeCamera> m_freeCamera;
-    std::shared_ptr<HermiteCamera> m_hermiteCamera;
-    std::shared_ptr<CarCamera> m_carCamera;
+        std::shared_ptr<GLFWwindow> m_window;
+        const Track &m_track;
+        std::shared_ptr<PlayerAgent> m_playerAgent;
+        FreeCamera m_freeCamera;
+        HermiteCamera m_hermiteCamera;
+        CarCamera m_carCamera;
 
-    PhysicsEngine m_physicsEngine;
-    Renderer m_renderer;
-    RacerManager m_racerManager;
-    OrbitalManager m_orbitalManager;
+        PhysicsManager m_physicsEngine;
+        Renderer m_renderer;
+        RacerManager m_racerManager;
+        OrbitalManager m_orbitalManager;
+        InputManager m_inputManager;
 
-    ParamData m_userParams;
-    uint64_t m_ticks  = 0; // Engine ticks elapsed
-    float m_totalTime = 0;
-};
+        ParamData m_userParams;
+        uint64_t m_ticks {0}; // Engine ticks elapsed
+        float m_totalTime {0};
+    };
+} // namespace OpenNFS

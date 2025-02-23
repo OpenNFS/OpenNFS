@@ -1,267 +1,141 @@
 #include "Entity.h"
-#include "Lights/TrackLight.h"
 
-Entity::Entity(uint32_t parentTrackblockID,
-               uint32_t entityID,
-               NFSVer nfsVersion,
-               EntityType entityType,
-               EngineModel glMesh,
-               uint32_t flags,
-               glm::vec3 fromA,
-               glm::vec3 fromB,
-               glm::vec3 toA,
-               glm::vec3 toB)
-{
-    tag                      = nfsVersion;
-    type                     = entityType;
-    this->raw                = glMesh;
-    this->flags              = flags;
-    this->parentTrackblockID = parentTrackblockID;
-    this->entityID           = entityID;
-    this->startPointA        = fromA;
-    this->startPointB        = fromB;
-    this->endPointA          = toA;
-    this->endPointB          = toB;
-    this->_SetCollisionParameters();
-    // this->_GenCollisionMesh();
-    this->_GenBoundingBox();
-}
+#include "../Util/Utils.h"
+#include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
+#include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
 
-void Entity::_GenCollisionMesh()
-{
-    glm::vec3 center      = glm::vec3(0, 0, 0);
-    glm::quat orientation = glm::quat(0, 0, 0, 1);
+#include <NFS3/NFS3Loader.h>
 
-    switch (type)
-    {
-    case SOUND:
-    case CAR:
-    case LANE:
-        return;
-    case LIGHT:
-    {
-        std::shared_ptr<BaseLight> baseLight   = boost::get<std::shared_ptr<BaseLight>>(raw);
-        std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
-        // Light mesh billboarded, generated (Bullet) AABB too large. Divide verts by scale factor to make smaller.
-        std::vector<glm::vec3> vertices = trackLight->model.m_vertices;
-        center                          = baseLight->position;
-        float lightBoundScaleF          = 10.f;
-        for (int i = 0; i < vertices.size() - 2; i += 3)
-        {
-            glm::vec3 triangle  = glm::vec3((vertices[i].x / lightBoundScaleF), (vertices[i].y / lightBoundScaleF), (vertices[i].z / lightBoundScaleF));
-            glm::vec3 triangle1 = glm::vec3((vertices[i + 1].x / lightBoundScaleF), (vertices[i + 1].y / lightBoundScaleF), (vertices[i + 1].z / lightBoundScaleF));
-            glm::vec3 triangle2 = glm::vec3((vertices[i + 2].x / lightBoundScaleF), (vertices[i + 2].y / lightBoundScaleF), (vertices[i + 2].z / lightBoundScaleF));
-            m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+namespace OpenNFS {
+    Entity::Entity(TrackEntity &track_entity) : TrackEntity(track_entity), GLTrackModel(geometry) {
+        if (track_entity.type == LibOpenNFS::EntityType::LIGHT) {
+            baseLight = dynamic_cast<LibOpenNFS::BaseLight *>(&track_entity);
+            assert(baseLight);
         }
-        m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
+        this->_GenCollisionMesh();
+        this->_GenBoundingBox();
     }
-    break;
-    case VROAD:
-    {
-        float wallHeight    = 1.0f;
-        auto *mesh          = new btTriangleMesh();
-        glm::vec3 triangle  = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
-        glm::vec3 triangle1 = glm::vec3(startPointA.x, startPointA.y + wallHeight, startPointA.z);
-        glm::vec3 triangle2 = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
-        mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
 
-        glm::vec3 triangleA  = glm::vec3(endPointA.x, endPointA.y - wallHeight, endPointA.z);
-        glm::vec3 triangle1A = glm::vec3(endPointA.x, endPointA.y + wallHeight, endPointA.z);
-        glm::vec3 triangle2A = glm::vec3(startPointA.x, startPointA.y - wallHeight, startPointA.z);
-        mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
-        m_collisionShape = new btConvexTriangleMeshShape(mesh);
-    }
-    break;
-    case VROAD_CEIL:
-    {
-        float ceilHeight    = 0.5f;
-        auto *mesh          = new btTriangleMesh();
-        glm::vec3 triangle  = glm::vec3(startPointA.x, startPointA.y + ceilHeight, startPointA.z);
-        glm::vec3 triangle2 = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
-        glm::vec3 triangle1 = glm::vec3(endPointA.x, endPointA.y + ceilHeight, endPointA.z);
-        mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
-
-        glm::vec3 triangleA  = glm::vec3(endPointA.x, endPointA.y + ceilHeight, endPointA.z);
-        glm::vec3 triangle1A = glm::vec3(endPointB.x, endPointB.y + ceilHeight, endPointB.z);
-        glm::vec3 triangle2A = glm::vec3(startPointB.x, startPointB.y + ceilHeight, startPointB.z);
-        mesh->addTriangle(Utils::glmToBullet(triangleA), Utils::glmToBullet(triangle1A), Utils::glmToBullet(triangle2A), false);
-        m_collisionShape = new btConvexTriangleMeshShape(mesh);
-    }
-    break;
-    case ROAD:
-    case GLOBAL:
-    case XOBJ:
-    case OBJ_POLY:
-    {
-        std::vector<glm::vec3> vertices = boost::get<TrackModel>(raw).m_vertices;
-        center                          = boost::get<TrackModel>(raw).initialPosition;
-        orientation                     = boost::get<TrackModel>(raw).orientation;
-        if (dynamic)
-        {
-            // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
-            auto *mesh = new btTriangleMesh();
-            for (size_t vertIdx = 0; vertIdx < vertices.size() - 2; vertIdx += 3)
-            {
-                glm::vec3 triangle  = vertices[vertIdx];
-                glm::vec3 triangle1 = vertices[vertIdx + 1];
-                glm::vec3 triangle2 = vertices[vertIdx + 2];
-                mesh->addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+    void Entity::_GenCollisionMesh() {
+        switch (type) {
+        case LibOpenNFS::EntityType::LANE:
+            // Not collidable
+            break;
+        case LibOpenNFS::EntityType::LIGHT:
+            m_collisionShape = std::make_unique<btBoxShape>(btVector3(5, 5, 5));
+            break;
+        case LibOpenNFS::EntityType::ROAD:
+        case LibOpenNFS::EntityType::GLOBAL:
+        case LibOpenNFS::EntityType::XOBJ:
+        case LibOpenNFS::EntityType::OBJ_POLY: {
+            if (dynamic) {
+                // btBvhTriangleMeshShape doesn't collide when dynamic, use convex triangle mesh
+                auto const mesh = std::make_unique<btTriangleMesh>();
+                for (size_t vertIdx = 0; vertIdx < m_vertices.size() - 2; vertIdx += 3) {
+                    glm::vec3 triangle0{m_vertices[vertIdx]};
+                    glm::vec3 triangle1{m_vertices[vertIdx + 1]};
+                    glm::vec3 triangle2{m_vertices[vertIdx + 2]};
+                    mesh->addTriangle(Utils::glmToBullet(triangle0), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
+                }
+                m_collisionShape = std::make_unique<btConvexTriangleMeshShape>(mesh.get(), true);
+            } else {
+                // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
+                for (size_t vertIdx = 0; vertIdx < m_vertices.size() - 2; vertIdx += 3) {
+                    glm::vec3 triangle0{m_vertices[vertIdx]};
+                    glm::vec3 triangle1{m_vertices[vertIdx + 1]};
+                    glm::vec3 triangle2{m_vertices[vertIdx + 2]};
+                    m_collisionMesh.addTriangle(Utils::glmToBullet(triangle0), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2),
+                                                false);
+                }
+                m_collisionShape = std::make_unique<btBvhTriangleMeshShape>(&m_collisionMesh, true, true);
             }
-            m_collisionShape = new btConvexTriangleMeshShape(mesh);
+        } break;
+        default:
+            CHECK_F(false, "Unable to generate a collision box for entity type: %s", LibOpenNFS::get_string(type).c_str());
+            return;
         }
-        else
-        {
-            // TODO: Use passable flags (flags&0x80) of VROAD to work out whether collidable
-            for (size_t vertIdx = 0; vertIdx < vertices.size() - 2; vertIdx += 3)
-            {
-                glm::vec3 triangle  = vertices[vertIdx];
-                glm::vec3 triangle1 = vertices[vertIdx + 1];
-                glm::vec3 triangle2 = vertices[vertIdx + 2];
-                m_collisionMesh.addTriangle(Utils::glmToBullet(triangle), Utils::glmToBullet(triangle1), Utils::glmToBullet(triangle2), false);
-            }
-            m_collisionShape = new btBvhTriangleMeshShape(&m_collisionMesh, true, true);
+
+        float const entityMass{dynamic ? 100.f : 0.f};
+        btVector3 localInertia;
+
+        if (dynamic) {
+            m_collisionShape->calculateLocalInertia(entityMass, localInertia);
         }
-    }
-    break;
+
+        m_motionState = std::make_unique<btDefaultMotionState>(Utils::MakeTransform(initialPosition, orientation));
+        rigidBody = std::make_unique<btRigidBody>(
+            btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState.get(), m_collisionShape.get(), localInertia));
+        rigidBody->setFriction(1.f);
+        rigidBody->setUserPointer(this);
     }
 
-    float entityMass = dynamic ? 100.f : 0.f;
-    btVector3 localInertia;
-
-    if (dynamic)
-    {
-        m_collisionShape->calculateLocalInertia(entityMass, localInertia);
-    }
-
-    m_motionState = new btDefaultMotionState(Utils::MakeTransform(center, orientation));
-    rigidBody     = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(entityMass, m_motionState, m_collisionShape, localInertia));
-    rigidBody->setFriction(btScalar(1.f));
-    rigidBody->setUserPointer(this);
-}
-
-void Entity::_GenBoundingBox()
-{
-    switch (type)
-    {
-    case XOBJ:
-    case OBJ_POLY:
-    case LANE:
-    case ROAD:
-    case GLOBAL:
-    {
-        DimensionData meshDimensions = Utils::GenDimensions(boost::get<TrackModel>(raw).m_vertices);
-        m_boundingBox                = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, boost::get<TrackModel>(raw).initialPosition);
-        return;
-    }
-    case LIGHT:
-    {
-        // For now, only tracklights will have entities created
-        std::shared_ptr<BaseLight> baseLight = boost::get<std::shared_ptr<BaseLight>>(raw);
-        ASSERT(baseLight->type == LightType::TRACK_LIGHT, "Not ready to handle other light types at entity creation time");
-        std::shared_ptr<TrackLight> trackLight = std::static_pointer_cast<TrackLight>(baseLight);
-        DimensionData meshDimensions           = Utils::GenDimensions(trackLight->model.m_vertices);
-        m_boundingBox                          = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
-        return;
-    }
-    case SOUND:
-    case CAR:
-    case VROAD:
-    case VROAD_CEIL:
-        return;
-    default:
-        ASSERT(false, "Shouldn't be adding a " << ToString(type) << " entity to the AABB tree!");
-        break;
-    }
-}
-
-void Entity::Update()
-{
-    // We don't want to update Entities that aren't dynamic
-    if (!((type == OBJ_POLY || type == XOBJ) && dynamic))
-    {
-        return;
-    }
-    btTransform trans;
-    m_motionState->getWorldTransform(trans);
-    boost::get<TrackModel>(raw).position    = Utils::bulletToGlm(trans.getOrigin());
-    boost::get<TrackModel>(raw).orientation = Utils::bulletToGlm(trans.getRotation());
-    boost::get<TrackModel>(raw).update();
-}
-
-void Entity::_SetCollisionParameters()
-{
-    switch (tag)
-    {
-    case NFS_3:
-        switch (type)
-        {
-        case VROAD:
-            collideable = true;
-            dynamic     = false;
-            break;
-        case LIGHT:
-            collideable = false;
-            break;
-        case SOUND:
-            collideable = false;
-            break;
-        case ROAD:
-            collideable = true;
-            break;
-        case OBJ_POLY:
-        case XOBJ:
-            collideable = false;
-            break;
-            switch ((flags >> 4) & 0x7)
-            {
-            case 1: // Hometown shack godray
-                collideable = false;
-                dynamic     = false;
-                break;
-            case 3: // Hometown start fence
-                collideable = true;
-                dynamic     = false;
-                break;
-            case 5: // Roadsign
-                collideable = true;
-                dynamic     = true;
-                break;
-            case 6: // Hometown split marker
-                collideable = true;
-                dynamic     = false;
-                break;
-            case 7:
-                collideable = true;
-                dynamic     = false;
-                break;
-            default:
-                collideable = true;
-                dynamic     = false;
-                break;
-            }
+    void Entity::_GenBoundingBox() {
+        switch (type) {
+        case LibOpenNFS::EntityType::XOBJ:
+        case LibOpenNFS::EntityType::OBJ_POLY:
+        case LibOpenNFS::EntityType::LANE:
+        case LibOpenNFS::EntityType::ROAD:
+        case LibOpenNFS::EntityType::GLOBAL: {
+            auto [minVertex, maxVertex] = Utils::GenDimensions(m_vertices);
+            m_boundingBox = AABB(minVertex, maxVertex, initialPosition);
+            return;
+        }
+        case LibOpenNFS::EntityType::LIGHT: {
+            constexpr DimensionData meshDimensions{glm::vec3(-0.5, -0.5, -0.5), glm::vec3(0.5, 0.5, 0.5)};
+            m_boundingBox = AABB(meshDimensions.minVertex, meshDimensions.maxVertex, baseLight->position);
+            return;
+        }
+        default:
+            CHECK_F(false, "Shouldn't be adding a %s entity to the AABB tree!", get_string(type).c_str());
             break;
         }
-        break;
-    default:
-        collideable = true;
-        dynamic     = false;
-        // LOG(WARNING) << "Entity parameters are unset for " << ToString(tag);
-    }
-}
-
-AABB Entity::GetAABB() const
-{
-    switch (type)
-    {
-    case SOUND:
-    case CAR:
-    case VROAD:
-    case VROAD_CEIL:
-        ASSERT(false, "Shouldn't be adding a " << ToString(type) << " entity to the AABB tree!");
-        break;
-    default:
-        break;
     }
 
-    return m_boundingBox;
-}
+    void Entity::Update() {
+        // We don't want to update Entities that aren't dynamic
+        if (!dynamic || animData.empty()) {
+            return;
+        }
+
+        btTransform trans;
+        m_motionState->getWorldTransform(trans);
+
+        if (!animData.empty()) {
+            animKeyframeIndex = (animKeyframeIndex + 1) % animData.size();
+            position = glm::vec3(animData.at(animKeyframeIndex).pt) * LibOpenNFS::NFS3::NFS3_SCALE_FACTOR;
+        } else {
+            position = Utils::bulletToGlm(trans.getOrigin());
+            orientation = Utils::bulletToGlm(trans.getRotation());
+        }
+
+        UpdateMatrices();
+    }
+
+    AABB Entity::GetAABB() const {
+        return m_boundingBox;
+    }
+
+    glm::vec3 Entity::GetDebugColour() const {
+        switch (type) {
+        case LibOpenNFS::EntityType::XOBJ:
+            return glm::vec3(46, 204, 113) / 255.f;
+        case LibOpenNFS::EntityType::OBJ_POLY:
+            return glm::vec3(26, 188, 156) / 255.f;
+        case LibOpenNFS::EntityType::LANE:
+            return glm::vec3(44, 62, 80) / 255.f;
+        case LibOpenNFS::EntityType::SOUND:
+            return glm::vec3(231, 76, 60) / 255.f;
+        case LibOpenNFS::EntityType::LIGHT:
+            return glm::vec3(230, 126, 34) / 255.f;
+        case LibOpenNFS::EntityType::ROAD:
+            return glm::vec3(41, 128, 185) / 255.f;
+        case LibOpenNFS::EntityType::GLOBAL:
+            return glm::vec3(149, 165, 166) / 255.f;
+        case LibOpenNFS::EntityType::CAR:
+            return {0, 0, 0};
+        case LibOpenNFS::EntityType::VROAD:
+            return glm::vec3(243, 156, 18) / 255.f;
+        }
+        return {0, 0, 0};
+    }
+} // namespace OpenNFS

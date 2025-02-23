@@ -1,81 +1,71 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <imgui.h>
-#include <examples/imgui_impl_glfw.h>
-#include <examples/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_glfw.h>
+#include <optional>
 
-#include "../Camera/FreeCamera.h"
 #include "../Camera/HermiteCamera.h"
-#include "../Camera/CarCamera.h"
-#include "../Scene/Entity.h"
-#include "../Scene/Lights/GlobalLight.h"
-#include "../Scene/Track.h"
-#include "../Physics/PhysicsEngine.h"
-#include "../RaceNet/Agents/CarAgent.h"
-#include "../Util/Logger.h"
 #include "../Config.h"
+#include "../Race/Agents/CarAgent.h"
+#include "../Scene/Entity.h"
+#include "../Scene/GlobalLight.h"
+#include "../Scene/Track.h"
+#include "../Util/Logger.h"
 
-#include "HermiteCurve.h"
 #include "CarRenderer.h"
-#include "TrackRenderer.h"
-#include "SkyRenderer.h"
-#include "ShadowMapRenderer.h"
 #include "DebugRenderer.h"
 #include "MenuRenderer.h"
+#include "MiniMapRenderer.h"
+#include "ShadowMapRenderer.h"
+#include "SkyRenderer.h"
+#include "TrackRenderer.h"
 
-struct VisibleSet
-{
+namespace OpenNFS {
+struct VisibleSet {
     std::vector<std::shared_ptr<Entity>> entities;
-    std::vector<std::shared_ptr<BaseLight>> lights;
+    std::vector<BaseLight const *> lights;
 };
 
-class Renderer
-{
-public:
-    Renderer(const std::shared_ptr<GLFWwindow> &window,
-             const std::shared_ptr<Logger> &onfsLogger,
-             const std::vector<NfsAssetList> &installedNFS,
-             const std::shared_ptr<Track> &currentTrack,
-             const std::shared_ptr<BulletDebugDrawer> &debugDrawer);
+class Renderer {
+  public:
+    Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
+             std::vector<NfsAssetList> const &installedNFS, Track const &currentTrack,
+             std::shared_ptr<BulletDebugDrawer> const &debugDrawer);
 
     ~Renderer();
 
-    static void GlfwError(int id, const char *description)
-    {
+    static void GlfwError(int id, char const *description) {
         LOG(WARNING) << description;
     }
 
-    static void WindowSizeCallback(GLFWwindow *window, int width, int height)
-    {
-        Config::get().resX = width;
-        Config::get().resY = height;
+    static void WindowSizeCallback(GLFWwindow *window, int width, int height) {
+        Config::get().windowSizeX = width;
+        Config::get().windowSizeY = height;
     }
 
-    static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, const std::string &windowName);
-    static void DrawMetadata(Entity *targetEntity);
-    bool Render(float totalTime,
-                const std::shared_ptr<BaseCamera> &activeCamera,
-                const std::shared_ptr<HermiteCamera> &hermiteCamera,
-                const std::shared_ptr<GlobalLight> &activeLight,
-                ParamData &userParams,
-                AssetData &loadedAssets,
-                const std::vector<std::shared_ptr<CarAgent>> &racers);
+    static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY,
+                                                  std::string const &windowName);
 
-private:
-    void _InitialiseIMGUI();
-    bool _DrawMenuBar(AssetData &loadedAssets);
-    void _DrawDebugUI(ParamData &userParams, const std::shared_ptr<BaseCamera> &camera);
-    static std::vector<uint32_t> _GetLocalTrackBlockIDs(const shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
-    static VisibleSet _FrustumCull(const std::shared_ptr<Track> &track, const std::shared_ptr<BaseCamera> &camera, ParamData &userParams);
+    static void _DrawMetadata(Entity const *targetEntity);
+
+    bool Render(float totalTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
+                GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,
+                std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> targetedEntity);
+
+    [[nodiscard]] uint32_t GetCameraTargetVehicleID() const;
+
+  private:
+    void _InitialiseIMGUI() const;
+    bool _DrawMenuBar(AssetData &loadedAssets) const;
+    void _DrawDebugUI(ParamData &userParams, BaseCamera const &camera);
+    static std::vector<uint32_t> _GetLocalTrackBlockIDs(Track const &track, BaseCamera const &camera);
+    static VisibleSet _FrustumCull(Track const &track, BaseCamera const &camera, GlobalLight const *globalLight, ParamData const &userParams);
 
     std::shared_ptr<GLFWwindow> m_window;
     std::shared_ptr<Logger> m_logger;
     std::vector<NfsAssetList> m_nfsAssetList;
-    std::shared_ptr<Track> m_track;
+    Track const &m_track;
+    uint32_t m_cameraTargetVehicleID{0};
+    uint32_t m_numRacers{0};
 
     TrackRenderer m_trackRenderer;
     CarRenderer m_carRenderer;
@@ -83,4 +73,6 @@ private:
     ShadowMapRenderer m_shadowMapRenderer;
     DebugRenderer m_debugRenderer;
     MenuRenderer m_menuRenderer;
+    MiniMapRenderer m_miniMapRenderer;
 };
+} // namespace OpenNFS

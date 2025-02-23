@@ -4,16 +4,20 @@
 
 #include <glm/detail/type_mat4x4.hpp>
 
-class BulletShader : public BaseShader
-{
-public:
-    explicit BulletShader();
-    void loadProjectionViewMatrix(const glm::mat4 &projectionViewMatrix);
+namespace OpenNFS {
+    class BulletShader : public BaseShader {
+    public:
+        explicit BulletShader();
 
-protected:
-    void bindAttributes() override;
-    void getAllUniformLocations() override;
-    void customCleanup() override;
+        void loadProjectionViewMatrix(const glm::mat4 &projectionViewMatrix);
 
-    GLint projectionViewMatrixLocation;
-};
+    protected:
+        void bindAttributes() override;
+
+        void getAllUniformLocations() override;
+
+        void customCleanup() override;
+
+        GLint projectionViewMatrixLocation;
+    };
+}

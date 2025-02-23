@@ -24,21 +24,17 @@
 #define HINIBBLE(byte) ((byte) >> 4)
 #define LONIBBLE(byte) ((byte) &0x0F)
 
-int32_t Clip16BitSample(int32_t sample)
-{
+int32_t Clip16BitSample(int32_t sample) {
     if (sample > 32767)
         return 32767;
-    else if (sample < -32768)
+    if (sample < -32768)
         return (-32768);
-    else
-        return sample;
+    return sample;
 }
 
-void write_little_endian(unsigned int uint16_t, int num_bytes, FILE *wav_file)
-{
+void write_little_endian(unsigned int uint16_t, int num_bytes, FILE *wav_file) {
     unsigned buf;
-    while (num_bytes > 0)
-    {
+    while (num_bytes > 0) {
         buf = uint16_t & 0xff;
         fwrite(&buf, 1, 1, wav_file);
         num_bytes--;
@@ -46,11 +42,10 @@ void write_little_endian(unsigned int uint16_t, int num_bytes, FILE *wav_file)
     }
 }
 
-MusicLoader::MusicLoader(const std::string &song_base_path)
-{
-    boost::filesystem::path p(song_base_path);
+MusicLoader::MusicLoader(const std::string &song_base_path) {
+    std::filesystem::path p(song_base_path);
     std::string song_name = p.filename().string();
-    stringstream mus_path, map_path;
+    std::stringstream mus_path, map_path;
 
     LOG(INFO) << "Loading Song " << song_name << " from " << song_base_path;
 
@@ -60,14 +55,12 @@ MusicLoader::MusicLoader(const std::string &song_base_path)
     ParseMAP(map_path.str(), mus_path.str());
 }
 
-uint32_t MusicLoader::ReadBytes(FILE *file, uint8_t count)
-{
+uint32_t MusicLoader::ReadBytes(FILE *file, uint8_t count) {
     uint8_t i, byte;
     uint32_t result;
 
     result = 0L;
-    for (i = 0; i < count; i++)
-    {
+    for (i = 0; i < count; i++) {
         fread(&byte, sizeof(uint8_t), 1, file);
         result <<= 8;
         result += byte;
@@ -88,14 +81,12 @@ void MusicLoader::ParsePTHeader(FILE *file,
                                 uint32_t *dwLoopLength,
                                 uint32_t *dwBytesPerSample,
                                 uint32_t *bSplit,
-                                uint32_t *bSplitCompression)
-{
+                                uint32_t *bSplitCompression) {
     uint8_t byte;
     bool bInHeader, bInSubHeader;
 
     bInHeader = true;
-    while (bInHeader)
-    {
+    while (bInHeader) {
         fread(&byte, sizeof(uint8_t), 1, file);
         switch (byte) // parse header code
         {
@@ -106,8 +97,7 @@ void MusicLoader::ParsePTHeader(FILE *file,
             break;
         case 0xFD: // subheader starts...
             bInSubHeader = true;
-            while (bInSubHeader)
-            {
+            while (bInSubHeader) {
                 fread(&byte, sizeof(uint8_t), 1, file);
                 switch (byte) // parse subheader code
                 {
@@ -172,11 +162,10 @@ void MusicLoader::ParsePTHeader(FILE *file,
     }
 }
 
-void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE *mus_file, FILE *pcm_file)
-{
+void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE *mus_file, FILE *pcm_file) {
     uint32_t l = 0, r = 0;
-    uint16_t *outBufL = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
-    uint16_t *outBufR = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
+    auto outBufL = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
+    auto outBufR = (uint16_t *) calloc(nSamples, sizeof(uint16_t));
 
     // TODO: Different stuff for MONO/Stereo
     int32_t lCurSampleLeft   = asfChunkHeader->lCurSampleLeft;
@@ -190,8 +179,7 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
     uint32_t dwSubOutSize = 0x1c;
 
     // process integral number of (dwSubOutSize) samples
-    for (uint32_t bCount = 0; bCount < (asfChunkHeader->dwOutSize / dwSubOutSize); bCount++)
-    {
+    for (uint32_t bCount = 0; bCount < (asfChunkHeader->dwOutSize / dwSubOutSize); bCount++) {
         fread(&bInput, sizeof(int8_t), 1, mus_file);
         c1left  = EATable[HINIBBLE(bInput)]; // predictor coeffs for left channel
         c2left  = EATable[HINIBBLE(bInput) + 4];
@@ -200,8 +188,7 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
         fread(&bInput, sizeof(int8_t), 1, mus_file);
         dleft  = HINIBBLE(bInput) + 8; // shift value for left channel
         dright = LONIBBLE(bInput) + 8; // shift value for right channel
-        for (uint32_t sCount = 0; sCount < dwSubOutSize; sCount++)
-        {
+        for (uint32_t sCount = 0; sCount < dwSubOutSize; sCount++) {
             fread(&bInput, sizeof(int8_t), 1, mus_file);
             left             = HINIBBLE(bInput); // HIGHER nibble for left channel
             right            = LONIBBLE(bInput); // LOWER nibble for right channel
@@ -224,8 +211,7 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
     }
 
     // process the rest (if any)
-    if ((asfChunkHeader->dwOutSize % dwSubOutSize) != 0)
-    {
+    if ((asfChunkHeader->dwOutSize % dwSubOutSize) != 0) {
         fread(&bInput, sizeof(int8_t), 1, mus_file);
         // bInput=audioData[i++];
         c1left  = EATable[HINIBBLE(bInput)]; // predictor coeffs for left channel
@@ -236,8 +222,7 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
         // bInput=audioData[i++];
         dleft  = HINIBBLE(bInput) + 8; // shift value for left channel
         dright = LONIBBLE(bInput) + 8; // shift value for right channel
-        for (uint32_t sCount = 0; sCount < (asfChunkHeader->dwOutSize % dwSubOutSize); sCount++)
-        {
+        for (uint32_t sCount = 0; sCount < (asfChunkHeader->dwOutSize % dwSubOutSize); sCount++) {
             fread(&bInput, sizeof(int8_t), 1, mus_file);
             left             = HINIBBLE(bInput); // HIGHER nibble for left channel
             right            = LONIBBLE(bInput); // LOWER nibble for right channel
@@ -259,24 +244,21 @@ void MusicLoader::DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSample
         }
     }
 
-    for (auto t = 0; t < nSamples; ++t)
-    {
-        write_little_endian((uint16_t) outBufL[t], 2, pcm_file);
-        write_little_endian((uint16_t) outBufR[t], 2, pcm_file);
+    for (auto t = 0; t < nSamples; ++t) {
+        write_little_endian(outBufL[t], 2, pcm_file);
+        write_little_endian(outBufR[t], 2, pcm_file);
     }
 
     free(outBufL);
     free(outBufR);
 }
 
-bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file)
-{
+bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file) {
     fseek(mus_file, static_cast<long>(sch1Offset), SEEK_SET);
 
-    ASFBlockHeader *chk = (ASFBlockHeader *) calloc(1, sizeof(ASFBlockHeader));
+    auto chk = (ASFBlockHeader *) calloc(1, sizeof(ASFBlockHeader));
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
-    if (memcmp(chk->szBlockID, "SCHl", sizeof(chk->szBlockID)) != 0)
-    {
+    if (memcmp(chk->szBlockID, "SCHl", sizeof(chk->szBlockID)) != 0) {
         free(chk);
         fclose(mus_file);
         return false;
@@ -305,8 +287,7 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file)
 
     // Check in SCC1 Count block
     fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
-    if (memcmp(chk->szBlockID, "SCCl", sizeof(chk->szBlockID)) != 0)
-    {
+    if (memcmp(chk->szBlockID, "SCCl", sizeof(chk->szBlockID)) != 0) {
         free(chk);
         fclose(mus_file);
         return false;
@@ -319,21 +300,19 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file)
 
     // TODO: Add a check for compression flag = 0x7, EADPCM decode
     // Get PCM data from SCD1 blocks
-    for (uint8_t scd1_Idx = 0; scd1_Idx < nSCD1Blocks; ++scd1_Idx)
-    {
+    for (uint8_t scd1_Idx = 0; scd1_Idx < nSCD1Blocks; ++scd1_Idx) {
         // Jump to next block
         fseek(mus_file, static_cast<long>(sch1Offset + sch1Size + scc1Size + totalSCD1InterleaveSize), SEEK_SET);
 
         // Check in SCD1
         fread(chk, sizeof(ASFBlockHeader), 1, mus_file);
-        if (memcmp(chk->szBlockID, "SCDl", sizeof(chk->szBlockID)) != 0)
-        {
+        if (memcmp(chk->szBlockID, "SCDl", sizeof(chk->szBlockID)) != 0) {
             free(chk);
             fclose(mus_file);
             return false;
         }
 
-        ASFChunkHeader *asfChunkHeader = (ASFChunkHeader *) calloc(1, sizeof(ASFChunkHeader));
+        auto asfChunkHeader = (ASFChunkHeader *) calloc(1, sizeof(ASFChunkHeader));
         fread(asfChunkHeader, sizeof(ASFChunkHeader), 1, mus_file);
         DecompressEAADPCM(asfChunkHeader, chk->dwSize - sizeof(ASFBlockHeader) - sizeof(ASFChunkHeader), mus_file, pcm_file);
         totalSCD1InterleaveSize += chk->dwSize;
@@ -349,28 +328,26 @@ bool MusicLoader::ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file)
     return success;
 }
 
-void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_path)
-{
+void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_path) {
     FILE *pcm_file = fopen("stereo.pcm", "wb");
 
     std::cout << "- Parsing MAP File " << std::endl;
     std::ifstream map(map_path, std::ios::in | std::ios::binary);
 
     // Read the MAP file header
-    MAPHeader *mapHeader = static_cast<MAPHeader *>(calloc(1, sizeof(MAPHeader)));
+    auto mapHeader = static_cast<MAPHeader *>(calloc(1, sizeof(MAPHeader)));
     map.read((char *) mapHeader, sizeof(MAPHeader));
     std::cout << (int) mapHeader->bNumSections << " Sections" << std::endl;
 
-    MAPSectionDef *sectionDefTable = static_cast<MAPSectionDef *>(calloc(mapHeader->bNumSections, sizeof(MAPSectionDef)));
+    auto sectionDefTable = static_cast<MAPSectionDef *>(calloc(mapHeader->bNumSections, sizeof(MAPSectionDef)));
     map.read((char *) sectionDefTable, mapHeader->bNumSections * sizeof(MAPSectionDef));
 
     // Skip over seemlingly useless records
     map.seekg(mapHeader->bNumRecords * 0x10, std::ios_base::cur); // bRecordSize may be incorrect, use 0x10 to be safe
 
-    uint32_t *startingPositions = static_cast<uint32_t *>(calloc(mapHeader->bNumSections, sizeof(long)));
+    auto startingPositions = static_cast<uint32_t *>(calloc(mapHeader->bNumSections, sizeof(long)));
 
-    for (int startPos_Idx = 0; startPos_Idx < mapHeader->bNumSections; ++startPos_Idx)
-    {
+    for (int startPos_Idx = 0; startPos_Idx < mapHeader->bNumSections; ++startPos_Idx) {
         uint32_t startingPosition;
         map.read((char *) &startingPosition, sizeof(uint32_t));
         startingPositions[startPos_Idx] = SWAPuint32_t(startingPosition);
@@ -384,10 +361,8 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     uint8_t section_Idx = mapHeader->bFirstSection;
 
     // TODO: Linear playthrough until I work out the looping malarkey
-    for (auto lol = 0; lol < mapHeader->bNumSections; ++lol)
-    {
-        if (!ReadSCHl(mus_file, startingPositions[lol], pcm_file))
-        { //
+    for (auto lol = 0; lol < mapHeader->bNumSections; ++lol) {
+        if (!ReadSCHl(mus_file, startingPositions[lol], pcm_file)) { //
             std::cout << "Error reading SCHl block, POS: " << (int) lol << " Offset: " << startingPositions[lol] << std::endl;
             break;
         }
@@ -396,12 +371,10 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
     // Out of spec: TrackModel number of times played section, use to set next section
     auto playedSections = std::map<uint8_t, int8_t>();
 
-    while (sectionDefTable[section_Idx].bNumRecords > 0 && section_Idx < mapHeader->bNumSections)
-    {
+    while (sectionDefTable[section_Idx].bNumRecords > 0 && section_Idx < mapHeader->bNumSections) {
         // Starting positions are raw offsets into MUS file
         // Read the SCH1 header and further blocks in MUS to play the section
-        if (!ReadSCHl(mus_file, startingPositions[section_Idx], pcm_file))
-        { //
+        if (!ReadSCHl(mus_file, startingPositions[section_Idx], pcm_file)) { //
             std::cout << "Error reading SCHl block, POS: " << (int) section_Idx << " Offset: " << startingPositions[section_Idx] << std::endl;
             break;
         }
@@ -410,8 +383,7 @@ void MusicLoader::ParseMAP(const std::string &map_path, const std::string &mus_p
         playedSections[section_Idx] = playedSections.count(section_Idx) ? playedSections[section_Idx] - 1 : sectionDefTable[section_Idx].bNumRecords - 1;
 
         // If played all next records, quit playback? TODO: Implies that TrackModel data must correlate to MAP derived loops
-        if (playedSections[section_Idx] < 0)
-        {
+        if (playedSections[section_Idx] < 0) {
             break;
         }
 

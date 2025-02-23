@@ -1,32 +1,32 @@
 #pragma once
 
 #include "BaseShader.h"
+#include <Entities/TrackLight.h>
+
 #include "../Util/ImageLoader.h"
-#include "../Scene/Lights/TrackLight.h"
 
-class BillboardShader : public BaseShader
-{
-public:
-    BillboardShader();
-    void loadLight(const std::shared_ptr<TrackLight> &light);
-    void loadMatrices(const glm::mat4 &projection, const glm::mat4 &view);
+namespace OpenNFS {
+    class BillboardShader : public BaseShader {
+      public:
+        BillboardShader();
+        void loadLight(LibOpenNFS::TrackLight const *light);
+        void loadMatrices(glm::mat4 const &projection, glm::mat4 const &view);
 
-protected:
-    void bindAttributes() override;
-    void getAllUniformLocations() override;
-    void customCleanup() override;
+      protected:
+        void bindAttributes() override;
+        void getAllUniformLocations() override;
+        void customCleanup() override;
 
-    GLint projectionMatrixLocation;
-    GLint viewMatrixLocation;
-    GLint boardTextureLocation;
-    GLint lightColourLocation;
-    GLint billboardPosLocation;
+        GLint projectionMatrixLocation;
+        GLint viewMatrixLocation;
+        GLint boardTextureLocation;
+        GLint lightColourLocation;
+        GLint billboardPosLocation;
 
-    GLuint textureID;
+        GLuint textureID;
 
-    typedef BaseShader super;
+        void loadBillboardTexture();
 
-    void loadBillboardTexture();
-
-    void load_bmp_texture();
-};
+        void load_bmp_texture();
+    };
+} // namespace OpenNFS

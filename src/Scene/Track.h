@@ -2,41 +2,36 @@
 
 #include <cstdint>
 #include <vector>
-#include <memory>
+#include <Entities/Track.h>
 
 #include "Entity.h"
-#include "TrackBlock.h"
-#include "VirtualRoad.h"
 
-#include "../Loaders/Shared/CanFile.h"
 #include "../Physics/AABBTree.h"
-#include "../Renderer/Texture.h"
+#include "../Renderer/GLTexture.h"
 #include "../Renderer/HermiteCurve.h"
 
-constexpr uint16_t kCullTreeInitialSize = 4000;
+namespace OpenNFS {
+    class Track : public LibOpenNFS::Track {
+        static constexpr uint16_t kCullTreeInitialSize {10000};
 
-class Track
-{
-public:
-    Track() : cullTree(kCullTreeInitialSize), nBlocks(0), nfsVersion(UNKNOWN){};
-    void GenerateSpline();
-    void GenerateAabbTree();
+    public:
+        explicit Track(const LibOpenNFS::Track &track);
+        Track() : cullTree(kCullTreeInitialSize){};
+        ~Track();
 
-    // Metadata
-    NFSVer nfsVersion;
-    std::string name;
-    uint32_t nBlocks;
-    std::vector<CameraAnimPoint> cameraAnimation;
-    std::vector<VirtualRoad> virtualRoad;
-    HermiteCurve centerSpline;
+        // GL 3D Render Data
+        HermiteCurve centerSpline;
+        GLuint textureArrayID {0};
+        std::vector<std::shared_ptr<Entity>> entities;
+        AABBTree cullTree;
 
-    // Geometry
-    std::vector<OpenNFS::TrackBlock> trackBlocks;
-    std::vector<Entity> globalObjects;
-    std::vector<Entity> vroadBarriers;
+    private:
+        void _LoadTextures();
+        void _GenerateEntities();
+        void _GenerateSpline();
+        void _GenerateAabbTree();
 
-    // GL 3D Render Data
-    std::map<uint32_t, Texture> textureMap;
-    GLuint textureArrayID = 0;
-    AABBTree cullTree;
-};
+        std::string assetPath;
+        std::map<uint32_t, GLTexture> textureMap;
+    };
+} // namespace OpenNFS

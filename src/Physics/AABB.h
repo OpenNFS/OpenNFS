@@ -2,8 +2,7 @@
 
 #include <glm/glm.hpp>
 
-class AABB
-{
+class AABB {
 public:
     explicit AABB() = default;
     AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition);
@@ -18,7 +17,6 @@ public:
     glm::vec3 min;
     glm::vec3 max;
     float surfaceArea;
-    glm::vec3 position;
 
 private:
     float _CalculateSurfaceArea() const;

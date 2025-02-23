@@ -11,8 +11,7 @@
 
 #define AABB_NULL_NODE 0xffffffff
 
-struct AABBNode
-{
+struct AABBNode {
     AABB aabb;
     std::shared_ptr<IAABB> object;
     // tree links
@@ -22,18 +21,15 @@ struct AABBNode
     // node linked list link
     unsigned nextNodeIndex;
 
-    bool isLeaf() const
-    {
+    bool isLeaf() const {
         return leftNodeIndex == AABB_NULL_NODE;
     }
 
-    AABBNode() : object(nullptr), parentNodeIndex(AABB_NULL_NODE), leftNodeIndex(AABB_NULL_NODE), rightNodeIndex(AABB_NULL_NODE), nextNodeIndex(AABB_NULL_NODE)
-    {
+    AABBNode() : object(nullptr), parentNodeIndex(AABB_NULL_NODE), leftNodeIndex(AABB_NULL_NODE), rightNodeIndex(AABB_NULL_NODE), nextNodeIndex(AABB_NULL_NODE) {
     }
 };
 
-class AABBTree
-{
+class AABBTree {
 private:
     std::map<std::shared_ptr<IAABB>, unsigned> _objectNodeIndexMap;
     std::vector<AABBNode> _nodes;

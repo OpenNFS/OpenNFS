@@ -19,36 +19,31 @@
 #include <array>
 #include <set>
 
-#include "../Enums.h"
+#include "Common/NFSVersion.h"
 #include "../Physics/Car.h"
 #include "../Loaders/CarLoader.h"
 
-struct QueueFamilyIndices
-{
+struct QueueFamilyIndices {
     int graphicsFamily = -1;
     int presentFamily  = -1;
 
-    bool isComplete()
-    {
+    bool isComplete() {
         return graphicsFamily >= 0 && presentFamily >= 0;
     }
 };
 
-struct SwapChainSupportDetails
-{
+struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-struct Vertex
-{
+struct Vertex {
     glm::vec3 pos;
     glm::vec3 normal;
     glm::vec2 uv;
 
-    static VkVertexInputBindingDescription getBindingDescription()
-    {
+    static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription = {};
         bindingDescription.binding                         = 0;
         bindingDescription.stride                          = sizeof(Vertex);
@@ -57,8 +52,7 @@ struct Vertex
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
-    {
+    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
         std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
 
         attributeDescriptions[0].binding  = 0;
@@ -80,8 +74,7 @@ struct Vertex
     }
 };
 
-struct UniformBufferObject
-{
+struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
@@ -92,8 +85,7 @@ static std::vector<char> readFile(const std::string& filename);
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code,
                                                     const char* layerPrefix, const char* msg, void* userData);
 
-class vkRenderer
-{
+class vkRenderer {
 public:
     void run();
 

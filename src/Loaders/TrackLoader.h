@@ -2,8 +2,9 @@
 
 #include "../Scene/Track.h"
 
-class TrackLoader
-{
-public:
-    static std::shared_ptr<Track> LoadTrack(NFSVer trackVersion, const std::string &trackName);
-};
+namespace OpenNFS {
+    class TrackLoader {
+    public:
+        static Track Load(NFSVersion nfsVersion, const std::string &trackName);
+    };
+} // namespace OpenNFS

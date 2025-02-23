@@ -3,14 +3,15 @@
 #include "BaseCamera.h"
 #include "../Renderer/HermiteCurve.h"
 
-class HermiteCamera : public BaseCamera
-{
-public:
-    explicit HermiteCamera() = default;
-    HermiteCamera(const HermiteCurve &trackCenterSpline, const std::shared_ptr<GLFWwindow> &window);
-    void UseSpline(float elapsedTime);
+namespace OpenNFS {
+    class HermiteCamera : public BaseCamera {
+    public:
+        HermiteCamera(const HermiteCurve &trackCenterSpline, const InputManager &inputManager);
 
-private:
-    HermiteCurve m_trackCameraRail;
-    int m_loopTime = 0;
-};
+        void UseSpline(float elapsedTime);
+
+    private:
+        HermiteCurve m_trackCameraRail;
+        int m_loopTime = 0;
+    };
+}

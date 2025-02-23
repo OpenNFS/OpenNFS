@@ -1,59 +1,43 @@
 #pragma once
 
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
-#include <LinearMath/btDefaultMotionState.h>
-#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
 #include <BulletCollision/CollisionShapes/btTriangleMesh.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
-#include <boost/variant.hpp>
+#include <LinearMath/btDefaultMotionState.h>
+#include <memory>
 
-#include "Lights/BaseLight.h"
-#include "Sound.h"
-#include "Models/TrackModel.h"
-
-#include "../Enums.h"
-#include "../Util/Utils.h"
 #include "../Physics/AABB.h"
 #include "../Physics/IAABB.h"
-#include "../Physics/Car.h"
+#include "../Renderer/Models/GLTrackModel.h"
+#include "Entities/BaseLight.h"
+#include "Entities/TrackEntity.h"
 
-typedef boost::variant<TrackModel, std::shared_ptr<BaseLight>, Sound, Car*> EngineModel;
+namespace OpenNFS {
+    class Entity final : public LibOpenNFS::TrackEntity, public IAABB, public GLTrackModel {
+      public:
+        explicit Entity(TrackEntity &track_entity);
+        ~Entity() override = default;
+        void Update(); // Update Entity position based on Physics engine
+        AABB GetAABB() const override;
+        glm::vec3 GetDebugColour() const;
 
-class Entity : public IAABB
-{
-public:
-    Entity(uint32_t parentTrackblockID,
-           uint32_t entityID,
-           NFSVer nfsVersion,
-           EntityType entityType,
-           EngineModel glMesh = nullptr,
-           uint32_t flags     = 0u,
-           glm::vec3 fromA    = glm::vec3(0, 0, 0),
-           glm::vec3 fromB    = glm::vec3(0, 0, 0),
-           glm::vec3 toA      = glm::vec3(0, 0, 0),
-           glm::vec3 toB      = glm::vec3(0, 0, 0));
-    void Update(); // Update Entity position based on Physics engine
-    AABB GetAABB() const;
+        std::unique_ptr<btRigidBody> rigidBody;
 
-    NFSVer tag;
-    EntityType type;
-    EngineModel raw;
-    btRigidBody* rigidBody;
-    uint32_t parentTrackblockID, entityID;
-    uint32_t flags;
-    bool collideable = false;
-    bool dynamic     = false;
+        // TODO: Temp hackedy hack hack. Should be able to cast 'this' to BaseLight as it derives from TrackEntity...
+        LibOpenNFS::BaseLight *baseLight{nullptr};
+        explicit operator LibOpenNFS::BaseLight const *() const {
+            return baseLight;
+        }
 
-    void _GenCollisionMesh();
+      private:
+        btTriangleMesh m_collisionMesh;
+        std::unique_ptr<btCollisionShape> m_collisionShape;
+        std::unique_ptr<btDefaultMotionState> m_motionState;
+        AABB m_boundingBox{};
 
-private:
-    glm::vec3 startPointA, startPointB, endPointA, endPointB;
-    btTriangleMesh m_collisionMesh;
-    btCollisionShape* m_collisionShape;
-    btDefaultMotionState* m_motionState;
-    AABB m_boundingBox;
+        void _GenCollisionMesh();
+        void _GenBoundingBox();
 
-    void _SetCollisionParameters();
-
-    void _GenBoundingBox();
-};
+        size_t animKeyframeIndex{0};
+    };
+} // namespace OpenNFS

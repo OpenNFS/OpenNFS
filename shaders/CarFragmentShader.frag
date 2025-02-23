@@ -22,7 +22,8 @@ uniform sampler2D carTextureSampler;
 uniform vec4 lightColour[MAX_CAR_CONTRIB_LIGHTS];
 uniform vec3 attenuation[MAX_CAR_CONTRIB_LIGHTS];
 
-uniform vec3 carColour;
+uniform vec4 carColour;
+uniform vec4 carSecondaryColour;
 uniform float shineDamper;
 uniform float reflectivity;
 uniform float envReflectivity;
@@ -32,6 +33,24 @@ uniform bool polyFlagged;
 
 void main(){
     vec4 carTexColor = multiTextured ? texture(textureArray, vec3(UV, texIndex)).rgba : texture(carTextureSampler, UV ).rgba;
+    if (carTexColor.a < 0.35) {
+        color = vec4(0.0, 0.0, 0.0, 0.0);
+        return;
+    } else if ((carTexColor.a < 0.8 && carTexColor.a > 0.75)) {
+        carTexColor = carTexColor * carSecondaryColour;
+        if (carColour.a > 0.0f) {
+            carTexColor.r = carTexColor.r / carSecondaryColour.a;
+            carTexColor.g = carTexColor.g / carSecondaryColour.a;
+            carTexColor.b = carTexColor.b / carSecondaryColour.a;
+        }
+    } else if (carTexColor.a < 0.75){
+        carTexColor = carTexColor * carColour;
+        if (carColour.a > 0.0f) {
+            carTexColor.r = carTexColor.r / carColour.a;
+            carTexColor.g = carTexColor.g / carColour.a;
+            carTexColor.b = carTexColor.b / carColour.a;
+        }
+    }
     vec4 envTexColor = texture( envMapTextureSampler, envUV ).rgba;
 
     vec3 unitNormal = normalize(surfaceNormal);
@@ -56,21 +75,8 @@ void main(){
         totalDiffuse += (brightness * lightColour[i].xyz)/attenFactor;
         totalSpecular += (dampedFactor * reflectivity * lightColour[i].xyz)/attenFactor;
     }
-    totalDiffuse = max(totalDiffuse, 0.2f); // Min brightness
+    totalDiffuse = max(totalDiffuse, 0.7f); // Min brightness
 
 	// Output color = color of the texture at the specified UV
-	color = vec4(totalDiffuse, 1.0) * (carTexColor * vec4(carColour, 1.0) + envReflectivity*envTexColor) + vec4(totalSpecular, 1.0);
-
-	// Apply NFS4 Polygon Flags
-	if(polyFlagged) {
-	    if(((polyFlag << 28) >> 28) == 0xAu){
-	        color.a = 0.5f;
-	    }
-        // NFS3 Remove
-	    /*if (polyFlag == 0x1u && carTexColor.a < .1f){
-	        color.a = 0.0;
-	    }*/
-    } else {
-        color.a = carTexColor.a;
-    }
+	color = vec4(totalDiffuse, 1.0) * (carTexColor + envReflectivity*envTexColor) + vec4(totalSpecular, 1.0);
 }
