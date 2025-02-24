@@ -9,14 +9,12 @@ namespace OpenNFS {
                              std::vector<NfsAssetList> const &installedNFS,
                              Track const &currentTrack,
                              std::shared_ptr<Car> const &currentCar)
-        : m_window(window), m_track(currentTrack),
-          m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
-          m_freeCamera(m_inputManager, m_track.trackBlocks[0].position),
-          m_hermiteCamera(m_track.centerSpline, m_inputManager), m_carCamera(m_inputManager), m_physicsEngine(m_track),
+        : m_window(window), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
+          m_freeCamera(m_inputManager, m_track.trackBlocks[0].position), m_hermiteCamera(m_track.centerSpline, m_inputManager),
+          m_carCamera(m_inputManager), m_physicsEngine(m_track),
           m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer), m_racerManager(m_track),
           m_inputManager(window) {
-        m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id,
-                          m_track.nfsVersion, m_track.tag};
+        m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track.nfsVersion, m_track.tag};
 
         // Set up the Racer Manager to spawn vehicles on track
         m_racerManager.Init(m_playerAgent, m_physicsEngine);
@@ -79,9 +77,8 @@ namespace OpenNFS {
             m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
             if (ImGui::GetIO().MouseClicked[0] && m_inputManager.GetWindowStatus() == GAME) {
-                std::optional targetedEntity{
-                    m_physicsEngine.CheckForPicking(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
-                                                    activeCamera.viewMatrix, activeCamera.projectionMatrix)};
+                std::optional targetedEntity{m_physicsEngine.CheckForPicking(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
+                                                                             activeCamera.viewMatrix, activeCamera.projectionMatrix)};
                 // Make the targeted entity 'sticky', else it vanishes after 1 frame
                 if (targetedEntity.has_value()) {
                     m_targetedEntity = targetedEntity;
@@ -94,9 +91,8 @@ namespace OpenNFS {
                 m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
             }
 
-            bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera,
-                                                     m_orbitalManager.GetActiveGlobalLight(), m_userParams,
-                                                     m_loadedAssets, m_racerManager.racers, m_targetedEntity)};
+            bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(),
+                                                     m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity)};
 
             if (assetChange) {
                 return m_loadedAssets;
@@ -115,10 +111,7 @@ namespace OpenNFS {
     }
 
     void RaceSession::_GetInputsAndClear() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         m_inputManager.Scan();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        m_renderer.NewFrame();
     }
 } // namespace OpenNFS

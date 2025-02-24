@@ -175,7 +175,7 @@ namespace OpenNFS {
         std::vector<uint32_t> activeTrackBlockIds;
         uint32_t nearestBlockID = 0;
 
-        float lowestDistance = FLT_MAX;
+        float lowestDistance {FLT_MAX};
 
         // Get the closest track block to camera position
         for (auto &trackblock : track.trackBlocks) {
@@ -210,6 +210,13 @@ namespace OpenNFS {
         std::string const glVersion = "#version " + ONFS_GL_VERSION;
         ImGui_ImplOpenGL3_Init(glVersion.c_str());
         ImGui::StyleColorsDark();
+    }
+
+    void Renderer::NewFrame() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
     }
 
     void Renderer::_DrawMetadata(Entity const *targetEntity) {
