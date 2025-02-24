@@ -8,8 +8,7 @@ namespace OpenNFS {
         m_carShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
         m_carShader.setPolyFlagged(car->carBodyModel.m_polygon_flags.empty());
         m_carShader.loadCarColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        constexpr std::vector<const LibOpenNFS::BaseLight*> emptyLights;
-        m_carShader.loadLights(car->vehicleState.gBreakingForce == 0.f ? emptyLights : car->lights);
+        m_carShader.loadLights(car->lights);
         m_carShader.loadEnvironmentMapTexture();
         // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
         m_carShader.setMultiTextured(car->renderInfo.isMultitexturedModel);
