@@ -3,7 +3,7 @@
 #include "Common/TextureUtils.h"
 
 namespace OpenNFS {
-    Track::Track(const LibOpenNFS::Track &track) : LibOpenNFS::Track(track), cullTree(kCullTreeInitialSize) {
+    Track::Track(LibOpenNFS::Track const &track) : LibOpenNFS::Track(track), cullTree(kCullTreeInitialSize) {
         assetPath = TRACK_PATH + get_string(nfsVersion) + "/" + name;
         this->_GenerateEntities();
         this->_LoadTextures();
@@ -43,7 +43,7 @@ namespace OpenNFS {
             }
         }
         // Enable all models to ensure GL Buffers are generated for track
-        for (const auto &entity: entities) {
+        for (auto const &entity : entities) {
             entity->Enable();
             entity->UpdateMatrices();
         }
