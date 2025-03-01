@@ -37,15 +37,13 @@ namespace OpenNFS {
         CHECK_F(vroadIndex < m_track.virtualRoad.size(),
                 "Requested reset to vroad index: %d outside of num vroad chunks", vroadIndex);
 
-        glm::vec3 vroadPoint = m_track.virtualRoad[vroadIndex].position + m_track.virtualRoad[vroadIndex].respawn;
-        glm::quat const carOrientation{glm::lookAt(vroadPoint - m_track.virtualRoad[vroadIndex].rightWall,
-                                                   vroadPoint - m_track.virtualRoad[vroadIndex].forward,
-                                                   m_track.virtualRoad[vroadIndex].normal)};
-
-        // Offset horizontally across the right vector from center
-        vroadPoint += offset * m_track.virtualRoad[vroadIndex].rightWall;
-
         // Go and find the Vroad Data to reset to
+        glm::vec3 vroadPoint{m_track.virtualRoad[vroadIndex].position + m_track.virtualRoad[vroadIndex].respawn};
+        glm::quat const carOrientation{glm::conjugate(glm::toQuat(
+            glm::lookAt(vroadPoint, vroadPoint - m_track.virtualRoad[vroadIndex].forward, m_track.virtualRoad[vroadIndex].normal)))};
+        // Offset horizontally across the right vector from center
+        vroadPoint += offset * m_track.virtualRoad[vroadIndex].right;
+
         vehicle->SetPosition(vroadPoint, carOrientation);
     }
 
