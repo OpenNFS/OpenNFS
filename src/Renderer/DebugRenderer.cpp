@@ -93,20 +93,18 @@ namespace OpenNFS {
                 vroadPoint.y += vRoadDisplayHeight;
                 vroadPointNext.y += vRoadDisplayHeight;
                 m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
+                m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroad.forward),
+                                              btVector3(0, 1, 0));
+                // Normal
+                m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroad.normal),
+                                              btVector3(0, 0, 1));
 
                 glm::vec3 curVroadRightVec = curVroad.right;
 
-                if (Config::get().useFullVroad) {
-                    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroad.leftWall),
-                                                  btVector3(1, 0, 0.5f));
-                    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroad.rightWall),
-                                                  btVector3(1, 0, 0.5f));
-                } else {
-                    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroadRightVec),
-                                                  btVector3(1, 0, 0.5f));
-                    m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroadRightVec),
-                                                  btVector3(1, 0, 0.5f));
-                }
+                m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroad.leftWall),
+                                              btVector3(1, 0, 0.5f));
+                m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroad.rightWall),
+                                              btVector3(1, 0, 0.5f));
             }
         }
     }
