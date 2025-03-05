@@ -13,8 +13,10 @@ namespace OpenNFS {
     }
 
     void DebugRenderer::DrawTrackCollision(Track const &track) const {
-        for (auto const &trackEntity : track.entities) {
-            this->DrawAABB(trackEntity->GetAABB(), trackEntity->GetDebugColour());
+        for (auto const &trackBlockEntities : track.perTrackblockEntities) {
+            for (auto const &entity : trackBlockEntities) {
+                this->DrawAABB(entity->GetAABB(), entity->GetDebugColour());
+            }
         }
     }
 

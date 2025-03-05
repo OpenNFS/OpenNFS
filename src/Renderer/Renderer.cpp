@@ -145,6 +145,12 @@ namespace OpenNFS {
     uint32_t Renderer::GetCameraTargetVehicleID() const {
         return m_cameraTargetVehicleID;
     }
+    void Renderer::NewFrame() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
 
     VisibleSet Renderer::_FrustumCull(Track const &track,
                                       BaseCamera const &camera,
@@ -165,7 +171,11 @@ namespace OpenNFS {
                 }
             }
         } else {
-            visibleSet.entities.insert(visibleSet.entities.end(), track.entities.begin(), track.entities.end());
+            std::vector<uint32_t> const localTrackBlockIDs{_GetLocalTrackBlockIDs(track, camera)};
+            for (auto const &localTrackBlockID : localTrackBlockIDs) {
+                visibleSet.entities.insert(visibleSet.entities.end(), track.perTrackblockEntities.at(localTrackBlockID).begin(),
+                                           track.perTrackblockEntities.at(localTrackBlockID).end());
+            }
         }
 
         return visibleSet;
@@ -179,8 +189,7 @@ namespace OpenNFS {
 
         // Get the closest track block to camera position
         for (auto &trackblock : track.trackBlocks) {
-            float const distance = glm::distance(camera.position, trackblock.position);
-            if (distance < lowestDistance) {
+            if (float const distance = glm::distance(camera.position, trackblock.position); distance < lowestDistance) {
                 nearestBlockID = trackblock.id;
                 lowestDistance = distance;
             }
@@ -193,7 +202,8 @@ namespace OpenNFS {
         } else {
             constexpr int32_t kBlockDistance{15};
             // Use a draw distance value to return closestBlock +- kBlockDrawDistance inclusive blocks
-            for (int32_t trackblockIdx = nearestBlockID - kBlockDistance; trackblockIdx < nearestBlockID + kBlockDistance;
+            for (int32_t trackblockIdx{static_cast<int32_t>(nearestBlockID) - kBlockDistance};
+                 trackblockIdx < nearestBlockID + kBlockDistance;
                  ++trackblockIdx) {
                 uint32_t activeBlock = trackblockIdx < 0 ? (static_cast<uint32_t>(track.trackBlocks.size()) + trackblockIdx)
                                                          : (trackblockIdx % static_cast<uint32_t>(track.trackBlocks.size()));

@@ -21,13 +21,15 @@ namespace OpenNFS {
 
         glm::mat4 const rotationMat {glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0))};
 
-        for (auto &trackEntity : track.entities) {
-            if (trackEntity->type != LibOpenNFS::EntityType::ROAD) {
-                continue;
+        for (auto const &trackBlockEntities : track.perTrackblockEntities) {
+            for (auto const &entity : trackBlockEntities) {
+                if (entity->type != LibOpenNFS::EntityType::ROAD) {
+                    continue;
+                }
+                miniMapShader.loadTransformationMatrix(rotationMat * entity->ModelMatrix);
+                miniMapShader.loadLayer(1);
+                entity->Render();
             }
-            miniMapShader.loadTransformationMatrix(rotationMat * trackEntity->ModelMatrix);
-            miniMapShader.loadLayer(1);
-            trackEntity->Render();
         }
 
         for (auto &racer : racers) {

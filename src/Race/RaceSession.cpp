@@ -1,8 +1,5 @@
 #include "RaceSession.h"
 
-#include <backends/imgui_impl_opengl3.h>
-#include <imgui.h>
-
 namespace OpenNFS {
     RaceSession::RaceSession(std::shared_ptr<GLFWwindow> const &window,
                              std::shared_ptr<Logger> const &onfsLogger,
@@ -11,15 +8,15 @@ namespace OpenNFS {
                              std::shared_ptr<Car> const &currentCar)
         : m_window(window), m_track(currentTrack),
           m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
-          m_freeCamera(m_inputManager, m_track.trackBlocks[0].position),
-          m_hermiteCamera(m_track.centerSpline, m_inputManager), m_carCamera(m_inputManager), m_physicsEngine(m_track),
-          m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsEngine.debugDrawer), m_racerManager(m_track),
+          m_freeCamera(m_inputManager, m_track.trackBlocks[0].position), m_hermiteCamera(m_track.centerSpline, m_inputManager),
+          m_carCamera(m_inputManager), m_physicsManager(m_track),
+          m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsManager.debugDrawer), m_racerManager(m_track),
           m_inputManager(window) {
         m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id,
                           m_track.nfsVersion, m_track.tag};
 
         // Set up the Racer Manager to spawn vehicles on track
-        m_racerManager.Init(m_playerAgent, m_physicsEngine);
+        m_racerManager.Init(m_playerAgent, m_physicsManager);
     }
 
     void RaceSession::_UpdateCameras(float const deltaTime) {
@@ -63,7 +60,8 @@ namespace OpenNFS {
             auto const deltaTime{static_cast<float>(currentTime - lastTime)}; // Keep track of time between engine ticks
 
             // Clear the screen for next input and grab focus
-            this->_GetInputsAndClear();
+            m_inputManager.Scan();
+            m_renderer.NewFrame();
 
             // Update Cameras
             this->_UpdateCameras(deltaTime);
@@ -79,9 +77,8 @@ namespace OpenNFS {
             m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
             if (ImGui::GetIO().MouseClicked[0] && m_inputManager.GetWindowStatus() == GAME) {
-                std::optional targetedEntity{
-                    m_physicsEngine.CheckForPicking(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
-                                                    activeCamera.viewMatrix, activeCamera.projectionMatrix)};
+                std::optional targetedEntity{m_physicsManager.CheckForPicking(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
+                                                                              activeCamera.viewMatrix, activeCamera.projectionMatrix)};
                 // Make the targeted entity 'sticky', else it vanishes after 1 frame
                 if (targetedEntity.has_value()) {
                     m_targetedEntity = targetedEntity;
@@ -89,9 +86,9 @@ namespace OpenNFS {
             }
 
             // Step the physics simulation
-            m_physicsEngine.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
+            m_physicsManager.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
             if (m_userParams.physicsDebugView) {
-                m_physicsEngine.GetDynamicsWorld()->debugDrawWorld();
+                m_physicsManager.GetDynamicsWorld()->debugDrawWorld();
             }
 
             bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera,
@@ -112,13 +109,5 @@ namespace OpenNFS {
         // Just set a flag temporarily to let main know that we outta here
         m_loadedAssets.trackTag = NFSVersion::UNKNOWN;
         return m_loadedAssets;
-    }
-
-    void RaceSession::_GetInputsAndClear() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        m_inputManager.Scan();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
     }
 } // namespace OpenNFS

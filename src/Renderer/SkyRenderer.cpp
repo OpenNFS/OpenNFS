@@ -2,6 +2,7 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
+#include <glm/gtx/quaternion.hpp>
 
 namespace OpenNFS {
     SkyRenderer::SkyRenderer() {

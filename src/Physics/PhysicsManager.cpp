@@ -42,19 +42,21 @@ namespace OpenNFS {
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
 
         // Register the Track
-        for (auto const &entity : m_track.entities) {
-            int collisionMask = COL_RAY | COL_CAR;
-            if (!entity->collidable) {
-                continue;
-            }
-            if (entity->dynamic) {
-                collisionMask |= COL_TRACK;
-                // Move Rigid body to correct place in world
-                btTransform initialTransform = Utils::MakeTransform(entity->initialPosition, entity->orientation);
-                entity->rigidBody->setWorldTransform(initialTransform);
-                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_DYNAMIC_TRACK, collisionMask);
-            } else {
-                m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_TRACK, collisionMask);
+        for (auto const &trackBlockEntities : track.perTrackblockEntities) {
+            for (auto const &entity : trackBlockEntities) {
+                int collisionMask = COL_RAY | COL_CAR;
+                if (!entity->collidable) {
+                    continue;
+                }
+                if (entity->dynamic) {
+                    collisionMask |= COL_TRACK;
+                    // Move Rigid body to correct place in world
+                    btTransform initialTransform = Utils::MakeTransform(entity->initialPosition, entity->orientation);
+                    entity->rigidBody->setWorldTransform(initialTransform);
+                    m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_DYNAMIC_TRACK, collisionMask);
+                } else {
+                    m_pDynamicsWorld->addRigidBody(entity->rigidBody.get(), COL_TRACK, collisionMask);
+                }
             }
         }
     }
@@ -66,15 +68,17 @@ namespace OpenNFS {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        for (auto const &entity : m_track.entities) {
-            entity->Update();
+        for (auto const &trackBlockEntities : m_track.perTrackblockEntities) {
+            for (auto const &entity : trackBlockEntities) {
+                entity->Update();
+            }
         }
     }
 
     std::optional<Entity *> PhysicsManager::CheckForPicking(float const x,
-                                                           float const y,
-                                                           glm::mat4 const &viewMatrix,
-                                                           glm::mat4 const &projectionMatrix) const {
+                                                            float const y,
+                                                            glm::mat4 const &viewMatrix,
+                                                            glm::mat4 const &projectionMatrix) const {
         auto const [origin, direction]{
             ScreenPosToWorldRay(x, y, Config::get().windowSizeX, Config::get().windowSizeY, viewMatrix, projectionMatrix)};
         glm::vec3 const outEnd{origin + direction * 1000.0f};
@@ -135,8 +139,10 @@ namespace OpenNFS {
         for (auto const &car : m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
-        for (auto const &entity : m_track.entities) {
-            m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
+        for (auto const &trackBlockEntities : m_track.perTrackblockEntities) {
+            for (auto const &entity : trackBlockEntities) {
+                m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
+            }
         }
     }
 } // namespace OpenNFS

@@ -29,7 +29,6 @@ namespace OpenNFS {
     private:
         BaseCamera &_GetActiveCamera();
         void _UpdateCameras(float deltaTime);
-        void _GetInputsAndClear();
 
         AssetData m_loadedAssets;
         CameraMode m_activeCameraMode {CameraMode::FREE_LOOK};
@@ -42,7 +41,7 @@ namespace OpenNFS {
         HermiteCamera m_hermiteCamera;
         CarCamera m_carCamera;
 
-        PhysicsManager m_physicsEngine;
+        PhysicsManager m_physicsManager;
         Renderer m_renderer;
         RacerManager m_racerManager;
         OrbitalManager m_orbitalManager;
