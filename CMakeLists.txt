@@ -81,6 +81,7 @@ set(SOURCE_FILES
         src/Renderer/Models/GLQuad.cpp
         src/Renderer/Models/GLTrackModel.cpp
         src/Renderer/Models/GLBillboardModel.cpp
+        src/Renderer/imgui_config.h
         src/Scene/Track.cpp
         src/Scene/GlobalLight.cpp
         src/Scene/Spotlight.cpp
@@ -100,15 +101,16 @@ set(SOURCE_FILES
         src/Util/Utils.cpp
         src/main.cpp
         src/Renderer/MiniMapRenderer.cpp
-        src/Shaders/MiniMapShader.cpp)
+        src/Shaders/MiniMapShader.cpp
+        src/UI/MenuElement.cpp
+        src/UI/MenuElement.h)
 
-add_executable(OpenNFS ${SOURCE_FILES}
-        src/Renderer/imgui_config.h)
+add_executable(OpenNFS ${SOURCE_FILES})
 
 #[[IMGUI]]
 include_directories(include/imgui)
 
-#[[JSON/STB/IMGUI/TINYOBJLOADER/BMPREAD/ARGPARSE]]
+#[[JSON/STB/IMGUI/TINYOBJLOADER/BMPREAD/ARGPARSE/MAGIC_ENUM]]
 include_directories(include)
 
 #[[FREETYPE]]

@@ -9,8 +9,8 @@
 namespace OpenNFS {
     LibOpenNFS::Car CarLoader::_LoadCarAsset(const NFSVersion nfsVersion, const std::string &carName) {
         std::stringstream carBasePath, carOutPath;
-        carBasePath << RESOURCE_PATH << get_string(nfsVersion);
-        carOutPath << CAR_PATH << get_string(nfsVersion) << "/" << carName;
+        carBasePath << RESOURCE_PATH << magic_enum::enum_name(nfsVersion);
+        carOutPath << CAR_PATH << magic_enum::enum_name(nfsVersion) << "/" << carName;
 
         switch (nfsVersion) {
             /*case NFSVersion::NFS_2:

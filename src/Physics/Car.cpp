@@ -211,7 +211,7 @@ namespace OpenNFS {
     void Car::_LoadTextures() {
         std::stringstream carTexturePath;
         int width, height;
-        carTexturePath << CAR_PATH << get_string(assetData.tag) << "/" << assetData.id;
+        carTexturePath << CAR_PATH << magic_enum::enum_name(assetData.tag) << "/" << assetData.id;
 
         if (assetData.tag == NFSVersion::NFS_3 || assetData.tag == NFSVersion::NFS_4) {
             carTexturePath << "/car00.tga";
@@ -220,7 +220,7 @@ namespace OpenNFS {
         } else if (assetData.tag == NFSVersion::MCO) {
             std::stringstream car_alpha_texture_path;
             carTexturePath << "/Textures/0000.BMP";
-            car_alpha_texture_path << CAR_PATH << get_string(assetData.tag) << "/" << assetData.id << "/Textures/0000-a.BMP";
+            car_alpha_texture_path << CAR_PATH << magic_enum::enum_name(assetData.tag) << "/" << assetData.id << "/Textures/0000-a.BMP";
             std::vector<uint8_t> imageData;
             if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(), imageData, &width,
                                               &height)) {
@@ -518,7 +518,7 @@ namespace OpenNFS {
             }
         } break;*/
         default:
-            CHECK_F(false, "Unsupported NFSVersion %s", get_string(assetData.tag).c_str());
+            CHECK_F(false, "Unsupported NFSVersion %s", magic_enum::enum_name(assetData.tag).data());
         }
 
         // Go find headlight position data inside dummies

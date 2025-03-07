@@ -4,7 +4,7 @@
 
 namespace OpenNFS {
     Track::Track(LibOpenNFS::Track const &track) : LibOpenNFS::Track(track), cullTree(kCullTreeInitialSize) {
-        assetPath = TRACK_PATH + get_string(nfsVersion) + "/" + name;
+        assetPath = TRACK_PATH + magic_enum::enum_name(nfsVersion).data() + "/" + name;
         this->_GenerateEntities();
         this->_LoadTextures();
         this->_GenerateSpline();

@@ -7,9 +7,7 @@ namespace OpenNFS {
     class OrbitalManager {
     public:
         explicit OrbitalManager();
-
         void Update(const BaseCamera &camera, float timeScaleFactor) const;
-
         [[nodiscard]] GlobalLight* GetActiveGlobalLight() const;
 
     private:

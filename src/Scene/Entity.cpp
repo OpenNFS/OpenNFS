@@ -51,7 +51,7 @@ namespace OpenNFS {
             }
         } break;
         default:
-            CHECK_F(false, "Unable to generate a collision box for entity type: %s", LibOpenNFS::get_string(type).c_str());
+            CHECK_F(false, "Unable to generate a collision box for entity type: %s", magic_enum::enum_name(type).data());
             return;
         }
 
@@ -86,7 +86,7 @@ namespace OpenNFS {
             return;
         }
         default:
-            CHECK_F(false, "Shouldn't be adding a %s entity to the AABB tree!", get_string(type).c_str());
+            CHECK_F(false, "Shouldn't be adding a %s entity to the AABB tree!", magic_enum::enum_name(type).data());
             break;
         }
     }

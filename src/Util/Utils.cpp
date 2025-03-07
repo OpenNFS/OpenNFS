@@ -100,7 +100,7 @@ namespace OpenNFS::Utils {
             NfsAssetList currentNFS;
             currentNFS.tag = NFSVersion::UNKNOWN;
 
-            if (itr->path().filename().string() == get_string(NFSVersion::NFS_2_SE)) {
+            if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_2_SE)) {
                 currentNFS.tag = NFSVersion::NFS_2_SE;
 
                 std::stringstream trackBasePathStream;
@@ -121,7 +121,7 @@ namespace OpenNFS::Utils {
                 CHECK_F(exists(carBasePath), "NFS 2 Special Edition car folder: %s is missing", carBasePath.c_str());
 
                 // TODO: Work out where NFS2 SE Cars are stored
-            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_2)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_2)) {
                 currentNFS.tag = NFSVersion::NFS_2;
 
                 std::stringstream trackBasePathStream;
@@ -145,7 +145,7 @@ namespace OpenNFS::Utils {
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_2_PS1)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_2_PS1)) {
                 currentNFS.tag = NFSVersion::NFS_2_PS1;
 
                 for (directory_iterator trackItr(itr->path().string()); trackItr != directory_iterator(); ++trackItr) {
@@ -159,7 +159,7 @@ namespace OpenNFS::Utils {
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_3_PS1)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_3_PS1)) {
                 currentNFS.tag = NFSVersion::NFS_3_PS1;
 
                 for (directory_iterator trackItr(itr->path().string()); trackItr != directory_iterator(); ++trackItr) {
@@ -173,7 +173,7 @@ namespace OpenNFS::Utils {
                         currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_3)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_3)) {
                 currentNFS.tag = NFSVersion::NFS_3;
 
                 std::string sfxPath = itr->path().string() + "/gamedata/render/pc/sfx.fsh";
@@ -212,7 +212,7 @@ namespace OpenNFS::Utils {
                         currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                     }
                 }
-            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_4_PS1)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_4_PS1)) {
                 currentNFS.tag = NFSVersion::NFS_4_PS1;
 
                 for (directory_iterator dirItr(itr->path().string()); dirItr != directory_iterator(); ++dirItr) {
@@ -224,7 +224,7 @@ namespace OpenNFS::Utils {
                         currentNFS.tracks.emplace_back(dirItr->path().filename().replace_extension("").string());
                     }
                 }
-            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_4)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_4)) {
                 currentNFS.tag = NFSVersion::NFS_4;
 
                 std::stringstream trackBasePathStream;
@@ -266,7 +266,7 @@ namespace OpenNFS::Utils {
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                 }
-            } else if (itr->path().filename().string() == get_string(NFSVersion::MCO)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::MCO)) {
                 currentNFS.tag = NFSVersion::MCO;
 
                 std::string trackBasePath = itr->path().string() + MCO_TRACK_PATH;
@@ -281,7 +281,7 @@ namespace OpenNFS::Utils {
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back(carItr->path().filename().replace_extension("").string());
                 }
-            } else if (itr->path().filename().string() == get_string(NFSVersion::NFS_5)) {
+            } else if (itr->path().filename().string() == magic_enum::enum_name(NFSVersion::NFS_5)) {
                 currentNFS.tag = NFSVersion::NFS_5;
 
                 std::stringstream trackBasePathStream;
@@ -325,7 +325,7 @@ namespace OpenNFS::Utils {
         CHECK_F(!installedNFS.empty(), "No Need for Speed games detected in resources directory");
 
         for (auto const &nfs: installedNFS) {
-            LOG(INFO) << "Detected: " << get_string(nfs.tag);
+            LOG(INFO) << "Detected: " << magic_enum::enum_name(nfs.tag);
         }
         return installedNFS;
     }
@@ -343,7 +343,7 @@ namespace OpenNFS::Utils {
             // Yucky way of iterating Enum
             for (uint8_t uNfsIdx = 0; uNfsIdx < 11; ++uNfsIdx) {
                 auto version = (NFSVersion) uNfsIdx;
-                if (itr->path().filename().string() == get_string(version)) {
+                if (itr->path().filename().string() == magic_enum::enum_name(version)) {
                     baseNfsPaths.push_back(itr->path());
                 }
             }

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <magic_enum/magic_enum.hpp>
 
 #include "Common/NFSVersion.h"
 #include "Util/Logger.h"
@@ -57,8 +58,8 @@ namespace OpenNFS {
     // ----- Defaults -----
     std::string const DEFAULT_CAR{"corv"};
     std::string const DEFAULT_TRACK{"trk000"};
-    std::string const DEFAULT_CAR_NFS_VER{get_string(NFSVersion::NFS_3)};
-    std::string const DEFAULT_TRACK_NFS_VER{get_string(NFSVersion::NFS_3)};
+    std::string const DEFAULT_CAR_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
+    std::string const DEFAULT_TRACK_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
     static constexpr uint32_t DEFAULT_NUM_RACERS{0};
 
     /* --------------- ONFS Runtime parameters here -----------------*/

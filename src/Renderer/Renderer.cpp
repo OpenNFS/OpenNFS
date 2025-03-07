@@ -228,7 +228,7 @@ namespace OpenNFS {
             return;
         }
         ImGui::Begin("Engine Entity");
-        ImGui::Text("%s", get_string(track_entity->type).c_str());
+        ImGui::Text("%s", magic_enum::enum_name(track_entity->type));
         if (track_entity->entityID != -1) {
             ImGui::Text("ID: %d", track_entity->entityID);
         }
@@ -316,7 +316,7 @@ namespace OpenNFS {
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("Track")) {
                 for (auto &installedNFS : m_nfsAssetList) {
-                    if (ImGui::BeginMenu(get_string(installedNFS.tag).c_str())) {
+                    if (ImGui::BeginMenu(magic_enum::enum_name(installedNFS.tag).data())) {
                         for (auto &track : installedNFS.tracks) {
                             if (ImGui::MenuItem(track.c_str())) {
                                 loadedAssets.trackTag = installedNFS.tag;
@@ -331,7 +331,7 @@ namespace OpenNFS {
             }
             if (ImGui::BeginMenu("Car")) {
                 for (auto &installedNFS : m_nfsAssetList) {
-                    if (ImGui::BeginMenu(get_string(installedNFS.tag).c_str())) {
+                    if (ImGui::BeginMenu(magic_enum::enum_name(installedNFS.tag).data())) {
                         for (auto &car : installedNFS.cars) {
                             if (ImGui::MenuItem(car.c_str())) {
                                 loadedAssets.carTag = installedNFS.tag;
