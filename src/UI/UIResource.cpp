@@ -30,4 +30,4 @@ namespace OpenNFS {
 
         return resources;
     }
-}
+} // namespace OpenNFS
