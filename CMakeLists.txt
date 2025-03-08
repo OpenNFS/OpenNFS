@@ -69,7 +69,7 @@ set(SOURCE_FILES
         src/Renderer/CarRenderer.cpp
         src/Renderer/DebugRenderer.cpp
         src/Renderer/HermiteCurve.cpp
-        src/Renderer/MenuRenderer.cpp
+        src/Renderer/UIRenderer.cpp
         src/Renderer/Renderer.cpp
         src/Renderer/ShadowMapRenderer.cpp
         src/Renderer/SkyRenderer.cpp
@@ -81,7 +81,6 @@ set(SOURCE_FILES
         src/Renderer/Models/GLQuad.cpp
         src/Renderer/Models/GLTrackModel.cpp
         src/Renderer/Models/GLBillboardModel.cpp
-        src/Renderer/imgui_config.h
         src/Scene/Track.cpp
         src/Scene/GlobalLight.cpp
         src/Scene/Spotlight.cpp
@@ -91,7 +90,7 @@ set(SOURCE_FILES
         src/Shaders/CarShader.cpp
         src/Shaders/DepthShader.cpp
         src/Shaders/FontShader.cpp
-        src/Shaders/MenuShader.cpp
+        src/Shaders/UIShader.cpp
         src/Shaders/ShaderSet.cpp
         src/Shaders/SkydomeShader.cpp
         src/Shaders/TrackShader.cpp
@@ -102,8 +101,8 @@ set(SOURCE_FILES
         src/main.cpp
         src/Renderer/MiniMapRenderer.cpp
         src/Shaders/MiniMapShader.cpp
-        src/UI/MenuElement.cpp
-        src/UI/MenuElement.h)
+        src/UI/UIElement.cpp
+        src/UI/UIManager.cpp)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

@@ -1,14 +1,13 @@
-#include "MenuRenderer.h"
+#include "UIRenderer.h"
 
 #include <ft2build.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <json/json.hpp>
 
 #include FT_FREETYPE_H
 
-using json = nlohmann::json;
-
 namespace OpenNFS {
-    MenuRenderer::MenuRenderer() {
+    UIRenderer::UIRenderer() {
         FT_Library ft;
         CHECK_F(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
 
@@ -65,59 +64,41 @@ namespace OpenNFS {
         glBindVertexArray(0);
 
         LOG(INFO) << "Glyphs loaded successfully";
-
-        m_menuResourceMap = LoadResources("../resources/ui/menu/resources.json");
-        LOG(INFO) << m_menuResourceMap.size() << " Menu resources loaded successfully";
     }
 
-    MenuRenderer::~MenuRenderer() {
-        // Lets delete all of the loaded textures
-        for (auto it = m_characterMap.begin(); it != m_characterMap.end(); ++it) {
-            glDeleteTextures(1, &it->second.textureID);
-        }
-        for (auto it = m_menuResourceMap.begin(); it != m_menuResourceMap.end(); ++it) {
-            glDeleteTextures(1, &it->second.textureID);
+    UIRenderer::~UIRenderer() {
+        // Delete all the loaded textures
+        for (auto &character : m_characterMap | std::views::values) {
+            glDeleteTextures(1, &character.textureID);
         }
     }
-
-    std::map<std::string, MenuResource> MenuRenderer::LoadResources(std::string const &resourceFile) {
-        // Read the resource JSON file
-        std::ifstream jsonFile(resourceFile);
-        CHECK_F(jsonFile.is_open(), "Couldn't open menu resource file %s", resourceFile.c_str());
-
-        std::map<std::string, MenuResource> resources;
-        json resourcesJson;
-        jsonFile >> resourcesJson;
-
-        for (auto &el : resourcesJson["resources"].items()) {
-            std::string elementName = el.value()["name"];
-
-            // Load the image into the GPU and get corresponding handle
-            int width, height;
-            GLuint const textureID{ImageLoader::LoadImage(el.value()["path"], &width, &height, GL_CLAMP_TO_EDGE, GL_LINEAR)};
-            // Now store menu resource for later use
-            MenuResource menuResource{textureID, width, height};
-            resources.insert(std::pair(elementName, menuResource));
-        }
-        jsonFile.close();
-
-        return resources;
-    }
-
-    void MenuRenderer::Render() {
+    void UIRenderer::BeginRenderPass() {
         m_projectionMatrix = glm::ortho(0.0f, (float)Config::get().resX, 0.0f, (float)Config::get().resY);
-
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        // TODO: Traverse parsed menuLayout JSON to render UI elements, depth sorted by layer back to front
-        RenderText("OpenNFS v" + ONFS_VERSION + " Pre Alpha", 0, Config::get().resX - 270, 35, 0.2f, glm::vec3(0.6, 0.6, 0.6));
-        RenderResource(m_menuResourceMap["onfsLogo"], 0, Config::get().resX - 75, 5, 0.1f);
+
+        // Allow for hot reload of shaders
+        m_uiShader.HotReload();
+        m_fontShader.HotReload();
+    }
+    void UIRenderer::EndRenderPass() {
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    void MenuRenderer::RenderText(std::string const &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
+    void UIRenderer::RenderButton(UIButton *button) {
+        RenderText(button->text, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale, button->textColour);
+        RenderResource(button->resource, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale);
+    }
+
+    void UIRenderer::RenderTextField(UITextField *textField) {
+        RenderText(textField->text, static_cast<GLint>(textField->layer), textField->location.x, textField->location.y, textField->scale, textField->textColour);
+    }
+
+    void UIRenderer::RenderImage(UIImage *image) {
+        RenderResource(image->resource, static_cast<GLint>(image->layer), image->location.x, image->location.y, image->scale);
+    }
+
+    void UIRenderer::RenderText(std::string const &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
-        // Allow for hot reload of shader
-        m_fontShader.HotReload();
 
         // Activate corresponding render state
         m_fontShader.use();
@@ -155,16 +136,16 @@ namespace OpenNFS {
         m_fontShader.unbind();
     }
 
-    void MenuRenderer::RenderResource(MenuResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat scale) {
+    void UIRenderer::RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat scale) {
         // TODO: Actually implement this rescaling scaling properly
-        float ratioX = 1.0f; // (float) m_menuResourceMap[resourceID].width / Config::get().resX;
-        float ratioY = 1.0f; // (float) m_menuResourceMap[resourceID].height / Config::get().resY;
+        float ratioX = 1.0f; // (float) resource.width / Config::get().resX;
+        float ratioY = 1.0f; // (float) resource.height / Config::get().resY;
 
         RenderResource(resource, layer, x, y, ratioX * resource.width, ratioY * resource.height, scale);
     }
 
-    void MenuRenderer::RenderResource(
-        MenuResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) {
+    void UIRenderer::RenderResource(
+        UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
 
         GLfloat const xpos{x};
@@ -176,16 +157,13 @@ namespace OpenNFS {
         GLfloat const vertices[6][4]{{xpos, ypos + h, 0.0, 0.0}, {xpos, ypos, 0.0, 1.0},     {xpos + w, ypos, 1.0, 1.0},
                                      {xpos, ypos + h, 0.0, 0.0}, {xpos + w, ypos, 1.0, 1.0}, {xpos + w, ypos + h, 1.0, 0.0}};
 
-        // Allow for hot reload of shader
-        m_menuShader.HotReload();
-
         // Activate corresponding render state
-        m_menuShader.use();
-        m_menuShader.loadLayer(layer);
-        m_menuShader.loadColour(glm::vec3(1, 1, 1));
-        m_menuShader.loadProjectionMatrix(m_projectionMatrix);
+        m_uiShader.use();
+        m_uiShader.loadLayer(layer);
+        m_uiShader.loadColour(glm::vec3(1, 1, 1));
+        m_uiShader.loadProjectionMatrix(m_projectionMatrix);
         // Render menu texture over quad
-        m_menuShader.loadMenuTexture(resource.textureID);
+        m_uiShader.loadUITexture(resource.textureID);
 
         glBindVertexArray(m_menuQuadVAO);
         // Update content of VBO memory
@@ -198,6 +176,6 @@ namespace OpenNFS {
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        m_menuShader.unbind();
+        m_uiShader.unbind();
     }
 } // namespace OpenNFS

@@ -46,6 +46,7 @@ namespace OpenNFS {
         RacerManager m_racerManager;
         OrbitalManager m_orbitalManager;
         InputManager m_inputManager;
+        UIManager m_uiManager;
 
         ParamData m_userParams;
         uint64_t m_ticks {0}; // Engine ticks elapsed

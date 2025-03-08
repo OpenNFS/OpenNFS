@@ -91,6 +91,9 @@ namespace OpenNFS {
                 m_physicsManager.GetDynamicsWorld()->debugDrawWorld();
             }
 
+            // Draw the Game UI
+            m_uiManager.Render();
+
             bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera,
                                                      m_orbitalManager.GetActiveGlobalLight(), m_userParams,
                                                      m_loadedAssets, m_racerManager.racers, m_targetedEntity)};

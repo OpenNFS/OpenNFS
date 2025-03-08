@@ -134,9 +134,6 @@ namespace OpenNFS {
         // Render the Debug UI
         this->_DrawDebugUI(userParams, activeCamera);
 
-        // Render the Game UI
-        m_menuRenderer.Render();
-
         glfwSwapBuffers(m_window.get());
 
         return newAssetSelected;
@@ -228,7 +225,7 @@ namespace OpenNFS {
             return;
         }
         ImGui::Begin("Engine Entity");
-        ImGui::Text("%s", magic_enum::enum_name(track_entity->type));
+        ImGui::Text("%s", magic_enum::enum_name(track_entity->type).data());
         if (track_entity->entityID != -1) {
             ImGui::Text("ID: %d", track_entity->entityID);
         }

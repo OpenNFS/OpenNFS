@@ -10,10 +10,10 @@
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
 #include "../Util/Logger.h"
+#include "../UI/UIManager.h"
 
 #include "CarRenderer.h"
 #include "DebugRenderer.h"
-#include "MenuRenderer.h"
 #include "MiniMapRenderer.h"
 #include "ShadowMapRenderer.h"
 #include "SkyRenderer.h"
@@ -78,7 +78,6 @@ namespace OpenNFS {
         SkyRenderer m_skyRenderer;
         ShadowMapRenderer m_shadowMapRenderer;
         DebugRenderer m_debugRenderer;
-        MenuRenderer m_menuRenderer;
         MiniMapRenderer m_miniMapRenderer;
     };
 } // namespace OpenNFS

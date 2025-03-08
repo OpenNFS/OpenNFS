@@ -5,9 +5,9 @@
 #include <glm/detail/type_mat4x4.hpp>
 
 namespace OpenNFS {
-    class MenuShader : public BaseShader {
+    class UIShader : public BaseShader {
     public:
-        explicit MenuShader();
+        explicit UIShader();
 
         void loadLayer(GLint layer);
 
@@ -15,7 +15,7 @@ namespace OpenNFS {
 
         void loadProjectionMatrix(const glm::mat4 &projection);
 
-        void loadMenuTexture(GLuint textureID);
+        void loadUITexture(GLuint textureID);
 
     protected:
         void bindAttributes() override;
