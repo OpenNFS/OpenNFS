@@ -1,5 +1,10 @@
 #include "UIRenderer.h"
 
+#include "../UI/UIButton.h"
+#include "../UI/UIImage.h"
+#include "../UI/UITextField.h"
+#include "../Util/ImageLoader.h"
+
 #include <ft2build.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <json/json.hpp>
@@ -85,12 +90,14 @@ namespace OpenNFS {
     }
 
     void UIRenderer::RenderButton(UIButton *button) {
-        RenderText(button->text, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale, button->textColour);
+        RenderText(button->text, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale,
+                   button->textColour);
         RenderResource(button->resource, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale);
     }
 
     void UIRenderer::RenderTextField(UITextField *textField) {
-        RenderText(textField->text, static_cast<GLint>(textField->layer), textField->location.x, textField->location.y, textField->scale, textField->textColour);
+        RenderText(textField->text, static_cast<GLint>(textField->layer), textField->location.x, textField->location.y, textField->scale,
+                   textField->textColour);
     }
 
     void UIRenderer::RenderImage(UIImage *image) {

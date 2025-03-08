@@ -92,7 +92,7 @@ namespace OpenNFS {
             }
 
             // Draw the Game UI
-            m_uiManager.Render();
+            m_uiManager.Update(m_inputManager.inputs);
 
             bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera,
                                                      m_orbitalManager.GetActiveGlobalLight(), m_userParams,

@@ -6,9 +6,14 @@
 #include "../Shaders/FontShader.h"
 #include "../Shaders/UIShader.h"
 #include "../UI/UIElement.h"
+#include "../UI/UIResource.h"
 #include "../Util/ImageLoader.h"
 
 namespace OpenNFS {
+    class UIButton;
+    class UITextField;
+    class UIImage;
+
     struct Character {
         GLuint textureID;   // ID handle of the glyph texture
         glm::ivec2 size;    // Size of glyph

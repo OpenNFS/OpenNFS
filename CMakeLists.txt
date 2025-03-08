@@ -102,7 +102,11 @@ set(SOURCE_FILES
         src/Renderer/MiniMapRenderer.cpp
         src/Shaders/MiniMapShader.cpp
         src/UI/UIElement.cpp
-        src/UI/UIManager.cpp)
+        src/UI/UIButton.cpp
+        src/UI/UIImage.cpp
+        src/UI/UITextField.cpp
+        src/UI/UIManager.cpp
+        src/UI/UIResource.cpp)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

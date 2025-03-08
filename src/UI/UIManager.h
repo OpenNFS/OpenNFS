@@ -1,23 +1,24 @@
 #pragma once
 
-#include "UIElement.h"
-#include "../Renderer/UIRenderer.h"
-
 #include <map>
 #include <string>
 
+#include "../Input/InputManager.h"
+#include "../Renderer/UIRenderer.h"
+#include "UIElement.h"
+#include "UIResource.h"
+
 namespace OpenNFS {
     class UIManager {
-        public:
+      public:
         UIManager();
         ~UIManager();
-        void Render();
+        void Update(InputManager::Inputs const &inputs);
 
         // TODO: Temporary structure
         std::vector<std::unique_ptr<UIElement>> m_uiElements;
 
-        static std::map<std::string, UIResource> LoadResources(std::string const &resourceFile);
-    private:
+      private:
         std::map<std::string, UIResource> m_menuResourceMap;
         UIRenderer m_uiRenderer;
     };

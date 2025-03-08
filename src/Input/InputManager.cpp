@@ -19,9 +19,12 @@ namespace OpenNFS {
         inputs.cameraBackwards = inputs.reverse;
         inputs.cameraLeft = inputs.left;
         inputs.cameraRight = inputs.right;
+        inputs.mouseLeft = (glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS);
+        inputs.mouseRight = (glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
+        glfwGetCursorPos(m_window.get(), &inputs.cursorX, &inputs.cursorY);
 
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        if ((glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) &&
+        if (inputs.mouseLeft &&
             !ImGui::GetIO().WantCaptureMouse) {
             m_windowStatus = GAME;
             ImGui::GetIO().MouseDrawCursor = false;
@@ -29,6 +32,8 @@ namespace OpenNFS {
             m_windowStatus = UI;
             ImGui::GetIO().MouseDrawCursor = true;
         }
+
+        //LOG(INFO) << "MouseX: " << inputs.cursorX << " MouseY: " << inputs.cursorY;
     }
 
     void InputManager::ResetCursorPosition() const {

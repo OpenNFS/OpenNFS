@@ -11,6 +11,7 @@ namespace OpenNFS {
     };
 
     class InputManager {
+    public:
         struct Inputs {
             bool accelerate{};
             bool reverse{};
@@ -22,9 +23,12 @@ namespace OpenNFS {
             bool cameraBackwards{};
             bool cameraLeft{};
             bool cameraRight{};
+            double cursorX{};
+            double cursorY{};
+            bool mouseLeft{};
+            bool mouseRight{};
         };
 
-      public:
         explicit InputManager(std::shared_ptr<GLFWwindow> const &window);
         void Scan();
         void ResetCursorPosition() const;
