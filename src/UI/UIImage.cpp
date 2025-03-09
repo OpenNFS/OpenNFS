@@ -6,12 +6,12 @@ namespace OpenNFS {
     }
 
     void UIImage::Update(glm::vec2 const &cursorPosition, bool const click) {
-        if (cursorPosition.x >= location.x && cursorPosition.x <= location.x + resource.height && cursorPosition.y >= location.y &&
-            cursorPosition.y <= location.y + resource.width) {
+        if (cursorPosition.x >= location.x && cursorPosition.x <= location.x + (resource.width * scale) &&
+            cursorPosition.y >= location.y && cursorPosition.y <= location.y + (resource.height * scale)) {
             if (click) {
-                LOG(INFO) << "Clicked";
+                onClickFunction();
             } else {
-                LOG(INFO) << "Hover";
+                // Hovering
             }
         }
     }

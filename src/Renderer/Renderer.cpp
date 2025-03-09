@@ -28,7 +28,6 @@ namespace OpenNFS {
 
         auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr),
                                                   [](GLFWwindow *) { glfwTerminate(); });
-
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window";
             glfwTerminate();

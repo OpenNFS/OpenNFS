@@ -19,11 +19,12 @@ namespace OpenNFS {
         virtual void Update(glm::vec2 const &cursorPosition, bool click) = 0;
         virtual ~UIElement() = default;
 
-      UIElementType type;
+        UIElementType type;
         float scale;
         uint32_t layer;
         glm::vec2 location;
-      private:
+
+      protected:
         std::function<void()> onClickFunction;
     };
 } // namespace OpenNFS

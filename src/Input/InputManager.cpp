@@ -32,8 +32,6 @@ namespace OpenNFS {
             m_windowStatus = UI;
             ImGui::GetIO().MouseDrawCursor = true;
         }
-
-        //LOG(INFO) << "MouseX: " << inputs.cursorX << " MouseY: " << inputs.cursorY;
     }
 
     void InputManager::ResetCursorPosition() const {
