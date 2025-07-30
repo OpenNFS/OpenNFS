@@ -41,6 +41,7 @@ jobs:
           cmake -B bin -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -A x64 .
           cmake --build bin --config Release --parallel 4
           cp LICENSE LICENSE.txt
+          cp bin\Release\OpenNFS.exe bin\
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
