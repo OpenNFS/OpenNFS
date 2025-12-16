@@ -1,7 +1,6 @@
 #include "SkyRenderer.h"
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tinyobjloader/tiny_obj_loader.h>
+#include <Util/ModelLoader.h>
 #include <glm/gtx/quaternion.hpp>
 
 namespace OpenNFS {
@@ -32,41 +31,13 @@ namespace OpenNFS {
                                                 GL_LINEAR_MIPMAP_LINEAR);
 
         // Load OBJ Model
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string err;
-        std::string warn;
-        CHECK_F(
-            tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "../resources/misc/skydome/sphere.obj", nullptr,
-                true, true), "%s", err.c_str());
+        std::vector<ModelData> models;
+        CHECK_F(ModelLoader::LoadObj("../resources/misc/skydome/sphere.obj", models, 400.0f), "Failed to load skydome model");
 
-        // TODO: Generify the Utils loader to detect norms and uvs, else backfill with vecs of 0's
-        for (auto &shape: shapes) {
-            auto verts = std::vector<glm::vec3>();
-            auto norms = std::vector<glm::vec3>();
-            auto uvs = std::vector<glm::vec2>();
-            auto indices = std::vector<unsigned int>();
-            // Loop over faces(polygon)
-            size_t index_offset = 0;
-            for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++) {
-                int fv = shape.mesh.num_face_vertices[f];
-                // Loop over vertices in the face.
-                for (size_t v = 0; v < fv; v++) {
-                    // access to vertex
-                    tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
-                    indices.emplace_back((const unsigned int &) idx.vertex_index);
-                    verts.emplace_back(attrib.vertices[3 * idx.vertex_index + 0] * 400,
-                                       attrib.vertices[3 * idx.vertex_index + 1] * 400,
-                                       attrib.vertices[3 * idx.vertex_index + 2] * 400);
-                    norms.emplace_back(0.f, 0.f, 0.f); // Fill the sphere attribs with empty data as missing
-                    uvs.emplace_back(0.0f, 0.0f);
-                }
-                index_offset += fv;
-            }
-            m_skydomeGeom = CarGeometry(shape.name + "_obj", verts, uvs, norms, indices, glm::vec3(0, 0, 0));
-            m_skydomeModel = GLCarModel(m_skydomeGeom, 0.01f, 0.0f, 0.5f);
-            break;
+        for (const auto& model : models) {
+             m_skydomeGeom = CarGeometry("skydome_obj", model.m_vertices, model.m_uvs, model.m_normals, model.m_indices, glm::vec3(0, 0, 0));
+             m_skydomeModel = GLCarModel(m_skydomeGeom, 0.01f, 0.0f, 0.5f);
+             break;
         }
         m_skydomeModel.Enable();
         m_skydomeModel.UpdateMatrices();

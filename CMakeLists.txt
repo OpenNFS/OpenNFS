@@ -97,6 +97,7 @@ set(SOURCE_FILES
         src/Util/ImageLoader.cpp
         src/Util/ImageLoader.cpp
         src/Util/Logger.cpp
+        src/Util/ModelLoader.cpp
         src/Util/Utils.cpp
         src/main.cpp
         src/Renderer/MiniMapRenderer.cpp
