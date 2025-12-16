@@ -3,6 +3,9 @@
 #include <cassert>
 #include <stack>
 
+// Factor used to predict object movement for AABB fattening (in seconds)
+constexpr float VELOCITY_PREDICTION_FACTOR = 0.5f;
+
 AABBTree::AABBTree(const unsigned initialSize) : _rootNodeIndex(AABB_NULL_NODE), _allocatedNodeCount(0), _nextFreeNodeIndex(0), _nodeCapacity(initialSize), _growthSize(initialSize) {
     _nodes.resize(initialSize);
     for (unsigned nodeIndex = 0; nodeIndex < initialSize; nodeIndex++) {
@@ -54,6 +57,14 @@ void AABBTree::insertObject(const std::shared_ptr<IAABB>& object) {
 
     node.aabb   = object->GetAABB();
     node.object = object;
+
+    // Fatten the AABB with velocity
+    glm::vec3 velocity = object->GetVelocity();
+    glm::vec3 prediction = velocity * VELOCITY_PREDICTION_FACTOR;
+    AABB predictedAABB = node.aabb;
+    predictedAABB.min += prediction;
+    predictedAABB.max += prediction;
+    node.aabb = node.aabb.Merge(predictedAABB);
 
     insertLeaf(nodeIndex);
     _objectNodeIndexMap[object] = nodeIndex;
@@ -231,13 +242,20 @@ void AABBTree::updateLeaf(const unsigned leafNodeIndex, const AABB& newAaab) {
     AABBNode& node = _nodes[leafNodeIndex];
 
     // if the node contains the new aabb then we just leave things
-    // TODO: when we add velocity this check should kick in as often an update will lie within the velocity fattened initial aabb
-    // to support this we might need to differentiate between velocity fattened aabb and actual aabb
+    // check kicked in as update lies within the velocity fattened initial aabb
     if (node.aabb.Contains(newAaab))
         return;
 
     removeLeaf(leafNodeIndex);
-    node.aabb = newAaab;
+
+    // Fatten the AABB with velocity
+    glm::vec3 velocity = node.object->GetVelocity();
+    glm::vec3 prediction = velocity * VELOCITY_PREDICTION_FACTOR;
+    AABB predictedAABB = newAaab;
+    predictedAABB.min += prediction;
+    predictedAABB.max += prediction;
+    node.aabb = newAaab.Merge(predictedAABB);
+
     insertLeaf(leafNodeIndex);
 }
 

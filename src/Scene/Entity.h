@@ -19,6 +19,7 @@ namespace OpenNFS {
         ~Entity() override = default;
         void Update(); // Update Entity position based on Physics engine
         AABB GetAABB() const override;
+        glm::vec3 GetVelocity() const override;
         glm::vec3 GetDebugColour() const;
 
         std::unique_ptr<btRigidBody> rigidBody;

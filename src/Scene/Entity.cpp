@@ -115,6 +115,13 @@ namespace OpenNFS {
         return m_boundingBox;
     }
 
+    glm::vec3 Entity::GetVelocity() const {
+        if (dynamic && rigidBody) {
+            return Utils::bulletToGlm(rigidBody->getLinearVelocity());
+        }
+        return glm::vec3(0.0f);
+    }
+
     glm::vec3 Entity::GetDebugColour() const {
         switch (type) {
         case LibOpenNFS::EntityType::XOBJ:
