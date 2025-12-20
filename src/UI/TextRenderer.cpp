@@ -22,7 +22,7 @@ namespace OpenNFS {
         /* Set up the VBO for our vertex data */
         m_uiTextShader.bindBuffer();
 
-        point coords[6 * strlen(text)];
+        Point coords[6 * strlen(text)];
         int c = 0;
 
         /* Loop through all characters */
@@ -41,12 +41,12 @@ namespace OpenNFS {
             if (!w || !h)
                 continue;
 
-            coords[c++] = (point){x2, -y2, a->c[*p].tx, a->c[*p].ty};
-            coords[c++] = (point){x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty};
-            coords[c++] = (point){x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h};
-            coords[c++] = (point){x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty};
-            coords[c++] = (point){x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h};
-            coords[c++] = (point){x2 + w, -y2 - h, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty + a->c[*p].bh / a->h};
+            coords[c++] = Point{x2, -y2, a->c[*p].tx, a->c[*p].ty};
+            coords[c++] = Point{x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty};
+            coords[c++] = Point{x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h};
+            coords[c++] = Point{x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty};
+            coords[c++] = Point{x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h};
+            coords[c++] = Point{x2 + w, -y2 - h, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty + a->c[*p].bh / a->h};
         }
 
         /* Draw all the character on the screen in one go */

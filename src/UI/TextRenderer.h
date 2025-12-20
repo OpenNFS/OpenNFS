@@ -47,7 +47,7 @@ namespace OpenNFS {
       private:
         void RenderText(char const *text, Atlas const *a, float x, float y, float sx, float sy);
 
-        struct point {
+        struct Point {
             GLfloat x;
             GLfloat y;
             GLfloat s;

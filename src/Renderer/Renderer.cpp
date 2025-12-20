@@ -17,7 +17,7 @@ namespace OpenNFS {
                                                      uint32_t const resolutionY,
                                                      std::string const &windowName) {
         // Initialise GLFW
-        CHECK_F(glfwInit(), "GLFW Init failed.\n");
+        CHECK_F(glfwInit() == GLFW_TRUE, "GLFW Init failed.\n");
         glfwSetErrorCallback(&Renderer::GlfwError);
 
         // glfwWindowHint(GLFW_SAMPLES, 2);
