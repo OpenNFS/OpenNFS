@@ -1,10 +1,10 @@
-#include <glm/vec3.hpp>
 #include "BaseShader.h"
-#include "../Config.h"
-#include "../Util/Utils.h"
+#include "../../Config.h"
+#include "../../Util/Utils.h"
+#include <glm/vec3.hpp>
 
 namespace OpenNFS {
-    BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &fragment_file_path) {
+    BaseShader::BaseShader(std::string const &vertex_file_path, std::string const &fragment_file_path) {
         // Prepended to shaders
         m_shaderSet.SetVersion(ONFS_GL_VERSION);
 
@@ -15,8 +15,9 @@ namespace OpenNFS {
         m_shaderSet.UpdatePrograms();
     }
 
-    BaseShader::BaseShader(const std::string &vertex_file_path, const std::string &geometry_file_path,
-                           const std::string &fragment_file_path) {
+    BaseShader::BaseShader(std::string const &vertex_file_path,
+                           std::string const &geometry_file_path,
+                           std::string const &fragment_file_path) {
         // Prepended to shaders
         m_shaderSet.SetVersion(ONFS_GL_VERSION);
 
@@ -27,35 +28,35 @@ namespace OpenNFS {
         m_shaderSet.UpdatePrograms();
     }
 
-    void BaseShader::loadSampler2D(const GLint location, const GLint textureUnit) {
+    void BaseShader::loadSampler2D(GLint const location, GLint const textureUnit) {
         glUniform1i(location, textureUnit);
     }
 
-    void BaseShader::loadUint(const GLint location, const uint32_t value) {
+    void BaseShader::loadUint(GLint const location, uint32_t const value) {
         glUniform1i(location, value);
     }
 
-    void BaseShader::loadFloat(const GLint location, const float value) {
+    void BaseShader::loadFloat(GLint const location, float const value) {
         glUniform1f(location, value);
     }
 
-    void BaseShader::loadVec4(const GLint location, const glm::vec4 value) {
+    void BaseShader::loadVec4(GLint const location, glm::vec4 const value) {
         glUniform4f(location, value.x, value.y, value.z, value.w);
     }
 
-    void BaseShader::loadVec3(const GLint location, const glm::vec3 value) {
+    void BaseShader::loadVec3(GLint const location, glm::vec3 const value) {
         glUniform3f(location, value.x, value.y, value.z);
     }
 
-    void BaseShader::loadVec2(const GLint location, const glm::vec2 value) {
+    void BaseShader::loadVec2(GLint const location, glm::vec2 const value) {
         glUniform2f(location, value.x, value.y);
     }
 
-    void BaseShader::loadMat4(const GLint location, const GLfloat *value) {
+    void BaseShader::loadMat4(GLint const location, GLfloat const *value) {
         glUniformMatrix4fv(location, 1, GL_FALSE, value);
     }
 
-    void BaseShader::loadMat3(const GLint location, const GLfloat *value) {
+    void BaseShader::loadMat3(GLint const location, GLfloat const *value) {
         glUniformMatrix3fv(location, 1, GL_FALSE, value);
     }
 
@@ -79,11 +80,11 @@ namespace OpenNFS {
         glDeleteProgram(*m_programID);
     }
 
-    GLint BaseShader::getUniformLocation(const std::string &uniformName) const {
+    GLint BaseShader::getUniformLocation(std::string const &uniformName) const {
         return glGetUniformLocation(*m_programID, uniformName.c_str());
     }
 
-    void BaseShader::bindAttribute(const GLuint attribute, const std::string &variableName) const {
+    void BaseShader::bindAttribute(GLuint const attribute, std::string const &variableName) const {
         glBindAttribLocation(*m_programID, attribute, variableName.c_str());
     }
-}
+} // namespace OpenNFS

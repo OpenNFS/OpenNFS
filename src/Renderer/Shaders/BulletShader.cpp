@@ -1,8 +1,8 @@
 #include "BulletShader.h"
 
 namespace OpenNFS {
-    const std::string vertexSrc = "../shaders/BulletVertexShader.vert";
-    const std::string fragSrc = "../shaders/BulletFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/BulletShader.vert";
+    std::string const fragSrc = "../shaders/BulletShader.frag";
 
     BulletShader::BulletShader() : BaseShader(vertexSrc, fragSrc) {
         BulletShader::bindAttributes();
@@ -19,10 +19,10 @@ namespace OpenNFS {
         projectionViewMatrixLocation = getUniformLocation("projectionViewMatrix");
     }
 
-    void BulletShader::loadProjectionViewMatrix(const glm::mat4 &projectionViewMatrix) {
+    void BulletShader::loadProjectionViewMatrix(glm::mat4 const &projectionViewMatrix) {
         loadMat4(projectionViewMatrixLocation, &projectionViewMatrix[0][0]);
     }
 
     void BulletShader::customCleanup() {
     }
-}
+} // namespace OpenNFS

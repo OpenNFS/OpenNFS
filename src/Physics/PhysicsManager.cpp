@@ -1,5 +1,7 @@
 #include "PhysicsManager.h"
 
+#include <ranges>
+
 #include "CollisionMasks.h"
 
 namespace OpenNFS {
@@ -68,10 +70,12 @@ namespace OpenNFS {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        for (auto const &trackBlockEntities : m_track.perTrackblockEntities) {
-            for (auto const &entity : trackBlockEntities) {
-                entity->Update();
-            }
+        auto const racerResidentTrackblockEntities{
+            racerResidentTrackblockIDs |
+            std::views::transform([&](uint32_t const index) -> auto & { return m_track.perTrackblockEntities[index]; }) | std::views::join};
+
+        for (auto const &entity : racerResidentTrackblockEntities) {
+            entity->Update();
         }
     }
 

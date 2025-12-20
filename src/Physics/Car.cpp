@@ -43,7 +43,7 @@ namespace OpenNFS {
         }
     }
 
-    void Car::Update(btDynamicsWorld *dynamicsWorld) {
+    void Car::Update(btDynamicsWorld const *dynamicsWorld) {
         // Update car
         this->_UpdateMeshesToMatchPhysics();
         // Apply user input

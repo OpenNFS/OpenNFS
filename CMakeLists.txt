@@ -36,7 +36,7 @@ set(IMGUI_SOURCES
         include/imgui/imgui_widgets.cpp
         include/imgui/backends/imgui_impl_glfw.cpp
         include/imgui/backends/imgui_impl_opengl3.cpp
-        #[[include/ImGuiColorTextEdit/TextEditor.cpp]])
+        include/ImGuiColorTextEdit/TextEditor.cpp)
 add_definitions(-DIMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/src/Renderer/imgui_config.h")
 
 set(SOURCE_FILES
@@ -84,23 +84,25 @@ set(SOURCE_FILES
         src/Scene/Track.cpp
         src/Scene/GlobalLight.cpp
         src/Scene/Spotlight.cpp
-        src/Shaders/BaseShader.cpp
-        src/Shaders/BillboardShader.cpp
-        src/Shaders/BulletShader.cpp
-        src/Shaders/CarShader.cpp
-        src/Shaders/DepthShader.cpp
-        src/Shaders/FontShader.cpp
-        src/Shaders/UIShader.cpp
-        src/Shaders/ShaderSet.cpp
-        src/Shaders/SkydomeShader.cpp
-        src/Shaders/TrackShader.cpp
+        src/Renderer/Shaders/BaseShader.cpp
+        src/Renderer/Shaders/BillboardShader.cpp
+        src/Renderer/Shaders/BulletShader.cpp
+        src/Renderer/Shaders/CarShader.cpp
+        src/Renderer/Shaders/DepthShader.cpp
+        src/Renderer/Shaders/FontShader.cpp
+        src/Renderer/Shaders/UIShader.cpp
+        src/Renderer/Shaders/UITextShader.cpp
+        src/Renderer/Shaders/ShaderSet.cpp
+        src/Renderer/Shaders/SkydomeShader.cpp
+        src/Renderer/Shaders/TrackShader.cpp
         src/Util/ImageLoader.cpp
         src/Util/ImageLoader.cpp
         src/Util/Logger.cpp
         src/Util/Utils.cpp
         src/main.cpp
         src/Renderer/MiniMapRenderer.cpp
-        src/Shaders/MiniMapShader.cpp
+        src/Renderer/Shaders/MiniMapShader.cpp
+        src/UI/TextRenderer.cpp
         src/UI/UIElement.cpp
         src/UI/UIButton.cpp
         src/UI/UIImage.cpp

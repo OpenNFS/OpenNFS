@@ -3,11 +3,12 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "../Shaders/FontShader.h"
-#include "../Shaders/UIShader.h"
+#include "../UI/TextRenderer.h"
 #include "../UI/UIElement.h"
 #include "../UI/UIResource.h"
 #include "../Util/ImageLoader.h"
+#include "Shaders/FontShader.h"
+#include "Shaders/UIShader.h"
 
 namespace OpenNFS {
     class UIButton;
@@ -26,12 +27,12 @@ namespace OpenNFS {
         explicit UIRenderer();
         ~UIRenderer();
         void BeginRenderPass();
-        void EndRenderPass();
+        static void EndRenderPass();
 
         // Per-UI Element render calls
-        void RenderButton(UIButton *button);
-        void RenderTextField(UITextField *textField);
-        void RenderImage(UIImage *image);
+        void RenderButton(UIButton const *button);
+        void RenderTextField(UITextField const *textField);
+        void RenderImage(UIImage const *image);
 
       private:
         // Rendering Primitives

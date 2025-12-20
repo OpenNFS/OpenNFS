@@ -1,8 +1,8 @@
 #include "DepthShader.h"
 
 namespace OpenNFS {
-    const std::string vertexSrc = "../shaders/DepthVertexShader.vert";
-    const std::string fragSrc = "../shaders/DepthFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/DepthShader.vert";
+    std::string const fragSrc = "../shaders/DepthShader.frag";
 
     DepthShader::DepthShader() : BaseShader(vertexSrc, fragSrc) {
         DepthShader::bindAttributes();
@@ -24,17 +24,17 @@ namespace OpenNFS {
     void DepthShader::customCleanup() {
     }
 
-    void DepthShader::bindTextureArray(const GLuint textureArrayID) const {
+    void DepthShader::bindTextureArray(GLuint const textureArrayID) const {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
         glUniform1i(textureArrayLocation, 0);
     }
 
-    void DepthShader::loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix) {
+    void DepthShader::loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) {
         loadMat4(lightSpaceMatrixLocation, &lightSpaceMatrix[0][0]);
     }
 
-    void DepthShader::loadTransformMatrix(const glm::mat4 &transformationMatrix) {
+    void DepthShader::loadTransformMatrix(glm::mat4 const &transformationMatrix) {
         loadMat4(transformationMatrixLocation, &transformationMatrix[0][0]);
     }
-}
+} // namespace OpenNFS

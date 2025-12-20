@@ -5,7 +5,7 @@
 namespace OpenNFS {
     ShadowMapRenderer::ShadowMapRenderer() {
         // Configure depth map FBO
-        glGenFramebuffers(1, &m_fboDepthMap);
+        glGenFramebuffers(1, &m_depthMapFbo);
         // Create depth texture
         glGenTextures(1, &m_depthTextureID);
         glBindTexture(GL_TEXTURE_2D, m_depthTextureID);
@@ -15,7 +15,7 @@ namespace OpenNFS {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         // Attach depth texture as FBO's depth buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, m_fboDepthMap);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_depthMapFbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
@@ -27,16 +27,16 @@ namespace OpenNFS {
 
     void ShadowMapRenderer::Render(float nearPlane,
                                    float farPlane,
-                                   const GlobalLight *light,
+                                   GlobalLight const *light,
                                    GLuint trackTextureArrayID,
-                                   const std::vector<std::shared_ptr<Entity>> &visibleEntities,
-                                   const std::vector<std::shared_ptr<CarAgent>> &racers) {
+                                   std::vector<std::shared_ptr<Entity>> const &visibleEntities,
+                                   std::vector<std::shared_ptr<CarAgent>> const &racers) {
         /* ------- SHADOW MAPPING ------- */
         m_depthShader.use();
         m_depthShader.loadLightSpaceMatrix(light->lightSpaceMatrix);
         m_depthShader.bindTextureArray(trackTextureArrayID);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_fboDepthMap);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_depthMapFbo);
         glClear(GL_DEPTH_BUFFER_BIT);
 
         /* Render the track using this simple shader to get depth texture to test against during draw */
@@ -72,8 +72,12 @@ namespace OpenNFS {
         m_depthShader.HotReload();
     }
 
+    GLuint ShadowMapRenderer::GetTextureID() {
+        return m_depthTextureID;
+    }
+
     ShadowMapRenderer::~ShadowMapRenderer() {
-        glDeleteFramebuffers(1, &m_fboDepthMap);
+        glDeleteFramebuffers(1, &m_depthMapFbo);
         m_depthShader.cleanup();
     }
 

@@ -4,17 +4,17 @@
 #include <sys/stat.h>
 #else
 // Not Windows? Assume unix-like.
-#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #endif
 
-#include <string>
-#include <fstream>
-#include <cstdio>
 #include <algorithm>
+#include <cstdio>
+#include <fstream>
+#include <string>
 
-static uint64_t GetShaderFileTimestamp(const char* filename) {
+static uint64_t GetShaderFileTimestamp(char const *filename) {
     uint64_t timestamp = 0;
 
 #ifdef _WIN32
@@ -40,7 +40,7 @@ static uint64_t GetShaderFileTimestamp(const char* filename) {
     return timestamp;
 }
 
-static std::string ShaderStringFromFile(const char* filename) {
+static std::string ShaderStringFromFile(char const *filename) {
     std::ifstream fs(filename);
     if (!fs) {
         return "";
@@ -52,28 +52,28 @@ static std::string ShaderStringFromFile(const char* filename) {
 }
 
 ShaderSet::~ShaderSet() {
-    for (std::pair<const ShaderNameTypePair, Shader>& shader : mShaders) {
+    for (std::pair<ShaderNameTypePair const, Shader> &shader : mShaders) {
         glDeleteShader(shader.second.Handle);
     }
 
-    for (std::pair<const std::vector<const ShaderNameTypePair*>, Program>& program : mPrograms) {
+    for (std::pair<std::vector<ShaderNameTypePair const *> const, Program> &program : mPrograms) {
         glDeleteProgram(program.second.InternalHandle);
     }
 }
 
-void ShaderSet::SetVersion(const std::string& version) {
+void ShaderSet::SetVersion(std::string const &version) {
     mVersion = version;
 }
 
-void ShaderSet::SetPreamble(const std::string& preamble) {
+void ShaderSet::SetPreamble(std::string const &preamble) {
     mPreamble = preamble;
 }
 
-GLuint* ShaderSet::AddProgram(const std::vector<std::pair<std::string, GLenum>>& typedShaders) {
-    std::vector<const ShaderNameTypePair*> shaderNameTypes;
+GLuint *ShaderSet::AddProgram(std::vector<std::pair<std::string, GLenum>> const &typedShaders) {
+    std::vector<ShaderNameTypePair const *> shaderNameTypes;
 
     // find references to existing shaders, and create ones that didn't exist previously.
-    for (const std::pair<std::string, GLenum>& shaderNameType : typedShaders) {
+    for (std::pair<std::string, GLenum> const &shaderNameType : typedShaders) {
         ShaderNameTypePair tmpShaderNameType;
         std::tie(tmpShaderNameType.Name, tmpShaderNameType.Type) = shaderNameType;
 
@@ -85,12 +85,12 @@ GLuint* ShaderSet::AddProgram(const std::vector<std::pair<std::string, GLenum>>&
             }
         }
 
-        const auto foundShader = mShaders.emplace(std::move(tmpShaderNameType), Shader{}).first;
+        auto const foundShader = mShaders.emplace(std::move(tmpShaderNameType), Shader{}).first;
         if (!foundShader->second.Handle) {
             foundShader->second.Handle = glCreateShader(shaderNameType.second);
             // Mask the hash to 16 bits because some implementations are limited to that number of bits.
             // The sign bit is masked out, since some shader compilers treat the #line as signed, and others treat it unsigned.
-            foundShader->second.HashName = (int32_t) std::hash<std::string>()(shaderNameType.first) & 0x7FFF;
+            foundShader->second.HashName = (int32_t)std::hash<std::string>()(shaderNameType.first) & 0x7FFF;
         }
         shaderNameTypes.push_back(&foundShader->first);
     }
@@ -100,13 +100,13 @@ GLuint* ShaderSet::AddProgram(const std::vector<std::pair<std::string, GLenum>>&
     shaderNameTypes.erase(std::ranges::unique(shaderNameTypes).begin(), end(shaderNameTypes));
 
     // find the program associated to these shaders (or create it if missing)
-    const auto foundProgram = mPrograms.emplace(shaderNameTypes, Program{}).first;
+    auto const foundProgram = mPrograms.emplace(shaderNameTypes, Program{}).first;
     if (!foundProgram->second.InternalHandle) {
         // public handle is 0 until the program has linked without error
         foundProgram->second.PublicHandle = 0;
 
         foundProgram->second.InternalHandle = glCreateProgram();
-        for (const ShaderNameTypePair* shader : shaderNameTypes) {
+        for (ShaderNameTypePair const *shader : shaderNameTypes) {
             glAttachShader(foundProgram->second.InternalHandle, mShaders[*shader].Handle);
         }
     }
@@ -116,8 +116,8 @@ GLuint* ShaderSet::AddProgram(const std::vector<std::pair<std::string, GLenum>>&
 
 void ShaderSet::UpdatePrograms() {
     // find all shaders with updated timestamps
-    std::set<std::pair<const ShaderNameTypePair, Shader>*> updatedShaders;
-    for (std::pair<const ShaderNameTypePair, Shader>& shader : mShaders) {
+    std::set<std::pair<ShaderNameTypePair const, Shader> *> updatedShaders;
+    for (std::pair<ShaderNameTypePair const, Shader> &shader : mShaders) {
         uint64_t timestamp = GetShaderFileTimestamp(shader.first.Name.c_str());
         if (timestamp > shader.second.Timestamp) {
             shader.second.Timestamp = timestamp;
@@ -126,7 +126,7 @@ void ShaderSet::UpdatePrograms() {
     }
 
     // recompile all updated shaders
-    for (std::pair<const ShaderNameTypePair, Shader>* shader : updatedShaders) {
+    for (std::pair<ShaderNameTypePair const, Shader> *shader : updatedShaders) {
         // the #line prefix ensures error messages have the right line number for their file
         // the #line directive also allows specifying a "file name" number, which makes it possible to identify which file the error came
         // from.
@@ -154,16 +154,16 @@ void ShaderSet::UpdatePrograms() {
             break;
         }
 
-        std::string preamble_hash = std::to_string((int32_t) std::hash<std::string>()("preamble") & 0x7FFF);
-        std::string preamble      = "#line 1 " + preamble_hash + "\n" + mPreamble + "\n";
+        std::string preamble_hash = std::to_string((int32_t)std::hash<std::string>()("preamble") & 0x7FFF);
+        std::string preamble = "#line 1 " + preamble_hash + "\n" + mPreamble + "\n";
 
         std::string source_hash = std::to_string(shader->second.HashName);
-        std::string source      = "#line 1 " + source_hash + "\n" + ShaderStringFromFile(shader->first.Name.c_str()) + "\n";
+        std::string source = "#line 1 " + source_hash + "\n" + ShaderStringFromFile(shader->first.Name.c_str()) + "\n";
 
-        const char* strings[] = {version.c_str(), defines.c_str(), preamble.c_str(), source.c_str()};
-        GLint lengths[]       = {(GLint) version.length(), (GLint) defines.length(), (GLint) preamble.length(), (GLint) source.length()};
+        char const *strings[] = {version.c_str(), defines.c_str(), preamble.c_str(), source.c_str()};
+        GLint lengths[] = {(GLint)version.length(), (GLint)defines.length(), (GLint)preamble.length(), (GLint)source.length()};
 
-        glShaderSource(shader->second.Handle, sizeof(strings) / sizeof(*strings), strings, lengths);
+        glShaderSource(shader->second.Handle, std::size(strings), strings, lengths);
         glCompileShader(shader->second.Handle);
 
         GLint status;
@@ -172,7 +172,7 @@ void ShaderSet::UpdatePrograms() {
             GLint logLength;
             glGetShaderiv(shader->second.Handle, GL_INFO_LOG_LENGTH, &logLength);
             std::vector<char> log(logLength + 1);
-            glGetShaderInfoLog(shader->second.Handle, logLength, NULL, log.data());
+            glGetShaderInfoLog(shader->second.Handle, logLength, nullptr, log.data());
 
             std::string log_s = log.data();
 
@@ -189,10 +189,10 @@ void ShaderSet::UpdatePrograms() {
     }
 
     // relink all programs that had their shaders updated and have all their shaders compiling successfully
-    for (std::pair<const std::vector<const ShaderNameTypePair*>, Program>& program : mPrograms) {
+    for (std::pair<std::vector<ShaderNameTypePair const *> const, Program> &program : mPrograms) {
         bool programNeedsRelink = false;
-        for (const ShaderNameTypePair* programShader : program.first) {
-            for (std::pair<const ShaderNameTypePair, Shader>* shader : updatedShaders) {
+        for (ShaderNameTypePair const *programShader : program.first) {
+            for (std::pair<ShaderNameTypePair const, Shader> *shader : updatedShaders) {
                 if (&shader->first == programShader) {
                     programNeedsRelink = true;
                     break;
@@ -206,7 +206,7 @@ void ShaderSet::UpdatePrograms() {
         // Don't attempt to link shaders that didn't compile successfully
         bool canRelink = true;
         if (programNeedsRelink) {
-            for (const ShaderNameTypePair* programShader : program.first) {
+            for (ShaderNameTypePair const *programShader : program.first) {
                 GLint status;
                 glGetShaderiv(mShaders[*programShader].Handle, GL_COMPILE_STATUS, &status);
                 if (!status) {
@@ -222,16 +222,16 @@ void ShaderSet::UpdatePrograms() {
             GLint logLength;
             glGetProgramiv(program.second.InternalHandle, GL_INFO_LOG_LENGTH, &logLength);
             std::vector<char> log(logLength + 1);
-            glGetProgramInfoLog(program.second.InternalHandle, logLength, NULL, log.data());
+            glGetProgramInfoLog(program.second.InternalHandle, logLength, nullptr, log.data());
 
             std::string log_s = log.data();
 
             // replace all filename hashes in the error messages with actual filenames
-            std::string preamble_hash = std::to_string((int32_t) std::hash<std::string>()("preamble"));
+            std::string preamble_hash = std::to_string((int32_t)std::hash<std::string>()("preamble"));
             for (size_t found_preamble; (found_preamble = log_s.find(preamble_hash)) != std::string::npos;) {
                 log_s.replace(found_preamble, preamble_hash.size(), "preamble");
             }
-            for (const ShaderNameTypePair* shaderInProgram : program.first) {
+            for (ShaderNameTypePair const *shaderInProgram : program.first) {
                 std::string source_hash = std::to_string(mShaders[*shaderInProgram].HashName);
                 for (size_t found_source; (found_source = log_s.find(source_hash)) != std::string::npos;) {
                     log_s.replace(found_source, source_hash.size(), shaderInProgram->Name);
@@ -245,7 +245,7 @@ void ShaderSet::UpdatePrograms() {
             char linkerLogBuffer[MAX_LOG_LENGTH];
             snprintf(linkerLogBuffer, MAX_LOG_LENGTH, "");
 
-            for (const ShaderNameTypePair* shader : program.first) {
+            for (ShaderNameTypePair const *shader : program.first) {
                 if (shader != program.first.front()) {
                     snprintf(linkerLogBuffer + strlen(linkerLogBuffer), MAX_LOG_LENGTH, ", ");
                 }
@@ -262,14 +262,14 @@ void ShaderSet::UpdatePrograms() {
     }
 }
 
-void ShaderSet::SetPreambleFile(const std::string& preambleFilename) {
+void ShaderSet::SetPreambleFile(std::string const &preambleFilename) {
     SetPreamble(ShaderStringFromFile(preambleFilename.c_str()));
 }
 
-GLuint* ShaderSet::AddProgramFromExts(const std::vector<std::string>& shaders) {
+GLuint *ShaderSet::AddProgramFromExts(std::vector<std::string> const &shaders) {
     std::vector<std::pair<std::string, GLenum>> typedShaders;
-    for (const std::string& shader : shaders) {
-        const size_t extLoc {shader.find_last_of('.')};
+    for (std::string const &shader : shaders) {
+        size_t const extLoc{shader.find_last_of('.')};
         if (extLoc == std::string::npos) {
             return nullptr;
         }
@@ -298,7 +298,7 @@ GLuint* ShaderSet::AddProgramFromExts(const std::vector<std::string>& shaders) {
     return AddProgram(typedShaders);
 }
 
-GLuint* ShaderSet::AddProgramFromCombinedFile(const std::string& filename, const std::vector<GLenum>& shaderTypes) {
+GLuint *ShaderSet::AddProgramFromCombinedFile(std::string const &filename, std::vector<GLenum> const &shaderTypes) {
     std::vector<std::pair<std::string, GLenum>> typedShaders;
 
     for (auto type : shaderTypes)

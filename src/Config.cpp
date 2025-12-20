@@ -8,7 +8,7 @@ namespace OpenNFS {
         CHECK_F(false, "Config load from file not implemented! (yet)");
     }
 
-    void Config::InitFromCommandLine(int argc, char **argv) {
+    void Config::InitFromCommandLine(int const argc, char **argv) {
         argparse::ArgumentParser program("OpenNFS", ONFS_VERSION, argparse::default_arguments::help);
 
         // Option name/short name, description, bound variable for parameter

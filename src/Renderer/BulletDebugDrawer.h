@@ -4,41 +4,41 @@
 #include <glm/detail/type_mat4x4.hpp>
 
 #include "../Camera/BaseCamera.h"
-#include "../Shaders/BulletShader.h"
-#include "../Util/Utils.h"
 #include "../Util/Logger.h"
+#include "../Util/Utils.h"
+#include "Shaders/BulletShader.h"
 
 namespace OpenNFS {
     class BulletLine {
         glm::vec3 from;
         glm::vec3 to;
 
-    public:
-        BulletLine(const btVector3 &from, const btVector3 &to) {
+      public:
+        BulletLine(btVector3 const &from, btVector3 const &to) {
             this->from = Utils::bulletToGlm(from);
-            this->to   = Utils::bulletToGlm(to);
+            this->to = Utils::bulletToGlm(to);
         }
     };
 
-    const uint32_t MAX_NUM_LINES         = 100000;
-    const uint32_t INITIAL_LINE_BUF_SIZE = sizeof(BulletLine) * MAX_NUM_LINES;
+    uint32_t const MAX_NUM_LINES = 100000;
+    uint32_t const INITIAL_LINE_BUF_SIZE = sizeof(BulletLine) * MAX_NUM_LINES;
 
     class BulletDebugDrawer : public btIDebugDraw {
-    public:
+      public:
         BulletDebugDrawer();
 
-        void Render(const BaseCamera &camera);
+        void Render(BaseCamera const &camera);
 
-        void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) override;
+        void drawLine(btVector3 const &from, btVector3 const &to, btVector3 const &color) override;
 
-        void drawContactPoint(const btVector3 &, const btVector3 &, btScalar, int, const btVector3 &) override {
+        void drawContactPoint(btVector3 const &, btVector3 const &, btScalar, int, btVector3 const &) override {
         }
 
-        void reportErrorWarning(const char *warningString) override {
+        void reportErrorWarning(char const *warningString) override {
             LOG(WARNING) << warningString;
         }
 
-        void draw3dText(const btVector3 &location, const char *textString) override {
+        void draw3dText(btVector3 const &location, char const *textString) override {
             // TODO: Bring in MenuRenderer
             LOG(WARNING) << textString;
         }
@@ -53,9 +53,13 @@ namespace OpenNFS {
 
         int m{};
 
-    private:
+      private:
         // OpenGL data
-        enum LineVBO : uint8_t { VERTEX = 0, COLOUR, Length };
+        enum LineVBO : uint8_t {
+            VERTEX = 0,
+            COLOUR,
+            Length
+        };
         GLuint m_lineVertexBuffers[LineVBO::Length]{};
         GLuint m_lineVAO{};
         // Render shaders

@@ -1,8 +1,8 @@
 #include "FontShader.h"
 
 namespace OpenNFS {
-    const std::string vertexSrc = "../shaders/FontVertexShader.vert";
-    const std::string fragSrc = "../shaders/FontFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/FontShader.vert";
+    std::string const fragSrc = "../shaders/FontShader.frag";
 
     FontShader::FontShader() : BaseShader(vertexSrc, fragSrc) {
         FontShader::bindAttributes();
@@ -21,19 +21,19 @@ namespace OpenNFS {
         textGlyphSamplerLocation = getUniformLocation("textGlyphSampler");
     }
 
-    void FontShader::loadProjectionMatrix(const glm::mat4 &projection) {
+    void FontShader::loadProjectionMatrix(glm::mat4 const &projection) {
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
-    void FontShader::loadLayer(const GLint layer) {
-        loadFloat(layerLocation, layer == 0 ? -0.999f : (float) (layer - 100) / 100);
+    void FontShader::loadLayer(GLint const layer) {
+        loadFloat(layerLocation, layer == 0 ? -0.999f : (float)(layer - 100) / 100);
     }
 
-    void FontShader::loadColour(const glm::vec3 colour) {
+    void FontShader::loadColour(glm::vec3 const colour) {
         loadVec3(colourLocation, colour);
     }
 
-    void FontShader::loadGlyphTexture(const GLuint textureID) {
+    void FontShader::loadGlyphTexture(GLuint const textureID) {
         loadSampler2D(textGlyphSamplerLocation, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
@@ -41,4 +41,4 @@ namespace OpenNFS {
 
     void FontShader::customCleanup() {
     }
-}
+} // namespace OpenNFS

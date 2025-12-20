@@ -1,8 +1,8 @@
 #include "MiniMapShader.h"
 
 namespace OpenNFS {
-    std::string const vertexSrc = "../shaders/MiniMapVertexShader.vert";
-    std::string const fragSrc = "../shaders/MiniMapFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/MiniMapShader.vert";
+    std::string const fragSrc = "../shaders/MiniMapShader.frag";
 
     MiniMapShader::MiniMapShader() : BaseShader(vertexSrc, fragSrc) {
         MiniMapShader::bindAttributes();
@@ -33,7 +33,7 @@ namespace OpenNFS {
         loadVec3(colourLocation, color);
     }
 
-    void MiniMapShader::loadLayer(const GLint layer) {
+    void MiniMapShader::loadLayer(GLint const layer) {
         loadFloat(layerLocation, layer == 0 ? -0.999f : static_cast<float>(layer - 100) / 100);
     }
 

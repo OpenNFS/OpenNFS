@@ -1,8 +1,8 @@
 #include "UIShader.h"
 
 namespace OpenNFS {
-    const std::string vertexSrc = "../shaders/UIVertexShader.vert";
-    const std::string fragSrc = "../shaders/UIFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/UIShader.vert";
+    std::string const fragSrc = "../shaders/UIShader.frag";
 
     UIShader::UIShader() : BaseShader(vertexSrc, fragSrc) {
         UIShader::bindAttributes();
@@ -21,12 +21,12 @@ namespace OpenNFS {
         menuTextureSamplerLocation = getUniformLocation("menuTextureSampler");
     }
 
-    void UIShader::loadProjectionMatrix(const glm::mat4 &projection) {
+    void UIShader::loadProjectionMatrix(glm::mat4 const &projection) {
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
     void UIShader::loadLayer(GLint layer) {
-        loadFloat(layerLocation, layer == 0 ? -0.999f : (float) (layer - 100) / 100);
+        loadFloat(layerLocation, layer == 0 ? -0.999f : (float)(layer - 100) / 100);
     }
 
     void UIShader::loadColour(glm::vec3 colour) {
@@ -41,4 +41,4 @@ namespace OpenNFS {
 
     void UIShader::customCleanup() {
     }
-}
+} // namespace OpenNFS

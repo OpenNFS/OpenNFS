@@ -2,27 +2,27 @@
 
 #include <GL/glew.h>
 
+#include "../Race/Agents/CarAgent.h"
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
-#include "../Shaders/DepthShader.h"
-#include "../Race/Agents/CarAgent.h"
+#include "Shaders/DepthShader.h"
 
 namespace OpenNFS {
     class ShadowMapRenderer {
-    public:
+      public:
         ShadowMapRenderer();
         ~ShadowMapRenderer();
+        GLuint GetTextureID();
         void Render(float nearPlane,
                     float farPlane,
-                    const GlobalLight *light,
+                    GlobalLight const *light,
                     GLuint trackTextureArrayID,
-                    const std::vector<std::shared_ptr<Entity>> &visibleEntities,
-                    const std::vector<std::shared_ptr<CarAgent>> &racers);
+                    std::vector<std::shared_ptr<Entity>> const &visibleEntities,
+                    std::vector<std::shared_ptr<CarAgent>> const &racers);
 
+      private:
         GLuint m_depthTextureID = 0;
         DepthShader m_depthShader;
-
-    private:
-        GLuint m_fboDepthMap = 0;
+        GLuint m_depthMapFbo = 0;
     };
 } // namespace OpenNFS

@@ -1,8 +1,8 @@
 #include "BillboardShader.h"
 
 namespace OpenNFS {
-    std::string const vertexSrc = "../shaders/BillboardVertexShader.vert";
-    std::string const fragSrc = "../shaders/BillboardFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/BillboardShader.vert";
+    std::string const fragSrc = "../shaders/BillboardShader.frag";
 
     BillboardShader::BillboardShader() : BaseShader(vertexSrc, fragSrc) {
         BillboardShader::bindAttributes();

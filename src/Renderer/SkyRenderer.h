@@ -3,18 +3,18 @@
 #include "../Camera/BaseCamera.h"
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
-#include "../Shaders/SkydomeShader.h"
 #include "../Util/ImageLoader.h"
 #include "Models/GLCarModel.h"
+#include "Shaders/SkydomeShader.h"
 
 namespace OpenNFS {
     class SkyRenderer {
-    public:
+      public:
         explicit SkyRenderer();
         ~SkyRenderer();
-        void Render(const BaseCamera &camera, const GlobalLight* light, float elapsedTime);
+        void Render(BaseCamera const &camera, GlobalLight const *light, float elapsedTime);
 
-    private:
+      private:
         // Load cloud, sun, moon and tint textures
         void _LoadAssets();
         SkydomeShader m_skydomeShader;

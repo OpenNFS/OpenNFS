@@ -97,12 +97,8 @@ namespace OpenNFS {
                 m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPointNext), btVector3(1, 0, 1));
                 m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroad.forward),
                                               btVector3(0, 1, 0));
-                // Normal
                 m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroad.normal),
                                               btVector3(0, 0, 1));
-
-                glm::vec3 curVroadRightVec = curVroad.right;
-
                 m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint - curVroad.leftWall),
                                               btVector3(1, 0, 0.5f));
                 m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint), Utils::glmToBullet(vroadPoint + curVroad.rightWall),

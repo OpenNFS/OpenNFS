@@ -1,5 +1,7 @@
-#include "glm/gtx/quaternion.hpp"
 #include "GlobalLight.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/quaternion.hpp"
 
 GlobalLight::GlobalLight(const glm::vec3 lookAt, const glm::vec3 position) : BaseLight(0, 0, LightType::GLOBAL_LIGHT, position, glm::vec4(0, 0, 0, 0)) {
     this->ChangeTarget(lookAt);

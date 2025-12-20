@@ -1,17 +1,17 @@
 #pragma once
 
-#include "../Physics/Car.h"
-#include "../Shaders/CarShader.h"
 #include "../Camera/BaseCamera.h"
+#include "../Physics/Car.h"
+#include "Shaders/CarShader.h"
 
 namespace OpenNFS {
     class CarRenderer {
-    public:
+      public:
         explicit CarRenderer() = default;
         ~CarRenderer();
-        void Render(const std::shared_ptr<Car> &car, const BaseCamera &camera);
+        void Render(std::shared_ptr<Car> const &car, BaseCamera const &camera);
 
-    private:
+      private:
         // Create and compile our GLSL programs from the shaders
         CarShader m_carShader;
     };

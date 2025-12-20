@@ -6,17 +6,12 @@ namespace OpenNFS {
                              std::vector<NfsAssetList> const &installedNFS,
                              Track const &currentTrack,
                              std::shared_ptr<Car> const &currentCar)
-        : m_window(window), m_track(currentTrack),
-          m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
+        : m_window(window), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
           m_freeCamera(m_inputManager, m_track.trackBlocks[0].position), m_hermiteCamera(m_track.centerSpline, m_inputManager),
           m_carCamera(m_inputManager), m_physicsManager(m_track),
-          m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsManager.debugDrawer), m_racerManager(m_track),
-          m_inputManager(window) {
-        m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id,
-                          m_track.nfsVersion, m_track.tag};
-
-        // Set up the Racer Manager to spawn vehicles on track
-        m_racerManager.Init(m_playerAgent, m_physicsManager);
+          m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsManager.debugDrawer),
+          m_racerManager(m_playerAgent, m_physicsManager, m_track), m_inputManager(window) {
+        m_loadedAssets = {m_playerAgent->vehicle->assetData.tag, m_playerAgent->vehicle->assetData.id, m_track.nfsVersion, m_track.tag};
     }
 
     void RaceSession::_UpdateCameras(float const deltaTime) {
@@ -94,9 +89,8 @@ namespace OpenNFS {
             // Draw the Game UI
             m_uiManager.Update(m_inputManager.inputs);
 
-            bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera,
-                                                     m_orbitalManager.GetActiveGlobalLight(), m_userParams,
-                                                     m_loadedAssets, m_racerManager.racers, m_targetedEntity)};
+            bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(),
+                                                     m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity)};
 
             if (assetChange) {
                 return m_loadedAssets;

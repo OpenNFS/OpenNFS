@@ -3,9 +3,9 @@
 #include "BaseShader.h"
 #include <Entities/BaseLight.h>
 
+#include "../../Physics/Car.h"
+#include "../../Util/ImageLoader.h"
 #include "../../shaders/ShaderPreamble.h"
-#include "../Physics/Car.h"
-#include "../Util/ImageLoader.h"
 
 namespace OpenNFS {
     class CarShader : public BaseShader {
@@ -15,7 +15,7 @@ namespace OpenNFS {
         void loadCarColor(glm::vec4 color, glm::vec4 color_secondary = {0.0, 0.0, 0.0, 0.0});
 
         void loadCarTexture(GLuint textureID);
-        void loadLights(const std::vector<const LibOpenNFS::BaseLight*> &lights);
+        void loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights);
         void loadSpecular(float damper, float reflectivity, float env_reflectivity);
         void loadProjectionViewMatrices(glm::mat4 const &projection, glm::mat4 const &view);
         void loadTransformationMatrix(glm::mat4 const &transformation);

@@ -1,8 +1,8 @@
 #include "SkydomeShader.h"
 
 namespace OpenNFS {
-    const std::string vertexSrc = "../shaders/SkydomeVertexShader.vert";
-    const std::string fragSrc = "../shaders/SkydomeFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/SkydomeShader.vert";
+    std::string const fragSrc = "../shaders/SkydomeShader.frag";
 
     SkydomeShader::SkydomeShader() : BaseShader(vertexSrc, fragSrc) {
         SkydomeShader::bindAttributes();
@@ -34,24 +34,26 @@ namespace OpenNFS {
         timeLocation = getUniformLocation("time");
     }
 
-    void SkydomeShader::loadMatrices(const glm::mat4 &projection, const glm::mat4 &view,
-                                     const glm::mat4 &transformation) {
+    void SkydomeShader::loadMatrices(glm::mat4 const &projection, glm::mat4 const &view, glm::mat4 const &transformation) {
         loadMat4(viewMatrixLocation, &view[0][0]);
         loadMat4(projectionMatrixLocation, &projection[0][0]);
         loadMat4(transformationMatrixLocation, &transformation[0][0]);
     }
 
-    void SkydomeShader::loadStarRotationMatrix(const glm::mat3 &star_rotation_matrix) {
+    void SkydomeShader::loadStarRotationMatrix(glm::mat3 const &star_rotation_matrix) {
         loadMat3(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
     }
 
-    void SkydomeShader::loadSunPosition(const GlobalLight *light) {
+    void SkydomeShader::loadSunPosition(GlobalLight const *light) {
         loadVec3(sunPositionLocation, light->position);
     }
 
-    void SkydomeShader::loadTextures(const GLuint clouds1TextureID, const GLuint clouds2TextureID,
-                                     const GLuint sunTextureID, const GLuint moonTextureID, const GLuint tintTextureID,
-                                     const GLuint tint2TextureID) {
+    void SkydomeShader::loadTextures(GLuint const clouds1TextureID,
+                                     GLuint const clouds2TextureID,
+                                     GLuint const sunTextureID,
+                                     GLuint const moonTextureID,
+                                     GLuint const tintTextureID,
+                                     GLuint const tint2TextureID) {
         loadSampler2D(clouds1TextureLocation, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, clouds1TextureID);
@@ -77,14 +79,14 @@ namespace OpenNFS {
         glBindTexture(GL_TEXTURE_2D, tint2TextureID);
     }
 
-    void SkydomeShader::loadWeatherMixFactor(const float weatherMixFactor) {
+    void SkydomeShader::loadWeatherMixFactor(float const weatherMixFactor) {
         loadFloat(weatherLocation, weatherMixFactor);
     }
 
-    void SkydomeShader::loadTime(const float time) {
+    void SkydomeShader::loadTime(float const time) {
         loadFloat(timeLocation, time);
     }
 
     void SkydomeShader::customCleanup() {
     }
-}
+} // namespace OpenNFS

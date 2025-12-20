@@ -20,7 +20,7 @@ namespace OpenNFS {
         CHECK_F(glfwInit(), "GLFW Init failed.\n");
         glfwSetErrorCallback(&Renderer::GlfwError);
 
-        //glfwWindowHint(GLFW_SAMPLES, 2);
+        // glfwWindowHint(GLFW_SAMPLES, 2);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -112,7 +112,7 @@ namespace OpenNFS {
             m_skyRenderer.Render(activeCamera, activeLight, totalTime);
         }
         m_trackRenderer.Render(racers, activeCamera, m_track.textureArrayID, visibleEntities, visibleLights, userParams,
-                               m_shadowMapRenderer.m_depthTextureID, 0.5f);
+                               m_shadowMapRenderer.GetTextureID(), 0.5f);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
         m_debugRenderer.Render(activeCamera);
         m_miniMapRenderer.Render(m_track, racers);
@@ -199,8 +199,7 @@ namespace OpenNFS {
             constexpr int32_t kBlockDistance{15};
             // Use a draw distance value to return closestBlock +- kBlockDrawDistance inclusive blocks
             for (int32_t trackblockIdx{static_cast<int32_t>(nearestBlockID) - kBlockDistance};
-                 trackblockIdx < nearestBlockID + kBlockDistance;
-                 ++trackblockIdx) {
+                 trackblockIdx < nearestBlockID + kBlockDistance; ++trackblockIdx) {
                 uint32_t activeBlock = trackblockIdx < 0 ? (static_cast<uint32_t>(track.trackBlocks.size()) + trackblockIdx)
                                                          : (trackblockIdx % static_cast<uint32_t>(track.trackBlocks.size()));
                 activeTrackBlockIds.emplace_back(activeBlock);
@@ -258,7 +257,7 @@ namespace OpenNFS {
     void Renderer::_DrawDebugUI(ParamData &userParams, BaseCamera const &camera) {
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
-        ImGui::Image(m_shadowMapRenderer.m_depthTextureID, ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+        ImGui::Image(m_shadowMapRenderer.GetTextureID(), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
         ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
         ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
         ImGui::End();

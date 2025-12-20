@@ -1,8 +1,8 @@
 #include "CarShader.h"
 
 namespace OpenNFS {
-    const std::string vertexSrc = "../shaders/CarVertexShader.vert";
-    const std::string fragSrc = "../shaders/CarFragmentShader.frag";
+    std::string const vertexSrc = "../shaders/CarShader.vert";
+    std::string const fragSrc = "../shaders/CarShader.frag";
 
     CarShader::CarShader() : BaseShader(vertexSrc, fragSrc) {
         CarShader::bindAttributes();
@@ -48,11 +48,11 @@ namespace OpenNFS {
         hasPolyFlagsLocation = getUniformLocation("polyFlagged");
     }
 
-    void CarShader::setMultiTextured(const bool multiTextured) {
+    void CarShader::setMultiTextured(bool const multiTextured) {
         loadUint(isMultiTexturedLocation, multiTextured);
     }
 
-    void CarShader::setPolyFlagged(const bool polyFlagged) {
+    void CarShader::setPolyFlagged(bool const polyFlagged) {
         loadUint(hasPolyFlagsLocation, polyFlagged);
     }
 
@@ -60,14 +60,14 @@ namespace OpenNFS {
         glDeleteTextures(1, &envMapTextureID);
     }
 
-    void CarShader::bindTextureArray(const GLuint textureArrayID) {
+    void CarShader::bindTextureArray(GLuint const textureArrayID) {
         loadSampler2D(carTextureArrayLocation, 0);
         loadSampler2D(carTextureLocation, 1);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureArrayID);
     }
 
-    void CarShader::loadCarTexture(const GLuint textureID) {
+    void CarShader::loadCarTexture(GLuint const textureID) {
         loadSampler2D(carTextureLocation, 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, textureID);
@@ -79,22 +79,22 @@ namespace OpenNFS {
         glBindTexture(GL_TEXTURE_2D, envMapTextureID);
     }
 
-    void CarShader::loadSpecular(const float damper, const float reflectivity, const float env_reflectivity) {
+    void CarShader::loadSpecular(float const damper, float const reflectivity, float const env_reflectivity) {
         loadFloat(shineDamperLocation, damper);
         loadFloat(reflectivityLocation, reflectivity);
         loadFloat(envReflectivityLocation, env_reflectivity);
     }
 
-    void CarShader::loadProjectionViewMatrices(const glm::mat4 &projection, const glm::mat4 &view) {
+    void CarShader::loadProjectionViewMatrices(glm::mat4 const &projection, glm::mat4 const &view) {
         loadMat4(viewMatrixLocation, &view[0][0]);
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
-    void CarShader::loadTransformationMatrix(const glm::mat4 &transformation) {
+    void CarShader::loadTransformationMatrix(glm::mat4 const &transformation) {
         loadMat4(transformationMatrixLocation, &transformation[0][0]);
     }
 
-    void CarShader::loadLights(const std::vector<const LibOpenNFS::BaseLight*> &lights) {
+    void CarShader::loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights) {
         for (int i = 0; i < MAX_CAR_CONTRIB_LIGHTS; ++i) {
             if (i < lights.size()) {
                 loadVec3(lightPositionLocation[i], lights[i]->position);
@@ -108,8 +108,8 @@ namespace OpenNFS {
         }
     }
 
-    void CarShader::loadCarColor(const glm::vec4 color, const glm::vec4 color_secondary) {
+    void CarShader::loadCarColor(glm::vec4 const color, glm::vec4 const color_secondary) {
         loadVec4(colourLocation, color);
         loadVec4(colourSecondaryLocation, color_secondary);
     }
-}
+} // namespace OpenNFS

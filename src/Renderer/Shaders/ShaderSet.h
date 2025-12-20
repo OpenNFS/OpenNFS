@@ -2,24 +2,24 @@
 
 #include <GL/glew.h>
 
-#include <vector>
-#include <utility>
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
+#include <vector>
 
-#include "../Util/Logger.h"
+#include "../../Util/Logger.h"
 
 class ShaderSet {
     // typedefs for readability
-    using ShaderHandle  = GLuint;
+    using ShaderHandle = GLuint;
     using ProgramHandle = GLuint;
 
     // filename and shader type
     struct ShaderNameTypePair {
         std::string Name;
         GLenum Type;
-        bool operator<(const ShaderNameTypePair& rhs) const {
+        bool operator<(ShaderNameTypePair const &rhs) const {
             return std::tie(Name, Type) < std::tie(rhs.Name, rhs.Type);
         }
     };
@@ -49,9 +49,9 @@ class ShaderSet {
     // maps shader name/types to handles, in order to reuse shared shaders.
     std::map<ShaderNameTypePair, Shader> mShaders;
     // allows looking up the program that represents a linked set of shaders
-    std::map<std::vector<const ShaderNameTypePair*>, Program> mPrograms;
+    std::map<std::vector<ShaderNameTypePair const *>, Program> mPrograms;
 
-public:
+  public:
     ShaderSet() = default;
 
     // Destructor releases all owned shaders
@@ -59,20 +59,20 @@ public:
 
     // The version string to prepend to all shaders
     // Separated from the preamble because #version doesn't compile in C++
-    void SetVersion(const std::string& version);
+    void SetVersion(std::string const &version);
 
     // A string that gets prepended to every shader that gets compiled
     // Useful for compile-time constant #defines (like attrib locations)
-    void SetPreamble(const std::string& preamble);
+    void SetPreamble(std::string const &preamble);
 
     // Convenience for reading the preamble from a file
     // The preamble is NOT auto-reloaded.
-    void SetPreambleFile(const std::string& preambleFilename);
+    void SetPreambleFile(std::string const &preambleFilename);
 
     // list of (file name, shader type) pairs
     // eg: AddProgram({ {"foo.vert", GL_VERTEX_SHADER}, {"bar.frag", GL_FRAGMENT_SHADER} });
     // To be const-correct, this should maybe return "const GLuint*". I'm trusting you not to write to that pointer.
-    GLuint* AddProgram(const std::vector<std::pair<std::string, GLenum>>& typedShaders);
+    GLuint *AddProgram(std::vector<std::pair<std::string, GLenum>> const &typedShaders);
 
     // Polls the timestamps of all the shaders and recompiles/relinks them if they changed
     void UpdatePrograms();
@@ -86,7 +86,7 @@ public:
     // compute shader: .comp
     // eg: AddProgramFromExts({"foo.vert", "bar.frag"});
     // To be const-correct, this should maybe return "const GLuint*". I'm trusting you not to write to that pointer.
-    GLuint* AddProgramFromExts(const std::vector<std::string>& shaders);
+    GLuint *AddProgramFromExts(std::vector<std::string> const &shaders);
 
     // Convenience to add a single file that contains many shader stages.
     // Similar to what is explained here: https://software.intel.com/en-us/blogs/2012/03/26/using-ifdef-in-opengl-es-20-shaders
@@ -108,5 +108,5 @@ public:
     //     #ifdef FRAGMENT_SHADER
     //     void main() { /* your fragment shader main */ }
     //     #endif
-    GLuint* AddProgramFromCombinedFile(const std::string& filename, const std::vector<GLenum>& shaderTypes);
+    GLuint *AddProgramFromCombinedFile(std::string const &filename, std::vector<GLenum> const &shaderTypes);
 };

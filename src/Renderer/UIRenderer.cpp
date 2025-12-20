@@ -55,7 +55,7 @@ namespace OpenNFS {
         glBindBuffer(GL_ARRAY_BUFFER, m_fontQuadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
         // Configure VAO/VBO for menu texture quads
         glGenVertexArrays(1, &m_menuQuadVAO);
         glGenBuffers(1, &m_menuQuadVBO);
@@ -63,7 +63,7 @@ namespace OpenNFS {
         glBindBuffer(GL_ARRAY_BUFFER, m_menuQuadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
         // Reset state
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -89,18 +89,18 @@ namespace OpenNFS {
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    void UIRenderer::RenderButton(UIButton *button) {
+    void UIRenderer::RenderButton(UIButton const *button) {
         RenderText(button->text, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale,
                    button->textColour);
         RenderResource(button->resource, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale);
     }
 
-    void UIRenderer::RenderTextField(UITextField *textField) {
+    void UIRenderer::RenderTextField(UITextField const *textField) {
         RenderText(textField->text, static_cast<GLint>(textField->layer), textField->location.x, textField->location.y, textField->scale,
                    textField->textColour);
     }
 
-    void UIRenderer::RenderImage(UIImage *image) {
+    void UIRenderer::RenderImage(UIImage const *image) {
         RenderResource(image->resource, static_cast<GLint>(image->layer), image->location.x, image->location.y, image->scale);
     }
 

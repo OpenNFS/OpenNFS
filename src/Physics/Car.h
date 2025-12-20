@@ -1,12 +1,12 @@
 #pragma once
 
-#include <LinearMath/btDefaultMotionState.h>
-#include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#include <BulletDynamics/Vehicle/btVehicleRaycaster.h>
+#include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <BulletDynamics/Vehicle/btRaycastVehicle.h>
-#include <btBulletDynamicsCommon.h>
+#include <BulletDynamics/Vehicle/btVehicleRaycaster.h>
 #include <Entities/Car.h>
+#include <LinearMath/btDefaultMotionState.h>
+#include <btBulletDynamicsCommon.h>
 
 #include "../Renderer/Models/GLCarModel.h"
 #include "../Scene/Spotlight.h"
@@ -16,24 +16,29 @@
 namespace OpenNFS {
     // Raycasting Data
     enum RayDirection : uint8_t {
-        LEFT_RAY          = 0,
-        FORWARD_LEFT_RAY  = 8,
-        FORWARD_RAY       = 9,
+        LEFT_RAY = 0,
+        FORWARD_LEFT_RAY = 8,
+        FORWARD_RAY = 9,
         FORWARD_RIGHT_RAY = 10,
-        RIGHT_RAY         = 18,
+        RIGHT_RAY = 18,
     };
 
     constexpr uint8_t kNumRangefinders = 19;
-    constexpr float kFarDistance       = 5.f;
-    constexpr float kAngleBetweenRays  = 10.f;
-    constexpr float kCastDistance      = 1.f;
+    constexpr float kFarDistance = 5.f;
+    constexpr float kAngleBetweenRays = 10.f;
+    constexpr float kCastDistance = 1.f;
 
-    enum Wheels : uint8_t { FRONT_LEFT = 0, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT };
+    enum Wheels : uint8_t {
+        FRONT_LEFT = 0,
+        FRONT_RIGHT,
+        REAR_LEFT,
+        REAR_RIGHT
+    };
 
     struct VehicleState {
         // Engine
-        float gEngineForce;   // Force to apply to engine
-        float gBreakingForce; // Breaking force
+        float gEngineForce;
+        float gBreakingForce;
 
         // Steering
         float gVehicleSteering;
@@ -41,6 +46,7 @@ namespace OpenNFS {
         bool steerLeft;
         bool isSteering;
 
+        // Meta
         glm::vec4 colour;
         glm::vec4 colourSecondary;
     };
@@ -59,11 +65,11 @@ namespace OpenNFS {
     };
 
     class Car {
-    public:
-        explicit Car(LibOpenNFS::Car  car);
-        Car(const LibOpenNFS::Car& car, GLuint textureArrayID); // Multitextured car
+      public:
+        explicit Car(LibOpenNFS::Car car);
+        Car(LibOpenNFS::Car const &car, GLuint textureArrayID); // Multitextured car
         ~Car();
-        void Update(btDynamicsWorld* dynamicsWorld);
+        void Update(btDynamicsWorld const *dynamicsWorld);
         void SetPosition(glm::vec3 position, glm::quat orientation);
         void ApplyAccelerationForce(bool accelerate, bool reverse);
         void ApplyBrakingForce(bool apply);
@@ -73,19 +79,19 @@ namespace OpenNFS {
         [[nodiscard]] float GetCarBodyOrientation() const;
 
         // Physics Engine registration
-        void SetVehicle(std::unique_ptr<btRaycastVehicle>&& vehicle) {
+        void SetVehicle(std::unique_ptr<btRaycastVehicle> &&vehicle) {
             m_vehicle = std::move(vehicle);
         }
-        void SetRaycaster(std::unique_ptr<btVehicleRaycaster>&& vehicleRayCaster) {
+        void SetRaycaster(std::unique_ptr<btVehicleRaycaster> &&vehicleRayCaster) {
             m_vehicleRayCaster = std::move(vehicleRayCaster);
         }
-        [[nodiscard]] btRigidBody* GetVehicleRigidBody() const {
+        [[nodiscard]] btRigidBody *GetVehicleRigidBody() const {
             return m_carChassis.get();
         }
-        [[nodiscard]] btVehicleRaycaster* GetRaycaster() const {
+        [[nodiscard]] btVehicleRaycaster *GetRaycaster() const {
             return m_vehicleRayCaster.get();
         }
-        [[nodiscard]] btRaycastVehicle* GetVehicle() const {
+        [[nodiscard]] btRaycastVehicle *GetVehicle() const {
             return m_vehicle.get();
         }
 
@@ -97,7 +103,7 @@ namespace OpenNFS {
         RenderInfo renderInfo{};
 
         // Meshes and Headlights
-        std::vector<const LibOpenNFS::BaseLight*> lights;
+        std::vector<LibOpenNFS::BaseLight const *> lights;
         Spotlight leftHeadLight;
         Spotlight rightHeadLight;
         Spotlight leftTailLight;
@@ -112,19 +118,19 @@ namespace OpenNFS {
         // Wheel properties
         btRaycastVehicle::btVehicleTuning tuning;
 
-    private:
+      private:
         void _UpdateMeshesToMatchPhysics();
         void _ApplyInputs();
         void _LoadTextures();
         void _GenPhysicsModel();
-        void _GenRaycasts(const btDynamicsWorld* dynamicsWorld);
-        void _SetModels(std::vector<LibOpenNFS::CarGeometry>& carGeometries);
+        void _GenRaycasts(btDynamicsWorld const *dynamicsWorld);
+        void _SetModels(std::vector<LibOpenNFS::CarGeometry> &carGeometries);
         void _SetVehicleState();
 
         // Base Physics objects for car
         std::unique_ptr<btDefaultMotionState> m_vehicleMotionState{}; // Retrieving vehicle location in world
         std::unique_ptr<btRigidBody> m_carChassis{};
-        btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
+        btAlignedObjectArray<btCollisionShape *> m_collisionShapes;
         std::unique_ptr<btVehicleRaycaster> m_vehicleRayCaster{}; // Wheel simulation
         std::unique_ptr<btRaycastVehicle> m_vehicle{};
     };

@@ -1,30 +1,31 @@
 #pragma once
 
+#include <Entities/Track.h>
 #include <cstdint>
 #include <vector>
-#include <Entities/Track.h>
 
-#include "Entity.h"
 #include "../Physics/AABBTree.h"
 #include "../Renderer/GLTexture.h"
 #include "../Renderer/HermiteCurve.h"
+#include "Entity.h"
 
 namespace OpenNFS {
     class Track : public LibOpenNFS::Track {
         static constexpr uint32_t kCullTreeInitialSize{50000};
 
       public:
-        explicit Track(const LibOpenNFS::Track &track);
-        Track() : cullTree(kCullTreeInitialSize){};
+        Track(LibOpenNFS::Track const &track);
+        Track() : cullTree(kCullTreeInitialSize) {};
         ~Track();
 
         // GL 3D Render Data
         HermiteCurve centerSpline;
-        GLuint textureArrayID {0};
-        std::vector<std::vector<std::shared_ptr<Entity>>> perTrackblockEntities; // [Trackblock 0: [entity 0, entity 1, ...], Trackblock 1: [entity X, ...]]
+        GLuint textureArrayID{0};
+        std::vector<std::vector<std::shared_ptr<Entity>>>
+            perTrackblockEntities; // [Trackblock 0: [entity 0, entity 1, ...], Trackblock 1: [entity X, ...]]
         AABBTree cullTree;
 
-    private:
+      private:
         void _LoadTextures();
         void _GenerateEntities();
         void _GenerateSpline();

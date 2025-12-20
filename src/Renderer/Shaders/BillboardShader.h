@@ -3,7 +3,7 @@
 #include "BaseShader.h"
 #include <Entities/TrackLight.h>
 
-#include "../Util/ImageLoader.h"
+#include "../../Util/ImageLoader.h"
 
 namespace OpenNFS {
     class BillboardShader : public BaseShader {

@@ -1,20 +1,20 @@
 #pragma once
 
+#include "../../Util/Utils.h"
 #include "BaseShader.h"
-#include "../Util/Utils.h"
 
 namespace OpenNFS {
     class DepthShader : public BaseShader {
-    public:
+      public:
         DepthShader();
 
-        void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
+        void loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix);
 
-        void loadTransformMatrix(const glm::mat4 &transformationMatrix);
+        void loadTransformMatrix(glm::mat4 const &transformationMatrix);
 
         void bindTextureArray(GLuint textureArrayID) const;
 
-    protected:
+      protected:
         void bindAttributes() override;
 
         void getAllUniformLocations() override;
@@ -25,4 +25,4 @@ namespace OpenNFS {
         GLint transformationMatrixLocation;
         GLint textureArrayLocation;
     };
-}
+} // namespace OpenNFS

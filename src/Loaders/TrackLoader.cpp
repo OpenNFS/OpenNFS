@@ -16,23 +16,22 @@ namespace OpenNFS {
         switch (nfsVersion) {
         case NFSVersion::NFS_2:
             trackBasePath << NFS_2_TRACK_PATH << trackName;
-            return OpenNFS::Track(NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2, trackBasePath.str(), trackOutPath.str()));
+            return NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2, trackBasePath.str(), trackOutPath.str());
         case NFSVersion::NFS_2_SE:
             trackBasePath << NFS_2_SE_TRACK_PATH << trackName;
-            return OpenNFS::Track(NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_SE, trackBasePath.str(), trackOutPath.str()));
+            return NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_SE, trackBasePath.str(), trackOutPath.str());
         case NFSVersion::NFS_2_PS1:
-            // Somewhat ironically, NFS2 PS1 tracks are more similar to NFS2 PC tracks than NFS3 PS1 tracks in format
             trackBasePath << "/" << trackName;
-            return OpenNFS::Track(NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_PS1, trackBasePath.str(), trackOutPath.str()));
+            return NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_PS1, trackBasePath.str(), trackOutPath.str());
         case NFSVersion::NFS_3:
             trackBasePath << NFS_3_TRACK_PATH << trackName;
-            return OpenNFS::Track(NFS3::Loader::LoadTrack(trackBasePath.str(), trackOutPath.str()));
+            return NFS3::Loader::LoadTrack(trackBasePath.str(), trackOutPath.str());
         case NFSVersion::NFS_3_PS1:
             trackBasePath << "/" << trackName;
-            return OpenNFS::Track(NFS2::Loader<NFS2::PS1>::LoadTrack(NFSVersion::NFS_3_PS1, trackBasePath.str(), trackOutPath.str()));
+            return NFS2::Loader<NFS2::PS1>::LoadTrack(NFSVersion::NFS_3_PS1, trackBasePath.str(), trackOutPath.str());
         case NFSVersion::NFS_4:
             trackBasePath << NFS_4_TRACK_PATH << trackName;
-            return OpenNFS::Track(NFS4::Loader::LoadTrack(trackBasePath.str(), trackOutPath.str()));
+            return NFS4::Loader::LoadTrack(trackBasePath.str(), trackOutPath.str());
         default:
             CHECK_F(false, "Unknown track type!");
         }

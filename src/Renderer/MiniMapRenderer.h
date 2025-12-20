@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../Scene/Track.h"
-#include "../Shaders/MiniMapShader.h"
+#include "Shaders/MiniMapShader.h"
 
 namespace OpenNFS {
     class CarAgent;

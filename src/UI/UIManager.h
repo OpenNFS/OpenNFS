@@ -20,6 +20,7 @@ namespace OpenNFS {
 
       private:
         std::map<std::string, UIResource> m_menuResourceMap;
-        UIRenderer m_uiRenderer;
+        TextRenderer m_textRenderer;
+        // UIRenderer m_uiRenderer;
     };
 } // namespace OpenNFS

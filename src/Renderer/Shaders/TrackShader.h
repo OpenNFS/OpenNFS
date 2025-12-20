@@ -1,30 +1,31 @@
 #pragma once
 
 #include "BaseShader.h"
+#include <Entities/BaseLight.h>
 #include <glm/detail/type_mat4x4.hpp>
 #include <map>
-#include <Entities/BaseLight.h>
 
-#include "../Scene/Spotlight.h"
+#include "../../Scene/Spotlight.h"
 #include "../../shaders/ShaderPreamble.h"
 
 namespace OpenNFS {
     class TrackShader : public BaseShader {
-    public:
+      public:
         TrackShader();
         void bindTextureArray(GLuint textureArrayID) const;
-        void loadProjectionViewMatrices(const glm::mat4 &projection,
-                                        const glm::mat4 &view); // These don't change between Shader binds, better to set state once for a track render pass
-        void loadTransformMatrix(const glm::mat4 &transformation);
-        void loadLightSpaceMatrix(const glm::mat4 &lightSpaceMatrix);
+        void loadProjectionViewMatrices(
+            glm::mat4 const &projection,
+            glm::mat4 const &view); // These don't change between Shader binds, better to set state once for a track render pass
+        void loadTransformMatrix(glm::mat4 const &transformation);
+        void loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix);
         void loadSpecular(float damper, float reflectivity);
-        void loadLights(const std::vector<const LibOpenNFS::BaseLight*> &lights);
-        void loadSpotlight(const Spotlight &spotlight);
+        void loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights);
+        void loadSpotlight(Spotlight const &spotlight);
         void loadShadowMapTexture(GLuint shadowMapTextureID);
         void loadAmbientFactor(float ambientFactor);
         void setClassic(bool useClassic);
 
-    protected:
+      protected:
         void bindAttributes() override;
         void getAllUniformLocations() override;
         void customCleanup() override;
