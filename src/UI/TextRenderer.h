@@ -42,6 +42,7 @@ namespace OpenNFS {
 
       public:
         TextRenderer();
+        ~TextRenderer();
         void Render();
 
       private:

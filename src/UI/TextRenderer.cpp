@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <vector>
 
 #include <GL/glew.h>
 #include <g3log/g3log.hpp>
@@ -22,8 +23,7 @@ namespace OpenNFS {
         /* Set up the VBO for our vertex data */
         m_uiTextShader.bindBuffer();
 
-        Point coords[6 * strlen(text)];
-        int c = 0;
+        std::vector<Point> coords(6 * strlen(text));
 
         /* Loop through all characters */
         for (auto p = reinterpret_cast<uint8_t const *>(text); *p; p++) {
@@ -41,17 +41,17 @@ namespace OpenNFS {
             if (!w || !h)
                 continue;
 
-            coords[c++] = Point{x2, -y2, a->c[*p].tx, a->c[*p].ty};
-            coords[c++] = Point{x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty};
-            coords[c++] = Point{x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h};
-            coords[c++] = Point{x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty};
-            coords[c++] = Point{x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h};
-            coords[c++] = Point{x2 + w, -y2 - h, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty + a->c[*p].bh / a->h};
+            coords.emplace_back(x2, -y2, a->c[*p].tx, a->c[*p].ty);
+            coords.emplace_back(x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty);
+            coords.emplace_back(x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h);
+            coords.emplace_back(x2 + w, -y2, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty);
+            coords.emplace_back(x2, -y2 - h, a->c[*p].tx, a->c[*p].ty + a->c[*p].bh / a->h);
+            coords.emplace_back(x2 + w, -y2 - h, a->c[*p].tx + a->c[*p].bw / a->w, a->c[*p].ty + a->c[*p].bh / a->h);
         }
 
         /* Draw all the character on the screen in one go */
-        glBufferData(GL_ARRAY_BUFFER, sizeof coords, coords, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, c);
+        glBufferData(GL_ARRAY_BUFFER, coords.size() * sizeof(Point), coords.data(), GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, coords.size());
 
         m_uiTextShader.unbindBuffer();
     }
@@ -69,9 +69,15 @@ namespace OpenNFS {
         a12 = new Atlas(face, 12, m_uiTextShader);
     }
 
+    TextRenderer::~TextRenderer() {
+        delete a12;
+        delete a24;
+        delete a48;
+    }
+
     void TextRenderer::Render() {
-        constexpr float sx = 2.0 / 2560.f;
-        constexpr float sy = 2.0 / 1440.f;
+        float const sx = 2.0 / Config::get().resX;
+        float const sy = 2.0 / Config::get().resY;
 
         m_uiTextShader.use();
 
@@ -110,6 +116,9 @@ namespace OpenNFS {
         m_uiTextShader.loadColour(transparent_green);
         RenderText("The Transparent Green Fox Jumps Over The Lazy Dog", a48, -1 + 8 * sx, 1 - 380 * sy, sx, sy);
         RenderText("The Transparent Green Fox Jumps Over The Lazy Dog", a48, -1 + 18 * sx, 1 - 440 * sy, sx, sy);
+
+        m_uiTextShader.unbind();
+        m_uiTextShader.HotReload();
     }
 
     TextRenderer::Atlas::Atlas(FT_Face const face, int const height, UITextShader &shader) {

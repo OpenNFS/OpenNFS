@@ -2,7 +2,6 @@
 
 #include <ranges>
 
-#include "../Util/ImageLoader.h"
 #include "UIButton.h"
 #include "UIImage.h"
 #include "UIResource.h"
@@ -40,22 +39,22 @@ namespace OpenNFS {
         glm::vec2 const cursorPosition{inputs.cursorX * windowToResRatioX, Config::get().resY - (inputs.cursorY * windowToResRatioY)};
 
         m_textRenderer.Render();
-        // m_uiRenderer.BeginRenderPass();
-        // for (auto const &uiElement : m_uiElements) {
-        //     uiElement->Update(cursorPosition, inputs.mouseLeft);
-        //
-        //    switch (uiElement->type) {
-        //    case UIElementType::Button:
-        //        m_uiRenderer.RenderButton(static_cast<UIButton *>(uiElement.get()));
-        //        break;
-        //    case UIElementType::TextField:
-        //        m_uiRenderer.RenderTextField(static_cast<UITextField *>(uiElement.get()));
-        //        break;
-        //    case UIElementType::Image:
-        //        m_uiRenderer.RenderImage(static_cast<UIImage *>(uiElement.get()));
-        //        break;
-        //    }
-        //}
-        // m_uiRenderer.EndRenderPass();
+        m_uiRenderer.BeginRenderPass();
+        for (auto const &uiElement : m_uiElements) {
+            uiElement->Update(cursorPosition, inputs.mouseLeft);
+
+            switch (uiElement->type) {
+            case UIElementType::Button:
+                m_uiRenderer.RenderButton(static_cast<UIButton *>(uiElement.get()));
+                break;
+            case UIElementType::TextField:
+                //m_uiRenderer.RenderTextField(static_cast<UITextField *>(uiElement.get()));
+                break;
+            case UIElementType::Image:
+                m_uiRenderer.RenderImage(static_cast<UIImage *>(uiElement.get()));
+                break;
+            }
+        }
+        m_uiRenderer.EndRenderPass();
     }
 } // namespace OpenNFS
