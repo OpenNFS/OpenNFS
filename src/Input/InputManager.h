@@ -15,33 +15,29 @@ namespace OpenNFS {
 
     class InputManager {
       public:
-        struct Inputs {
-            bool accelerate{};
-            bool reverse{};
-            bool brakes{};
-            bool left{};
-            bool right{};
-            bool reset{};
-            bool cameraForwards{};
-            bool cameraBackwards{};
-            bool cameraLeft{};
-            bool cameraRight{};
-            double cursorX{};
-            double cursorY{};
-            bool mouseLeft{};
-            bool mouseRight{};
-            bool camSpeedUp{};
-            double scrollY{};
-            double mouseDeltaX{};
-            double mouseDeltaY{};
-        };
+        bool accelerate{};
+        bool reverse{};
+        bool brakes{};
+        bool left{};
+        bool right{};
+        bool reset{};
+        bool cameraForwards{};
+        bool cameraBackwards{};
+        bool cameraLeft{};
+        bool cameraRight{};
+        double cursorX{};
+        double cursorY{};
+        bool mouseLeft{};
+        bool mouseRight{};
+        bool camSpeedUp{};
+        double scrollY{};
+        double mouseDeltaX{};
+        double mouseDeltaY{};
 
         explicit InputManager(std::shared_ptr<GLFWwindow> const &window);
         void Scan();
         void ResetCursorPosition() const;
         [[nodiscard]] WindowStatus GetWindowStatus() const;
-
-        Inputs inputs{};
 
       private:
         std::shared_ptr<GLFWwindow> m_window;

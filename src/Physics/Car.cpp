@@ -135,18 +135,15 @@ namespace OpenNFS {
         }
 
         // Update headlight direction vectors to match car body
+        glm::quat const carRotation{Utils::bulletToGlm(trans.getRotation())};
         leftHeadLight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
         rightHeadLight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
-        leftHeadLight.position =
-            Utils::bulletToGlm(trans.getOrigin()) + (leftHeadLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
-        rightHeadLight.position = Utils::bulletToGlm(trans.getOrigin()) +
-                                  (rightHeadLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+        leftHeadLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * leftHeadLight.initialPosition);
+        rightHeadLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * rightHeadLight.initialPosition);
         leftTailLight.direction = Utils::bulletToGlm(-m_vehicle->getForwardVector());
         rightTailLight.direction = Utils::bulletToGlm(-m_vehicle->getForwardVector());
-        leftTailLight.position =
-            Utils::bulletToGlm(trans.getOrigin()) + (leftTailLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
-        rightTailLight.position = Utils::bulletToGlm(trans.getOrigin()) +
-                                  (rightTailLight.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
+        leftTailLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * leftTailLight.initialPosition);
+        rightTailLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * rightTailLight.initialPosition);
 
         // Lets go update wheel geometry positions based on physics feedback
         for (auto wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx) {

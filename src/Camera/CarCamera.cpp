@@ -29,20 +29,20 @@ namespace OpenNFS {
     }
 
     void CarCamera::_CalculateZoom() {
-        float const zoomLevel{static_cast<float>(m_inputManager.inputs.scrollY) * .1f};
+        float const zoomLevel{static_cast<float>(m_inputManager.scrollY) * .1f};
         m_distanceFromCar -= zoomLevel;
     }
 
     void CarCamera::_CalculatePitch() {
-        if (m_inputManager.inputs.mouseRight) {
-            float const pitchChange{static_cast<float>(m_inputManager.inputs.mouseDeltaY) * 0.1f};
+        if (m_inputManager.mouseRight) {
+            float const pitchChange{static_cast<float>(m_inputManager.mouseDeltaY) * 0.1f};
             m_pitch -= pitchChange;
         }
     }
 
     void CarCamera::_CalculateAngleAroundCar() {
-        if (m_inputManager.inputs.mouseLeft) {
-            float const angleChange{static_cast<float>(m_inputManager.inputs.mouseDeltaX) * 0.3f};
+        if (m_inputManager.mouseLeft) {
+            float const angleChange{static_cast<float>(m_inputManager.mouseDeltaX) * 0.3f};
             m_angleAroundCar -= angleChange;
         }
     }

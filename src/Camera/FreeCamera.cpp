@@ -10,8 +10,8 @@ namespace OpenNFS {
 
     void FreeCamera::ComputeMatricesFromInputs(float const deltaTime) {
         // Get mouse position and compute new orientation with it
-        m_horizontalAngle += m_mouseSpeedDamper * (Config::get().windowSizeX / 2 - m_inputManager.inputs.cursorX);
-        m_verticalAngle += m_mouseSpeedDamper * (Config::get().windowSizeY / 2 - m_inputManager.inputs.cursorY);
+        m_horizontalAngle += m_mouseSpeedDamper * (Config::get().windowSizeX / 2 - m_inputManager.cursorX);
+        m_verticalAngle += m_mouseSpeedDamper * (Config::get().windowSizeY / 2 - m_inputManager.cursorY);
 
         // Reset mouse position for next frame
         m_inputManager.ResetCursorPosition();
@@ -27,22 +27,22 @@ namespace OpenNFS {
         glm::vec3 const up{glm::cross(right, m_direction)};
 
         // Speed boost
-        m_speed = m_inputManager.inputs.camSpeedUp ? 20.0f : 3.0f;
+        m_speed = m_inputManager.camSpeedUp ? 20.0f : 3.0f;
 
         // Move forward
-        if (m_inputManager.inputs.cameraForwards) {
+        if (m_inputManager.cameraForwards) {
             position += m_direction * deltaTime * m_speed;
         }
         // Move backward
-        if (m_inputManager.inputs.cameraBackwards) {
+        if (m_inputManager.cameraBackwards) {
             position -= m_direction * deltaTime * m_speed;
         }
         // Strafe right
-        if (m_inputManager.inputs.cameraRight) {
+        if (m_inputManager.cameraRight) {
             position += right * deltaTime * m_speed;
         }
         // Strafe left
-        if (m_inputManager.inputs.cameraLeft) {
+        if (m_inputManager.cameraLeft) {
             position -= right * deltaTime * m_speed;
         }
 

@@ -32,16 +32,16 @@ namespace OpenNFS {
         }
     }
 
-    auto UIManager::Update(InputManager::Inputs const &inputs) -> void {
+    auto UIManager::Update(InputManager const &inputManager) -> void {
         // Cursor Y needs to be inverted + coordinates need normalising
         float const windowToResRatioX{(float)Config::get().resX / (float)Config::get().windowSizeX};
         float const windowToResRatioY{(float)Config::get().resY / (float)Config::get().windowSizeY};
-        glm::vec2 const cursorPosition{inputs.cursorX * windowToResRatioX, Config::get().resY - (inputs.cursorY * windowToResRatioY)};
+        glm::vec2 const cursorPosition{inputManager.cursorX * windowToResRatioX, Config::get().resY - (inputManager.cursorY * windowToResRatioY)};
 
         m_textRenderer.Render();
         m_uiRenderer.BeginRenderPass();
         for (auto const &uiElement : m_uiElements) {
-            uiElement->Update(cursorPosition, inputs.mouseLeft);
+            uiElement->Update(cursorPosition, inputManager.mouseLeft);
 
             switch (uiElement->type) {
             case UIElementType::Button:

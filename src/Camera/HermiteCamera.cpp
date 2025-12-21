@@ -1,5 +1,8 @@
 #include "HermiteCamera.h"
 
+#include "glm/detail/type_quat.hpp"
+#include "glm/ext/quaternion_trigonometric.hpp"
+
 namespace OpenNFS {
     HermiteCamera::HermiteCamera(HermiteCurve const &trackCenterSpline, InputManager const &inputManager)
         : BaseCamera(CameraMode::HERMITE_FLYTHROUGH, inputManager), m_trackCameraRail(trackCenterSpline) {
@@ -11,27 +14,37 @@ namespace OpenNFS {
         float const tmod{fmodf(elapsedTime, (m_loopTime / 202.5f)) / (m_loopTime / 200.f)};
         position = m_trackCameraRail.GetPointAt(tmod);
 
-        // Look towards the position that is a few ms away
+        // Look towards the position that is a few ms ahead
         float const tmodLookAt{tmod + 0.01f};
         glm::vec3 const lookAtPos{m_trackCameraRail.GetPointAt(tmodLookAt)};
         m_direction = glm::normalize(lookAtPos - position);
 
-        // https://github.com/phoboslab/wipeout/blob/master/wipeout.js [Wipeout.prototype.updateSplineCamera]
-        // Roll into corners - there's probably an easier way to do this. This
-        // takes the angle between the current camera position and the current
-        // lookAt, applies some damping and rolls the camera along its view vector
-        glm::vec3 const cn{position - lookAtPos};
-        glm::vec3 const tn{position};
-        float newRoll = (atan2(cn.z, cn.x) - atan2(tn.z, tn.x));
-        newRoll += (newRoll > glm::pi<float>()) ? -glm::pi<float>() * 2 : (newRoll < -glm::pi<float>()) ? glm::pi<float>() * 2 : 0;
-        m_roll = m_roll * 0.95f + (newRoll) * 0.1f;
+        // Calculate roll based on lateral change in direction (banking into turns)
+        // Get a point slightly further ahead to calculate the turn direction
+        float const tmodFuture{tmod + 0.02f};
+        glm::vec3 const futurePos{m_trackCameraRail.GetPointAt(tmodFuture)};
+        glm::vec3 const futureDir{glm::normalize(futurePos - lookAtPos)};
 
-        // Create a new 'up' vector, based on the roll value
-        glm::vec3 const up{glm::rotate(glm::mat4(1), (m_roll * 0.25f), position) * glm::vec4(glm::vec3(0, 1, 0), 1.0)};
+        // Calculate the lateral (right) vector
+        glm::vec3 const worldUp{0.0f, 1.0f, 0.0f};
+        glm::vec3 const right{glm::normalize(glm::cross(m_direction, worldUp))};
+
+        // Measure how much the direction is changing laterally (turning)
+        glm::vec3 const directionChange{futureDir - m_direction};
+        float const lateralChange{glm::dot(directionChange, right)};
+
+        // Calculate new roll with damping, and clamp to prevent flipping
+        float const rollAmount{lateralChange * 2.0f};
+        float const targetRoll{glm::clamp(rollAmount, -0.5f, 0.5f)}; // Clamp to ±0.5 radians (~±28 degrees)
+        m_roll = m_roll * 0.9f + targetRoll * 0.1f; // Smooth interpolation
+
+        // Create the up vector by rotating world up around the forward direction
+        glm::quat const rollQuat{glm::angleAxis(m_roll, m_direction)};
+        glm::vec3 const up{rollQuat * worldUp};
 
         // Camera matrix
         viewMatrix = glm::lookAt(position,               // Camera is here
-                                 position + m_direction, // and looks here : at the same position, plus "direction"
+                                 position + m_direction, // and looks here
                                  up);
     }
 } // namespace OpenNFS

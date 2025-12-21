@@ -74,8 +74,8 @@ namespace OpenNFS {
         constexpr float kDummySize{0.1f};
         auto const btPosition{Utils::glmToBullet(position)};
         auto const btDirection{Utils::glmToBullet(direction)};
-        m_bulletDebugDrawer->drawBox(btPosition - (btDirection * kDummySize), btPosition + (btDirection * kDummySize),
-                                     Utils::glmToBullet(glm::vec3(44, 62, 80) / 255.f));
+        m_bulletDebugDrawer->drawLine(btPosition, btPosition + (btDirection * kDummySize),
+                                     Utils::glmToBullet(glm::vec3(0, 62, 80) / 255.f));
     }
 
     void DebugRenderer::DrawVroad(Track const &track) const {

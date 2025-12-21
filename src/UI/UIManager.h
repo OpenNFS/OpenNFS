@@ -14,7 +14,7 @@ namespace OpenNFS {
       public:
         UIManager();
         ~UIManager();
-        void Update(InputManager::Inputs const &inputs);
+        void Update(InputManager const &inputManager);
 
         // TODO: Temporary structure
         std::vector<std::unique_ptr<UIElement>> m_uiElements;

@@ -13,12 +13,12 @@ namespace OpenNFS {
         this->_UpdateNearestTrackblock();
         this->_UpdateNearestVroad();
 
-        vehicle->ApplyAccelerationForce(m_inputManager.inputs.accelerate, m_inputManager.inputs.reverse);
-        vehicle->ApplyBrakingForce(m_inputManager.inputs.brakes);
-        vehicle->ApplySteeringRight(m_inputManager.inputs.right);
-        vehicle->ApplySteeringLeft(m_inputManager.inputs.left);
+        vehicle->ApplyAccelerationForce(m_inputManager.accelerate, m_inputManager.reverse);
+        vehicle->ApplyBrakingForce(m_inputManager.brakes);
+        vehicle->ApplySteeringRight(m_inputManager.right);
+        vehicle->ApplySteeringLeft(m_inputManager.left);
 
-        if (m_inputManager.inputs.reset) {
+        if (m_inputManager.reset) {
             ResetToVroad(m_nearestVroadID, 0.f);
         }
     }
