@@ -57,8 +57,8 @@ namespace OpenNFS {
     // ----- Defaults -----
     std::string const DEFAULT_CAR{"corv"};
     std::string const DEFAULT_TRACK{"trk000"};
-    constexpr auto DEFAULT_CAR_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
-    constexpr auto DEFAULT_TRACK_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
+    std::string const DEFAULT_CAR_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
+    std::string const DEFAULT_TRACK_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
     static constexpr uint32_t DEFAULT_NUM_RACERS{0};
 
     /* --------------- ONFS Runtime parameters here -----------------*/
