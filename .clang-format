@@ -1,5 +1,5 @@
 BasedOnStyle: Microsoft
-BinPackParameters: OnePerLine
+BinPackParameters: BinPack
 NamespaceIndentation: All
 BreakBeforeBraces: Attach
 QualifierAlignment: Right

@@ -1,15 +1,15 @@
 #pragma once
 
-#include "CarAgent.h"
 #include "../../Input/InputManager.h"
+#include "CarAgent.h"
 
 namespace OpenNFS {
     class PlayerAgent final : public CarAgent {
-    public:
-        PlayerAgent(const InputManager &inputManager, const std::shared_ptr<Car> &car, const Track &raceTrack);
+      public:
+        PlayerAgent(InputManager const &inputManager, std::shared_ptr<Car> const &car, Track const &raceTrack);
         void Simulate() override;
 
-    private:
-        const InputManager &m_inputManager;
+      private:
+        InputManager const &m_inputManager;
     };
 } // namespace OpenNFS

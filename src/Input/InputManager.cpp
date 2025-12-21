@@ -24,8 +24,7 @@ namespace OpenNFS {
         glfwGetCursorPos(m_window.get(), &inputs.cursorX, &inputs.cursorY);
 
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        if (inputs.mouseLeft &&
-            !ImGui::GetIO().WantCaptureMouse) {
+        if (inputs.mouseLeft && !ImGui::GetIO().WantCaptureMouse) {
             m_windowStatus = GAME;
             ImGui::GetIO().MouseDrawCursor = false;
         } else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {

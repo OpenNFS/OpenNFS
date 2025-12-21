@@ -1,9 +1,9 @@
 #pragma once
 
+#include <forward_list>
+#include <map>
 #include <memory>
 #include <vector>
-#include <map>
-#include <forward_list>
 
 #include "AABB.h"
 #include "Frustum.h"
@@ -25,7 +25,9 @@ struct AABBNode {
         return leftNodeIndex == AABB_NULL_NODE;
     }
 
-    AABBNode() : object(nullptr), parentNodeIndex(AABB_NULL_NODE), leftNodeIndex(AABB_NULL_NODE), rightNodeIndex(AABB_NULL_NODE), nextNodeIndex(AABB_NULL_NODE) {
+    AABBNode()
+        : object(nullptr), parentNodeIndex(AABB_NULL_NODE), leftNodeIndex(AABB_NULL_NODE), rightNodeIndex(AABB_NULL_NODE),
+          nextNodeIndex(AABB_NULL_NODE) {
     }
 };
 
@@ -42,15 +44,15 @@ class AABBTree {
     void deallocateNode(unsigned nodeIndex);
     void insertLeaf(unsigned leafNodeIndex);
     void removeLeaf(unsigned leafNodeIndex);
-    void updateLeaf(unsigned leafNodeIndex, const AABB& newAaab);
+    void updateLeaf(unsigned leafNodeIndex, const AABB &newAaab);
     void fixUpwardsTree(unsigned treeNodeIndex);
 
-public:
+  public:
     explicit AABBTree(unsigned initialSize);
     ~AABBTree();
 
-    void insertObject(const std::shared_ptr<IAABB>& object);
-    void removeObject(const std::shared_ptr<IAABB>& object);
-    void updateObject(const std::shared_ptr<IAABB>& object);
-    [[nodiscard]] std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const Frustum& frustum) const;
+    void insertObject(std::shared_ptr<IAABB> const &object);
+    void removeObject(std::shared_ptr<IAABB> const &object);
+    void updateObject(std::shared_ptr<IAABB> const &object);
+    [[nodiscard]] std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(Frustum const &frustum) const;
 };

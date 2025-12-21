@@ -280,10 +280,9 @@ namespace OpenNFS {
         m_collisionShapes.push_back(compound);
 
         // Set initial location of vehicle in the world
-        m_vehicleMotionState = std::make_unique<btDefaultMotionState>(btTransform(
-            btQuaternion(Utils::glmToBullet(carBodyModel.orientation)), Utils::glmToBullet(carBodyModel.position)));
-        btRigidBody::btRigidBodyConstructionInfo cInfo(assetData.physicsData.mass, m_vehicleMotionState.get(), compound,
-                                                       localInertia);
+        m_vehicleMotionState = std::make_unique<btDefaultMotionState>(
+            btTransform(btQuaternion(Utils::glmToBullet(carBodyModel.orientation)), Utils::glmToBullet(carBodyModel.position)));
+        btRigidBody::btRigidBodyConstructionInfo cInfo(assetData.physicsData.mass, m_vehicleMotionState.get(), compound, localInertia);
         m_carChassis = std::make_unique<btRigidBody>(cInfo);
 
         // Abuse Entity system with a dummy entity that wraps the car pointer instead of a GL mesh
@@ -564,11 +563,9 @@ namespace OpenNFS {
             vehicleState.colour = assetData.metadata.colours[randomColourIdx].colour;
             vehicleState.colourSecondary = assetData.metadata.colours[randomColourIdx].colourSecondary;
         } else {
-            vehicleState.colour =
-                glm::vec4(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), 1.0f);
-                vehicleState.colourSecondary =
+            vehicleState.colour = glm::vec4(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), 1.0f);
+            vehicleState.colourSecondary =
                 glm::vec4(Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), Utils::RandomFloat(0.f, 1.f), 0.0f);
-
         }
 
         // State

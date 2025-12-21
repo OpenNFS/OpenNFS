@@ -3,12 +3,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-GLuint ImageLoader::LoadImage(const std::string &imagePath, int *width, int *height, const GLint wrapParam,
-                              const GLint sampleParam) {
+GLuint ImageLoader::LoadImage(std::string const &imagePath, int *width, int *height, GLint const wrapParam, GLint const sampleParam) {
     GLuint textureID;
     int nChannels;
 
-    unsigned char *image {stbi_load(imagePath.c_str(), width, height, &nChannels, STBI_rgb_alpha)};
+    unsigned char *image{stbi_load(imagePath.c_str(), width, height, &nChannels, STBI_rgb_alpha)};
     CHECK_F(image != nullptr, "Failed to load texture %s", imagePath.c_str());
 
     glGenTextures(1, &textureID);
@@ -31,9 +30,9 @@ GLuint ImageLoader::LoadImage(const std::string &imagePath, int *width, int *hei
 // lpBits    : Specifies the bitmap bits      -> the buffer (content of the) image
 // w    : Specifies the image width
 // h    : Specifies the image height
-bool ImageLoader::SaveImage(const char *szPathName, const void *lpBits, const uint16_t w, const uint16_t h) {
+bool ImageLoader::SaveImage(char const *szPathName, void const *lpBits, uint16_t const w, uint16_t const h) {
     // Create a new file for writing
-    FILE *pFile {fopen(szPathName, "wb")}; // wb -> w: writable b: binary, open as writable and binary
+    FILE *pFile{fopen(szPathName, "wb")}; // wb -> w: writable b: binary, open as writable and binary
     if (pFile == nullptr) {
         return false;
     }
@@ -73,21 +72,21 @@ bool ImageLoader::SaveImage(const char *szPathName, const void *lpBits, const ui
 }
 
 // TODO: Integrate into LoadBmpCustomAlpha as a master bitmap loader
-bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_,
-                                     const uint8_t alphaColour) {
+bool ImageLoader::LoadBmpCustomAlpha(char const *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_,
+                                     uint8_t const alphaColour) {
     bool retval = false;
     // load file and check if it looks reasonable
     if (FILE *fp = fopen(fname, "rb")) {
         fseek(fp, 0L, 2);
         long size = ftell(fp);
-        if (size > (long) sizeof(CP_BITMAPFILEHEADER)) {
+        if (size > (long)sizeof(CP_BITMAPFILEHEADER)) {
             if (auto *data = new unsigned char[size]) {
                 fseek(fp, 0L, 0);
                 if (fread(data, size, 1, fp) == 1) {
-                    auto file_header = (CP_BITMAPFILEHEADER *) data;
+                    auto file_header = (CP_BITMAPFILEHEADER *)data;
                     if (file_header->bfType == MAKEuint16_t('B', 'M')) {
-                        if (file_header->bfSize == (uint32_t) size) {
-                            auto info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
+                        if (file_header->bfSize == (uint32_t)size) {
+                            auto info = (CP_BITMAPINFO *)(data + sizeof(CP_BITMAPFILEHEADER));
                             // we only handle uncompressed bitmaps
                             if (info->bmiHeader.biCompression == CP_BI_RGB) {
                                 GLsizei const width = info->bmiHeader.biWidth;
@@ -102,76 +101,74 @@ bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bi
                                         bits.resize(width * height * 4L);
                                         retval = true;
                                         GLubyte *current_bits = bits.data();
-                                        const GLubyte *pixel = data + file_header->bfOffBits;
+                                        GLubyte const *pixel = data + file_header->bfOffBits;
                                         GLsizei h = height, w = width;
                                         long padding;
                                         switch (info->bmiHeader.biBitCount) {
-                                            // 8-bit palette bitmaps
-                                            case 8:
-                                                padding = w % 2;
-                                                for (; h > 0; h--) {
-                                                    for (w = width; w > 0; w--) {
-                                                        const CP_RGBQUAD rgba = info->bmiColors[*pixel];
-                                                        pixel++;
-                                                        *current_bits++ = rgba.rgbRed;
-                                                        *current_bits++ = rgba.rgbGreen;
-                                                        *current_bits++ = rgba.rgbBlue;
-                                                        if (rgba.rgbRed == 0 && rgba.rgbGreen == alphaColour && rgba.
-                                                            rgbBlue == 0) {
-                                                            *current_bits++ = 0;
-                                                        } else {
-                                                            *current_bits++ = 255;
-                                                        }
-                                                    }
-                                                    pixel += padding;
-                                                }
-                                                break;
-                                            // 24-bit bitmaps
-                                            case 24:
-                                                padding = (w * 3) % 2;
-                                                for (; h > 0; h--) {
-                                                    for (w = width; w > 0; w--) {
-                                                        *current_bits++ = pixel[2];
-                                                        *current_bits++ = pixel[1];
-                                                        *current_bits++ = pixel[0];
-                                                        if (pixel[2] == 0 && pixel[1] == alphaColour && pixel[0] == 0) {
-                                                            *current_bits++ = 0;
-                                                        } else {
-                                                            *current_bits++ = 255;
-                                                        }
-                                                        pixel += 3;
-                                                    }
-                                                    pixel += padding;
-                                                }
-                                                break;
-                                            case 32:
-                                                // 32-bit bitmaps
-                                                // never seen it, but Win32 SDK claims the existance
-                                                // of that value. 4th byte is assumed to be alpha-channel.
-                                                for (; h > 0; h--) {
-                                                    for (w = width; w > 0; w--) {
-                                                        *current_bits++ = pixel[2];
-                                                        *current_bits++ = pixel[1];
-                                                        *current_bits++ = pixel[0];
-                                                        if (pixel[2] == 0 && pixel[1] == alphaColour && pixel[0] == 0) {
-                                                            *current_bits++ = 0;
-                                                        } else {
-                                                            *current_bits++ = pixel[3];
-                                                        }
-                                                        pixel += 4;
+                                        // 8-bit palette bitmaps
+                                        case 8:
+                                            padding = w % 2;
+                                            for (; h > 0; h--) {
+                                                for (w = width; w > 0; w--) {
+                                                    const CP_RGBQUAD rgba = info->bmiColors[*pixel];
+                                                    pixel++;
+                                                    *current_bits++ = rgba.rgbRed;
+                                                    *current_bits++ = rgba.rgbGreen;
+                                                    *current_bits++ = rgba.rgbBlue;
+                                                    if (rgba.rgbRed == 0 && rgba.rgbGreen == alphaColour && rgba.rgbBlue == 0) {
+                                                        *current_bits++ = 0;
+                                                    } else {
+                                                        *current_bits++ = 255;
                                                     }
                                                 }
-                                                break; // I don't like 1,4 and 16 bit.
-                                            default:
-                                                retval = false;
-                                                break;
+                                                pixel += padding;
+                                            }
+                                            break;
+                                        // 24-bit bitmaps
+                                        case 24:
+                                            padding = (w * 3) % 2;
+                                            for (; h > 0; h--) {
+                                                for (w = width; w > 0; w--) {
+                                                    *current_bits++ = pixel[2];
+                                                    *current_bits++ = pixel[1];
+                                                    *current_bits++ = pixel[0];
+                                                    if (pixel[2] == 0 && pixel[1] == alphaColour && pixel[0] == 0) {
+                                                        *current_bits++ = 0;
+                                                    } else {
+                                                        *current_bits++ = 255;
+                                                    }
+                                                    pixel += 3;
+                                                }
+                                                pixel += padding;
+                                            }
+                                            break;
+                                        case 32:
+                                            // 32-bit bitmaps
+                                            // never seen it, but Win32 SDK claims the existance
+                                            // of that value. 4th byte is assumed to be alpha-channel.
+                                            for (; h > 0; h--) {
+                                                for (w = width; w > 0; w--) {
+                                                    *current_bits++ = pixel[2];
+                                                    *current_bits++ = pixel[1];
+                                                    *current_bits++ = pixel[0];
+                                                    if (pixel[2] == 0 && pixel[1] == alphaColour && pixel[0] == 0) {
+                                                        *current_bits++ = 0;
+                                                    } else {
+                                                        *current_bits++ = pixel[3];
+                                                    }
+                                                    pixel += 4;
+                                                }
+                                            }
+                                            break; // I don't like 1,4 and 16 bit.
+                                        default:
+                                            retval = false;
+                                            break;
                                         }
                                         if (retval) {
                                             if (info->bmiHeader.biHeight < 0) {
                                                 auto data_q = reinterpret_cast<long *>(bits.data());
                                                 long const wt = width * 4L;
-                                                auto dest_q = reinterpret_cast<long *>(
-                                                    bits.data() + (height - 1) * wt);
+                                                auto dest_q = reinterpret_cast<long *>(bits.data() + (height - 1) * wt);
                                                 while (data_q < dest_q) {
                                                     for (w = width; w > 0; w--) {
                                                         long const tmp = *data_q;
@@ -196,8 +193,7 @@ bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bi
     return retval;
 }
 
-bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::vector<uint8_t> &bits, GLsizei *width_,
-                                   GLsizei *height_) {
+bool ImageLoader::LoadBmpWithAlpha(char const *fname, char const *afname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_) {
     bool retval = false;
     // load file and check if it looks reasonable
     FILE *fp = fopen(fname, "rb");
@@ -213,13 +209,13 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
             fseek(fp, 0L, 0);
             fseek(fp_a, 0L, 0);
             if ((fread(data, size, 1, fp) == 1) && (fread(data_a, size_a, 1, fp_a) == 1)) {
-                auto const file_header = (CP_BITMAPFILEHEADER *) data;
-                auto const file_header_a = (CP_BITMAPFILEHEADER *) data_a;
+                auto const file_header = (CP_BITMAPFILEHEADER *)data;
+                auto const file_header_a = (CP_BITMAPFILEHEADER *)data_a;
                 if (file_header->bfType == MAKEuint16_t('B', 'M')) {
-                    if (file_header->bfSize == (uint32_t) size) {
-                        auto const info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
+                    if (file_header->bfSize == (uint32_t)size) {
+                        auto const info = (CP_BITMAPINFO *)(data + sizeof(CP_BITMAPFILEHEADER));
                         // we only handle uncompressed bitmaps
-                        auto const info_a = (CP_BITMAPINFO *) (data_a + sizeof(CP_BITMAPFILEHEADER));
+                        auto const info_a = (CP_BITMAPINFO *)(data_a + sizeof(CP_BITMAPFILEHEADER));
                         // we only handle uncompressed bitmaps
                         if (info->bmiHeader.biCompression == CP_BI_RGB) {
                             GLsizei const width = info->bmiHeader.biWidth;
@@ -238,70 +234,70 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
                                     GLsizei h = height, w = width;
                                     long padding, padding_a;
                                     switch (info->bmiHeader.biBitCount) {
-                                        // 24-bit bitmaps
-                                        case 8:
-                                            padding_a = w % 2;
-                                            padding = w % 2;
-                                            CP_RGBQUAD rgba;
-                                            for (; h > 0; h--) {
-                                                for (w = width; w > 0; w--) {
-                                                    rgba = info->bmiColors[*pixel];
-                                                    pixel++;
-                                                    pixel_a++;
-                                                    *current_bits++ = rgba.rgbRed;
-                                                    *current_bits++ = rgba.rgbGreen;
-                                                    *current_bits++ = rgba.rgbBlue;
-                                                    *current_bits++ = rgba.rgbRed;
-                                                }
-                                                pixel += padding;
-                                                pixel_a += padding_a;
+                                    // 24-bit bitmaps
+                                    case 8:
+                                        padding_a = w % 2;
+                                        padding = w % 2;
+                                        CP_RGBQUAD rgba;
+                                        for (; h > 0; h--) {
+                                            for (w = width; w > 0; w--) {
+                                                rgba = info->bmiColors[*pixel];
+                                                pixel++;
+                                                pixel_a++;
+                                                *current_bits++ = rgba.rgbRed;
+                                                *current_bits++ = rgba.rgbGreen;
+                                                *current_bits++ = rgba.rgbBlue;
+                                                *current_bits++ = rgba.rgbRed;
                                             }
-                                            break;
-                                        case 24:
-                                            // Read the 8 Bit bitmap alpha data
-                                            padding_a = w % 2;
-                                            padding = (w * 3) % 2;
-                                            for (; h > 0; h--) {
-                                                for (w = width; w > 0; w--) {
-                                                    rgba = info_a->bmiColors[*pixel_a];
-                                                    pixel_a++;
-                                                    *current_bits++ = pixel[2];
-                                                    *current_bits++ = pixel[1];
-                                                    *current_bits++ = pixel[0];
-                                                    *current_bits++ = rgba.rgbRed;
-                                                    pixel += 3;
-                                                }
-                                                pixel += padding;
-                                                pixel_a += padding_a;
+                                            pixel += padding;
+                                            pixel_a += padding_a;
+                                        }
+                                        break;
+                                    case 24:
+                                        // Read the 8 Bit bitmap alpha data
+                                        padding_a = w % 2;
+                                        padding = (w * 3) % 2;
+                                        for (; h > 0; h--) {
+                                            for (w = width; w > 0; w--) {
+                                                rgba = info_a->bmiColors[*pixel_a];
+                                                pixel_a++;
+                                                *current_bits++ = pixel[2];
+                                                *current_bits++ = pixel[1];
+                                                *current_bits++ = pixel[0];
+                                                *current_bits++ = rgba.rgbRed;
+                                                pixel += 3;
                                             }
-                                            break;
-                                        case 32:
-                                            // 32-bit bitmaps
-                                            // never seen it, but Win32 SDK claims the existance
-                                            // of that value. 4th byte is assumed to be alpha-channel.
-                                            for (; h > 0; h--) {
-                                                for (w = width; w > 0; w--) {
-                                                    *current_bits++ = pixel[2];
-                                                    *current_bits++ = pixel[1];
-                                                    *current_bits++ = pixel[0];
-                                                    *current_bits++ = pixel[3];
-                                                    pixel += 4;
-                                                }
+                                            pixel += padding;
+                                            pixel_a += padding_a;
+                                        }
+                                        break;
+                                    case 32:
+                                        // 32-bit bitmaps
+                                        // never seen it, but Win32 SDK claims the existance
+                                        // of that value. 4th byte is assumed to be alpha-channel.
+                                        for (; h > 0; h--) {
+                                            for (w = width; w > 0; w--) {
+                                                *current_bits++ = pixel[2];
+                                                *current_bits++ = pixel[1];
+                                                *current_bits++ = pixel[0];
+                                                *current_bits++ = pixel[3];
+                                                pixel += 4;
                                             }
-                                            break; // I don't like 1,4 and 16 bit.
-                                        default:
-                                            retval = false;
-                                            break;
+                                        }
+                                        break; // I don't like 1,4 and 16 bit.
+                                    default:
+                                        retval = false;
+                                        break;
                                     }
                                     if (retval) {
                                         // mirror image if neccessary (never tested)
                                         if (info->bmiHeader.biHeight < 0) {
-                                            auto data_q = (long *) bits.data();
-                                            const long wt = width * 4L;
-                                            auto dest_q = (long *) (bits.data() + (height - 1) * wt);
+                                            auto data_q = (long *)bits.data();
+                                            long const wt = width * 4L;
+                                            auto dest_q = (long *)(bits.data() + (height - 1) * wt);
                                             while (data_q < dest_q) {
                                                 for (w = width; w > 0; w--) {
-                                                    const long tmp = *data_q;
+                                                    long const tmp = *data_q;
                                                     *data_q++ = *dest_q;
                                                     *dest_q++ = tmp;
                                                 }
@@ -323,4 +319,3 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
     }
     return retval;
 }
-

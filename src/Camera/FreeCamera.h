@@ -4,9 +4,9 @@
 
 namespace OpenNFS {
     class FreeCamera : public BaseCamera {
-    public:
-        FreeCamera(const InputManager &inputManager, glm::vec3 initialPosition);
+      public:
+        FreeCamera(InputManager const &inputManager, glm::vec3 initialPosition);
 
         void ComputeMatricesFromInputs(float deltaTime);
     };
-}
+} // namespace OpenNFS

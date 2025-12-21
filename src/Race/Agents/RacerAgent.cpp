@@ -83,7 +83,7 @@ namespace OpenNFS {
         m_steeringAngle = (_CarSpeedToSteeringDamper(speed) * angle);
         float const steeringDifference{std::abs(m_steeringAngle - angle)};
         bool const accelerate{steeringDifference < 0.15f || speed <= kMinSpeed};
-        bool const overrideLeft {vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY] < 1.f};
+        bool const overrideLeft{vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY] < 1.f};
         bool const overrideRight{vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY] < 1.f};
         if (overrideLeft || overrideRight) {
             vehicle->ApplySteeringLeft(overrideLeft);

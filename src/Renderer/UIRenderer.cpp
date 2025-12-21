@@ -101,7 +101,8 @@ namespace OpenNFS {
         RenderResource(image->resource, static_cast<GLint>(image->layer), image->location.x, image->location.y, image->scale);
     }
 
-    void UIRenderer::RenderText(std::string const &text, GLint const layer, GLfloat x, GLfloat const y, GLfloat const scale, glm::vec3 const colour) {
+    void UIRenderer::RenderText(std::string const &text, GLint const layer, GLfloat x, GLfloat const y, GLfloat const scale,
+                                glm::vec3 const colour) {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
 
         // Activate corresponding render state
@@ -148,8 +149,8 @@ namespace OpenNFS {
         RenderResource(resource, layer, x, y, ratioX * resource.width, ratioY * resource.height, scale);
     }
 
-    void UIRenderer::RenderResource(UIResource const &resource, GLint const layer, GLfloat const x, GLfloat const y,
-                                    GLfloat const width, GLfloat const height, GLfloat const scale) const {
+    void UIRenderer::RenderResource(UIResource const &resource, GLint const layer, GLfloat const x, GLfloat const y, GLfloat const width,
+                                    GLfloat const height, GLfloat const scale) const {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
 
         GLfloat const xpos{x};

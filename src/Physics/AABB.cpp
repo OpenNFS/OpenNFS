@@ -2,19 +2,20 @@
 
 #include <algorithm>
 
-AABB::AABB(glm::vec3 const minVertex, glm::vec3 const maxVertex, glm::vec3 const centerPosition)
-    : min(minVertex), max(maxVertex) {
+AABB::AABB(glm::vec3 const minVertex, glm::vec3 const maxVertex, glm::vec3 const centerPosition) : min(minVertex), max(maxVertex) {
     min = minVertex + centerPosition;
     max = maxVertex + centerPosition;
     surfaceArea = this->_CalculateSurfaceArea();
 }
 
 bool AABB::Overlaps(const AABB &other) const {
-    return max.x > other.min.x && min.x < other.max.x && max.y > other.min.y && min.y < other.max.y && max.z > other.min.z && min.z < other.max.z;
+    return max.x > other.min.x && min.x < other.max.x && max.y > other.min.y && min.y < other.max.y && max.z > other.min.z &&
+           min.z < other.max.z;
 }
 
 bool AABB::Contains(const AABB &other) const {
-    return other.min.x >= min.x && other.max.x <= max.x && other.min.y >= min.y && other.max.y <= max.y && other.min.z >= min.z && other.max.z <= max.z;
+    return other.min.x >= min.x && other.max.x <= max.x && other.min.y >= min.y && other.max.y <= max.y && other.min.z >= min.z &&
+           other.max.z <= max.z;
 }
 
 AABB AABB::Merge(const AABB &other) const {

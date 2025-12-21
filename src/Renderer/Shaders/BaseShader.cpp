@@ -15,8 +15,7 @@ namespace OpenNFS {
         m_shaderSet.UpdatePrograms();
     }
 
-    BaseShader::BaseShader(std::string const &vertex_file_path,
-                           std::string const &geometry_file_path,
+    BaseShader::BaseShader(std::string const &vertex_file_path, std::string const &geometry_file_path,
                            std::string const &fragment_file_path) {
         // Prepended to shaders
         m_shaderSet.SetVersion(ONFS_GL_VERSION);

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <string>
 #include <filesystem>
+#include <string>
 
 #include "Logger.h"
 
-#define MAKEuint16_t(a, b) ((uint16_t) (((uint8_t) (a)) | (((uint16_t) ((uint8_t) (b))) << 8)))
+#define MAKEuint16_t(a, b) ((uint16_t)(((uint8_t)(a)) | (((uint16_t)((uint8_t)(b))) << 8)))
 
 // Define Windows Bitmap structs and macros with CP (CrossPlatform prefix) to avoid redef when conditionally including Windows.h for logging
 // colour handles
@@ -51,10 +51,10 @@ typedef struct tagCP_BITMAPINFO {
 // Temporary, until LibOpenNFS PSH support
 struct PSH {
     struct HEADER {
-        char header[4]; //  "SHPP"
-        uint32_t length; // Inclusive Length of the PSH file
+        char header[4];        //  "SHPP"
+        uint32_t length;       // Inclusive Length of the PSH file
         uint32_t nDirectories; // Number of directory entries
-        char chk[4]; // "GIMX"
+        char chk[4];           // "GIMX"
     };
 
     struct DIR_ENTRY {
@@ -74,17 +74,17 @@ struct PSH {
 
     struct PALETTE_HEADER {
         uint32_t unknown;
-        uint16_t paletteWidth; // Always 16
-        uint16_t paletteHeight; // Always 1
+        uint16_t paletteWidth;    // Always 16
+        uint16_t paletteHeight;   // Always 1
         uint16_t nPaletteEntries; // Always 16
-        uint16_t unknown2[3]; // [0] always 0 [1] always 0 [2] often 240, sometimes 0
+        uint16_t unknown2[3];     // [0] always 0 [1] always 0 [2] often 240, sometimes 0
     };
 };
 
 class ImageLoader {
-public:
-    static GLuint LoadImage(const std::string &imagePath, int *width, int *height, GLint wrapParam, GLint sampleParam);
-    static bool SaveImage(const char *szPathName, const void *lpBits, uint16_t w, uint16_t h);
-    static bool LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
-    static bool LoadBmpWithAlpha(const char *fname, const char *afname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_);
+  public:
+    static GLuint LoadImage(std::string const &imagePath, int *width, int *height, GLint wrapParam, GLint sampleParam);
+    static bool SaveImage(char const *szPathName, void const *lpBits, uint16_t w, uint16_t h);
+    static bool LoadBmpCustomAlpha(char const *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
+    static bool LoadBmpWithAlpha(char const *fname, char const *afname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_);
 };

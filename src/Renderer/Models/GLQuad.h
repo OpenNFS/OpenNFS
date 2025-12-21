@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lib/glm/glm/vec3.hpp"
 #include "GLModel.h"
+#include "lib/glm/glm/vec3.hpp"
 /*
 
 class GLQuad : public GLModel {

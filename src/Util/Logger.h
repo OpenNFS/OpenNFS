@@ -22,12 +22,10 @@ namespace OpenNFS {
         constexpr int levelFileLineWidth{40};
 
         std::string const timestamp(msg.timestamp().substr(11, 8)); // Trim microseconds and date from timestamp
-        std::string variableWidthMessage(msg.level() + " [" + msg.file() + "->" + msg.function() + ":" + msg.line() +
-                                         "]: ");
-        variableWidthMessage.append(levelFileLineWidth > variableWidthMessage.length()
-                                        ? (levelFileLineWidth - variableWidthMessage.length())
-                                        : 0,
-                                    ' '); // Pad variable width element to fixed size
+        std::string variableWidthMessage(msg.level() + " [" + msg.file() + "->" + msg.function() + ":" + msg.line() + "]: ");
+        variableWidthMessage.append(
+            levelFileLineWidth > variableWidthMessage.length() ? (levelFileLineWidth - variableWidthMessage.length()) : 0,
+            ' '); // Pad variable width element to fixed size
 
         return timestamp + " " + variableWidthMessage;
     }

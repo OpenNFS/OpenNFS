@@ -5,8 +5,8 @@
 #include "CollisionMasks.h"
 
 namespace OpenNFS {
-    WorldRay ScreenPosToWorldRay(
-        float mouseX, float mouseY, uint32_t screenWidth, uint32_t screenHeight, glm::mat4 ViewMatrix, glm::mat4 ProjectionMatrix) {
+    WorldRay ScreenPosToWorldRay(float mouseX, float mouseY, uint32_t screenWidth, uint32_t screenHeight, glm::mat4 ViewMatrix,
+                                 glm::mat4 ProjectionMatrix) {
         // The ray Start and End positions, in Normalized Device Coordinates
         glm::vec4 lRayStart_NDC((mouseX / static_cast<float>(screenWidth) - 0.5f) * 2.0f,
                                 (mouseY / static_cast<float>(screenHeight) - 0.5f) * 2.0f,
@@ -79,9 +79,7 @@ namespace OpenNFS {
         }
     }
 
-    std::optional<Entity *> PhysicsManager::CheckForPicking(float const x,
-                                                            float const y,
-                                                            glm::mat4 const &viewMatrix,
+    std::optional<Entity *> PhysicsManager::CheckForPicking(float const x, float const y, glm::mat4 const &viewMatrix,
                                                             glm::mat4 const &projectionMatrix) const {
         auto const [origin, direction]{
             ScreenPosToWorldRay(x, y, Config::get().windowSizeX, Config::get().windowSizeY, viewMatrix, projectionMatrix)};

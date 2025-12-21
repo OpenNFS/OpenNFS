@@ -1,17 +1,17 @@
 #pragma once
 
-#include <optional>
-#include <vector>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <BulletCollision/BroadphaseCollision/btBroadphaseInterface.h>
-#include <BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h>
 #include <BulletCollision/CollisionDispatch/btCollisionDispatcher.h>
+#include <BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h>
 #include <BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h>
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <optional>
+#include <vector>
 
-#include "../Scene/Track.h"
 #include "../Renderer/BulletDebugDrawer.h"
+#include "../Scene/Track.h"
 #include "Car.h"
 
 namespace OpenNFS {
@@ -21,18 +21,19 @@ namespace OpenNFS {
     };
 
     class PhysicsManager {
-    public:
-        explicit PhysicsManager(const Track &track);
+      public:
+        explicit PhysicsManager(Track const &track);
         ~PhysicsManager();
-        void StepSimulation(float time, const std::vector<uint32_t> &racerResidentTrackblockIDs) const;
-        void RegisterVehicle(const std::shared_ptr<Car> &car);
-        [[nodiscard]] std::optional<Entity *> CheckForPicking(float x, float y, const glm::mat4 &viewMatrix, const glm::mat4 &projectionMatrix) const;
+        void StepSimulation(float time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const;
+        void RegisterVehicle(std::shared_ptr<Car> const &car);
+        [[nodiscard]] std::optional<Entity *> CheckForPicking(float x, float y, glm::mat4 const &viewMatrix,
+                                                              glm::mat4 const &projectionMatrix) const;
         [[nodiscard]] btDiscreteDynamicsWorld *GetDynamicsWorld() const;
 
         std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
-    private:
-        const Track& m_track;
+      private:
+        Track const &m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
         std::unique_ptr<btBroadphaseInterface> m_pBroadphase;

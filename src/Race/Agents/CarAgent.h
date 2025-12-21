@@ -12,8 +12,8 @@ namespace OpenNFS {
     };
 
     class CarAgent {
-    public:
-        CarAgent(AgentType agentType, const std::shared_ptr<Car> &car, const Track &track);
+      public:
+        CarAgent(AgentType agentType, std::shared_ptr<Car> const &car, Track const &track);
         virtual ~CarAgent() = default;
         void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset) const;
         void ResetToVroad(int vroadIndex, float offset) const;
@@ -23,11 +23,11 @@ namespace OpenNFS {
         std::shared_ptr<Car> vehicle;
         uint32_t m_nearestTrackblockID = 0;
 
-    protected:
+      protected:
         void _UpdateNearestTrackblock();
         void _UpdateNearestVroad();
 
-        const Track& m_track;
+        Track const &m_track;
         AgentType m_agentType;
         uint32_t m_nearestVroadID = 0;
     };

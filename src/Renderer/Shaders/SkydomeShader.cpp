@@ -48,12 +48,8 @@ namespace OpenNFS {
         loadVec3(sunPositionLocation, light->position);
     }
 
-    void SkydomeShader::loadTextures(GLuint const clouds1TextureID,
-                                     GLuint const clouds2TextureID,
-                                     GLuint const sunTextureID,
-                                     GLuint const moonTextureID,
-                                     GLuint const tintTextureID,
-                                     GLuint const tint2TextureID) const {
+    void SkydomeShader::loadTextures(GLuint const clouds1TextureID, GLuint const clouds2TextureID, GLuint const sunTextureID,
+                                     GLuint const moonTextureID, GLuint const tintTextureID, GLuint const tint2TextureID) const {
         loadSampler2D(clouds1TextureLocation, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, clouds1TextureID);

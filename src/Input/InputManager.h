@@ -11,7 +11,7 @@ namespace OpenNFS {
     };
 
     class InputManager {
-    public:
+      public:
         struct Inputs {
             bool accelerate{};
             bool reverse{};
@@ -36,9 +36,8 @@ namespace OpenNFS {
 
         Inputs inputs{};
 
-
       private:
         std::shared_ptr<GLFWwindow> m_window;
-        WindowStatus m_windowStatus {GAME};
+        WindowStatus m_windowStatus{GAME};
     };
 } // namespace OpenNFS

@@ -4,7 +4,7 @@
 
 namespace OpenNFS {
     class TrackLoader {
-    public:
-        static Track Load(NFSVersion nfsVersion, const std::string &trackName);
+      public:
+        static Track Load(NFSVersion nfsVersion, std::string const &trackName);
     };
 } // namespace OpenNFS

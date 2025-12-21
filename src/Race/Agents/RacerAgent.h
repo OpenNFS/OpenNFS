@@ -3,14 +3,17 @@
 #include "CarAgent.h"
 
 namespace OpenNFS {
-    enum RacerAIMode { NeuralNet, Primitive };
+    enum RacerAIMode {
+        NeuralNet,
+        Primitive
+    };
 
     class RacerAgent final : public CarAgent {
-    public:
-        RacerAgent(uint16_t racerID, const std::shared_ptr<Car> &car, const Track &raceTrack);
+      public:
+        RacerAgent(uint16_t racerID, std::shared_ptr<Car> const &car, Track const &raceTrack);
         void Simulate() override;
 
-    private:
+      private:
         void _UseNeuralNetAI() const;
         void _UsePrimitiveAI();
         [[nodiscard]] uint32_t _CarSpeedToLookahead(float carSpeed) const;
@@ -19,7 +22,7 @@ namespace OpenNFS {
         static constexpr uint32_t kBlockTickLimit{300};
         static constexpr float kSteeringDamper{.6f};
         static constexpr float kMinSpeed{20.f};
-        RacerAIMode m_mode    = Primitive;
+        RacerAIMode m_mode = Primitive;
         uint32_t m_racerID = 0;
         uint32_t m_ticksInBlock = 0;
         uint32_t m_ticksGoingBackwards = 0;

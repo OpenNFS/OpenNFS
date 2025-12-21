@@ -9,8 +9,8 @@
 #include "../Scene/Entity.h"
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
-#include "../Util/Logger.h"
 #include "../UI/UIManager.h"
+#include "../Util/Logger.h"
 
 #include "CarRenderer.h"
 #include "DebugRenderer.h"
@@ -27,10 +27,8 @@ namespace OpenNFS {
 
     class Renderer {
       public:
-        Renderer(std::shared_ptr<GLFWwindow> const &window,
-                 std::shared_ptr<Logger> const &onfsLogger,
-                 std::vector<NfsAssetList> const &installedNFS,
-                 Track const &currentTrack,
+        Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
+                 std::vector<NfsAssetList> const &installedNFS, Track const &currentTrack,
                  std::shared_ptr<BulletDebugDrawer> const &debugDrawer);
         ~Renderer();
 
@@ -45,13 +43,8 @@ namespace OpenNFS {
 
         static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, std::string const &windowName);
         static void _DrawMetadata(Entity const *targetEntity);
-        bool Render(float totalTime,
-                    BaseCamera const &activeCamera,
-                    HermiteCamera const &hermiteCamera,
-                    GlobalLight const *activeLight,
-                    ParamData &userParams,
-                    AssetData &loadedAssets,
-                    std::vector<std::shared_ptr<CarAgent>> const &racers,
+        bool Render(float totalTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera, GlobalLight const *activeLight,
+                    ParamData &userParams, AssetData &loadedAssets, std::vector<std::shared_ptr<CarAgent>> const &racers,
                     std::optional<Entity *> targetedEntity);
         [[nodiscard]] uint32_t GetCameraTargetVehicleID() const;
         static void NewFrame();
@@ -61,9 +54,7 @@ namespace OpenNFS {
         bool _DrawMenuBar(AssetData &loadedAssets) const;
         void _DrawDebugUI(ParamData &userParams, BaseCamera const &camera);
         static std::vector<uint32_t> _GetLocalTrackBlockIDs(Track const &track, BaseCamera const &camera);
-        static VisibleSet _FrustumCull(Track const &track,
-                                       BaseCamera const &camera,
-                                       GlobalLight const *globalLight,
+        static VisibleSet _FrustumCull(Track const &track, BaseCamera const &camera, GlobalLight const *globalLight,
                                        ParamData const &userParams);
 
         std::shared_ptr<GLFWwindow> m_window;

@@ -2,15 +2,15 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 
-#include <vector>
 #include <filesystem>
+#include <vector>
 
-#include <LinearMath/btVector3.h>
-#include <LinearMath/btQuaternion.h>
+#include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <LinearMath/btMatrix3x3.h>
+#include <LinearMath/btQuaternion.h>
+#include <LinearMath/btVector3.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <BulletCollision/CollisionShapes/btBoxShape.h>
 
 #include "Logger.h"
 
@@ -22,20 +22,20 @@ namespace OpenNFS {
 
     namespace Utils {
         glm::mat4 rotAroundPoint(float rad, glm::vec3 const &point, glm::vec3 const &axis);
-        glm::vec3 bulletToGlm(const btVector3 &v);
-        btVector3 glmToBullet(const glm::vec3 &v);
-        glm::quat bulletToGlm(const btQuaternion &q);
-        btQuaternion glmToBullet(const glm::quat &q);
-        btMatrix3x3 glmToBullet(const glm::mat3 &m);
-        btTransform glmToBullet(const glm::mat4 &m);
-        glm::mat4 bulletToGlm(const btTransform &t);
+        glm::vec3 bulletToGlm(btVector3 const &v);
+        btVector3 glmToBullet(glm::vec3 const &v);
+        glm::quat bulletToGlm(btQuaternion const &q);
+        btQuaternion glmToBullet(glm::quat const &q);
+        btMatrix3x3 glmToBullet(glm::mat3 const &m);
+        btTransform glmToBullet(glm::mat4 const &m);
+        glm::mat4 bulletToGlm(btTransform const &t);
 
         float RandomFloat(float min, float max);
-        DimensionData GenDimensions(const std::vector<glm::vec3> &vertices);
+        DimensionData GenDimensions(std::vector<glm::vec3> const &vertices);
         btTransform MakeTransform(glm::vec3 position, glm::quat orientation);
 
         std::vector<NfsAssetList> PopulateAssets();
-        static bool FilePathSortByDepthReverse(const std::filesystem::path &a, const std::filesystem::path &b);
+        static bool FilePathSortByDepthReverse(std::filesystem::path const &a, std::filesystem::path const &b);
         void RenameAssetsToLowercase();
     } // namespace Utils
 

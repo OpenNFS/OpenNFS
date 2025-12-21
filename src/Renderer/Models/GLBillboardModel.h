@@ -1,7 +1,7 @@
 #pragma once
 
-#include "glm/vec3.hpp"
 #include "GLModel.h"
+#include "glm/vec3.hpp"
 /*
 
 const float kBillboardSize = 3.0f;

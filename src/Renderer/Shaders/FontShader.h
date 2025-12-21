@@ -6,18 +6,18 @@
 
 namespace OpenNFS {
     class FontShader : public BaseShader {
-    public:
+      public:
         explicit FontShader();
 
         void loadLayer(GLint layer) const;
 
         void loadColour(glm::vec3 colour) const;
 
-        void loadProjectionMatrix(const glm::mat4 &projection) const;
+        void loadProjectionMatrix(glm::mat4 const &projection) const;
 
         void loadGlyphTexture(GLuint textureID) const;
 
-    protected:
+      protected:
         void bindAttributes() override;
 
         void getAllUniformLocations() override;
@@ -29,4 +29,4 @@ namespace OpenNFS {
         GLint layerLocation;
         GLint colourLocation;
     };
-}
+} // namespace OpenNFS

@@ -3,12 +3,9 @@
 /*
 
 GLQuad::GLQuad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) :
-    GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, position) {
-    std::vector<glm::vec3> verts;
-    verts.emplace_back(fromX, fromY, 0); // bottom left corner
-    verts.emplace_back(toY, fromX, 0);   // top left corner
-    verts.emplace_back(toX, toY, 0);     // top right corner
-    verts.emplace_back(toX, fromY, 0);   // bottom right corner
+    GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false,
+position) { std::vector<glm::vec3> verts; verts.emplace_back(fromX, fromY, 0); // bottom left corner verts.emplace_back(toY, fromX, 0);   //
+top left corner verts.emplace_back(toX, toY, 0);     // top right corner verts.emplace_back(toX, fromY, 0);   // bottom right corner
     unsigned int indices[] = {0, 1,
                               2,        // first triangle (bottom left - top left - top right)
                               0, 2, 3}; // second triangle (bottom left - top right - bottom right)
@@ -104,6 +101,7 @@ bool GLQuad::genBuffers() {
     return true;
 }
 
-GLQuad::GLQuad() : GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned int>(), false, glm::vec3(0, 0, 0)) {
+GLQuad::GLQuad() : GLModel("Quad", std::vector<glm::vec3>(), std::vector<glm::vec2>(), std::vector<glm::vec3>(), std::vector<unsigned
+int>(), false, glm::vec3(0, 0, 0)) {
 }
 */

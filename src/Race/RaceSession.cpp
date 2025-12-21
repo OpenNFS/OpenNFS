@@ -1,10 +1,8 @@
 #include "RaceSession.h"
 
 namespace OpenNFS {
-    RaceSession::RaceSession(std::shared_ptr<GLFWwindow> const &window,
-                             std::shared_ptr<Logger> const &onfsLogger,
-                             std::vector<NfsAssetList> const &installedNFS,
-                             Track const &currentTrack,
+    RaceSession::RaceSession(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
+                             std::vector<NfsAssetList> const &installedNFS, Track const &currentTrack,
                              std::shared_ptr<Car> const &currentCar)
         : m_window(window), m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
           m_freeCamera(m_inputManager, m_track.trackBlocks[0].position), m_hermiteCamera(m_track.centerSpline, m_inputManager),

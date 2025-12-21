@@ -1,7 +1,7 @@
 #include "CarRenderer.h"
 
 namespace OpenNFS {
-    void CarRenderer::Render(const std::shared_ptr<Car> &car, const BaseCamera &camera) {
+    void CarRenderer::Render(std::shared_ptr<Car> const &car, BaseCamera const &camera) {
         m_carShader.use();
 
         // This shader state doesn't change during a car renderpass
@@ -42,8 +42,10 @@ namespace OpenNFS {
         car->rightRearWheelModel.Render();
 
         m_carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
-        m_carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity, car->carBodyModel.envReflectivity);
-        m_carShader.loadCarColor(car->vehicleState.colour, car->vehicleState.colourSecondary); // The colour should only apply to the car body
+        m_carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity,
+                                 car->carBodyModel.envReflectivity);
+        m_carShader.loadCarColor(car->vehicleState.colour,
+                                 car->vehicleState.colourSecondary); // The colour should only apply to the car body
         car->carBodyModel.Render();
 
         m_carShader.unbind();

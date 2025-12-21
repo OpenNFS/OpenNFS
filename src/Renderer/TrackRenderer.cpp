@@ -3,14 +3,10 @@
 #include "../Scene/GlobalLight.h"
 
 namespace OpenNFS {
-    void TrackRenderer::Render(const std::vector<std::shared_ptr<CarAgent>> &racers,
-                               const BaseCamera &camera,
-                               const GLuint trackTextureArrayID,
-                               const std::vector<std::shared_ptr<Entity>> &visibleEntities,
-                               const std::vector<const LibOpenNFS::BaseLight*> &lights,
-                               const ParamData &userParams,
-                               const GLuint depthTextureID,
-                               const float ambientFactor) {
+    void TrackRenderer::Render(std::vector<std::shared_ptr<CarAgent>> const &racers, BaseCamera const &camera,
+                               GLuint const trackTextureArrayID, std::vector<std::shared_ptr<Entity>> const &visibleEntities,
+                               std::vector<LibOpenNFS::BaseLight const *> const &lights, ParamData const &userParams,
+                               GLuint const depthTextureID, float const ambientFactor) {
         m_trackShader.use();
         // This shader state doesn't change during a track renderpass
         m_trackShader.setClassic(userParams.useClassicGraphics);
@@ -37,17 +33,17 @@ namespace OpenNFS {
         m_trackShader.HotReload();
     }
 
-    void TrackRenderer::RenderLights(const BaseCamera &camera, const std::vector<const BaseLight*> &lights) {
+    void TrackRenderer::RenderLights(BaseCamera const &camera, std::vector<BaseLight const *> const &lights) {
         m_billboardShader.use();
 
-        //for (auto &light : lights) {
-        //    if (light->type == TRACK_LIGHT) {
-        //        TrackLight const *trackLight {std::static_pointer_cast<const TrackLight>(light)};
-        //        m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix);
-        //        m_billboardShader.loadLight(trackLight);
-        //        // trackLight->model.render();
-        //    }
-        //}
+        // for (auto &light : lights) {
+        //     if (light->type == TRACK_LIGHT) {
+        //         TrackLight const *trackLight {std::static_pointer_cast<const TrackLight>(light)};
+        //         m_billboardShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix);
+        //         m_billboardShader.loadLight(trackLight);
+        //         // trackLight->model.render();
+        //     }
+        // }
         m_billboardShader.unbind();
         m_billboardShader.HotReload();
     }

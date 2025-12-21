@@ -1,17 +1,17 @@
 #pragma once
 
-#include "BaseCamera.h"
 #include "../Renderer/HermiteCurve.h"
+#include "BaseCamera.h"
 
 namespace OpenNFS {
     class HermiteCamera : public BaseCamera {
-    public:
-        HermiteCamera(const HermiteCurve &trackCenterSpline, const InputManager &inputManager);
+      public:
+        HermiteCamera(HermiteCurve const &trackCenterSpline, InputManager const &inputManager);
 
         void UseSpline(float elapsedTime);
 
-    private:
+      private:
         HermiteCurve m_trackCameraRail;
         int m_loopTime = 0;
     };
-}
+} // namespace OpenNFS

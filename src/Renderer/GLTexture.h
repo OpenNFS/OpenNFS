@@ -1,13 +1,13 @@
 #pragma once
 
-#include <GL/glew.h>
 #include <Entities/TrackTextureAsset.h>
+#include <GL/glew.h>
 
 #include "../Util/ImageLoader.h"
 
 namespace OpenNFS {
     class GLTexture {
-    public:
+      public:
         GLTexture() = default;
         explicit GLTexture(LibOpenNFS::TrackTextureAsset texture, std::vector<uint8_t> const &data);
         GLubyte *GetData();
@@ -19,7 +19,7 @@ namespace OpenNFS {
 
         LibOpenNFS::TrackTextureAsset texture_asset;
 
-    private:
+      private:
         std::vector<GLubyte> data;
     };
 } // namespace OpenNFS

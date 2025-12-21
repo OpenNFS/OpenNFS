@@ -9,23 +9,25 @@
 #include <glm/gtc/quaternion.hpp>
 
 class GLModel {
-public:
+  public:
     explicit GLModel() = default;
     virtual ~GLModel() = default;
-    void Enable() { enabled = true; }
+    void Enable() {
+        enabled = true;
+    }
 
     virtual bool GenBuffers() = 0;
     virtual void UpdateMatrices() = 0;
     virtual void Render() = 0;
 
     /*--------- Model State --------*/
-    bool enabled {};
-    bool buffersGenerated {};
+    bool enabled{};
+    bool buffersGenerated{};
 
     glm::mat4 ModelMatrix = glm::mat4(1.0);
-    glm::mat4 RotationMatrix {};
-    glm::mat4 TranslationMatrix {};
+    glm::mat4 RotationMatrix{};
+    glm::mat4 TranslationMatrix{};
 
-protected:
+  protected:
     GLuint VertexArrayID;
 };

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <fstream>
+#include <magic_enum/magic_enum.hpp>
 #include <string>
 #include <vector>
-#include <magic_enum/magic_enum.hpp>
 
 #include "Common/NFSVersion.h"
 #include "Util/Logger.h"

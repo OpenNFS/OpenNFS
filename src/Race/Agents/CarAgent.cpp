@@ -26,7 +26,7 @@ namespace OpenNFS {
                     nodeNumber += nExtra;
                     break;
                 }
-                nExtra -= static_cast<int>(nPositions);;
+                nExtra -= static_cast<int>(nPositions);
             }
         }
         this->ResetToVroad(nodeNumber, offset);
@@ -34,8 +34,7 @@ namespace OpenNFS {
 
     void CarAgent::ResetToVroad(int const vroadIndex, float const offset) const {
         CHECK_F(offset <= 1.f, "Cannot reset to offset larger than +- 1.f on VROAD (Will spawn off track!)");
-        CHECK_F(vroadIndex < m_track.virtualRoad.size(),
-                "Requested reset to vroad index: %d outside of num vroad chunks", vroadIndex);
+        CHECK_F(vroadIndex < m_track.virtualRoad.size(), "Requested reset to vroad index: %d outside of num vroad chunks", vroadIndex);
 
         // Go and find the Vroad Data to reset to
         glm::vec3 vroadPoint{m_track.virtualRoad[vroadIndex].position + m_track.virtualRoad[vroadIndex].respawn};
@@ -52,8 +51,7 @@ namespace OpenNFS {
 
         // Get closest track block to car body position
         for (auto &trackblock : m_track.trackBlocks) {
-            if (float const distance = glm::distance(vehicle->carBodyModel.position, trackblock.position);
-                distance < lowestDistance) {
+            if (float const distance = glm::distance(vehicle->carBodyModel.position, trackblock.position); distance < lowestDistance) {
                 m_nearestTrackblockID = trackblock.id;
                 lowestDistance = distance;
             }
@@ -69,8 +67,7 @@ namespace OpenNFS {
 
         // Get closest vroad in trackblock set to car body position
         for (uint32_t vroadIdx = nodeNumber; vroadIdx < nodeNumber + nPositions; ++vroadIdx) {
-            float const distance =
-                glm::distance(vehicle->carBodyModel.position, m_track.virtualRoad[vroadIdx].position);
+            float const distance = glm::distance(vehicle->carBodyModel.position, m_track.virtualRoad[vroadIdx].position);
 
             if (distance < lowestDistance) {
                 m_nearestVroadID = vroadIdx;

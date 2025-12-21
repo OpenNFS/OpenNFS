@@ -36,7 +36,8 @@ namespace OpenNFS {
         // Rendering Primitives
         void RenderText(std::string const &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour);
         void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat scale);
-        void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) const;
+        void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height,
+                            GLfloat scale) const;
 
         // Maps to ease opengl display of character/menu resource
         std::map<GLchar, Character> m_characterMap;

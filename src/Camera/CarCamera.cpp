@@ -9,8 +9,7 @@ namespace OpenNFS {
         this->_CalculateZoom();
         this->_CalculatePitch();
         this->_CalculateAngleAroundCar();
-        this->_CalculateCameraPosition(targetCar, this->_CalculateHorizontalDistance(),
-                                       this->_CalculateVerticalDistance());
+        this->_CalculateCameraPosition(targetCar, this->_CalculateHorizontalDistance(), this->_CalculateVerticalDistance());
         m_yaw = 180 - ((targetCar->GetCarBodyOrientation() + m_angleAroundCar));
 
         viewMatrix = glm::mat4(1.0f);
@@ -20,9 +19,7 @@ namespace OpenNFS {
         viewMatrix = glm::translate(viewMatrix, negativeCameraPos);
     }
 
-    void CarCamera::_CalculateCameraPosition(std::shared_ptr<Car> const &target_car,
-                                             float const horizDistance,
-                                             float const vertDistance) {
+    void CarCamera::_CalculateCameraPosition(std::shared_ptr<Car> const &target_car, float const horizDistance, float const vertDistance) {
         float const theta{(target_car->GetCarBodyOrientation() + m_angleAroundCar)};
         float const offsetX{horizDistance * sin(glm::radians(theta))};
         float const offsetZ{horizDistance * cos(glm::radians(theta))};

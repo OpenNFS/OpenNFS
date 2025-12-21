@@ -6,14 +6,14 @@
 
 namespace OpenNFS {
     class UIShader : public BaseShader {
-    public:
+      public:
         explicit UIShader();
         void loadLayer(GLint layer) const;
         void loadColour(glm::vec3 colour) const;
-        void loadProjectionMatrix(const glm::mat4 &projection) const;
+        void loadProjectionMatrix(glm::mat4 const &projection) const;
         void loadUITexture(GLuint textureID) const;
 
-    protected:
+      protected:
         void bindAttributes() override;
         void getAllUniformLocations() override;
         void customCleanup() override;
@@ -23,4 +23,4 @@ namespace OpenNFS {
         GLint layerLocation;
         GLint colourLocation;
     };
-}
+} // namespace OpenNFS

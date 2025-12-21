@@ -3,18 +3,15 @@
 #include <backends/imgui_impl_opengl3.h>
 
 namespace OpenNFS {
-    Renderer::Renderer(std::shared_ptr<GLFWwindow> const &window,
-                       std::shared_ptr<Logger> const &onfsLogger,
-                       std::vector<NfsAssetList> const &installedNFS,
-                       Track const &currentTrack,
+    Renderer::Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
+                       std::vector<NfsAssetList> const &installedNFS, Track const &currentTrack,
                        std::shared_ptr<BulletDebugDrawer> const &debugDrawer)
         : m_window(window), m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_track(currentTrack), m_debugRenderer(debugDrawer) {
         this->_InitialiseIMGUI();
         LOG(DEBUG) << "Renderer Initialised";
     }
 
-    std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t const resolutionX,
-                                                     uint32_t const resolutionY,
+    std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t const resolutionX, uint32_t const resolutionY,
                                                      std::string const &windowName) {
         // Initialise GLFW
         CHECK_F(glfwInit() == GLFW_TRUE, "GLFW Init failed.\n");
@@ -70,14 +67,9 @@ namespace OpenNFS {
         return window;
     }
 
-    bool Renderer::Render(float const totalTime,
-                          BaseCamera const &activeCamera,
-                          HermiteCamera const &hermiteCamera,
-                          GlobalLight const *activeLight,
-                          ParamData &userParams,
-                          AssetData &loadedAssets,
-                          std::vector<std::shared_ptr<CarAgent>> const &racers,
-                          std::optional<Entity *> const targetedEntity) {
+    bool Renderer::Render(float const totalTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
+                          GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,
+                          std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> const targetedEntity) {
         bool newAssetSelected = false;
         m_numRacers = racers.size();
 
@@ -149,9 +141,7 @@ namespace OpenNFS {
         ImGui::NewFrame();
     }
 
-    VisibleSet Renderer::_FrustumCull(Track const &track,
-                                      BaseCamera const &camera,
-                                      GlobalLight const *globalLight,
+    VisibleSet Renderer::_FrustumCull(Track const &track, BaseCamera const &camera, GlobalLight const *globalLight,
                                       ParamData const &userParams) {
         VisibleSet visibleSet;
         // The sun/moon should always contribute

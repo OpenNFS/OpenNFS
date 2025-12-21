@@ -15,11 +15,7 @@ namespace OpenNFS {
 
         void loadStarRotationMatrix(glm::mat3 const &star_rotation_matrix) const;
 
-        void loadTextures(GLuint clouds1TextureID,
-                          GLuint clouds2TextureID,
-                          GLuint sunTextureID,
-                          GLuint moonTextureID,
-                          GLuint tintTextureID,
+        void loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID,
                           GLuint tint2TextureID) const;
 
         void loadWeatherMixFactor(float weatherMixFactor) const;

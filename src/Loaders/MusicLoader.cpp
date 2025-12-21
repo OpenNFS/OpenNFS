@@ -70,17 +70,9 @@ uint32_t MusicLoader::ReadBytes(FILE *file, uint8_t const count) {
 
 // This function assumes that the current file pointer is set to the
 // start of PT header data, that is, just after PT string ID "PT\0\0"
-void MusicLoader::ParsePTHeader(FILE *file,
-                                uint32_t *dwSampleRate,
-                                uint32_t *dwChannels,
-                                uint32_t *dwCompression,
-                                uint32_t *dwNumSamples,
-                                uint32_t *dwDataStart,
-                                uint32_t *dwLoopOffset,
-                                uint32_t *dwLoopLength,
-                                uint32_t *dwBytesPerSample,
-                                uint32_t *bSplit,
-                                uint32_t *bSplitCompression) {
+void MusicLoader::ParsePTHeader(FILE *file, uint32_t *dwSampleRate, uint32_t *dwChannels, uint32_t *dwCompression, uint32_t *dwNumSamples,
+                                uint32_t *dwDataStart, uint32_t *dwLoopOffset, uint32_t *dwLoopLength, uint32_t *dwBytesPerSample,
+                                uint32_t *bSplit, uint32_t *bSplitCompression) {
     uint8_t byte;
     bool bInSubHeader;
 

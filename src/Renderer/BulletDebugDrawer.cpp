@@ -26,7 +26,7 @@ namespace OpenNFS {
         glBindVertexArray(0);
     }
 
-    void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &color) {
+    void BulletDebugDrawer::drawLine(btVector3 const &from, btVector3 const &to, btVector3 const &color) {
         if (m_debugLines.size() < MAX_NUM_LINES) {
             m_debugLines.emplace_back(from, to);
             m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
@@ -34,7 +34,7 @@ namespace OpenNFS {
         }
     }
 
-    void BulletDebugDrawer::Render(const BaseCamera &camera) {
+    void BulletDebugDrawer::Render(BaseCamera const &camera) {
         // Activate corresponding render state
         m_bulletShader.use();
         m_bulletShader.loadProjectionViewMatrix(camera.projectionMatrix * camera.viewMatrix);

@@ -1,7 +1,7 @@
 #include "Utils.h"
 
-#include <random>
 #include <Common/TextureUtils.h>
+#include <random>
 
 #include "ImageLoader.h"
 
@@ -12,36 +12,36 @@ namespace OpenNFS::Utils {
         return glm::translate(glm::mat4(1), point) * glm::rotate(glm::mat4(1), rad, axis) * glm::translate(glm::mat4(1), -point);
     }
 
-    glm::vec3 bulletToGlm(const btVector3 &v) {
+    glm::vec3 bulletToGlm(btVector3 const &v) {
         return {v.getX(), v.getY(), v.getZ()};
     }
 
-    btVector3 glmToBullet(const glm::vec3 &v) {
+    btVector3 glmToBullet(glm::vec3 const &v) {
         return {v.x, v.y, v.z};
     }
 
-    glm::quat bulletToGlm(const btQuaternion &q) {
+    glm::quat bulletToGlm(btQuaternion const &q) {
         return {q.getW(), q.getX(), q.getY(), q.getZ()};
     }
 
-    btQuaternion glmToBullet(const glm::quat &q) {
+    btQuaternion glmToBullet(glm::quat const &q) {
         return {q.x, q.y, q.z, q.w};
     }
 
-    btMatrix3x3 glmToBullet(const glm::mat3 &m) {
+    btMatrix3x3 glmToBullet(glm::mat3 const &m) {
         return {m[0][0], m[1][0], m[2][0], m[0][1], m[1][1], m[2][1], m[0][2], m[1][2], m[2][2]};
     }
 
     // btTransform does not contain a full 4x4 matrix, so this transform is lossy.
     // Affine transformations are OK but perspective transformations are not.
-    btTransform glmToBullet(const glm::mat4 &m) {
+    btTransform glmToBullet(glm::mat4 const &m) {
         glm::mat3 const m3{m};
         return btTransform(glmToBullet(m3), glmToBullet(glm::vec3(m[3][0], m[3][1], m[3][2])));
     }
 
-    glm::mat4 bulletToGlm(const btTransform &t) {
-        auto m {glm::mat4()};
-        const btMatrix3x3 &basis {t.getBasis()};
+    glm::mat4 bulletToGlm(btTransform const &t) {
+        auto m{glm::mat4()};
+        btMatrix3x3 const &basis{t.getBasis()};
         // rotation
         for (int r = 0; r < 3; r++) {
             for (int c = 0; c < 3; c++) {
@@ -49,7 +49,7 @@ namespace OpenNFS::Utils {
             }
         }
         // traslation
-        const btVector3 &origin {t.getOrigin()};
+        btVector3 const &origin{t.getOrigin()};
         m[3][0] = origin.getX();
         m[3][1] = origin.getY();
         m[3][2] = origin.getZ();
@@ -68,12 +68,12 @@ namespace OpenNFS::Utils {
         return static_cast<float>(fdis(mt));
     }
 
-    DimensionData GenDimensions(const std::vector<glm::vec3> &vertices) {
+    DimensionData GenDimensions(std::vector<glm::vec3> const &vertices) {
         DimensionData modelDimensions = {};
         modelDimensions.maxVertex = glm::vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
         modelDimensions.minVertex = glm::vec3(FLT_MAX, FLT_MAX, FLT_MAX);
 
-        for (const auto &vertex: vertices) {
+        for (auto const &vertex : vertices) {
             modelDimensions.minVertex = glm::min(modelDimensions.minVertex, vertex);
             modelDimensions.maxVertex = glm::max(modelDimensions.maxVertex, vertex);
         }
@@ -93,8 +93,8 @@ namespace OpenNFS::Utils {
         std::vector<NfsAssetList> installedNFS;
 
         path basePath(RESOURCE_PATH);
-        bool hasMisc {false};
-        bool hasUI {false};
+        bool hasMisc{false};
+        bool hasUI{false};
 
         for (directory_iterator itr(basePath); itr != directory_iterator(); ++itr) {
             NfsAssetList currentNFS;
@@ -106,8 +106,7 @@ namespace OpenNFS::Utils {
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_2_SE_TRACK_PATH;
                 std::string trackBasePath(trackBasePathStream.str());
-                CHECK_F(exists(trackBasePath), "NFS 2 Special Edition track folder: %s is missing",
-                        trackBasePath.c_str());
+                CHECK_F(exists(trackBasePath), "NFS 2 Special Edition track folder: %s is missing", trackBasePath.c_str());
 
                 for (directory_iterator trackItr(trackBasePath); trackItr != directory_iterator(); ++trackItr) {
                     if (trackItr->path().filename().string().find(".trk") != std::string::npos) {
@@ -178,8 +177,8 @@ namespace OpenNFS::Utils {
 
                 std::string sfxPath = itr->path().string() + "/gamedata/render/pc/sfx.fsh";
                 CHECK_F(exists(sfxPath), "NFS 3 SFX Resource: %s is missing", sfxPath.c_str());
-                CHECK_F(LibOpenNFS::TextureUtils::ExtractQFS(sfxPath, RESOURCE_PATH + "sfx/"),
-                        "Unable to extract SFX textures from %s", sfxPath.c_str());
+                CHECK_F(LibOpenNFS::TextureUtils::ExtractQFS(sfxPath, RESOURCE_PATH + "sfx/"), "Unable to extract SFX textures from %s",
+                        sfxPath.c_str());
 
                 std::stringstream trackBasePathStream;
                 trackBasePathStream << itr->path().string() << NFS_3_TRACK_PATH;
@@ -216,11 +215,11 @@ namespace OpenNFS::Utils {
                 currentNFS.tag = NFSVersion::NFS_4_PS1;
 
                 for (directory_iterator dirItr(itr->path().string()); dirItr != directory_iterator(); ++dirItr) {
-                    if (dirItr->path().filename().string().find("zzz") == 0 && dirItr->path().filename().string().
-                        find(".viv") != std::string::npos) {
+                    if (dirItr->path().filename().string().find("zzz") == 0 &&
+                        dirItr->path().filename().string().find(".viv") != std::string::npos) {
                         currentNFS.cars.emplace_back(dirItr->path().filename().replace_extension("").string());
-                    } else if (dirItr->path().filename().string().find("ztr") == 0 && dirItr->path().filename().string()
-                               .find(".grp") != std::string::npos) {
+                    } else if (dirItr->path().filename().string().find("ztr") == 0 &&
+                               dirItr->path().filename().string().find(".grp") != std::string::npos) {
                         currentNFS.tracks.emplace_back(dirItr->path().filename().replace_extension("").string());
                     }
                 }
@@ -262,7 +261,7 @@ namespace OpenNFS::Utils {
 
                 carBasePathStream.str(std::string());
                 carBasePathStream << itr->path().string() << NFS_4_CAR_PATH << "traffic/"
-                        << "pursuit/";
+                                  << "pursuit/";
                 for (directory_iterator carItr(carBasePathStream.str()); carItr != directory_iterator(); ++carItr) {
                     currentNFS.cars.emplace_back("traffic/pursuit/" + carItr->path().filename().string());
                 }
@@ -324,13 +323,13 @@ namespace OpenNFS::Utils {
         CHECK_F(hasUI, "Missing \'ui\' folder in resources directory");
         CHECK_F(!installedNFS.empty(), "No Need for Speed games detected in resources directory");
 
-        for (auto const &nfs: installedNFS) {
+        for (auto const &nfs : installedNFS) {
             LOG(INFO) << "Detected: " << magic_enum::enum_name(nfs.tag);
         }
         return installedNFS;
     }
 
-    static bool FilePathSortByDepthReverse(const std::filesystem::path &a, const std::filesystem::path &b) {
+    static bool FilePathSortByDepthReverse(std::filesystem::path const &a, std::filesystem::path const &b) {
         return (a.string().size() > b.string().size());
     }
 
@@ -342,7 +341,7 @@ namespace OpenNFS::Utils {
         for (directory_iterator itr(RESOURCE_PATH); itr != directory_iterator(); ++itr) {
             // Yucky way of iterating Enum
             for (uint8_t uNfsIdx = 0; uNfsIdx < 11; ++uNfsIdx) {
-                auto version = (NFSVersion) uNfsIdx;
+                auto version = (NFSVersion)uNfsIdx;
                 if (itr->path().filename().string() == magic_enum::enum_name(version)) {
                     baseNfsPaths.push_back(itr->path());
                 }
@@ -352,9 +351,10 @@ namespace OpenNFS::Utils {
         // Perform the renames, store the paths to avoid modifying paths whilst being iterated on
         std::vector<path> originalPaths;
         std::vector<path> lowercasePaths;
-        for (auto &baseNfsPath: baseNfsPaths) {
+        for (auto &baseNfsPath : baseNfsPaths) {
             for (recursive_directory_iterator iter(baseNfsPath), end; iter != end; ++iter) {
-                // Convert the filename to lowercase using transform() function and ::tolower in STL, then add it back to path for full, relative path
+                // Convert the filename to lowercase using transform() function and ::tolower in STL, then add it back to path for full,
+                // relative path
                 path originalPath = iter->path();
                 std::string lowerNfsFileName = originalPath.filename().string();
                 std::ranges::transform(lowerNfsFileName, lowerNfsFileName.begin(), ::tolower);
@@ -374,8 +374,7 @@ namespace OpenNFS::Utils {
         // Perform the renaming
         for (uint32_t uNfsFileIdx = 0; uNfsFileIdx < originalPaths.size(); ++uNfsFileIdx) {
             rename(originalPaths[uNfsFileIdx], lowercasePaths[uNfsFileIdx]);
-            LOG(INFO) << "Renaming " << originalPaths[uNfsFileIdx].string() << " to " << lowercasePaths[uNfsFileIdx].
-string();
+            LOG(INFO) << "Renaming " << originalPaths[uNfsFileIdx].string() << " to " << lowercasePaths[uNfsFileIdx].string();
         }
 
         LOG(INFO) << "Renaming complete on " << originalPaths.size() << " files";

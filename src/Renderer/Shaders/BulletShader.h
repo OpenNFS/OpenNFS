@@ -6,12 +6,12 @@
 
 namespace OpenNFS {
     class BulletShader : public BaseShader {
-    public:
+      public:
         explicit BulletShader();
 
-        void loadProjectionViewMatrix(const glm::mat4 &projectionViewMatrix) const;
+        void loadProjectionViewMatrix(glm::mat4 const &projectionViewMatrix) const;
 
-    protected:
+      protected:
         void bindAttributes() override;
 
         void getAllUniformLocations() override;
@@ -20,4 +20,4 @@ namespace OpenNFS {
 
         GLint projectionViewMatrixLocation;
     };
-}
+} // namespace OpenNFS

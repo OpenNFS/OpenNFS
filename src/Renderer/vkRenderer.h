@@ -8,24 +8,24 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
 #include <algorithm>
-#include <chrono>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
 #include <array>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iostream>
 #include <set>
+#include <stdexcept>
+#include <vector>
 
-#include "Common/NFSVersion.h"
-#include "../Physics/Car.h"
 #include "../Loaders/CarLoader.h"
+#include "../Physics/Car.h"
+#include "Common/NFSVersion.h"
 
 struct QueueFamilyIndices {
     int graphicsFamily = -1;
-    int presentFamily  = -1;
+    int presentFamily = -1;
 
     bool isComplete() const {
         return graphicsFamily >= 0 && presentFamily >= 0;
@@ -45,9 +45,9 @@ struct Vertex {
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription = {};
-        bindingDescription.binding                         = 0;
-        bindingDescription.stride                          = sizeof(Vertex);
-        bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
+        bindingDescription.binding = 0;
+        bindingDescription.stride = sizeof(Vertex);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
         return bindingDescription;
     }
@@ -55,20 +55,20 @@ struct Vertex {
     static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
         std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
 
-        attributeDescriptions[0].binding  = 0;
+        attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset   = offsetof(Vertex, pos);
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
-        attributeDescriptions[1].binding  = 0;
+        attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset   = offsetof(Vertex, normal);
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Vertex, normal);
 
-        attributeDescriptions[2].binding  = 0;
+        attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format   = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset   = offsetof(Vertex, uv);
+        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].offset = offsetof(Vertex, uv);
 
         return attributeDescriptions;
     }
@@ -80,17 +80,18 @@ struct UniformBufferObject {
     glm::mat4 proj;
 };
 
-static std::vector<char> readFile(const std::string& filename);
+static std::vector<char> readFile(std::string const &filename);
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code,
-                                                    const char* layerPrefix, const char* msg, void* userData);
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj,
+                                                    size_t location, int32_t code, char const *layerPrefix, char const *msg,
+                                                    void *userData);
 
 class vkRenderer {
-public:
+  public:
     void run();
 
-private:
-    GLFWwindow* window;
+  private:
+    GLFWwindow *window;
 
     VkInstance instance;
     VkDebugReportCallbackEXT callback;
@@ -174,7 +175,8 @@ private:
 
     void createDescriptorSet();
 
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer,
+                      VkDeviceMemory &bufferMemory);
 
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
@@ -188,17 +190,17 @@ private:
 
     void drawFrame();
 
-    VkShaderModule createShaderModule(const std::vector<char>& code);
+    VkShaderModule createShaderModule(std::vector<char> const &code);
 
-    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(std::vector<VkSurfaceFormatKHR> const &availableFormats);
 
-    VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+    VkPresentModeKHR chooseSwapPresentMode(std::vector<VkPresentModeKHR> const availablePresentModes);
 
-    VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+    VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR const &capabilities);
 
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
-    std::vector<const char*> getRequiredExtensions();
+    std::vector<char const *> getRequiredExtensions();
 
     bool isDeviceSuitable(VkPhysicalDevice device);
 
