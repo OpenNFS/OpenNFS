@@ -10,6 +10,9 @@ namespace OpenNFS {
         GAME
     };
 
+    // Attenuate scroll towards 0 over time
+    constexpr double kScrollAttenuation = 0.85;
+
     class InputManager {
       public:
         struct Inputs {
@@ -27,6 +30,10 @@ namespace OpenNFS {
             double cursorY{};
             bool mouseLeft{};
             bool mouseRight{};
+            bool camSpeedUp{};
+            double scrollY{};
+            double mouseDeltaX{};
+            double mouseDeltaY{};
         };
 
         explicit InputManager(std::shared_ptr<GLFWwindow> const &window);
@@ -39,5 +46,7 @@ namespace OpenNFS {
       private:
         std::shared_ptr<GLFWwindow> m_window;
         WindowStatus m_windowStatus{GAME};
+
+        static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
     };
 } // namespace OpenNFS

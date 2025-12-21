@@ -43,7 +43,7 @@ namespace OpenNFS {
 
         static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, std::string const &windowName);
         static void _DrawMetadata(Entity const *targetEntity);
-        bool Render(float totalTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera, GlobalLight const *activeLight,
+        bool Render(float totalTime, float deltaTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera, GlobalLight const *activeLight,
                     ParamData &userParams, AssetData &loadedAssets, std::vector<std::shared_ptr<CarAgent>> const &racers,
                     std::optional<Entity *> targetedEntity);
         [[nodiscard]] uint32_t GetCameraTargetVehicleID() const;
@@ -52,7 +52,7 @@ namespace OpenNFS {
       private:
         void _InitialiseIMGUI() const;
         bool _DrawMenuBar(AssetData &loadedAssets) const;
-        void _DrawDebugUI(ParamData &userParams, BaseCamera const &camera);
+        void _DrawDebugUI(ParamData &userParams, float deltaTime, BaseCamera const &camera);
         static std::vector<uint32_t> _GetLocalTrackBlockIDs(Track const &track, BaseCamera const &camera);
         static VisibleSet _FrustumCull(Track const &track, BaseCamera const &camera, GlobalLight const *globalLight,
                                        ParamData const &userParams);
@@ -70,5 +70,10 @@ namespace OpenNFS {
         ShadowMapRenderer m_shadowMapRenderer;
         DebugRenderer m_debugRenderer;
         MiniMapRenderer m_miniMapRenderer;
+
+        // Smoothed deltatime for stable FPS display
+        static constexpr size_t kDeltaTimeHistorySize = 60; // Average over 60 frames
+        std::array<float, kDeltaTimeHistorySize> m_deltaTimeHistory{};
+        size_t m_deltaTimeHistoryIndex{0};
     };
 } // namespace OpenNFS

@@ -23,7 +23,7 @@ namespace OpenNFS {
 
         for (auto const &trackBlockEntities : track.perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
-                if (entity->type != LibOpenNFS::EntityType::ROAD) {
+                if (entity->Type() != LibOpenNFS::EntityType::ROAD) {
                     continue;
                 }
                 miniMapShader.loadTransformationMatrix(rotationMat * entity->ModelMatrix);

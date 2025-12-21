@@ -47,10 +47,10 @@ namespace OpenNFS {
         for (auto const &trackBlockEntities : track.perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
                 int collisionMask = COL_RAY | COL_CAR;
-                if (!entity->collidable) {
+                if (!entity->Collidable()) {
                     continue;
                 }
-                if (entity->dynamic) {
+                if (entity->Dynamic()) {
                     collisionMask |= COL_TRACK;
                     // Move Rigid body to correct place in world
                     btTransform initialTransform = Utils::MakeTransform(entity->initialPosition, entity->orientation);

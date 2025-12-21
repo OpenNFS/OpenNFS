@@ -69,8 +69,8 @@ namespace OpenNFS {
 
             m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
-            if (ImGui::GetIO().MouseClicked[0] && m_inputManager.GetWindowStatus() == GAME) {
-                std::optional targetedEntity{m_physicsManager.CheckForPicking(ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y,
+            if (m_inputManager.inputs.mouseLeft && m_inputManager.GetWindowStatus() == GAME) {
+                std::optional targetedEntity{m_physicsManager.CheckForPicking(m_inputManager.inputs.cursorX, m_inputManager.inputs.cursorY,
                                                                               activeCamera.viewMatrix, activeCamera.projectionMatrix)};
                 // Make the targeted entity 'sticky', else it vanishes after 1 frame
                 if (targetedEntity.has_value()) {
@@ -87,7 +87,7 @@ namespace OpenNFS {
             // Draw the Game UI
             m_uiManager.Update(m_inputManager.inputs);
 
-            bool const assetChange{m_renderer.Render(m_totalTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(),
+            bool const assetChange{m_renderer.Render(m_totalTime, deltaTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(),
                                                      m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity)};
 
             if (assetChange) {

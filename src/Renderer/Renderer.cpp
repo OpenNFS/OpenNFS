@@ -67,7 +67,7 @@ namespace OpenNFS {
         return window;
     }
 
-    bool Renderer::Render(float const totalTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
+    bool Renderer::Render(float const totalTime, float const deltaTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
                           GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,
                           std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> const targetedEntity) {
         bool newAssetSelected = false;
@@ -123,7 +123,7 @@ namespace OpenNFS {
         }
 
         // Render the Debug UI
-        this->_DrawDebugUI(userParams, activeCamera);
+        this->_DrawDebugUI(userParams, deltaTime, activeCamera);
 
         glfwSwapBuffers(m_window.get());
 
@@ -151,8 +151,8 @@ namespace OpenNFS {
             // Perform frustum culling on the current camera, on local trackblocks
             for (auto &collision : track.cullTree.queryOverlaps(camera.viewFrustum)) {
                 auto entity{std::dynamic_pointer_cast<Entity>(collision)};
-                if (entity->type == EntityType::LIGHT) {
-                    visibleSet.lights.emplace_back(*entity);
+                if (entity->Type() == EntityType::LIGHT) {
+                    visibleSet.lights.emplace_back(entity->AsLight());
                 } else {
                     visibleSet.entities.emplace_back(entity);
                 }
@@ -223,7 +223,7 @@ namespace OpenNFS {
         // Traverse the loader structures and print pretty with IMGUI
         switch (track_entity->type) {
         case EntityType::LIGHT: {
-            auto const targetBaseLight = targetEntity->baseLight;
+            auto const targetBaseLight = targetEntity->AsLight();
             ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z, targetBaseLight->colour.w);
             ImVec4 lightAttenuation(targetBaseLight->attenuation.x, targetBaseLight->attenuation.y, targetBaseLight->attenuation.z, 0.0f);
             // Colour, type, attenuation, position and NFS unknowns
@@ -239,13 +239,24 @@ namespace OpenNFS {
         default:
             break;
         }
-        ImGui::Text("Object Flags: %d", targetEntity->flags);
-        ImGui::Text("Collidable: %s", targetEntity->collidable ? "Yes" : "No");
-        ImGui::Text("Dynamic: %s", targetEntity->dynamic ? "Yes" : "No");
+        ImGui::Text("Object Flags: %d", targetEntity->RawFlags());
+        ImGui::Text("Collidable: %s", targetEntity->Collidable() ? "Yes" : "No");
+        ImGui::Text("Dynamic: %s", targetEntity->Dynamic() ? "Yes" : "No");
         ImGui::End();
     }
 
-    void Renderer::_DrawDebugUI(ParamData &userParams, BaseCamera const &camera) {
+    void Renderer::_DrawDebugUI(ParamData &userParams, float const deltaTime, BaseCamera const &camera) {
+        // Update deltatime history for smoothed FPS display
+        m_deltaTimeHistory[m_deltaTimeHistoryIndex] = deltaTime;
+        m_deltaTimeHistoryIndex = (m_deltaTimeHistoryIndex + 1) % kDeltaTimeHistorySize;
+
+        // Calculate smoothed average
+        float smoothedDeltaTime = 0.0f;
+        for (float const dt : m_deltaTimeHistory) {
+            smoothedDeltaTime += dt;
+        }
+        smoothedDeltaTime /= static_cast<float>(kDeltaTimeHistorySize);
+
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
         ImGui::Image(m_shadowMapRenderer.GetTextureID(), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
@@ -256,7 +267,7 @@ namespace OpenNFS {
         m_logger->onScreenLog.Draw("ONFS Log");
         // Draw UI (Tactically)
         ImGui::Text("OpenNFS Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", smoothedDeltaTime * 1000, 1.f/smoothedDeltaTime);
         ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
         ImGui::Checkbox("Frustum Cull", &userParams.useFrustumCull);
         ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);

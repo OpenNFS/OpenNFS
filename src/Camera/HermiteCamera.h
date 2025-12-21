@@ -7,7 +7,6 @@ namespace OpenNFS {
     class HermiteCamera : public BaseCamera {
       public:
         HermiteCamera(HermiteCurve const &trackCenterSpline, InputManager const &inputManager);
-
         void UseSpline(float elapsedTime);
 
       private:

@@ -13,27 +13,28 @@
 #include "Entities/TrackEntity.h"
 
 namespace OpenNFS {
-    class Entity final : public LibOpenNFS::TrackEntity, public IAABB, public GLTrackModel {
+    class Entity final : public IAABB, public GLTrackModel {
       public:
-        explicit Entity(TrackEntity &track_entity);
+        explicit Entity(LibOpenNFS::TrackEntity &track_entity);
         ~Entity() override = default;
         void Update(); // Update Entity position based on Physics engine
-        AABB GetAABB() const override;
-        glm::vec3 GetDebugColour() const;
+        [[nodiscard]] AABB GetAABB() const override;
+        [[nodiscard]] glm::vec3 GetDebugColour() const;
+        [[nodiscard]] LibOpenNFS::BaseLight *AsLight() const;
+        [[nodiscard]] LibOpenNFS::EntityType const Type() const;
+        [[nodiscard]] bool Collidable() const;
+        [[nodiscard]] bool Dynamic() const;
+        [[nodiscard]] uint32_t RawFlags() const;
 
         std::unique_ptr<btRigidBody> rigidBody;
-
-        // TODO: Temp hackedy hack hack. Should be able to cast 'this' to BaseLight as it derives from TrackEntity...
-        LibOpenNFS::BaseLight *baseLight{nullptr};
-        explicit operator LibOpenNFS::BaseLight const *() const {
-            return baseLight;
-        }
 
       private:
         btTriangleMesh m_collisionMesh;
         std::unique_ptr<btCollisionShape> m_collisionShape;
         std::unique_ptr<btDefaultMotionState> m_motionState;
         AABB m_boundingBox{};
+        // Reference to the underlying track entity (which may be a BaseLight/TrackLight)
+        LibOpenNFS::TrackEntity *trackEntity{nullptr};
 
         void _GenCollisionMesh();
         void _GenBoundingBox();
