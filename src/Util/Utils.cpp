@@ -61,7 +61,7 @@ namespace OpenNFS::Utils {
         return m;
     }
 
-    float RandomFloat(float min, float max) {
+    float RandomFloat(float const min, float const max) {
         static std::mt19937 mt(std::random_device{}());
         std::uniform_real_distribution<double> fdis(min, max);
 
@@ -81,7 +81,7 @@ namespace OpenNFS::Utils {
         return modelDimensions;
     }
 
-    btTransform MakeTransform(glm::vec3 position, glm::quat orientation) {
+    btTransform MakeTransform(glm::vec3 const position, glm::quat const orientation) {
         btTransform transform;
         transform.setOrigin(glmToBullet(position));
         transform.setRotation(glmToBullet(orientation));

@@ -90,7 +90,7 @@ bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bi
                             auto info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
                             // we only handle uncompressed bitmaps
                             if (info->bmiHeader.biCompression == CP_BI_RGB) {
-                                GLsizei width = info->bmiHeader.biWidth;
+                                GLsizei const width = info->bmiHeader.biWidth;
                                 *width_ = width;
                                 if (width > 0) {
                                     GLsizei height = info->bmiHeader.biHeight;
@@ -111,7 +111,7 @@ bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bi
                                                 padding = w % 2;
                                                 for (; h > 0; h--) {
                                                     for (w = width; w > 0; w--) {
-                                                        CP_RGBQUAD rgba = info->bmiColors[*pixel];
+                                                        const CP_RGBQUAD rgba = info->bmiColors[*pixel];
                                                         pixel++;
                                                         *current_bits++ = rgba.rgbRed;
                                                         *current_bits++ = rgba.rgbGreen;
@@ -169,12 +169,12 @@ bool ImageLoader::LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bi
                                         if (retval) {
                                             if (info->bmiHeader.biHeight < 0) {
                                                 auto data_q = reinterpret_cast<long *>(bits.data());
-                                                long wt = width * 4L;
+                                                long const wt = width * 4L;
                                                 auto dest_q = reinterpret_cast<long *>(
                                                     bits.data() + (height - 1) * wt);
                                                 while (data_q < dest_q) {
                                                     for (w = width; w > 0; w--) {
-                                                        long tmp = *data_q;
+                                                        long const tmp = *data_q;
                                                         *data_q++ = *dest_q;
                                                         *dest_q++ = tmp;
                                                     }
@@ -205,24 +205,24 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
     if (fp && fp_a) {
         fseek(fp, 0L, 2);
         fseek(fp_a, 0L, 2);
-        long size = ftell(fp);
-        long size_a = ftell(fp_a);
+        long const size = ftell(fp);
+        long const size_a = ftell(fp_a);
         auto *data = new unsigned char[size];
         auto data_a = new unsigned char[size_a];
         if (data && data_a) {
             fseek(fp, 0L, 0);
             fseek(fp_a, 0L, 0);
             if ((fread(data, size, 1, fp) == 1) && (fread(data_a, size_a, 1, fp_a) == 1)) {
-                auto file_header = (CP_BITMAPFILEHEADER *) data;
-                auto file_header_a = (CP_BITMAPFILEHEADER *) data_a;
+                auto const file_header = (CP_BITMAPFILEHEADER *) data;
+                auto const file_header_a = (CP_BITMAPFILEHEADER *) data_a;
                 if (file_header->bfType == MAKEuint16_t('B', 'M')) {
                     if (file_header->bfSize == (uint32_t) size) {
-                        auto info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
+                        auto const info = (CP_BITMAPINFO *) (data + sizeof(CP_BITMAPFILEHEADER));
                         // we only handle uncompressed bitmaps
-                        auto info_a = (CP_BITMAPINFO *) (data_a + sizeof(CP_BITMAPFILEHEADER));
+                        auto const info_a = (CP_BITMAPINFO *) (data_a + sizeof(CP_BITMAPFILEHEADER));
                         // we only handle uncompressed bitmaps
                         if (info->bmiHeader.biCompression == CP_BI_RGB) {
-                            GLsizei width = info->bmiHeader.biWidth;
+                            GLsizei const width = info->bmiHeader.biWidth;
                             *width_ = width;
                             if (width > 0) {
                                 GLsizei height = info->bmiHeader.biHeight;
@@ -233,8 +233,8 @@ bool ImageLoader::LoadBmpWithAlpha(const char *fname, const char *afname, std::v
                                     bits.resize(width * height * 4L);
                                     retval = true;
                                     GLubyte *current_bits = bits.data();
-                                    GLubyte *pixel = data + file_header->bfOffBits;
-                                    GLubyte *pixel_a = data_a + file_header_a->bfOffBits;
+                                    GLubyte const *pixel = data + file_header->bfOffBits;
+                                    GLubyte const *pixel_a = data_a + file_header_a->bfOffBits;
                                     GLsizei h = height, w = width;
                                     long padding, padding_a;
                                     switch (info->bmiHeader.biBitCount) {

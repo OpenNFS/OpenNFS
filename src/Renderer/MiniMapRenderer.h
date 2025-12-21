@@ -15,11 +15,13 @@ namespace OpenNFS {
 
       private:
         void _Rescale();
+
         static constexpr float kVehicleScale{50.f};
         static constexpr float kMiniMapWidth{1000.f};
         static constexpr float kMiniMapHeight{1000.f};
         static constexpr float kMiniMapOffsetX{1000.f};
         static constexpr float kMiniMapOffsetY{1000.f};
+
         glm::mat4 projectionMatrix{};
         MiniMapShader miniMapShader;
         float left{0.f};
@@ -27,4 +29,4 @@ namespace OpenNFS {
         float bottom{0.f};
         float top{0.f};
     };
-}; // namespace OpenNFS
+} // namespace OpenNFS

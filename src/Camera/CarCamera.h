@@ -7,7 +7,7 @@
 namespace OpenNFS {
     class CarCamera : public BaseCamera {
     public:
-        CarCamera(const InputManager &inputManager);
+        explicit CarCamera(const InputManager &inputManager);
         void FollowCar(const std::shared_ptr<Car> &targetCar);
 
     private:

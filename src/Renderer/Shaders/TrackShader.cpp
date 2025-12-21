@@ -51,7 +51,7 @@ namespace OpenNFS {
         glUniform1i(trackTextureArrayLocation, 0);
     }
 
-    void TrackShader::loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights) {
+    void TrackShader::loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights) const {
         for (int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i) {
             if (i < lights.size()) {
                 loadVec3(lightPositionLocation[i], lights[i]->position);
@@ -65,42 +65,42 @@ namespace OpenNFS {
         }
     }
 
-    void TrackShader::loadSpotlight(Spotlight const &spotlight) {
+    void TrackShader::loadSpotlight(Spotlight const &spotlight) const {
         loadVec3(spotlightPositionLocation, spotlight.position);
         loadVec3(spotlightColourLocation, spotlight.colour);
         loadVec3(spotlightDirectionLocation, spotlight.direction);
         loadFloat(spotlightCutOffLocation, spotlight.cutOff);
     }
 
-    void TrackShader::setClassic(bool const useClassic) {
+    void TrackShader::setClassic(bool const useClassic) const {
         loadUint(useClassicLocation, useClassic);
     }
 
-    void TrackShader::loadSpecular(float const damper, float const reflectivity) {
+    void TrackShader::loadSpecular(float const damper, float const reflectivity) const {
         loadFloat(shineDamperLocation, damper);
         loadFloat(reflectivityLocation, reflectivity);
     }
 
-    void TrackShader::loadProjectionViewMatrices(glm::mat4 const &projection, glm::mat4 const &view) {
+    void TrackShader::loadProjectionViewMatrices(glm::mat4 const &projection, glm::mat4 const &view) const {
         loadMat4(viewMatrixLocation, &view[0][0]);
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
-    void TrackShader::loadTransformMatrix(glm::mat4 const &transformation) {
+    void TrackShader::loadTransformMatrix(glm::mat4 const &transformation) const {
         loadMat4(transformationMatrixLocation, &transformation[0][0]);
     }
 
-    void TrackShader::loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) {
+    void TrackShader::loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) const {
         loadMat4(lightSpaceMatrixLocation, &lightSpaceMatrix[0][0]);
     }
 
-    void TrackShader::loadShadowMapTexture(GLuint const shadowMapTextureID) {
+    void TrackShader::loadShadowMapTexture(GLuint const shadowMapTextureID) const {
         loadSampler2D(shadowMapTextureLocation, 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, shadowMapTextureID);
     }
 
-    void TrackShader::loadAmbientFactor(float const ambientFactor) {
+    void TrackShader::loadAmbientFactor(float const ambientFactor) const {
         loadFloat(ambientFactorLocation, ambientFactor);
     }
 

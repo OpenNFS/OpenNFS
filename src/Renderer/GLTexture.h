@@ -9,7 +9,7 @@ namespace OpenNFS {
     class GLTexture {
     public:
         GLTexture() = default;
-        explicit GLTexture(LibOpenNFS::TrackTextureAsset texture, std::vector<uint8_t> &data);
+        explicit GLTexture(LibOpenNFS::TrackTextureAsset texture, std::vector<uint8_t> const &data);
         GLubyte *GetData();
 
         // Utils

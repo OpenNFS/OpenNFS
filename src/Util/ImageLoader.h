@@ -82,19 +82,9 @@ struct PSH {
 };
 
 class ImageLoader {
-private:
 public:
-    explicit ImageLoader();
-
-    ~ImageLoader();
-
     static GLuint LoadImage(const std::string &imagePath, int *width, int *height, GLint wrapParam, GLint sampleParam);
-
     static bool SaveImage(const char *szPathName, const void *lpBits, uint16_t w, uint16_t h);
-
-    static bool LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_,
-                                   uint8_t alphaColour);
-
-    static bool LoadBmpWithAlpha(const char *fname, const char *afname, std::vector<uint8_t> &bits, GLsizei *width_,
-                                 GLsizei *height_);
+    static bool LoadBmpCustomAlpha(const char *fname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_, uint8_t alphaColour);
+    static bool LoadBmpWithAlpha(const char *fname, const char *afname, std::vector<uint8_t> &bits, GLsizei *width_, GLsizei *height_);
 };

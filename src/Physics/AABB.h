@@ -7,17 +7,17 @@ public:
     explicit AABB() = default;
     AABB(glm::vec3 minVertex, glm::vec3 maxVertex, glm::vec3 centerPosition);
 
-    bool Overlaps(const AABB& other) const;
-    bool Contains(const AABB& other) const;
-    AABB Merge(const AABB& other) const;
-    float GetWidth() const;
-    float GetHeight() const;
-    float GetDepth() const;
+    [[nodiscard]] bool Overlaps(const AABB& other) const;
+    [[nodiscard]] bool Contains(const AABB& other) const;
+    [[nodiscard]] AABB Merge(const AABB& other) const;
+    [[nodiscard]] float GetWidth() const;
+    [[nodiscard]] float GetHeight() const;
+    [[nodiscard]] float GetDepth() const;
 
     glm::vec3 min;
     glm::vec3 max;
     float surfaceArea;
 
 private:
-    float _CalculateSurfaceArea() const;
+    [[nodiscard]] float _CalculateSurfaceArea() const;
 };

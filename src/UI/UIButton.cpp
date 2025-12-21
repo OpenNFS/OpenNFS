@@ -5,7 +5,7 @@ namespace OpenNFS {
                        std::string const &_text,
                        glm::vec4 const &_textColour,
                        float const _scale,
-                       uint32_t _layer,
+                       uint32_t const _layer,
                        glm::vec2 const &_location)
         : UIElement(UIElementType::Button, _scale, _layer, _location), resource(_resource), text(_text), textColour(_textColour) {
     }

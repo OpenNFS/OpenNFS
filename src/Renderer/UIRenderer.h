@@ -3,10 +3,8 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "../UI/TextRenderer.h"
 #include "../UI/UIElement.h"
 #include "../UI/UIResource.h"
-#include "../Util/ImageLoader.h"
 #include "Shaders/FontShader.h"
 #include "Shaders/UIShader.h"
 
@@ -38,7 +36,7 @@ namespace OpenNFS {
         // Rendering Primitives
         void RenderText(std::string const &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour);
         void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat scale);
-        void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale);
+        void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) const;
 
         // Maps to ease opengl display of character/menu resource
         std::map<GLchar, Character> m_characterMap;

@@ -8,10 +8,10 @@ namespace OpenNFS {
     class UIShader : public BaseShader {
     public:
         explicit UIShader();
-        void loadLayer(GLint layer);
-        void loadColour(glm::vec3 colour);
-        void loadProjectionMatrix(const glm::mat4 &projection);
-        void loadUITexture(GLuint textureID);
+        void loadLayer(GLint layer) const;
+        void loadColour(glm::vec3 colour) const;
+        void loadProjectionMatrix(const glm::mat4 &projection) const;
+        void loadUITexture(GLuint textureID) const;
 
     protected:
         void bindAttributes() override;

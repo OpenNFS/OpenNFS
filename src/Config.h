@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -12,35 +11,35 @@
 namespace OpenNFS {
     /* --------------- ONFS Compile time parameters here -----------------*/
     /* Some graphics parameters can be found at file SHADER_PREAMBLE_PATH */
-    std::string const ONFS_VERSION{"0.4"};
-    std::string const ONFS_GL_VERSION{"330"};
+    constexpr std::string ONFS_VERSION{"0.4"};
+    constexpr std::string ONFS_GL_VERSION{"330"};
 
     // ----- File paths for asset load/write -----
-    std::string const LOG_FILE_PATH{"./"};
+    constexpr std::string LOG_FILE_PATH{"./"};
     std::string const SHADER_PREAMBLE_PATH{"../shaders/ShaderPreamble.h"};
 
-    std::string const ASSET_PATH{"./assets/"};
-    std::string const CAR_PATH{ASSET_PATH + "car/"};
-    std::string const TRACK_PATH{ASSET_PATH + "tracks/"};
-    std::string const RESOURCE_PATH{"../resources/"};
+    constexpr std::string ASSET_PATH{"./assets/"};
+    constexpr std::string CAR_PATH{ASSET_PATH + "car/"};
+    constexpr std::string TRACK_PATH{ASSET_PATH + "tracks/"};
+    constexpr std::string RESOURCE_PATH{"../resources/"};
 
-    std::string const NFS_2_TRACK_PATH{"/gamedata/tracks/pc/"};
-    std::string const NFS_2_CAR_PATH{"/gamedata/carmodel/pc/"};
+    constexpr std::string NFS_2_TRACK_PATH{"/gamedata/tracks/pc/"};
+    constexpr std::string NFS_2_CAR_PATH{"/gamedata/carmodel/pc/"};
 
-    std::string const NFS_2_SE_TRACK_PATH{"/gamedata/tracks/se/"};
-    std::string const NFS_2_SE_CAR_PATH{"/gamedata/carmodel/pc/"};
+    constexpr std::string NFS_2_SE_TRACK_PATH{"/gamedata/tracks/se/"};
+    constexpr std::string NFS_2_SE_CAR_PATH{"/gamedata/carmodel/pc/"};
 
-    std::string const NFS_3_TRACK_PATH{"/gamedata/tracks/"};
-    std::string const NFS_3_CAR_PATH{"/gamedata/carmodel/"};
+    constexpr std::string NFS_3_TRACK_PATH{"/gamedata/tracks/"};
+    constexpr std::string NFS_3_CAR_PATH{"/gamedata/carmodel/"};
 
-    std::string const NFS_4_TRACK_PATH{"/data/tracks/"};
-    std::string const NFS_4_CAR_PATH{"/data/cars/"};
+    constexpr std::string NFS_4_TRACK_PATH{"/data/tracks/"};
+    constexpr std::string NFS_4_CAR_PATH{"/data/cars/"};
 
-    std::string const MCO_TRACK_PATH{"/data/tracks/"};
-    std::string const MCO_CAR_PATH{"/data/models/"};
+    constexpr std::string MCO_TRACK_PATH{"/data/tracks/"};
+    constexpr std::string MCO_CAR_PATH{"/data/models/"};
 
-    std::string const NFS_5_TRACK_PATH{"/gamedata/track/"};
-    std::string const NFS_5_CAR_PATH{"/gamedata/carmodel/"};
+    constexpr std::string NFS_5_TRACK_PATH{"/gamedata/track/"};
+    constexpr std::string NFS_5_CAR_PATH{"/gamedata/carmodel/"};
 
     // ----- Graphics -----
     static constexpr uint16_t MAX_TEXTURE_ARRAY_SIZE{512};
@@ -56,21 +55,25 @@ namespace OpenNFS {
     static constexpr uint32_t NEIGHBOUR_BLOCKS_FOR_LIGHTS{1}; // Number of neighbouring trackblocks to search for lights
 
     // ----- Defaults -----
-    std::string const DEFAULT_CAR{"corv"};
-    std::string const DEFAULT_TRACK{"trk000"};
-    std::string const DEFAULT_CAR_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
-    std::string const DEFAULT_TRACK_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
+    constexpr std::string DEFAULT_CAR{"corv"};
+    constexpr std::string DEFAULT_TRACK{"trk000"};
+    constexpr std::string DEFAULT_CAR_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
+    constexpr std::string DEFAULT_TRACK_NFS_VER{magic_enum::enum_name(NFSVersion::NFS_3)};
     static constexpr uint32_t DEFAULT_NUM_RACERS{0};
 
     /* --------------- ONFS Runtime parameters here -----------------*/
     class Config {
       public:
+        Config() = default;
+        Config(Config const &) = delete;
+        Config &operator=(Config const &) = delete;
+
         static Config &get() {
             static Config instance;
             return instance;
         }
 
-        void ParseFile(std::ifstream &inStream);
+        static void ParseFile(std::ifstream &inStream);
         void InitFromCommandLine(int argc, char **argv);
 
         // Cmd Line Arg backing variables
@@ -91,11 +94,6 @@ namespace OpenNFS {
         // Easy state pass-around
         uint32_t windowSizeX{};
         uint32_t windowSizeY{};
-
-      private:
-        Config() = default;
-        Config(Config const &);
-        Config &operator=(Config const &);
     };
 
     struct ParamData {

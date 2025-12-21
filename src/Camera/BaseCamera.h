@@ -12,9 +12,7 @@ namespace OpenNFS {
     class BaseCamera {
     public:
         BaseCamera(CameraMode mode, const InputManager &inputManager);
-
         void UpdateFrustum();
-
         void ResetView();
 
         glm::mat4 viewMatrix;

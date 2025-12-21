@@ -1,5 +1,5 @@
 #include "GLQuad.h"
-#include "../../Util/Utils.h"
+
 /*
 
 GLQuad::GLQuad(glm::vec3 position, glm::vec3 colour, float fromX, float fromY, float toX, float toY) :

@@ -18,7 +18,7 @@ namespace OpenNFS {
             nodeNumber += posIndex;
         } else {
             // Advance the trackblock until we can get to posIndex
-            int nExtra = posIndex - nPositions;
+            int nExtra = posIndex - static_cast<int>(nPositions);
             while (true) {
                 nodeNumber = m_track.trackBlocks[++trackBlockIndex].virtualRoadStartIndex;
                 nPositions = m_track.trackBlocks[trackBlockIndex].nVirtualRoadPositions;
@@ -26,7 +26,7 @@ namespace OpenNFS {
                     nodeNumber += nExtra;
                     break;
                 }
-                nExtra -= nPositions;
+                nExtra -= static_cast<int>(nPositions);;
             }
         }
         this->ResetToVroad(nodeNumber, offset);

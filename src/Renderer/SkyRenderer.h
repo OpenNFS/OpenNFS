@@ -3,7 +3,6 @@
 #include "../Camera/BaseCamera.h"
 #include "../Scene/GlobalLight.h"
 #include "../Scene/Track.h"
-#include "../Util/ImageLoader.h"
 #include "Models/GLCarModel.h"
 #include "Shaders/SkydomeShader.h"
 

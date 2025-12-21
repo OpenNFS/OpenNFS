@@ -1,16 +1,16 @@
 #include "vkRenderer.h"
 
-const int WIDTH  = 800;
-const int HEIGHT = 600;
+constexpr int WIDTH  = 800;
+constexpr int HEIGHT = 600;
 
 const std::vector<const char *> validationLayers = {"VK_LAYER_LUNARG_standard_validation"};
 
 const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 #ifdef NDEBUG
-const bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = false;
 #else
-const bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = true;
 #endif
 
 VkResult CreateDebugReportCallbackEXT(VkInstance instance,
@@ -202,7 +202,7 @@ void vkRenderer::createInstance() {
 }
 
 void vkRenderer::setupDebugCallback() {
-    if (!enableValidationLayers)
+    if constexpr (!enableValidationLayers)
         return;
 
     VkDebugReportCallbackCreateInfoEXT createInfo = {};
@@ -425,8 +425,8 @@ void vkRenderer::createDescriptorSetLayout() {
 }
 
 void vkRenderer::createGraphicsPipeline() {
-    auto vertShaderCode = readFile("../shaders/vk/shader.vert.spv");
-    auto fragShaderCode = readFile("../shaders/vk/shader.frag.spv");
+    auto const vertShaderCode = readFile("../shaders/vk/shader.vert.spv");
+    auto const fragShaderCode = readFile("../shaders/vk/shader.frag.spv");
 
     VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
     VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -710,7 +710,7 @@ void vkRenderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-uint32_t vkRenderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t vkRenderer::findMemoryType(uint32_t const typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
@@ -792,8 +792,8 @@ void vkRenderer::createSemaphores() {
 void vkRenderer::updateUniformBuffer() {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time       = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    auto const currentTime = std::chrono::high_resolution_clock::now();
+    float const time       = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
     UniformBufferObject ubo = {};
     ubo.model               = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -1009,8 +1009,7 @@ QueueFamilyIndices vkRenderer::findQueueFamilies(VkPhysicalDevice device) {
 
 std::vector<const char *> vkRenderer::getRequiredExtensions() {
     uint32_t glfwExtensionCount = 0;
-    const char **glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    char const **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
     std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
@@ -1053,7 +1052,7 @@ static std::vector<char> readFile(const std::string &filename) {
         throw std::runtime_error("failed to open file!");
     }
 
-    size_t fileSize = (size_t) file.tellg();
+    size_t const fileSize = (size_t) file.tellg();
     std::vector<char> buffer(fileSize);
 
     file.seekg(0);

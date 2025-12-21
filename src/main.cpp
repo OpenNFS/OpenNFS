@@ -6,7 +6,6 @@
 #include <LibOpenNFS.h>
 #include <cstdlib>
 #include <filesystem>
-#include <iostream>
 #include <string>
 
 #include "Config.h"
@@ -41,7 +40,7 @@ class OpenNFSEngine {
         }
     }
 
-    void run() {
+    void run() const {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
         // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
@@ -81,7 +80,7 @@ class OpenNFSEngine {
     }
 };
 
-int main(int argc, char **argv) {
+int main(int const argc, char **argv) {
     // Init the logger first, as used everywhere in ONFS
     auto const logger {std::make_shared<Logger>()};
     Config::get().InitFromCommandLine(argc, argv);

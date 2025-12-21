@@ -12,7 +12,7 @@ namespace OpenNFS {
       public:
         ShadowMapRenderer();
         ~ShadowMapRenderer();
-        GLuint GetTextureID();
+        [[nodiscard]] GLuint GetTextureID() const;
         void Render(float nearPlane,
                     float farPlane,
                     GlobalLight const *light,

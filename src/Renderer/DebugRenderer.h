@@ -11,7 +11,6 @@ namespace OpenNFS {
         explicit DebugRenderer(const std::shared_ptr<BulletDebugDrawer> &bulletDebugDrawer);
         void Render(const BaseCamera &camera) const;
         void DrawTrackCollision(const Track &track) const;
-        void DrawMiniMap(BaseCamera const &camera, const Track &track) const;
         void DrawAABB(const AABB &aabb, glm::vec3 const &colour) const;
         void DrawFrustum(const BaseCamera &camera) const;
         void DrawCarRaycasts(const std::shared_ptr<Car> &car) const;

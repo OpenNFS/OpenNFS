@@ -34,17 +34,17 @@ namespace OpenNFS {
         timeLocation = getUniformLocation("time");
     }
 
-    void SkydomeShader::loadMatrices(glm::mat4 const &projection, glm::mat4 const &view, glm::mat4 const &transformation) {
+    void SkydomeShader::loadMatrices(glm::mat4 const &projection, glm::mat4 const &view, glm::mat4 const &transformation) const {
         loadMat4(viewMatrixLocation, &view[0][0]);
         loadMat4(projectionMatrixLocation, &projection[0][0]);
         loadMat4(transformationMatrixLocation, &transformation[0][0]);
     }
 
-    void SkydomeShader::loadStarRotationMatrix(glm::mat3 const &star_rotation_matrix) {
+    void SkydomeShader::loadStarRotationMatrix(glm::mat3 const &star_rotation_matrix) const {
         loadMat3(starRotationMatrixLocation, &star_rotation_matrix[0][0]);
     }
 
-    void SkydomeShader::loadSunPosition(GlobalLight const *light) {
+    void SkydomeShader::loadSunPosition(GlobalLight const *light) const {
         loadVec3(sunPositionLocation, light->position);
     }
 
@@ -53,7 +53,7 @@ namespace OpenNFS {
                                      GLuint const sunTextureID,
                                      GLuint const moonTextureID,
                                      GLuint const tintTextureID,
-                                     GLuint const tint2TextureID) {
+                                     GLuint const tint2TextureID) const {
         loadSampler2D(clouds1TextureLocation, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, clouds1TextureID);
@@ -79,11 +79,11 @@ namespace OpenNFS {
         glBindTexture(GL_TEXTURE_2D, tint2TextureID);
     }
 
-    void SkydomeShader::loadWeatherMixFactor(float const weatherMixFactor) {
+    void SkydomeShader::loadWeatherMixFactor(float const weatherMixFactor) const {
         loadFloat(weatherLocation, weatherMixFactor);
     }
 
-    void SkydomeShader::loadTime(float const time) {
+    void SkydomeShader::loadTime(float const time) const {
         loadFloat(timeLocation, time);
     }
 

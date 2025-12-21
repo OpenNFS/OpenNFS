@@ -1,12 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <set>
-#include <stdio.h>
 #include <filesystem>
 
 #include "../Util/Utils.h"
@@ -31,7 +24,7 @@ typedef struct MAPSectionDef {
     uint8_t bIndex;
     uint8_t bNumRecords;
     uint8_t szID[2];
-    struct MAPSectionDefRecord msdRecords[8];
+    MAPSectionDefRecord msdRecords[8];
 } MAPSectionDef;
 
 struct ASFBlockHeader {
@@ -56,13 +49,13 @@ private:
     uint32_t EATable[20] = {0x00000000, 0x000000F0, 0x000001CC, 0x00000188, 0x00000000, 0x00000000, 0xFFFFFF30, 0xFFFFFF24, 0x00000000, 0x00000001,
                             0x00000003, 0x00000004, 0x00000007, 0x00000008, 0x0000000A, 0x0000000B, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFD, 0xFFFFFFFC};
 
-    uint32_t ReadBytes(FILE *file, uint8_t count);
+  static uint32_t ReadBytes(FILE *file, uint8_t count);
 
     bool ReadSCHl(FILE *mus_file, uint32_t sch1Offset, FILE *pcm_file);
 
-    void DecompressEAADPCM(ASFChunkHeader *asfChunkHeader, long nSamples, FILE *mus_file, FILE *pcm_file);
+    void DecompressEAADPCM(ASFChunkHeader const *asfChunkHeader, long nSamples, FILE *mus_file, FILE *pcm_file) const;
 
-    void ParsePTHeader(FILE *file,
+    static void ParsePTHeader(FILE *file,
                        uint32_t *dwSampleRate,
                        uint32_t *dwChannels,
                        uint32_t *dwCompression,

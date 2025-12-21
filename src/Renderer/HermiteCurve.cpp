@@ -10,7 +10,7 @@ HermiteCurve::HermiteCurve(const std::vector<glm::vec3> &curvePoints, float curv
     m_bias    = curveBias;
 }
 
-glm::vec3 HermiteCurve::GetPointAt(const float t) {
+glm::vec3 HermiteCurve::GetPointAt(const float t) const {
     float const point {(m_points.size() - 1) * t};
     int const intPoint {(int) point};
 

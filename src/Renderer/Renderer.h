@@ -34,11 +34,11 @@ namespace OpenNFS {
                  std::shared_ptr<BulletDebugDrawer> const &debugDrawer);
         ~Renderer();
 
-        static void GlfwError(int id, char const *description) {
-            LOG(WARNING) << description;
+        static void GlfwError(int const id, char const *description) {
+            LOG(WARNING) << description << " id: " << id;
         }
 
-        static void WindowSizeCallback(GLFWwindow *window, int width, int height) {
+        static void WindowSizeCallback(GLFWwindow *window, int const width, int const height) {
             Config::get().windowSizeX = width;
             Config::get().windowSizeY = height;
         }
@@ -54,7 +54,7 @@ namespace OpenNFS {
                     std::vector<std::shared_ptr<CarAgent>> const &racers,
                     std::optional<Entity *> targetedEntity);
         [[nodiscard]] uint32_t GetCameraTargetVehicleID() const;
-        void NewFrame();
+        static void NewFrame();
 
       private:
         void _InitialiseIMGUI() const;

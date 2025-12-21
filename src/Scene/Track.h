@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Entities/Track.h>
-#include <cstdint>
 #include <vector>
 
 #include "../Physics/AABBTree.h"
@@ -15,7 +14,7 @@ namespace OpenNFS {
 
       public:
         Track(LibOpenNFS::Track const &track);
-        Track() : cullTree(kCullTreeInitialSize) {};
+        Track() : cullTree(kCullTreeInitialSize) {}
         ~Track();
 
         // GL 3D Render Data

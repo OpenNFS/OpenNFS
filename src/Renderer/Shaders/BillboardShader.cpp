@@ -23,19 +23,19 @@ namespace OpenNFS {
         billboardPosLocation = getUniformLocation("billboardPos");
     }
 
-    void BillboardShader::loadBillboardTexture() {
+    void BillboardShader::loadBillboardTexture() const {
         loadSampler2D(boardTextureLocation, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
     }
 
-    void BillboardShader::loadLight(LibOpenNFS::TrackLight const *light) {
+    void BillboardShader::loadLight(LibOpenNFS::TrackLight const *light) const {
         loadVec4(lightColourLocation, light->colour);
         loadVec3(billboardPosLocation, light->geometry.position);
         loadBillboardTexture();
     }
 
-    void BillboardShader::loadMatrices(glm::mat4 const &projection, glm::mat4 const &view) {
+    void BillboardShader::loadMatrices(glm::mat4 const &projection, glm::mat4 const &view) const {
         loadMat4(viewMatrixLocation, &view[0][0]);
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }

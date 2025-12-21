@@ -9,7 +9,7 @@ namespace OpenNFS {
     public:
         explicit BulletShader();
 
-        void loadProjectionViewMatrix(const glm::mat4 &projectionViewMatrix);
+        void loadProjectionViewMatrix(const glm::mat4 &projectionViewMatrix) const;
 
     protected:
         void bindAttributes() override;

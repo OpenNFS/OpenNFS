@@ -30,7 +30,7 @@ unsigned AABBTree::allocateNode() {
         _nextFreeNodeIndex                      = _allocatedNodeCount;
     }
 
-    unsigned nodeIndex            = _nextFreeNodeIndex;
+    unsigned const nodeIndex            = _nextFreeNodeIndex;
     AABBNode& allocatedNode       = _nodes[nodeIndex];
     allocatedNode.parentNodeIndex = AABB_NULL_NODE;
     allocatedNode.leftNodeIndex   = AABB_NULL_NODE;
@@ -49,7 +49,7 @@ void AABBTree::deallocateNode(const unsigned nodeIndex) {
 }
 
 void AABBTree::insertObject(const std::shared_ptr<IAABB>& object) {
-    unsigned nodeIndex = allocateNode();
+    unsigned const nodeIndex = allocateNode();
     AABBNode& node     = _nodes[nodeIndex];
 
     node.aabb   = object->GetAABB();
@@ -60,14 +60,14 @@ void AABBTree::insertObject(const std::shared_ptr<IAABB>& object) {
 }
 
 void AABBTree::removeObject(const std::shared_ptr<IAABB>& object) {
-    unsigned nodeIndex = _objectNodeIndexMap[object];
+    unsigned const nodeIndex = _objectNodeIndexMap[object];
     removeLeaf(nodeIndex);
     deallocateNode(nodeIndex);
     _objectNodeIndexMap.erase(object);
 }
 
 void AABBTree::updateObject(const std::shared_ptr<IAABB>& object) {
-    unsigned nodeIndex = _objectNodeIndexMap[object];
+    unsigned const nodeIndex = _objectNodeIndexMap[object];
     updateLeaf(nodeIndex, object->GetAABB());
 }
 
@@ -77,7 +77,7 @@ std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(const Frustum&
 
     stack.push(_rootNodeIndex);
     while (!stack.empty()) {
-        unsigned nodeIndex = stack.top();
+        unsigned const nodeIndex = stack.top();
         stack.pop();
 
         if (nodeIndex == AABB_NULL_NODE)
@@ -197,10 +197,10 @@ void AABBTree::removeLeaf(const unsigned leafNodeIndex) {
     }
 
     AABBNode& leafNode            = _nodes[leafNodeIndex];
-    unsigned parentNodeIndex      = leafNode.parentNodeIndex;
+    unsigned const parentNodeIndex      = leafNode.parentNodeIndex;
     const AABBNode& parentNode    = _nodes[parentNodeIndex];
-    unsigned grandParentNodeIndex = parentNode.parentNodeIndex;
-    unsigned siblingNodeIndex     = parentNode.leftNodeIndex == leafNodeIndex ? parentNode.rightNodeIndex : parentNode.leftNodeIndex;
+    unsigned const grandParentNodeIndex = parentNode.parentNodeIndex;
+    unsigned const siblingNodeIndex     = parentNode.leftNodeIndex == leafNodeIndex ? parentNode.rightNodeIndex : parentNode.leftNodeIndex;
     assert(siblingNodeIndex != AABB_NULL_NODE); // we must have a sibling
     AABBNode& siblingNode = _nodes[siblingNodeIndex];
 

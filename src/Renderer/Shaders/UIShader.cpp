@@ -21,19 +21,19 @@ namespace OpenNFS {
         menuTextureSamplerLocation = getUniformLocation("menuTextureSampler");
     }
 
-    void UIShader::loadProjectionMatrix(glm::mat4 const &projection) {
+    void UIShader::loadProjectionMatrix(glm::mat4 const &projection) const {
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
-    void UIShader::loadLayer(GLint layer) {
+    void UIShader::loadLayer(GLint const layer) const {
         loadFloat(layerLocation, layer == 0 ? -0.999f : (float)(layer - 100) / 100);
     }
 
-    void UIShader::loadColour(glm::vec3 colour) {
+    void UIShader::loadColour(glm::vec3 const colour) const {
         loadVec3(colourLocation, colour);
     }
 
-    void UIShader::loadUITexture(GLuint textureID) {
+    void UIShader::loadUITexture(GLuint const textureID) const {
         loadSampler2D(menuTextureSamplerLocation, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);

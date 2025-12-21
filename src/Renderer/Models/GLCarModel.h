@@ -7,7 +7,7 @@ namespace OpenNFS {
     class GLCarModel : public GLModel, public LibOpenNFS::CarGeometry {
       public:
         GLCarModel(CarGeometry const &geometry, float specular_damper, float specular_reflectivity, float env_reflectivity);
-        GLCarModel(CarGeometry const &geometry);
+        explicit GLCarModel(CarGeometry const &geometry);
         GLCarModel() : GLModel() {};
         ~GLCarModel() override;
 

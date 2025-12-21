@@ -5,7 +5,6 @@
 #include "../Camera/BaseCamera.h"
 #include "../Config.h"
 #include "../Race/Agents/CarAgent.h"
-#include "Entities/BaseLight.h"
 #include "Shaders/BillboardShader.h"
 #include "Shaders/TrackShader.h"
 

@@ -19,7 +19,7 @@ namespace OpenNFS {
         projectionViewMatrixLocation = getUniformLocation("projectionViewMatrix");
     }
 
-    void BulletShader::loadProjectionViewMatrix(glm::mat4 const &projectionViewMatrix) {
+    void BulletShader::loadProjectionViewMatrix(glm::mat4 const &projectionViewMatrix) const {
         loadMat4(projectionViewMatrixLocation, &projectionViewMatrix[0][0]);
     }
 

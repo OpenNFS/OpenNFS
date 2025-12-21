@@ -32,8 +32,6 @@ namespace OpenNFS {
         std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
     private:
-        void _GenerateVroadBarriers();
-
         const Track& m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 

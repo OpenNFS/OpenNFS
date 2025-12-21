@@ -21,19 +21,19 @@ namespace OpenNFS {
         textGlyphSamplerLocation = getUniformLocation("textGlyphSampler");
     }
 
-    void FontShader::loadProjectionMatrix(glm::mat4 const &projection) {
+    void FontShader::loadProjectionMatrix(glm::mat4 const &projection) const {
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
-    void FontShader::loadLayer(GLint const layer) {
+    void FontShader::loadLayer(GLint const layer) const {
         loadFloat(layerLocation, layer == 0 ? -0.999f : (float)(layer - 100) / 100);
     }
 
-    void FontShader::loadColour(glm::vec3 const colour) {
+    void FontShader::loadColour(glm::vec3 const colour) const {
         loadVec3(colourLocation, colour);
     }
 
-    void FontShader::loadGlyphTexture(GLuint const textureID) {
+    void FontShader::loadGlyphTexture(GLuint const textureID) const {
         loadSampler2D(textGlyphSamplerLocation, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);

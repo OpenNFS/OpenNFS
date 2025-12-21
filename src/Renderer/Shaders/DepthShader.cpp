@@ -30,11 +30,11 @@ namespace OpenNFS {
         glUniform1i(textureArrayLocation, 0);
     }
 
-    void DepthShader::loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) {
+    void DepthShader::loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) const {
         loadMat4(lightSpaceMatrixLocation, &lightSpaceMatrix[0][0]);
     }
 
-    void DepthShader::loadTransformMatrix(glm::mat4 const &transformationMatrix) {
+    void DepthShader::loadTransformMatrix(glm::mat4 const &transformationMatrix) const {
         loadMat4(transformationMatrixLocation, &transformationMatrix[0][0]);
     }
 } // namespace OpenNFS

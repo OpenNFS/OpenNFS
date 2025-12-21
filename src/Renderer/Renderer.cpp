@@ -141,6 +141,7 @@ namespace OpenNFS {
     uint32_t Renderer::GetCameraTargetVehicleID() const {
         return m_cameraTargetVehicleID;
     }
+
     void Renderer::NewFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         ImGui_ImplOpenGL3_NewFrame();

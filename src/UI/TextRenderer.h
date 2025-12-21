@@ -36,7 +36,7 @@ namespace OpenNFS {
                 float ty; // y offset of glyph in texture coordinates
             } c[128];     // character information
 
-            Atlas(FT_Face face, int height, UITextShader &shader);
+            Atlas(FT_Face face, int height, UITextShader const &shader);
             ~Atlas();
         };
 
@@ -46,7 +46,7 @@ namespace OpenNFS {
         void Render();
 
       private:
-        void RenderText(char const *text, Atlas const *a, float x, float y, float sx, float sy);
+        void RenderText(char const *text, Atlas const *a, float x, float y, float sx, float sy) const;
 
         struct Point {
             GLfloat x;

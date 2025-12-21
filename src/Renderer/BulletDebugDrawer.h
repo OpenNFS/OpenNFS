@@ -1,7 +1,6 @@
 #pragma once
 
 #include <LinearMath/btIDebugDraw.h>
-#include <glm/detail/type_mat4x4.hpp>
 
 #include "../Camera/BaseCamera.h"
 #include "../Util/Logger.h"
@@ -20,8 +19,8 @@ namespace OpenNFS {
         }
     };
 
-    uint32_t const MAX_NUM_LINES = 100000;
-    uint32_t const INITIAL_LINE_BUF_SIZE = sizeof(BulletLine) * MAX_NUM_LINES;
+    constexpr uint32_t MAX_NUM_LINES = 100000;
+    constexpr uint32_t INITIAL_LINE_BUF_SIZE = sizeof(BulletLine) * MAX_NUM_LINES;
 
     class BulletDebugDrawer : public btIDebugDraw {
       public:
@@ -43,11 +42,11 @@ namespace OpenNFS {
             LOG(WARNING) << textString;
         }
 
-        void setDebugMode(int p) override {
+        void setDebugMode(int const p) override {
             m = p;
         }
 
-        int getDebugMode(void) const override {
+        [[nodiscard]] int getDebugMode() const override {
             return 3;
         }
 

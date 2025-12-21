@@ -21,7 +21,7 @@ struct AABBNode {
     // node linked list link
     unsigned nextNodeIndex;
 
-    bool isLeaf() const {
+    [[nodiscard]] bool isLeaf() const {
         return leftNodeIndex == AABB_NULL_NODE;
     }
 
@@ -30,7 +30,6 @@ struct AABBNode {
 };
 
 class AABBTree {
-private:
     std::map<std::shared_ptr<IAABB>, unsigned> _objectNodeIndexMap;
     std::vector<AABBNode> _nodes;
     unsigned _rootNodeIndex;
@@ -47,11 +46,11 @@ private:
     void fixUpwardsTree(unsigned treeNodeIndex);
 
 public:
-    AABBTree(unsigned initialSize);
+    explicit AABBTree(unsigned initialSize);
     ~AABBTree();
 
     void insertObject(const std::shared_ptr<IAABB>& object);
     void removeObject(const std::shared_ptr<IAABB>& object);
     void updateObject(const std::shared_ptr<IAABB>& object);
-    std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const Frustum& frustum) const;
+    [[nodiscard]] std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const Frustum& frustum) const;
 };

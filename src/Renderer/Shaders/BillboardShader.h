@@ -9,8 +9,8 @@ namespace OpenNFS {
     class BillboardShader : public BaseShader {
       public:
         BillboardShader();
-        void loadLight(LibOpenNFS::TrackLight const *light);
-        void loadMatrices(glm::mat4 const &projection, glm::mat4 const &view);
+        void loadLight(LibOpenNFS::TrackLight const *light) const;
+        void loadMatrices(glm::mat4 const &projection, glm::mat4 const &view) const;
 
       protected:
         void bindAttributes() override;
@@ -25,7 +25,7 @@ namespace OpenNFS {
 
         GLuint textureID;
 
-        void loadBillboardTexture();
+        void loadBillboardTexture() const;
 
         void load_bmp_texture();
     };

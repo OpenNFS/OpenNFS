@@ -1,8 +1,8 @@
 #include "HermiteCamera.h"
 
 namespace OpenNFS {
-    HermiteCamera::HermiteCamera(const HermiteCurve &trackCenterSpline,
-                                 const InputManager &inputManager) : BaseCamera(CameraMode::HERMITE_FLYTHROUGH,
+    HermiteCamera::HermiteCamera(HermiteCurve const &trackCenterSpline,
+                                 InputManager const &inputManager) : BaseCamera(CameraMode::HERMITE_FLYTHROUGH,
                                                                          inputManager),
                                                                      m_trackCameraRail(trackCenterSpline) {
         m_loopTime = static_cast<int>(m_trackCameraRail.GetLength()) * 100;

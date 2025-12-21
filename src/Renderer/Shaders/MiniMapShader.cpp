@@ -21,19 +21,19 @@ namespace OpenNFS {
         layerLocation = getUniformLocation("layer");
     }
 
-    void MiniMapShader::loadProjectionMatrix(glm::mat4 const &projection) {
+    void MiniMapShader::loadProjectionMatrix(glm::mat4 const &projection) const {
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
-    void MiniMapShader::loadTransformationMatrix(glm::mat4 const &transformation) {
+    void MiniMapShader::loadTransformationMatrix(glm::mat4 const &transformation) const {
         loadMat4(transformationMatrixLocation, &transformation[0][0]);
     }
 
-    void MiniMapShader::loadColor(glm::vec3 const color) {
+    void MiniMapShader::loadColor(glm::vec3 const color) const {
         loadVec3(colourLocation, color);
     }
 
-    void MiniMapShader::loadLayer(GLint const layer) {
+    void MiniMapShader::loadLayer(GLint const layer) const {
         loadFloat(layerLocation, layer == 0 ? -0.999f : static_cast<float>(layer - 100) / 100);
     }
 

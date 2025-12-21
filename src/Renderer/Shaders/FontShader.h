@@ -9,13 +9,13 @@ namespace OpenNFS {
     public:
         explicit FontShader();
 
-        void loadLayer(GLint layer);
+        void loadLayer(GLint layer) const;
 
-        void loadColour(glm::vec3 colour);
+        void loadColour(glm::vec3 colour) const;
 
-        void loadProjectionMatrix(const glm::mat4 &projection);
+        void loadProjectionMatrix(const glm::mat4 &projection) const;
 
-        void loadGlyphTexture(GLuint textureID);
+        void loadGlyphTexture(GLuint textureID) const;
 
     protected:
         void bindAttributes() override;

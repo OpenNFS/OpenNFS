@@ -28,7 +28,7 @@ namespace OpenNFS {
     void ShadowMapRenderer::Render(float nearPlane,
                                    float farPlane,
                                    GlobalLight const *light,
-                                   GLuint trackTextureArrayID,
+                                   GLuint const trackTextureArrayID,
                                    std::vector<std::shared_ptr<Entity>> const &visibleEntities,
                                    std::vector<std::shared_ptr<CarAgent>> const &racers) {
         /* ------- SHADOW MAPPING ------- */
@@ -72,7 +72,7 @@ namespace OpenNFS {
         m_depthShader.HotReload();
     }
 
-    GLuint ShadowMapRenderer::GetTextureID() {
+    GLuint ShadowMapRenderer::GetTextureID() const {
         return m_depthTextureID;
     }
 

@@ -4,7 +4,7 @@
 #include <utility>
 
 namespace OpenNFS {
-    GLTexture::GLTexture(LibOpenNFS::TrackTextureAsset texture, std::vector<uint8_t> &data)
+    GLTexture::GLTexture(LibOpenNFS::TrackTextureAsset texture, std::vector<uint8_t> const &data)
         : texture_asset(std::move(texture)), data(data) {
     }
 

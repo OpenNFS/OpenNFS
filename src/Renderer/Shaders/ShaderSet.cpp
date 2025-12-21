@@ -5,12 +5,10 @@
 #else
 // Not Windows? Assume unix-like.
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 #endif
 
 #include <algorithm>
-#include <cstdio>
 #include <fstream>
 #include <string>
 
@@ -23,7 +21,7 @@ static uint64_t GetShaderFileTimestamp(char const *filename) {
         timestamp = stFileInfo.st_mtime;
     }
 #else
-    struct stat fileStat;
+    struct stat fileStat{};
 
     if (stat(filename, &fileStat) == -1) {
         perror(filename);
@@ -151,6 +149,9 @@ void ShaderSet::UpdatePrograms() {
             break;
         case GL_COMPUTE_SHADER:
             defines += "#define COMPUTE_SHADER\n";
+            break;
+        default:
+            LOG(FATAL) << "Unknown Shader Type: " << shader->first.Type;
             break;
         }
 

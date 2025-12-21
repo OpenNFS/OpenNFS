@@ -16,7 +16,7 @@ namespace OpenNFS {
         auto onfsLogoImage = std::make_unique<UIImage>(m_menuResourceMap["onfsLogo"], 0.1f, 0, glm::vec2(Config::get().resX - 75, 5));
         auto onfsVersionText = std::make_unique<UITextField>("OpenNFS v" + ONFS_VERSION + " Pre Alpha", glm::vec4(0.6, 0.6, 0.6, 1.0), 0.2f,
                                                              0, glm::vec2(Config::get().resX - 270, 35));
-        auto bgBackgroundGrille = std::make_unique<UIImage>(m_menuResourceMap["backgroundPattern"], 1.f, 1, glm::vec2(0, 0));
+        auto const bgBackgroundGrille = std::make_unique<UIImage>(m_menuResourceMap["backgroundPattern"], 1.f, 1, glm::vec2(0, 0));
 
         // TODO: Hardcode all OnClick functions, the JSON will encode a constant that looks up the correct callback when parsing
         onfsLogoImage->SetOnClick([] { LOG(INFO) << "Clicked onfsLogo"; });
@@ -45,13 +45,13 @@ namespace OpenNFS {
 
             switch (uiElement->type) {
             case UIElementType::Button:
-                m_uiRenderer.RenderButton(static_cast<UIButton *>(uiElement.get()));
+                m_uiRenderer.RenderButton(dynamic_cast<UIButton *>(uiElement.get()));
                 break;
             case UIElementType::TextField:
-                //m_uiRenderer.RenderTextField(static_cast<UITextField *>(uiElement.get()));
+                // m_uiRenderer.RenderTextField(dynamic_cast<UITextField *>(uiElement.get()));
                 break;
             case UIElementType::Image:
-                m_uiRenderer.RenderImage(static_cast<UIImage *>(uiElement.get()));
+                m_uiRenderer.RenderImage(dynamic_cast<UIImage *>(uiElement.get()));
                 break;
             }
         }

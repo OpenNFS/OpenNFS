@@ -1,6 +1,5 @@
 #include "Config.h"
 
-#include <Common/Utils.h>
 #include <argparse/argparse.hpp>
 
 namespace OpenNFS {

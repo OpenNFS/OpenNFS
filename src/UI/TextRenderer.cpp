@@ -1,9 +1,7 @@
 #include "TextRenderer.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <vector>
 
 #include <GL/glew.h>
@@ -15,7 +13,7 @@ namespace OpenNFS {
      * Rendering starts at coordinates (x, y), z is always 0.
      * The pixel coordinates that the FreeType2 library uses are scaled by (sx, sy).
      */
-    void TextRenderer::RenderText(char const *text, Atlas const *a, float x, float y, float const sx, float const sy) {
+    void TextRenderer::RenderText(char const *text, Atlas const *a, float x, float y, float const sx, float const sy) const {
         /* Use the texture containing the atlas */
         glBindTexture(GL_TEXTURE_2D, a->tex);
         m_uiTextShader.loadUITexture(0);
@@ -121,7 +119,7 @@ namespace OpenNFS {
         m_uiTextShader.HotReload();
     }
 
-    TextRenderer::Atlas::Atlas(FT_Face const face, int const height, UITextShader &shader) {
+    TextRenderer::Atlas::Atlas(FT_Face const face, int const height, UITextShader const &shader) {
         FT_Set_Pixel_Sizes(face, 0, height);
         FT_GlyphSlot const g = face->glyph;
 
@@ -205,7 +203,7 @@ namespace OpenNFS {
             ox += g->bitmap.width + 1;
         }
 
-        fprintf(stderr, "Generated a %d x %d (%d kb) texture atlas\n", w, h, w * h / 1024);
+        LOGF(DEBUG, "Generated a %d x %d (%d kb) texture atlas\n", w, h, w * h / 1024);
     }
 
     TextRenderer::Atlas::~Atlas() {

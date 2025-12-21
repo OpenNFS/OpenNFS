@@ -11,7 +11,7 @@ class Frustum {
 public:
     Frustum() = default;
     void Update(const glm::mat4 &projectionViewMatrix);
-    bool CheckIntersection(const AABB &other) const;
+    [[nodiscard]] bool CheckIntersection(const AABB &other) const;
     std::array<glm::vec3, 8> points;
 
 private:

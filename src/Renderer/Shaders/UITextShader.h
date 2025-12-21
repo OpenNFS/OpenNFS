@@ -8,12 +8,12 @@ namespace OpenNFS {
     class UITextShader : public BaseShader {
       public:
         explicit UITextShader();
-        void loadLayer(GLint layer);
-        void loadColour(glm::vec4 colour);
-        void loadProjectionMatrix(glm::mat4 const &projection);
-        void loadUITexture(GLuint textureID);
-        void bindBuffer();
-        void unbindBuffer();
+        void loadLayer(GLint layer) const;
+        void loadColour(glm::vec4 colour) const;
+        void loadProjectionMatrix(glm::mat4 const &projection) const;
+        void loadUITexture(GLuint textureID) const;
+        void bindBuffer() const;
+        void unbindBuffer() const;
 
       protected:
         void bindAttributes() override;

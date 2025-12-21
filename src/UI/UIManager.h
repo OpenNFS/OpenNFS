@@ -5,6 +5,7 @@
 
 #include "../Input/InputManager.h"
 #include "../Renderer/UIRenderer.h"
+#include "TextRenderer.h"
 #include "UIElement.h"
 #include "UIResource.h"
 

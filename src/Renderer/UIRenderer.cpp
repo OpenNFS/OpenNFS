@@ -3,13 +3,10 @@
 #include "../UI/UIButton.h"
 #include "../UI/UIImage.h"
 #include "../UI/UITextField.h"
-#include "../Util/ImageLoader.h"
 
-#include <ft2build.h>
+#include <freetype/freetype.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <json/json.hpp>
-
-#include FT_FREETYPE_H
 
 namespace OpenNFS {
     UIRenderer::UIRenderer() {
@@ -104,7 +101,7 @@ namespace OpenNFS {
         RenderResource(image->resource, static_cast<GLint>(image->layer), image->location.x, image->location.y, image->scale);
     }
 
-    void UIRenderer::RenderText(std::string const &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) {
+    void UIRenderer::RenderText(std::string const &text, GLint const layer, GLfloat x, GLfloat const y, GLfloat const scale, glm::vec3 const colour) {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
 
         // Activate corresponding render state
@@ -143,16 +140,16 @@ namespace OpenNFS {
         m_fontShader.unbind();
     }
 
-    void UIRenderer::RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat scale) {
+    void UIRenderer::RenderResource(UIResource const &resource, GLint const layer, GLfloat const x, GLfloat const y, GLfloat const scale) {
         // TODO: Actually implement this rescaling scaling properly
-        float ratioX = 1.0f; // (float) resource.width / Config::get().resX;
-        float ratioY = 1.0f; // (float) resource.height / Config::get().resY;
+        constexpr float ratioX = 1.0f; // (float) resource.width / Config::get().resX;
+        constexpr float ratioY = 1.0f; // (float) resource.height / Config::get().resY;
 
         RenderResource(resource, layer, x, y, ratioX * resource.width, ratioY * resource.height, scale);
     }
 
-    void UIRenderer::RenderResource(
-        UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height, GLfloat scale) {
+    void UIRenderer::RenderResource(UIResource const &resource, GLint const layer, GLfloat const x, GLfloat const y,
+                                    GLfloat const width, GLfloat const height, GLfloat const scale) const {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
 
         GLfloat const xpos{x};
