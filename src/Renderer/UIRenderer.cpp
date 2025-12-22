@@ -7,18 +7,9 @@
 #include <algorithm>
 #include <freetype/freetype.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <json/json.hpp>
 
 namespace OpenNFS {
     UIRenderer::UIRenderer() {
-        FT_Library ft;
-        CHECK_F(!FT_Init_FreeType(&ft), "FREETYPE: Could not init FreeType Library");
-
-        // TODO: Iterate through a list of fonts
-        CHECK_F(earth.Initialise(ft, "../resources/ui/fonts/earth.ttf"), "Failed to initialise font atlas");
-
-        FT_Done_FreeType(ft);
-
         // Configure VAO/VBO for menu texture quads
         glGenVertexArrays(1, &m_menuQuadVAO);
         glGenBuffers(1, &m_menuQuadVBO);
@@ -31,6 +22,32 @@ namespace OpenNFS {
         // Reset state
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
+    }
+
+    bool UIRenderer::GenerateAtlases(std::map<std::string, UIFont> const &fontMap) {
+        FT_Library ft;
+        if (FT_Init_FreeType(&ft)) {
+            LOG(WARNING) << "Failed to initialize FreeType library";
+            return false;
+        }
+
+        // Load fonts into renderer
+        for (auto const &[name, font] : fontMap) {
+            Atlas newAtlas;
+            bool const success = newAtlas.Initialise(ft, font.path, font.size);
+
+            if (success) {
+                m_fontAtlases[name] = std::move(newAtlas);
+                LOG(INFO) << "Loaded font atlas: " << name << " from " << font.path << " (size: " << font.size << ")";
+                continue;
+            }
+
+            LOG(WARNING) << "Failed to load font atlas: " << name << " from " << font.path;
+            return false;
+        }
+        FT_Done_FreeType(ft);
+
+        return true;
     }
 
     UIRenderer::~UIRenderer() {
@@ -50,23 +67,31 @@ namespace OpenNFS {
     }
 
     void UIRenderer::RenderButton(UIButton const *button) const {
-        RenderText(button->text, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale,
+        RenderText(button->text, button->fontName, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale,
                    button->textColour);
         RenderResource(button->resource, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale);
     }
 
     void UIRenderer::RenderTextField(UITextField const *textField) const {
-        RenderText(textField->text, static_cast<GLint>(textField->layer), textField->location.x, textField->location.y, textField->scale,
-                   textField->textColour);
+        RenderText(textField->text, textField->fontName, static_cast<GLint>(textField->layer), textField->location.x, textField->location.y,
+                   textField->scale, textField->textColour);
     }
 
     void UIRenderer::RenderImage(UIImage const *image) const {
         RenderResource(image->resource, static_cast<GLint>(image->layer), image->location.x, image->location.y, image->scale);
     }
 
-    void UIRenderer::RenderText(std::string const &text, GLint const layer, GLfloat x, GLfloat const y, GLfloat const scale,
-                                glm::vec3 const colour) const {
+    void UIRenderer::RenderText(std::string const &text, std::string const &fontName, GLint const layer, GLfloat x, GLfloat const y,
+                                GLfloat const scale, glm::vec3 const colour) const {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
+
+        // Get the font atlas
+        auto const it = m_fontAtlases.find(fontName);
+        if (it == m_fontAtlases.end()) {
+            LOG(WARNING) << "Font not found: " << fontName << ", skipping text render";
+            return;
+        }
+        Atlas const &atlas = it->second;
 
         // Activate the corresponding render state
         m_fontShader.use();
@@ -75,13 +100,13 @@ namespace OpenNFS {
         m_fontShader.loadProjectionMatrix(m_projectionMatrix);
 
         // Bind the atlas texture once
-        m_fontShader.loadGlyphTexture(earth.GetTextureID());
+        m_fontShader.loadGlyphTexture(atlas.GetTextureID());
 
-        glBindVertexArray(earth.GetVAO());
+        glBindVertexArray(atlas.GetVAO());
         // Iterate through all characters
         for (auto c{text.begin()}; c != text.end(); ++c) {
             unsigned char const ch_idx = static_cast<unsigned char>(*c);
-            auto const &ch = earth.GetCharacter(ch_idx);
+            auto const &ch = atlas.GetCharacter(ch_idx);
 
             // Skip glyphs with no pixels
             if (ch.bw == 0 || ch.bh == 0) {
@@ -97,15 +122,15 @@ namespace OpenNFS {
             // Calculate texture coordinates from atlas
             GLfloat const tx = ch.tx;
             GLfloat const ty = ch.ty;
-            GLfloat const tx2 = tx + ch.bw / static_cast<float>(earth.GetWidth());
-            GLfloat const ty2 = ty + ch.bh / static_cast<float>(earth.GetHeight());
+            GLfloat const tx2 = tx + ch.bw / static_cast<float>(atlas.GetWidth());
+            GLfloat const ty2 = ty + ch.bh / static_cast<float>(atlas.GetHeight());
 
             // Update VBO for each character with atlas texture coordinates
             GLfloat const vertices[6][4] = {{xpos, ypos + h, tx, ty}, {xpos, ypos, tx, ty2},      {xpos + w, ypos, tx2, ty2},
                                             {xpos, ypos + h, tx, ty}, {xpos + w, ypos, tx2, ty2}, {xpos + w, ypos + h, tx2, ty}};
 
             // Update content of VBO memory
-            glBindBuffer(GL_ARRAY_BUFFER, earth.GetVBO());
+            glBindBuffer(GL_ARRAY_BUFFER, atlas.GetVBO());
             glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             // Render quad
@@ -164,14 +189,64 @@ namespace OpenNFS {
     }
 
     UIRenderer::Atlas::~Atlas() {
-        glDeleteTextures(1, &m_fontAtlasTexture);
+        if (m_fontAtlasTexture != 0) {
+            glDeleteTextures(1, &m_fontAtlasTexture);
+        }
+        if (m_fontQuadVAO != 0) {
+            glDeleteVertexArrays(1, &m_fontQuadVAO);
+        }
+        if (m_fontQuadVBO != 0) {
+            glDeleteBuffers(1, &m_fontQuadVBO);
+        }
     }
 
-    bool UIRenderer::Atlas::Initialise(FT_Library const &ft, std::string const &fontPath) {
+    UIRenderer::Atlas::Atlas(Atlas &&other) noexcept
+        : m_fontQuadVAO(other.m_fontQuadVAO),
+          m_fontQuadVBO(other.m_fontQuadVBO),
+          m_fontAtlasTexture(other.m_fontAtlasTexture),
+          m_atlasWidth(other.m_atlasWidth),
+          m_atlasHeight(other.m_atlasHeight),
+          m_characters(other.m_characters) {
+        // Transfer ownership - set other's handles to 0 so destructor won't delete them
+        other.m_fontQuadVAO = 0;
+        other.m_fontQuadVBO = 0;
+        other.m_fontAtlasTexture = 0;
+    }
+
+    UIRenderer::Atlas &UIRenderer::Atlas::operator=(Atlas &&other) noexcept {
+        if (this != &other) {
+            // Clean up our own resources first
+            if (m_fontAtlasTexture != 0) {
+                glDeleteTextures(1, &m_fontAtlasTexture);
+            }
+            if (m_fontQuadVAO != 0) {
+                glDeleteVertexArrays(1, &m_fontQuadVAO);
+            }
+            if (m_fontQuadVBO != 0) {
+                glDeleteBuffers(1, &m_fontQuadVBO);
+            }
+
+            // Transfer ownership
+            m_fontQuadVAO = other.m_fontQuadVAO;
+            m_fontQuadVBO = other.m_fontQuadVBO;
+            m_fontAtlasTexture = other.m_fontAtlasTexture;
+            m_atlasWidth = other.m_atlasWidth;
+            m_atlasHeight = other.m_atlasHeight;
+            m_characters = other.m_characters;
+
+            // Set other's handles to 0
+            other.m_fontQuadVAO = 0;
+            other.m_fontQuadVBO = 0;
+            other.m_fontAtlasTexture = 0;
+        }
+        return *this;
+    }
+
+    bool UIRenderer::Atlas::Initialise(FT_Library const &ft, std::string const &fontPath, int const size) {
         FT_Face face;
         CHECK_F(!FT_New_Face(ft, fontPath.c_str(), 0, &face), "FREETYPE: Failed to load font");
 
-        FT_Set_Pixel_Sizes(face, 0, 48);
+        FT_Set_Pixel_Sizes(face, 0, size);
         FT_GlyphSlot const g = face->glyph;
 
         // First pass: calculate atlas dimensions

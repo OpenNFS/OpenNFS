@@ -107,7 +107,8 @@ set(SOURCE_FILES
         src/UI/UIImage.cpp
         src/UI/UITextField.cpp
         src/UI/UIManager.cpp
-        src/UI/UIResource.cpp)
+        src/UI/UIResource.cpp
+        src/UI/UIFont.cpp)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

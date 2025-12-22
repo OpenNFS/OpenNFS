@@ -1,0 +1,9 @@
+{
+  "fonts": [
+    {
+      "name": "default",
+      "path": "../resources/ui/fonts/earth.ttf",
+      "size": 48
+    }
+  ]
+}

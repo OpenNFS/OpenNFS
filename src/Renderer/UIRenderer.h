@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include FT_FREETYPE_H
 
-#include "../UI/UIElement.h"
+#include "../UI/UIFont.h"
 #include "../UI/UIResource.h"
 #include "Shaders/UIShader.h"
 #include "Shaders/UITextShader.h"
@@ -19,8 +19,13 @@ namespace OpenNFS {
       public:
         explicit UIRenderer();
         ~UIRenderer();
+
+        // Interface
         void BeginRenderPass();
         static void EndRenderPass();
+
+        // Font management
+        bool GenerateAtlases(std::map<std::string, UIFont> const& fontMap);
 
         // Per-UI Element render calls
         void RenderButton(UIButton const *button) const;
@@ -29,7 +34,7 @@ namespace OpenNFS {
 
       private:
         // Rendering Primitives
-        void RenderText(std::string const &text, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) const;
+        void RenderText(std::string const &text, std::string const &fontName, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) const;
         void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat scale) const;
         void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height,
                             GLfloat scale) const;
@@ -50,8 +55,16 @@ namespace OpenNFS {
             explicit Atlas() = default;
             ~Atlas();
 
+            // Delete copy operations (we manage OpenGL resources)
+            Atlas(Atlas const &) = delete;
+            Atlas &operator=(Atlas const &) = delete;
+
+            // Move operations
+            Atlas(Atlas &&other) noexcept;
+            Atlas &operator=(Atlas &&other) noexcept;
+
             // Interface
-            bool Initialise(FT_Library const &ft, std::string const &fontPath);
+            bool Initialise(FT_Library const &ft, std::string const &fontPath, int size = 48);
             GLuint GetTextureID() const;
             GLuint GetWidth() const;
             GLuint GetHeight() const;
@@ -68,7 +81,7 @@ namespace OpenNFS {
             constexpr static uint32_t MAX_WIDTH = 1024;
         };
 
-        Atlas earth;
+        std::map<std::string, Atlas> m_fontAtlases;
         GLuint m_menuQuadVAO, m_menuQuadVBO;
         glm::mat4 m_projectionMatrix{};
 
