@@ -10,7 +10,7 @@ namespace OpenNFS {
 
     class RacerAgent final : public CarAgent {
       public:
-        RacerAgent(uint16_t racerID, std::shared_ptr<Car> const &car, Track const &raceTrack);
+        RacerAgent(uint16_t racerID, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack);
         void Simulate() override;
 
       private:

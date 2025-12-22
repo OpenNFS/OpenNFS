@@ -30,7 +30,8 @@ namespace OpenNFS {
         return worldRay;
     }
 
-    PhysicsManager::PhysicsManager(Track const &track) : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
+    PhysicsManager::PhysicsManager(std::shared_ptr<Track> const &track)
+        : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
         m_pBroadphase = std::make_unique<btDbvtBroadphase>();
         // Set up the collision configuration and dispatcher
         m_pCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
@@ -44,7 +45,7 @@ namespace OpenNFS {
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
 
         // Register the Track
-        for (auto const &trackBlockEntities : track.perTrackblockEntities) {
+        for (auto const &trackBlockEntities : track->perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
                 int collisionMask = COL_RAY | COL_CAR;
                 if (!entity->Collidable()) {
@@ -70,16 +71,17 @@ namespace OpenNFS {
             car->Update(m_pDynamicsWorld.get());
         }
 
-        auto const racerResidentTrackblockEntities{
-            racerResidentTrackblockIDs |
-            std::views::transform([&](uint32_t const index) -> auto & { return m_track.perTrackblockEntities[index]; }) | std::views::join};
+        auto const racerResidentTrackblockEntities{racerResidentTrackblockIDs | std::views::transform([&](uint32_t const index) -> auto & {
+                                                       return m_track->perTrackblockEntities[index];
+                                                   }) |
+                                                   std::views::join};
 
         for (auto const &entity : racerResidentTrackblockEntities) {
             entity->Update();
         }
     }
 
-    std::optional<Entity *> PhysicsManager::CheckForPicking(float const x, float const y, glm::mat4 const &viewMatrix,
+    std::optional<Entity *> PhysicsManager::CheckForPicking(double const x, double const y, glm::mat4 const &viewMatrix,
                                                             glm::mat4 const &projectionMatrix) const {
         auto const [origin, direction]{
             ScreenPosToWorldRay(x, y, Config::get().windowSizeX, Config::get().windowSizeY, viewMatrix, projectionMatrix)};
@@ -141,7 +143,7 @@ namespace OpenNFS {
         for (auto const &car : m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
         }
-        for (auto const &trackBlockEntities : m_track.perTrackblockEntities) {
+        for (auto const &trackBlockEntities : m_track->perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
                 m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
             }

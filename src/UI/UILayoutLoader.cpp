@@ -159,6 +159,21 @@ namespace OpenNFS {
                         }
                     }
 
+                    glm::vec2 textOffset(0.0f, 0.0f);
+                    if (elemJson.contains("textOffset")) {
+                        auto const &ofsJson = elemJson["textOffset"];
+                        if (ofsJson.contains("x")) {
+                            std::string const xStr =
+                                ofsJson["x"].is_string() ? ofsJson["x"].get<std::string>() : std::to_string(ofsJson["x"].get<float>());
+                            textOffset.x = EvaluateExpression(xStr);
+                        }
+                        if (ofsJson.contains("y")) {
+                            std::string const yStr =
+                                ofsJson["y"].is_string() ? ofsJson["y"].get<std::string>() : std::to_string(ofsJson["y"].get<float>());
+                            textOffset.y = EvaluateExpression(yStr);
+                        }
+                    }
+
                     // Create element based on type
                     std::unique_ptr<UIElement> element;
 
@@ -180,20 +195,37 @@ namespace OpenNFS {
 
                         element = std::make_unique<UITextField>(text, color, scale, layer, position, font);
                     } else if (type == "button") {
-                        // TODO: Implement button loading when needed
-                        LOG(WARNING) << "Button type not yet implemented in layout loader";
-                        continue;
+                        std::string const resourceName = elemJson.value("resource", "missingResource");
+                        auto const it = m_resourceMap.find(resourceName);
+                        std::string const textTemplate = elemJson.value("text", "<No Text>");
+                        std::string const text = ProcessTextTemplate(textTemplate);
+                        std::string const colorStr = elemJson.value("color", "#FFFFFF");
+                        glm::vec4 const color = ParseColor(colorStr);
+                        std::string const hoverColorStr = elemJson.value("hoverColor", "#FFFFFF");
+                        glm::vec4 const hoverColor = ParseColor(hoverColorStr);
+                        std::string const font = elemJson.value("font", "default");
+                        element = std::make_unique<UIButton>(it->second, text, color, hoverColor, scale, layer, position, textOffset, font);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;
                     }
 
-                    // Set up OnClick callback if specified
+                    // Set up OnClick/OnHover callbacks if specified
                     if (elemJson.contains("onClick")) {
+                        CHECK_F(type != "textfield", "Textfields can't have callbacks, use a button");
                         std::string const callbackName = elemJson["onClick"];
-                        auto const it = callbacks.find(callbackName);
-                        if (it != callbacks.end()) {
+                        if (auto const it = callbacks.find(callbackName); it != callbacks.end()) {
                             element->SetOnClick(it->second);
+                        } else {
+                            LOG(WARNING) << "Callback not found: " << callbackName;
+                        }
+                    }
+
+                    if (elemJson.contains("onHover")) {
+                        CHECK_F(type != "textfield", "Textfields can't have callbacks, use a button");
+                        std::string const callbackName = elemJson["onHover"];
+                        if (auto const it = callbacks.find(callbackName); it != callbacks.end()) {
+                            element->SetOnHover(it->second);
                         } else {
                             LOG(WARNING) << "Callback not found: " << callbackName;
                         }
@@ -209,6 +241,9 @@ namespace OpenNFS {
         } catch (json::exception const &e) {
             LOG(WARNING) << "JSON parsing error in " << jsonPath << ": " << e.what();
         }
+
+        // Sort the elements by layer number, so that alpha renders correctly
+        std::ranges::sort(elements, [](auto const &el1, auto const &el2) { return el1->layer > el2->layer; });
 
         return elements;
     }

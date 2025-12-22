@@ -25,7 +25,7 @@ namespace OpenNFS {
         static void EndRenderPass();
 
         // Font management
-        bool GenerateAtlases(std::map<std::string, UIFont> const& fontMap);
+        bool GenerateAtlases(std::map<std::string, UIFont> const &fontMap);
 
         // Per-UI Element render calls
         void RenderButton(UIButton const *button) const;
@@ -34,7 +34,8 @@ namespace OpenNFS {
 
       private:
         // Rendering Primitives
-        void RenderText(std::string const &text, std::string const &fontName, GLint layer, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 colour) const;
+        void RenderText(std::string const &text, std::string const &fontName, GLint layer, GLfloat x, GLfloat y, GLfloat scale,
+                        glm::vec4 colour, bool isButtonText) const;
         void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat scale) const;
         void RenderResource(UIResource const &resource, GLint layer, GLfloat x, GLfloat y, GLfloat width, GLfloat height,
                             GLfloat scale) const;

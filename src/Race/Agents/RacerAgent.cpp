@@ -10,7 +10,7 @@ namespace OpenNFS {
         "MaximilianVeers", "Keith",       "AJ_Lethal", "Sirius-R",  "Ewil",          "Zipper",         "heyitsleo",   "MADMAN_nfs",
         "Wild One",        "Gotcha",      "Mulligan",  "Lead Foot", "Ace",           "Dead Beat",      "Ram Rod"};
 
-    RacerAgent::RacerAgent(uint16_t const racerID, std::shared_ptr<Car> const &car, Track const &raceTrack)
+    RacerAgent::RacerAgent(uint16_t const racerID, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack)
         : CarAgent(AgentType::RACING, car, raceTrack), m_racerID(racerID) {
         name = RACER_NAMES[racerID];
         this->vehicle = std::make_shared<Car>(car->assetData);

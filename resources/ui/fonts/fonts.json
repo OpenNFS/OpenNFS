@@ -6,9 +6,9 @@
       "size": 48
     },
     {
-      "name": "arial",
+      "name": "menuArial",
       "path": "../resources/ui/fonts/arial.ttf",
-      "size": 48
+      "size": 40
     }
   ]
 }

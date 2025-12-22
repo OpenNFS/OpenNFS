@@ -22,18 +22,18 @@ namespace OpenNFS {
 
     class PhysicsManager {
       public:
-        explicit PhysicsManager(Track const &track);
+        explicit PhysicsManager(std::shared_ptr<Track> const &track);
         ~PhysicsManager();
         void StepSimulation(float time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const;
         void RegisterVehicle(std::shared_ptr<Car> const &car);
-        [[nodiscard]] std::optional<Entity *> CheckForPicking(float x, float y, glm::mat4 const &viewMatrix,
+        [[nodiscard]] std::optional<Entity *> CheckForPicking(double x, double y, glm::mat4 const &viewMatrix,
                                                               glm::mat4 const &projectionMatrix) const;
         [[nodiscard]] btDiscreteDynamicsWorld *GetDynamicsWorld() const;
 
         std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
       private:
-        Track const &m_track;
+        std::shared_ptr<Track> const &m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
         std::unique_ptr<btBroadphaseInterface> m_pBroadphase;

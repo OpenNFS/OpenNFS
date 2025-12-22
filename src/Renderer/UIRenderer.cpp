@@ -67,14 +67,14 @@ namespace OpenNFS {
     }
 
     void UIRenderer::RenderButton(UIButton const *button) const {
-        RenderText(button->text, button->fontName, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale,
-                   button->textColour);
         RenderResource(button->resource, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale);
+        RenderText(button->text, button->fontName, static_cast<GLint>(button->layer), button->location.x + button->textOffset.x,
+                   button->location.y + button->textOffset.y, button->scale, button->textColour, true);
     }
 
     void UIRenderer::RenderTextField(UITextField const *textField) const {
         RenderText(textField->text, textField->fontName, static_cast<GLint>(textField->layer), textField->location.x, textField->location.y,
-                   textField->scale, textField->textColour);
+                   textField->scale, textField->textColour, false);
     }
 
     void UIRenderer::RenderImage(UIImage const *image) const {
@@ -82,7 +82,7 @@ namespace OpenNFS {
     }
 
     void UIRenderer::RenderText(std::string const &text, std::string const &fontName, GLint const layer, GLfloat x, GLfloat const y,
-                                GLfloat const scale, glm::vec3 const colour) const {
+                                GLfloat const scale, glm::vec4 const colour, bool isButtonText) const {
         CHECK_F(layer >= 0 && layer <= 200, "Layer: %d is outside of range 0-200", layer);
 
         // Get the font atlas
@@ -95,7 +95,7 @@ namespace OpenNFS {
 
         // Activate the corresponding render state
         m_fontShader.use();
-        m_fontShader.loadLayer(layer);
+        m_fontShader.loadLayer(layer, isButtonText);
         m_fontShader.loadColour(colour);
         m_fontShader.loadProjectionMatrix(m_projectionMatrix);
 
@@ -201,12 +201,8 @@ namespace OpenNFS {
     }
 
     UIRenderer::Atlas::Atlas(Atlas &&other) noexcept
-        : m_fontQuadVAO(other.m_fontQuadVAO),
-          m_fontQuadVBO(other.m_fontQuadVBO),
-          m_fontAtlasTexture(other.m_fontAtlasTexture),
-          m_atlasWidth(other.m_atlasWidth),
-          m_atlasHeight(other.m_atlasHeight),
-          m_characters(other.m_characters) {
+        : m_fontQuadVAO(other.m_fontQuadVAO), m_fontQuadVBO(other.m_fontQuadVBO), m_fontAtlasTexture(other.m_fontAtlasTexture),
+          m_atlasWidth(other.m_atlasWidth), m_atlasHeight(other.m_atlasHeight), m_characters(other.m_characters) {
         // Transfer ownership - set other's handles to 0 so destructor won't delete them
         other.m_fontQuadVAO = 0;
         other.m_fontQuadVBO = 0;

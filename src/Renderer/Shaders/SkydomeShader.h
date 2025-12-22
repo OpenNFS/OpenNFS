@@ -10,23 +10,16 @@ namespace OpenNFS {
         SkydomeShader();
 
         void loadSunPosition(GlobalLight const *light) const;
-
         void loadMatrices(glm::mat4 const &projection, glm::mat4 const &view, glm::mat4 const &transformation) const;
-
         void loadStarRotationMatrix(glm::mat3 const &star_rotation_matrix) const;
-
         void loadTextures(GLuint clouds1TextureID, GLuint clouds2TextureID, GLuint sunTextureID, GLuint moonTextureID, GLuint tintTextureID,
                           GLuint tint2TextureID) const;
-
         void loadWeatherMixFactor(float weatherMixFactor) const;
-
         void loadTime(float time) const;
 
       protected:
         void bindAttributes() override;
-
         void getAllUniformLocations() override;
-
         void customCleanup() override;
 
         GLint transformationMatrixLocation;

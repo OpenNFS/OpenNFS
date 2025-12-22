@@ -1,12 +1,138 @@
 {
-  "layer": 1,
-  "text": "Hello World",
-  "textColour": "#82b92c",
-  "action": "CAR_MENU_SCREEN",
-  "idleAsset": "PILL_BUTTON",
-  "hoverAsset": "PILL_BUTTON_HOVER",
-  "position": {
-    "x": 25,
-    "y": 25
-  }
+  "elements": [
+    {
+      "type": "image",
+      "resource": "onfsLogo",
+      "scale": 0.3,
+      "layer": 9,
+      "position": {
+        "x": "150",
+        "y": "1300"
+      }
+    },
+    {
+      "type": "image",
+      "resource": "leftMenuCurve",
+      "scale": 1.1,
+      "layer": 10,
+      "position": {
+        "x": "0",
+        "y": "0"
+      }
+    },
+    {
+      "type": "button",
+      "text": "Quick Race",
+      "resource": "pillButton",
+      "color": "#bdc3c7",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 1,
+      "position": {
+        "x": "50",
+        "y": "1050"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "menuArial",
+      "onClick": "onStartRace"
+    },
+    {
+      "type": "button",
+      "text": "One Player",
+      "resource": "pillButton",
+      "color": "#bdc3c7",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 2,
+      "position": {
+        "x": "30",
+        "y": "900"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "menuArial",
+      "onClick": "onStartRace"
+    },
+    {
+      "type": "button",
+      "text": "Multiplayer",
+      "resource": "pillButton",
+      "color": "#bdc3c7",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "30",
+        "y": "750"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "menuArial",
+      "onClick": "onStartRace"
+    },
+    {
+      "type": "button",
+      "text": "Collection",
+      "resource": "pillButton",
+      "color": "#bdc3c7",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "50",
+        "y": "600"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "menuArial",
+      "onClick": "onStartRace"
+    },
+    {
+      "type": "button",
+      "text": "Settings",
+      "resource": "pillButton",
+      "color": "#bdc3c7",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "80",
+        "y": "450"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "menuArial",
+      "onClick": "onStartRace"
+    },
+    {
+      "type": "button",
+      "text": "Quit",
+      "resource": "pillButton",
+      "color": "#bdc3c7",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "120",
+        "y": "300"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "menuArial",
+      "onClick": "onStartRace"
+    }
+  ]
 }

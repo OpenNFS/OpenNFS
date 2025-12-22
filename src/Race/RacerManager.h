@@ -11,7 +11,8 @@
 namespace OpenNFS {
     class RacerManager {
       public:
-        explicit RacerManager(std::shared_ptr<PlayerAgent> const &playerAgent, PhysicsManager &physicsManager, Track const &track);
+        explicit RacerManager(std::shared_ptr<PlayerAgent> const &playerAgent, PhysicsManager &physicsManager,
+                              std::shared_ptr<Track> const &track);
         void Simulate() const;
         [[nodiscard]] std::vector<uint32_t> GetRacerResidentTrackblocks() const;
 
@@ -21,6 +22,6 @@ namespace OpenNFS {
         void _InitialisePlayerVehicle(std::shared_ptr<PlayerAgent> const &playerAgent, PhysicsManager &physicsManager);
         void _SpawnRacers(PhysicsManager &physicsManager);
 
-        Track const &m_currentTrack;
+        std::shared_ptr<Track> const &m_currentTrack;
     };
 } // namespace OpenNFS

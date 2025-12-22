@@ -11,6 +11,18 @@
     {
       "name": "onfsLogo",
       "path": "../resources/ui/menu/images/logo.png"
+    },
+    {
+      "name": "pillButton",
+      "path": "../resources/ui/menu/images/pillButton.png"
+    },
+    {
+      "name": "missingResource",
+      "path": "../resources/ui/menu/images/missingResource.png"
+    },
+    {
+      "name": "leftMenuCurve",
+      "path": "../resources/ui/menu/images/leftMenuCurve.png"
     }
   ]
 }

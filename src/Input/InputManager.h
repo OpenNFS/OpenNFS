@@ -21,12 +21,15 @@ namespace OpenNFS {
         bool left{};
         bool right{};
         bool reset{};
+        bool escape{};
         bool cameraForwards{};
         bool cameraBackwards{};
         bool cameraLeft{};
         bool cameraRight{};
         double cursorX{};
         double cursorY{};
+        double uiCursorX{};
+        double uiCursorY{};
         bool mouseLeft{};
         bool mouseRight{};
         bool camSpeedUp{};

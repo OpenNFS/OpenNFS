@@ -12,7 +12,7 @@ namespace OpenNFS {
         projectionMatrix = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
     }
 
-    void MiniMapRenderer::Render(Track const &track, std::vector<std::shared_ptr<CarAgent>> const &racers) {
+    void MiniMapRenderer::Render(std::shared_ptr<Track> const &track, std::vector<std::shared_ptr<CarAgent>> const &racers) {
         this->_Rescale();
 
         miniMapShader.use();
@@ -21,7 +21,7 @@ namespace OpenNFS {
 
         glm::mat4 const rotationMat{glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0))};
 
-        for (auto const &trackBlockEntities : track.perTrackblockEntities) {
+        for (auto const &trackBlockEntities : track->perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
                 if (entity->Type() != LibOpenNFS::EntityType::ROAD) {
                     continue;

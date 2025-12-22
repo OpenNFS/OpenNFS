@@ -12,8 +12,8 @@ namespace OpenNFS {
         m_bulletDebugDrawer->Render(camera);
     }
 
-    void DebugRenderer::DrawTrackCollision(Track const &track) const {
-        for (auto const &trackBlockEntities : track.perTrackblockEntities) {
+    void DebugRenderer::DrawTrackCollision(std::shared_ptr<Track> const &track) const {
+        for (auto const &trackBlockEntities : track->perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
                 this->DrawAABB(entity->GetAABB(), entity->GetDebugColour());
             }
@@ -75,18 +75,18 @@ namespace OpenNFS {
         auto const btPosition{Utils::glmToBullet(position)};
         auto const btDirection{Utils::glmToBullet(direction)};
         m_bulletDebugDrawer->drawLine(btPosition, btPosition + (btDirection * kDummySize),
-                                     Utils::glmToBullet(glm::vec3(0, 62, 80) / 255.f));
+                                      Utils::glmToBullet(glm::vec3(0, 62, 80) / 255.f));
     }
 
-    void DebugRenderer::DrawVroad(Track const &track) const {
+    void DebugRenderer::DrawVroad(std::shared_ptr<Track> const &track) const {
         float const vRoadDisplayHeight = 0.2f;
-        uint32_t const nVroad = track.virtualRoad.size();
+        uint32_t const nVroad = track->virtualRoad.size();
 
         for (uint32_t vroadIdx = 0; vroadIdx < nVroad; ++vroadIdx) {
             // Render COL Vroad? Should I use TRK VROAD to work across HS too?
             if (vroadIdx < nVroad - 1) {
-                LibOpenNFS::TrackVRoad const &curVroad = track.virtualRoad[vroadIdx];
-                LibOpenNFS::TrackVRoad const &nextVroad = track.virtualRoad[vroadIdx + 1];
+                LibOpenNFS::TrackVRoad const &curVroad = track->virtualRoad[vroadIdx];
+                LibOpenNFS::TrackVRoad const &nextVroad = track->virtualRoad[vroadIdx + 1];
 
                 glm::vec3 vroadPoint = curVroad.position;
                 glm::vec3 vroadPointNext = nextVroad.position;
@@ -107,27 +107,27 @@ namespace OpenNFS {
         }
     }
 
-    void DebugRenderer::DrawCameraAnimation(Track const &track) const {
+    void DebugRenderer::DrawCameraAnimation(std::shared_ptr<Track> const &track) const {
         using namespace LibOpenNFS;
 
-        for (size_t canIdx = 0; canIdx < track.cameraAnimation.size() - 1; ++canIdx) {
+        for (size_t canIdx = 0; canIdx < track->cameraAnimation.size() - 1; ++canIdx) {
             // Draw CAN positions
-            Shared::CameraAnimPoint const refPt = track.cameraAnimation[canIdx];
-            Shared::CameraAnimPoint const refPtNext = track.cameraAnimation[canIdx + 1];
+            Shared::CameraAnimPoint const refPt = track->cameraAnimation[canIdx];
+            Shared::CameraAnimPoint const refPtNext = track->cameraAnimation[canIdx + 1];
             glm::vec3 vroadPoint{LibOpenNFS::Utils::FixedToFloat(refPt.pt) * NFS3::NFS3_SCALE_FACTOR};
             glm::vec3 vroadPointNext{LibOpenNFS::Utils::FixedToFloat(refPtNext.pt) * NFS3::NFS3_SCALE_FACTOR};
             vroadPoint.y += 0.2f;
             vroadPointNext.y += 0.2f;
-            m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track.trackBlocks[0].position),
-                                          Utils::glmToBullet(vroadPointNext + track.trackBlocks[0].position), btVector3(0, 1, 1));
+            m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].position),
+                                          Utils::glmToBullet(vroadPointNext + track->trackBlocks[0].position), btVector3(0, 1, 1));
 
             // Draw Rotations (probably interpreted incorrectly)
             glm::quat RotationMatrix{
                 glm::normalize(glm::quat(refPt.od1 / 65536.0f, refPt.od2 / 65536.0f, refPt.od3 / 65536.0f, refPt.od4 / 65536.0f) *
                                NFS3::NFS3_SCALE_FACTOR)};
             glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
-            m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track.trackBlocks[0].position),
-                                          Utils::glmToBullet(vroadPoint + track.trackBlocks[0].position + direction),
+            m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].position),
+                                          Utils::glmToBullet(vroadPoint + track->trackBlocks[0].position + direction),
                                           btVector3(0, 0.5, 0.5));
         }
     }

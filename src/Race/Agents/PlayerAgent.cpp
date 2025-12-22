@@ -3,7 +3,7 @@
 #include "../../Physics/Car.h"
 
 namespace OpenNFS {
-    PlayerAgent::PlayerAgent(InputManager const &inputManager, std::shared_ptr<Car> const &car, Track const &raceTrack)
+    PlayerAgent::PlayerAgent(InputManager const &inputManager, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack)
         : CarAgent(PLAYER, car, raceTrack), m_inputManager(inputManager) {
         name = "DumbPanda";
     }

@@ -11,7 +11,7 @@ namespace OpenNFS {
     class MiniMapRenderer {
       public:
         explicit MiniMapRenderer() = default;
-        void Render(Track const &track, std::vector<std::shared_ptr<CarAgent>> const &racers);
+        void Render(std::shared_ptr<Track> const &track, std::vector<std::shared_ptr<CarAgent>> const &racers);
 
       private:
         void _Rescale();

@@ -28,6 +28,7 @@ namespace OpenNFS {
         void bindAttributes() override;
         void getAllUniformLocations() override;
         void customCleanup() override;
+
         GLint transformationMatrixLocation;
         GLint projectionMatrixLocation;
         GLint viewMatrixLocation;

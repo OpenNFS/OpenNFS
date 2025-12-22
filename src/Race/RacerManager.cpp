@@ -3,7 +3,8 @@
 #include "../Loaders/CarLoader.h"
 
 namespace OpenNFS {
-    RacerManager::RacerManager(std::shared_ptr<PlayerAgent> const &playerAgent, PhysicsManager &physicsManager, Track const &track)
+    RacerManager::RacerManager(std::shared_ptr<PlayerAgent> const &playerAgent, PhysicsManager &physicsManager,
+                               std::shared_ptr<Track> const &track)
         : m_currentTrack(track) {
         this->_InitialisePlayerVehicle(playerAgent, physicsManager);
         this->_SpawnRacers(physicsManager);
