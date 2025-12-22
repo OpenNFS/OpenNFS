@@ -9,22 +9,18 @@ namespace OpenNFS {
       public:
         explicit UITextShader();
         void loadLayer(GLint layer) const;
-        void loadColour(glm::vec4 colour) const;
+        void loadColour(glm::vec3 colour) const;
         void loadProjectionMatrix(glm::mat4 const &projection) const;
-        void loadUITexture(GLuint textureID) const;
-        void bindBuffer() const;
-        void unbindBuffer() const;
+        void loadGlyphTexture(GLuint textureID) const;
 
       protected:
         void bindAttributes() override;
         void getAllUniformLocations() override;
         void customCleanup() override;
 
+        GLint textGlyphSamplerLocation;
         GLint projectionMatrixLocation;
-        GLint attribute_coord;
         GLint layerLocation;
-        GLint textureLocation;
         GLint colourLocation;
-        GLuint vbo;
     };
 } // namespace OpenNFS

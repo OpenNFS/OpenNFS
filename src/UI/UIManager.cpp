@@ -38,7 +38,6 @@ namespace OpenNFS {
         float const windowToResRatioY{(float)Config::get().resY / (float)Config::get().windowSizeY};
         glm::vec2 const cursorPosition{inputManager.cursorX * windowToResRatioX, Config::get().resY - (inputManager.cursorY * windowToResRatioY)};
 
-        m_textRenderer.Render();
         m_uiRenderer.BeginRenderPass();
         for (auto const &uiElement : m_uiElements) {
             uiElement->Update(cursorPosition, inputManager.mouseLeft);
@@ -48,7 +47,7 @@ namespace OpenNFS {
                 m_uiRenderer.RenderButton(dynamic_cast<UIButton *>(uiElement.get()));
                 break;
             case UIElementType::TextField:
-                // m_uiRenderer.RenderTextField(dynamic_cast<UITextField *>(uiElement.get()));
+                m_uiRenderer.RenderTextField(dynamic_cast<UITextField *>(uiElement.get()));
                 break;
             case UIElementType::Image:
                 m_uiRenderer.RenderImage(dynamic_cast<UIImage *>(uiElement.get()));

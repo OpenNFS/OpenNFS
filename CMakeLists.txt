@@ -89,7 +89,7 @@ set(SOURCE_FILES
         src/Renderer/Shaders/BulletShader.cpp
         src/Renderer/Shaders/CarShader.cpp
         src/Renderer/Shaders/DepthShader.cpp
-        src/Renderer/Shaders/FontShader.cpp
+        src/Renderer/Shaders/UITextShader.cpp
         src/Renderer/Shaders/UIShader.cpp
         src/Renderer/Shaders/UITextShader.cpp
         src/Renderer/Shaders/ShaderSet.cpp
@@ -102,7 +102,6 @@ set(SOURCE_FILES
         src/main.cpp
         src/Renderer/MiniMapRenderer.cpp
         src/Renderer/Shaders/MiniMapShader.cpp
-        src/UI/TextRenderer.cpp
         src/UI/UIElement.cpp
         src/UI/UIButton.cpp
         src/UI/UIImage.cpp

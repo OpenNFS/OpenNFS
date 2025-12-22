@@ -1,8 +1,11 @@
-in vec2 texpos;
-uniform sampler2D tex;
-uniform vec4 color;
-out vec4 colour;
+in vec2 TexCoords;
+out vec4 color;
 
-void main(void) {
-    colour = vec4(1, 1, 1, texture(tex, texpos).a) * color;
+uniform sampler2D textGlyphSampler;
+uniform vec3 textColour;
+
+void main()
+{
+    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(textGlyphSampler, TexCoords).r);
+    color = vec4(textColour, 1.0) * sampled;
 }

@@ -5,7 +5,6 @@
 
 #include "../Input/InputManager.h"
 #include "../Renderer/UIRenderer.h"
-#include "TextRenderer.h"
 #include "UIElement.h"
 #include "UIResource.h"
 
@@ -21,7 +20,6 @@ namespace OpenNFS {
 
       private:
         std::map<std::string, UIResource> m_menuResourceMap;
-        TextRenderer m_textRenderer;
         UIRenderer m_uiRenderer;
     };
 } // namespace OpenNFS

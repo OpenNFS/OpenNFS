@@ -7,21 +7,18 @@ namespace OpenNFS {
     UITextShader::UITextShader() : BaseShader(vertexSrc, fragSrc) {
         UITextShader::bindAttributes();
         UITextShader::getAllUniformLocations();
-
-        // Create the vertex buffer object
-        glGenBuffers(1, &vbo);
     }
 
     void UITextShader::bindAttributes() {
-        bindAttribute(0, "attribute_coord");
+        bindAttribute(0, "vertexPosition_modelspace");
     }
 
     void UITextShader::getAllUniformLocations() {
         // Get handles for uniforms
-        // projectionMatrixLocation = getUniformLocation("projectionMatrix");
+        projectionMatrixLocation = getUniformLocation("projectionMatrix");
         layerLocation = getUniformLocation("layer");
-        colourLocation = getUniformLocation("color");
-        textureLocation = getUniformLocation("tex");
+        colourLocation = getUniformLocation("textColour");
+        textGlyphSamplerLocation = getUniformLocation("textGlyphSampler");
     }
 
     void UITextShader::loadProjectionMatrix(glm::mat4 const &projection) const {
@@ -32,22 +29,14 @@ namespace OpenNFS {
         loadFloat(layerLocation, layer == 0 ? -0.999f : (float)(layer - 100) / 100);
     }
 
-    void UITextShader::loadColour(glm::vec4 const colour) const {
-        loadVec4(colourLocation, colour);
+    void UITextShader::loadColour(glm::vec3 const colour) const {
+        loadVec3(colourLocation, colour);
     }
 
-    void UITextShader::loadUITexture(GLuint const textureID) const {
-        loadUint(textureLocation, textureID);
-    }
-
-    void UITextShader::bindBuffer() const {
-        glEnableVertexAttribArray(attribute_coord);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glVertexAttribPointer(attribute_coord, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-    }
-
-    void UITextShader::unbindBuffer() const {
-        glDisableVertexAttribArray(attribute_coord);
+    void UITextShader::loadGlyphTexture(GLuint const textureID) const {
+        loadSampler2D(textGlyphSamplerLocation, 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureID);
     }
 
     void UITextShader::customCleanup() {

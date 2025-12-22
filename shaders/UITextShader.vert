@@ -1,7 +1,12 @@
-layout (location = 0) in vec4 coord;
-out vec2 texpos;
+layout (location = 0) in vec4 vertexPosition_modelspace;// <vec2 pos, vec2 tex>
+out vec2 TexCoords;
 
-void main(void) {
-    gl_Position = vec4(coord.xy, 0, 1);
-    texpos = coord.zw;
+uniform mat4 projectionMatrix;
+uniform float layer;
+
+void main()
+{
+    gl_Position = projectionMatrix * vec4(vertexPosition_modelspace.xy, 0.0, 1.0);
+    gl_Position.z = layer;
+    TexCoords = vertexPosition_modelspace.zw;
 }
