@@ -22,6 +22,8 @@ GLuint ImageLoader::LoadImage(std::string const &imagePath, int *width, int *hei
     glBindTexture(GL_TEXTURE_2D, 0);
     stbi_image_free(image);
 
+    LOG(INFO) << "Loaded image from: " << imagePath << " (" << width << "x" << height << ")";
+
     return textureID;
 }
 

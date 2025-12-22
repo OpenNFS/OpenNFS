@@ -7,6 +7,7 @@
 #include "../Renderer/UIRenderer.h"
 #include "UIElement.h"
 #include "UIFont.h"
+#include "UILayoutLoader.h"
 #include "UIResource.h"
 
 namespace OpenNFS {
@@ -23,5 +24,8 @@ namespace OpenNFS {
         std::map<std::string, UIResource> m_menuResourceMap;
         std::map<std::string, UIFont> m_fontMap;
         UIRenderer m_uiRenderer;
+
+        // Setup callbacks for UI elements
+        static UILayoutLoader::CallbackRegistry SetupCallbacks();
     };
 } // namespace OpenNFS

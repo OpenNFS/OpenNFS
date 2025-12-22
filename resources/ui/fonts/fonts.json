@@ -1,0 +1,14 @@
+{
+  "fonts": [
+    {
+      "name": "earth",
+      "path": "../resources/ui/fonts/earth.ttf",
+      "size": 48
+    },
+    {
+      "name": "arial",
+      "path": "../resources/ui/fonts/arial.ttf",
+      "size": 48
+    }
+  ]
+}

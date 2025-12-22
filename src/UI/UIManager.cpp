@@ -5,13 +5,24 @@
 #include "UIButton.h"
 #include "UIFont.h"
 #include "UIImage.h"
+#include "UILayoutLoader.h"
 #include "UIResource.h"
 #include "UITextField.h"
 
 namespace OpenNFS {
+    UILayoutLoader::CallbackRegistry UIManager::SetupCallbacks() {
+        UILayoutLoader::CallbackRegistry callbacks;
+
+        // Register all UI callbacks here
+        callbacks["onLogoClick"] = [] { LOG(INFO) << "Clicked onfsLogo"; };
+        callbacks["onBackgroundClick"] = [] { LOG(INFO) << "Clicked backgroundGrille"; };
+
+        return callbacks;
+    }
+
     UIManager::UIManager() {
         // Load fonts
-        m_fontMap = UIFont::LoadFonts("../resources/ui/fonts.json");
+        m_fontMap = UIFont::LoadFonts("../resources/ui/fonts/fonts.json");
         LOG(INFO) << m_fontMap.size() << " UI fonts loaded successfully";
         CHECK_F(m_uiRenderer.GenerateAtlases(m_fontMap), "Failed to generate atlases from font map");
 
@@ -19,20 +30,12 @@ namespace OpenNFS {
         m_menuResourceMap = UIResource::LoadResources("../resources/ui/menu/resources.json");
         LOG(INFO) << m_menuResourceMap.size() << " UI resources loaded successfully";
 
-        // TODO: Load these from JSON too
-        auto onfsLogoImage = std::make_unique<UIImage>(m_menuResourceMap["onfsLogo"], 0.1f, 0, glm::vec2(Config::get().resX - 75, 5));
-        auto onfsVersionText = std::make_unique<UITextField>("OpenNFS v" + ONFS_VERSION + " Pre Alpha", glm::vec4(0.6, 0.6, 0.6, 1.0), 0.2f,
-                                                             0, glm::vec2(Config::get().resX - 270, 35), "default");
-        auto const bgBackgroundGrille = std::make_unique<UIImage>(m_menuResourceMap["backgroundPattern"], 1.f, 1, glm::vec2(0, 0));
-
-        // TODO: Hardcode all OnClick functions, the JSON will encode a constant that looks up the correct callback when parsing
-        onfsLogoImage->SetOnClick([] { LOG(INFO) << "Clicked onfsLogo"; });
-        bgBackgroundGrille->SetOnClick([] { LOG(INFO) << "Clicked backgroundGrille"; });
-
-        // m_uiElements.push_back(std::move(bgBackgroundGrille));
-        m_uiElements.push_back(std::move(onfsLogoImage));
-        m_uiElements.push_back(std::move(onfsVersionText));
+        // Load UI layout from JSON
+        UILayoutLoader layoutLoader(m_menuResourceMap, m_fontMap);
+        auto const callbacks = SetupCallbacks();
+        m_uiElements = layoutLoader.LoadLayout("../resources/ui/menu/layout/raceOverlay.json", callbacks);
     }
+
     UIManager::~UIManager() {
         for (auto &resource : m_menuResourceMap | std::views::values) {
             glDeleteTextures(1, &resource.textureID);
@@ -41,9 +44,10 @@ namespace OpenNFS {
 
     auto UIManager::Update(InputManager const &inputManager) -> void {
         // Cursor Y needs to be inverted + coordinates need normalising
-        float const windowToResRatioX{(float)Config::get().resX / (float)Config::get().windowSizeX};
-        float const windowToResRatioY{(float)Config::get().resY / (float)Config::get().windowSizeY};
-        glm::vec2 const cursorPosition{inputManager.cursorX * windowToResRatioX, Config::get().resY - (inputManager.cursorY * windowToResRatioY)};
+        float const windowToResRatioX{static_cast<float>(Config::get().resX) / static_cast<float>(Config::get().windowSizeX)};
+        float const windowToResRatioY{static_cast<float>(Config::get().resY) / static_cast<float>(Config::get().windowSizeY)};
+        glm::vec2 const cursorPosition{inputManager.cursorX * windowToResRatioX,
+                                       Config::get().resY - (inputManager.cursorY * windowToResRatioY)};
 
         m_uiRenderer.BeginRenderPass();
         for (auto const &uiElement : m_uiElements) {

@@ -1,11 +1,27 @@
 {
-  "layer": 0,
-  "text": "OpenNFS v{0] Pre-Alpha",
-  "textColour": "#82b92c",
-  "idleAsset": "PILL_BUTTON",
-  "hoverAsset": "PILL_BUTTON_HOVER",
-  "position": {
-    "x": 25,
-    "y": 25
-  }
+  "elements": [
+    {
+      "type": "image",
+      "resource": "onfsLogo",
+      "scale": 0.1,
+      "layer": 0,
+      "position": {
+        "x": "{resX - 75}",
+        "y": "5"
+      },
+      "onClick": "onLogoClick"
+    },
+    {
+      "type": "textfield",
+      "text": "OpenNFS v{ONFS_VERSION} Pre Alpha",
+      "color": "#999999",
+      "scale": 0.2,
+      "layer": 0,
+      "position": {
+        "x": "{resX - 270}",
+        "y": "35"
+      },
+      "font": "earth"
+    }
+  ]
 }
