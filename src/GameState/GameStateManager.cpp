@@ -29,6 +29,9 @@ namespace OpenNFS {
             m_currentState = it->second.get();
             LOG(DEBUG) << "Entering state: " << magic_enum::enum_name(m_currentStateType);
             m_currentState->OnEnter();
+        } else if (newState == GameState::Exit) {
+            // No special state handler for this, just signal ShouldExit in main loop from this variable
+            m_currentStateType = newState;
         } else {
             LOG(FATAL) << "Attempted to transition to unregistered state: " << magic_enum::enum_name(newState);
         }

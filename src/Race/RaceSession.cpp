@@ -17,7 +17,7 @@ namespace OpenNFS {
             switch (m_activeCameraMode) {
             case FOLLOW_CAR:
                 // Compute MVP from keyboard and mouse, centered around a target car
-                m_carCamera.FollowCar(m_racerManager.racers.at(m_renderer.GetCameraTargetVehicleID())->vehicle);
+                m_carCamera.FollowCar(m_racerManager.racers.at(m_renderer.GetCameraTargetVehicleID())->vehicle, deltaTime);
                 break;
             case HERMITE_FLYTHROUGH:
                 m_hermiteCamera.UseSpline(m_totalTime);
@@ -76,11 +76,11 @@ namespace OpenNFS {
             m_physicsManager.GetDynamicsWorld()->debugDrawWorld();
         }
 
-        // Draw the Game UI
-        m_uiManager.Update(m_inputManager);
-
         m_assetChanged = m_renderer.Render(m_totalTime, deltaTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(),
                                            m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity);
+
+        // Draw the Game UI
+        m_uiManager.Update(m_inputManager);
 
         // Keep track of total elapsed time
         m_totalTime += deltaTime;
@@ -88,6 +88,10 @@ namespace OpenNFS {
     }
 
     bool RaceSession::IsFinished() const {
+        return false;
+    }
+
+    bool RaceSession::AssetChanged() const {
         return m_assetChanged;
     }
 } // namespace OpenNFS

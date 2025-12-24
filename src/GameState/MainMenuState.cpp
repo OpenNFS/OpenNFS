@@ -10,6 +10,7 @@ namespace OpenNFS {
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
         callbacks["onStartRace"] = [this]() { OnStartRaceClicked(); };
+        callbacks["onVehicleSelect"] = [this]() { m_nextState = GameState::VehicleSelection; };
         callbacks["onExit"] = [this]() { m_nextState = GameState::Exit; };
 
         // Create UI manager with main menu layout

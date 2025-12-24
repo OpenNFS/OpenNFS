@@ -58,8 +58,9 @@ namespace OpenNFS {
         LOG(DEBUG) << "Max Array Texture Layers: " << nMaxTextureLayers;
         LOG(DEBUG) << "OpenGL Initialisation successful";
 
-        Config::get().windowSizeX = resolutionX;
-        Config::get().windowSizeY = resolutionY;
+        glfwGetWindowSize(window.get(), reinterpret_cast<int *>(&Config::get().windowSizeX),
+                          reinterpret_cast<int *>(&Config::get().windowSizeY));
+        LOG(DEBUG) << "Window Size: " << Config::get().windowSizeX << "x" << Config::get().windowSizeY;
 
         ImGui::CreateContext();
         ImGui_ImplGlfw_InitForOpenGL(window.get(), true);
@@ -104,8 +105,7 @@ namespace OpenNFS {
         }
 
         // Render the environment
-        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track->textureArrayID, visibleEntities,
-                                   racers);
+        m_shadowMapRenderer.Render(activeLight, m_track->textureArrayID, visibleEntities, racers);
         if (userParams.drawSkydome) {
             m_skyRenderer.Render(activeCamera, activeLight, totalTime);
         }
@@ -261,14 +261,12 @@ namespace OpenNFS {
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
         ImGui::Image(m_shadowMapRenderer.GetTextureID(), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
-        ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
-        ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
         ImGui::End();
         // Draw Logger UI
         m_logger->onScreenLog.Draw("ONFS Log");
         // Draw UI (Tactically)
         ImGui::Text("OpenNFS Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", smoothedDeltaTime * 1000, 1.f/smoothedDeltaTime);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", smoothedDeltaTime * 1000, 1.f / smoothedDeltaTime);
         ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
         ImGui::Checkbox("Frustum Cull", &userParams.useFrustumCull);
         ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);
@@ -340,7 +338,7 @@ namespace OpenNFS {
         return assetChange;
     }
 
-    Renderer::~Renderer() {
+    void Renderer::Shutdown() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();

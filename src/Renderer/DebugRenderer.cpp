@@ -122,10 +122,8 @@ namespace OpenNFS {
                                           Utils::glmToBullet(vroadPointNext + track->trackBlocks[0].position), btVector3(0, 1, 1));
 
             // Draw Rotations (probably interpreted incorrectly)
-            glm::quat RotationMatrix{
-                glm::normalize(glm::quat(refPt.od1 / 65536.0f, refPt.od2 / 65536.0f, refPt.od3 / 65536.0f, refPt.od4 / 65536.0f) *
-                               NFS3::NFS3_SCALE_FACTOR)};
-            glm::vec3 direction = glm::normalize(vroadPoint * glm::inverse(RotationMatrix));
+            glm::quat RotationMatrix{glm::normalize(glm::quat((refPt.od1), refPt.od2, refPt.od3, refPt.od4))};
+            glm::vec3 direction = glm::normalize(vroadPoint * RotationMatrix);
             m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].position),
                                           Utils::glmToBullet(vroadPoint + track->trackBlocks[0].position + direction),
                                           btVector3(0, 0.5, 0.5));

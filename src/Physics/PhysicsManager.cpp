@@ -145,6 +145,9 @@ namespace OpenNFS {
         }
         for (auto const &trackBlockEntities : m_track->perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
+                if (!entity->Collidable()) {
+                    continue;
+                }
                 m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
             }
         }

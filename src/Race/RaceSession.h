@@ -26,6 +26,7 @@ namespace OpenNFS {
         // New state-friendly interface
         void Update(float deltaTime);
         [[nodiscard]] bool IsFinished() const;
+        [[nodiscard]] bool AssetChanged() const;
         [[nodiscard]] AssetData const &GetLoadedAssets() const {
             return m_loadedAssets;
         }

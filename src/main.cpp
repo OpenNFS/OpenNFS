@@ -12,6 +12,7 @@
 #include "GameState/GameStateManager.h"
 #include "GameState/MainMenuState.h"
 #include "GameState/RaceState.h"
+#include "GameState/VehicleSelectionState.h"
 #include "Renderer/Renderer.h"
 #include "Util/Logger.h"
 
@@ -58,6 +59,7 @@ class OpenNFSEngine {
         GameStateManager stateManager;
         stateManager.RegisterState(GameState::MainMenu, std::make_unique<MainMenuState>(context));
         stateManager.RegisterState(GameState::Race, std::make_unique<RaceState>(context));
+        stateManager.RegisterState(GameState::VehicleSelection, std::make_unique<VehicleSelectionState>(context));
 
         // Start with main menu
         stateManager.TransitionTo(GameState::MainMenu);
@@ -86,6 +88,8 @@ class OpenNFSEngine {
 
         // Close OpenGL window and terminate GLFW
         glfwTerminate();
+
+        Renderer::Shutdown();
     }
 
   private:

@@ -22,7 +22,6 @@
     },
     {
       "type": "button",
-      "text": "Select Vehicle",
       "resource": "pillButton",
       "color": "#568be4",
       "hoverColor": "#ffff00",
@@ -41,7 +40,6 @@
     },
     {
       "type": "button",
-      "text": "One Player",
       "resource": "pillButton",
       "color": "#568be4",
       "hoverColor": "#ffff00",
@@ -60,7 +58,6 @@
     },
     {
       "type": "button",
-      "text": "Multiplayer",
       "resource": "pillButton",
       "color": "#568be4",
       "hoverColor": "#ffff00",
@@ -79,7 +76,6 @@
     },
     {
       "type": "button",
-      "text": "Collection",
       "resource": "pillButton",
       "color": "#568be4",
       "hoverColor": "#ffff00",
@@ -98,7 +94,6 @@
     },
     {
       "type": "button",
-      "text": "Settings",
       "resource": "pillButton",
       "color": "#568be4",
       "hoverColor": "#ffff00",

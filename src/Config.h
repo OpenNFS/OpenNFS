@@ -100,8 +100,6 @@ namespace OpenNFS {
         float timeScaleFactor{1.f};
         ImVec4 sunAttenuation{0.f, 0.f, 0.f, 1.0f};
         float trackSpecReflectivity{1.f};
-        float nearPlane{160.f};
-        float farPlane{300.f};
         float trackSpecDamper{10.f};
         bool useFrustumCull{true};
         bool physicsDebugView{false};

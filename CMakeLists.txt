@@ -112,7 +112,9 @@ set(SOURCE_FILES
         src/UI/UILayoutLoader.cpp
         src/GameState/GameStateManager.cpp
         src/GameState/MainMenuState.cpp
-        src/GameState/RaceState.cpp)
+        src/GameState/RaceState.cpp
+        src/GameState/VehicleSelectionState.cpp
+        src/Race/VehicleSelection.cpp)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

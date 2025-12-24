@@ -30,7 +30,6 @@ namespace OpenNFS {
         Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
                  std::vector<NfsAssetList> const &installedNFS, std::shared_ptr<Track> const &currentTrack,
                  std::shared_ptr<BulletDebugDrawer> const &debugDrawer);
-        ~Renderer();
 
         static void GlfwError(int const id, char const *description) {
             LOG(WARNING) << description << " id: " << id;
@@ -42,6 +41,7 @@ namespace OpenNFS {
         }
 
         static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, std::string const &windowName);
+        static void Shutdown();
         static void _DrawMetadata(Entity const *targetEntity);
         bool Render(float totalTime, float deltaTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
                     GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,

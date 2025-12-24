@@ -4,7 +4,9 @@ namespace OpenNFS {
     enum class GameState {
         MainMenu,
         Race,
+        RaceLoad,
         Paused,
+        VehicleSelection,
         Exit
     };
 

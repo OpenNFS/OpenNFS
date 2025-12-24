@@ -31,6 +31,11 @@ namespace OpenNFS {
                 m_raceActive = false;
                 m_nextState = GameState::MainMenu;
             }
+            if (m_raceSession->AssetChanged()) {
+                LOG(INFO) << "Asset changed, reloading race";
+                m_raceActive = false;
+                m_nextState = GameState::Race;
+            }
         }
     }
 
