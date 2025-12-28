@@ -101,15 +101,6 @@ namespace OpenNFS {
             }
         }
 
-        if (userParams.drawAI) {
-            for (auto const &racer : racers) {
-                if (racer->Type() == AI) {
-                    m_debugRenderer.DrawVehicleAI(std::dynamic_pointer_cast<RacerAgent>(racer));
-                }
-
-            }
-        }
-
         if (userParams.drawCAN) {
             m_debugRenderer.DrawCameraAnimation(m_track);
         }
@@ -128,6 +119,14 @@ namespace OpenNFS {
         // Render the Car and racers
         for (auto &racer : racers) {
             m_carRenderer.Render(racer->vehicle, activeCamera);
+        }
+
+        if (userParams.drawAI) {
+            for (auto const &racer : racers) {
+                if (racer->Type() == AI) {
+                    m_debugRenderer.DrawVehicleAI(std::dynamic_pointer_cast<RacerAgent>(racer), activeCamera);
+                }
+            }
         }
 
         if (this->_DrawMenuBar(loadedAssets)) {
