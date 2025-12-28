@@ -11,7 +11,7 @@ namespace OpenNFS {
         "Wild One",        "Gotcha",      "Mulligan",  "Lead Foot", "Ace",           "Dead Beat",      "Ram Rod"};
 
     RacerAgent::RacerAgent(uint16_t const racerID, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack)
-        : CarAgent(AgentType::RACING, car, raceTrack), m_racerID(racerID) {
+        : CarAgent(AgentType::AI, car, raceTrack), m_racerID(racerID) {
         name = RACER_NAMES[racerID];
         this->vehicle = std::make_shared<Car>(car->assetData);
 
@@ -24,6 +24,68 @@ namespace OpenNFS {
         this->_UpdateNearestTrackblock();
         this->_UpdateNearestVroad();
 
+        // FSM: State transitions and logic
+        switch (m_state) {
+        case RacerState::RESETTING:
+            // Reset position and state
+            ResetToVroad(m_nearestVroadID, Utils::RandomFloat(-.5f, .5f));
+            m_nextState = RacerState::TRACK_FOLLOWING;
+            m_ticksInBlock = 0;
+            m_lastTrackBlockID = m_nearestTrackblockID;
+            m_ticksGoingBackwards = 0;
+            m_ticksStuck = 0;
+            m_ticksReversing = 0;
+            m_reverseAttempts = 0;
+            break;
+        case RacerState::TRACK_FOLLOWING: {
+            float const currentSpeed{vehicle->GetVehicle()->getCurrentSpeedKmHour()};
+            bool const isMovingSlowly{currentSpeed < kStuckSpeedThreshold};
+            bool const goingBackwards{m_lastTrackBlockID > m_nearestTrackblockID};
+            bool const noProgress{m_ticksInBlock > kBlockTickLimit};
+            bool const upsideDown{vehicle->rangefinderInfo.upDistance <= 0.1f && vehicle->rangefinderInfo.downDistance > 1.f};
+
+            // Check critical failure conditions that require position reset
+            bool const stuckAfterAllAttempts{m_ticksStuck >= kStuckTicksThreshold && m_reverseAttempts >= kMaxReverseAttempts};
+            bool const goingBackwardsTooLong{goingBackwards && m_ticksGoingBackwards > 20};
+
+            // Track if moving slowly (potential stuck situation)
+            if (isMovingSlowly) {
+                ++m_ticksStuck;
+
+                // Transition to STUCK_REVERSING if stuck threshold reached and have attempts left
+                if (m_ticksStuck >= kStuckTicksThreshold && m_reverseAttempts < kMaxReverseAttempts) {
+                    m_nextState = RacerState::STUCK_REVERSING;
+                    m_ticksReversing = 0;
+                    ++m_reverseAttempts;
+                }
+            } else if (upsideDown || noProgress || goingBackwardsTooLong || stuckAfterAllAttempts) {
+                m_nextState = RacerState::RESETTING;
+            } else {
+                // Car is moving well, reset stuck tracking
+                m_ticksStuck = 0;
+                m_reverseAttempts = 0;
+
+                // Track backwards movement
+                if (goingBackwards) {
+                    ++m_ticksGoingBackwards;
+                } else if (m_nearestTrackblockID >= m_lastTrackBlockID) {
+                    m_ticksGoingBackwards = 0;
+                }
+            }
+        } break;
+        case RacerState::STUCK_REVERSING:
+            ++m_ticksReversing;
+
+            // Check if we've reversed long enough
+            if (m_ticksReversing >= kReverseTicksLimit) {
+                m_state = RacerState::TRACK_FOLLOWING;
+                m_ticksReversing = 0;
+                m_ticksStuck = 0; // Give forward motion a fresh chance
+            }
+            break;
+        }
+
+        // Execute AI based on current state
         switch (m_mode) {
         case NeuralNet:
             this->_UseNeuralNetAI();
@@ -33,37 +95,24 @@ namespace OpenNFS {
             break;
         }
 
-        bool const going_backwards{m_lastTrackBlockID > m_nearestTrackblockID};
-        bool const no_progress{m_ticksInBlock > kBlockTickLimit};
-        bool const upside_down{(vehicle->rangefinderInfo.upDistance <= 0.1f && vehicle->rangefinderInfo.downDistance > 1.f)};
-        if (going_backwards) {
-            ++m_ticksGoingBackwards;
-        }
-
-        // If during simulation, car flips, reset.
-        if (upside_down || no_progress || (going_backwards && m_ticksGoingBackwards > 20)) {
-            LOG(DEBUG) << "Racer ID: " << m_racerID << " no longer making forward progress, resetting to VRoad ID: " << m_nearestVroadID;
-            m_ticksInBlock = 0;
-            m_lastTrackBlockID = m_nearestTrackblockID;
-            m_ticksGoingBackwards = 0;
-            ResetToVroad(m_nearestVroadID, Utils::RandomFloat(-.5f, .5f));
-        }
-
-        if (m_nearestTrackblockID >= m_lastTrackBlockID) {
-            m_ticksGoingBackwards = 0;
-        }
-
+        // Track progress through track blocks
         if (m_lastTrackBlockID != m_nearestTrackblockID) {
             m_lastTrackBlockID = m_nearestTrackblockID;
             m_ticksInBlock = 0;
         } else {
             ++m_ticksInBlock;
         }
+
+        if (m_nextState != m_state) {
+            LOG(DEBUG) << "Racer ID: " << m_racerID << " State Update: [" << magic_enum::enum_name(m_state) << "] -> ["
+                       << magic_enum::enum_name(m_nextState) << "]";
+            m_state = m_nextState;
+        }
     }
 
     uint32_t RacerAgent::_CarSpeedToLookahead(float const carSpeed) const {
         uint32_t const carSpeedRatio{static_cast<uint32_t>((carSpeed / vehicle->assetData.physicsData.maxSpeed) * 10)};
-        uint32_t const offset{1 + (carSpeedRatio * 3)};
+        uint32_t const offset{1 + (carSpeedRatio * 4)};
         return m_nearestVroadID + offset;
     }
 
@@ -76,23 +125,43 @@ namespace OpenNFS {
 
     void RacerAgent::_UsePrimitiveAI() {
         auto const speed{vehicle->GetVehicle()->getCurrentSpeedKmHour()};
-        uint32_t const futureVroad{_CarSpeedToLookahead(speed)};
-        glm::vec3 const target{m_track.virtualRoad[(futureVroad) % m_track.virtualRoad.size()].position};
-        float const angle{glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
-                                             glm::normalize(target - this->vehicle->carBodyModel.position), glm::vec3(0, 1, 0))};
-        m_steeringAngle = (_CarSpeedToSteeringDamper(speed) * angle);
-        float const steeringDifference{std::abs(m_steeringAngle - angle)};
-        bool const accelerate{steeringDifference < 0.15f || speed <= kMinSpeed};
-        bool const overrideLeft{vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY] < 1.f};
-        bool const overrideRight{vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY] < 1.f};
-        if (overrideLeft || overrideRight) {
-            vehicle->ApplySteeringLeft(overrideLeft);
-            vehicle->ApplySteeringRight(overrideRight);
-        } else {
-            vehicle->ApplyAbsoluteSteerAngle(m_steeringAngle);
+
+        // State-based behavior
+        switch (m_state) {
+        case RacerState::STUCK_REVERSING:
+            // Apply reverse with alternating steering to wiggle out
+            {
+                float const reverseSteerAngle{(m_ticksReversing % 20 < 10) ? 0.5f : -0.5f};
+                vehicle->ApplyAbsoluteSteerAngle(reverseSteerAngle);
+                vehicle->ApplyAccelerationForce(false, true); // Accelerate in reverse
+                vehicle->ApplyBrakingForce(false);
+            }
+            break;
+
+        case RacerState::TRACK_FOLLOWING:
+            // Normal forward AI behavior
+            {
+                m_futureVroadID = _CarSpeedToLookahead(speed);
+                targetVroadPosition = m_track->virtualRoad[(m_futureVroadID) % m_track->virtualRoad.size()].position;
+                float const angle{glm::orientedAngle(glm::normalize(Utils::bulletToGlm(this->vehicle->GetVehicle()->getForwardVector())),
+                                                     glm::normalize(targetVroadPosition - this->vehicle->carBodyModel.position),
+                                                     glm::vec3(0, 1, 0))};
+                m_steeringAngle = (_CarSpeedToSteeringDamper(speed) * angle);
+                float const steeringDifference{std::abs(m_steeringAngle - angle)};
+                bool const accelerate{steeringDifference < 0.15f || speed <= kMinSpeed};
+                bool const overrideLeft{vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RIGHT_RAY] < 1.f};
+                bool const overrideRight{vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_LEFT_RAY] < 1.f};
+                if (overrideLeft || overrideRight) {
+                    vehicle->ApplySteeringLeft(overrideLeft);
+                    vehicle->ApplySteeringRight(overrideRight);
+                } else {
+                    vehicle->ApplyAbsoluteSteerAngle(m_steeringAngle);
+                }
+                vehicle->ApplyAccelerationForce(accelerate, false);
+                vehicle->ApplyBrakingForce(vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY] <= 1.f);
+            }
+            break;
         }
-        vehicle->ApplyAccelerationForce(accelerate, false);
-        vehicle->ApplyBrakingForce(vehicle->rangefinderInfo.rangefinders[RayDirection::FORWARD_RAY] <= 1.f);
     }
 
     void RacerAgent::_UseNeuralNetAI() const {

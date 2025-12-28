@@ -7,7 +7,7 @@ namespace OpenNFS {
 
     enum AgentType : uint8_t {
         TRAINING = 0,
-        RACING,
+        AI,
         PLAYER,
     };
 
@@ -15,6 +15,7 @@ namespace OpenNFS {
       public:
         CarAgent(AgentType agentType, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &track);
         virtual ~CarAgent() = default;
+        AgentType Type() const { return m_agentType; }
         void ResetToIndexInTrackblock(int trackBlockIndex, int posIndex, float offset) const;
         void ResetToVroad(int vroadIndex, float offset) const;
         virtual void Simulate() = 0;

@@ -6,6 +6,7 @@
 #include "BulletDebugDrawer.h"
 
 namespace OpenNFS {
+    class RacerAgent;
     class DebugRenderer {
       public:
         explicit DebugRenderer(std::shared_ptr<BulletDebugDrawer> const &bulletDebugDrawer);
@@ -13,7 +14,8 @@ namespace OpenNFS {
         void DrawTrackCollision(std::shared_ptr<Track> const &track) const;
         void DrawAABB(const AABB &aabb, glm::vec3 const &colour) const;
         void DrawFrustum(BaseCamera const &camera) const;
-        void DrawCarRaycasts(std::shared_ptr<Car> const &car) const;
+        void DrawVehicleRaycasts(std::shared_ptr<Car> const &car) const;
+        void DrawVehicleAI(std::shared_ptr<RacerAgent> const &racer) const;
         void DrawDummy(glm::vec3 position, glm::vec3 direction) const;
         void DrawVroad(std::shared_ptr<Track> const &track) const;
         void DrawCameraAnimation(std::shared_ptr<Track> const &track) const;

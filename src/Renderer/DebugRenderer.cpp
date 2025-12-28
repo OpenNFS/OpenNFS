@@ -1,5 +1,7 @@
 #include "DebugRenderer.h"
 
+#include "../Race/Agents/RacerAgent.h"
+
 #include <NFS3/NFS3Loader.h>
 
 #include "Entities/TrackVRoad.h"
@@ -47,7 +49,7 @@ namespace OpenNFS {
         m_bulletDebugDrawer->drawLine(Utils::glmToBullet(frustumDebugVizPoints[7]), Utils::glmToBullet(frustumDebugVizPoints[3]), colour);
     }
 
-    void DebugRenderer::DrawCarRaycasts(std::shared_ptr<Car> const &car) const {
+    void DebugRenderer::DrawVehicleRaycasts(std::shared_ptr<Car> const &car) const {
         glm::vec3 const carBodyPosition{car->carBodyModel.position};
         for (uint8_t rangeIdx = 0; rangeIdx < kNumRangefinders; ++rangeIdx) {
             m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition),
@@ -68,6 +70,14 @@ namespace OpenNFS {
             auto const spotlight{((Spotlight *&)light)};
             DrawDummy(spotlight->position, spotlight->direction);
         }
+    }
+
+    void DebugRenderer::DrawVehicleAI(std::shared_ptr<RacerAgent> const &racer) const {
+        glm::vec3 const carBodyPosition{racer->vehicle->carBodyModel.position};
+        m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(racer->targetVroadPosition),
+                                      btVector3(0, 0, 1));
+        glm::vec3 const textOffset {0, 0.5f, 0};
+        m_bulletDebugDrawer->draw3dText(Utils::glmToBullet(carBodyPosition + textOffset), racer->name.c_str());
     }
 
     void DebugRenderer::DrawDummy(glm::vec3 const position, glm::vec3 const direction) const {

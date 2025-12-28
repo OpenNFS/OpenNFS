@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+#include "../Race/Agents/RacerAgent.h"
 #include <backends/imgui_impl_opengl3.h>
 
 namespace OpenNFS {
@@ -96,7 +97,16 @@ namespace OpenNFS {
 
         if (userParams.drawRaycast) {
             for (auto const &racer : racers) {
-                m_debugRenderer.DrawCarRaycasts(racer->vehicle);
+                m_debugRenderer.DrawVehicleRaycasts(racer->vehicle);
+            }
+        }
+
+        if (userParams.drawAI) {
+            for (auto const &racer : racers) {
+                if (racer->Type() == AI) {
+                    m_debugRenderer.DrawVehicleAI(std::dynamic_pointer_cast<RacerAgent>(racer));
+                }
+
             }
         }
 
