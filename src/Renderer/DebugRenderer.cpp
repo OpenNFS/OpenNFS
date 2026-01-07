@@ -1,10 +1,8 @@
 #include "DebugRenderer.h"
 
 #include "../Race/Agents/RacerAgent.h"
-
-#include <NFS3/NFS3Loader.h>
-
 #include "Entities/TrackVRoad.h"
+#include "NFS3/NFS3Loader.h"
 
 namespace OpenNFS {
     DebugRenderer::DebugRenderer(std::shared_ptr<BulletDebugDrawer> const &bulletDebugDrawer) : m_bulletDebugDrawer(bulletDebugDrawer) {

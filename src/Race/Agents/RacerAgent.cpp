@@ -107,7 +107,7 @@ namespace OpenNFS {
         float const carSpeedRatio{carSpeed / vehicle->assetData.physicsData.maxSpeed}; // 0 -> 1.0 (0.3 max, in practice)
         // At Max speed: 0.5-0.3 = 0.2f. At Min speed: 0.5f - 0.f = 0.5f.
         // Min steering damper = 0.1f
-        return std::min(kSteeringDamper - carSpeedRatio, 0.1f);
+        return std::max(kSteeringDamper - carSpeedRatio, 0.1f);
     }
 
     void RacerAgent::_UsePrimitiveAI() {

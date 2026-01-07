@@ -85,10 +85,10 @@ class OpenNFSEngine {
         }
         LOG(INFO) << "Exiting OpenNFS";
 
+        Renderer::Shutdown();
+
         // Close OpenGL window and terminate GLFW
         glfwTerminate();
-
-        Renderer::Shutdown();
     }
 
   private:
