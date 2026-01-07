@@ -118,9 +118,27 @@ namespace OpenNFS {
         case RacerState::RESETTING:
             break;
         case RacerState::STUCK_REVERSING:
-            // Apply reverse with alternated max lock left/right per attempt number to wiggle out
+            // Use raycasts to determine smart steering direction while reversing
+            // Steer toward the side with more clearance (away from obstacles)
             {
-                float const reverseSteerAngle{(m_reverseAttempts % 2) ? 0.5f : -0.5f};
+                auto const &rf = vehicle->rangefinderInfo.rangefinders;
+
+                // Calculate weighted clearance for each side
+                // Forward-facing rays get higher weight (3x) since they show what blocked us
+                // Side rays (1x) help determine which direction has more room
+                float const leftClearance = rf[RayDirection::LEFT_RAY] + rf[RayDirection::FORWARD_LEFT_RAY] * 3.f;
+                float const rightClearance = rf[RayDirection::RIGHT_RAY] + rf[RayDirection::FORWARD_RIGHT_RAY] * 3.f;
+
+                // Steer toward the clearer side (positive = right, negative = left)
+                float const clearanceDiff = rightClearance - leftClearance;
+                float const maxDiff = kFarDistance * 4.f; // Max possible difference with weights
+                float reverseSteerAngle = std::clamp(clearanceDiff / maxDiff, -1.f, 1.f) * 0.5f;
+
+                // If clearance is nearly equal on both sides, fall back to alternating pattern
+                if (std::abs(reverseSteerAngle) < 0.1f) {
+                    reverseSteerAngle = (m_reverseAttempts % 2) ? 0.3f : -0.3f;
+                }
+
                 vehicle->ApplyAbsoluteSteerAngle(reverseSteerAngle);
                 vehicle->ApplyAccelerationForce(false, true); // Accelerate in reverse
                 vehicle->ApplyBrakingForce(false);

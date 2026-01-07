@@ -46,13 +46,13 @@ namespace OpenNFS {
         // cursorY = Config::get().resY - (cursorY * windowToResRatioY);
 
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
-        // if (mouseLeft && !ImGui::GetIO().WantCaptureMouse) {
-        //    m_windowStatus = GAME;
-        //    glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        //} else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        //    m_windowStatus = UI;
-        //    glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        //}
+        if (mouseLeft && !ImGui::GetIO().WantCaptureMouse) {
+            m_windowStatus = GAME;
+            glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        } else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            m_windowStatus = UI;
+            glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
     }
 
     void InputManager::ResetCursorPosition() const {

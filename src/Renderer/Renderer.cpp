@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include "../Race/Agents/RacerAgent.h"
+#include "../Race/OrbitalManager.h"
 #include <backends/imgui_impl_opengl3.h>
 
 namespace OpenNFS {
@@ -110,11 +111,16 @@ namespace OpenNFS {
         if (userParams.drawSkydome) {
             m_skyRenderer.Render(activeCamera, activeLight, totalTime);
         }
+
+        // Calculate ambient factor based on sun height - when sun is below horizon (y < 0), it's night
+        float const ambientFactor = std::max(0.f, activeLight->position.y / (OrbitalManager::SKYDOME_RADIUS) * 0.5f);
         m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleEntities, visibleLights, userParams,
-                               m_shadowMapRenderer.GetTextureID(), 0.5f);
+                               m_shadowMapRenderer.GetTextureID(), ambientFactor);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
         m_debugRenderer.Render(activeCamera);
-        m_miniMapRenderer.Render(m_track, racers);
+        if (userParams.drawMinimap) {
+            m_miniMapRenderer.Render(m_track, racers);
+        }
 
         // Render the Car and racers
         for (auto &racer : racers) {
@@ -290,6 +296,7 @@ namespace OpenNFS {
         ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
         ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);
+        ImGui::Checkbox("Draw Minimap", &userParams.drawMinimap);
         ImGui::Text("Camera Target");
         ImGui::SameLine();
         if (ImGui::Button("<")) {

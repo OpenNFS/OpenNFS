@@ -37,12 +37,12 @@ namespace OpenNFS {
         [[nodiscard]] float _CarSpeedToSteeringDamper(float carSpeed) const;
 
         // Configuration constants
-        static constexpr uint32_t kBlockTickLimit{300};
+        static constexpr uint32_t kBlockTickLimit{200};
         static constexpr float kSteeringDamper{.6f};
         static constexpr float kMinSpeed{20.f};
-        static constexpr uint32_t kStuckTicksThreshold{60};  // Ticks at low speed before considered stuck
-        static constexpr uint32_t kReverseTicksLimit{60};    // How long to reverse when stuck
-        static constexpr uint32_t kMaxReverseAttempts{4};    // Max reverse attempts before reset
+        static constexpr uint32_t kStuckTicksThreshold{60}; // Ticks at low speed before considered stuck
+        static constexpr uint32_t kReverseTicksLimit{60};   // How long to reverse when stuck
+        static constexpr uint32_t kMaxReverseAttempts{4};   // Max reverse attempts before reset
 
         // AI state
         RacerAIMode m_mode = Primitive;
@@ -55,9 +55,10 @@ namespace OpenNFS {
         float m_steeringAngle = 0.f;
 
         // State counters
-        uint32_t m_ticksInBlock = 0;        // Ticks spent in current track block
-        uint32_t m_ticksStuck = 0;          // Consecutive ticks at low speed
-        uint32_t m_ticksReversing = 0;      // Ticks spent in STUCK_REVERSING state
-        uint32_t m_reverseAttempts = 0;     // Number of reverse attempts made
+        uint32_t m_ticksInBlock = 0;                         // Ticks spent in current track block
+        uint32_t m_ticksStuck = 0;                           // Consecutive ticks at low speed
+        uint32_t m_ticksReversing = 0;                       // Ticks spent in STUCK_REVERSING state
+        uint32_t m_reverseAttempts = 0;                      // Number of reverse attempts made
+        uint32_t m_currentReverseLimit = kReverseTicksLimit; // Dynamic reverse duration based on obstacle proximity
     };
 } // namespace OpenNFS

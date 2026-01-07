@@ -117,6 +117,7 @@ namespace OpenNFS {
         bool drawAI{true};
         bool simulateCars{true};
         bool drawSkydome{true};
+        bool drawMinimap{true};
     };
 
     struct AssetData {

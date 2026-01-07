@@ -16,9 +16,9 @@ namespace OpenNFS {
 
     GlobalLight *OrbitalManager::GetActiveGlobalLight() const {
         // TODO: Switch this over to be time based
-        if (m_sun->position.y <= 0) {
-            return m_moon.get();
-        }
+        // if (m_sun->position.y <= 0) {
+        //    return m_moon.get();
+        //}
 
         return m_sun.get();
     }
