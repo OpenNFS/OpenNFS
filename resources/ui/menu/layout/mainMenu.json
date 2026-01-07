@@ -36,7 +36,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial",
+      "font": "Roboto",
       "onClick": "onVehicleSelect"
     },
     {
@@ -55,7 +55,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial",
+      "font": "Roboto",
       "onClick": "onStartRace"
     },
     {
@@ -74,7 +74,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial",
+      "font": "Roboto",
       "onClick": "onStartRace"
     },
     {
@@ -93,7 +93,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial",
+      "font": "Roboto",
       "onClick": "onStartRace"
     },
     {
@@ -112,7 +112,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial",
+      "font": "Roboto",
       "onClick": "onStartRace"
     },
     {
@@ -131,7 +131,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial",
+      "font": "Roboto",
       "onClick": "onExit"
     }
   ]

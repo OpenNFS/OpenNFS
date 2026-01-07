@@ -35,7 +35,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial"
+      "font": "Roboto"
     },
     {
       "type": "button",
@@ -52,7 +52,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial"
+      "font": "Roboto"
     },
     {
       "type": "button",
@@ -69,7 +69,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial"
+      "font": "Roboto"
     },
     {
       "type": "button",
@@ -86,7 +86,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial"
+      "font": "Roboto"
     },
     {
       "type": "button",
@@ -103,7 +103,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial"
+      "font": "Roboto"
     },
     {
       "type": "button",
@@ -121,7 +121,7 @@
         "x": "40",
         "y": "15"
       },
-      "font": "menuArial",
+      "font": "Roboto",
       "onClick": "onExit"
     }
   ]

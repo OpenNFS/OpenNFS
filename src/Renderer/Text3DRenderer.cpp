@@ -5,7 +5,7 @@ namespace OpenNFS {
         InitQuadBuffers();
         FT_Library ft;
         CHECK_F(!FT_Init_FreeType(&ft), "Failed to initialize FreeType library");
-        m_fontAtlas.Initialise(ft, "../resources/ui/fonts/arial.ttf");
+        m_fontAtlas.Initialise(ft, "../resources/ui/fonts/Roboto-VariableFont_wdth,wght.ttf");
         FT_Done_FreeType(ft);
     }
 

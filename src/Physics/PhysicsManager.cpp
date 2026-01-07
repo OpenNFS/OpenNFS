@@ -142,6 +142,7 @@ namespace OpenNFS {
     PhysicsManager::~PhysicsManager() {
         for (auto const &car : m_activeVehicles) {
             m_pDynamicsWorld->removeVehicle(car->GetVehicle());
+            m_pDynamicsWorld->removeRigidBody(car->GetVehicleRigidBody());
         }
         for (auto const &trackBlockEntities : m_track->perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
