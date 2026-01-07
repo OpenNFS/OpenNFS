@@ -4,15 +4,9 @@
 #include "lib/glm/glm/gtx/vector_angle.hpp"
 
 namespace OpenNFS {
-    // TODO: Read this from file
-    char const *RACER_NAMES[23] = {
-        "DumbPanda",       "Spark198rus", "Keiiko",    "N/A",       "Patas De Pavo", "Dopamine Flint", "Oh Hansssss", "scaryred24",
-        "MaximilianVeers", "Keith",       "AJ_Lethal", "Sirius-R",  "Ewil",          "Zipper",         "heyitsleo",   "MADMAN_nfs",
-        "Wild One",        "Gotcha",      "Mulligan",  "Lead Foot", "Ace",           "Dead Beat",      "Ram Rod"};
-
-    RacerAgent::RacerAgent(uint16_t const racerID, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack)
-        : CarAgent(AgentType::AI, car, raceTrack), m_racerID(racerID) {
-        name = RACER_NAMES[racerID];
+    RacerAgent::RacerAgent(RacerData const &racerData, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack)
+        : CarAgent(AgentType::AI, car, raceTrack) {
+        name = racerData.name;
         this->vehicle = std::make_shared<Car>(car->assetData);
 
         // TODO: DEBUG! Set a low max speed.
@@ -32,24 +26,20 @@ namespace OpenNFS {
             m_nextState = RacerState::TRACK_FOLLOWING;
             m_ticksInBlock = 0;
             m_lastTrackBlockID = m_nearestTrackblockID;
-            m_ticksGoingBackwards = 0;
             m_ticksStuck = 0;
             m_ticksReversing = 0;
             m_reverseAttempts = 0;
             break;
         case RacerState::TRACK_FOLLOWING: {
-            float const currentSpeed{vehicle->GetVehicle()->getCurrentSpeedKmHour()};
-            bool const isMovingSlowly{currentSpeed < kStuckSpeedThreshold};
             bool const goingBackwards{m_lastTrackBlockID > m_nearestTrackblockID};
             bool const noProgress{m_ticksInBlock > kBlockTickLimit};
             bool const upsideDown{vehicle->rangefinderInfo.upDistance <= 0.1f && vehicle->rangefinderInfo.downDistance > 1.f};
 
             // Check critical failure conditions that require position reset
             bool const stuckAfterAllAttempts{m_ticksStuck >= kStuckTicksThreshold && m_reverseAttempts >= kMaxReverseAttempts};
-            bool const goingBackwardsTooLong{goingBackwards && m_ticksGoingBackwards > 20};
 
             // Track if moving slowly (potential stuck situation)
-            if (isMovingSlowly) {
+            if (noProgress) {
                 ++m_ticksStuck;
 
                 // Transition to STUCK_REVERSING if stuck threshold reached and have attempts left
@@ -58,19 +48,12 @@ namespace OpenNFS {
                     m_ticksReversing = 0;
                     ++m_reverseAttempts;
                 }
-            } else if (upsideDown || noProgress || goingBackwardsTooLong || stuckAfterAllAttempts) {
+            } else if (upsideDown || goingBackwards || stuckAfterAllAttempts) {
                 m_nextState = RacerState::RESETTING;
             } else {
                 // Car is moving well, reset stuck tracking
                 m_ticksStuck = 0;
                 m_reverseAttempts = 0;
-
-                // Track backwards movement
-                if (goingBackwards) {
-                    ++m_ticksGoingBackwards;
-                } else if (m_nearestTrackblockID >= m_lastTrackBlockID) {
-                    m_ticksGoingBackwards = 0;
-                }
             }
         } break;
         case RacerState::STUCK_REVERSING:
@@ -78,7 +61,7 @@ namespace OpenNFS {
 
             // Check if we've reversed long enough
             if (m_ticksReversing >= kReverseTicksLimit) {
-                m_state = RacerState::TRACK_FOLLOWING;
+                m_nextState = RacerState::TRACK_FOLLOWING;
                 m_ticksReversing = 0;
                 m_ticksStuck = 0; // Give forward motion a fresh chance
             }
@@ -110,9 +93,13 @@ namespace OpenNFS {
         }
     }
 
+    RacerState RacerAgent::State() const {
+        return m_state;
+    }
+
     uint32_t RacerAgent::_CarSpeedToLookahead(float const carSpeed) const {
         uint32_t const carSpeedRatio{static_cast<uint32_t>((carSpeed / vehicle->assetData.physicsData.maxSpeed) * 10)};
-        uint32_t const offset{1 + (carSpeedRatio * 4)};
+        uint32_t const offset{2 + (carSpeedRatio * 4)};
         return m_nearestVroadID + offset;
     }
 
@@ -128,10 +115,12 @@ namespace OpenNFS {
 
         // State-based behavior
         switch (m_state) {
+        case RacerState::RESETTING:
+            break;
         case RacerState::STUCK_REVERSING:
-            // Apply reverse with alternating steering to wiggle out
+            // Apply reverse with alternated max lock left/right per attempt number to wiggle out
             {
-                float const reverseSteerAngle{(m_ticksReversing % 20 < 10) ? 0.5f : -0.5f};
+                float const reverseSteerAngle{(m_reverseAttempts % 2) ? 0.5f : -0.5f};
                 vehicle->ApplyAbsoluteSteerAngle(reverseSteerAngle);
                 vehicle->ApplyAccelerationForce(false, true); // Accelerate in reverse
                 vehicle->ApplyBrakingForce(false);

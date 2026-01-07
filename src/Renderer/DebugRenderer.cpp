@@ -73,6 +73,7 @@ namespace OpenNFS {
     }
 
     void DebugRenderer::DrawVehicleAI(std::shared_ptr<RacerAgent> const &racer, BaseCamera const &camera) const {
+        // Line from vehicle body to target vroad
         glm::vec3 const carBodyPosition{racer->vehicle->carBodyModel.position};
         m_bulletDebugDrawer->drawLine(Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(racer->targetVroadPosition),
                                       btVector3(0, 0, 1));
@@ -85,8 +86,9 @@ namespace OpenNFS {
         float const scale = 0.00015f * distance;                     // Scale with distance
         float const clampedScale = glm::clamp(scale, 0.001f, 0.15f); // Clamp for readability
 
-        // Render the racer name
-        m_text3DRenderer.RenderText3D(racer->name, namePos, camera, clampedScale, glm::vec4(1, 1, 1, 1));
+        // Render the racer name and state
+        std::string const racerStatusText{racer->name + ": " + std::string(magic_enum::enum_name(racer->State()))};
+        m_text3DRenderer.RenderText3D(racerStatusText, namePos, camera, clampedScale, glm::vec4(1, 1, 1, 1));
     }
 
     void DebugRenderer::DrawDummy(glm::vec3 const position, glm::vec3 const direction) const {

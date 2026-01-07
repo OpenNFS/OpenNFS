@@ -21,7 +21,9 @@ namespace OpenNFS {
       private:
         void _InitialisePlayerVehicle(std::shared_ptr<PlayerAgent> const &playerAgent, PhysicsManager &physicsManager);
         void _SpawnRacers(PhysicsManager &physicsManager);
+        void _LoadRacerData(std::string const &jsonPath);
 
         std::shared_ptr<Track> const &m_currentTrack;
+        std::vector<RacerData> m_racerData;
     };
 } // namespace OpenNFS

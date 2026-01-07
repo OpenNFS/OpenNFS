@@ -43,7 +43,6 @@ class OpenNFSEngine {
     void run() const {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
-        // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         std::shared_ptr<GLFWwindow> const window{Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION)};
 
         // Create game context shared between all states

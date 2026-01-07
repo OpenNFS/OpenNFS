@@ -41,6 +41,9 @@ namespace OpenNFS {
     std::string const NFS_5_TRACK_PATH{"/gamedata/track/"};
     std::string const NFS_5_CAR_PATH{"/gamedata/carmodel/"};
 
+    // ----- File paths for ONFS resources -----
+    std::string const RACER_NAME_PATH{"../resources/misc/racers.json"};
+
     // ----- Graphics -----
     static constexpr uint16_t MAX_TEXTURE_ARRAY_SIZE{512};
     static constexpr uint32_t DEFAULT_X_RESOLUTION{2560};
