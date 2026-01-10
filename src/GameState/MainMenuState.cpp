@@ -5,8 +5,6 @@ namespace OpenNFS {
     }
 
     void MainMenuState::OnEnter() {
-        LOG(INFO) << "Entering Main Menu";
-
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
         callbacks["onStartRace"] = [this]() { OnStartRaceClicked(); };
@@ -34,7 +32,6 @@ namespace OpenNFS {
     }
 
     void MainMenuState::OnExit() {
-        LOG(INFO) << "Exiting Main Menu";
         m_uiManager.reset();
     }
 

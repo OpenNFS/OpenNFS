@@ -5,8 +5,6 @@ namespace OpenNFS {
     }
 
     void RaceState::OnEnter() {
-        LOG(INFO) << "Entering Race State";
-
         // Validate asset data
         CHECK_F(m_context.loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
 
@@ -15,8 +13,8 @@ namespace OpenNFS {
         m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
         // Create race session
-        m_raceSession =
-            std::make_unique<RaceSession>(m_context.window, m_context.logger, m_context.installedNFS, m_currentTrack, m_currentCar);
+        m_raceSession = std::make_unique<RaceSession>(m_context.window, m_context.logger, m_context.installedNFS, m_currentTrack,
+                                                      m_currentCar, m_context.loadedAssets);
         m_raceActive = true;
         m_nextState = GameState::Race;
     }
@@ -32,15 +30,14 @@ namespace OpenNFS {
                 m_nextState = GameState::MainMenu;
             }
             if (m_raceSession->AssetChanged()) {
-                LOG(INFO) << "Asset changed, reloading race";
                 m_raceActive = false;
-                m_nextState = GameState::Race;
+                m_nextState = GameState::RaceLoad;
+                LOG(INFO) << "Asset changed, reloading race with: " << m_context.loadedAssets.to_string();
             }
         }
     }
 
     void RaceState::OnExit() {
-        LOG(INFO) << "Exiting Race State";
         m_raceSession.reset();
         m_raceActive = false;
     }

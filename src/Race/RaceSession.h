@@ -21,7 +21,7 @@ namespace OpenNFS {
       public:
         RaceSession(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
                     std::vector<NfsAssetList> const &installedNFS, std::shared_ptr<Track> const &currentTrack,
-                    std::shared_ptr<Car> const &currentCar);
+                    std::shared_ptr<Car> const &currentCar, AssetData &assetData);
 
         // New state-friendly interface
         void Update(float deltaTime);
@@ -35,7 +35,7 @@ namespace OpenNFS {
         BaseCamera &_GetActiveCamera();
         void _UpdateCameras(float deltaTime);
 
-        AssetData m_loadedAssets;
+        AssetData &m_loadedAssets;
         CameraMode m_activeCameraMode{CameraMode::FREE_LOOK};
         std::optional<Entity *> m_targetedEntity;
 

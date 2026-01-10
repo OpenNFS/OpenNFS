@@ -49,7 +49,7 @@ namespace OpenNFS {
         if (mouseLeft && !ImGui::GetIO().WantCaptureMouse) {
             m_windowStatus = GAME;
             glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        } else if (glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        } else if (escape) {
             m_windowStatus = UI;
             glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <fstream>
 #include <magic_enum/magic_enum.hpp>
 #include <string>
@@ -125,6 +126,10 @@ namespace OpenNFS {
         std::string car;
         NFSVersion trackTag;
         std::string track;
+
+        [[nodiscard]] std::string to_string() const {
+            return std::format("Car: [{}] {} Track: [{}] {}", magic_enum::enum_name(carTag), car, magic_enum::enum_name(trackTag), track);
+        }
     };
 
     struct NfsAssetList {

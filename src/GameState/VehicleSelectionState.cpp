@@ -7,8 +7,6 @@ namespace OpenNFS {
     }
 
     void VehicleSelectionState::OnEnter() {
-        LOG(INFO) << "Entering Car Selection State";
-
         // Load car
         m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
@@ -50,7 +48,6 @@ namespace OpenNFS {
     }
 
     void VehicleSelectionState::OnExit() {
-        LOG(INFO) << "Exiting Vehicle Selection";
         m_vehicleSelection.reset();
     }
 

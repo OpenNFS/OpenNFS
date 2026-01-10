@@ -32,15 +32,14 @@ namespace OpenNFS {
 
     PhysicsManager::PhysicsManager(std::shared_ptr<Track> const &track)
         : debugDrawer(std::make_shared<BulletDebugDrawer>()), m_track(track) {
-        m_pBroadphase = std::make_unique<btDbvtBroadphase>();
+        m_pBroadphase = new btDbvtBroadphase();
         // Set up the collision configuration and dispatcher
-        m_pCollisionConfiguration = std::make_unique<btDefaultCollisionConfiguration>();
-        m_pDispatcher = std::make_unique<btCollisionDispatcher>(m_pCollisionConfiguration.get());
+        m_pCollisionConfiguration = new btDefaultCollisionConfiguration();
+        m_pDispatcher = new btCollisionDispatcher(m_pCollisionConfiguration);
         // The actual physics solver
-        m_pSolver = std::make_unique<btSequentialImpulseConstraintSolver>();
+        m_pSolver = new btSequentialImpulseConstraintSolver();
         // The world.
-        m_pDynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(m_pDispatcher.get(), m_pBroadphase.get(), m_pSolver.get(),
-                                                                     m_pCollisionConfiguration.get());
+        m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_pDispatcher, m_pBroadphase, m_pSolver, m_pCollisionConfiguration);
         m_pDynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
 
@@ -68,7 +67,7 @@ namespace OpenNFS {
         m_pDynamicsWorld->stepSimulation(time, 100);
 
         for (auto const &car : m_activeVehicles) {
-            car->Update(m_pDynamicsWorld.get());
+            car->Update(m_pDynamicsWorld);
         }
 
         auto const racerResidentTrackblockEntities{racerResidentTrackblockIDs | std::views::transform([&](uint32_t const index) -> auto & {
@@ -97,7 +96,7 @@ namespace OpenNFS {
     }
 
     void PhysicsManager::RegisterVehicle(std::shared_ptr<Car> const &car) {
-        car->SetRaycaster(std::make_unique<btDefaultVehicleRaycaster>(m_pDynamicsWorld.get()));
+        car->SetRaycaster(std::make_unique<btDefaultVehicleRaycaster>(m_pDynamicsWorld));
         car->SetVehicle(std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
         car->GetVehicle()->setCoordinateSystem(0, 1, 2);
 
@@ -136,7 +135,7 @@ namespace OpenNFS {
     }
 
     btDiscreteDynamicsWorld *PhysicsManager::GetDynamicsWorld() const {
-        return m_pDynamicsWorld.get();
+        return m_pDynamicsWorld;
     }
 
     PhysicsManager::~PhysicsManager() {
@@ -153,4 +152,5 @@ namespace OpenNFS {
             }
         }
     }
+
 } // namespace OpenNFS
