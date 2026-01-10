@@ -377,6 +377,7 @@ namespace OpenNFS {
     // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to
     // manipulate
     void Car::_SetModels(std::vector<LibOpenNFS::CarGeometry> &carGeometries) {
+        CHECK_F(!carGeometries.empty(), "No loaded vehicle geometry for ONFS to attach to a car");
         switch (assetData.tag) {
         case NFSVersion::NFS_1:
             break;
