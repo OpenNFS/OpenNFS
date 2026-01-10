@@ -33,6 +33,7 @@ namespace OpenNFS {
             return std::make_shared<Track>(
                 NFS2::Loader<NFS2::PS1>::LoadTrack(NFSVersion::NFS_3_PS1, trackBasePath.str(), trackOutPath.str()));
         case NFSVersion::NFS_4:
+        case NFSVersion::MCO:
             trackBasePath << NFS_4_TRACK_PATH << trackName;
             return std::make_shared<Track>(NFS4::Loader::LoadTrack(trackBasePath.str(), trackOutPath.str()));
         default:

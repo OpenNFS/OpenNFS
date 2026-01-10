@@ -62,8 +62,8 @@ class OpenNFSEngine {
         stateManager.RegisterState(GameState::RaceLoad, std::make_unique<RaceLoadState>(context));
         stateManager.RegisterState(GameState::VehicleSelection, std::make_unique<VehicleSelectionState>(context));
 
-        // Start with main menu
-        stateManager.TransitionTo(GameState::MainMenu);
+        // Start with main menu (if explicitly opted in with arg)
+        stateManager.TransitionTo(Config::get().ui ? GameState::MainMenu : GameState::Race);
 
         // Main game loop
         double lastTime = glfwGetTime();

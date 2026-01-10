@@ -12,6 +12,7 @@ namespace OpenNFS {
 
         // Option name/short name, description, bound variable for parameter
         program.add_argument("--vulkan").help("Use the Vulkan renderer instead of GL default").flag().store_into(vulkanRender);
+        program.add_argument("--ui").help("Enable the UI").flag().store_into(ui);
         program.add_argument("--headless").help("Launch ONFS without a window").flag().store_into(headless);
         program.add_argument("--nracers", "-r").help("Number of AI Racers to spawn").default_value(DEFAULT_NUM_RACERS).store_into(nRacers);
         program.add_argument("--car", "-c").help("Name of desired car").default_value(DEFAULT_CAR).store_into(car);

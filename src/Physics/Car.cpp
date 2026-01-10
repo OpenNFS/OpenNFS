@@ -487,33 +487,32 @@ namespace OpenNFS {
                     miscModels.emplace_back(carModel);
                 }
             }
-            break;
+            break;*/
         case NFSVersion::MCO:
-            for (auto &carModel : carModels) {
-                if (carModel.geometry->m_name == ":Hbody") {
-                    carModel.enable();
-                    carBodyModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPLRwheel") {
-                    carModel.enable();
-                    leftRearWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPLFwheel") {
-                    carModel.enable();
-                    leftFrontWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPRRwheel") {
-                    carModel.enable();
-                    rightRearWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPRFwheel") {
-                    carModel.enable();
-                    rightFrontWheelModel = carModel;
-                } else if (carModel.geometry->m_name.find(":H") != std::string::npos) {
-                    carModel.enable();
-                    miscModels.emplace_back(carModel);
+            for (auto &carGeometry : carGeometries) {
+                if (carGeometry.m_name == ":Hbody") {
+                    carBodyModel = GLCarModel(carGeometry);
+                    carBodyModel.Enable();
+                } else if (carGeometry.m_name == ":PPLRwheel") {
+                    leftRearWheelModel = GLCarModel(carGeometry);
+                    leftRearWheelModel.Enable();
+                } else if (carGeometry.m_name == ":PPLFwheel") {
+                    leftFrontWheelModel = GLCarModel(carGeometry);
+                    leftFrontWheelModel.Enable();
+                } else if (carGeometry.m_name == ":PPRRwheel") {
+                    rightRearWheelModel = GLCarModel(carGeometry);
+                    rightRearWheelModel.Enable();
+                } else if (carGeometry.m_name == ":PPRFwheel") {
+                    rightFrontWheelModel = GLCarModel(carGeometry);
+                    rightFrontWheelModel.Enable();
+                } else if (carGeometry.m_name.find(":H") != std::string::npos) {
+                    miscModels.emplace_back(carGeometry);
                 } else {
-                    miscModels.emplace_back(carModel);
+                    miscModels.emplace_back(carGeometry);
                 }
             }
             break;
-        case NFSVersion::UNKNOWN:
+        /*case NFSVersion::UNKNOWN:
             break;
         case NFSVersion::NFS_5: {
             for (auto &carModel : carModels) {

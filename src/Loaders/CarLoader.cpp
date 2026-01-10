@@ -13,33 +13,32 @@ namespace OpenNFS {
         carOutPath << CAR_PATH << magic_enum::enum_name(nfsVersion) << "/" << carName;
 
         switch (nfsVersion) {
-        /*case NFSVersion::NFS_2:
-            carPath << NFS_2_CAR_PATH << carName;
-            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadCar(carPath.str(), nfsVersion);
+        case NFSVersion::NFS_2:
+            carBasePath << NFS_2_CAR_PATH << carName;
+            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadCar(carBasePath.str(), carOutPath.str(), nfsVersion);
         case NFSVersion::NFS_2_SE:
-            carPath << NFS_2_SE_CAR_PATH << carName;
-            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadCar(carPath.str(), nfsVersion);
+            carBasePath << NFS_2_SE_CAR_PATH << carName;
+            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadCar(carBasePath.str(), carOutPath.str(), nfsVersion);
         case NFSVersion::NFS_2_PS1:
-            carPath << "/" << carName;
-            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadCar(carPath.str(), nfsVersion);*/
+            carBasePath << "/" << carName;
+            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PC>::LoadCar(carBasePath.str(), carOutPath.str(), nfsVersion);
         case NFSVersion::NFS_3:
             carBasePath << NFS_3_CAR_PATH << carName;
             return LibOpenNFS::NFS3::Loader::LoadCar(carBasePath.str(), carOutPath.str());
-        /*case NFSVersion::NFS_3_PS1:
-            carPath << "/" << carName;
-            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PS1>::LoadCar(carPath.str(), nfsVersion);*/
+        case NFSVersion::NFS_3_PS1:
+            carBasePath << "/" << carName;
+            return LibOpenNFS::NFS2::Loader<LibOpenNFS::NFS2::PS1>::LoadCar(carBasePath.str(), carOutPath.str(), nfsVersion);
         case NFSVersion::NFS_4:
             carBasePath << NFS_4_CAR_PATH << carName;
             return LibOpenNFS::NFS4::Loader::LoadCar(carBasePath.str(), carOutPath.str(), nfsVersion);
         /*case NFS_4_PS1:
             carPath << "/" << carName << ".VIV";
             return NFS4PS1::LoadCar(carPath.str());
-            break;
-        case MCO:
-            carPath << MCO_CAR_PATH << carName;
-            return NFS4::LoadCar(carPath.str(), nfsVersion);
-            break;
-        case NFS_5:
+            break;*/
+        case NFSVersion::MCO:
+            carBasePath << MCO_CAR_PATH << carName;
+            return LibOpenNFS::NFS4::Loader::LoadCar(carBasePath.str(), carOutPath.str(), nfsVersion);
+        /*case NFS_5:
             carPath << NFS_5_CAR_PATH << carName;
             return NFS5::LoadCar(carPath.str());
             break;*/

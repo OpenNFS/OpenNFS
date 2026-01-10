@@ -87,6 +87,7 @@ namespace OpenNFS {
         std::string carTag{};
         std::string trackTag{};
         uint32_t nRacers{DEFAULT_NUM_RACERS};
+        bool ui;
         /* ------- Render Params ------- */
         bool vulkanRender{};
         bool headless{};
