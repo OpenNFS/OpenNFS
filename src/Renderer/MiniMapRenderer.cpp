@@ -19,7 +19,7 @@ namespace OpenNFS {
         miniMapShader.loadProjectionMatrix(projectionMatrix);
         miniMapShader.loadColor(glm::vec3(1.f, 1.f, 1.f));
 
-        glm::mat4 const rotationMat{glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(1.0, 0.0, 0.0))};
+        glm::mat4 const rotationMat{glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(-1.0, 0.0, 0.0))};
 
         for (auto const &trackBlockEntities : track->perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
