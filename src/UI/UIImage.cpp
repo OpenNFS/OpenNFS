@@ -11,7 +11,7 @@ namespace OpenNFS {
             if (click) {
                 onClickFunction();
             } else {
-                // Hovering
+                onHoverFunction();
             }
         }
     }

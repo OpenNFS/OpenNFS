@@ -45,7 +45,9 @@ namespace OpenNFS {
 
     void Car::Update(btDynamicsWorld const *dynamicsWorld) {
         // Update car
-        this->_UpdateMeshesToMatchPhysics();
+        btTransform trans;
+        m_vehicleMotionState->getWorldTransform(trans);
+        this->UpdateMeshesToTransform(trans);
         // Apply user input
         this->_ApplyInputs();
         // Update raycasts
@@ -109,7 +111,7 @@ namespace OpenNFS {
         m_carChassis->setWorldTransform(positionTransform);
 
         // Update mesh positions to match new chassis transform
-        this->_UpdateMeshesToMatchPhysics();
+        this->UpdateMeshesToTransform(positionTransform);
     }
 
     float Car::GetCarBodyOrientation() const {
@@ -118,9 +120,7 @@ namespace OpenNFS {
                                   1 - 2 * orientation.y * orientation.y - 2 * orientation.z * orientation.z));
     }
 
-    void Car::_UpdateMeshesToMatchPhysics() {
-        btTransform trans;
-        m_vehicleMotionState->getWorldTransform(trans);
+    void Car::UpdateMeshesToTransform(btTransform const &trans, bool const avoidPhysics) {
         carBodyModel.position =
             Utils::bulletToGlm(trans.getOrigin()) + (carBodyModel.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
         carBodyModel.orientation = Utils::bulletToGlm(trans.getRotation());
@@ -132,6 +132,32 @@ namespace OpenNFS {
                 Utils::bulletToGlm(trans.getOrigin()) + (miscModel.initialPosition * glm::inverse(Utils::bulletToGlm(trans.getRotation())));
             miscModel.orientation = Utils::bulletToGlm(trans.getRotation());
             miscModel.UpdateMatrices();
+        }
+
+        if (avoidPhysics) {
+            for (auto wheelIdx = 0; wheelIdx < 4; ++wheelIdx) {
+                GLCarModel *wheelToUpdate{nullptr};
+                switch (wheelIdx) {
+                case FRONT_LEFT:
+                    wheelToUpdate = &leftFrontWheelModel;
+                    break;
+                case FRONT_RIGHT:
+                    wheelToUpdate = &rightFrontWheelModel;
+                    break;
+                case REAR_LEFT:
+                    wheelToUpdate = &leftRearWheelModel;
+                    break;
+                case REAR_RIGHT:
+                    wheelToUpdate = &rightRearWheelModel;
+                    break;
+                default:
+                    CHECK_F(false, "More than 4 wheels currently unsupported");
+                    break;
+                }
+                wheelToUpdate->position = wheelToUpdate->initialPosition;
+                wheelToUpdate->UpdateMatrices();
+            }
+            return;
         }
 
         // Update headlight direction vectors to match car body
@@ -148,7 +174,7 @@ namespace OpenNFS {
         // Lets go update wheel geometry positions based on physics feedback
         for (auto wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx) {
             m_vehicle->updateWheelTransform(wheelIdx, true);
-            trans = m_vehicle->getWheelInfo(wheelIdx).m_worldTransform;
+            btTransform wheelTrans = m_vehicle->getWheelInfo(wheelIdx).m_worldTransform;
             GLCarModel *wheelToUpdate{nullptr};
             switch (wheelIdx) {
             case FRONT_LEFT:
@@ -167,8 +193,8 @@ namespace OpenNFS {
                 CHECK_F(false, "More than 4 wheels currently unsupported");
                 break;
             }
-            wheelToUpdate->position = Utils::bulletToGlm(trans.getOrigin());
-            wheelToUpdate->orientation = Utils::bulletToGlm(trans.getRotation());
+            wheelToUpdate->position = Utils::bulletToGlm(wheelTrans.getOrigin());
+            wheelToUpdate->orientation = Utils::bulletToGlm(wheelTrans.getRotation());
             wheelToUpdate->UpdateMatrices();
         }
     }
@@ -351,6 +377,7 @@ namespace OpenNFS {
     // Take the list of Meshes returned by the car loader, and pull the High res wheels and body out for physics to
     // manipulate
     void Car::_SetModels(std::vector<LibOpenNFS::CarGeometry> &carGeometries) {
+        CHECK_F(!carGeometries.empty(), "No loaded vehicle geometry for ONFS to attach to a car");
         switch (assetData.tag) {
         case NFSVersion::NFS_1:
             break;
@@ -461,33 +488,32 @@ namespace OpenNFS {
                     miscModels.emplace_back(carModel);
                 }
             }
-            break;
+            break;*/
         case NFSVersion::MCO:
-            for (auto &carModel : carModels) {
-                if (carModel.geometry->m_name == ":Hbody") {
-                    carModel.enable();
-                    carBodyModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPLRwheel") {
-                    carModel.enable();
-                    leftRearWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPLFwheel") {
-                    carModel.enable();
-                    leftFrontWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPRRwheel") {
-                    carModel.enable();
-                    rightRearWheelModel = carModel;
-                } else if (carModel.geometry->m_name == ":PPRFwheel") {
-                    carModel.enable();
-                    rightFrontWheelModel = carModel;
-                } else if (carModel.geometry->m_name.find(":H") != std::string::npos) {
-                    carModel.enable();
-                    miscModels.emplace_back(carModel);
+            for (auto &carGeometry : carGeometries) {
+                if (carGeometry.m_name == ":Hbody") {
+                    carBodyModel = GLCarModel(carGeometry);
+                    carBodyModel.Enable();
+                } else if (carGeometry.m_name == ":PPLRwheel") {
+                    leftRearWheelModel = GLCarModel(carGeometry);
+                    leftRearWheelModel.Enable();
+                } else if (carGeometry.m_name == ":PPLFwheel") {
+                    leftFrontWheelModel = GLCarModel(carGeometry);
+                    leftFrontWheelModel.Enable();
+                } else if (carGeometry.m_name == ":PPRRwheel") {
+                    rightRearWheelModel = GLCarModel(carGeometry);
+                    rightRearWheelModel.Enable();
+                } else if (carGeometry.m_name == ":PPRFwheel") {
+                    rightFrontWheelModel = GLCarModel(carGeometry);
+                    rightFrontWheelModel.Enable();
+                } else if (carGeometry.m_name.find(":H") != std::string::npos) {
+                    miscModels.emplace_back(carGeometry);
                 } else {
-                    miscModels.emplace_back(carModel);
+                    miscModels.emplace_back(carGeometry);
                 }
             }
             break;
-        case NFSVersion::UNKNOWN:
+        /*case NFSVersion::UNKNOWN:
             break;
         case NFSVersion::NFS_5: {
             for (auto &carModel : carModels) {

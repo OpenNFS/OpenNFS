@@ -70,6 +70,7 @@ namespace OpenNFS {
         Car(LibOpenNFS::Car const &car, GLuint textureArrayID); // Multitextured car
         ~Car();
         void Update(btDynamicsWorld const *dynamicsWorld);
+        void UpdateMeshesToTransform(btTransform const &trans, bool avoidPhysics = false);
         void SetPosition(glm::vec3 position, glm::quat orientation);
         void ApplyAccelerationForce(bool accelerate, bool reverse);
         void ApplyBrakingForce(bool apply);
@@ -119,7 +120,6 @@ namespace OpenNFS {
         btRaycastVehicle::btVehicleTuning tuning;
 
       private:
-        void _UpdateMeshesToMatchPhysics();
         void _ApplyInputs();
         void _LoadTextures();
         void _GenPhysicsModel();

@@ -11,7 +11,8 @@ namespace OpenNFS {
     class MiniMapRenderer {
       public:
         explicit MiniMapRenderer() = default;
-        void Render(Track const &track, std::vector<std::shared_ptr<CarAgent>> const &racers);
+        ~MiniMapRenderer();
+        void Render(std::shared_ptr<Track> const &track, std::vector<std::shared_ptr<CarAgent>> const &racers);
 
       private:
         void _Rescale();
@@ -23,7 +24,7 @@ namespace OpenNFS {
         static constexpr float kMiniMapOffsetY{1000.f};
 
         glm::mat4 projectionMatrix{};
-        MiniMapShader miniMapShader;
+        MiniMapShader m_miniMapShader;
         float left{0.f};
         float right{0.f};
         float bottom{0.f};

@@ -1,13 +1,14 @@
 #include "Renderer.h"
 
+#include "../Race/Agents/RacerAgent.h"
+#include "../Race/OrbitalManager.h"
 #include <backends/imgui_impl_opengl3.h>
 
 namespace OpenNFS {
     Renderer::Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
-                       std::vector<NfsAssetList> const &installedNFS, Track const &currentTrack,
+                       std::vector<NfsAssetList> const &installedNFS, std::shared_ptr<Track> const &currentTrack,
                        std::shared_ptr<BulletDebugDrawer> const &debugDrawer)
         : m_window(window), m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_track(currentTrack), m_debugRenderer(debugDrawer) {
-        this->_InitialiseIMGUI();
         LOG(DEBUG) << "Renderer Initialised";
     }
 
@@ -42,8 +43,6 @@ namespace OpenNFS {
 
         // Ensure we can capture the escape key being pressed below
         glfwSetInputMode(window.get(), GLFW_STICKY_KEYS, GL_TRUE);
-        // Set the mouse at the center of the screen
-        glfwPollEvents();
         // Dark blue background
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         // Enable depth test
@@ -61,8 +60,17 @@ namespace OpenNFS {
         LOG(DEBUG) << "Max Array Texture Layers: " << nMaxTextureLayers;
         LOG(DEBUG) << "OpenGL Initialisation successful";
 
-        Config::get().windowSizeX = resolutionX;
-        Config::get().windowSizeY = resolutionY;
+        glfwGetWindowSize(window.get(), reinterpret_cast<int *>(&Config::get().windowSizeX),
+                          reinterpret_cast<int *>(&Config::get().windowSizeY));
+        LOG(DEBUG) << "Window Size: " << Config::get().windowSizeX << "x" << Config::get().windowSizeY;
+
+        ImGui::CreateContext();
+        ImGui_ImplGlfw_InitForOpenGL(window.get(), true);
+        std::string const glVersion = "#version " + ONFS_GL_VERSION;
+        ImGui_ImplOpenGL3_Init(glVersion.c_str());
+        ImGui::StyleColorsDark();
+
+        LOG(DEBUG) << "IMGUI Initialisation successful";
 
         return window;
     }
@@ -90,7 +98,7 @@ namespace OpenNFS {
 
         if (userParams.drawRaycast) {
             for (auto const &racer : racers) {
-                m_debugRenderer.DrawCarRaycasts(racer->vehicle);
+                m_debugRenderer.DrawVehicleRaycasts(racer->vehicle);
             }
         }
 
@@ -99,19 +107,32 @@ namespace OpenNFS {
         }
 
         // Render the environment
-        m_shadowMapRenderer.Render(userParams.nearPlane, userParams.farPlane, activeLight, m_track.textureArrayID, visibleEntities, racers);
+        m_shadowMapRenderer.Render(activeLight, m_track->textureArrayID, visibleEntities, racers);
         if (userParams.drawSkydome) {
             m_skyRenderer.Render(activeCamera, activeLight, totalTime);
         }
-        m_trackRenderer.Render(racers, activeCamera, m_track.textureArrayID, visibleEntities, visibleLights, userParams,
-                               m_shadowMapRenderer.GetTextureID(), 0.5f);
+
+        // Calculate ambient factor based on sun height - when sun is below horizon (y < 0), it's night
+        float const ambientFactor = std::max(0.f, activeLight->position.y / (OrbitalManager::SKYDOME_RADIUS) * 0.5f);
+        m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleEntities, visibleLights, userParams,
+                               m_shadowMapRenderer.GetTextureID(), ambientFactor);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
         m_debugRenderer.Render(activeCamera);
-        m_miniMapRenderer.Render(m_track, racers);
+        if (userParams.drawMinimap) {
+            m_miniMapRenderer.Render(m_track, racers);
+        }
 
         // Render the Car and racers
         for (auto &racer : racers) {
             m_carRenderer.Render(racer->vehicle, activeCamera);
+        }
+
+        if (userParams.drawAI) {
+            for (auto const &racer : racers) {
+                if (racer->Type() == AI) {
+                    m_debugRenderer.DrawVehicleAI(std::dynamic_pointer_cast<RacerAgent>(racer), activeCamera);
+                }
+            }
         }
 
         if (this->_DrawMenuBar(loadedAssets)) {
@@ -124,8 +145,6 @@ namespace OpenNFS {
 
         // Render the Debug UI
         this->_DrawDebugUI(userParams, deltaTime, activeCamera);
-
-        glfwSwapBuffers(m_window.get());
 
         return newAssetSelected;
     }
@@ -141,7 +160,12 @@ namespace OpenNFS {
         ImGui::NewFrame();
     }
 
-    VisibleSet Renderer::_FrustumCull(Track const &track, BaseCamera const &camera, GlobalLight const *globalLight,
+    void Renderer::EndFrame() {
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
+
+    VisibleSet Renderer::_FrustumCull(std::shared_ptr<Track> const &track, BaseCamera const &camera, GlobalLight const *globalLight,
                                       ParamData const &userParams) {
         VisibleSet visibleSet;
         // The sun/moon should always contribute
@@ -149,7 +173,7 @@ namespace OpenNFS {
 
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks
-            for (auto &collision : track.cullTree.queryOverlaps(camera.viewFrustum)) {
+            for (auto &collision : track->cullTree.queryOverlaps(camera.viewFrustum)) {
                 auto entity{std::dynamic_pointer_cast<Entity>(collision)};
                 if (entity->Type() == EntityType::LIGHT) {
                     visibleSet.lights.emplace_back(entity->AsLight());
@@ -160,29 +184,29 @@ namespace OpenNFS {
         } else {
             std::vector<uint32_t> const localTrackBlockIDs{_GetLocalTrackBlockIDs(track, camera)};
             for (auto const &localTrackBlockID : localTrackBlockIDs) {
-                visibleSet.entities.insert(visibleSet.entities.end(), track.perTrackblockEntities.at(localTrackBlockID).begin(),
-                                           track.perTrackblockEntities.at(localTrackBlockID).end());
+                visibleSet.entities.insert(visibleSet.entities.end(), track->perTrackblockEntities.at(localTrackBlockID).begin(),
+                                           track->perTrackblockEntities.at(localTrackBlockID).end());
             }
         }
 
         return visibleSet;
     }
 
-    std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(Track const &track, BaseCamera const &camera) {
+    std::vector<uint32_t> Renderer::_GetLocalTrackBlockIDs(std::shared_ptr<Track> const &track, BaseCamera const &camera) {
         std::vector<uint32_t> activeTrackBlockIds;
         uint32_t nearestBlockID = 0;
 
         float lowestDistance = FLT_MAX;
 
         // Get the closest track block to camera position
-        for (auto &trackblock : track.trackBlocks) {
+        for (auto &trackblock : track->trackBlocks) {
             if (float const distance = glm::distance(camera.position, trackblock.position); distance < lowestDistance) {
                 nearestBlockID = trackblock.id;
                 lowestDistance = distance;
             }
         }
 
-        TrackBlock const &nearestTrackBlock{track.trackBlocks[nearestBlockID]};
+        TrackBlock const &nearestTrackBlock{track->trackBlocks[nearestBlockID]};
         // Use the provided neighbour data to work out which blocks to render if there is any
         if (!nearestTrackBlock.neighbourIds.empty()) {
             activeTrackBlockIds = nearestTrackBlock.neighbourIds;
@@ -191,21 +215,13 @@ namespace OpenNFS {
             // Use a draw distance value to return closestBlock +- kBlockDrawDistance inclusive blocks
             for (int32_t trackblockIdx{static_cast<int32_t>(nearestBlockID) - kBlockDistance};
                  trackblockIdx < nearestBlockID + kBlockDistance; ++trackblockIdx) {
-                uint32_t activeBlock = trackblockIdx < 0 ? (static_cast<uint32_t>(track.trackBlocks.size()) + trackblockIdx)
-                                                         : (trackblockIdx % static_cast<uint32_t>(track.trackBlocks.size()));
+                uint32_t activeBlock = trackblockIdx < 0 ? (static_cast<uint32_t>(track->trackBlocks.size()) + trackblockIdx)
+                                                         : (trackblockIdx % static_cast<uint32_t>(track->trackBlocks.size()));
                 activeTrackBlockIds.emplace_back(activeBlock);
             }
         }
 
         return activeTrackBlockIds;
-    }
-
-    void Renderer::_InitialiseIMGUI() const {
-        ImGui::CreateContext();
-        ImGui_ImplGlfw_InitForOpenGL(m_window.get(), true);
-        std::string const glVersion = "#version " + ONFS_GL_VERSION;
-        ImGui_ImplOpenGL3_Init(glVersion.c_str());
-        ImGui::StyleColorsDark();
     }
 
     void Renderer::_DrawMetadata(Entity const *targetEntity) {
@@ -260,14 +276,12 @@ namespace OpenNFS {
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
         ImGui::Image(m_shadowMapRenderer.GetTextureID(), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
-        ImGui::SliderFloat("Near Plane", &userParams.nearPlane, 0, 300);
-        ImGui::SliderFloat("Far Plane", &userParams.farPlane, 0, 300);
         ImGui::End();
         // Draw Logger UI
         m_logger->onScreenLog.Draw("ONFS Log");
         // Draw UI (Tactically)
         ImGui::Text("OpenNFS Engine");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", smoothedDeltaTime * 1000, 1.f/smoothedDeltaTime);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", smoothedDeltaTime * 1000, 1.f / smoothedDeltaTime);
         ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
         ImGui::Checkbox("Frustum Cull", &userParams.useFrustumCull);
         ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);
@@ -282,6 +296,7 @@ namespace OpenNFS {
         ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
         ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);
+        ImGui::Checkbox("Draw Minimap", &userParams.drawMinimap);
         ImGui::Text("Camera Target");
         ImGui::SameLine();
         if (ImGui::Button("<")) {
@@ -299,13 +314,6 @@ namespace OpenNFS {
                           reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a color
         ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
-
-        // Rendering
-        int display_w, display_h;
-        glfwGetFramebufferSize(m_window.get(), &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
     bool Renderer::_DrawMenuBar(AssetData &loadedAssets) const {
@@ -346,9 +354,10 @@ namespace OpenNFS {
         return assetChange;
     }
 
-    Renderer::~Renderer() {
+    void Renderer::Shutdown() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
+        glfwTerminate();
     }
 } // namespace OpenNFS

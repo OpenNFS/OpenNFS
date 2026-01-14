@@ -75,6 +75,7 @@ set(SOURCE_FILES
         src/Renderer/SkyRenderer.cpp
         src/Renderer/GLTexture.cpp
         src/Renderer/TrackRenderer.cpp
+        src/Renderer/Text3DRenderer.cpp
         src/Scene/Entity.cpp
         src/Renderer/Models/GLCarModel.cpp
         src/Renderer/Models/GLModel.cpp
@@ -95,6 +96,7 @@ set(SOURCE_FILES
         src/Renderer/Shaders/ShaderSet.cpp
         src/Renderer/Shaders/SkydomeShader.cpp
         src/Renderer/Shaders/TrackShader.cpp
+        src/Renderer/Shaders/TextBillboardShader.cpp
         src/Util/ImageLoader.cpp
         src/Util/ImageLoader.cpp
         src/Util/Logger.cpp
@@ -109,7 +111,14 @@ set(SOURCE_FILES
         src/UI/UIManager.cpp
         src/UI/UIResource.cpp
         src/UI/UIFont.cpp
-        src/UI/UILayoutLoader.cpp)
+        src/UI/UIFontAtlas.cpp
+        src/UI/UILayoutLoader.cpp
+        src/GameState/GameStateManager.cpp
+        src/GameState/MainMenuState.cpp
+        src/GameState/RaceState.cpp
+        src/GameState/RaceLoadState.cpp
+        src/GameState/VehicleSelectionState.cpp
+        src/Race/VehicleSelection.cpp)
 
 add_executable(OpenNFS ${SOURCE_FILES})
 

@@ -1,0 +1,128 @@
+{
+  "elements": [
+    {
+      "type": "image",
+      "resource": "onfsLogo",
+      "scale": 0.3,
+      "layer": 9,
+      "position": {
+        "x": "150",
+        "y": "1300"
+      }
+    },
+    {
+      "type": "image",
+      "resource": "leftMenuCurve",
+      "scale": 1.1,
+      "layer": 10,
+      "position": {
+        "x": "0",
+        "y": "0"
+      }
+    },
+    {
+      "type": "button",
+      "resource": "pillButton",
+      "color": "#568be4",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 1,
+      "position": {
+        "x": "50",
+        "y": "1050"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto"
+    },
+    {
+      "type": "button",
+      "resource": "pillButton",
+      "color": "#568be4",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 2,
+      "position": {
+        "x": "30",
+        "y": "900"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto"
+    },
+    {
+      "type": "button",
+      "resource": "pillButton",
+      "color": "#568be4",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "30",
+        "y": "750"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto"
+    },
+    {
+      "type": "button",
+      "resource": "pillButton",
+      "color": "#568be4",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "50",
+        "y": "600"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto"
+    },
+    {
+      "type": "button",
+      "resource": "pillButton",
+      "color": "#568be4",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "80",
+        "y": "450"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto"
+    },
+    {
+      "type": "button",
+      "text": "Quit",
+      "resource": "pillButton",
+      "color": "#568be4",
+      "hoverColor": "#ffff00",
+      "scale": 1.0,
+      "layer": 5,
+      "position": {
+        "x": "120",
+        "y": "300"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto",
+      "onClick": "onExit"
+    }
+  ]
+}

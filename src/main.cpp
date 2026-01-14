@@ -9,10 +9,11 @@
 #include <string>
 
 #include "Config.h"
-#include "Loaders/CarLoader.h"
-#include "Loaders/MusicLoader.h"
-#include "Loaders/TrackLoader.h"
-#include "Race/RaceSession.h"
+#include "GameState/GameStateManager.h"
+#include "GameState/MainMenuState.h"
+#include "GameState/RaceLoadState.h"
+#include "GameState/RaceState.h"
+#include "GameState/VehicleSelectionState.h"
 #include "Renderer/Renderer.h"
 #include "Util/Logger.h"
 
@@ -43,25 +44,50 @@ class OpenNFSEngine {
     void run() const {
         LOG(INFO) << "OpenNFS Version " << ONFS_VERSION;
 
-        // Must initialise OpenGL here as the Loaders instantiate meshes which create VAO's
         std::shared_ptr<GLFWwindow> const window{Renderer::InitOpenGL(Config::get().resX, Config::get().resY, "OpenNFS v" + ONFS_VERSION)};
-        AssetData loadedAssets{get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track};
 
-        // TODO: TEMP FIX UNTIL I DO A PROPER RETURN from race session
-        CHECK_F(loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
+        // Create game context shared between all states
+        GameContext context{
+            .window = window,
+            .logger = logger,
+            .installedNFS = installedNFS,
+            .loadedAssets = {get_enum(Config::get().carTag), Config::get().car, get_enum(Config::get().trackTag), Config::get().track}};
 
-        /*------- Render --------*/
-        while (loadedAssets.trackTag != NFSVersion::UNKNOWN) {
-            auto const &track{TrackLoader::Load(loadedAssets.trackTag, loadedAssets.track)};
-            auto const &car{CarLoader::LoadCar(loadedAssets.carTag, loadedAssets.car)};
-            // MusicLoader musicLoader("F:\\NFS3\\nfs3_modern_base_eng\\gamedata\\audio\\pc\\atlatech");
+        CHECK_F(context.loadedAssets.trackTag != NFSVersion::UNKNOWN, "Unknown track type!");
 
-            RaceSession race(window, logger, installedNFS, track, car);
-            loadedAssets = race.Simulate();
+        // Create and register game states
+        GameStateManager stateManager;
+        stateManager.RegisterState(GameState::MainMenu, std::make_unique<MainMenuState>(context));
+        stateManager.RegisterState(GameState::Race, std::make_unique<RaceState>(context));
+        stateManager.RegisterState(GameState::RaceLoad, std::make_unique<RaceLoadState>(context));
+        stateManager.RegisterState(GameState::VehicleSelection, std::make_unique<VehicleSelectionState>(context));
+
+        // Start with main menu (if explicitly opted in with arg)
+        stateManager.TransitionTo(Config::get().ui ? GameState::MainMenu : GameState::Race);
+
+        // Main game loop
+        double lastTime = glfwGetTime();
+
+        while (!stateManager.ShouldExit() && !glfwWindowShouldClose(window.get())) {
+            // Calculate delta time
+            double const currentTime = glfwGetTime();
+            auto const deltaTime = static_cast<float>(currentTime - lastTime);
+            lastTime = currentTime;
+
+            Renderer::NewFrame();
+
+            // Update current state
+            stateManager.Update(deltaTime);
+
+            Renderer::EndFrame();
+
+            // Swap buffers
+            glfwSwapBuffers(window.get());
+            glfwPollEvents();
         }
+        LOG(INFO) << "Exiting OpenNFS";
 
-        // Close OpenGL window and terminate GLFW
-        glfwTerminate();
+        Renderer::Shutdown();
     }
 
   private:

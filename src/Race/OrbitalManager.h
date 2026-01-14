@@ -10,9 +10,8 @@ namespace OpenNFS {
         void Update(BaseCamera const &camera, float timeScaleFactor) const;
         [[nodiscard]] GlobalLight *GetActiveGlobalLight() const;
 
+        static constexpr float SKYDOME_RADIUS{200.f};
       private:
-        float const SKYDOME_RADIUS{200.f};
-
         std::unique_ptr<GlobalLight> m_sun;
         std::unique_ptr<GlobalLight> m_moon;
     };

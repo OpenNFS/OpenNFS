@@ -144,7 +144,7 @@ namespace OpenNFS {
         return dynamic_cast<LibOpenNFS::BaseLight *>(trackEntity);
     }
 
-    LibOpenNFS::EntityType const Entity::Type() const {
+    LibOpenNFS::EntityType Entity::Type() const {
         return trackEntity->type;
     }
 

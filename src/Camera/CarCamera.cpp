@@ -4,11 +4,21 @@ namespace OpenNFS {
     CarCamera::CarCamera(InputManager const &inputManager) : BaseCamera(CameraMode::FOLLOW_CAR, inputManager) {
     }
 
-    void CarCamera::FollowCar(std::shared_ptr<Car> const &targetCar) {
+    void CarCamera::EnableCarouselMode(float const initialAngularVelocity) {
+        m_carouselMode = true;
+        m_angularVelocity = m_initialAngularVelocity = initialAngularVelocity;
+    }
+
+    void CarCamera::DisableCarouselMode() {
+        m_carouselMode = false;
+        m_angularVelocity = 0.f;
+    }
+
+    void CarCamera::FollowCar(std::shared_ptr<Car> const &targetCar, float const deltaTime) {
         // Blessed be ThinMatrix
         this->_CalculateZoom();
         this->_CalculatePitch();
-        this->_CalculateAngleAroundCar();
+        this->_CalculateAngleAroundCar(deltaTime);
         this->_CalculateCameraPosition(targetCar, this->_CalculateHorizontalDistance(), this->_CalculateVerticalDistance());
         m_yaw = 180 - ((targetCar->GetCarBodyOrientation() + m_angleAroundCar));
 
@@ -31,6 +41,9 @@ namespace OpenNFS {
     void CarCamera::_CalculateZoom() {
         float const zoomLevel{static_cast<float>(m_inputManager.scrollY) * .1f};
         m_distanceFromCar -= zoomLevel;
+        if (m_carouselMode) {
+            m_distanceFromCar = std::clamp(m_distanceFromCar, kCarouselMinZoom, kCarouselMaxZoom);
+        }
     }
 
     void CarCamera::_CalculatePitch() {
@@ -40,10 +53,27 @@ namespace OpenNFS {
         }
     }
 
-    void CarCamera::_CalculateAngleAroundCar() {
-        if (m_inputManager.mouseLeft) {
-            float const angleChange{static_cast<float>(m_inputManager.mouseDeltaX) * 0.3f};
-            m_angleAroundCar -= angleChange;
+    void CarCamera::_CalculateAngleAroundCar(float const deltaTime) {
+        if (m_carouselMode) {
+            // In carousel mode, mouse input affects angular velocity instead of angle directly
+            if (m_inputManager.mouseLeft) {
+                float const velocityChange{static_cast<float>(m_inputManager.mouseDeltaX) * 0.5f};
+                m_angularVelocity += velocityChange;
+            }
+
+            // Apply angular velocity to the angle
+            m_angleAroundCar -= m_angularVelocity * deltaTime;
+
+            // Apply damping to gradually slow down the rotation (unless mouse is actively dragging)
+            // if (!m_inputManager.mouseLeft || m_angularVelocity > m_initialAngularVelocity) {
+            //    m_angularVelocity *= m_velocityDamping;
+            //}
+        } else {
+            // Normal mode: direct angle control
+            if (m_inputManager.mouseLeft) {
+                float const angleChange{static_cast<float>(m_inputManager.mouseDeltaX) * 0.3f};
+                m_angleAroundCar -= angleChange;
+            }
         }
     }
 

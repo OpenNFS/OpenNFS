@@ -8,8 +8,8 @@ namespace OpenNFS {
     class UITextShader : public BaseShader {
       public:
         explicit UITextShader();
-        void loadLayer(GLint layer) const;
-        void loadColour(glm::vec3 colour) const;
+        void loadLayer(GLint layer, bool isButtonText) const;
+        void loadColour(glm::vec4 colour) const;
         void loadProjectionMatrix(glm::mat4 const &projection) const;
         void loadGlyphTexture(GLuint textureID) const;
 

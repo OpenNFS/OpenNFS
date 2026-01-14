@@ -14,6 +14,8 @@ namespace OpenNFS {
     class UIManager {
       public:
         UIManager();
+        // Constructor that accepts custom callbacks and layout path
+        UIManager(std::string const &layoutPath, UILayoutLoader::CallbackRegistry const &callbacks);
         ~UIManager();
         void Update(InputManager const &inputManager);
 
@@ -25,7 +27,10 @@ namespace OpenNFS {
         std::map<std::string, UIFont> m_fontMap;
         UIRenderer m_uiRenderer;
 
-        // Setup callbacks for UI elements
-        static UILayoutLoader::CallbackRegistry SetupCallbacks();
+        // Setup default callbacks for UI elements (used by default constructor)
+        static UILayoutLoader::CallbackRegistry SetupDefaultCallbacks();
+
+        // Common initialization logic
+        void Initialize(std::string const &layoutPath, UILayoutLoader::CallbackRegistry const &callbacks);
     };
 } // namespace OpenNFS

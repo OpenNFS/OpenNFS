@@ -22,24 +22,24 @@ namespace OpenNFS {
 
     class PhysicsManager {
       public:
-        explicit PhysicsManager(Track const &track);
+        explicit PhysicsManager(std::shared_ptr<Track> const &track);
         ~PhysicsManager();
         void StepSimulation(float time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const;
         void RegisterVehicle(std::shared_ptr<Car> const &car);
-        [[nodiscard]] std::optional<Entity *> CheckForPicking(float x, float y, glm::mat4 const &viewMatrix,
+        [[nodiscard]] std::optional<Entity *> CheckForPicking(double x, double y, glm::mat4 const &viewMatrix,
                                                               glm::mat4 const &projectionMatrix) const;
         [[nodiscard]] btDiscreteDynamicsWorld *GetDynamicsWorld() const;
 
         std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
       private:
-        Track const &m_track;
+        std::shared_ptr<Track> const &m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
-        std::unique_ptr<btBroadphaseInterface> m_pBroadphase;
-        std::unique_ptr<btDefaultCollisionConfiguration> m_pCollisionConfiguration;
-        std::unique_ptr<btCollisionDispatcher> m_pDispatcher;
-        std::unique_ptr<btSequentialImpulseConstraintSolver> m_pSolver;
-        std::unique_ptr<btDiscreteDynamicsWorld> m_pDynamicsWorld;
+        btBroadphaseInterface *m_pBroadphase;
+        btDefaultCollisionConfiguration *m_pCollisionConfiguration;
+        btCollisionDispatcher *m_pDispatcher;
+        btSequentialImpulseConstraintSolver *m_pSolver;
+        btDiscreteDynamicsWorld *m_pDynamicsWorld;
     };
 } // namespace OpenNFS

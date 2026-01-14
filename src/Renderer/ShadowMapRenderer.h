@@ -13,8 +13,8 @@ namespace OpenNFS {
         ShadowMapRenderer();
         ~ShadowMapRenderer();
         [[nodiscard]] GLuint GetTextureID() const;
-        void Render(float nearPlane, float farPlane, GlobalLight const *light, GLuint trackTextureArrayID,
-                    std::vector<std::shared_ptr<Entity>> const &visibleEntities, std::vector<std::shared_ptr<CarAgent>> const &racers);
+        void Render(GlobalLight const *light, GLuint trackTextureArrayID, std::vector<std::shared_ptr<Entity>> const &visibleEntities,
+                    std::vector<std::shared_ptr<CarAgent>> const &racers);
 
       private:
         GLuint m_depthTextureID = 0;

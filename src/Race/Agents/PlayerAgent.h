@@ -6,7 +6,7 @@
 namespace OpenNFS {
     class PlayerAgent final : public CarAgent {
       public:
-        PlayerAgent(InputManager const &inputManager, std::shared_ptr<Car> const &car, Track const &raceTrack);
+        PlayerAgent(InputManager const &inputManager, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack);
         void Simulate() override;
 
       private:

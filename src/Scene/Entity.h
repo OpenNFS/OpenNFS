@@ -21,7 +21,7 @@ namespace OpenNFS {
         [[nodiscard]] AABB GetAABB() const override;
         [[nodiscard]] glm::vec3 GetDebugColour() const;
         [[nodiscard]] LibOpenNFS::BaseLight *AsLight() const;
-        [[nodiscard]] LibOpenNFS::EntityType const Type() const;
+        [[nodiscard]] LibOpenNFS::EntityType Type() const;
         [[nodiscard]] bool Collidable() const;
         [[nodiscard]] bool Dynamic() const;
         [[nodiscard]] uint32_t RawFlags() const;

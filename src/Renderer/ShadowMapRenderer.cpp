@@ -25,7 +25,7 @@ namespace OpenNFS {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void ShadowMapRenderer::Render(float nearPlane, float farPlane, GlobalLight const *light, GLuint const trackTextureArrayID,
+    void ShadowMapRenderer::Render(GlobalLight const *light, GLuint const trackTextureArrayID,
                                    std::vector<std::shared_ptr<Entity>> const &visibleEntities,
                                    std::vector<std::shared_ptr<CarAgent>> const &racers) {
         /* ------- SHADOW MAPPING ------- */

@@ -12,7 +12,7 @@ namespace OpenNFS {
     }
 
     Track::~Track() {
-        glDeleteTextures(static_cast<GLsizei>(textureMap.size()), &textureArrayID);
+        glDeleteTextures(1, &textureArrayID);
     }
 
     void Track::_LoadTextures() {

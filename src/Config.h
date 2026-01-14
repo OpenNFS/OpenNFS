@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <fstream>
 #include <magic_enum/magic_enum.hpp>
 #include <string>
@@ -40,6 +41,9 @@ namespace OpenNFS {
 
     std::string const NFS_5_TRACK_PATH{"/gamedata/track/"};
     std::string const NFS_5_CAR_PATH{"/gamedata/carmodel/"};
+
+    // ----- File paths for ONFS resources -----
+    std::string const RACER_NAME_PATH{"../resources/misc/racers.json"};
 
     // ----- Graphics -----
     static constexpr uint16_t MAX_TEXTURE_ARRAY_SIZE{512};
@@ -83,6 +87,7 @@ namespace OpenNFS {
         std::string carTag{};
         std::string trackTag{};
         uint32_t nRacers{DEFAULT_NUM_RACERS};
+        bool ui;
         /* ------- Render Params ------- */
         bool vulkanRender{};
         bool headless{};
@@ -100,8 +105,6 @@ namespace OpenNFS {
         float timeScaleFactor{1.f};
         ImVec4 sunAttenuation{0.f, 0.f, 0.f, 1.0f};
         float trackSpecReflectivity{1.f};
-        float nearPlane{160.f};
-        float farPlane{300.f};
         float trackSpecDamper{10.f};
         bool useFrustumCull{true};
         bool physicsDebugView{false};
@@ -113,8 +116,10 @@ namespace OpenNFS {
         bool drawVroad{false};
         bool drawCAN{false};
         bool drawRaycast{false};
+        bool drawAI{true};
         bool simulateCars{true};
         bool drawSkydome{true};
+        bool drawMinimap{true};
     };
 
     struct AssetData {
@@ -122,6 +127,10 @@ namespace OpenNFS {
         std::string car;
         NFSVersion trackTag;
         std::string track;
+
+        [[nodiscard]] std::string to_string() const {
+            return std::format("CAR= [{}] {} TRACK= [{}] {}", magic_enum::enum_name(carTag), car, magic_enum::enum_name(trackTag), track);
+        }
     };
 
     struct NfsAssetList {

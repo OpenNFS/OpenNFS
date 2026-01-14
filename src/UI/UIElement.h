@@ -15,6 +15,7 @@ namespace OpenNFS {
       public:
         UIElement(UIElementType _type, float _scale, uint32_t _layer, glm::vec2 const &location);
         void SetOnClick(std::function<void()> const &fn);
+        void SetOnHover(std::function<void()> const &fn);
 
         virtual void Update(glm::vec2 const &cursorPosition, bool click) = 0;
         virtual ~UIElement() = default;
@@ -26,5 +27,6 @@ namespace OpenNFS {
 
       protected:
         std::function<void()> onClickFunction;
+        std::function<void()> onHoverFunction;
     };
 } // namespace OpenNFS

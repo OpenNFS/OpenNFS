@@ -10,7 +10,7 @@
 #include "UITextField.h"
 
 namespace OpenNFS {
-    UILayoutLoader::CallbackRegistry UIManager::SetupCallbacks() {
+    UILayoutLoader::CallbackRegistry UIManager::SetupDefaultCallbacks() {
         UILayoutLoader::CallbackRegistry callbacks;
 
         // Register all UI callbacks here
@@ -20,7 +20,7 @@ namespace OpenNFS {
         return callbacks;
     }
 
-    UIManager::UIManager() {
+    void UIManager::Initialize(std::string const &layoutPath, UILayoutLoader::CallbackRegistry const &callbacks) {
         // Load fonts
         m_fontMap = UIFont::LoadFonts("../resources/ui/fonts/fonts.json");
         LOG(INFO) << m_fontMap.size() << " UI fonts loaded successfully";
@@ -31,9 +31,16 @@ namespace OpenNFS {
         LOG(INFO) << m_menuResourceMap.size() << " UI resources loaded successfully";
 
         // Load UI layout from JSON
-        UILayoutLoader layoutLoader(m_menuResourceMap, m_fontMap);
-        auto const callbacks = SetupCallbacks();
-        m_uiElements = layoutLoader.LoadLayout("../resources/ui/menu/layout/raceOverlay.json", callbacks);
+        UILayoutLoader const layoutLoader(m_menuResourceMap, m_fontMap);
+        m_uiElements = layoutLoader.LoadLayout(layoutPath, callbacks);
+    }
+
+    UIManager::UIManager() {
+        Initialize("../resources/ui/menu/layout/raceOverlay.json", SetupDefaultCallbacks());
+    }
+
+    UIManager::UIManager(std::string const &layoutPath, UILayoutLoader::CallbackRegistry const &callbacks) {
+        Initialize(layoutPath, callbacks);
     }
 
     UIManager::~UIManager() {
@@ -43,15 +50,9 @@ namespace OpenNFS {
     }
 
     auto UIManager::Update(InputManager const &inputManager) -> void {
-        // Cursor Y needs to be inverted + coordinates need normalising
-        float const windowToResRatioX{static_cast<float>(Config::get().resX) / static_cast<float>(Config::get().windowSizeX)};
-        float const windowToResRatioY{static_cast<float>(Config::get().resY) / static_cast<float>(Config::get().windowSizeY)};
-        glm::vec2 const cursorPosition{inputManager.cursorX * windowToResRatioX,
-                                       Config::get().resY - (inputManager.cursorY * windowToResRatioY)};
-
         m_uiRenderer.BeginRenderPass();
         for (auto const &uiElement : m_uiElements) {
-            uiElement->Update(cursorPosition, inputManager.mouseLeft);
+            uiElement->Update({inputManager.uiCursorX, inputManager.uiCursorY}, inputManager.mouseLeft);
 
             switch (uiElement->type) {
             case UIElementType::Button:

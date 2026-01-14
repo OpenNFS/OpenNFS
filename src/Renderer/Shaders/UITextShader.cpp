@@ -25,12 +25,13 @@ namespace OpenNFS {
         loadMat4(projectionMatrixLocation, &projection[0][0]);
     }
 
-    void UITextShader::loadLayer(GLint const layer) const {
-        loadFloat(layerLocation, layer == 0 ? -0.999f : (float)(layer - 100) / 100);
+    void UITextShader::loadLayer(GLint const layer, bool const isButtonText) const {
+        float layerZ = layer == 0 ? -0.999f : (float)(layer - 100) / 100;
+        loadFloat(layerLocation, layerZ - 0.01);
     }
 
-    void UITextShader::loadColour(glm::vec3 const colour) const {
-        loadVec3(colourLocation, colour);
+    void UITextShader::loadColour(glm::vec4 const colour) const {
+        loadVec4(colourLocation, colour);
     }
 
     void UITextShader::loadGlyphTexture(GLuint const textureID) const {

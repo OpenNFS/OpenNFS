@@ -23,7 +23,6 @@ namespace OpenNFS {
 
             UIFont font{fontName, fontPath, fontSize};
             fonts.insert(std::pair(fontName, font));
-            LOG(INFO) << "Loaded font: " << fontName << " from " << fontPath << " (size: " << fontSize << ")";
         }
         jsonFile.close();
 
