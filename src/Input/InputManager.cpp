@@ -34,16 +34,9 @@ namespace OpenNFS {
         mouseRight = (glfwGetMouseButton(m_window.get(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS);
         scrollY *= kScrollAttenuation;
 
-        // Cursor Y needs to be inverted + coordinates need normalising
-        float const windowToResRatioX{static_cast<float>(Config::get().resX) / static_cast<float>(Config::get().windowSizeX)};
-        float const windowToResRatioY{static_cast<float>(Config::get().resY) / static_cast<float>(Config::get().windowSizeY)};
-        uiCursorX = cursorX * windowToResRatioX;
-        uiCursorY = Config::get().resY - (cursorY * windowToResRatioY);
-
-        // float const windowToResRatioX{(float)Config::get().resX / (float)Config::get().windowSizeX};
-        // float const windowToResRatioY{(float)Config::get().resY / (float)Config::get().windowSizeY};
-        // cursorX = cursorX * windowToResRatioX;
-        // cursorY = Config::get().resY - (cursorY * windowToResRatioY);
+        // Cursor Y needs to be inverted
+        uiCursorX = cursorX;
+        uiCursorY = (Config::get().windowSizeY) - cursorY;
 
         // Detect a click on the 3D Window by detecting a click that isn't on ImGui
         if (mouseLeft && !ImGui::GetIO().WantCaptureMouse) {
