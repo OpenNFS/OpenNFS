@@ -26,6 +26,10 @@ namespace OpenNFS {
         glBindVertexArray(0);
     }
 
+    BulletDebugDrawer::~BulletDebugDrawer() {
+        m_bulletShader.cleanup();
+    }
+
     void BulletDebugDrawer::drawLine(btVector3 const &from, btVector3 const &to, btVector3 const &color) {
         if (m_debugLines.size() < MAX_NUM_LINES) {
             m_debugLines.emplace_back(from, to);

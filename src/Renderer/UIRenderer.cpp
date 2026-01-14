@@ -51,6 +51,8 @@ namespace OpenNFS {
     }
 
     UIRenderer::~UIRenderer() {
+        m_fontShader.cleanup();
+        m_uiShader.cleanup();
     }
 
     void UIRenderer::BeginRenderPass() {

@@ -4,11 +4,12 @@ namespace OpenNFS {
     RaceSession::RaceSession(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
                              std::vector<NfsAssetList> const &installedNFS, std::shared_ptr<Track> const &currentTrack,
                              std::shared_ptr<Car> const &currentCar, AssetData &assetData)
-        : m_track(currentTrack), m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
+        : m_loadedAssets(assetData), m_track(currentTrack),
+          m_playerAgent(std::make_shared<PlayerAgent>(m_inputManager, currentCar, currentTrack)),
           m_freeCamera(m_inputManager, m_track->trackBlocks[0].position), m_hermiteCamera(m_track->centerSpline, m_inputManager),
           m_carCamera(m_inputManager), m_physicsManager(m_track),
           m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsManager.debugDrawer),
-          m_racerManager(m_playerAgent, m_physicsManager, m_track), m_inputManager(window), m_loadedAssets(assetData) {
+          m_racerManager(m_playerAgent, m_physicsManager, m_track), m_inputManager(window) {
     }
 
     void RaceSession::_UpdateCameras(float const deltaTime) {

@@ -16,6 +16,7 @@ namespace OpenNFS {
         if (m_charQuadVBO != 0) {
             glDeleteBuffers(1, &m_charQuadVBO);
         }
+        m_textBillboardShader.cleanup();
     }
 
     void Text3DRenderer::InitQuadBuffers() {

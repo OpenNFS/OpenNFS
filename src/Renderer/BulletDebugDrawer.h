@@ -25,18 +25,16 @@ namespace OpenNFS {
     class BulletDebugDrawer : public btIDebugDraw {
       public:
         BulletDebugDrawer();
+        ~BulletDebugDrawer();
 
         void Render(BaseCamera const &camera);
-
         void drawLine(btVector3 const &from, btVector3 const &to, btVector3 const &color) override;
-
         void drawContactPoint(btVector3 const &, btVector3 const &, btScalar, int, btVector3 const &) override {
         }
 
         void reportErrorWarning(char const *warningString) override {
             LOG(WARNING) << warningString;
         }
-
         void draw3dText(btVector3 const &location, char const *textString) override {
             // TODO: Bring in MenuRenderer
             LOG(WARNING) << textString;

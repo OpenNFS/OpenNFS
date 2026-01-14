@@ -129,7 +129,7 @@ namespace OpenNFS {
         std::string track;
 
         [[nodiscard]] std::string to_string() const {
-            return std::format("Car: [{}] {} Track: [{}] {}", magic_enum::enum_name(carTag), car, magic_enum::enum_name(trackTag), track);
+            return std::format("CAR= [{}] {} TRACK= [{}] {}", magic_enum::enum_name(carTag), car, magic_enum::enum_name(trackTag), track);
         }
     };
 
