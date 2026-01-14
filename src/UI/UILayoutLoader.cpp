@@ -129,6 +129,9 @@ namespace OpenNFS {
             return elements;
         }
 
+        float scaleFactorX = static_cast<float>(Config::get().resX) / static_cast<float>(DEFAULT_X_RESOLUTION);
+        float scaleFactorY = static_cast<float>(Config::get().resY) / static_cast<float>(DEFAULT_Y_RESOLUTION);
+
         try {
             json const layoutJson = json::parse(file);
 
@@ -140,7 +143,7 @@ namespace OpenNFS {
             for (auto const &elemJson : layoutJson["elements"]) {
                 try {
                     std::string const type = elemJson.value("type", "");
-                    auto const scale = elemJson.value("scale", 1.0f);
+                    float scale = elemJson.value("scale", 1.0f);
                     auto const layer = elemJson.value("layer", 0u);
 
                     // Parse position
@@ -173,6 +176,13 @@ namespace OpenNFS {
                             textOffset.y = EvaluateExpression(yStr);
                         }
                     }
+
+                    // Scale the position based on screen resolution
+                    scale *= std::min(scaleFactorX, scaleFactorY);
+                    position.x *= scaleFactorX;
+                    position.y *= scaleFactorY;
+                    textOffset.x *= scaleFactorX;
+                    textOffset.y *= scaleFactorY;
 
                     // Create element based on type
                     std::unique_ptr<UIElement> element;
