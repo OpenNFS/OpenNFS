@@ -129,8 +129,8 @@ namespace OpenNFS {
             return elements;
         }
 
-        float scaleFactorX = static_cast<float>(Config::get().resX) / 2560.0f;
-        float scaleFactorY = static_cast<float>(Config::get().resY) / 1600.0f;
+        float scaleFactorX = static_cast<float>(Config::get().resX) / static_cast<float>(DEFAULT_X_RESOLUTION);
+        float scaleFactorY = static_cast<float>(Config::get().resY) / static_cast<float>(DEFAULT_Y_RESOLUTION);
 
         try {
             json const layoutJson = json::parse(file);
