@@ -1,5 +1,6 @@
 #include "TrackRenderer.h"
 
+#include "../Physics/Car.h"
 #include "../Scene/GlobalLight.h"
 
 namespace OpenNFS {
@@ -16,7 +17,9 @@ namespace OpenNFS {
         m_trackShader.loadShadowMapTexture(depthTextureID);
         m_trackShader.loadAmbientFactor(ambientFactor);
         m_trackShader.loadLights(lights);
-        // m_trackShader.loadSpotlight(car->leftHeadlight);
+        if (racers[0]->vehicle->vehicleState.lightsActive) {
+            m_trackShader.loadSpotlight(racers.back()->vehicle->leftHeadLight);
+        }
 
         // Global Light is always 0th index
         auto const globalLight{dynamic_cast<GlobalLight const *>(lights.at(0))};

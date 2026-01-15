@@ -107,5 +107,12 @@ void main(){
         vec3 ambient =  0.4f * nfsColor.rgb;
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
+
+        // Check if lighting is inside the spotlight cone
+        float theta = dot(normalize(toSpotlightVector), normalize(-spotlightDirection));
+        // Working with angles as cosines instead of degrees so a '>' is used.
+        if (theta > spotlightCutOff) {
+            color.rgb += (0.2 * spotlightColour.rgb);
+        }
     }
 }

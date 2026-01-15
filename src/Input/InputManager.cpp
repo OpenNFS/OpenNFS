@@ -14,6 +14,7 @@ namespace OpenNFS {
         brakes = glfwGetKey(m_window.get(), GLFW_KEY_SPACE) == GLFW_PRESS;
         right = glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS;
         left = glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS;
+        lights = glfwGetKey(m_window.get(), GLFW_KEY_L) == GLFW_PRESS;
         reset = glfwGetKey(m_window.get(), GLFW_KEY_R) == GLFW_PRESS;
         escape = glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS;
         camSpeedUp = glfwGetKey(m_window.get(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;

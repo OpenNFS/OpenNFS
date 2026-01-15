@@ -23,7 +23,7 @@ namespace OpenNFS {
     void UIManager::Initialize(std::string const &layoutPath, UILayoutLoader::CallbackRegistry const &callbacks) {
         // Load fonts
         m_fontMap = UIFont::LoadFonts("../resources/ui/fonts/fonts.json");
-        LOG(INFO) << m_fontMap.size() << " UI fonts loaded successfully";
+        LOG(INFO) << m_fontMap.size() << " UI font(s) loaded successfully";
         CHECK_F(m_uiRenderer.GenerateAtlases(m_fontMap), "Failed to generate atlases from font map");
 
         // Load image resources

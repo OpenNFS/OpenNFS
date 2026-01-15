@@ -80,6 +80,10 @@ namespace OpenNFS {
         vehicleState.steerLeft = apply;
     }
 
+    void Car::ToggleLights() {
+        vehicleState.lightsActive = !vehicleState.lightsActive;
+    }
+
     void Car::ApplyAbsoluteSteerAngle(float const targetAngle) {
         // Allow the update() method to directly utilise this targetAngle value
         assetData.physicsData.absoluteSteer = true;
@@ -578,7 +582,7 @@ namespace OpenNFS {
         } else {
             leftHeadLight.cutOff = rightHeadLight.cutOff = rightTailLight.cutOff = leftTailLight.cutOff = glm::cos(glm::radians(12.5f));
             leftHeadLight.position = rightHeadLight.position = rightTailLight.position = leftTailLight.position = carBodyModel.position;
-            leftHeadLight.colour = rightHeadLight.colour = rightTailLight.colour = leftTailLight.colour = glm::vec4(1, 1, 1, 0);
+            leftHeadLight.colour = rightHeadLight.colour = rightTailLight.colour = leftTailLight.colour = glm::vec4(1, 0, 1, 0);
         }
     }
 

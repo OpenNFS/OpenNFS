@@ -118,7 +118,7 @@ namespace OpenNFS {
         bool drawVroad{false};
         bool drawCAN{false};
         bool drawRaycast{false};
-        bool drawAI{true};
+        bool drawAI{false};
         bool simulateCars{true};
         bool drawSkydome{true};
         bool drawMinimap{true};

@@ -46,6 +46,9 @@ namespace OpenNFS {
         bool steerLeft;
         bool isSteering;
 
+        // Accessories
+        bool lightsActive;
+
         // Meta
         glm::vec4 colour;
         glm::vec4 colourSecondary;
@@ -76,6 +79,7 @@ namespace OpenNFS {
         void ApplyBrakingForce(bool apply);
         void ApplySteeringRight(bool apply);
         void ApplySteeringLeft(bool apply);
+        void ToggleLights();
         void ApplyAbsoluteSteerAngle(float targetAngle);
         [[nodiscard]] float GetCarBodyOrientation() const;
 

@@ -20,6 +20,7 @@ namespace OpenNFS {
         bool brakes{};
         bool left{};
         bool right{};
+        bool lights{};
         bool reset{};
         bool escape{};
         bool cameraForwards{};

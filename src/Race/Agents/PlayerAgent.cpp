@@ -21,5 +21,9 @@ namespace OpenNFS {
         if (m_inputManager.reset) {
             ResetToVroad(m_nearestVroadID, 0.f);
         }
+
+        if (m_inputManager.lights) {
+            vehicle->ToggleLights();
+        }
     }
 } // namespace OpenNFS
