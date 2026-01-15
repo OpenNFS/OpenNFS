@@ -40,7 +40,7 @@ namespace OpenNFS {
             Config::get().windowSizeY = height;
         }
 
-        static std::shared_ptr<GLFWwindow> InitOpenGL(uint32_t resolutionX, uint32_t resolutionY, std::string const &windowName);
+        static std::shared_ptr<GLFWwindow> InitOpenGL(std::string const &windowName);
         static void Shutdown();
         static void _DrawMetadata(Entity const *targetEntity);
         bool Render(float totalTime, float deltaTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
