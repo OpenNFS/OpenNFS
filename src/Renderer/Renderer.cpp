@@ -12,8 +12,7 @@ namespace OpenNFS {
         LOG(DEBUG) << "Renderer Initialised";
     }
 
-    std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(uint32_t const resolutionX, uint32_t const resolutionY,
-                                                     std::string const &windowName) {
+    std::shared_ptr<GLFWwindow> Renderer::InitOpenGL(std::string const &windowName) {
         // Initialise GLFW
         CHECK_F(glfwInit() == GLFW_TRUE, "GLFW Init failed.\n");
         glfwSetErrorCallback(&Renderer::GlfwError);
@@ -24,7 +23,16 @@ namespace OpenNFS {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Appease the OSX Gods
 
-        auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(resolutionX, resolutionY, windowName.c_str(), nullptr, nullptr),
+        if (Config::get().resX == RESOLUTION_NOT_SET || Config::get().resY == RESOLUTION_NOT_SET) {
+            // Get current screen resolution and use that
+            GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+            int monitorWidth, monitorHeight;
+            glfwGetMonitorWorkarea(monitor, NULL, NULL, &monitorWidth, &monitorHeight);
+
+            Config::get().resX = static_cast<uint32_t>(monitorWidth);
+            Config::get().resY = static_cast<uint32_t>(monitorHeight);
+        }
+        auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(Config::get().resX, Config::get().resY, windowName.c_str(), nullptr, nullptr),
                                                   [](GLFWwindow *) { glfwTerminate(); });
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window";

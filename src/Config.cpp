@@ -25,8 +25,8 @@ namespace OpenNFS {
             .help("NFS Version containing desired track (NFS_2, NFS_3, NFS_3_PS1, NFS_4, NFS_4_PS1, NFS_5)")
             .default_value(DEFAULT_TRACK_NFS_VER)
             .store_into(trackTag);
-        program.add_argument("--resX", "-x").help("Horizontal screen resolution").default_value(DEFAULT_X_RESOLUTION).store_into(resX);
-        program.add_argument("--resY", "-y").help("Vertical screen resolution").default_value(DEFAULT_Y_RESOLUTION).store_into(resY);
+        program.add_argument("--resX", "-x").help("Horizontal screen resolution").default_value(RESOLUTION_NOT_SET).store_into(resX);
+        program.add_argument("--resY", "-y").help("Vertical screen resolution").default_value(RESOLUTION_NOT_SET).store_into(resY);
         program.add_argument("--fixup-asset-paths")
             .help("Rename all available NFS files and folders to lowercase so can be consistent for ONFS read on Unix "
                   "systems")

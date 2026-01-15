@@ -49,6 +49,8 @@ namespace OpenNFS {
     static constexpr uint16_t MAX_TEXTURE_ARRAY_SIZE{512};
     static constexpr uint32_t DEFAULT_X_RESOLUTION{2560};
     static constexpr uint32_t DEFAULT_Y_RESOLUTION{1600};
+    static constexpr uint32_t RESOLUTION_NOT_SET{0};
+
     static constexpr float DEFAULT_FOV{55.f};
     // Shadow Map Resolution
     static constexpr uint32_t SHADOW_WIDTH{2048}; // Resolution of shadow map
