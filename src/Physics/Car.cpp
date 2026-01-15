@@ -33,6 +33,9 @@ namespace OpenNFS {
 
     Car::~Car() {
         // And bullet collision shapes on heap
+        for (size_t i = 0; i < m_collisionShapes.size(); i++) {
+            delete m_collisionShapes[i];
+        }
         m_collisionShapes.clear();
         // And the loaded GL textures
         if (renderInfo.isMultitexturedModel) {

@@ -53,7 +53,7 @@ namespace OpenNFS {
         }
 
         float const entityMass{trackEntity->dynamic ? 100.f : 0.f};
-        btVector3 localInertia;
+        btVector3 localInertia(0, 0, 0);
 
         if (trackEntity->dynamic) {
             m_collisionShape->calculateLocalInertia(entityMass, localInertia);

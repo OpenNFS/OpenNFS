@@ -36,10 +36,10 @@ namespace OpenNFS {
         std::shared_ptr<Track> const &m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
-        btBroadphaseInterface *m_pBroadphase;
-        btDefaultCollisionConfiguration *m_pCollisionConfiguration;
-        btCollisionDispatcher *m_pDispatcher;
-        btSequentialImpulseConstraintSolver *m_pSolver;
-        btDiscreteDynamicsWorld *m_pDynamicsWorld;
+        btBroadphaseInterface *m_pBroadphase = nullptr;
+        btDefaultCollisionConfiguration *m_pCollisionConfiguration = nullptr;
+        btCollisionDispatcher *m_pDispatcher = nullptr;
+        btSequentialImpulseConstraintSolver *m_pSolver = nullptr;
+        btDiscreteDynamicsWorld *m_pDynamicsWorld = nullptr;
     };
 } // namespace OpenNFS
