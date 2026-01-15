@@ -151,6 +151,11 @@ namespace OpenNFS {
                 m_pDynamicsWorld->removeRigidBody(entity->rigidBody.get());
             }
         }
+        delete m_pDynamicsWorld;
+        delete m_pSolver;
+        delete m_pDispatcher;
+        delete m_pCollisionConfiguration;
+        delete m_pBroadphase;
     }
 
 } // namespace OpenNFS
