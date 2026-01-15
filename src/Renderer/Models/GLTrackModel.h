@@ -9,6 +9,14 @@ class GLTrackModel : public GLModel, public LibOpenNFS::TrackGeometry {
     }
     GLTrackModel() = default;
     ~GLTrackModel() override;
+
+    // Non-copyable (OpenGL resources)
+    GLTrackModel(GLTrackModel const &) = delete;
+    GLTrackModel &operator=(GLTrackModel const &) = delete;
+    // Movable
+    GLTrackModel(GLTrackModel &&other) noexcept;
+    GLTrackModel &operator=(GLTrackModel &&other) noexcept;
+
     bool GenBuffers() override;
     void UpdateMatrices() override;
     void Render() override;

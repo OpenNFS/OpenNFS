@@ -6,9 +6,10 @@
 
 namespace OpenNFS {
     Renderer::Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
-                       std::vector<NfsAssetList> const &installedNFS, std::shared_ptr<Track> const &currentTrack,
+                       std::vector<NfsAssetList> installedNFS, std::shared_ptr<Track> const &currentTrack,
                        std::shared_ptr<BulletDebugDrawer> const &debugDrawer)
-        : m_window(window), m_logger(onfsLogger), m_nfsAssetList(installedNFS), m_track(currentTrack), m_debugRenderer(debugDrawer) {
+        : m_window(window), m_logger(onfsLogger), m_nfsAssetList(std::move(installedNFS)), m_track(currentTrack),
+          m_debugRenderer(debugDrawer) {
         LOG(DEBUG) << "Renderer Initialised";
     }
 
@@ -25,15 +26,16 @@ namespace OpenNFS {
 
         if (Config::get().resX == RESOLUTION_NOT_SET || Config::get().resY == RESOLUTION_NOT_SET) {
             // Get current screen resolution and use that
-            GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+            GLFWmonitor *monitor = glfwGetPrimaryMonitor();
             int monitorWidth, monitorHeight;
             glfwGetMonitorWorkarea(monitor, NULL, NULL, &monitorWidth, &monitorHeight);
 
             Config::get().resX = static_cast<uint32_t>(monitorWidth);
             Config::get().resY = static_cast<uint32_t>(monitorHeight);
         }
-        auto window = std::shared_ptr<GLFWwindow>(glfwCreateWindow(Config::get().resX, Config::get().resY, windowName.c_str(), nullptr, nullptr),
-                                                  [](GLFWwindow *) { glfwTerminate(); });
+        auto window =
+            std::shared_ptr<GLFWwindow>(glfwCreateWindow(Config::get().resX, Config::get().resY, windowName.c_str(), nullptr, nullptr),
+                                        [](GLFWwindow *) { glfwTerminate(); });
         if (window == nullptr) {
             LOG(WARNING) << "Failed to create a GLFW window";
             glfwTerminate();

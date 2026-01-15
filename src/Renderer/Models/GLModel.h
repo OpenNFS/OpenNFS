@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <utility>
 
 class GLModel {
   public:
@@ -24,10 +25,10 @@ class GLModel {
     bool enabled{};
     bool buffersGenerated{};
 
-    glm::mat4 ModelMatrix = glm::mat4(1.0);
-    glm::mat4 RotationMatrix{};
-    glm::mat4 TranslationMatrix{};
+    glm::mat4 ModelMatrix{1.0f};
+    glm::mat4 RotationMatrix{1.0f};
+    glm::mat4 TranslationMatrix{1.0f};
 
   protected:
-    GLuint VertexArrayID;
+    GLuint VertexArrayID{0};
 };

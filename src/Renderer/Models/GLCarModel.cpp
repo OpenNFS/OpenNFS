@@ -14,6 +14,67 @@ namespace OpenNFS {
     GLCarModel::GLCarModel(CarGeometry const &geometry) : GLModel(), CarGeometry(geometry) {
     }
 
+    GLCarModel::GLCarModel(GLCarModel &&other) noexcept
+        : GLModel(), CarGeometry(std::move(other)), specularDamper(other.specularDamper), specularReflectivity(other.specularReflectivity),
+          envReflectivity(other.envReflectivity), vertexBuffer(other.vertexBuffer), uvBuffer(other.uvBuffer),
+          normalBuffer(other.normalBuffer), textureIndexBuffer(other.textureIndexBuffer), polyFlagBuffer(other.polyFlagBuffer) {
+        // Transfer ownership of GL resources
+        VertexArrayID = other.VertexArrayID;
+        buffersGenerated = other.buffersGenerated;
+        enabled = other.enabled;
+        ModelMatrix = other.ModelMatrix;
+        RotationMatrix = other.RotationMatrix;
+        TranslationMatrix = other.TranslationMatrix;
+        // Invalidate source
+        other.VertexArrayID = 0;
+        other.vertexBuffer = 0;
+        other.uvBuffer = 0;
+        other.normalBuffer = 0;
+        other.textureIndexBuffer = 0;
+        other.polyFlagBuffer = 0;
+        other.buffersGenerated = false;
+    }
+
+    GLCarModel &GLCarModel::operator=(GLCarModel &&other) noexcept {
+        if (this != &other) {
+            // Clean up existing resources
+            if (buffersGenerated) {
+                glDeleteBuffers(1, &vertexBuffer);
+                glDeleteBuffers(1, &uvBuffer);
+                glDeleteBuffers(1, &normalBuffer);
+                glDeleteBuffers(1, &textureIndexBuffer);
+                glDeleteBuffers(1, &polyFlagBuffer);
+                glDeleteVertexArrays(1, &VertexArrayID);
+            }
+            // Move base class
+            CarGeometry::operator=(std::move(other));
+            // Transfer ownership
+            specularDamper = other.specularDamper;
+            specularReflectivity = other.specularReflectivity;
+            envReflectivity = other.envReflectivity;
+            vertexBuffer = other.vertexBuffer;
+            uvBuffer = other.uvBuffer;
+            normalBuffer = other.normalBuffer;
+            textureIndexBuffer = other.textureIndexBuffer;
+            polyFlagBuffer = other.polyFlagBuffer;
+            VertexArrayID = other.VertexArrayID;
+            buffersGenerated = other.buffersGenerated;
+            enabled = other.enabled;
+            ModelMatrix = other.ModelMatrix;
+            RotationMatrix = other.RotationMatrix;
+            TranslationMatrix = other.TranslationMatrix;
+            // Invalidate source
+            other.VertexArrayID = 0;
+            other.vertexBuffer = 0;
+            other.uvBuffer = 0;
+            other.normalBuffer = 0;
+            other.textureIndexBuffer = 0;
+            other.polyFlagBuffer = 0;
+            other.buffersGenerated = false;
+        }
+        return *this;
+    }
+
     GLCarModel::~GLCarModel() {
         if (buffersGenerated) {
             glDeleteBuffers(1, &vertexBuffer);

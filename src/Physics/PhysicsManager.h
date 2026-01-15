@@ -33,13 +33,13 @@ namespace OpenNFS {
         std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
       private:
-        std::shared_ptr<Track> const &m_track;
+        std::shared_ptr<Track> m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
-        btBroadphaseInterface *m_pBroadphase = nullptr;
-        btDefaultCollisionConfiguration *m_pCollisionConfiguration = nullptr;
-        btCollisionDispatcher *m_pDispatcher = nullptr;
-        btSequentialImpulseConstraintSolver *m_pSolver = nullptr;
-        btDiscreteDynamicsWorld *m_pDynamicsWorld = nullptr;
+        std::unique_ptr<btBroadphaseInterface> m_pBroadphase;
+        std::unique_ptr<btDefaultCollisionConfiguration> m_pCollisionConfiguration;
+        std::unique_ptr<btCollisionDispatcher> m_pDispatcher;
+        std::unique_ptr<btSequentialImpulseConstraintSolver> m_pSolver;
+        std::unique_ptr<btDiscreteDynamicsWorld> m_pDynamicsWorld;
     };
 } // namespace OpenNFS

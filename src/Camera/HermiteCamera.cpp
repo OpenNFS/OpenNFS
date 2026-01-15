@@ -1,11 +1,13 @@
 #include "HermiteCamera.h"
 
+#include <utility>
+
 #include "glm/detail/type_quat.hpp"
 #include "glm/ext/quaternion_trigonometric.hpp"
 
 namespace OpenNFS {
-    HermiteCamera::HermiteCamera(HermiteCurve const &trackCenterSpline, InputManager const &inputManager)
-        : BaseCamera(CameraMode::HERMITE_FLYTHROUGH, inputManager), m_trackCameraRail(trackCenterSpline) {
+    HermiteCamera::HermiteCamera(HermiteCurve trackCenterSpline, InputManager const &inputManager)
+        : BaseCamera(CameraMode::HERMITE_FLYTHROUGH, inputManager), m_trackCameraRail(std::move(trackCenterSpline)) {
         m_loopTime = static_cast<int>(m_trackCameraRail.GetLength()) * 100;
     }
 
@@ -36,7 +38,7 @@ namespace OpenNFS {
         // Calculate new roll with damping, and clamp to prevent flipping
         float const rollAmount{lateralChange * 2.0f};
         float const targetRoll{glm::clamp(rollAmount, -0.5f, 0.5f)}; // Clamp to ±0.5 radians (~±28 degrees)
-        m_roll = m_roll * 0.9f + targetRoll * 0.1f; // Smooth interpolation
+        m_roll = m_roll * 0.9f + targetRoll * 0.1f;                  // Smooth interpolation
 
         // Create the up vector by rotating world up around the forward direction
         glm::quat const rollQuat{glm::angleAxis(m_roll, m_direction)};

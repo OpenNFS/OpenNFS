@@ -28,7 +28,7 @@ namespace OpenNFS {
     class Renderer {
       public:
         Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
-                 std::vector<NfsAssetList> const &installedNFS, std::shared_ptr<Track> const &currentTrack,
+                 std::vector<NfsAssetList> installedNFS, std::shared_ptr<Track> const &currentTrack,
                  std::shared_ptr<BulletDebugDrawer> const &debugDrawer);
 
         static void GlfwError(int const id, char const *description) {
@@ -60,7 +60,7 @@ namespace OpenNFS {
         std::shared_ptr<GLFWwindow> m_window;
         std::shared_ptr<Logger> m_logger;
         std::vector<NfsAssetList> m_nfsAssetList;
-        std::shared_ptr<Track> const &m_track;
+        std::shared_ptr<Track> m_track;
         uint32_t m_cameraTargetVehicleID{0};
         uint32_t m_numRacers{0};
 

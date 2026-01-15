@@ -23,7 +23,7 @@ namespace OpenNFS {
         void _SpawnRacers(PhysicsManager &physicsManager);
         void _LoadRacerData(std::string const &jsonPath);
 
-        std::shared_ptr<Track> const &m_currentTrack;
+        std::shared_ptr<Track> m_currentTrack;
         std::vector<RacerData> m_racerData;
     };
 } // namespace OpenNFS

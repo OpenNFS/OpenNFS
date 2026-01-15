@@ -19,15 +19,15 @@ namespace OpenNFS {
         void UpdateFrustum();
         void ResetView();
 
-        glm::mat4 viewMatrix;
-        glm::mat4 projectionMatrix;
-        glm::vec3 position;
+        glm::mat4 viewMatrix{1.0f};
+        glm::mat4 projectionMatrix{1.0f};
+        glm::vec3 position{0.0f};
         Frustum viewFrustum;
 
       protected:
         InputManager const &m_inputManager;
         CameraMode m_mode;
-        glm::vec3 m_direction;
+        glm::vec3 m_direction{0.0f};
         float m_fov;
         float m_horizontalAngle = 0.f; // Initial horizontal angle : toward -Z
         float m_verticalAngle = 0.f;   // Initial vertical angle : none

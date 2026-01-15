@@ -21,7 +21,7 @@ class Frustum {
     Frustum() = default;
     void Update(glm::mat4 const &projectionViewMatrix);
     [[nodiscard]] bool CheckIntersection(const AABB &other) const;
-    std::array<glm::vec3, 8> points;
+    std::array<glm::vec3, 8> points{};
 
   private:
     template <FrustumPlanes i, FrustumPlanes j> struct ij2k {
@@ -35,5 +35,5 @@ class Frustum {
     void _ExtractPlanes(glm::mat4 const &projectionViewMatrix);
     void _CalculatePlaneIntersections();
 
-    std::array<glm::vec4, FrustumPlanes::Length> m_planes;
+    std::array<glm::vec4, FrustumPlanes::Length> m_planes{};
 };

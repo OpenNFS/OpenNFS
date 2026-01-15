@@ -30,7 +30,7 @@ namespace OpenNFS {
         void _UpdateNearestTrackblock();
         void _UpdateNearestVroad();
 
-        std::shared_ptr<Track> const &m_track;
+        std::shared_ptr<Track> m_track;
         AgentType m_agentType;
         uint32_t m_nearestVroadID = 0;
     };

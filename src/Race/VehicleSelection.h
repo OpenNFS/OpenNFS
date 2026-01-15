@@ -24,7 +24,7 @@ namespace OpenNFS {
         void _UpdateCameras(float deltaTime);
 
         CarCamera m_carCamera;
-        std::shared_ptr<Car> const &m_currentCar;
+        std::shared_ptr<Car> m_currentCar;
         btTransform m_carouselTransform{};
         GlobalLight m_showroomLight;
 

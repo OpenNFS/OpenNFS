@@ -1,5 +1,70 @@
 #include "GLTrackModel.h"
+
+#include <utility>
+
 #include "../../Util/Utils.h"
+
+GLTrackModel::GLTrackModel(GLTrackModel &&other) noexcept
+    : GLModel(), TrackGeometry(std::move(other)), m_vertexBuffer(other.m_vertexBuffer), m_uvBuffer(other.m_uvBuffer),
+      m_textureIndexBuffer(other.m_textureIndexBuffer), m_shadingDataBuffer(other.m_shadingDataBuffer),
+      m_normalBuffer(other.m_normalBuffer), m_debugBuffer(other.m_debugBuffer) {
+    // Transfer ownership of GL resources from base class
+    VertexArrayID = other.VertexArrayID;
+    buffersGenerated = other.buffersGenerated;
+    enabled = other.enabled;
+    ModelMatrix = other.ModelMatrix;
+    RotationMatrix = other.RotationMatrix;
+    TranslationMatrix = other.TranslationMatrix;
+    // Invalidate source
+    other.VertexArrayID = 0;
+    other.m_vertexBuffer = 0;
+    other.m_uvBuffer = 0;
+    other.m_textureIndexBuffer = 0;
+    other.m_shadingDataBuffer = 0;
+    other.m_normalBuffer = 0;
+    other.m_debugBuffer = 0;
+    other.buffersGenerated = false;
+}
+
+GLTrackModel &GLTrackModel::operator=(GLTrackModel &&other) noexcept {
+    if (this != &other) {
+        // Clean up existing resources
+        if (buffersGenerated) {
+            glDeleteBuffers(1, &m_vertexBuffer);
+            glDeleteBuffers(1, &m_uvBuffer);
+            glDeleteBuffers(1, &m_textureIndexBuffer);
+            glDeleteBuffers(1, &m_shadingDataBuffer);
+            glDeleteBuffers(1, &m_normalBuffer);
+            glDeleteBuffers(1, &m_debugBuffer);
+            glDeleteVertexArrays(1, &VertexArrayID);
+        }
+        // Move base class
+        TrackGeometry::operator=(std::move(other));
+        // Transfer ownership
+        m_vertexBuffer = other.m_vertexBuffer;
+        m_uvBuffer = other.m_uvBuffer;
+        m_textureIndexBuffer = other.m_textureIndexBuffer;
+        m_shadingDataBuffer = other.m_shadingDataBuffer;
+        m_normalBuffer = other.m_normalBuffer;
+        m_debugBuffer = other.m_debugBuffer;
+        VertexArrayID = other.VertexArrayID;
+        buffersGenerated = other.buffersGenerated;
+        enabled = other.enabled;
+        ModelMatrix = other.ModelMatrix;
+        RotationMatrix = other.RotationMatrix;
+        TranslationMatrix = other.TranslationMatrix;
+        // Invalidate source
+        other.VertexArrayID = 0;
+        other.m_vertexBuffer = 0;
+        other.m_uvBuffer = 0;
+        other.m_textureIndexBuffer = 0;
+        other.m_shadingDataBuffer = 0;
+        other.m_normalBuffer = 0;
+        other.m_debugBuffer = 0;
+        other.buffersGenerated = false;
+    }
+    return *this;
+}
 
 GLTrackModel::~GLTrackModel() {
     if (buffersGenerated) {

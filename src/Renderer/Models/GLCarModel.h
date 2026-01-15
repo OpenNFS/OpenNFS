@@ -11,6 +11,13 @@ namespace OpenNFS {
         GLCarModel() : GLModel() {};
         ~GLCarModel() override;
 
+        // Non-copyable (OpenGL resources)
+        GLCarModel(GLCarModel const &) = delete;
+        GLCarModel &operator=(GLCarModel const &) = delete;
+        // Movable
+        GLCarModel(GLCarModel &&other) noexcept;
+        GLCarModel &operator=(GLCarModel &&other) noexcept;
+
         bool GenBuffers() override;
         void UpdateMatrices() override;
         void Render() override;

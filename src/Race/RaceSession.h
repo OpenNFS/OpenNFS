@@ -39,7 +39,7 @@ namespace OpenNFS {
         CameraMode m_activeCameraMode{CameraMode::FREE_LOOK};
         std::optional<Entity *> m_targetedEntity;
 
-        std::shared_ptr<Track> const &m_track;
+        std::shared_ptr<Track> m_track;
         std::shared_ptr<PlayerAgent> m_playerAgent;
         FreeCamera m_freeCamera;
         HermiteCamera m_hermiteCamera;

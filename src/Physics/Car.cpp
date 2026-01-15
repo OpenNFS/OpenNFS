@@ -32,14 +32,13 @@ namespace OpenNFS {
     }
 
     Car::~Car() {
-        // And bullet collision shapes on heap
+        // Cleanup bullet collision shapes on heap
         for (size_t i = 0; i < m_collisionShapes.size(); i++) {
             delete m_collisionShapes[i];
         }
         m_collisionShapes.clear();
         // And the loaded GL textures
         if (renderInfo.isMultitexturedModel) {
-            // TODO: Store number of textures so can pass correct parameter here
             glDeleteTextures(1, &renderInfo.textureArrayID);
         } else {
             glDeleteTextures(1, &renderInfo.textureID);
@@ -389,12 +388,14 @@ namespace OpenNFS {
         case NFSVersion::NFS_2:
         case NFSVersion::NFS_3_PS1: {
             if (carGeometries.size() < 3) {
-                GLCarModel wheelModel(carGeometries[0]);
-                wheelModel.Enable();
-                leftFrontWheelModel = wheelModel;
-                rightFrontWheelModel = wheelModel;
-                leftRearWheelModel = wheelModel;
-                rightRearWheelModel = wheelModel;
+                leftFrontWheelModel = GLCarModel(carGeometries[0]);
+                leftFrontWheelModel.Enable();
+                rightFrontWheelModel = GLCarModel(carGeometries[0]);
+                rightFrontWheelModel.Enable();
+                leftRearWheelModel = GLCarModel(carGeometries[0]);
+                leftRearWheelModel.Enable();
+                rightRearWheelModel = GLCarModel(carGeometries[0]);
+                rightRearWheelModel.Enable();
 
                 carBodyModel = GLCarModel(carGeometries[1]);
                 carBodyModel.Enable();
@@ -417,9 +418,8 @@ namespace OpenNFS {
                         rightRearWheelModel.Enable();
                     } else if (carGeometry.m_name.find("High") != std::string::npos) {
                         // Everything with "High" in the name is an extra body part, enable it
-                        auto miscModel{GLCarModel(carGeometry)};
-                        miscModel.Enable();
-                        miscModels.push_back(miscModel);
+                        miscModels.emplace_back(carGeometry);
+                        miscModels.back().Enable();
                     } else {
                         miscModels.emplace_back(carGeometry);
                     }
