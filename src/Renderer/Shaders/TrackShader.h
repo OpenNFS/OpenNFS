@@ -4,6 +4,7 @@
 #include <Entities/BaseLight.h>
 #include <map>
 
+#include "../../Scene/GlobalLight.h"
 #include "../../Scene/Spotlight.h"
 #include "../../shaders/ShaderPreamble.h"
 
@@ -21,6 +22,8 @@ namespace OpenNFS {
         void loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights) const;
         void loadSpotlight(Spotlight const &spotlight) const;
         void loadShadowMapTexture(GLuint shadowMapTextureID) const;
+        void loadShadowMapTextureArray(GLuint shadowMapTextureArrayID) const;
+        void loadCascadeData(CascadeData const &cascadeData) const;
         void loadAmbientFactor(float ambientFactor) const;
         void setClassic(bool useClassic) const;
 
@@ -44,7 +47,11 @@ namespace OpenNFS {
         GLint reflectivityLocation;
         GLint useClassicLocation;
         GLint shadowMapTextureLocation;
+        GLint shadowMapArrayLocation;
         GLint ambientFactorLocation;
         GLint trackTextureArrayLocation;
+        // CSM uniforms
+        GLint lightSpaceMatricesLocation[CSM_NUM_CASCADES];
+        GLint cascadePlaneDistancesLocation;
     };
 } // namespace OpenNFS

@@ -4,6 +4,7 @@
 #include <Entities/BaseLight.h>
 
 #include "../../Physics/Car.h"
+#include "../../Scene/GlobalLight.h"
 #include "../../Util/ImageLoader.h"
 #include "../../shaders/ShaderPreamble.h"
 
@@ -22,6 +23,9 @@ namespace OpenNFS {
         void setMultiTextured(bool multiTextured) const;
         void setPolyFlagged(bool polyFlagged) const;
         void loadEnvironmentMapTexture() const;
+        // CSM methods
+        void loadCascadeData(CascadeData const &cascadeData) const;
+        void loadShadowMapTextureArray(GLuint shadowMapTextureArrayID) const;
 
       protected:
         void bindAttributes() override;
@@ -45,6 +49,10 @@ namespace OpenNFS {
         GLint carTextureArrayLocation; // Multitextured
         GLint isMultiTexturedLocation; // Multitextured
         GLint hasPolyFlagsLocation;    // PolyFlagged
+        // CSM uniforms
+        GLint lightSpaceMatricesLocation[CSM_NUM_CASCADES];
+        GLint cascadePlaneDistancesLocation;
+        GLint shadowMapArrayLocation;
 
         GLuint envMapTextureID = 0;
     };

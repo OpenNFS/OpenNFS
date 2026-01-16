@@ -19,9 +19,11 @@ out vec3 surfaceNormal;
 // Spotlight
 out vec3 toSpotlightVector;
 // Fog
-out vec3 worldPosition;
 out vec4 viewSpace;
 out vec4 lightSpace;
+// CSM
+out vec3 fragPosWorldSpace;
+out float clipSpaceZ;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix ,transformationMatrix;
@@ -31,6 +33,9 @@ uniform vec3 spotlightPosition;
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
+
+    // CSM: Pass world position for cascade selection
+    fragPosWorldSpace = worldPosition.xyz;
 
     lightSpace = lightSpaceMatrix * worldPosition;
 
@@ -53,13 +58,16 @@ void main(){
 
     toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 
+    // Calculate clip space position for cascade selection
+    vec4 viewSpacePos = viewMatrix * worldPosition;
+    clipSpaceZ = -viewSpacePos.z;  // Positive view-space depth
+
     // Fog Passout
-    viewSpace = viewMatrix * transformationMatrix *  vec4(vertexPosition_modelspace, 1);
+    viewSpace = viewSpacePos;
 
 	// Output position of the vertex, in clip space : MVP * position
-    gl_Position =  projectionMatrix * viewMatrix * worldPosition;
-	
-	// UV of the vertex. No special space for this one.
+    gl_Position = projectionMatrix * viewSpacePos;
+
+    // UV of the vertex. No special space for this one.
 	UV = vertexUV;
 }
-

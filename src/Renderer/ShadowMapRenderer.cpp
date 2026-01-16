@@ -6,48 +6,72 @@ namespace OpenNFS {
     ShadowMapRenderer::ShadowMapRenderer() {
         // Configure depth map FBO
         glGenFramebuffers(1, &m_depthMapFbo);
-        // Create depth texture
-        glGenTextures(1, &m_depthTextureID);
-        glBindTexture(GL_TEXTURE_2D, m_depthTextureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        // Attach depth texture as FBO's depth buffer
+
+        // Create depth texture array for cascades
+        glGenTextures(1, &m_depthTextureArrayID);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, m_depthTextureArrayID);
+
+        // Allocate storage for all cascade layers
+        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, CSM_NUM_CASCADES, 0, GL_DEPTH_COMPONENT,
+                     GL_FLOAT, nullptr);
+        // glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, CSM_NUM_CASCADES);
+
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+        // Set border color to 1.0 (no shadow outside map)
+        float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+        // Enable hardware shadow comparison
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+        // Attach first layer initially (change per cascade)
         glBindFramebuffer(GL_FRAMEBUFFER, m_depthMapFbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTextureID, 0);
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_depthTextureArrayID, 0, 0);
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
 
-        // Always check that our framebuffer is ok
-        CHECK_F(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Depth FBO is nae good");
+        // Check that the framebuffer is ok
+        CHECK_F(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "CSM Depth FBO is not complete");
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+#ifndef __APPLE__
+        // Gahh, this won't work on a Mac, we can't request more than a GL 4.1 Context
+        glGenTextures(CSM_NUM_CASCADES, m_depthTextureViews.data());
+        for (int32_t i = 0; i < CSM_NUM_CASCADES; ++i) {
+            glTextureView(m_depthTextureViews[i], GL_TEXTURE_2D, m_depthTextureArrayID, GL_DEPTH_COMPONENT32F, 0, 1, i, 1);
+            glTextureParameteri(m_depthTextureViews[i], GL_TEXTURE_COMPARE_MODE, GL_NONE);
+            glTextureParameteri(m_depthTextureViews[i], GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTextureParameteri(m_depthTextureViews[i], GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+#endif
     }
 
-    void ShadowMapRenderer::Render(GlobalLight const *light, GLuint const trackTextureArrayID,
-                                   std::vector<std::shared_ptr<Entity>> const &visibleEntities,
-                                   std::vector<std::shared_ptr<CarAgent>> const &racers) {
-        /* ------- SHADOW MAPPING ------- */
-        m_depthShader.use();
-        m_depthShader.loadLightSpaceMatrix(light->lightSpaceMatrix);
-        m_depthShader.bindTextureArray(trackTextureArrayID);
+    void ShadowMapRenderer::RenderCascade(uint32_t const cascadeIndex, glm::mat4 const &lightSpaceMatrix, GLuint const trackTextureArrayID,
+                                          std::vector<std::shared_ptr<Entity>> const &visibleEntities,
+                                          std::vector<std::shared_ptr<CarAgent>> const &racers) {
+        // Attach the correct layer of the texture array
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_depthTextureArrayID, 0, cascadeIndex);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_depthMapFbo);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        /* Render the track using this simple shader to get depth texture to test against during draw */
+        m_depthShader.loadLightSpaceMatrix(lightSpaceMatrix);
+
+        // Render track entities
+        m_depthShader.bindTextureArray(trackTextureArrayID);
         for (auto &entity : visibleEntities) {
             m_depthShader.loadTransformMatrix(entity->ModelMatrix);
             entity->Render();
         }
 
-        /* And the Cars */
+        // Render cars
         for (auto &racer : racers) {
             if (racer->vehicle->renderInfo.isMultitexturedModel) {
                 m_depthShader.bindTextureArray(racer->vehicle->renderInfo.textureArrayID);
-            } else {
-                // m_depthShader.loadCarTexture(racer->vehicle->renderInfo.textureID);
             }
             for (auto &misc_model : racer->vehicle->miscModels) {
                 m_depthShader.loadTransformMatrix(misc_model.ModelMatrix);
@@ -64,17 +88,42 @@ namespace OpenNFS {
             m_depthShader.loadTransformMatrix(racer->vehicle->carBodyModel.ModelMatrix);
             racer->vehicle->carBodyModel.Render();
         }
+    }
+
+    void ShadowMapRenderer::Render(GlobalLight const *light, BaseCamera const &camera, GLuint const trackTextureArrayID,
+                                   std::vector<std::shared_ptr<Entity>> const &visibleEntities,
+                                   std::vector<std::shared_ptr<CarAgent>> const &racers) {
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+
+        m_depthShader.use();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, m_depthMapFbo);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+
+        // Render each cascade
+        for (uint32_t i = 0; i < CSM_NUM_CASCADES; ++i) {
+            RenderCascade(i, light->cascadeData.lightSpaceMatrices[i], trackTextureArrayID, visibleEntities, racers);
+        }
+
+        // Restore viewport
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         m_depthShader.unbind();
         m_depthShader.HotReload();
     }
 
-    GLuint ShadowMapRenderer::GetTextureID() const {
-        return m_depthTextureID;
+    GLuint ShadowMapRenderer::GetTextureArrayID() const {
+        return m_depthTextureArrayID;
+    }
+
+    GLuint ShadowMapRenderer::GetTextureViewID(uint8_t layer) const {
+        return m_depthTextureViews.at(layer);
     }
 
     ShadowMapRenderer::~ShadowMapRenderer() {
         glDeleteFramebuffers(1, &m_depthMapFbo);
+        glDeleteTextures(1, &m_depthTextureArrayID);
         m_depthShader.cleanup();
     }
 

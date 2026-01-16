@@ -12,9 +12,12 @@ in vec3 toCameraVector;
 in vec3 toSpotlightVector;
 
 // Fog
-in vec3 worldPosition;
 in vec4 viewSpace;
 in vec4 lightSpace;
+
+// CSM inputs
+in vec3 fragPosWorldSpace;
+in float clipSpaceZ;
 
 // Ouput data
 out vec4 color;
@@ -22,7 +25,7 @@ out vec4 color;
 uniform bool useClassic;
 
 uniform sampler2DArray textureArray;
-uniform sampler2D shadowMap;
+uniform sampler2DArrayShadow shadowMapArray;
 uniform float ambientFactor;
 uniform vec4 lightColour[MAX_TRACK_CONTRIB_LIGHTS];
 uniform vec3 attenuation[MAX_TRACK_CONTRIB_LIGHTS];
@@ -32,35 +35,72 @@ uniform float spotlightCutOff;
 uniform float shineDamper;
 uniform float reflectivity;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
-{
-    // perform perspective divide
-    vec3 projCoords = lightSpace.xyz / lightSpace.w;
-    // Depth map is in the range [0,1] and we also want to use projCoords to sample from the depth map so we transform the NDC coordinates to the range [0,1]
-    projCoords = projCoords * 0.5 + 0.5;
-    // The closest depth from the light's point of view
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
-    // Projected vector's z coordinate equals the depth of the fragment from the light's perspective
-    float currentDepth = projCoords.z;
-    // Apply bias to remove acne, such that fragments are not incorrectly considered below the surface.
-    float bias = 0.005;
+// CSM uniforms
+uniform mat4 lightSpaceMatrices[CSM_NUM_CASCADES];
+uniform float cascadePlaneDistances[CSM_NUM_CASCADES];
 
-    // Apply percentage closer filtering, to soften shadow edges (average neighbours by jittering projection coords)
+// Select cascade based on view-space depth
+int SelectCascade(float depth) {
+    for (int i = 0; i < CSM_NUM_CASCADES; ++i) {
+        if (depth < cascadePlaneDistances[i]) {
+            return i;
+        }
+    }
+    return CSM_NUM_CASCADES - 1;
+}
+
+// Calculate shadow with PCF for a specific cascade
+float ShadowCalculationCSM(int cascadeIndex, vec3 worldPos) {
+    // Transform to light space for selected cascade
+    vec4 lightSpacePos = lightSpaceMatrices[cascadeIndex] * vec4(worldPos, 1.0);
+
+    // Perspective divide
+    vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+
+    // Transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // Check if outside shadow map
+    if (projCoords.z > 1.0) {
+        return 0.0;
+    }
+
+    // Dynamic bias based on cascade (larger cascades need larger bias)
+    float bias = 0.0005 * float(cascadeIndex + 1);
+    float currentDepth = projCoords.z - bias;
+
+    // 3x3 PCF with hardware shadow comparison
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for (int x = -1; x <= 1; ++x)
-    {
-        for (int y = -1; y <= 1; ++y)
-        {
-            // Check whether currentDepth is higher than closestDepth and if so, the fragment is in shadow
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+    vec2 texelSize = 1.0 / vec2(textureSize(shadowMapArray, 0).xy);
+
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            vec2 offset = vec2(x, y) * texelSize;
+            shadow += texture(shadowMapArray, vec4(projCoords.xy + offset, float(cascadeIndex), currentDepth));
         }
     }
     shadow /= 9.0;
 
-    // Force the shadow value to 0.0 whenever the projected vector's z coordinate is larger than 1.0
-    if (projCoords.z > 1.0) shadow = 0.0;
+    return 1.0 - shadow;  // Return shadow amount (0 = no shadow, 1 = full shadow)
+}
+
+// Calculate shadow with cascade blending for smooth transitions
+float ShadowCalculationWithBlending(vec3 worldPos, float viewDepth) {
+    int cascadeIndex = SelectCascade(viewDepth);
+    float shadow = ShadowCalculationCSM(cascadeIndex, worldPos);
+
+    // Blend between cascades at boundaries
+    if (cascadeIndex < CSM_NUM_CASCADES - 1) {
+        float blendStart = cascadePlaneDistances[cascadeIndex] - 5.0;  // Start blending 5 units before boundary
+
+        if (viewDepth > blendStart) {
+            float blendFactor = (viewDepth - blendStart) / 5.0;
+            blendFactor = smoothstep(0.0, 1.0, blendFactor);
+
+            float nextShadow = ShadowCalculationCSM(cascadeIndex + 1, worldPos);
+            shadow = mix(shadow, nextShadow, blendFactor);
+        }
+    }
 
     return shadow;
 }
@@ -103,7 +143,7 @@ void main(){
         }
         totalDiffuse = max(totalDiffuse, ambientFactor);// Min brightness
 
-        float shadow = ShadowCalculation(lightSpace);
+        float shadow = ShadowCalculationWithBlending(fragPosWorldSpace, clipSpaceZ);
         vec3 ambient =  0.4f * nfsColor.rgb;
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
         color = vec4(lighting, 1.0);

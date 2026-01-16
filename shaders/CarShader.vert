@@ -14,6 +14,10 @@ out vec3 toCameraVector;
 flat out uint texIndex;
 flat out uint polyFlag;
 
+// CSM outputs
+out vec3 fragPosWorldSpace;
+out float clipSpaceZ;
+
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
 uniform vec3 lightPosition[MAX_CAR_CONTRIB_LIGHTS];
@@ -21,13 +25,20 @@ uniform vec3 lightPosition[MAX_CAR_CONTRIB_LIGHTS];
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
 
+    // CSM: Pass world position for cascade selection
+    fragPosWorldSpace = worldPosition.xyz;
+
     // Pass through texture Index (Used for NFS2 car multitex)
     texIndex = textureIndex;
     // Pass through polygon Flag (Used for NFS4)
     polyFlag = polygonFlag;
 
-	// Output position of the vertex, in clip space : MVP * position
-	gl_Position =  projectionMatrix * viewMatrix * worldPosition;
+    // Calculate view space position for cascade selection
+    vec4 viewSpacePos = viewMatrix * worldPosition;
+    clipSpaceZ = -viewSpacePos.z;  // Positive view-space depth
+
+    // Output position of the vertex, in clip space : MVP * position
+    gl_Position = projectionMatrix * viewSpacePos;
 
     surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
 
@@ -48,4 +59,3 @@ void main(){
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
 }
-

@@ -71,6 +71,19 @@ namespace OpenNFS {
         glBindTexture(GL_TEXTURE_2D, envMapTextureID);
     }
 
+    void CarShader::loadCascadeData(CascadeData const &cascadeData) const {
+        for (int i = 0; i < CSM_NUM_CASCADES; ++i) {
+            loadMat4(lightSpaceMatricesLocation[i], &cascadeData.lightSpaceMatrices[i][0][0]);
+        }
+        glUniform1fv(cascadePlaneDistancesLocation, CSM_NUM_CASCADES, cascadeData.cascadePlaneDistances.data());
+    }
+
+    void CarShader::loadShadowMapTextureArray(GLuint const shadowMapTextureArrayID) const {
+        loadSampler2D(shadowMapArrayLocation, 3);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMapTextureArrayID);
+    }
+
     void CarShader::bindAttributes() {
         bindAttribute(0, "vertexPosition_modelspace");
         bindAttribute(1, "vertexUV");
@@ -101,6 +114,13 @@ namespace OpenNFS {
         carTextureArrayLocation = getUniformLocation("textureArray");
         isMultiTexturedLocation = getUniformLocation("multiTextured");
         hasPolyFlagsLocation = getUniformLocation("polyFlagged");
+
+        // CSM uniforms
+        for (int i = 0; i < CSM_NUM_CASCADES; ++i) {
+            lightSpaceMatricesLocation[i] = getUniformLocation("lightSpaceMatrices[" + std::to_string(i) + "]");
+        }
+        cascadePlaneDistancesLocation = getUniformLocation("cascadePlaneDistances");
+        shadowMapArrayLocation = getUniformLocation("shadowMapArray");
     }
 
     void CarShader::customCleanup() {

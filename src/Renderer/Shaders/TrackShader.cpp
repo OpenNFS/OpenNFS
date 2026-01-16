@@ -29,6 +29,7 @@ namespace OpenNFS {
         reflectivityLocation = getUniformLocation("reflectivity");
         useClassicLocation = getUniformLocation("useClassic");
         shadowMapTextureLocation = getUniformLocation("shadowMap");
+        shadowMapArrayLocation = getUniformLocation("shadowMapArray");
         ambientFactorLocation = getUniformLocation("ambientFactor");
 
         for (int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i) {
@@ -40,6 +41,12 @@ namespace OpenNFS {
         spotlightColourLocation = getUniformLocation("spotlightColour");
         spotlightDirectionLocation = getUniformLocation("spotlightDirection");
         spotlightCutOffLocation = getUniformLocation("spotlightCutOff");
+
+        // CSM uniforms
+        for (int i = 0; i < CSM_NUM_CASCADES; ++i) {
+            lightSpaceMatricesLocation[i] = getUniformLocation("lightSpaceMatrices[" + std::to_string(i) + "]");
+        }
+        cascadePlaneDistancesLocation = getUniformLocation("cascadePlaneDistances");
     }
 
     void TrackShader::customCleanup() {
@@ -98,6 +105,19 @@ namespace OpenNFS {
         loadSampler2D(shadowMapTextureLocation, 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, shadowMapTextureID);
+    }
+
+    void TrackShader::loadShadowMapTextureArray(GLuint const shadowMapTextureArrayID) const {
+        loadSampler2D(shadowMapArrayLocation, 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, shadowMapTextureArrayID);
+    }
+
+    void TrackShader::loadCascadeData(CascadeData const &cascadeData) const {
+        for (int i = 0; i < CSM_NUM_CASCADES; ++i) {
+            loadMat4(lightSpaceMatricesLocation[i], &cascadeData.lightSpaceMatrices[i][0][0]);
+        }
+        glUniform1fv(cascadePlaneDistancesLocation, CSM_NUM_CASCADES, cascadeData.cascadePlaneDistances.data());
     }
 
     void TrackShader::loadAmbientFactor(float const ambientFactor) const {

@@ -1,7 +1,8 @@
 #include "CarRenderer.h"
 
 namespace OpenNFS {
-    void CarRenderer::Render(std::shared_ptr<Car> const &car, BaseCamera const &camera) {
+    void CarRenderer::Render(std::shared_ptr<Car> const &car, BaseCamera const &camera, GlobalLight const *globalLight,
+                             GLuint const shadowMapArrayID) {
         m_carShader.use();
 
         // This shader state doesn't change during a car renderpass
@@ -10,6 +11,11 @@ namespace OpenNFS {
         m_carShader.loadCarColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         m_carShader.loadLights(car->lights);
         m_carShader.loadEnvironmentMapTexture();
+
+        // Load CSM data for shadows
+        m_carShader.loadCascadeData(globalLight->cascadeData);
+        m_carShader.loadShadowMapTextureArray(shadowMapArrayID);
+
         // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
         m_carShader.setMultiTextured(car->renderInfo.isMultitexturedModel);
         if (car->renderInfo.isMultitexturedModel) {

@@ -14,7 +14,6 @@ namespace OpenNFS {
         m_trackShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
         m_trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
         m_trackShader.bindTextureArray(trackTextureArrayID);
-        m_trackShader.loadShadowMapTexture(depthTextureID);
         m_trackShader.loadAmbientFactor(ambientFactor);
         m_trackShader.loadLights(lights);
         if (racers[0]->vehicle->vehicleState.lightsActive) {
@@ -24,7 +23,10 @@ namespace OpenNFS {
         // Global Light is always 0th index
         auto const globalLight{dynamic_cast<GlobalLight const *>(lights.at(0))};
         CHECK_F(globalLight->type == LibOpenNFS::LightType::GLOBAL_LIGHT, "Light 0 is not GLOBAL_LIGHT");
-        m_trackShader.loadLightSpaceMatrix(globalLight->lightSpaceMatrix);
+
+        // Load CSM data for shadows
+        m_trackShader.loadCascadeData(globalLight->cascadeData);
+        m_trackShader.loadShadowMapTextureArray(depthTextureID);
 
         // Render the per-trackblock data
         for (auto &entity : visibleEntities) {

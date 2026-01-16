@@ -2,6 +2,7 @@
 
 #include "../Camera/BaseCamera.h"
 #include "../Physics/Car.h"
+#include "../Scene/GlobalLight.h"
 #include "Shaders/CarShader.h"
 
 namespace OpenNFS {
@@ -9,7 +10,7 @@ namespace OpenNFS {
       public:
         explicit CarRenderer() = default;
         ~CarRenderer();
-        void Render(std::shared_ptr<Car> const &car, BaseCamera const &camera);
+        void Render(std::shared_ptr<Car> const &car, BaseCamera const &camera, GlobalLight const *globalLight, GLuint shadowMapArrayID);
 
       private:
         // Create and compile our GLSL programs from the shaders

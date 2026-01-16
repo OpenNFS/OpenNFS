@@ -9,9 +9,11 @@ namespace OpenNFS {
     void OrbitalManager::Update(BaseCamera const &camera, float const timeScaleFactor) const {
         m_sun->ChangeTarget(camera.position);
         m_sun->Update(timeScaleFactor);
+        m_sun->UpdateCascades(camera);
 
         m_moon->ChangeTarget(camera.position);
         m_moon->Update(timeScaleFactor);
+        m_moon->UpdateCascades(camera);
     }
 
     GlobalLight *OrbitalManager::GetActiveGlobalLight() const {

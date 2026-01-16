@@ -18,7 +18,6 @@ namespace OpenNFS {
         CHECK_F(glfwInit() == GLFW_TRUE, "GLFW Init failed.\n");
         glfwSetErrorCallback(&Renderer::GlfwError);
 
-        // glfwWindowHint(GLFW_SAMPLES, 2);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -116,8 +115,8 @@ namespace OpenNFS {
             m_debugRenderer.DrawCameraAnimation(m_track);
         }
 
-        // Render the environment
-        m_shadowMapRenderer.Render(activeLight, m_track->textureArrayID, visibleEntities, racers);
+        // Render the environment (CSM shadow pass)
+        m_shadowMapRenderer.Render(activeLight, activeCamera, m_track->textureArrayID, visibleEntities, racers);
         if (userParams.drawSkydome) {
             m_skyRenderer.Render(activeCamera, activeLight, totalTime);
         }
@@ -125,16 +124,16 @@ namespace OpenNFS {
         // Calculate ambient factor based on sun height - when sun is below horizon (y < 0), it's night
         float const ambientFactor = std::max(0.f, activeLight->position.y / (OrbitalManager::SKYDOME_RADIUS) * 0.5f);
         m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleEntities, visibleLights, userParams,
-                               m_shadowMapRenderer.GetTextureID(), ambientFactor);
+                               m_shadowMapRenderer.GetTextureArrayID(), ambientFactor);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
         m_debugRenderer.Render(activeCamera);
         if (userParams.drawMinimap) {
             m_miniMapRenderer.Render(m_track, racers);
         }
 
-        // Render the Car and racers
+        // Render the Car and racers with CSM shadows
         for (auto &racer : racers) {
-            m_carRenderer.Render(racer->vehicle, activeCamera);
+            m_carRenderer.Render(racer->vehicle, activeCamera, activeLight, m_shadowMapRenderer.GetTextureArrayID());
         }
 
         if (userParams.drawAI) {
@@ -285,7 +284,7 @@ namespace OpenNFS {
 
         // Draw Shadow Map
         ImGui::Begin("Shadow Map");
-        ImGui::Image(m_shadowMapRenderer.GetTextureID(), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+        // ImGui::Image(m_shadowMapRenderer.GetTextureViewID(0), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
         ImGui::End();
         // Draw Logger UI
         m_logger->onScreenLog.Draw("ONFS Log");

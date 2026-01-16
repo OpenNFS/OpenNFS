@@ -37,7 +37,7 @@ namespace OpenNFS {
 
         m_currentCar->UpdateMeshesToTransform(m_carouselTransform, true);
 
-        m_carRenderer.Render(m_currentCar, activeCamera);
+        m_carRenderer.Render(m_currentCar, activeCamera, &m_showroomLight, 0);
     }
 
     bool VehicleSelection::IsFinished() const {
