@@ -136,7 +136,7 @@ namespace OpenNFS {
             m_carRenderer.Render(racer->vehicle, activeCamera, activeLight, m_shadowMapRenderer.GetTextureArrayID());
         }
 
-        if (userParams.drawAI) {
+        if (userParams.drawAIState) {
             for (auto const &racer : racers) {
                 if (racer->Type() == AI) {
                     m_debugRenderer.DrawVehicleAI(std::dynamic_pointer_cast<RacerAgent>(racer), activeCamera);
@@ -302,6 +302,7 @@ namespace OpenNFS {
         ImGui::Checkbox("Draw Track AABBs", &userParams.drawTrackAABB);
         ImGui::Checkbox("Raycast Viz", &userParams.drawRaycast);
         ImGui::Checkbox("AI Sim", &userParams.simulateCars);
+        ImGui::Checkbox("Draw AI State ", &userParams.drawAIState);
         ImGui::Checkbox("Vroad Viz", &userParams.drawVroad);
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
         ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);

@@ -97,7 +97,6 @@ namespace OpenNFS {
         bool ui;
         /* ------- Render Params ------- */
         bool vulkanRender{};
-        bool headless{};
         float fov{DEFAULT_FOV};
         uint32_t resX{};
         uint32_t resY{};
@@ -123,7 +122,7 @@ namespace OpenNFS {
         bool drawVroad{false};
         bool drawCAN{false};
         bool drawRaycast{false};
-        bool drawAI{false};
+        bool drawAIState{false};
         bool simulateCars{true};
         bool drawSkydome{true};
         bool drawMinimap{true};
