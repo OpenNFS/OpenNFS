@@ -277,9 +277,21 @@ namespace OpenNFS {
         smoothedDeltaTime /= static_cast<float>(kDeltaTimeHistorySize);
 
         // Draw Shadow Map
-        ImGui::Begin("Shadow Map");
-        // ImGui::Image(m_shadowMapRenderer.GetTextureViewID(0), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+#ifndef __APPLE__
+        ImGui::Begin("Shadow Map Cascades");
+        ImGui::Image(m_shadowMapRenderer.GetTextureViewID(m_dbgVizShadowMapCascadeID), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+        if (ImGui::Button("<")) {
+            --m_dbgVizShadowMapCascadeID;
+        }
+        ImGui::SameLine();
+        ImGui::Text("Cascade ID: %u", m_dbgVizShadowMapCascadeID);
+        ImGui::SameLine();
+        if (ImGui::Button(">")) {
+            ++m_dbgVizShadowMapCascadeID;
+        }
+        m_dbgVizShadowMapCascadeID %= CSM_NUM_CASCADES;
         ImGui::End();
+#endif
         // Draw Logger UI
         m_logger->onScreenLog.Draw("ONFS Log");
         // Draw UI (Tactically)

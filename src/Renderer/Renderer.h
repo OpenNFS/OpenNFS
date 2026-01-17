@@ -62,6 +62,7 @@ namespace OpenNFS {
         std::vector<NfsAssetList> m_nfsAssetList;
         std::shared_ptr<Track> m_track;
         uint32_t m_cameraTargetVehicleID{0};
+        uint32_t m_dbgVizShadowMapCascadeID{0};
         uint32_t m_numRacers{0};
 
         TrackRenderer m_trackRenderer;

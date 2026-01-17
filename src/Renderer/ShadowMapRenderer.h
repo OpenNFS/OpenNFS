@@ -21,7 +21,7 @@ namespace OpenNFS {
       private:
         void RenderCascade(uint32_t cascadeIndex, glm::mat4 const &lightSpaceMatrix, GLuint trackTextureArrayID,
                            std::vector<std::shared_ptr<Entity>> const &visibleEntities,
-                           std::vector<std::shared_ptr<CarAgent>> const &racers);
+                           std::vector<std::shared_ptr<CarAgent>> const &racers) const;
 
         GLuint m_depthTextureArrayID = 0;
         std::array<GLuint, CSM_NUM_CASCADES> m_depthTextureViews{};
