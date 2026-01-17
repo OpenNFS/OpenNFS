@@ -11,7 +11,7 @@ namespace OpenNFS {
         auto changeFormatting{defaultHandler->call(&FileSink::overrideLogDetails, &FormatLog)};
         std::string const newHeader{"\t\tLOG format: [hh:mm:ss FILE->FUNCTION:LINE]: message\n\t\t\n\n"};
         auto changeHeader{defaultHandler->call(&FileSink::overrideLogHeader, newHeader)};
-        auto coutSinkHandle{gMainLogger->addSink(std::make_unique<ColorCoutSink>(), &ColorCoutSink::ReceiveLogMessage)};
+        auto coutSinkHandle{gMainLogger->addSink(std::make_unique<ColourCoutSink>(), &ColourCoutSink::ReceiveLogMessage)};
         auto onScreenSinkHandle{gMainLogger->addSink(std::make_unique<OnScreenLogSink>(&onScreenLog), &OnScreenLogSink::ReceiveLogMessage)};
 
         // Logger is initialized

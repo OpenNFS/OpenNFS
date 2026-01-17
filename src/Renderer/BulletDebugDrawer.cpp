@@ -30,11 +30,11 @@ namespace OpenNFS {
         m_bulletShader.cleanup();
     }
 
-    void BulletDebugDrawer::drawLine(btVector3 const &from, btVector3 const &to, btVector3 const &color) {
+    void BulletDebugDrawer::drawLine(btVector3 const &from, btVector3 const &to, btVector3 const &colour) {
         if (m_debugLines.size() < MAX_NUM_LINES) {
             m_debugLines.emplace_back(from, to);
-            m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
-            m_debugLineColours.emplace_back(Utils::bulletToGlm(color));
+            m_debugLineColours.emplace_back(Utils::bulletToGlm(colour));
+            m_debugLineColours.emplace_back(Utils::bulletToGlm(colour));
         }
     }
 

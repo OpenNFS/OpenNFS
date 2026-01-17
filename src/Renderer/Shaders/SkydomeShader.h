@@ -27,8 +27,8 @@ namespace OpenNFS {
         GLint viewMatrixLocation;
         GLint sunPositionLocation;
         GLint starRotationMatrixLocation;
-        GLint tintTextureLocation;    // the color of the sky on the half-sphere where the sun is. (time x height)
-        GLint tint2TextureLocation;   // the color of the sky on the opposite half-sphere. (time x height)
+        GLint tintTextureLocation;    // the colour of the sky on the half-sphere where the sun is. (time x height)
+        GLint tint2TextureLocation;   // the colour of the sky on the opposite half-sphere. (time x height)
         GLint sunTextureLocation;     // sun texture (radius x time)
         GLint moonTextureLocation;    // moon texture (circular)
         GLint clouds1TextureLocation; // light clouds texture (spherical UV projection)

@@ -56,8 +56,8 @@ namespace OpenNFS {
         float EvaluateExpression(std::string const &expr) const;
 
         /**
-         * Parse a hex color string (#RRGGBB or #RRGGBBAA) to glm::vec4
+         * Parse a hex colour string (#RRGGBB or #RRGGBBAA) to glm::vec4
          */
-        static glm::vec4 ParseColor(std::string const &hexColor);
+        static glm::vec4 ParseColour(std::string const &hexColour);
     };
 } // namespace OpenNFS

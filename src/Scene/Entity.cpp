@@ -4,6 +4,7 @@
 #include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
 #include "Entities/TrackEntity.h"
+#include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtx/string_cast.hpp"
 
 #include <NFS3/NFS3Loader.h>
@@ -113,7 +114,8 @@ namespace OpenNFS {
             auto const &[ptNext, od1Next, od2Next, od3Next, od4Next]{trackEntity->animData.at(nextKeyframeIndex)};
 
             // Calculate interpolation factor (0.0 to 1.0)
-            float const t = trackEntity->animDelay > 0 ? static_cast<float>(animFrameCounter) / static_cast<float>(trackEntity->animDelay) : 0.f;
+            float const t =
+                trackEntity->animDelay > 0 ? static_cast<float>(animFrameCounter) / static_cast<float>(trackEntity->animDelay) : 0.f;
 
             // Interpolate position (lerp)
             glm::vec3 const posStart = LibOpenNFS::Utils::FixedToFloat(pt) * LibOpenNFS::NFS3::NFS3_SCALE_FACTOR;
@@ -123,7 +125,9 @@ namespace OpenNFS {
             // Interpolate orientation (slerp)
             glm::quat const orientStart = glm::normalize(glm::quat(od1, od2, od3, od4));
             glm::quat const orientEnd = glm::normalize(glm::quat(od1Next, od2Next, od3Next, od4Next));
-            orientation = glm::slerp(orientStart, orientEnd, t);
+            // Apply -90 degree X rotation to convert from NFS3 coordinate system
+            static glm::quat const xCorrection = glm::angleAxis(glm::radians(180.f), glm::vec3(1.f, 0.f, 1.f));
+            orientation = xCorrection * glm::slerp(orientStart, orientEnd, t);
         } else {
             position = Utils::bulletToGlm(trans.getOrigin());
             orientation = Utils::bulletToGlm(trans.getRotation());

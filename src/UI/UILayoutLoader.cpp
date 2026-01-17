@@ -99,15 +99,15 @@ namespace OpenNFS {
         }
     }
 
-    glm::vec4 UILayoutLoader::ParseColor(std::string const &hexColor) {
-        std::string hex = hexColor;
+    glm::vec4 UILayoutLoader::ParseColour(std::string const &hexColour) {
+        std::string hex = hexColour;
         if (hex[0] == '#') {
             hex = hex.substr(1);
         }
 
         // Default to opaque white if parsing fails
         if (hex.length() != 6 && hex.length() != 8) {
-            LOG(WARNING) << "Invalid color format: " << hexColor;
+            LOG(WARNING) << "Invalid colour format: " << hexColour;
             return glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         }
 
@@ -199,22 +199,23 @@ namespace OpenNFS {
                     } else if (type == "textfield") {
                         std::string const textTemplate = elemJson.value("text", "");
                         std::string const text = ProcessTextTemplate(textTemplate);
-                        std::string const colorStr = elemJson.value("color", "#FFFFFF");
-                        glm::vec4 const color = ParseColor(colorStr);
+                        std::string const colourStr = elemJson.value("colour", "#FFFFFF");
+                        glm::vec4 const colour = ParseColour(colourStr);
                         std::string const font = elemJson.value("font", "default");
 
-                        element = std::make_unique<UITextField>(text, color, scale, layer, position, font);
+                        element = std::make_unique<UITextField>(text, colour, scale, layer, position, font);
                     } else if (type == "button") {
                         std::string const resourceName = elemJson.value("resource", "missingResource");
                         auto const it = m_resourceMap.find(resourceName);
                         std::string const textTemplate = elemJson.value("text", "<No Text>");
                         std::string const text = ProcessTextTemplate(textTemplate);
-                        std::string const colorStr = elemJson.value("color", "#FFFFFF");
-                        glm::vec4 const color = ParseColor(colorStr);
-                        std::string const hoverColorStr = elemJson.value("hoverColor", "#FFFFFF");
-                        glm::vec4 const hoverColor = ParseColor(hoverColorStr);
+                        std::string const colourStr = elemJson.value("colour", "#FFFFFF");
+                        glm::vec4 const colour = ParseColour(colourStr);
+                        std::string const hoverColourStr = elemJson.value("hoverColour", "#FFFFFF");
+                        glm::vec4 const hoverColour = ParseColour(hoverColourStr);
                         std::string const font = elemJson.value("font", "default");
-                        element = std::make_unique<UIButton>(it->second, text, color, hoverColor, scale, layer, position, textOffset, font);
+                        element =
+                            std::make_unique<UIButton>(it->second, text, colour, hoverColour, scale, layer, position, textOffset, font);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;

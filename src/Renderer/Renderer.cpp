@@ -246,7 +246,7 @@ namespace OpenNFS {
             ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z, targetBaseLight->colour.w);
             ImVec4 lightAttenuation(targetBaseLight->attenuation.x, targetBaseLight->attenuation.y, targetBaseLight->attenuation.z, 0.0f);
             // Colour, type, attenuation, position and NFS unknowns
-            ImGui::ColorEdit4("Light Colour", reinterpret_cast<float *>(&lightColour)); // Edit 3 floats representing a color
+            ImGui::ColorEdit4("Light Colour", reinterpret_cast<float *>(&lightColour)); // Edit 3 floats representing a colour
             targetBaseLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
             ImGui::SliderFloat3("Attenuation (A, B, C)", reinterpret_cast<float *>(&lightAttenuation), 0, 10.0f);
             targetBaseLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
@@ -315,7 +315,7 @@ namespace OpenNFS {
         m_cameraTargetVehicleID %= m_numRacers;
         ImGui::NewLine();
         ImGui::ColorEdit3("Sun Atten",
-                          reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a color
+                          reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a colour
         ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
     }
