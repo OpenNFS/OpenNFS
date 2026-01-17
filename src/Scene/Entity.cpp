@@ -4,6 +4,7 @@
 #include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
 #include "Entities/TrackEntity.h"
+#include "glm/gtx/string_cast.hpp"
 
 #include <NFS3/NFS3Loader.h>
 
@@ -93,7 +94,7 @@ namespace OpenNFS {
 
     void Entity::Update() {
         // We don't want to update Entities that aren't dynamic
-        if (!trackEntity->dynamic || trackEntity->animData.empty()) {
+        if (!trackEntity->dynamic && trackEntity->animData.empty()) {
             return;
         }
 
@@ -101,12 +102,31 @@ namespace OpenNFS {
         m_motionState->getWorldTransform(trans);
 
         if (!trackEntity->animData.empty()) {
-            animKeyframeIndex = (animKeyframeIndex + 1) % trackEntity->animData.size();
-            trackEntity->geometry.position =
-                glm::vec3(trackEntity->animData.at(animKeyframeIndex).pt) * LibOpenNFS::NFS3::NFS3_SCALE_FACTOR;
+            if (++animFrameCounter >= trackEntity->animDelay) {
+                animFrameCounter = 0;
+                animKeyframeIndex = (animKeyframeIndex + 1) % trackEntity->animData.size();
+            }
+
+            // Get current and next keyframes for interpolation
+            auto const &[pt, od1, od2, od3, od4]{trackEntity->animData.at(animKeyframeIndex)};
+            size_t const nextKeyframeIndex = (animKeyframeIndex + 1) % trackEntity->animData.size();
+            auto const &[ptNext, od1Next, od2Next, od3Next, od4Next]{trackEntity->animData.at(nextKeyframeIndex)};
+
+            // Calculate interpolation factor (0.0 to 1.0)
+            float const t = trackEntity->animDelay > 0 ? static_cast<float>(animFrameCounter) / static_cast<float>(trackEntity->animDelay) : 0.f;
+
+            // Interpolate position (lerp)
+            glm::vec3 const posStart = LibOpenNFS::Utils::FixedToFloat(pt) * LibOpenNFS::NFS3::NFS3_SCALE_FACTOR;
+            glm::vec3 const posEnd = LibOpenNFS::Utils::FixedToFloat(ptNext) * LibOpenNFS::NFS3::NFS3_SCALE_FACTOR;
+            position = glm::mix(posStart, posEnd, t);
+
+            // Interpolate orientation (slerp)
+            glm::quat const orientStart = glm::normalize(glm::quat(od1, od2, od3, od4));
+            glm::quat const orientEnd = glm::normalize(glm::quat(od1Next, od2Next, od3Next, od4Next));
+            orientation = glm::slerp(orientStart, orientEnd, t);
         } else {
-            trackEntity->geometry.position = Utils::bulletToGlm(trans.getOrigin());
-            trackEntity->geometry.orientation = Utils::bulletToGlm(trans.getRotation());
+            position = Utils::bulletToGlm(trans.getOrigin());
+            orientation = Utils::bulletToGlm(trans.getRotation());
         }
 
         UpdateMatrices();
@@ -156,7 +176,15 @@ namespace OpenNFS {
         return trackEntity->dynamic;
     }
 
+    bool Entity::Animated() const {
+        return !trackEntity->animData.empty();
+    }
+
     uint32_t Entity::RawFlags() const {
         return trackEntity->flags;
+    }
+
+    uint32_t Entity::ID() const {
+        return trackEntity->entityID;
     }
 } // namespace OpenNFS

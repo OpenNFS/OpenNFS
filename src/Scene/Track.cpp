@@ -29,7 +29,9 @@ namespace OpenNFS {
         perTrackblockEntities.resize(trackBlocks.size());
         for (auto &trackBlock : trackBlocks) {
             for (auto &trackObject : trackBlock.objects) {
-                perTrackblockEntities.at(trackBlock.id).emplace_back(std::make_shared<Entity>(trackObject));
+                // Animated entities go to the global vector
+                auto &entityList {trackObject.animData.empty() ? perTrackblockEntities.at(trackBlock.id) : globalEntities};
+                entityList.emplace_back(std::make_shared<Entity>(trackObject));
             }
             for (auto &trackSurface : trackBlock.track) {
                 perTrackblockEntities.at(trackBlock.id).emplace_back(std::make_shared<Entity>(trackSurface));
@@ -40,16 +42,21 @@ namespace OpenNFS {
             for (auto &trackLight : trackBlock.lights) {
                 perTrackblockEntities.at(trackBlock.id).emplace_back(std::make_shared<Entity>(trackLight));
             }
-            for (auto &trackGlobalObject : globalObjects) {
-                perTrackblockEntities.at(trackBlock.id).emplace_back(std::make_shared<Entity>(trackGlobalObject));
-            }
         }
+        for (auto &trackGlobalObject : globalObjects) {
+            globalEntities.emplace_back(std::make_shared<Entity>(trackGlobalObject));
+        }
+
         // Enable all models to ensure GL Buffers are generated for track
         for (auto const &trackBlockEntities : perTrackblockEntities) {
             for (auto const &entity : trackBlockEntities) {
                 entity->Enable();
                 entity->UpdateMatrices();
             }
+        }
+        for (auto const &globalEntity : globalEntities) {
+            globalEntity->Enable();
+            globalEntity->UpdateMatrices();
         }
     }
 
@@ -69,6 +76,9 @@ namespace OpenNFS {
             for (auto const &entity : trackBlockEntities) {
                 cullTree.insertObject(entity);
             }
+        }
+        for (auto const &globalEntity : globalEntities) {
+            cullTree.insertObject(globalEntity);
         }
     }
 } // namespace OpenNFS

@@ -24,7 +24,9 @@ namespace OpenNFS {
         [[nodiscard]] LibOpenNFS::EntityType Type() const;
         [[nodiscard]] bool Collidable() const;
         [[nodiscard]] bool Dynamic() const;
+        [[nodiscard]] bool Animated() const;
         [[nodiscard]] uint32_t RawFlags() const;
+        [[nodiscard]] uint32_t ID() const;
 
         std::unique_ptr<btRigidBody> rigidBody;
 
@@ -40,5 +42,6 @@ namespace OpenNFS {
         void _GenBoundingBox();
 
         size_t animKeyframeIndex{0};
+        uint16_t animFrameCounter{0};
     };
 } // namespace OpenNFS

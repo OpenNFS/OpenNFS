@@ -234,19 +234,13 @@ namespace OpenNFS {
     }
 
     void Renderer::_DrawMetadata(Entity const *targetEntity) {
-        auto const track_entity{dynamic_cast<TrackEntity const *>(targetEntity)};
-        if (track_entity == nullptr) {
-            return;
-        }
         ImGui::Begin("Engine Entity");
-        ImGui::Text("%s", magic_enum::enum_name(track_entity->type).data());
-        if (track_entity->entityID != -1) {
-            ImGui::Text("ID: %d", track_entity->entityID);
-        }
+        ImGui::Text("%s", magic_enum::enum_name(targetEntity->Type()).data());
+        ImGui::Text("ID: %d", targetEntity->ID());
         ImGui::Separator();
 
         // Traverse the loader structures and print pretty with IMGUI
-        switch (track_entity->type) {
+        switch (targetEntity->Type()) {
         case EntityType::LIGHT: {
             auto const targetBaseLight = targetEntity->AsLight();
             ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z, targetBaseLight->colour.w);

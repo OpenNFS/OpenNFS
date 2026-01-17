@@ -23,6 +23,7 @@ namespace OpenNFS {
         GLuint textureArrayID{0};
         std::vector<std::vector<std::shared_ptr<Entity>>>
             perTrackblockEntities; // [Trackblock 0: [entity 0, entity 1, ...], Trackblock 1: [entity X, ...]]
+        std::vector<std::shared_ptr<Entity>> globalEntities;
         AABBTree cullTree;
 
       private:

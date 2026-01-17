@@ -79,6 +79,9 @@ namespace OpenNFS {
         for (auto const &entity : racerResidentTrackblockEntities) {
             entity->Update();
         }
+        for (auto const &globalEntity : m_track->globalEntities) {
+            globalEntity->Update();
+        }
     }
 
     std::optional<Entity *> PhysicsManager::CheckForPicking(double const x, double const y, glm::mat4 const &viewMatrix,
@@ -88,7 +91,7 @@ namespace OpenNFS {
         glm::vec3 const outEnd{origin + direction * 1000.0f};
 
         btCollisionWorld::ClosestRayResultCallback rayCallback(Utils::glmToBullet(origin), Utils::glmToBullet(outEnd));
-        rayCallback.m_collisionFilterMask = COL_CAR | COL_TRACK | COL_DYNAMIC_TRACK;
+        rayCallback.m_collisionFilterMask = COL_TRACK | COL_DYNAMIC_TRACK; // Disable COL_CAR collisions until Entity userpointer support
 
         m_pDynamicsWorld->rayTest(Utils::glmToBullet(origin), Utils::glmToBullet(outEnd), rayCallback);
 
