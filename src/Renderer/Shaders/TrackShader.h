@@ -18,7 +18,6 @@ namespace OpenNFS {
             glm::mat4 const &view) const; // These don't change between Shader binds, better to set state once for a track render pass
         void loadCameraPosition(glm::vec3 const &cameraPosition) const;
         void loadTransformMatrix(glm::mat4 const &transformation) const;
-        void loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) const;
         void loadSpecular(float damper, float reflectivity) const;
         void loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights) const;
         void loadSpotlights(std::vector<Spotlight> const &spotlights) const;
@@ -36,7 +35,6 @@ namespace OpenNFS {
         GLint transformationMatrixLocation;
         GLint projectionMatrixLocation;
         GLint viewMatrixLocation;
-        GLint lightSpaceMatrixLocation;
         GLint lightPositionLocation[MAX_TRACK_CONTRIB_LIGHTS];
         GLint lightColourLocation[MAX_TRACK_CONTRIB_LIGHTS];
         GLint attenuationLocation[MAX_TRACK_CONTRIB_LIGHTS];

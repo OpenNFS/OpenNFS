@@ -7,10 +7,6 @@ flat in uint debugDataOut;
 // Diffuse and Specular
 in vec3 surfaceNormal;
 
-// Fog
-in vec4 viewSpace;
-in vec4 lightSpace;
-
 // CSM inputs
 in vec3 fragPosWorldSpace;
 in float clipSpaceZ;

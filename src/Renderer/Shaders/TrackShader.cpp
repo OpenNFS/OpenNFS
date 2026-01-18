@@ -23,7 +23,6 @@ namespace OpenNFS {
         transformationMatrixLocation = getUniformLocation("transformationMatrix");
         projectionMatrixLocation = getUniformLocation("projectionMatrix");
         viewMatrixLocation = getUniformLocation("viewMatrix");
-        lightSpaceMatrixLocation = getUniformLocation("lightSpaceMatrix");
         trackTextureArrayLocation = getUniformLocation("textureArray");
         shineDamperLocation = getUniformLocation("shineDamper");
         reflectivityLocation = getUniformLocation("reflectivity");
@@ -115,10 +114,6 @@ namespace OpenNFS {
 
     void TrackShader::loadTransformMatrix(glm::mat4 const &transformation) const {
         loadMat4(transformationMatrixLocation, &transformation[0][0]);
-    }
-
-    void TrackShader::loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) const {
-        loadMat4(lightSpaceMatrixLocation, &lightSpaceMatrix[0][0]);
     }
 
     void TrackShader::loadShadowMapTexture(GLuint const shadowMapTextureID) const {

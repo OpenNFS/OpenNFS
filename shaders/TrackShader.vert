@@ -14,24 +14,18 @@ flat out uint debugDataOut;
 
 // Diffuse and Specular
 out vec3 surfaceNormal;
-// Fog
-out vec4 viewSpace;
-out vec4 lightSpace;
 // CSM
 out vec3 fragPosWorldSpace;
 out float clipSpaceZ;
 
 // Values that stay constant for the whole mesh.
-uniform mat4 projectionMatrix, viewMatrix ,transformationMatrix;
-uniform mat4 lightSpaceMatrix;
+uniform mat4 projectionMatrix, viewMatrix, transformationMatrix;
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
 
     // CSM: Pass world position for cascade selection
     fragPosWorldSpace = worldPosition.xyz;
-
-    lightSpace = lightSpaceMatrix * worldPosition;
 
     // Pass through texture Index
     texIndex = textureIndex;
@@ -47,9 +41,6 @@ void main(){
     // Calculate clip space position for cascade selection
     vec4 viewSpacePos = viewMatrix * worldPosition;
     clipSpaceZ = -viewSpacePos.z;  // Positive view-space depth
-
-    // Fog Passout
-    viewSpace = viewSpacePos;
 
 	// Output position of the vertex, in clip space : MVP * position
     gl_Position = projectionMatrix * viewSpacePos;
