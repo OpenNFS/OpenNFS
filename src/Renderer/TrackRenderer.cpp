@@ -16,9 +16,16 @@ namespace OpenNFS {
         m_trackShader.bindTextureArray(trackTextureArrayID);
         m_trackShader.loadAmbientFactor(ambientFactor);
         m_trackShader.loadLights(lights);
-        if (racers[0]->vehicle->vehicleState.lightsActive) {
-            m_trackShader.loadSpotlight(racers.back()->vehicle->leftHeadLight);
+
+        // Collect all active spotlights from all racers
+        std::vector<Spotlight> activeSpotlights;
+        for (auto const &racer : racers) {
+            if (racer->vehicle->vehicleState.headlightsActive) {
+                activeSpotlights.push_back(racer->vehicle->leftHeadLight);
+                activeSpotlights.push_back(racer->vehicle->rightHeadLight);
+            }
         }
+        m_trackShader.loadSpotlights(activeSpotlights);
 
         // Global Light is always 0th index
         auto const globalLight{dynamic_cast<GlobalLight const *>(lights.at(0))};

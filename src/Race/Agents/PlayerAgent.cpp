@@ -23,7 +23,7 @@ namespace OpenNFS {
         }
 
         if (m_inputManager.lights) {
-            vehicle->ToggleLights();
+            vehicle->ToggleHeadlights();
         }
     }
 } // namespace OpenNFS

@@ -91,7 +91,7 @@ namespace OpenNFS {
         m_numRacers = racers.size();
 
         // Perform frustum culling to get visible entities, from perspective of active camera
-        auto const [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, activeLight, userParams);
+        auto const [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, activeLight, racers[0], userParams);
 
         if (userParams.drawHermiteFrustum) {
             m_debugRenderer.DrawFrustum(hermiteCamera);
@@ -133,7 +133,7 @@ namespace OpenNFS {
 
         // Render the Car and racers with CSM shadows
         for (auto &racer : racers) {
-            m_carRenderer.Render(racer->vehicle, activeCamera, activeLight, m_shadowMapRenderer.GetTextureArrayID());
+            m_carRenderer.Render(racer->vehicle, activeCamera, visibleLights, m_shadowMapRenderer.GetTextureArrayID());
         }
 
         if (userParams.drawAIState) {
@@ -175,10 +175,13 @@ namespace OpenNFS {
     }
 
     VisibleSet Renderer::_FrustumCull(std::shared_ptr<Track> const &track, BaseCamera const &camera, GlobalLight const *globalLight,
-                                      ParamData const &userParams) {
+                                      std::shared_ptr<CarAgent> const &racer, ParamData const &userParams) {
         VisibleSet visibleSet;
         // The sun/moon should always contribute
         visibleSet.lights.push_back(globalLight);
+        // As should the players car
+        visibleSet.lights.push_back(&racer->vehicle->leftTailLight);
+        visibleSet.lights.push_back(&racer->vehicle->rightTailLight);
 
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks

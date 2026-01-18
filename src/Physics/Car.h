@@ -9,6 +9,7 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "../Renderer/Models/GLCarModel.h"
+#include "../Scene/GlobalLight.h"
 #include "../Scene/Spotlight.h"
 #include "../Util/ImageLoader.h"
 #include "../Util/Utils.h"
@@ -45,9 +46,11 @@ namespace OpenNFS {
         bool steerRight;
         bool steerLeft;
         bool isSteering;
+        bool isBraking;
 
         // Accessories
-        bool lightsActive;
+        bool headlightsActive;
+        bool taillightsActive;
 
         // Meta
         glm::vec4 colour;
@@ -79,7 +82,7 @@ namespace OpenNFS {
         void ApplyBrakingForce(bool apply);
         void ApplySteeringRight(bool apply);
         void ApplySteeringLeft(bool apply);
-        void ToggleLights();
+        void ToggleHeadlights();
         void ApplyAbsoluteSteerAngle(float targetAngle);
         [[nodiscard]] float GetCarBodyOrientation() const;
 
@@ -108,11 +111,10 @@ namespace OpenNFS {
         RenderInfo renderInfo{};
 
         // Meshes and Headlights
-        std::vector<LibOpenNFS::BaseLight const *> lights;
         Spotlight leftHeadLight;
         Spotlight rightHeadLight;
-        Spotlight leftTailLight;
-        Spotlight rightTailLight;
+        GlobalLight leftTailLight;
+        GlobalLight rightTailLight;
         std::vector<GLCarModel> miscModels;
         GLCarModel leftFrontWheelModel;
         GLCarModel rightFrontWheelModel;

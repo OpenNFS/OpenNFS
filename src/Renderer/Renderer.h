@@ -55,7 +55,7 @@ namespace OpenNFS {
         void _DrawDebugUI(ParamData &userParams, float deltaTime, BaseCamera const &camera);
         static std::vector<uint32_t> _GetLocalTrackBlockIDs(std::shared_ptr<Track> const &track, BaseCamera const &camera);
         static VisibleSet _FrustumCull(std::shared_ptr<Track> const &track, BaseCamera const &camera, GlobalLight const *globalLight,
-                                       ParamData const &userParams);
+                                       std::shared_ptr<CarAgent> const &racer, ParamData const &userParams);
 
         std::shared_ptr<GLFWwindow> m_window;
         std::shared_ptr<Logger> m_logger;
