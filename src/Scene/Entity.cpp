@@ -123,8 +123,8 @@ namespace OpenNFS {
             position = glm::mix(posStart, posEnd, t);
 
             // Interpolate orientation (slerp)
-            glm::quat const orientStart = glm::normalize(glm::quat(quat));
-            glm::quat const orientEnd = glm::normalize(glm::quat(quat_next));
+            glm::quat const orientStart = glm::normalize(glm::quat(quat.x, quat.y, quat.z, quat.w));
+            glm::quat const orientEnd = glm::normalize(glm::quat(quat_next.x, quat_next.y, quat_next.z, quat_next.w));
             // Apply 180 degree Z rotation to convert to ONFS coordinate system
             static glm::quat const zCorrection = glm::angleAxis(glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f));
             orientation = zCorrection * glm::slerp(orientStart, orientEnd, t);
