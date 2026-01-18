@@ -64,10 +64,8 @@ namespace OpenNFS {
             Utils::glmToBullet(carBodyPosition), Utils::glmToBullet(car->rangefinderInfo.downCastPosition),
             btVector3(2.0f * (kFarDistance - car->rangefinderInfo.downDistance), 2.0f * (car->rangefinderInfo.downDistance), 0));
 
-        for (auto &light : car->lights) {
-            auto const spotlight{((Spotlight *&)light)};
-            DrawDummy(spotlight->position, spotlight->direction);
-        }
+        DrawDummy(car->leftHeadLight.position, car->leftHeadLight.direction);
+        DrawDummy(car->rightHeadLight.position, car->rightHeadLight.direction);
     }
 
     void DebugRenderer::DrawVehicleAI(std::shared_ptr<RacerAgent> const &racer, BaseCamera const &camera) const {
@@ -133,8 +131,8 @@ namespace OpenNFS {
             // Draw CAN positions
             Shared::CameraAnimPoint const refPt = track->cameraAnimation[canIdx];
             Shared::CameraAnimPoint const refPtNext = track->cameraAnimation[canIdx + 1];
-            glm::vec3 vroadPoint{LibOpenNFS::Utils::FixedToFloat(refPt.pt) * NFS3::NFS3_SCALE_FACTOR};
-            glm::vec3 vroadPointNext{LibOpenNFS::Utils::FixedToFloat(refPtNext.pt) * NFS3::NFS3_SCALE_FACTOR};
+            glm::vec3 vroadPoint{LibOpenNFS::Utils::FixedToFloat(refPt.pt) * NFS3::SCALE_FACTOR};
+            glm::vec3 vroadPointNext{LibOpenNFS::Utils::FixedToFloat(refPtNext.pt) * NFS3::SCALE_FACTOR};
             vroadPoint.y += 0.2f;
             vroadPointNext.y += 0.2f;
             m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].position),

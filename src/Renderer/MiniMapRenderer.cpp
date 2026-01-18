@@ -21,7 +21,7 @@ namespace OpenNFS {
 
         m_miniMapShader.use();
         m_miniMapShader.loadProjectionMatrix(projectionMatrix);
-        m_miniMapShader.loadColor(glm::vec3(1.f, 1.f, 1.f));
+        m_miniMapShader.loadColour(glm::vec3(1.f, 1.f, 1.f));
 
         glm::mat4 const rotationMat{glm::rotate(glm::mat4(1.f), glm::radians(270.f), glm::vec3(-1.0, 0.0, 0.0))};
 
@@ -37,7 +37,7 @@ namespace OpenNFS {
         }
 
         for (auto &racer : racers) {
-            m_miniMapShader.loadColor(racer->vehicle->vehicleState.colour);
+            m_miniMapShader.loadColour(racer->vehicle->vehicleState.colour);
             auto racerMatrix{
                 glm::scale(rotationMat * racer->vehicle->carBodyModel.ModelMatrix, glm::vec3(kVehicleScale, kVehicleScale, kVehicleScale))};
             m_miniMapShader.loadTransformationMatrix(racerMatrix);

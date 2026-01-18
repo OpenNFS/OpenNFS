@@ -14,7 +14,7 @@
     {
       "type": "textfield",
       "text": "OpenNFS v{ONFS_VERSION} Pre Alpha",
-      "color": "#999999",
+      "colour": "#999999",
       "scale": 0.2,
       "layer": 0,
       "position": {

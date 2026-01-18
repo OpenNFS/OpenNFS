@@ -58,8 +58,8 @@ namespace OpenNFS {
     // Cascaded Shadow Map Configuration
     static constexpr uint32_t CSM_NUM_CASCADES{3};
     static constexpr float CSM_LAMBDA{0.5f}; // Split scheme blend (0=linear, 1=logarithmic)
-    static constexpr float CSM_NEAR_PLANE{0.1f};
-    static constexpr float CSM_FAR_PLANE{500.f}; // Max shadow distance
+    static constexpr float CSM_NEAR_PLANE{0.04f};
+    static constexpr float CSM_FAR_PLANE{100.f}; // Max shadow distance
     // Lighting parameters - These should be adjusted in tandem with ShaderPreamble MAX_CONTRIB limits
     static constexpr uint32_t LIGHTS_PER_NB_BLOCK{3};
     // Number of lights per neighbouring trackblock to contribute to current trackblock lighting

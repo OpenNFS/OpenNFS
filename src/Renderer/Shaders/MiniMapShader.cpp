@@ -29,8 +29,8 @@ namespace OpenNFS {
         loadMat4(transformationMatrixLocation, &transformation[0][0]);
     }
 
-    void MiniMapShader::loadColor(glm::vec3 const color) const {
-        loadVec3(colourLocation, color);
+    void MiniMapShader::loadColour(glm::vec3 const colour) const {
+        loadVec3(colourLocation, colour);
     }
 
     void MiniMapShader::loadLayer(GLint const layer) const {

@@ -37,10 +37,13 @@ namespace OpenNFS {
             lightColourLocation[i] = getUniformLocation("lightColour[" + std::to_string(i) + "]");
             attenuationLocation[i] = getUniformLocation("attenuation[" + std::to_string(i) + "]");
         }
-        spotlightPositionLocation = getUniformLocation("spotlightPosition");
-        spotlightColourLocation = getUniformLocation("spotlightColour");
-        spotlightDirectionLocation = getUniformLocation("spotlightDirection");
-        spotlightCutOffLocation = getUniformLocation("spotlightCutOff");
+        for (int i = 0; i < MAX_SPOTLIGHTS; ++i) {
+            spotlightPositionLocation[i] = getUniformLocation("spotlightPosition[" + std::to_string(i) + "]");
+            spotlightColourLocation[i] = getUniformLocation("spotlightColour[" + std::to_string(i) + "]");
+            spotlightDirectionLocation[i] = getUniformLocation("spotlightDirection[" + std::to_string(i) + "]");
+            spotlightInnerCutOffLocation[i] = getUniformLocation("spotlightInnerCutOff[" + std::to_string(i) + "]");
+            spotlightOuterCutOffLocation[i] = getUniformLocation("spotlightOuterCutOff[" + std::to_string(i) + "]");
+        }
 
         // CSM uniforms
         for (int i = 0; i < CSM_NUM_CASCADES; ++i) {
@@ -60,7 +63,7 @@ namespace OpenNFS {
 
     void TrackShader::loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights) const {
         for (int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i) {
-            if (i < lights.size()) {
+            if (i < lights.size() && lights[i]->active) {
                 loadVec3(lightPositionLocation[i], lights[i]->position);
                 loadVec4(lightColourLocation[i], lights[i]->colour);
                 loadVec3(attenuationLocation[i], lights[i]->attenuation);
@@ -72,11 +75,23 @@ namespace OpenNFS {
         }
     }
 
-    void TrackShader::loadSpotlight(Spotlight const &spotlight) const {
-        loadVec3(spotlightPositionLocation, spotlight.position);
-        loadVec3(spotlightColourLocation, spotlight.colour);
-        loadVec3(spotlightDirectionLocation, spotlight.direction);
-        loadFloat(spotlightCutOffLocation, spotlight.cutOff);
+    void TrackShader::loadSpotlights(std::vector<Spotlight> const &spotlights) const {
+        for (int i = 0; i < MAX_SPOTLIGHTS; ++i) {
+            if (i < spotlights.size()) {
+                loadVec3(spotlightPositionLocation[i], spotlights[i].position);
+                loadVec3(spotlightColourLocation[i], spotlights[i].colour);
+                loadVec3(spotlightDirectionLocation[i], spotlights[i].direction);
+                loadFloat(spotlightInnerCutOffLocation[i], spotlights[i].innerCutOff);
+                loadFloat(spotlightOuterCutOffLocation[i], spotlights[i].outerCutOff);
+            } else {
+                // Set inactive spotlights to zero
+                loadVec3(spotlightPositionLocation[i], glm::vec3(0, 0, 0));
+                loadVec3(spotlightColourLocation[i], glm::vec3(0, 0, 0));
+                loadVec3(spotlightDirectionLocation[i], glm::vec3(0, 0, 0));
+                loadFloat(spotlightInnerCutOffLocation[i], 0.0f);
+                loadFloat(spotlightOuterCutOffLocation[i], 0.0f);
+            }
+        }
     }
 
     void TrackShader::setClassic(bool const useClassic) const {

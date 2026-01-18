@@ -20,7 +20,7 @@ namespace OpenNFS {
         void loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) const;
         void loadSpecular(float damper, float reflectivity) const;
         void loadLights(std::vector<LibOpenNFS::BaseLight const *> const &lights) const;
-        void loadSpotlight(Spotlight const &spotlight) const;
+        void loadSpotlights(std::vector<Spotlight> const &spotlights) const;
         void loadShadowMapTexture(GLuint shadowMapTextureID) const;
         void loadShadowMapTextureArray(GLuint shadowMapTextureArrayID) const;
         void loadCascadeData(CascadeData const &cascadeData) const;
@@ -39,10 +39,11 @@ namespace OpenNFS {
         GLint lightPositionLocation[MAX_TRACK_CONTRIB_LIGHTS];
         GLint lightColourLocation[MAX_TRACK_CONTRIB_LIGHTS];
         GLint attenuationLocation[MAX_TRACK_CONTRIB_LIGHTS];
-        GLint spotlightPositionLocation;
-        GLint spotlightColourLocation;
-        GLint spotlightDirectionLocation;
-        GLint spotlightCutOffLocation;
+        GLint spotlightPositionLocation[MAX_SPOTLIGHTS];
+        GLint spotlightColourLocation[MAX_SPOTLIGHTS];
+        GLint spotlightDirectionLocation[MAX_SPOTLIGHTS];
+        GLint spotlightInnerCutOffLocation[MAX_SPOTLIGHTS];
+        GLint spotlightOuterCutOffLocation[MAX_SPOTLIGHTS];
         GLint shineDamperLocation;
         GLint reflectivityLocation;
         GLint useClassicLocation;

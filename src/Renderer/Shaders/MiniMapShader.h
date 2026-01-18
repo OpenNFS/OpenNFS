@@ -8,7 +8,7 @@ namespace OpenNFS {
     class MiniMapShader : public BaseShader {
       public:
         explicit MiniMapShader();
-        void loadColor(glm::vec3 color) const;
+        void loadColour(glm::vec3 colour) const;
         void loadLayer(GLint layer) const;
         void loadProjectionMatrix(glm::mat4 const &projection) const;
         void loadTransformationMatrix(glm::mat4 const &transformation) const;

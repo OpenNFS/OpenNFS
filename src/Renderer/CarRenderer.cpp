@@ -1,19 +1,19 @@
 #include "CarRenderer.h"
 
 namespace OpenNFS {
-    void CarRenderer::Render(std::shared_ptr<Car> const &car, BaseCamera const &camera, GlobalLight const *globalLight,
-                             GLuint const shadowMapArrayID) {
+    void CarRenderer::Render(std::shared_ptr<Car> const &car, BaseCamera const &camera, std::vector<BaseLight const *> const &trackLights,
+                             GLuint const shadowMapArrayID) const {
         m_carShader.use();
 
         // This shader state doesn't change during a car renderpass
         m_carShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
         m_carShader.setPolyFlagged(car->carBodyModel.m_polygon_flags.empty());
-        m_carShader.loadCarColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-        m_carShader.loadLights(car->lights);
+        m_carShader.loadCarColour(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        m_carShader.loadLights(trackLights);
         m_carShader.loadEnvironmentMapTexture();
 
         // Load CSM data for shadows
-        m_carShader.loadCascadeData(globalLight->cascadeData);
+        m_carShader.loadCascadeData(dynamic_cast<GlobalLight const *>(trackLights.front())->cascadeData);
         m_carShader.loadShadowMapTextureArray(shadowMapArrayID);
 
         // Check if we're texturing the car from multiple textures, if we are, let the shader know with a uniform and bind texture array
@@ -50,8 +50,8 @@ namespace OpenNFS {
         m_carShader.loadTransformationMatrix(car->carBodyModel.ModelMatrix);
         m_carShader.loadSpecular(car->carBodyModel.specularDamper, car->carBodyModel.specularReflectivity,
                                  car->carBodyModel.envReflectivity);
-        m_carShader.loadCarColor(car->vehicleState.colour,
-                                 car->vehicleState.colourSecondary); // The colour should only apply to the car body
+        m_carShader.loadCarColour(car->vehicleState.colour,
+                                  car->vehicleState.colourSecondary); // The colour should only apply to the car body
         car->carBodyModel.Render();
 
         m_carShader.unbind();

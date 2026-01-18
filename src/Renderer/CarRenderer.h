@@ -10,7 +10,8 @@ namespace OpenNFS {
       public:
         explicit CarRenderer() = default;
         ~CarRenderer();
-        void Render(std::shared_ptr<Car> const &car, BaseCamera const &camera, GlobalLight const *globalLight, GLuint shadowMapArrayID);
+        void Render(std::shared_ptr<Car> const &car, BaseCamera const &camera, std::vector<BaseLight const *> const &trackLights,
+                    GLuint shadowMapArrayID) const;
 
       private:
         // Create and compile our GLSL programs from the shaders

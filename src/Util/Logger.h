@@ -102,7 +102,7 @@ namespace OpenNFS {
             log = targetLog;
         }
 
-        [[nodiscard]] static ImVec4 GetColor(const LEVELS &level) {
+        [[nodiscard]] static ImVec4 GetColour(const LEVELS &level) {
             if (level.value == WARNING.value) {
                 return {1.f, 1.f, 0.f, 1.f};
             }
@@ -118,15 +118,15 @@ namespace OpenNFS {
 
         void ReceiveLogMessage(g3::LogMessageMover logEntry) const {
             auto const level{logEntry.get()._level};
-            auto const color{GetColor(level)};
+            auto const colour{GetColour(level)};
 
-            log->AddLog(color, logEntry.get().toString(&FormatLog).c_str(), nullptr);
+            log->AddLog(colour, logEntry.get().toString(&FormatLog).c_str(), nullptr);
         }
     };
 
-    struct ColorCoutSink {
+    struct ColourCoutSink {
 #ifdef _WIN32
-        enum FG_Color {
+        enum FG_Colour {
             BLACK = 0,
             BLUE = 1,
             GREEN = 2,
@@ -135,7 +135,7 @@ namespace OpenNFS {
             WHITE = 7
         };
 #else
-        enum FG_Color {
+        enum FG_Colour {
             YELLOW = 33,
             RED = 31,
             GREEN = 32,
@@ -143,7 +143,7 @@ namespace OpenNFS {
         };
 #endif
 
-        static FG_Color GetColor(const LEVELS &level) {
+        static FG_Colour GetColour(const LEVELS &level) {
             if (level.value == WARNING.value) {
                 return YELLOW;
             }
@@ -159,15 +159,15 @@ namespace OpenNFS {
 
         void ReceiveLogMessage(g3::LogMessageMover logEntry) const {
             auto const level = logEntry.get()._level;
-            auto color = GetColor(level);
+            auto colour = GetColour(level);
 #ifdef _WIN32
             HANDLE consoleHandle_;
             consoleHandle_ = GetStdHandle(STD_OUTPUT_HANDLE);
-            SetConsoleTextAttribute(consoleHandle_, color);
+            SetConsoleTextAttribute(consoleHandle_, colour);
             std::cout << logEntry.get().toString(&FormatLog);
             SetConsoleTextAttribute(consoleHandle_, WHITE);
 #else
-            std::cout << "\033[" << color << "m" << logEntry.get().toString(&FormatLog) << "\033[m";
+            std::cout << "\033[" << colour << "m" << logEntry.get().toString(&FormatLog) << "\033[m";
 #endif
         }
     };

@@ -27,6 +27,7 @@ namespace OpenNFS {
         std::shared_ptr<Car> m_currentCar;
         btTransform m_carouselTransform{};
         GlobalLight m_showroomLight;
+        std::vector<BaseLight const *> m_showroomLights;
 
         CarRenderer m_carRenderer;
         InputManager m_inputManager;

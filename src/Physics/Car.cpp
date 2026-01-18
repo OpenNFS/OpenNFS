@@ -80,8 +80,8 @@ namespace OpenNFS {
         vehicleState.steerLeft = apply;
     }
 
-    void Car::ToggleLights() {
-        vehicleState.lightsActive = !vehicleState.lightsActive;
+    void Car::ToggleHeadlights() {
+        vehicleState.headlightsActive = !vehicleState.headlightsActive;
     }
 
     void Car::ApplyAbsoluteSteerAngle(float const targetAngle) {
@@ -100,6 +100,7 @@ namespace OpenNFS {
         } else {
             vehicleState.gBreakingForce = 0.f;
         }
+        vehicleState.taillightsActive = apply;
     }
 
     void Car::SetPosition(glm::vec3 const position, glm::quat const orientation) {
@@ -172,8 +173,6 @@ namespace OpenNFS {
         rightHeadLight.direction = Utils::bulletToGlm(m_vehicle->getForwardVector());
         leftHeadLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * leftHeadLight.initialPosition);
         rightHeadLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * rightHeadLight.initialPosition);
-        leftTailLight.direction = Utils::bulletToGlm(-m_vehicle->getForwardVector());
-        rightTailLight.direction = Utils::bulletToGlm(-m_vehicle->getForwardVector());
         leftTailLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * leftTailLight.initialPosition);
         rightTailLight.position = Utils::bulletToGlm(trans.getOrigin()) + (carRotation * rightTailLight.initialPosition);
 
@@ -235,6 +234,7 @@ namespace OpenNFS {
         m_vehicle->setBrake(vehicleState.gBreakingForce, REAR_LEFT);
         m_vehicle->applyEngineForce(vehicleState.gEngineForce, REAR_RIGHT);
         m_vehicle->setBrake(vehicleState.gBreakingForce, REAR_RIGHT);
+        leftTailLight.active = rightTailLight.active = vehicleState.taillightsActive;
     }
 
     void Car::_LoadTextures() {
@@ -553,33 +553,31 @@ namespace OpenNFS {
         if (assetData.tag == NFSVersion::NFS_3 || assetData.tag == NFSVersion::NFS_4) {
             for (auto &dummy : assetData.metadata.dummies) {
                 if (dummy.name.find("HFLO") != std::string::npos) {
-                    leftHeadLight.cutOff = glm::cos(glm::radians(12.5f));
+                    leftHeadLight.innerCutOff = glm::cos(glm::radians(12.5f));
+                    leftHeadLight.outerCutOff = glm::cos(glm::radians(17.5f));
                     leftHeadLight.position = leftHeadLight.initialPosition = dummy.position;
                     leftHeadLight.colour = glm::vec4(1, 1, 1, 0);
                 }
                 if (dummy.name.find("HFRE") != std::string::npos) {
-                    rightHeadLight.cutOff = glm::cos(glm::radians(12.5f));
+                    rightHeadLight.innerCutOff = glm::cos(glm::radians(12.5f));
+                    rightHeadLight.outerCutOff = glm::cos(glm::radians(17.5f));
                     rightHeadLight.position = rightHeadLight.initialPosition = dummy.position;
                     rightHeadLight.colour = glm::vec4(1, 1, 1, 0);
                 }
                 if (dummy.name.find("TRLN") != std::string::npos) {
-                    leftTailLight.cutOff = glm::cos(glm::radians(12.5f));
                     leftTailLight.position = leftTailLight.initialPosition = dummy.position;
                     leftTailLight.colour = glm::vec4(1, 0, 0, 0);
+                    leftTailLight.attenuation = glm::vec4(1, 1.5, 1.5, 0);
                 }
                 if (dummy.name.find("TRRN") != std::string::npos) {
-                    rightTailLight.cutOff = glm::cos(glm::radians(12.5f));
                     rightTailLight.position = rightTailLight.initialPosition = dummy.position;
                     rightTailLight.colour = glm::vec4(1, 0, 0, 0);
+                    rightTailLight.attenuation = glm::vec4(1, 2, 2, 0);
                 }
             }
-
-            lights.push_back(&leftTailLight);
-            lights.push_back(&rightTailLight);
-            lights.push_back(&leftHeadLight);
-            lights.push_back(&rightHeadLight);
         } else {
-            leftHeadLight.cutOff = rightHeadLight.cutOff = rightTailLight.cutOff = leftTailLight.cutOff = glm::cos(glm::radians(12.5f));
+            leftHeadLight.innerCutOff = rightHeadLight.innerCutOff = glm::cos(glm::radians(12.5f));
+            leftHeadLight.outerCutOff = rightHeadLight.outerCutOff = glm::cos(glm::radians(17.5f));
             leftHeadLight.position = rightHeadLight.position = rightTailLight.position = leftTailLight.position = carBodyModel.position;
             leftHeadLight.colour = rightHeadLight.colour = rightTailLight.colour = leftTailLight.colour = glm::vec4(1, 0, 1, 0);
         }

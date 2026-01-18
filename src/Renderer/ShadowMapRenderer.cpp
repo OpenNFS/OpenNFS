@@ -12,18 +12,21 @@ namespace OpenNFS {
         glBindTexture(GL_TEXTURE_2D_ARRAY, m_depthTextureArrayID);
 
         // Allocate storage for all cascade layers
+#ifdef __APPLE__
         glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, CSM_NUM_CASCADES, 0, GL_DEPTH_COMPONENT,
                      GL_FLOAT, nullptr);
-        // glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, CSM_NUM_CASCADES);
+#else
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, CSM_NUM_CASCADES);
+#endif
 
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-        // Set border color to 1.0 (no shadow outside map)
-        float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-        glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, borderColor);
+        // Set border colour to 1.0 (no shadow outside map)
+        float borderColour[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, borderColour);
 
         // Enable hardware shadow comparison
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -53,7 +56,7 @@ namespace OpenNFS {
 
     void ShadowMapRenderer::RenderCascade(uint32_t const cascadeIndex, glm::mat4 const &lightSpaceMatrix, GLuint const trackTextureArrayID,
                                           std::vector<std::shared_ptr<Entity>> const &visibleEntities,
-                                          std::vector<std::shared_ptr<CarAgent>> const &racers) {
+                                          std::vector<std::shared_ptr<CarAgent>> const &racers) const {
         // Attach the correct layer of the texture array
         glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_depthTextureArrayID, 0, cascadeIndex);
 

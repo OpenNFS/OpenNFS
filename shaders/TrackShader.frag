@@ -9,7 +9,7 @@ in vec3 surfaceNormal;
 in vec3 toLightVector[MAX_TRACK_CONTRIB_LIGHTS];
 in vec3 toCameraVector;
 // Spotlight
-in vec3 toSpotlightVector;
+in vec3 toSpotlightVector[MAX_SPOTLIGHTS];
 
 // Fog
 in vec4 viewSpace;
@@ -29,9 +29,10 @@ uniform sampler2DArrayShadow shadowMapArray;
 uniform float ambientFactor;
 uniform vec4 lightColour[MAX_TRACK_CONTRIB_LIGHTS];
 uniform vec3 attenuation[MAX_TRACK_CONTRIB_LIGHTS];
-uniform vec3 spotlightColour;
-uniform vec3 spotlightDirection;
-uniform float spotlightCutOff;
+uniform vec3 spotlightColour[MAX_SPOTLIGHTS];
+uniform vec3 spotlightDirection[MAX_SPOTLIGHTS];
+uniform float spotlightInnerCutOff[MAX_SPOTLIGHTS];
+uniform float spotlightOuterCutOff[MAX_SPOTLIGHTS];
 uniform float shineDamper;
 uniform float reflectivity;
 
@@ -143,16 +144,27 @@ void main(){
         }
         totalDiffuse = max(totalDiffuse, ambientFactor);// Min brightness
 
+        // Accumulate spotlight contributions
+        vec3 spotlightContribution = vec3(0.0);
+        for (int i = 0; i < MAX_SPOTLIGHTS; ++i) {
+            // Skip inactive spotlights (zero colour indicates inactive)
+            if (length(spotlightColour[i]) < 0.001) continue;
+
+            // Check if lighting is inside the spotlight cone
+            float theta = dot(normalize(toSpotlightVector[i]), normalize(-spotlightDirection[i]));
+            float epsilon = spotlightInnerCutOff[i] - spotlightOuterCutOff[i];
+            float intensity = clamp((theta - spotlightOuterCutOff[i]) / epsilon, 0.0, 1.0);
+
+            // Add spotlight contribution with distance attenuation
+            float distance = length(toSpotlightVector[i]);
+            float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
+            spotlightContribution += intensity * attenuation * spotlightColour[i];
+        }
+        totalDiffuse += spotlightContribution;
+
         float shadow = ShadowCalculationWithBlending(fragPosWorldSpace, clipSpaceZ);
         vec3 ambient =  0.4f * nfsColor.rgb;
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
-
-        // Check if lighting is inside the spotlight cone
-        float theta = dot(normalize(toSpotlightVector), normalize(-spotlightDirection));
-        // Working with angles as cosines instead of degrees so a '>' is used.
-        if (theta > spotlightCutOff) {
-            color.rgb += (0.2 * spotlightColour.rgb);
-        }
     }
 }

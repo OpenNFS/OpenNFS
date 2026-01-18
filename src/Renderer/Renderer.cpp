@@ -91,7 +91,7 @@ namespace OpenNFS {
         m_numRacers = racers.size();
 
         // Perform frustum culling to get visible entities, from perspective of active camera
-        auto const [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, activeLight, userParams);
+        auto const [visibleEntities, visibleLights] = _FrustumCull(m_track, activeCamera, activeLight, racers[0], userParams);
 
         if (userParams.drawHermiteFrustum) {
             m_debugRenderer.DrawFrustum(hermiteCamera);
@@ -133,7 +133,7 @@ namespace OpenNFS {
 
         // Render the Car and racers with CSM shadows
         for (auto &racer : racers) {
-            m_carRenderer.Render(racer->vehicle, activeCamera, activeLight, m_shadowMapRenderer.GetTextureArrayID());
+            m_carRenderer.Render(racer->vehicle, activeCamera, visibleLights, m_shadowMapRenderer.GetTextureArrayID());
         }
 
         if (userParams.drawAIState) {
@@ -175,10 +175,13 @@ namespace OpenNFS {
     }
 
     VisibleSet Renderer::_FrustumCull(std::shared_ptr<Track> const &track, BaseCamera const &camera, GlobalLight const *globalLight,
-                                      ParamData const &userParams) {
+                                      std::shared_ptr<CarAgent> const &racer, ParamData const &userParams) {
         VisibleSet visibleSet;
         // The sun/moon should always contribute
         visibleSet.lights.push_back(globalLight);
+        // As should the players car
+        visibleSet.lights.push_back(&racer->vehicle->leftTailLight);
+        visibleSet.lights.push_back(&racer->vehicle->rightTailLight);
 
         if (userParams.useFrustumCull) {
             // Perform frustum culling on the current camera, on local trackblocks
@@ -246,7 +249,7 @@ namespace OpenNFS {
             ImVec4 lightColour(targetBaseLight->colour.x, targetBaseLight->colour.y, targetBaseLight->colour.z, targetBaseLight->colour.w);
             ImVec4 lightAttenuation(targetBaseLight->attenuation.x, targetBaseLight->attenuation.y, targetBaseLight->attenuation.z, 0.0f);
             // Colour, type, attenuation, position and NFS unknowns
-            ImGui::ColorEdit4("Light Colour", reinterpret_cast<float *>(&lightColour)); // Edit 3 floats representing a color
+            ImGui::ColorEdit4("Light Colour", reinterpret_cast<float *>(&lightColour)); // Edit 3 floats representing a colour
             targetBaseLight->colour = glm::vec4(lightColour.x, lightColour.y, lightColour.z, lightColour.w);
             ImGui::SliderFloat3("Attenuation (A, B, C)", reinterpret_cast<float *>(&lightAttenuation), 0, 10.0f);
             targetBaseLight->attenuation = glm::vec3(lightAttenuation.x, lightAttenuation.y, lightAttenuation.z);
@@ -277,9 +280,21 @@ namespace OpenNFS {
         smoothedDeltaTime /= static_cast<float>(kDeltaTimeHistorySize);
 
         // Draw Shadow Map
-        ImGui::Begin("Shadow Map");
-        // ImGui::Image(m_shadowMapRenderer.GetTextureViewID(0), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+#ifndef __APPLE__
+        ImGui::Begin("Shadow Map Cascades");
+        ImGui::Image(m_shadowMapRenderer.GetTextureViewID(m_dbgVizShadowMapCascadeID), ImVec2(256, 256), ImVec2(0, 0), ImVec2(1, -1));
+        if (ImGui::Button("<")) {
+            --m_dbgVizShadowMapCascadeID;
+        }
+        ImGui::SameLine();
+        ImGui::Text("Cascade ID: %u", m_dbgVizShadowMapCascadeID);
+        ImGui::SameLine();
+        if (ImGui::Button(">")) {
+            ++m_dbgVizShadowMapCascadeID;
+        }
+        m_dbgVizShadowMapCascadeID %= CSM_NUM_CASCADES;
         ImGui::End();
+#endif
         // Draw Logger UI
         m_logger->onScreenLog.Draw("ONFS Log");
         // Draw UI (Tactically)
@@ -315,7 +330,7 @@ namespace OpenNFS {
         m_cameraTargetVehicleID %= m_numRacers;
         ImGui::NewLine();
         ImGui::ColorEdit3("Sun Atten",
-                          reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a color
+                          reinterpret_cast<float *>(&userParams.sunAttenuation)); // Edit 3 floats representing a colour
         ImGui::SliderFloat("Track Specular Damper", &userParams.trackSpecDamper, 0, 100);
         ImGui::SliderFloat("Track Specular Reflectivity", &userParams.trackSpecReflectivity, 0, 10);
     }

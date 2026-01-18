@@ -8,8 +8,12 @@
 #include <limits>
 
 namespace OpenNFS {
+    GlobalLight::GlobalLight() : BaseLight(0, 0, GLOBAL_LIGHT, glm::vec3(), glm::vec4()) {
+    }
+
     GlobalLight::GlobalLight(glm::vec3 const lookAt, glm::vec3 const position)
-        : BaseLight(0, 0, LightType::GLOBAL_LIGHT, position, glm::vec4(0, 0, 0, 0)) {
+        : BaseLight(0, 0, GLOBAL_LIGHT, position, glm::vec4(0, 0, 0, 0)) {
+        this->initialPosition = position;
         this->ChangeTarget(lookAt);
         this->Update(0.f);
     }

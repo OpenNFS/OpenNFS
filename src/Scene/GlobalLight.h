@@ -23,11 +23,13 @@ namespace OpenNFS {
 
     class GlobalLight final : public BaseLight {
       public:
+        GlobalLight();
         explicit GlobalLight(glm::vec3 lookAt, glm::vec3 position);
         void Update(float timeScaleFactor);
         void UpdateCascades(BaseCamera const &camera);
         void ChangeTarget(glm::vec3 lookAt);
 
+        glm::vec3 initialPosition;
         glm::mat4 lightSpaceMatrix;
         glm::mat4 viewMatrix;
         CascadeData cascadeData;

@@ -46,6 +46,7 @@ namespace OpenNFS {
       private:
         std::shared_ptr<GLFWwindow> m_window;
         WindowStatus m_windowStatus{GAME};
+        bool m_lightsKeyPrev{};
 
         static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
     };

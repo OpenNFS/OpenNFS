@@ -10,9 +10,9 @@ namespace OpenNFS {
         loadEnvMapTextureData();
     }
 
-    void CarShader::loadCarColor(glm::vec4 const color, glm::vec4 const color_secondary) const {
-        loadVec4(colourLocation, color);
-        loadVec4(colourSecondaryLocation, color_secondary);
+    void CarShader::loadCarColour(glm::vec4 const colour, glm::vec4 const colour_secondary) const {
+        loadVec4(colourLocation, colour);
+        loadVec4(colourSecondaryLocation, colour_secondary);
     }
 
     void CarShader::loadCarTexture(GLuint const textureID) const {

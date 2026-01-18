@@ -112,7 +112,7 @@ bool ImageLoader::LoadBmpCustomAlpha(char const *fname, std::vector<uint8_t> &bi
                                             padding = w % 2;
                                             for (; h > 0; h--) {
                                                 for (w = width; w > 0; w--) {
-                                                    const CP_RGBQUAD rgba = info->bmiColors[*pixel];
+                                                    const CP_RGBQUAD rgba = info->bmiColours[*pixel];
                                                     pixel++;
                                                     *current_bits++ = rgba.rgbRed;
                                                     *current_bits++ = rgba.rgbGreen;
@@ -243,7 +243,7 @@ bool ImageLoader::LoadBmpWithAlpha(char const *fname, char const *afname, std::v
                                         CP_RGBQUAD rgba;
                                         for (; h > 0; h--) {
                                             for (w = width; w > 0; w--) {
-                                                rgba = info->bmiColors[*pixel];
+                                                rgba = info->bmiColours[*pixel];
                                                 pixel++;
                                                 pixel_a++;
                                                 *current_bits++ = rgba.rgbRed;
@@ -261,7 +261,7 @@ bool ImageLoader::LoadBmpWithAlpha(char const *fname, char const *afname, std::v
                                         padding = (w * 3) % 2;
                                         for (; h > 0; h--) {
                                             for (w = width; w > 0; w--) {
-                                                rgba = info_a->bmiColors[*pixel_a];
+                                                rgba = info_a->bmiColours[*pixel_a];
                                                 pixel_a++;
                                                 *current_bits++ = pixel[2];
                                                 *current_bits++ = pixel[1];

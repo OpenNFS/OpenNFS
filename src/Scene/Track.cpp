@@ -30,7 +30,7 @@ namespace OpenNFS {
         for (auto &trackBlock : trackBlocks) {
             for (auto &trackObject : trackBlock.objects) {
                 // Animated entities go to the global vector
-                auto &entityList {trackObject.animData.empty() ? perTrackblockEntities.at(trackBlock.id) : globalEntities};
+                auto &entityList{trackObject.animData.empty() ? perTrackblockEntities.at(trackBlock.id) : globalEntities};
                 entityList.emplace_back(std::make_shared<Entity>(trackObject));
             }
             for (auto &trackSurface : trackBlock.track) {

@@ -45,7 +45,7 @@ typedef struct tagCP_RGBQUAD {
 
 typedef struct tagCP_BITMAPINFO {
     CP_BITMAPINFOHEADER bmiHeader;
-    CP_RGBQUAD bmiColors[1];
+    CP_RGBQUAD bmiColours[1];
 } CP_BITMAPINFO;
 
 // Temporary, until LibOpenNFS PSH support
