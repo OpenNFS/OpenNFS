@@ -9,33 +9,29 @@ namespace OpenNFS {
     using namespace LibOpenNFS;
 
     std::shared_ptr<Track> TrackLoader::Load(NFSVersion const nfsVersion, std::string const &trackName) {
-        std::stringstream trackBasePath, trackOutPath;
+        std::stringstream trackBasePath;
         trackBasePath << RESOURCE_PATH << magic_enum::enum_name(nfsVersion);
-        trackOutPath << TRACK_PATH << magic_enum::enum_name(nfsVersion) << "/";
 
         switch (nfsVersion) {
         case NFSVersion::NFS_2:
             trackBasePath << NFS_2_TRACK_PATH << trackName;
-            return std::make_shared<Track>(NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2, trackBasePath.str(), trackOutPath.str()));
+            return std::make_shared<Track>(NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2, trackBasePath.str()));
         case NFSVersion::NFS_2_SE:
             trackBasePath << NFS_2_SE_TRACK_PATH << trackName;
-            return std::make_shared<Track>(
-                NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_SE, trackBasePath.str(), trackOutPath.str()));
+            return std::make_shared<Track>(NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_SE, trackBasePath.str()));
         case NFSVersion::NFS_2_PS1:
             trackBasePath << "/" << trackName;
-            return std::make_shared<Track>(
-                NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_PS1, trackBasePath.str(), trackOutPath.str()));
+            return std::make_shared<Track>(NFS2::Loader<NFS2::PC>::LoadTrack(NFSVersion::NFS_2_PS1, trackBasePath.str()));
         case NFSVersion::NFS_3:
             trackBasePath << NFS_3_TRACK_PATH << trackName;
-            return std::make_shared<Track>(NFS3::Loader::LoadTrack(trackBasePath.str(), trackOutPath.str()));
+            return std::make_shared<Track>(NFS3::Loader::LoadTrack(trackBasePath.str()));
         case NFSVersion::NFS_3_PS1:
             trackBasePath << "/" << trackName;
-            return std::make_shared<Track>(
-                NFS2::Loader<NFS2::PS1>::LoadTrack(NFSVersion::NFS_3_PS1, trackBasePath.str(), trackOutPath.str()));
+            return std::make_shared<Track>(NFS2::Loader<NFS2::PS1>::LoadTrack(NFSVersion::NFS_3_PS1, trackBasePath.str()));
         case NFSVersion::NFS_4:
         case NFSVersion::MCO:
             trackBasePath << NFS_4_TRACK_PATH << trackName;
-            return std::make_shared<Track>(NFS4::Loader::LoadTrack(trackBasePath.str(), trackOutPath.str()));
+            return std::make_shared<Track>(NFS4::Loader::LoadTrack(trackBasePath.str()));
         default:
             CHECK_F(false, "Unknown track type!");
         }
