@@ -167,7 +167,7 @@ void main(){
         }
 
         float shadow = ShadowCalculationWithBlending(fragPosWorldSpace, clipSpaceZ);
-        vec3 ambient =  0.4f * nfsColor.rgb;
+        vec3 ambient = 1.f * nfsColor.rgb;
         float spotlightVisibility = clamp(1.0 - ambientFactor * SPOTLIGHT_WASHOUT_RATE, SPOTLIGHT_MIN_VISIBILITY, SPOTLIGHT_MAX_VISIBILITY);
         vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular) + spotlightContribution * spotlightVisibility) * nfsColor.rgb;
         color = vec4(lighting, 1.0);

@@ -95,23 +95,23 @@ namespace OpenNFS {
 
     void Entity::Update() {
         // We don't want to update Entities that aren't dynamic
-        if (!trackEntity->dynamic && trackEntity->animData.empty()) {
+        if (!trackEntity->dynamic && trackEntity->animKeyframes.empty()) {
             return;
         }
 
         btTransform trans;
         m_motionState->getWorldTransform(trans);
 
-        if (!trackEntity->animData.empty()) {
+        if (!trackEntity->animKeyframes.empty()) {
             if (++animFrameCounter >= trackEntity->animDelay) {
                 animFrameCounter = 0;
-                animKeyframeIndex = (animKeyframeIndex + 1) % trackEntity->animData.size();
+                animKeyframeIndex = (animKeyframeIndex + 1) % trackEntity->animKeyframes.size();
             }
 
             // Get current and next keyframes for interpolation
-            auto const &[pt, od1, od2, od3, od4]{trackEntity->animData.at(animKeyframeIndex)};
-            size_t const nextKeyframeIndex = (animKeyframeIndex + 1) % trackEntity->animData.size();
-            auto const &[ptNext, od1Next, od2Next, od3Next, od4Next]{trackEntity->animData.at(nextKeyframeIndex)};
+            auto const &[pt, quat]{trackEntity->animKeyframes.at(animKeyframeIndex)};
+            size_t const nextKeyframeIndex = (animKeyframeIndex + 1) % trackEntity->animKeyframes.size();
+            auto const &[ptNext, quat_next]{trackEntity->animKeyframes.at(nextKeyframeIndex)};
 
             // Calculate interpolation factor (0.0 to 1.0)
             float const t =
@@ -123,8 +123,8 @@ namespace OpenNFS {
             position = glm::mix(posStart, posEnd, t);
 
             // Interpolate orientation (slerp)
-            glm::quat const orientStart = glm::normalize(glm::quat(od1, od2, od3, od4));
-            glm::quat const orientEnd = glm::normalize(glm::quat(od1Next, od2Next, od3Next, od4Next));
+            glm::quat const orientStart = glm::normalize(glm::quat(quat));
+            glm::quat const orientEnd = glm::normalize(glm::quat(quat_next));
             // Apply 180 degree Z rotation to convert to ONFS coordinate system
             static glm::quat const zCorrection = glm::angleAxis(glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f));
             orientation = zCorrection * glm::slerp(orientStart, orientEnd, t);
@@ -181,7 +181,7 @@ namespace OpenNFS {
     }
 
     bool Entity::Animated() const {
-        return !trackEntity->animData.empty();
+        return !trackEntity->animKeyframes.empty();
     }
 
     uint32_t Entity::RawFlags() const {

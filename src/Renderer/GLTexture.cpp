@@ -101,12 +101,12 @@ namespace OpenNFS {
                     glTexture.texture_asset.id, max_height);
 
             // Set the whole texture to transparent (so min/mag filters don't find bad data off the edge of the actual image data)
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, hsStockTextureIndexRemap(id), static_cast<GLsizei>(max_width),
-                            static_cast<GLsizei>(max_height), 1, GL_RGBA, GL_UNSIGNED_BYTE, &clear_data[0]);
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, hsStockTextureIndexRemap(id), glTexture.texture_asset.width,
-                            glTexture.texture_asset.height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid const *)glTexture.GetData());
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, static_cast<GLsizei>(max_width), static_cast<GLsizei>(max_height), 1, GL_RGBA,
+                            GL_UNSIGNED_BYTE, &clear_data[0]);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, glTexture.texture_asset.width, glTexture.texture_asset.height, 1, GL_RGBA,
+                            GL_UNSIGNED_BYTE, (GLvoid const *)glTexture.GetData());
 
-            glTexture.texture_asset.layer = hsStockTextureIndexRemap(id);
+            glTexture.texture_asset.layer = id;
             glTexture.texture_asset.id = texture_name;
         }
 
@@ -126,19 +126,5 @@ namespace OpenNFS {
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
         return texture_name;
-    }
-
-    int32_t GLTexture::hsStockTextureIndexRemap(int32_t const textureIndex) {
-        int32_t remappedIndex = textureIndex;
-
-        // Remap texture index between 0 and MAX_TEXTURE_ARRAY_SIZE if exceeds
-        if (textureIndex >= 2048) {
-            constexpr int32_t nStockTextures{30};
-            remappedIndex = MAX_TEXTURE_ARRAY_SIZE - nStockTextures + (textureIndex - 2048);
-        }
-
-        CHECK_F(remappedIndex <= MAX_TEXTURE_ARRAY_SIZE, "Texture index still exceeds max texture array size, post-remap");
-
-        return remappedIndex;
     }
 } // namespace OpenNFS
