@@ -16,8 +16,14 @@ namespace OpenNFS {
     }
 
     void Track::_LoadTextures() {
-        CHECK_F(LibOpenNFS::TextureUtils::ExtractTrackTextures(basePath, name, nfsVersion, assetPath), "Could not extract %s texture pack",
-                name.c_str());
+        // Only extract textures if they weren't loaded directly from FSH
+        // Check if any texture asset has pixel data - if so, skip extraction
+        bool const hasDirectPixelData = !trackTextureAssets.empty() && trackTextureAssets.begin()->second.HasPixelData();
+        if (!hasDirectPixelData) {
+            CHECK_F(LibOpenNFS::TextureUtils::ExtractTrackTextures(basePath, name, nfsVersion, assetPath),
+                    "Could not extract %s texture pack", name.c_str());
+        }
+
         // Load textures into GL objects
         for (auto &[id, trackTextureAsset] : trackTextureAssets) {
             textureMap[id] = GLTexture::LoadTexture(nfsVersion, trackTextureAsset);

@@ -13,6 +13,12 @@ namespace OpenNFS {
     }
 
     GLTexture GLTexture::LoadTexture(NFSVersion const tag, LibOpenNFS::TrackTextureAsset &trackTextureAsset) {
+        // If texture asset already has pixel data (from direct FSH loading), use it directly
+        if (trackTextureAsset.HasPixelData()) {
+            return GLTexture(trackTextureAsset, trackTextureAsset.data);
+        }
+
+        // Legacy path: load from bitmap files
         GLsizei width;
         GLsizei height;
         std::vector<uint8_t> data;
