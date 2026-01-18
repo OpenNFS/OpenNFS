@@ -19,8 +19,8 @@ namespace OpenNFS {
 
         // Collect all active spotlights from all racers
         std::vector<Spotlight> activeSpotlights;
-        for (auto const &racer : racers) {
-            if (racer->vehicle->vehicleState.headlightsActive) {
+        if (racers[0]->vehicle->vehicleState.headlightsActive) {
+            for (auto const &racer : racers) {
                 activeSpotlights.push_back(racer->vehicle->leftHeadLight);
                 activeSpotlights.push_back(racer->vehicle->rightHeadLight);
             }

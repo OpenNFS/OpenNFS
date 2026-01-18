@@ -160,11 +160,10 @@ void main(){
             float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
             spotlightContribution += intensity * attenuation * spotlightColour[i];
         }
-        totalDiffuse += spotlightContribution;
 
         float shadow = ShadowCalculationWithBlending(fragPosWorldSpace, clipSpaceZ);
         vec3 ambient =  0.4f * nfsColor.rgb;
-        vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular)) * nfsColor.rgb;
+        vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular) + spotlightContribution) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
     }
 }
