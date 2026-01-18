@@ -31,7 +31,7 @@ namespace OpenNFS {
 
     void BillboardShader::loadLight(LibOpenNFS::TrackLight const *light) const {
         loadVec4(lightColourLocation, light->colour);
-        loadVec3(billboardPosLocation, light->geometry.position);
+        loadVec3(billboardPosLocation, light->position);
         loadBillboardTexture();
     }
 

@@ -36,6 +36,11 @@ uniform float spotlightOuterCutOff[MAX_SPOTLIGHTS];
 uniform float shineDamper;
 uniform float reflectivity;
 
+// Spotlight daylight washout constants
+const float SPOTLIGHT_WASHOUT_RATE = 1.5;
+const float SPOTLIGHT_MIN_VISIBILITY = 0.1;
+const float SPOTLIGHT_MAX_VISIBILITY = 1.0;
+
 // CSM uniforms
 uniform mat4 lightSpaceMatrices[CSM_NUM_CASCADES];
 uniform float cascadePlaneDistances[CSM_NUM_CASCADES];
@@ -163,7 +168,8 @@ void main(){
 
         float shadow = ShadowCalculationWithBlending(fragPosWorldSpace, clipSpaceZ);
         vec3 ambient =  0.4f * nfsColor.rgb;
-        vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular) + spotlightContribution) * nfsColor.rgb;
+        float spotlightVisibility = clamp(1.0 - ambientFactor * SPOTLIGHT_WASHOUT_RATE, SPOTLIGHT_MIN_VISIBILITY, SPOTLIGHT_MAX_VISIBILITY);
+        vec3 lighting = (ambient + (1.0 - shadow) * (totalDiffuse + totalSpecular) + spotlightContribution * spotlightVisibility) * nfsColor.rgb;
         color = vec4(lighting, 1.0);
     }
 }
