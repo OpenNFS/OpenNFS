@@ -31,6 +31,7 @@ namespace OpenNFS {
         shadowMapTextureLocation = getUniformLocation("shadowMap");
         shadowMapArrayLocation = getUniformLocation("shadowMapArray");
         ambientFactorLocation = getUniformLocation("ambientFactor");
+        cameraPositionLocation = getUniformLocation("cameraPosition");
 
         for (int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i) {
             lightPositionLocation[i] = getUniformLocation("lightPosition[" + std::to_string(i) + "]");
@@ -106,6 +107,10 @@ namespace OpenNFS {
     void TrackShader::loadProjectionViewMatrices(glm::mat4 const &projection, glm::mat4 const &view) const {
         loadMat4(viewMatrixLocation, &view[0][0]);
         loadMat4(projectionMatrixLocation, &projection[0][0]);
+    }
+
+    void TrackShader::loadCameraPosition(glm::vec3 const &cameraPosition) const {
+        loadVec3(cameraPositionLocation, cameraPosition);
     }
 
     void TrackShader::loadTransformMatrix(glm::mat4 const &transformation) const {

@@ -13,11 +13,7 @@ out vec4 nfsDataOut;
 flat out uint debugDataOut;
 
 // Diffuse and Specular
-out vec3 toLightVector[MAX_TRACK_CONTRIB_LIGHTS];
-out vec3 toCameraVector;
 out vec3 surfaceNormal;
-// Spotlight
-out vec3 toSpotlightVector[MAX_SPOTLIGHTS];
 // Fog
 out vec4 viewSpace;
 out vec4 lightSpace;
@@ -28,8 +24,6 @@ out float clipSpaceZ;
 // Values that stay constant for the whole mesh.
 uniform mat4 projectionMatrix, viewMatrix ,transformationMatrix;
 uniform mat4 lightSpaceMatrix;
-uniform vec3 lightPosition[MAX_TRACK_CONTRIB_LIGHTS];
-uniform vec3 spotlightPosition[MAX_SPOTLIGHTS];
 
 void main(){
     vec4 worldPosition = transformationMatrix * vec4(vertexPosition_modelspace, 1.0);
@@ -49,16 +43,6 @@ void main(){
     debugDataOut = debugData;
 
     surfaceNormal = (transformationMatrix * vec4(normal, 0.0)).xyz;
-
-    // Diffuse and Specular passout
-    for(int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
-        toLightVector[i] = lightPosition[i] - worldPosition.xyz;
-    }
-    for (int i = 0; i < MAX_SPOTLIGHTS; ++i) {
-        toSpotlightVector[i] = spotlightPosition[i] - worldPosition.xyz;
-    }
-
-    toCameraVector = (inverse(viewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
 
     // Calculate clip space position for cascade selection
     vec4 viewSpacePos = viewMatrix * worldPosition;

@@ -252,12 +252,16 @@ void ShaderSet::UpdatePrograms() {
                 }
                 snprintf(linkerLogBuffer + strlen(linkerLogBuffer), MAX_LOG_LENGTH, "%s", shader->Name.c_str());
             }
-            LOGF(DEBUG, "%s program (%s)", status ? "Successfully linked" : "Error linking", linkerLogBuffer);
 
             if (!status) {
                 program.second.PublicHandle = 0;
+                LOGF(WARNING, "Error linking program (%s)", linkerLogBuffer);
+                if (!log_s.empty()) {
+                    LOGF(WARNING, "Linker error:\n%s", log_s.c_str());
+                }
             } else {
                 program.second.PublicHandle = program.second.InternalHandle;
+                LOGF(DEBUG, "Successfully linked program (%s)", linkerLogBuffer);
             }
         }
     }

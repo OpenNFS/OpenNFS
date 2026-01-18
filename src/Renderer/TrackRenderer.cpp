@@ -51,6 +51,7 @@ namespace OpenNFS {
         // This shader state doesn't change during a track renderpass
         m_trackShader.setClassic(userParams.useClassicGraphics);
         m_trackShader.loadProjectionViewMatrices(camera.projectionMatrix, camera.viewMatrix);
+        m_trackShader.loadCameraPosition(camera.position);
         m_trackShader.loadSpecular(userParams.trackSpecDamper, userParams.trackSpecReflectivity);
         m_trackShader.bindTextureArray(trackTextureArrayID);
         m_trackShader.loadAmbientFactor(ambientFactor);

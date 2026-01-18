@@ -6,10 +6,6 @@ flat in uint debugDataOut;
 
 // Diffuse and Specular
 in vec3 surfaceNormal;
-in vec3 toLightVector[MAX_TRACK_CONTRIB_LIGHTS];
-in vec3 toCameraVector;
-// Spotlight
-in vec3 toSpotlightVector[MAX_SPOTLIGHTS];
 
 // Fog
 in vec4 viewSpace;
@@ -27,8 +23,11 @@ uniform bool useClassic;
 uniform sampler2DArray textureArray;
 uniform sampler2DArrayShadow shadowMapArray;
 uniform float ambientFactor;
+uniform vec3 cameraPosition;
+uniform vec3 lightPosition[MAX_TRACK_CONTRIB_LIGHTS];
 uniform vec4 lightColour[MAX_TRACK_CONTRIB_LIGHTS];
 uniform vec3 attenuation[MAX_TRACK_CONTRIB_LIGHTS];
+uniform vec3 spotlightPosition[MAX_SPOTLIGHTS];
 uniform vec3 spotlightColour[MAX_SPOTLIGHTS];
 uniform vec3 spotlightDirection[MAX_SPOTLIGHTS];
 uniform float spotlightInnerCutOff[MAX_SPOTLIGHTS];
@@ -118,23 +117,26 @@ void main(){
     vec4 nfsColor = texColour * nfsDataOut;
 
     // Discard if low alpha, no need to blend
-    if (nfsColor.a < 0.1)
-    discard;
+    if (nfsColor.a < 0.1) {
+        discard;
+    }
 
     if (useClassic){
         color = nfsColor;
     } else {
         // Lay down summed diffuse and specular on top of NFS fragment colour
         vec3 unitNormal = normalize(surfaceNormal);
-        vec3 unitVectorToCamera = normalize(toCameraVector);
+        vec3 unitVectorToCamera = normalize(cameraPosition - fragPosWorldSpace);
 
         vec3 totalDiffuse = vec3(0.0f);
         vec3 totalSpecular = vec3(0.0f);
 
         for (int i = 0; i < MAX_TRACK_CONTRIB_LIGHTS; ++i){
-            float distance = length(toLightVector[i]);
+            // Calculate light vector in fragment shader (saves varying slots)
+            vec3 toLightVector = lightPosition[i] - fragPosWorldSpace;
+            float distance = length(toLightVector);
             float attenFactor = attenuation[i].x + (attenuation[i].y * distance) + (attenuation[i].z * distance * distance);
-            vec3 unitLightVector = normalize(toLightVector[i]);
+            vec3 unitLightVector = normalize(toLightVector);
             // Diffuse
             float nDot1 = dot(unitNormal, unitLightVector);
             float brightness = max(nDot1, 0.0);
@@ -153,15 +155,19 @@ void main(){
         vec3 spotlightContribution = vec3(0.0);
         for (int i = 0; i < MAX_SPOTLIGHTS; ++i) {
             // Skip inactive spotlights (zero colour indicates inactive)
-            if (length(spotlightColour[i]) < 0.001) continue;
+            if (length(spotlightColour[i]) < 0.001)
+                continue;
+
+            // Calculate spotlight vector in fragment shader (saves varying slots)
+            vec3 toSpotlight = spotlightPosition[i] - fragPosWorldSpace;
 
             // Check if lighting is inside the spotlight cone
-            float theta = dot(normalize(toSpotlightVector[i]), normalize(-spotlightDirection[i]));
+            float theta = dot(normalize(toSpotlight), normalize(-spotlightDirection[i]));
             float epsilon = spotlightInnerCutOff[i] - spotlightOuterCutOff[i];
             float intensity = clamp((theta - spotlightOuterCutOff[i]) / epsilon, 0.0, 1.0);
 
             // Add spotlight contribution with distance attenuation
-            float distance = length(toSpotlightVector[i]);
+            float distance = length(toSpotlight);
             float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
             spotlightContribution += intensity * attenuation * spotlightColour[i];
         }

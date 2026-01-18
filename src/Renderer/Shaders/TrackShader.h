@@ -16,6 +16,7 @@ namespace OpenNFS {
         void loadProjectionViewMatrices(
             glm::mat4 const &projection,
             glm::mat4 const &view) const; // These don't change between Shader binds, better to set state once for a track render pass
+        void loadCameraPosition(glm::vec3 const &cameraPosition) const;
         void loadTransformMatrix(glm::mat4 const &transformation) const;
         void loadLightSpaceMatrix(glm::mat4 const &lightSpaceMatrix) const;
         void loadSpecular(float damper, float reflectivity) const;
@@ -50,6 +51,7 @@ namespace OpenNFS {
         GLint shadowMapTextureLocation;
         GLint shadowMapArrayLocation;
         GLint ambientFactorLocation;
+        GLint cameraPositionLocation;
         GLint trackTextureArrayLocation;
         // CSM uniforms
         GLint lightSpaceMatricesLocation[CSM_NUM_CASCADES];
