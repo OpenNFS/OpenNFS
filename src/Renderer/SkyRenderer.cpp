@@ -64,7 +64,7 @@ namespace OpenNFS {
         m_skydomeModel.UpdateMatrices();
     }
 
-    void SkyRenderer::Render(BaseCamera const &camera, GlobalLight const *light, float const elapsedTime) {
+    void SkyRenderer::Render(BaseCamera const &camera, GlobalLight const *light, float const elapsedTime, float const weatherMixFactor) {
         m_skydomeShader.use();
         m_skydomeShader.loadTextures(clouds1TextureID, clouds2TextureID, sunTextureID, moonTextureID, tintTextureID, tint2TextureID);
         m_skydomeShader.loadStarRotationMatrix(glm::toMat3(glm::normalize(glm::quat(glm::vec3(glm::pi<float>(), glm::pi<float>(), 0)))));
@@ -72,7 +72,7 @@ namespace OpenNFS {
         m_skydomeShader.loadMatrices(camera.projectionMatrix, camera.viewMatrix, m_skydomeModel.ModelMatrix);
         m_skydomeShader.loadSunPosition(light);
         m_skydomeShader.loadTime(elapsedTime);
-        m_skydomeShader.loadWeatherMixFactor(1.0f);
+        m_skydomeShader.loadWeatherMixFactor(weatherMixFactor);
         // Bind the sphere model
         m_skydomeModel.Render();
         m_skydomeShader.unbind();

@@ -126,7 +126,7 @@ namespace OpenNFS {
         // Render the environment (CSM shadow pass)
         m_shadowMapRenderer.Render(activeLight, activeCamera, m_track->textureArrayID, visibleEntities, racers);
         if (userParams.drawSkydome) {
-            m_skyRenderer.Render(activeCamera, activeLight, totalTime);
+            m_skyRenderer.Render(activeCamera, activeLight, totalTime, userParams.weatherMixFactor);
         }
 
         // Calculate ambient factor based on sun height - when sun is below horizon (y < 0), it's night
@@ -313,6 +313,7 @@ namespace OpenNFS {
         ImGui::Text("OpenNFS Engine");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", smoothedDeltaTime * 1000, 1.f / smoothedDeltaTime);
         ImGui::SliderFloat("Time Scale Factor", &userParams.timeScaleFactor, 0, 10);
+        ImGui::SliderFloat("Weather Mix Factor", &userParams.weatherMixFactor, 0.5f, 1.f);
         ImGui::Checkbox("Frustum Cull", &userParams.useFrustumCull);
         ImGui::Checkbox("Bullet Debug View", &userParams.physicsDebugView);
         ImGui::Checkbox("Classic Graphics", &userParams.useClassicGraphics);

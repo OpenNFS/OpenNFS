@@ -11,7 +11,7 @@ namespace OpenNFS {
       public:
         explicit SkyRenderer();
         ~SkyRenderer();
-        void Render(BaseCamera const &camera, GlobalLight const *light, float elapsedTime);
+        void Render(BaseCamera const &camera, GlobalLight const *light, float elapsedTime, float weatherMixFactor);
 
       private:
         // Load cloud, sun, moon and tint textures

@@ -110,6 +110,7 @@ namespace OpenNFS {
 
     struct ParamData {
         float timeScaleFactor{1.f};
+        float weatherMixFactor{1.f};
         ImVec4 sunAttenuation{0.f, 0.f, 0.f, 1.0f};
         float trackSpecReflectivity{1.f};
         float trackSpecDamper{10.f};
