@@ -7,6 +7,7 @@
 namespace OpenNFS {
     enum class UIElementType {
         Button,
+        Dropdown,
         TextField,
         Image
     };

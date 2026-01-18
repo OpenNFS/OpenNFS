@@ -21,7 +21,7 @@
       }
     },
     {
-      "type": "button",
+      "type": "dropdown",
       "resource": "pillButton",
       "colour": "#568be4",
       "hoverColour": "#ffff00",

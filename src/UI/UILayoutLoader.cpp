@@ -9,6 +9,7 @@
 
 #include "../Config.h"
 #include "UIButton.h"
+#include "UIDropdown.h"
 #include "UIImage.h"
 #include "UITextField.h"
 
@@ -216,6 +217,18 @@ namespace OpenNFS {
                         std::string const font = elemJson.value("font", "default");
                         element =
                             std::make_unique<UIButton>(it->second, text, colour, hoverColour, scale, layer, position, textOffset, font);
+                    } else if (type == "dropdown") {
+                        std::string const resourceName = elemJson.value("resource", "missingResource");
+                        auto const it = m_resourceMap.find(resourceName);
+                        std::string const textTemplate = elemJson.value("text", "<No Items>");
+                        std::string const text = ProcessTextTemplate(textTemplate);
+                        std::string const colourStr = elemJson.value("colour", "#FFFFFF");
+                        glm::vec4 const colour = ParseColour(colourStr);
+                        std::string const hoverColourStr = elemJson.value("hoverColour", "#FFFFFF");
+                        glm::vec4 const hoverColour = ParseColour(hoverColourStr);
+                        std::string const font = elemJson.value("font", "default");
+                        element =
+                            std::make_unique<UIDropdown>(it->second, text, colour, hoverColour, scale, layer, position, textOffset, font);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;

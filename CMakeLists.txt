@@ -106,6 +106,7 @@ set(SOURCE_FILES
         src/Renderer/Shaders/MiniMapShader.cpp
         src/UI/UIElement.cpp
         src/UI/UIButton.cpp
+        src/UI/UIDropdown.cpp
         src/UI/UIImage.cpp
         src/UI/UITextField.cpp
         src/UI/UIManager.cpp
