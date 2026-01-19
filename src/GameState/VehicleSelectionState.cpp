@@ -34,10 +34,7 @@ namespace OpenNFS {
                     continue;
                 if (car == "knoc")
                     continue;
-                if (dropdown->entries.size() == 0)
-                    dropdown->text = car;
-                dropdown->entries.push_back(car);
-                dropdown->entryTextColour.push_back(dropdown->textColour);
+                dropdown->AddEntry(car);
             }
         }
         LoadCar();
