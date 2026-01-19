@@ -120,9 +120,9 @@ namespace OpenNFS {
         return glm::vec4(r, g, b, a);
     }
 
-    std::vector<std::unique_ptr<UIElement>> UILayoutLoader::LoadLayout(std::string const &jsonPath,
+    std::vector<std::shared_ptr<UIElement>> UILayoutLoader::LoadLayout(std::string const &jsonPath,
                                                                        CallbackRegistry const &callbacks) const {
-        std::vector<std::unique_ptr<UIElement>> elements;
+        std::vector<std::shared_ptr<UIElement>> elements;
 
         std::ifstream file(jsonPath);
         if (!file.is_open()) {
@@ -220,6 +220,8 @@ namespace OpenNFS {
                     } else if (type == "dropdown") {
                         std::string const resourceName = elemJson.value("resource", "missingResource");
                         auto const it = m_resourceMap.find(resourceName);
+                        std::string const entryResourceName = elemJson.value("entryResource", "missingResource");
+                        auto const eit = m_resourceMap.find(entryResourceName);
                         std::string const textTemplate = elemJson.value("text", "<No Items>");
                         std::string const text = ProcessTextTemplate(textTemplate);
                         std::string const colourStr = elemJson.value("colour", "#FFFFFF");
@@ -228,7 +230,7 @@ namespace OpenNFS {
                         glm::vec4 const hoverColour = ParseColour(hoverColourStr);
                         std::string const font = elemJson.value("font", "default");
                         element =
-                            std::make_unique<UIDropdown>(it->second, text, colour, hoverColour, scale, layer, position, textOffset, font);
+                            std::make_unique<UIDropdown>(it->second, eit->second, text, colour, hoverColour, scale, layer, position, textOffset, font);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;

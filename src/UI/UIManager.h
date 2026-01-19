@@ -20,7 +20,7 @@ namespace OpenNFS {
         void Update(InputManager const &inputManager);
 
         // TODO: Temporary structure
-        std::vector<std::unique_ptr<UIElement>> m_uiElements;
+        std::vector<std::shared_ptr<UIElement>> m_uiElements;
 
       private:
         std::map<std::string, UIResource> m_menuResourceMap;

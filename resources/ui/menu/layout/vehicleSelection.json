@@ -22,7 +22,8 @@
     },
     {
       "type": "dropdown",
-      "resource": "pillButton",
+      "resource": "dropdownButton",
+      "entryResource": "dropdownEntry",
       "colour": "#568be4",
       "hoverColour": "#ffff00",
       "scale": 1.0,
@@ -35,10 +36,12 @@
         "x": "40",
         "y": "15"
       },
-      "font": "Roboto"
+      "font": "Roboto",
+      "onClick": "onVehicleSelectionChange"
     },
     {
       "type": "button",
+      "text": "Go!",
       "resource": "pillButton",
       "colour": "#568be4",
       "hoverColour": "#ffff00",
@@ -52,62 +55,12 @@
         "x": "40",
         "y": "15"
       },
-      "font": "Roboto"
+      "font": "Roboto",
+      "onClick": "onStartRace"
     },
     {
       "type": "button",
-      "resource": "pillButton",
-      "colour": "#568be4",
-      "hoverColour": "#ffff00",
-      "scale": 1.0,
-      "layer": 5,
-      "position": {
-        "x": "30",
-        "y": "750"
-      },
-      "textOffset": {
-        "x": "40",
-        "y": "15"
-      },
-      "font": "Roboto"
-    },
-    {
-      "type": "button",
-      "resource": "pillButton",
-      "colour": "#568be4",
-      "hoverColour": "#ffff00",
-      "scale": 1.0,
-      "layer": 5,
-      "position": {
-        "x": "50",
-        "y": "600"
-      },
-      "textOffset": {
-        "x": "40",
-        "y": "15"
-      },
-      "font": "Roboto"
-    },
-    {
-      "type": "button",
-      "resource": "pillButton",
-      "colour": "#568be4",
-      "hoverColour": "#ffff00",
-      "scale": 1.0,
-      "layer": 5,
-      "position": {
-        "x": "80",
-        "y": "450"
-      },
-      "textOffset": {
-        "x": "40",
-        "y": "15"
-      },
-      "font": "Roboto"
-    },
-    {
-      "type": "button",
-      "text": "Quit",
+      "text": "Go Back",
       "resource": "pillButton",
       "colour": "#568be4",
       "hoverColour": "#ffff00",
@@ -122,7 +75,7 @@
         "y": "15"
       },
       "font": "Roboto",
-      "onClick": "onExit"
+      "onClick": "onMainMenu"
     }
   ]
 }

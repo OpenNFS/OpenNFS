@@ -31,7 +31,7 @@ namespace OpenNFS {
          * @param callbacks Optional callback registry for OnClick handlers
          * @return Vector of UI elements created from the layout
          */
-        std::vector<std::unique_ptr<UIElement>> LoadLayout(std::string const &jsonPath, CallbackRegistry const &callbacks = {}) const;
+        std::vector<std::shared_ptr<UIElement>> LoadLayout(std::string const &jsonPath, CallbackRegistry const &callbacks = {}) const;
 
         /**
          * Register a global variable for text templating

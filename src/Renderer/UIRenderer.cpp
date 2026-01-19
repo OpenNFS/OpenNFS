@@ -76,6 +76,14 @@ namespace OpenNFS {
     }
 
     void UIRenderer::RenderDropdown(UIDropdown const *dropdown) const {
+        if (dropdown->isOpened) {
+            for (size_t i = 0; i < dropdown->entries.size(); i++)
+            {
+                RenderResource(dropdown->entryResource, static_cast<GLint>(dropdown->layer), dropdown->location.x + (dropdown->resource.width * dropdown->scale), dropdown->location.y - (dropdown->entryResource.height * dropdown->scale * (float) i), dropdown->scale);
+                RenderText(dropdown->entries[i], dropdown->fontName, static_cast<GLint>(dropdown->layer), dropdown->location.x + dropdown->textOffset.x + (dropdown->resource.width * dropdown->scale),
+                        dropdown->location.y + dropdown->textOffset.y - (dropdown->entryResource.height * dropdown->scale) * i, dropdown->scale, dropdown->entryTextColour[i], true);
+            }
+        }
         RenderResource(dropdown->resource, static_cast<GLint>(dropdown->layer), dropdown->location.x, dropdown->location.y, dropdown->scale);
         RenderText(dropdown->text, dropdown->fontName, static_cast<GLint>(dropdown->layer), dropdown->location.x + dropdown->textOffset.x,
                    dropdown->location.y + dropdown->textOffset.y, dropdown->scale, dropdown->textColour, true);
