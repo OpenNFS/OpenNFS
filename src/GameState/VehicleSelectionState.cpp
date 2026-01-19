@@ -16,7 +16,7 @@ namespace OpenNFS {
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
 
-        // Load car
+        // Load car list into 
         for (auto element : m_uiManager.get()->m_uiElements) {
             if (element.get()->type == UIElementType::Dropdown) {
                 dropdown = (UIDropdown *) element.get();
@@ -28,6 +28,12 @@ namespace OpenNFS {
             if (assets.tag != m_context.loadedAssets.carTag)
                 continue;
             for(std::string car : assets.cars) {
+                if (car.starts_with("traffic"))
+                    continue;
+                if (car == "cartool.zip")
+                    continue;
+                if (car == "knoc")
+                    continue;
                 if (dropdown->entries.size() == 0)
                     dropdown->text = car;
                 dropdown->entries.push_back(car);
