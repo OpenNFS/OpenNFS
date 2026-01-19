@@ -13,6 +13,7 @@
 
 namespace OpenNFS {
     class UIButton;
+    class UIDropdown;
     class UITextField;
     class UIImage;
 
@@ -30,6 +31,7 @@ namespace OpenNFS {
 
         // Per-UI Element render calls
         void RenderButton(UIButton const *button) const;
+        void RenderDropdown(UIDropdown const *dropdown) const;
         void RenderTextField(UITextField const *textField) const;
         void RenderImage(UIImage const *image) const;
 

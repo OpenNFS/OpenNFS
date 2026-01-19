@@ -3,6 +3,7 @@
 #include <ranges>
 
 #include "UIButton.h"
+#include "UIDropdown.h"
 #include "UIFont.h"
 #include "UIImage.h"
 #include "UILayoutLoader.h"
@@ -57,6 +58,9 @@ namespace OpenNFS {
             switch (uiElement->type) {
             case UIElementType::Button:
                 m_uiRenderer.RenderButton(dynamic_cast<UIButton *>(uiElement.get()));
+                break;
+            case UIElementType::Dropdown:
+                m_uiRenderer.RenderDropdown(dynamic_cast<UIDropdown *>(uiElement.get()));
                 break;
             case UIElementType::TextField:
                 m_uiRenderer.RenderTextField(dynamic_cast<UITextField *>(uiElement.get()));

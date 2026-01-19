@@ -9,6 +9,7 @@
 
 #include "../Config.h"
 #include "UIButton.h"
+#include "UIDropdown.h"
 #include "UIImage.h"
 #include "UITextField.h"
 
@@ -119,9 +120,9 @@ namespace OpenNFS {
         return glm::vec4(r, g, b, a);
     }
 
-    std::vector<std::unique_ptr<UIElement>> UILayoutLoader::LoadLayout(std::string const &jsonPath,
+    std::vector<std::shared_ptr<UIElement>> UILayoutLoader::LoadLayout(std::string const &jsonPath,
                                                                        CallbackRegistry const &callbacks) const {
-        std::vector<std::unique_ptr<UIElement>> elements;
+        std::vector<std::shared_ptr<UIElement>> elements;
 
         std::ifstream file(jsonPath);
         if (!file.is_open()) {
@@ -216,6 +217,24 @@ namespace OpenNFS {
                         std::string const font = elemJson.value("font", "default");
                         element =
                             std::make_unique<UIButton>(it->second, text, colour, hoverColour, scale, layer, position, textOffset, font);
+                    } else if (type == "dropdown") {
+                        std::string const resourceName = elemJson.value("resource", "missingResource");
+                        auto const it = m_resourceMap.find(resourceName);
+                        std::string const entryResourceName = elemJson.value("entryResource", "missingResource");
+                        auto const eit = m_resourceMap.find(entryResourceName);
+                        std::string const textTemplate = elemJson.value("text", "");
+                        std::string const text = ProcessTextTemplate(textTemplate);
+                        std::string const colourStr = elemJson.value("colour", "#FFFFFF");
+                        glm::vec4 const colour = ParseColour(colourStr);
+                        std::string const hoverColourStr = elemJson.value("hoverColour", "#FFFFFF");
+                        glm::vec4 const hoverColour = ParseColour(hoverColourStr);
+                        std::string const font = elemJson.value("font", "default");
+                        std::vector<std::string> dropdownElements;
+                        if (elemJson.contains("entries") && elemJson["entries"].is_array()) {
+                            dropdownElements = elemJson["entries"].get<std::vector<std::string>>();
+                        }
+                        element =
+                            std::make_unique<UIDropdown>(it->second, eit->second, text, colour, hoverColour, scale, layer, position, textOffset, dropdownElements, font);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;

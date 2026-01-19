@@ -7,18 +7,39 @@ namespace OpenNFS {
     }
 
     void VehicleSelectionState::OnEnter() {
-        // Load car
-        m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
-
-        // Create vehicle selection view
-        m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
-
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
-        callbacks["onExit"] = [this]() { m_nextState = GameState::Exit; };
+        callbacks["onMainMenu"] = [this]() { m_nextState = GameState::MainMenu; };
+        callbacks["onStartRace"] = [this]() { m_nextState = GameState::Race; };
+        callbacks["onVehicleSelectionChange"] = [this]() { LoadCar(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
+
+        // Load car list into 
+        for (auto element : m_uiManager.get()->m_uiElements) {
+            if (element.get()->type == UIElementType::Dropdown) {
+                dropdown = (UIDropdown *) element.get();
+                break;
+            }
+        }
+        for (NfsAssetList assets : m_context.installedNFS) {
+            // Only show cars from the selected NFS
+            if (assets.tag != m_context.loadedAssets.carTag)
+                continue;
+            for(std::string car : assets.cars) {
+                if (car.starts_with("traffic"))
+                    continue;
+                if (car == "cartool.zip")
+                    continue;
+                if (car == "knoc")
+                    continue;
+                dropdown->AddEntry(car);
+            }
+        }
+        LoadCar();
+        
+        m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
 
         // Reset next state
         m_nextState = GameState::VehicleSelection;
@@ -30,7 +51,7 @@ namespace OpenNFS {
 
         // Handle escape key to exit
         if (m_inputManager.escape) {
-            m_nextState = GameState::Exit;
+            m_nextState = GameState::MainMenu;
         }
 
         if (m_vehicleSelection) {
@@ -53,5 +74,12 @@ namespace OpenNFS {
 
     GameState VehicleSelectionState::GetNextState() const {
         return m_nextState;
+    }
+    void VehicleSelectionState::LoadCar() {
+        LOG(INFO) << "Car selection happened";
+        m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, dropdown->text);
+
+        // Create vehicle selection view
+        m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
     }
 } // namespace OpenNFS

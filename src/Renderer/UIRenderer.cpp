@@ -1,6 +1,7 @@
 #include "UIRenderer.h"
 
 #include "../UI/UIButton.h"
+#include "../UI/UIDropdown.h"
 #include "../UI/UIImage.h"
 #include "../UI/UITextField.h"
 
@@ -72,6 +73,20 @@ namespace OpenNFS {
         RenderResource(button->resource, static_cast<GLint>(button->layer), button->location.x, button->location.y, button->scale);
         RenderText(button->text, button->fontName, static_cast<GLint>(button->layer), button->location.x + button->textOffset.x,
                    button->location.y + button->textOffset.y, button->scale, button->textColour, true);
+    }
+
+    void UIRenderer::RenderDropdown(UIDropdown const *dropdown) const {
+        if (dropdown->isOpened) {
+            for (size_t i = 0; i < dropdown->entries.size(); i++)
+            {
+                RenderResource(dropdown->entryResource, static_cast<GLint>(dropdown->layer), dropdown->location.x + (dropdown->resource.width * dropdown->scale), dropdown->location.y - (dropdown->entryResource.height * dropdown->scale * (float) i), dropdown->scale);
+                RenderText(dropdown->entries[i], dropdown->fontName, static_cast<GLint>(dropdown->layer), dropdown->location.x + dropdown->textOffset.x + (dropdown->resource.width * dropdown->scale),
+                        dropdown->location.y + dropdown->textOffset.y - (dropdown->entryResource.height * dropdown->scale) * i, dropdown->scale, dropdown->entryTextColour[i], true);
+            }
+        }
+        RenderResource(dropdown->resource, static_cast<GLint>(dropdown->layer), dropdown->location.x, dropdown->location.y, dropdown->scale);
+        RenderText(dropdown->text, dropdown->fontName, static_cast<GLint>(dropdown->layer), dropdown->location.x + dropdown->textOffset.x,
+                   dropdown->location.y + dropdown->textOffset.y, dropdown->scale, dropdown->textColour, true);
     }
 
     void UIRenderer::RenderTextField(UITextField const *textField) const {

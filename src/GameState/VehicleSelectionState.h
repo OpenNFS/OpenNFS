@@ -6,6 +6,8 @@
 #include "GameState.h"
 #include "MainMenuState.h"
 
+#include "../UI/UIDropdown.h"
+
 namespace OpenNFS {
     class VehicleSelectionState : public IState {
       public:
@@ -16,12 +18,16 @@ namespace OpenNFS {
         void OnExit() override;
         GameState GetNextState() const override;
 
+        void LoadCar();
+
       private:
         GameContext &m_context;
         std::unique_ptr<VehicleSelection> m_vehicleSelection;
         std::shared_ptr<Car> m_currentCar;
         InputManager m_inputManager;
-        std::unique_ptr<UIManager> m_uiManager;
+        std::shared_ptr<UIManager> m_uiManager;
         GameState m_nextState{GameState::VehicleSelection};
+
+        UIDropdown * dropdown = nullptr;
     };
 } // namespace OpenNFS
