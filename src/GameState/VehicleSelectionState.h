@@ -28,6 +28,6 @@ namespace OpenNFS {
         std::shared_ptr<UIManager> m_uiManager;
         GameState m_nextState{GameState::VehicleSelection};
 
-        UIDropdown * dropdown = nullptr;
+        std::shared_ptr<UIDropdown> m_dropdown = nullptr;
     };
 } // namespace OpenNFS
