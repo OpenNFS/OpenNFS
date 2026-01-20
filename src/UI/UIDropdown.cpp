@@ -13,6 +13,7 @@ namespace OpenNFS {
     }
 
     void UIDropdown::Update(glm::vec2 const &cursorPosition, bool const click) {
+        bool hoverOnAnyPart = false;
         if (isOpened) {
             float entryLocationX = location.x + (resource.width * scale);
             for(size_t i = 0; i < entries.size(); i++) {
@@ -24,6 +25,8 @@ namespace OpenNFS {
                             onClickFunction();
                         } else {
                             entryTextColour[i] = textHoverColour;
+                            onHoverFunction();
+                            hoverOnAnyPart = true;
                         }
                     }
                     else {
@@ -34,14 +37,25 @@ namespace OpenNFS {
         bool hover = cursorPosition.x >= location.x && cursorPosition.x <= location.x + (resource.width * scale) && cursorPosition.y >= location.y &&
             cursorPosition.y <= location.y + (resource.height * scale);
         
-        if (click) {
-            isOpened = hover;
-        } else if (hover) {
-            onHoverFunction();
+        if (hover) {
+            if (click)
+                isOpened = true;
             textColour = textHoverColour;
+            hoverOnAnyPart = true;
         } else {
             textColour = originalTextColour;
         }
+
+        // If the mouse is in the square of the button and the last option, keep the dropdown open
+        // If the mouse is outside this area, close it
+        bool hoverBetweenButtonAndLastOption = cursorPosition.x >= location.x && cursorPosition.x <= location.x + (resource.width * scale) + (entryResource.width * scale) &&
+            cursorPosition.y >= location.y - (entryResource.height * (float) (entries.size() - 1) * scale) && cursorPosition.y <= location.y;
+        if (hoverBetweenButtonAndLastOption) {
+            // Close if we click under the dropdown menu button, but not on an entry in it
+            if (click)
+                isOpened = false;
+        } else if (!hoverOnAnyPart)
+            isOpened = false;
     }
 
     void UIDropdown::AddEntry(std::string entry) {
