@@ -24,7 +24,7 @@ namespace OpenNFS {
       public:
         explicit PhysicsManager(std::shared_ptr<Track> const &track);
         ~PhysicsManager();
-        void StepSimulation(float time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const;
+        void StepSimulation(float dt, std::vector<uint32_t> const &racerResidentTrackblockIDs) const;
         void RegisterVehicle(std::shared_ptr<Car> const &car);
         [[nodiscard]] std::optional<Entity *> CheckForPicking(double x, double y, glm::mat4 const &viewMatrix,
                                                               glm::mat4 const &projectionMatrix) const;

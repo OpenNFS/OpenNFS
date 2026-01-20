@@ -95,6 +95,7 @@ namespace OpenNFS {
         std::string trackTag{};
         uint32_t nRacers{DEFAULT_NUM_RACERS};
         bool ui;
+        bool hsPhysics{};
         /* ------- Render Params ------- */
         bool vulkanRender{};
         float fov{DEFAULT_FOV};
@@ -126,6 +127,8 @@ namespace OpenNFS {
         bool simulateCars{true};
         bool drawSkydome{true};
         bool drawMinimap{true};
+        bool drawNFS4PhysicsVectors{true};
+        bool showNFS4PhysicsDebug{true};
     };
 
     struct AssetData {

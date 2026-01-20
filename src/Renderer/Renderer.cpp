@@ -3,6 +3,7 @@
 #include "../Race/Agents/RacerAgent.h"
 #include "../Race/OrbitalManager.h"
 #include <backends/imgui_impl_opengl3.h>
+#include <implot.h>
 
 namespace OpenNFS {
     Renderer::Renderer(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
@@ -74,6 +75,7 @@ namespace OpenNFS {
         LOG(DEBUG) << "Window Size: " << Config::get().windowSizeX << "x" << Config::get().windowSizeY;
 
         ImGui::CreateContext();
+        ImPlot::CreateContext();
         ImGui_ImplGlfw_InitForOpenGL(window.get(), true);
         std::string const glVersion = "#version " + ONFS_GL_VERSION;
         ImGui_ImplOpenGL3_Init(glVersion.c_str());
@@ -108,6 +110,12 @@ namespace OpenNFS {
         if (userParams.drawRaycast) {
             for (auto const &racer : racers) {
                 m_debugRenderer.DrawVehicleRaycasts(racer->vehicle);
+            }
+        }
+
+        if (userParams.drawNFS4PhysicsVectors) {
+            for (auto const &racer : racers) {
+                m_debugRenderer.DrawNFS4PhysicsDebug(racer->vehicle);
             }
         }
 
@@ -154,6 +162,10 @@ namespace OpenNFS {
 
         // Render the Debug UI
         this->_DrawDebugUI(userParams, deltaTime, activeCamera);
+
+        if (userParams.showNFS4PhysicsDebug) {
+            this->_DrawNFS4PhysicsDebug(racers);
+        }
 
         return newAssetSelected;
     }
@@ -316,6 +328,10 @@ namespace OpenNFS {
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
         ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);
         ImGui::Checkbox("Draw Minimap", &userParams.drawMinimap);
+        if (Config::get().hsPhysics) {
+            ImGui::Checkbox("NFS4 Physics Debug", &userParams.showNFS4PhysicsDebug);
+            ImGui::Checkbox("NFS4 Physics 3D Viz", &userParams.drawNFS4PhysicsVectors);
+        }
         ImGui::Text("Camera Target");
         ImGui::SameLine();
         if (ImGui::Button("<")) {
@@ -373,9 +389,235 @@ namespace OpenNFS {
         return assetChange;
     }
 
+    void Renderer::_DrawNFS4PhysicsDebug(std::vector<std::shared_ptr<CarAgent>> const &racers) {
+        if (racers[0]->vehicle->physicsModel != PhysicsModel::NFS4_PC) {
+            return;
+        }
+
+        auto const *physics = racers[0]->vehicle->GetNFS4VehiclePhysics();
+        auto const &state = physics->GetState();
+        auto const &perf = physics->GetPerformanceData();
+        auto const &debug = physics->GetDebugData();
+
+        ImGui::SetNextWindowSize(ImVec2(600, 800), ImGuiCond_FirstUseEver);
+        ImGui::Begin("NFS4 Vehicle Physics Debug");
+
+        // Gear names for display
+        static char const *gearNames[] = {"R", "N", "1", "2", "3", "4", "5", "6"};
+        int const gearIdx = static_cast<int>(state.gear);
+
+        // Basic state section
+        if (ImGui::CollapsingHeader("Vehicle State", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Columns(2, "state_cols");
+            ImGui::Text("Speed: %.1f km/h", physics->GetSpeedKMH());
+            ImGui::Text("RPM: %.0f", state.rpm);
+            ImGui::Text("Gear: %s", gearNames[gearIdx]);
+            ImGui::Text("Redline: %.0f", perf.engineRedlineRPM);
+            ImGui::NextColumn();
+            ImGui::Text("Throttle: %.2f", state.throttle);
+            ImGui::Text("Brake: %.2f", state.brake);
+            ImGui::Text("Steering: %.1f", state.currentSteering);
+            ImGui::Text("Handbrake: %s", state.handbrakeInput ? "ON" : "OFF");
+            ImGui::Columns(1);
+
+            // RPM bar
+            float const rpmNorm = state.rpm / perf.engineRedlineRPM;
+            ImVec4 rpmColor = rpmNorm > 0.9f ? ImVec4(1, 0, 0, 1) : (rpmNorm > 0.7f ? ImVec4(1, 1, 0, 1) : ImVec4(0, 1, 0, 1));
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, rpmColor);
+            ImGui::ProgressBar(rpmNorm, ImVec2(-1, 0), "RPM");
+            ImGui::PopStyleColor();
+
+            // Throttle/Brake bars
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0, 1, 0, 1));
+            ImGui::ProgressBar(state.throttle, ImVec2(-1, 0), "Throttle");
+            ImGui::PopStyleColor();
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(1, 0, 0, 1));
+            ImGui::ProgressBar(state.brake, ImVec2(-1, 0), "Brake");
+            ImGui::PopStyleColor();
+        }
+
+        // Physics state section
+        if (ImGui::CollapsingHeader("Physics State", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Text("Slip Angle: %.4f", state.slipAngle);
+            ImGui::Text("Speed XZ: %.2f m/s", state.speedXZ);
+            ImGui::Text("G-Transfer: %.4f", state.gTransfer);
+            ImGui::Text("Steering Angle: %.4f rad", state.steeringAngle);
+            ImGui::Text("Traction Force: %.4f", state.tractionForce);
+            ImGui::Text("Lost Grip: %s", state.lostGrip ? "YES" : "NO");
+            ImGui::Text("Ground Contact: %s", state.hasContactWithGround ? "YES" : "NO");
+            ImGui::Text("Handbrake Accum: %d", state.handbrakeAccumulator);
+            ImGui::Separator();
+            ImGui::Text("Drag: %.6f", debug.drag);
+            ImGui::Text("Torque: %.2f Nm", debug.torque);
+            ImGui::Text("Slip Angle Factor: %.4f", debug.slipAngleFactor);
+            ImGui::Text("Tire Factor: %.6f", debug.tireFactor);
+            ImGui::Text("Angular Vel Factor: %.4f", debug.angularVelocityFactor);
+        }
+
+        // Velocity vectors
+        if (ImGui::CollapsingHeader("Velocities")) {
+            ImGui::Text("Local Velocity: (%.2f, %.2f, %.2f)", debug.localVelocity.x(), debug.localVelocity.y(), debug.localVelocity.z());
+            ImGui::Text("Local Ang Vel: (%.4f, %.4f, %.4f)", debug.localAngularVelocity.x(), debug.localAngularVelocity.y(),
+                        debug.localAngularVelocity.z());
+            ImGui::Text("Ground Orient: (%.3f, %.3f, %.3f)", debug.orientationToGround.x(), debug.orientationToGround.y(),
+                        debug.orientationToGround.z());
+        }
+
+        // Forces section
+        if (ImGui::CollapsingHeader("Forces")) {
+            ImGui::Text("Total Force: (%.4f, %.4f, %.4f)", debug.totalForce.x(), debug.totalForce.y(), debug.totalForce.z());
+            ImGui::Text("Total Torque: (%.4f, %.4f, %.4f)", debug.totalTorque.x(), debug.totalTorque.y(), debug.totalTorque.z());
+        }
+
+        // Per-wheel data
+        if (ImGui::CollapsingHeader("Wheel Data", ImGuiTreeNodeFlags_DefaultOpen)) {
+            static char const *wheelNames[] = {"FL", "FR", "RL", "RR"};
+            if (ImGui::BeginTable("wheels", 7, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                ImGui::TableSetupColumn("Wheel");
+                ImGui::TableSetupColumn("Contact");
+                ImGui::TableSetupColumn("Susp Len");
+                ImGui::TableSetupColumn("Grip");
+                ImGui::TableSetupColumn("Traction");
+                ImGui::TableSetupColumn("Downforce");
+                ImGui::TableSetupColumn("Force (X,Z)");
+                ImGui::TableHeadersRow();
+
+                for (int i = 0; i < 4; i++) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", wheelNames[i]);
+                    ImGui::TableNextColumn();
+                    if (debug.wheelInContact[i]) {
+                        ImGui::TextColored(ImVec4(0, 1, 0, 1), "YES");
+                    } else {
+                        ImGui::TextColored(ImVec4(1, 0, 0, 1), "NO");
+                    }
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", debug.wheelSuspensionLength[i]);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", debug.wheels[i].grip);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", debug.wheels[i].traction);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", debug.wheels[i].downforce);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("(%.2f, %.2f)", debug.wheelForces[i].x(), debug.wheelForces[i].z());
+                }
+                ImGui::EndTable();
+            }
+        }
+
+        // Performance data
+        if (ImGui::CollapsingHeader("Performance Data")) {
+            ImGui::Text("Mass: %.1f kg", perf.mass);
+            ImGui::Text("Max Velocity: %.1f m/s", perf.maxVelocity);
+            ImGui::Text("Lateral Grip Mult: %.2f", perf.lateralGripMultiplier);
+            ImGui::Text("Front Grip Bias: %.2f", perf.frontGripBias);
+            ImGui::Text("Front Drive Ratio: %.2f", perf.frontDriveRatio);
+            ImGui::Text("Front Brake Bias: %.2f", perf.frontBrakeBias);
+            ImGui::Text("Understeer Gradient: %.2f", perf.understeerGradient);
+            ImGui::Text("Turn Circle Radius: %.1f m", perf.turningCircleRadius);
+            ImGui::Text("Downforce Mult: %.4f", perf.downforceMult);
+            ImGui::Text("G-Transfer Factor: %.2f", perf.gTransferFactor);
+            ImGui::Text("Max Braking Decel: %.1f m/s^2", perf.maxBrakingDeceleration);
+            ImGui::Text("Has ABS: %s", perf.hasABS ? "YES" : "NO");
+            ImGui::Text("Has Spoiler: %s", perf.hasSpoiler ? "YES" : "NO");
+        }
+
+        // Graphs section
+        if (ImGui::CollapsingHeader("Graphs", ImGuiTreeNodeFlags_DefaultOpen)) {
+            constexpr size_t histSize = OpenNFS::NFS4DebugData::HISTORY_SIZE;
+            size_t const offset = debug.historyIndex;
+
+            // Helper to plot circular buffer
+            auto plotCircularBuffer = [&](char const *label, std::array<float, histSize> const &data, float scaleMin, float scaleMax) {
+                if (ImPlot::BeginPlot(label, ImVec2(-1, 120))) {
+                    ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoTickLabels, 0);
+                    ImPlot::SetupAxisLimits(ImAxis_Y1, scaleMin, scaleMax, ImPlotCond_Always);
+
+                    // Plot data accounting for circular buffer offset
+                    std::array<float, histSize> ordered;
+                    for (size_t i = 0; i < histSize; i++) {
+                        ordered[i] = data[(offset + i) % histSize];
+                    }
+                    ImPlot::PlotLine("", ordered.data(), static_cast<int>(histSize));
+                    ImPlot::EndPlot();
+                }
+            };
+
+            plotCircularBuffer("RPM", debug.rpmHistory, 0, perf.engineRedlineRPM * 1.1f);
+            plotCircularBuffer("Speed (km/h)", debug.speedHistory, 0, perf.maxVelocity * 4.0f);
+            plotCircularBuffer("Throttle/Brake", debug.throttleHistory, 0, 1.0f);
+            ImPlot::PushStyleColor(ImPlotCol_Line, ImVec4(1, 0, 0, 1));
+            if (ImPlot::BeginPlot("Brake", ImVec2(-1, 120))) {
+                ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoTickLabels, 0);
+                ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1.0f, ImPlotCond_Always);
+                std::array<float, histSize> ordered;
+                for (size_t i = 0; i < histSize; i++) {
+                    ordered[i] = debug.brakeHistory[(offset + i) % histSize];
+                }
+                ImPlot::PlotLine("", ordered.data(), static_cast<int>(histSize));
+                ImPlot::EndPlot();
+            }
+            ImPlot::PopStyleColor();
+
+            plotCircularBuffer("Steering", debug.steeringHistory, -1.0f, 1.0f);
+            plotCircularBuffer("Slip Angle", debug.slipAngleHistory, -1.0f, 1.0f);
+            plotCircularBuffer("Traction Force", debug.tractionForceHistory, -15.0f, 15.0f);
+            plotCircularBuffer("G-Transfer", debug.gTransferHistory, -5.0f, 5.0f);
+        }
+
+        // Torque curve visualization
+        if (ImGui::CollapsingHeader("Torque Curve")) {
+            if (ImPlot::BeginPlot("Engine Torque vs RPM", ImVec2(-1, 200))) {
+                ImPlot::SetupAxes("RPM", "Torque (Nm)");
+                ImPlot::SetupAxisLimits(ImAxis_X1, 0, 10500);
+
+                std::array<float, 21> rpmValues;
+                for (int i = 0; i < 21; i++) {
+                    rpmValues[i] = i * 500.0f;
+                }
+                ImPlot::PlotLine("Torque", rpmValues.data(), perf.torqueCurve.data(), 21);
+
+                // Mark current RPM
+                float currentTorque = debug.torque;
+                ImPlot::PlotScatter("Current", &state.rpm, &currentTorque, 1);
+
+                ImPlot::EndPlot();
+            }
+        }
+
+        // Gear ratios
+        if (ImGui::CollapsingHeader("Gear Ratios")) {
+            if (ImGui::BeginTable("gears", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                ImGui::TableSetupColumn("Gear");
+                ImGui::TableSetupColumn("Vel->RPM");
+                ImGui::TableSetupColumn("Efficiency");
+                ImGui::TableSetupColumn("Shift RPM");
+                ImGui::TableHeadersRow();
+
+                for (int i = 0; i < perf.maxGear + 1; i++) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", gearNames[i]);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", perf.gearVelocityToRPM[i]);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.3f", perf.gearEfficiency[i]);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.0f", perf.shiftBlipRPM[i]);
+                }
+                ImGui::EndTable();
+            }
+        }
+
+        ImGui::End();
+    }
+
     void Renderer::Shutdown() {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
+        ImPlot::DestroyContext();
         ImGui::DestroyContext();
         glfwTerminate();
     }

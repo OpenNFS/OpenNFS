@@ -18,9 +18,12 @@ namespace OpenNFS {
         bool accelerate{};
         bool reverse{};
         bool brakes{};
+        bool handbrakes{};
         bool left{};
         bool right{};
         bool lights{};
+        bool shiftUp{};
+        bool shiftDown{};
         bool reset{};
         bool escape{};
         bool cameraForwards{};
@@ -47,6 +50,8 @@ namespace OpenNFS {
         std::shared_ptr<GLFWwindow> m_window;
         WindowStatus m_windowStatus{GAME};
         bool m_lightsKeyPrev{};
+        bool m_shiftUpKeyPrev{};
+        bool m_shiftDownKeyPrev{};
 
         static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
     };

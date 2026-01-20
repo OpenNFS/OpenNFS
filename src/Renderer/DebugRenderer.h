@@ -2,6 +2,7 @@
 
 #include "../Camera/BaseCamera.h"
 #include "../Physics/Car.h"
+#include "../Physics/NFS4VehiclePhysics.h"
 #include "../Scene/Track.h"
 #include "BulletDebugDrawer.h"
 #include "Text3DRenderer.h"
@@ -20,6 +21,7 @@ namespace OpenNFS {
         void DrawDummy(glm::vec3 position, glm::vec3 direction) const;
         void DrawVroad(std::shared_ptr<Track> const &track) const;
         void DrawCameraAnimation(std::shared_ptr<Track> const &track) const;
+        void DrawNFS4PhysicsDebug(std::shared_ptr<Car> const &car) const;
 
       private:
         std::shared_ptr<BulletDebugDrawer> m_bulletDebugDrawer;

@@ -64,12 +64,12 @@ namespace OpenNFS {
         }
     }
 
-    void PhysicsManager::StepSimulation(float const time, std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
-        m_pDynamicsWorld->stepSimulation(time, 100);
-
+    void PhysicsManager::StepSimulation(float const dt, std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
         for (auto const &car : m_activeVehicles) {
-            car->Update(m_pDynamicsWorld.get());
+            car->Update(m_pDynamicsWorld.get(), dt);
         }
+
+        m_pDynamicsWorld->stepSimulation(dt, 100);
 
         auto const racerResidentTrackblockEntities{racerResidentTrackblockIDs | std::views::transform([&](uint32_t const index) -> auto & {
                                                        return m_track->perTrackblockEntities[index];
@@ -101,7 +101,12 @@ namespace OpenNFS {
 
     void PhysicsManager::RegisterVehicle(std::shared_ptr<Car> const &car) {
         car->SetRaycaster(std::make_unique<btDefaultVehicleRaycaster>(m_pDynamicsWorld.get()));
-        car->SetVehicle(std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
+        // Bullet model gets the vanilla raycaster. Custom models require our overridden implementation for raycast access outside simulation steps
+        if (car->physicsModel == PhysicsModel::BULLET) {
+            car->SetPhysicsVehicle(std::make_unique<btRaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
+        } else {
+            car->SetPhysicsVehicle(std::make_unique<RaycastVehicle>(car->tuning, car->GetVehicleRigidBody(), car->GetRaycaster()));
+        }
         car->GetVehicle()->setCoordinateSystem(0, 1, 2);
 
         m_pDynamicsWorld->getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(car->GetVehicleRigidBody()->getBroadphaseHandle(),

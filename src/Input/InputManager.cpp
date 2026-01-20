@@ -10,13 +10,21 @@ namespace OpenNFS {
 
     void InputManager::Scan() {
         accelerate = glfwGetKey(m_window.get(), GLFW_KEY_W) == GLFW_PRESS;
-        reverse = glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS;
-        brakes = glfwGetKey(m_window.get(), GLFW_KEY_SPACE) == GLFW_PRESS;
+        reverse = glfwGetKey(m_window.get(), GLFW_KEY_R) == GLFW_PRESS;
+        brakes = glfwGetKey(m_window.get(), GLFW_KEY_S) == GLFW_PRESS;
+        handbrakes = glfwGetKey(m_window.get(), GLFW_KEY_SPACE) == GLFW_PRESS;
         right = glfwGetKey(m_window.get(), GLFW_KEY_D) == GLFW_PRESS;
         left = glfwGetKey(m_window.get(), GLFW_KEY_A) == GLFW_PRESS;
         bool const lightsKeyCurrent = glfwGetKey(m_window.get(), GLFW_KEY_L) == GLFW_PRESS;
-        lights = lightsKeyCurrent && !m_lightsKeyPrev; // Rising edge detection
+        // Rising edge detection
+        lights = lightsKeyCurrent && !m_lightsKeyPrev;
         m_lightsKeyPrev = lightsKeyCurrent;
+        bool const shiftUpCurrent = glfwGetKey(m_window.get(), GLFW_KEY_RIGHT_BRACKET) == GLFW_PRESS;
+        shiftUp = shiftUpCurrent && !m_shiftUpKeyPrev;
+        m_shiftUpKeyPrev = shiftUpCurrent;
+        bool const shiftDownCurrent = glfwGetKey(m_window.get(), GLFW_KEY_LEFT_BRACKET) == GLFW_PRESS;
+        shiftDown = shiftDownCurrent && !m_shiftDownKeyPrev;
+        m_shiftDownKeyPrev = shiftDownCurrent;
         reset = glfwGetKey(m_window.get(), GLFW_KEY_R) == GLFW_PRESS;
         escape = glfwGetKey(m_window.get(), GLFW_KEY_ESCAPE) == GLFW_PRESS;
         camSpeedUp = glfwGetKey(m_window.get(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;

@@ -38,6 +38,7 @@ namespace OpenNFS {
 
         // Go and find the Vroad Data to reset to
         glm::vec3 vroadPoint{m_track->virtualRoad[vroadIndex].position + m_track->virtualRoad[vroadIndex].respawn};
+        vroadPoint.y -= 0.1;
         glm::quat const carOrientation{glm::conjugate(glm::toQuat(
             glm::lookAt(vroadPoint, vroadPoint - m_track->virtualRoad[vroadIndex].forward, m_track->virtualRoad[vroadIndex].normal)))};
         // Offset horizontally across the right vector from center

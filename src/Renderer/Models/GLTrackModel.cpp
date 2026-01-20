@@ -80,7 +80,7 @@ GLTrackModel::~GLTrackModel() {
 void GLTrackModel::UpdateMatrices() {
     if (!buffersGenerated) {
         buffersGenerated = true;
-        CHECK_F(GenBuffers(), "Unable to generate GL Buffers for %s Model", m_name.c_str());
+        CHECK_F(GenBuffers(), "Unable to generate GL Buffers for %s Model", name.c_str());
     }
     RotationMatrix = glm::toMat4(orientation);
     TranslationMatrix = glm::translate(glm::mat4(1.0), position);

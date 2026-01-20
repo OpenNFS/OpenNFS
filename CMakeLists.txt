@@ -36,7 +36,9 @@ set(IMGUI_SOURCES
         include/imgui/imgui_widgets.cpp
         include/imgui/backends/imgui_impl_glfw.cpp
         include/imgui/backends/imgui_impl_opengl3.cpp
-        include/ImGuiColorTextEdit/TextEditor.cpp)
+        include/ImGuiColorTextEdit/TextEditor.cpp
+        include/implot/implot.cpp
+        include/implot/implot_items.cpp)
 add_definitions(-DIMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/src/Renderer/imgui_config.h")
 
 set(SOURCE_FILES
@@ -58,7 +60,9 @@ set(SOURCE_FILES
         src/Physics/AABBTree.cpp
         src/Physics/Car.cpp
         src/Physics/Frustum.cpp
+        src/Physics/NFS4VehiclePhysics.cpp
         src/Physics/PhysicsManager.cpp
+        src/Physics/RaycastVehicle.cpp
         src/Race/OrbitalManager.cpp
         src/Race/RaceSession.cpp
         src/Race/RacerManager.cpp
@@ -125,6 +129,9 @@ add_executable(OpenNFS ${SOURCE_FILES})
 
 #[[IMGUI]]
 include_directories(include/imgui)
+
+#[[IMPLOT]]
+include_directories(include/implot)
 
 #[[JSON/STB/IMGUI/TINYOBJLOADER/BMPREAD/ARGPARSE/MAGIC_ENUM]]
 include_directories(include)

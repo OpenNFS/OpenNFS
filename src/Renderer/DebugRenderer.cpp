@@ -146,4 +146,113 @@ namespace OpenNFS {
                                           btVector3(0, 0.5, 0.5));
         }
     }
+
+    void DebugRenderer::DrawNFS4PhysicsDebug(std::shared_ptr<Car> const &car) const {
+        auto const *physics = car->GetNFS4VehiclePhysics();
+        if (!physics) {
+            return;
+        }
+
+        auto const &debug = physics->GetDebugData();
+        auto const &state = physics->GetState();
+        btRigidBody const *chassis = physics->GetChassis();
+        btTransform const trans = chassis->getWorldTransform();
+
+        // Force visualization scale
+        constexpr float kForceScale = 0.1f;
+        constexpr float kVelocityScale = 0.05f;
+
+        // Colors for different visualizations
+        btVector3 const colorForce(1.0f, 0.5f, 0.0f);       // Orange - total force
+        btVector3 const colorVelocity(0.0f, 1.0f, 1.0f);    // Cyan - velocity
+        btVector3 const colorWheelForceX(1.0f, 0.0f, 0.0f); // Red - lateral wheel force
+        btVector3 const colorWheelForceZ(0.0f, 1.0f, 0.0f); // Green - longitudinal wheel force
+        btVector3 const colorSlip(1.0f, 1.0f, 0.0f);        // Yellow - slip indicator
+        btVector3 const colorGrip(0.0f, 0.5f, 1.0f);        // Blue - grip indicator
+
+        // Draw velocity vector from car center
+        btVector3 const carPos = trans.getOrigin();
+        btVector3 const worldVelocity = trans.getBasis() * debug.localVelocity;
+        m_bulletDebugDrawer->drawLine(carPos, carPos + worldVelocity * kVelocityScale, colorVelocity);
+
+        // Draw total force vector from car center
+        btVector3 const worldForce = trans.getBasis() * debug.totalForce;
+        m_bulletDebugDrawer->drawLine(carPos, carPos + worldForce * kForceScale, colorForce);
+
+        // Draw per-wheel forces
+        for (int i = 0; i < 4; i++) {
+            btVector3 const wheelPos = debug.wheelWorldPositions[i];
+            btVector3 const &localForce = debug.wheelForces[i];
+
+            // Draw lateral (X) and longitudinal (Z) components separately
+            btVector3 lateralWorld = trans.getBasis() * btVector3(localForce.x(), 0, 0);
+            btVector3 longitudinalWorld = trans.getBasis() * btVector3(0, 0, localForce.z());
+
+            m_bulletDebugDrawer->drawLine(wheelPos, wheelPos + lateralWorld * kForceScale, colorWheelForceX);
+            m_bulletDebugDrawer->drawLine(wheelPos, wheelPos + longitudinalWorld * kForceScale, colorWheelForceZ);
+
+            // Draw grip circle at each wheel (radius proportional to grip)
+            float const grip = debug.wheels[i].grip;
+            float const gripRadius = grip * 0.02f;
+
+            // Draw a simple cross to represent grip magnitude
+            btVector3 const right = trans.getBasis().getColumn(0) * gripRadius;
+            btVector3 const forward = trans.getBasis().getColumn(2) * gripRadius;
+            m_bulletDebugDrawer->drawLine(wheelPos - right, wheelPos + right, colorGrip);
+            m_bulletDebugDrawer->drawLine(wheelPos - forward, wheelPos + forward, colorGrip);
+
+            // Draw traction indicator (line proportional to traction)
+            float const traction = debug.wheels[i].traction;
+            btVector3 const tractionVec = trans.getBasis() * btVector3(0, 0, traction * 0.05f);
+            m_bulletDebugDrawer->drawLine(wheelPos + btVector3(0, 0.1f, 0), wheelPos + btVector3(0, 0.1f, 0) + tractionVec,
+                                          btVector3(0.5f, 0.5f, 1.0f));
+        }
+
+        // Draw slip angle indicator
+        if (std::abs(state.slipAngle) > 0.05f) {
+            // Draw a line showing slip direction
+            float const slipMagnitude = std::min(std::abs(state.slipAngle) * 2.0f, 1.0f);
+            btVector3 const slipDir = trans.getBasis() * btVector3(state.slipAngle > 0 ? 1 : -1, 0, 0);
+            btVector3 slipColor(slipMagnitude, 1.0f - slipMagnitude, 0);
+            m_bulletDebugDrawer->drawLine(carPos + btVector3(0, 0.5f, 0), carPos + btVector3(0, 0.5f, 0) + slipDir * slipMagnitude,
+                                          slipColor);
+        }
+
+        // Draw steering angle visualisation on front wheels
+        float const steerAngle = state.steeringAngle * SIMD_2_PI;
+        for (int i = 0; i < 2; i++) { // Front wheels only
+            btVector3 const wheelPos = debug.wheelWorldPositions[i];
+
+            // Draw a line showing wheel direction
+            btVector3 localDir(std::sin(steerAngle), 0, std::cos(steerAngle));
+            btVector3 const worldDir = trans.getBasis() * localDir * 0.3f;
+            m_bulletDebugDrawer->drawLine(wheelPos, wheelPos + worldDir, btVector3(1, 1, 1));
+        }
+
+        // Draw ground orientation (car up vector vs world up)
+        btVector3 const carUp = trans.getBasis().getColumn(1);
+        m_bulletDebugDrawer->drawLine(carPos, carPos + carUp * 0.5f, btVector3(0.5f, 0.5f, 0.5f));
+
+        // Draw handbrake indicator
+        if (state.handbrakeInput) {
+            // Draw red circles at rear wheels
+            for (int i = 2; i < 4; i++) {
+                btVector3 const wheelPos = debug.wheelWorldPositions[i];
+                btVector3 const right = trans.getBasis().getColumn(0) * 0.15f;
+                btVector3 const forward = trans.getBasis().getColumn(2) * 0.15f;
+                m_bulletDebugDrawer->drawLine(wheelPos - right - forward, wheelPos + right - forward, btVector3(1, 0, 0));
+                m_bulletDebugDrawer->drawLine(wheelPos + right - forward, wheelPos + right + forward, btVector3(1, 0, 0));
+                m_bulletDebugDrawer->drawLine(wheelPos + right + forward, wheelPos - right + forward, btVector3(1, 0, 0));
+                m_bulletDebugDrawer->drawLine(wheelPos - right + forward, wheelPos - right - forward, btVector3(1, 0, 0));
+            }
+        }
+
+        // Draw lost grip indicator
+        if (state.lostGrip || !state.hasContactWithGround) {
+            // Draw yellow warning box above car
+            btVector3 const warnPos = carPos + btVector3(0, 1.0f, 0);
+            btVector3 const warnSize(0.2f, 0.1f, 0.2f);
+            m_bulletDebugDrawer->drawBox(warnPos - warnSize, warnPos + warnSize, btVector3(1, 1, 0));
+        }
+    }
 } // namespace OpenNFS

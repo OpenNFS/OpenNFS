@@ -37,12 +37,22 @@ namespace OpenNFS {
         std::vector<NfsAssetList> PopulateAssets();
         static bool FilePathSortByDepthReverse(std::filesystem::path const &a, std::filesystem::path const &b);
         void RenameAssetsToLowercase();
+
+        template <auto... Values> struct OneOf {
+            template <typename T> constexpr bool operator==(T const &value) const {
+                return ((value == Values) || ...);
+            }
+
+            template <typename T> constexpr friend bool operator==(T const &value, OneOf const &) {
+                return ((value == Values) || ...);
+            }
+        };
     } // namespace Utils
 
     // Avoid requiring C++23 just for this. If we upgrade, nerf this.
     [[noreturn]] inline void unreachable() {
         // Uses compiler specific extensions if possible.
-        // Even if no extension is used, undefined behavior is still raised by
+        // Even if no extension is used, undefined behaviour is still raised by
         // an empty function body and the noreturn attribute.
 #if defined(_MSC_VER) && !defined(__clang__) // MSVC
         __assume(false);

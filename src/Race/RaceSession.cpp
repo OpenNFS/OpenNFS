@@ -10,6 +10,8 @@ namespace OpenNFS {
           m_carCamera(m_inputManager), m_physicsManager(m_track),
           m_renderer(window, onfsLogger, installedNFS, m_track, m_physicsManager.debugDrawer),
           m_racerManager(m_playerAgent, m_physicsManager, m_track), m_inputManager(window) {
+        m_userParams.showNFS4PhysicsDebug = Config::get().hsPhysics;
+        m_userParams.drawNFS4PhysicsVectors = Config::get().hsPhysics;
     }
 
     void RaceSession::_UpdateCameras(float const deltaTime) {
@@ -54,10 +56,6 @@ namespace OpenNFS {
         auto &activeCamera{this->_GetActiveCamera()};
         activeCamera.UpdateFrustum();
 
-        if (m_userParams.simulateCars) {
-            m_racerManager.Simulate();
-        }
-
         m_orbitalManager.Update(activeCamera, m_userParams.timeScaleFactor);
 
         if (m_inputManager.mouseLeft && m_inputManager.GetWindowStatus() == GAME) {
@@ -67,6 +65,10 @@ namespace OpenNFS {
             if (targetedEntity.has_value()) {
                 m_targetedEntity = targetedEntity;
             }
+        }
+
+        if (m_userParams.simulateCars) {
+            m_racerManager.Simulate();
         }
 
         // Step the physics simulation

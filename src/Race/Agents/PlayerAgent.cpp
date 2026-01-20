@@ -6,6 +6,7 @@ namespace OpenNFS {
     PlayerAgent::PlayerAgent(InputManager const &inputManager, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack)
         : CarAgent(PLAYER, car, raceTrack), m_inputManager(inputManager) {
         name = "DumbPanda";
+        car->physicsModel = Config::get().hsPhysics ? PhysicsModel::NFS4_PC : PhysicsModel::BULLET;
     }
 
     void PlayerAgent::Simulate() {
@@ -17,6 +18,8 @@ namespace OpenNFS {
         vehicle->ApplyBrakingForce(m_inputManager.brakes);
         vehicle->ApplySteeringRight(m_inputManager.right);
         vehicle->ApplySteeringLeft(m_inputManager.left);
+        vehicle->ApplyHandbrakes(m_inputManager.handbrakes);
+        vehicle->ApplyGearChange(m_inputManager.shiftUp, m_inputManager.shiftDown);
 
         if (m_inputManager.reset) {
             ResetToVroad(m_nearestVroadID, 0.f);

@@ -8,6 +8,8 @@ namespace OpenNFS {
         : CarAgent(AgentType::AI, car, raceTrack) {
         name = racerData.name;
         this->vehicle = std::make_shared<Car>(car->assetData);
+        // Force original Bullet physics for AI we've tweaked for the new model
+        vehicle->physicsModel = PhysicsModel::BULLET;
 
         // TODO: DEBUG! Set a low max speed.
         this->vehicle->assetData.physicsData.maxSpeed = 100.f;
