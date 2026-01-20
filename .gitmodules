@@ -6,7 +6,7 @@
 	url = https://github.com/bulletphysics/bullet3.git
 [submodule "lib/glew-cmake"]
 	path = lib/glew-cmake
-	url = https://github.com/Perlmint/glew-cmake.git
+	url = https://github.com/AmrikSadhra/glew-cmake.git
 [submodule "include/imgui"]
 	path = include/imgui
 	url = https://github.com/ocornut/imgui.git
