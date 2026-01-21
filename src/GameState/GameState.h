@@ -7,6 +7,7 @@ namespace OpenNFS {
         RaceLoad,
         Paused,
         VehicleSelection,
+        TrackSelection,
         Exit
     };
 

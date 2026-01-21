@@ -21,7 +21,7 @@
       }
     },
     {
-      "id": "vehicleSelectionDropdown",
+      "id": "trackSelectionDropdown",
       "type": "dropdown",
       "resource": "dropdownButton",
       "entryResource": "dropdownEntry",
@@ -38,7 +38,7 @@
         "y": "15"
       },
       "font": "Roboto",
-      "onClick": "onVehicleSelectionChange"
+      "onClick": "onTrackSelectionChange"
     },
     {
       "type": "button",

@@ -13,6 +13,7 @@
 #include "GameState/MainMenuState.h"
 #include "GameState/RaceLoadState.h"
 #include "GameState/RaceState.h"
+#include "GameState/TrackSelectionState.h"
 #include "GameState/VehicleSelectionState.h"
 #include "Renderer/Renderer.h"
 #include "Util/Logger.h"
@@ -60,6 +61,7 @@ class OpenNFSEngine {
         stateManager.RegisterState(GameState::MainMenu, std::make_unique<MainMenuState>(context));
         stateManager.RegisterState(GameState::Race, std::make_unique<RaceState>(context));
         stateManager.RegisterState(GameState::RaceLoad, std::make_unique<RaceLoadState>(context));
+        stateManager.RegisterState(GameState::TrackSelection, std::make_unique<TrackSelectionState>(context));
         stateManager.RegisterState(GameState::VehicleSelection, std::make_unique<VehicleSelectionState>(context));
 
         // Start with main menu (if explicitly opted in with arg)

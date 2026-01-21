@@ -118,6 +118,7 @@ set(SOURCE_FILES
         src/GameState/MainMenuState.cpp
         src/GameState/RaceState.cpp
         src/GameState/RaceLoadState.cpp
+        src/GameState/TrackSelectionState.cpp
         src/GameState/VehicleSelectionState.cpp
         src/Race/VehicleSelection.cpp)
 

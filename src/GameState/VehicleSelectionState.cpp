@@ -9,14 +9,14 @@ namespace OpenNFS {
     void VehicleSelectionState::OnEnter() {
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
-        callbacks["onMainMenu"] = [this]() { m_nextState = GameState::MainMenu; };
-        callbacks["onStartRace"] = [this]() { m_nextState = GameState::Race; };
+        callbacks["onBack"] = [this]() { m_nextState = GameState::MainMenu; };
+        callbacks["onGo"] = [this]() { m_nextState = GameState::TrackSelection; };
         callbacks["onVehicleSelectionChange"] = [this]() { LoadCar(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
 
-        // Load car list into 
+        // Load car list into dropdown
         m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
         for (NfsAssetList assets : m_context.installedNFS) {
             // Only show cars from the selected NFS
@@ -71,7 +71,6 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        LOG(INFO) << "Car selection happened";
         m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_dropdown->text);
 
         // Create vehicle selection view

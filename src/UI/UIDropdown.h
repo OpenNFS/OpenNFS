@@ -18,7 +18,7 @@ namespace OpenNFS {
 
         UIResource const &resource;
         UIResource const &entryResource;
-        std::string text = "";
+        std::string text;
         glm::vec4 textColour;
         glm::vec4 originalTextColour;
         glm::vec4 textHoverColour;
