@@ -21,6 +21,7 @@
       }
     },
     {
+      "id": "vehicleSelectionDropdown",
       "type": "dropdown",
       "resource": "dropdownButton",
       "entryResource": "dropdownEntry",

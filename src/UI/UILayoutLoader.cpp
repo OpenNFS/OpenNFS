@@ -146,6 +146,7 @@ namespace OpenNFS {
                     std::string const type = elemJson.value("type", "");
                     float scale = elemJson.value("scale", 1.0f);
                     auto const layer = elemJson.value("layer", 0u);
+                    std::string const id = elemJson.value("id", "");
 
                     // Parse position
                     glm::vec2 position(0.0f, 0.0f);
@@ -192,7 +193,7 @@ namespace OpenNFS {
                         std::string const resourceName = elemJson.value("resource", "");
                         auto const it = m_resourceMap.find(resourceName);
                         if (it != m_resourceMap.end()) {
-                            element = std::make_unique<UIImage>(it->second, scale, layer, position);
+                            element = std::make_unique<UIImage>(it->second, scale, layer, position, id);
                         } else {
                             LOG(WARNING) << "Resource not found: " << resourceName;
                             continue;
@@ -204,7 +205,7 @@ namespace OpenNFS {
                         glm::vec4 const colour = ParseColour(colourStr);
                         std::string const font = elemJson.value("font", "default");
 
-                        element = std::make_unique<UITextField>(text, colour, scale, layer, position, font);
+                        element = std::make_unique<UITextField>(text, colour, scale, layer, position, id, font);
                     } else if (type == "button") {
                         std::string const resourceName = elemJson.value("resource", "missingResource");
                         auto const it = m_resourceMap.find(resourceName);
@@ -216,7 +217,7 @@ namespace OpenNFS {
                         glm::vec4 const hoverColour = ParseColour(hoverColourStr);
                         std::string const font = elemJson.value("font", "default");
                         element =
-                            std::make_unique<UIButton>(it->second, text, colour, hoverColour, scale, layer, position, textOffset, font);
+                            std::make_unique<UIButton>(it->second, text, colour, hoverColour, scale, layer, position, textOffset, id, font);
                     } else if (type == "dropdown") {
                         std::string const resourceName = elemJson.value("resource", "missingResource");
                         auto const it = m_resourceMap.find(resourceName);
@@ -234,7 +235,7 @@ namespace OpenNFS {
                             dropdownElements = elemJson["entries"].get<std::vector<std::string>>();
                         }
                         element =
-                            std::make_unique<UIDropdown>(it->second, eit->second, text, colour, hoverColour, scale, layer, position, textOffset, dropdownElements, font);
+                            std::make_unique<UIDropdown>(it->second, eit->second, text, colour, hoverColour, scale, layer, position, textOffset, dropdownElements, id, font);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;

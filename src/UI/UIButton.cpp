@@ -2,9 +2,9 @@
 
 namespace OpenNFS {
     UIButton::UIButton(UIResource const &_resource, std::string const &_text, glm::vec4 const &_textColour, glm::vec4 const &_hoverColour,
-                       float const _scale, uint32_t const _layer, glm::vec2 const &_location, glm::vec2 const &_textOffset,
+                       float const _scale, uint32_t const _layer, glm::vec2 const &_location, glm::vec2 const &_textOffset, std::string id,
                        std::string const &_fontName)
-        : UIElement(UIElementType::Button, _scale, _layer, _location), resource(_resource), text(_text), textColour(_textColour),
+        : UIElement(UIElementType::Button, _scale, _layer, _location, id), resource(_resource), text(_text), textColour(_textColour),
           originalTextColour(_textColour), textHoverColour(_hoverColour), textOffset(_textOffset), fontName(_fontName) {
     }
 

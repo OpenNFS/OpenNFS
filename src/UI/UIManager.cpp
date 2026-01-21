@@ -72,4 +72,12 @@ namespace OpenNFS {
         }
         m_uiRenderer.EndRenderPass();
     }
+    std::shared_ptr<UIElement> UIManager::GetElementWithID(std::string _id) {
+        for (auto element : m_uiElements) {
+            if (element.get()->id == _id) {
+                return element;
+            }
+        }
+        return nullptr;
+    }
 } // namespace OpenNFS

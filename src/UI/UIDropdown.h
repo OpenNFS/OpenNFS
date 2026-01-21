@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "UIElement.h"
 #include "UIResource.h"
@@ -9,7 +10,7 @@ namespace OpenNFS {
     class UIDropdown final : public UIElement {
       public:
         UIDropdown(UIResource const &_resource, UIResource const &_entryResource, std::string const &_text, glm::vec4 const &_textColour, glm::vec4 const &_textHoverColour,
-                 float _scale, uint32_t _layer, glm::vec2 const &_location, glm::vec2 const &_textOffset, std::vector<std::string> _entries,
+                 float _scale, uint32_t _layer, glm::vec2 const &_location, glm::vec2 const &_textOffset, std::vector<std::string> _entries, std::string _id = "",
                  std::string const &_fontName = "default");
         void Update(glm::vec2 const &cursorPosition, bool click) override;
 
