@@ -31,3 +31,6 @@
 [submodule "lib/LibOpenNFS"]
 	path = lib/LibOpenNFS
 	url = https://github.com/OpenNFS/LibOpenNFS.git
+[submodule "include/implot"]
+	path = include/implot
+	url = https://github.com/epezent/implot.git
