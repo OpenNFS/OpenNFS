@@ -195,7 +195,7 @@ namespace OpenNFS::Utils {
                 CHECK_F(exists(carBasePath), "NFS 3 Hot Pursuit car folder: %s is missing", carBasePath.c_str());
 
                 for (directory_iterator carItr(carBasePath); carItr != directory_iterator(); ++carItr) {
-                    if (carItr->path().filename().string().find("traffic") == std::string::npos) {
+                    if (is_directory(carItr->path()) && carItr->path().filename().string().find("traffic") == std::string::npos) {
                         currentNFS.cars.emplace_back(carItr->path().filename().string());
                     }
                 }

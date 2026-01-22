@@ -30,8 +30,6 @@ namespace OpenNFS {
             for(std::string car : assets.cars) {
                 if (car.starts_with("traffic"))
                     continue;
-                if (car == "cartool.zip")
-                    continue;
                 if (car == "knoc")
                     continue;
                 dropdown->AddEntry(car);
