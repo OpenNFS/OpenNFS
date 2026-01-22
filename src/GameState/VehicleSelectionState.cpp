@@ -9,20 +9,15 @@ namespace OpenNFS {
     void VehicleSelectionState::OnEnter() {
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
-        callbacks["onMainMenu"] = [this]() { m_nextState = GameState::MainMenu; };
-        callbacks["onStartRace"] = [this]() { m_nextState = GameState::Race; };
+        callbacks["onBack"] = [this]() { m_nextState = GameState::MainMenu; };
+        callbacks["onGo"] = [this]() { m_nextState = GameState::TrackSelection; };
         callbacks["onVehicleSelectionChange"] = [this]() { LoadCar(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
 
-        // Load car list into 
-        for (auto element : m_uiManager.get()->m_uiElements) {
-            if (element.get()->type == UIElementType::Dropdown) {
-                dropdown = (UIDropdown *) element.get();
-                break;
-            }
-        }
+        // Load car list into dropdown
+        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
         for (NfsAssetList assets : m_context.installedNFS) {
             // Only show cars from the selected NFS
             if (assets.tag != m_context.loadedAssets.carTag)
@@ -32,7 +27,7 @@ namespace OpenNFS {
                     continue;
                 if (car == "knoc")
                     continue;
-                dropdown->AddEntry(car);
+                m_dropdown->AddEntry(car);
             }
         }
         LoadCar();
@@ -74,8 +69,8 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        LOG(INFO) << "Car selection happened";
-        m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, dropdown->text);
+        m_context.loadedAssets.car = m_dropdown->text;
+        m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
         // Create vehicle selection view
         m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);

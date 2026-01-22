@@ -2,9 +2,9 @@
 
 namespace OpenNFS {
     UIDropdown::UIDropdown(UIResource const &_resource, UIResource const &_entryResource, std::string const &_text, glm::vec4 const &_textColour, glm::vec4 const &_hoverColour,
-                       float const _scale, uint32_t const _layer, glm::vec2 const &_location, glm::vec2 const &_textOffset, std::vector<std::string> _entries,
+                       float const _scale, uint32_t const _layer, glm::vec2 const &_location, glm::vec2 const &_textOffset, std::vector<std::string> _entries, std::string _id,
                        std::string const &_fontName)
-        : UIElement(UIElementType::Dropdown, _scale, _layer, _location), resource(_resource), entryResource(_entryResource), text(_text), textColour(_textColour),
+        : UIElement(UIElementType::Dropdown, _scale, _layer, _location, _id), resource(_resource), entryResource(_entryResource), text(_text), textColour(_textColour),
           originalTextColour(_textColour), textHoverColour(_hoverColour), textOffset(_textOffset), fontName(_fontName), entries(_entries) {
             for(size_t i = 0; i < entries.size(); i++)
                 entryTextColour.push_back(textColour);

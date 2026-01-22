@@ -21,6 +21,8 @@ namespace OpenNFS {
 
         std::vector<std::shared_ptr<UIElement>> m_uiElements;
 
+        std::shared_ptr<UIElement> GetElementWithID(std::string _id);
+
       private:
         std::map<std::string, UIResource> m_menuResourceMap;
         std::map<std::string, UIFont> m_fontMap;
