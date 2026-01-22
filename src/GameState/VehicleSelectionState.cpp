@@ -71,7 +71,8 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_dropdown->text);
+        m_context.loadedAssets.car = m_dropdown->text;
+        m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
         // Create vehicle selection view
         m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);

@@ -8,7 +8,7 @@ namespace OpenNFS {
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
         callbacks["onBack"] = [this]() { m_nextState = GameState::VehicleSelection; };
-        callbacks["onGo"] = [this]() { m_nextState = GameState::Race; };
+        callbacks["onGo"] = [this]() { m_nextState = GameState::RaceLoad; };
         callbacks["onTrackSelectionChange"] = [this]() { LoadTrack(); };
 
         // Create UI manager with vehicle selection layout
@@ -23,6 +23,7 @@ namespace OpenNFS {
                 m_dropdown->AddEntry(track);
             }
         }
+        LoadTrack();
     
         // Reset next state
         m_nextState = GameState::TrackSelection;
