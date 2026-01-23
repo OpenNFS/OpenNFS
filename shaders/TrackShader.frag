@@ -117,6 +117,10 @@ void main(){
         discard;
     }
 
+    if (texColour.a < 0.7) {
+        discard;
+    }
+
     if (useClassic){
         color = nfsColor;
     } else {
