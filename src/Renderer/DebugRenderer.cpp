@@ -155,6 +155,7 @@ namespace OpenNFS {
 
         auto const &debug = physics->GetDebugData();
         auto const &state = physics->GetState();
+        auto const &toggles = physics->GetToggles();
         btRigidBody const *chassis = physics->GetChassis();
         btTransform const trans = chassis->getWorldTransform();
 
@@ -193,19 +194,19 @@ namespace OpenNFS {
 
             // Draw grip circle at each wheel (radius proportional to grip)
             float const grip = debug.wheels[i].grip;
-            float const gripRadius = grip * 0.02f;
+            float const gripRadius = grip * 0.01f;
 
             // Draw a simple cross to represent grip magnitude
-            btVector3 const right = trans.getBasis().getColumn(0) * gripRadius;
-            btVector3 const forward = trans.getBasis().getColumn(2) * gripRadius;
-            m_bulletDebugDrawer->drawLine(wheelPos - right, wheelPos + right, colorGrip);
-            m_bulletDebugDrawer->drawLine(wheelPos - forward, wheelPos + forward, colorGrip);
+            //btVector3 const right = trans.getBasis().getColumn(0) * gripRadius;
+            //btVector3 const forward = trans.getBasis().getColumn(2) * gripRadius;
+            //m_bulletDebugDrawer->drawLine(wheelPos - right, wheelPos + right, colorGrip);
+            //m_bulletDebugDrawer->drawLine(wheelPos - forward, wheelPos + forward, colorGrip);
 
             // Draw traction indicator (line proportional to traction)
-            float const traction = debug.wheels[i].traction;
-            btVector3 const tractionVec = trans.getBasis() * btVector3(0, 0, traction * 0.05f);
-            m_bulletDebugDrawer->drawLine(wheelPos + btVector3(0, 0.1f, 0), wheelPos + btVector3(0, 0.1f, 0) + tractionVec,
-                                          btVector3(0.5f, 0.5f, 1.0f));
+            //float const traction = debug.wheels[i].traction;
+            //btVector3 const tractionVec = trans.getBasis() * btVector3(0, 0, traction * 0.05f);
+            //m_bulletDebugDrawer->drawLine(wheelPos + btVector3(0, 0.1f, 0), wheelPos + btVector3(0, 0.1f, 0) + tractionVec,
+            //                              btVector3(0.5f, 0.5f, 1.0f));
         }
 
         // Draw slip angle indicator
@@ -238,8 +239,8 @@ namespace OpenNFS {
             // Draw red circles at rear wheels
             for (int i = 2; i < 4; i++) {
                 btVector3 const wheelPos = debug.wheelWorldPositions[i];
-                btVector3 const right = trans.getBasis().getColumn(0) * 0.15f;
-                btVector3 const forward = trans.getBasis().getColumn(2) * 0.15f;
+                btVector3 const right = trans.getBasis().getColumn(0) * 0.02f;
+                btVector3 const forward = trans.getBasis().getColumn(2) * 0.02f;
                 m_bulletDebugDrawer->drawLine(wheelPos - right - forward, wheelPos + right - forward, btVector3(1, 0, 0));
                 m_bulletDebugDrawer->drawLine(wheelPos + right - forward, wheelPos + right + forward, btVector3(1, 0, 0));
                 m_bulletDebugDrawer->drawLine(wheelPos + right + forward, wheelPos - right + forward, btVector3(1, 0, 0));
@@ -248,11 +249,77 @@ namespace OpenNFS {
         }
 
         // Draw lost grip indicator
-        if (state.lostGrip || !state.hasContactWithGround) {
+        if (state.lostGrip) {
             // Draw yellow warning box above car
             btVector3 const warnPos = carPos + btVector3(0, 1.0f, 0);
             btVector3 const warnSize(0.2f, 0.1f, 0.2f);
             m_bulletDebugDrawer->drawBox(warnPos - warnSize, warnPos + warnSize, btVector3(1, 1, 0));
         }
+
+        // Draw turning circle indicator (angular damping)
+        //if (toggles.enableTurningCircle && std::abs(debug.turningCircleAngularDamp) > 0.01f) {
+        //    // Draw arc showing turning circle effect
+        //    btVector3 const turnColor(0.0f, 1.0f, 0.5f); // Teal
+        //    float const turnMagnitude = std::min(std::abs(debug.turningCircleAngularDamp) * 0.5f, 1.0f);
+        //    btVector3 const turnDir = trans.getBasis() * btVector3(debug.turningCircleAngularDamp > 0 ? 1 : -1, 0.5f, 0);
+        //    m_bulletDebugDrawer->drawLine(carPos, carPos + turnDir * turnMagnitude, turnColor);
+        //}
+
+        // Draw lateral damping indicator
+       //if (toggles.enableLateralDamping && std::abs(debug.lateralVelocityDamp) > 0.01f) {
+       //    btVector3 const dampColor(0.5f, 0.0f, 1.0f); // Purple
+       //    float const dampMagnitude = std::min(std::abs(debug.lateralVelocityDamp) * 0.1f, 0.5f);
+       //    btVector3 const dampDir = trans.getBasis() * btVector3(debug.lateralVelocityDamp > 0 ? -1 : 1, 0, 0);
+       //    m_bulletDebugDrawer->drawLine(carPos + btVector3(0, 0.3f, 0),
+       //                                  carPos + btVector3(0, 0.3f, 0) + dampDir * dampMagnitude,
+       //                                  dampColor);
+       //}
+
+       //// Draw near-stop deceleration indicator
+       //if (toggles.enableNearStopDecel && debug.appliedNearStopDecel) {
+       //    // Draw downward arrows at front and back to indicate stopping
+       //    btVector3 const stopColor(1.0f, 0.5f, 0.0f); // Orange
+       //    btVector3 const front = carPos + trans.getBasis() * btVector3(0, 0.2f, 1.0f);
+       //    btVector3 const back = carPos + trans.getBasis() * btVector3(0, 0.2f, -1.0f);
+       //    m_bulletDebugDrawer->drawLine(front, front - btVector3(0, 0.3f, 0), stopColor);
+       //    m_bulletDebugDrawer->drawLine(back, back - btVector3(0, 0.3f, 0), stopColor);
+       //}
+
+       //// Draw neutral gear deceleration indicator
+       //if (toggles.enableNeutralGearDecel && debug.appliedNeutralDecel) {
+       //    // Draw 'N' shape at center of car
+       //    btVector3 const neutralColor(0.7f, 0.7f, 0.7f); // Gray
+       //    btVector3 const center = carPos + btVector3(0, 0.8f, 0);
+       //    m_bulletDebugDrawer->drawLine(center + btVector3(-0.1f, -0.1f, 0), center + btVector3(-0.1f, 0.1f, 0), neutralColor);
+       //    m_bulletDebugDrawer->drawLine(center + btVector3(-0.1f, 0.1f, 0), center + btVector3(0.1f, -0.1f, 0), neutralColor);
+       //    m_bulletDebugDrawer->drawLine(center + btVector3(0.1f, -0.1f, 0), center + btVector3(0.1f, 0.1f, 0), neutralColor);
+       //}
+
+       //// Draw prevented sideways movement indicator
+       //if (toggles.enablePreventSideways && debug.preventedSideways) {
+       //    // Draw X at ground level to indicate locked position
+       //    btVector3 const lockColor(1.0f, 0.0f, 1.0f); // Magenta
+       //    btVector3 const groundPos = carPos - btVector3(0, 0.3f, 0);
+       //    m_bulletDebugDrawer->drawLine(groundPos + btVector3(-0.2f, 0, -0.2f), groundPos + btVector3(0.2f, 0, 0.2f), lockColor);
+       //    m_bulletDebugDrawer->drawLine(groundPos + btVector3(-0.2f, 0, 0.2f), groundPos + btVector3(0.2f, 0, -0.2f), lockColor);
+       //}
+
+       //// Draw airborne drag indicator
+       //if (toggles.enableAirborneDrag && debug.airborneDownforce > 0.01f) {
+       //    btVector3 const dragColor(0.3f, 0.3f, 1.0f); // Light blue
+       //    float const dragMagnitude = std::min(debug.airborneDownforce * 0.5f, 1.0f);
+       //    // Draw arrows pointing back/down to show air resistance
+       //    btVector3 const dragDir = -chassis->getLinearVelocity().normalized() * dragMagnitude;
+       //    m_bulletDebugDrawer->drawLine(carPos, carPos + dragDir, dragColor);
+       //}
+
+       //// Draw road adjustment angular velocity
+       //if (toggles.enableAdjustToRoad && debug.roadAdjustmentAngVel.length() > 0.01f) {
+       //    btVector3 const adjustColor(0.0f, 0.8f, 0.8f); // Cyan
+       //    btVector3 const adjustDir = debug.roadAdjustmentAngVel.normalized() * 0.3f;
+       //    m_bulletDebugDrawer->drawLine(carPos + btVector3(0, 0.6f, 0),
+       //                                  carPos + btVector3(0, 0.6f, 0) + adjustDir,
+       //                                  adjustColor);
+       //}
     }
 } // namespace OpenNFS

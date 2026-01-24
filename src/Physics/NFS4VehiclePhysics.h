@@ -85,6 +85,23 @@ namespace OpenNFS {
         int roadSurface;
     };
 
+    // Debug toggles for individual physics features
+    struct NFS4PhysicsToggles {
+        bool enableTurningCircle{true};
+        bool enableLateralDamping{true};
+        bool enableNeutralGearDecel{true};
+        bool enableNearStopDecel{true};
+        bool enablePreventSideways{true};
+        bool enableAirborneDrag{true};
+        bool enableLimitAngularVelocity{true};
+        bool enableAdjustToRoad{true};
+        bool enablePreventSinking{true};
+        bool enableDownforce{true};
+        bool enableGoAirborne{true};
+        bool enableWheelForces{true};
+        bool enableTractionModel{true};
+    };
+
     // Vehicle state
     struct NFS4VehicleState {
         // Inputs
@@ -113,6 +130,7 @@ namespace OpenNFS {
         bool lostGrip;
         bool hasContactWithGround;
         float distanceAboveGround;
+        bool unknownBool; // Used in gTransferDamp - affects grip when true
 
         // Computed steering angle (radians)
         float steeringAngle;
@@ -121,6 +139,10 @@ namespace OpenNFS {
         float tractionForce;
 
         Weather weather;
+
+        // Road basis for ground alignment (computed from wheel raycasts)
+        btMatrix3x3 basisToRoad;
+        btMatrix3x3 basisToRoadNext; // Interpolated for smoother adjustment
     };
 
     // Debug data for visualization
@@ -149,6 +171,15 @@ namespace OpenNFS {
         float slipAngleFactor;
         float tireFactor;
         float angularVelocityFactor;
+
+        float turningCircleAngularDamp;
+        float lateralVelocityDamp;
+        float nearStopDecelFactor;
+        float airborneDownforce;
+        bool preventedSideways;
+        bool appliedNeutralDecel;
+        bool appliedNearStopDecel;
+        btVector3 roadAdjustmentAngVel;
 
         // Rolling history for graphs (circular buffers)
         static constexpr size_t HISTORY_SIZE = 256;
@@ -192,6 +223,12 @@ namespace OpenNFS {
         [[nodiscard]] btRigidBody *GetChassis() const {
             return m_chassis;
         }
+        [[nodiscard]] NFS4PhysicsToggles &GetToggles() {
+            return m_toggles;
+        }
+        [[nodiscard]] NFS4PhysicsToggles const &GetToggles() const {
+            return m_toggles;
+        }
 
       private:
         RaycastVehicle *m_vehicle;
@@ -199,6 +236,7 @@ namespace OpenNFS {
         NFS4PerformanceData m_perf;
         NFS4VehicleState m_state;
         NFS4DebugData m_debugData;
+        NFS4PhysicsToggles m_toggles;
 
         static constexpr float PHYSICS_TIMESTEP = 1.0f / 32.0f; // NFS4 runs at 32Hz
 
@@ -259,6 +297,28 @@ namespace OpenNFS {
         [[nodiscard]] float gTransferDamp() const;
         [[nodiscard]] btVector3 OrientationToGround() const;
         [[nodiscard]] float RoadFactor(WheelData const &wheel) const;
+        [[nodiscard]] btVector3 AirborneDrag() const;
+        [[nodiscard]] bool ShouldApplyNearStopDeceleration() const;
+        [[nodiscard]] btVector3 DampLateralVelocity() const;
+        [[nodiscard]] bool WentAirborne() const;
+        struct TurningCircleResult {
+            btVector3 angularVelocity;
+            btVector3 linearVelocity;
+        };
+        [[nodiscard]] TurningCircleResult TurningCircle(btVector3 const &localAngularVelocity, btVector3 const &localVelocity) const;
+
+        void ComputeBasisToRoad();
+        void AdjustToRoad();
+        void PreventSinking() const;
+        void ApplyTurningCircle(float dt);
+        void ApplyLateralVelocityDamping(float dt);
+        void ApplyNeutralGearDeceleration(float dt);
+        void ApplyNearStopDeceleration(float dt);
+        void PreventMovingSideways();
+        void ApplyAirborneDrag(float dt);
+        void LimitAngularVelocity() const;
+        void GoAirborne();
+        void ApplyDownforce(float dt);
 
         [[nodiscard]] static bool IsFrontWheel(WheelPosition const pos) {
             return pos == WheelPosition::FRONT_LEFT || pos == WheelPosition::FRONT_RIGHT;

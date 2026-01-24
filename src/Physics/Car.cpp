@@ -250,30 +250,29 @@ namespace OpenNFS {
     }
 
     void Car::_ApplyInputs() {
-        // Shared steering angle logic
-        if (!assetData.physicsData.absoluteSteer) {
-            // update front wheels steering value
-            if (vehicleState.steerRight) {
-                vehicleState.gVehicleSteering -= assetData.physicsData.steeringIncrement;
-                if (vehicleState.gVehicleSteering < -assetData.physicsData.steeringClamp) {
-                    vehicleState.gVehicleSteering = -assetData.physicsData.steeringClamp;
-                }
-            } else if (vehicleState.steerLeft) {
-                vehicleState.gVehicleSteering += assetData.physicsData.steeringIncrement;
-                if (vehicleState.gVehicleSteering > assetData.physicsData.steeringClamp) {
-                    vehicleState.gVehicleSteering = assetData.physicsData.steeringClamp;
-                }
-            } else {
-                if (vehicleState.gVehicleSteering > 0) {
-                    vehicleState.gVehicleSteering -= assetData.physicsData.steeringIncrement;
-                } else if (vehicleState.gVehicleSteering < 0) {
-                    vehicleState.gVehicleSteering += assetData.physicsData.steeringIncrement;
-                }
-            }
-        }
 
         switch (physicsModel) {
         case PhysicsModel::BULLET:
+            if (!assetData.physicsData.absoluteSteer) {
+                // update front wheels steering value
+                if (vehicleState.steerRight) {
+                    vehicleState.gVehicleSteering -= assetData.physicsData.steeringIncrement;
+                    if (vehicleState.gVehicleSteering < -assetData.physicsData.steeringClamp) {
+                        vehicleState.gVehicleSteering = -assetData.physicsData.steeringClamp;
+                    }
+                } else if (vehicleState.steerLeft) {
+                    vehicleState.gVehicleSteering += assetData.physicsData.steeringIncrement;
+                    if (vehicleState.gVehicleSteering > assetData.physicsData.steeringClamp) {
+                        vehicleState.gVehicleSteering = assetData.physicsData.steeringClamp;
+                    }
+                } else {
+                    if (vehicleState.gVehicleSteering > 0) {
+                        vehicleState.gVehicleSteering -= assetData.physicsData.steeringIncrement;
+                    } else if (vehicleState.gVehicleSteering < 0) {
+                        vehicleState.gVehicleSteering += assetData.physicsData.steeringIncrement;
+                    }
+                }
+            }
             // Set front wheels steering value
             m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, FRONT_LEFT);
             m_vehicle->setSteeringValue(vehicleState.gVehicleSteering, FRONT_RIGHT);
@@ -284,10 +283,10 @@ namespace OpenNFS {
             m_vehicle->setBrake(vehicleState.gBrakingForce, REAR_RIGHT);
             break;
         case PhysicsModel::NFS4_PC:
-            m_nfs4VehiclePhysics->SetInput(vehicleState.throttlePedal, vehicleState.brakePedal, vehicleState.gVehicleSteering,
+            m_nfs4VehiclePhysics->SetInput(vehicleState.throttlePedal, vehicleState.brakePedal, vehicleState.steerRight ? -1.0f : vehicleState.steerLeft ? 1.0f : 0,
                                            vehicleState.handbrake);
             // If the gear exceeds the supported max gear, drop it
-            if(!m_nfs4VehiclePhysics->SetGear(vehicleState.requestedGear)) {
+            if (!m_nfs4VehiclePhysics->SetGear(vehicleState.requestedGear)) {
                 vehicleState.requestedGear = static_cast<Gear>(static_cast<int>(vehicleState.requestedGear) - 1);
             }
             break;
@@ -657,7 +656,7 @@ namespace OpenNFS {
     void Car::SetPhysicsVehicle(std::unique_ptr<btRaycastVehicle> &&vehicle) {
         m_vehicle = std::move(vehicle);
         if (physicsModel == PhysicsModel::NFS4_PC) {
-            auto raycastVehicle = dynamic_cast<RaycastVehicle*>(m_vehicle.get());
+            auto raycastVehicle = dynamic_cast<RaycastVehicle *>(m_vehicle.get());
             if (!raycastVehicle) {
                 throw std::runtime_error("Cannot cast vehicle pointer to custom Raycast vehicle");
             }

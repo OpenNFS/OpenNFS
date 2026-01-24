@@ -7,46 +7,27 @@ namespace OpenNFS {
         m_wheelContacts.fill({});
     }
 
+    // btRaycastVehicle::updateVehicle() clone, with friction removed
     void RaycastVehicle::updateVehicle(btScalar step) {
-        // Perform raycasts and capture results BEFORE Bullet can mess with them
-        for (int i = 0; i < getNumWheels(); i++) {
-            performRaycast(i);
-            captureWheelContact(i);
-        }
-
-        // btRaycastVehicle::updateVehicle() clone
         for (int i = 0; i < getNumWheels(); i++) {
             updateWheelTransform(i, false);
         }
-
-
-        btTransform const &chassisTrans = getChassisWorldTransform();
-
-        //
-        // simulate suspension
-        //
         for (int i = 0; i < m_wheelInfo.size(); i++) {
             rayCast(m_wheelInfo[i]);
         }
 
+        // Apply suspension force
         updateSuspension(step);
-
         for (int i = 0; i < m_wheelInfo.size(); i++) {
-            // apply suspension force
             btWheelInfo &wheel = m_wheelInfo[i];
-
             btScalar suspensionForce = wheel.m_wheelsSuspensionForce;
-
             if (suspensionForce > wheel.m_maxSuspensionForce) {
                 suspensionForce = wheel.m_maxSuspensionForce;
             }
             btVector3 impulse = wheel.m_raycastInfo.m_contactNormalWS * suspensionForce * step;
             btVector3 relpos = wheel.m_raycastInfo.m_contactPointWS - getRigidBody()->getCenterOfMassPosition();
-
             getRigidBody()->applyImpulse(impulse, relpos);
         }
-
-        updateFriction(step);
 
         for (int i = 0; i < m_wheelInfo.size(); i++) {
             btWheelInfo &wheel = m_wheelInfo[i];

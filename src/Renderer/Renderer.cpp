@@ -395,10 +395,11 @@ namespace OpenNFS {
             return;
         }
 
-        auto const *physics = racers[0]->vehicle->GetNFS4VehiclePhysics();
+        auto *physics = racers[0]->vehicle->GetNFS4VehiclePhysics();
         auto const &state = physics->GetState();
         auto const &perf = physics->GetPerformanceData();
         auto const &debug = physics->GetDebugData();
+        auto &toggles = physics->GetToggles();
 
         ImGui::SetNextWindowSize(ImVec2(600, 800), ImGuiCond_FirstUseEver);
         ImGui::Begin("NFS4 Vehicle Physics Debug");
@@ -446,6 +447,7 @@ namespace OpenNFS {
             ImGui::Text("Traction Force: %.4f", state.tractionForce);
             ImGui::Text("Lost Grip: %s", state.lostGrip ? "YES" : "NO");
             ImGui::Text("Ground Contact: %s", state.hasContactWithGround ? "YES" : "NO");
+            ImGui::Text("Distance Above Ground: %.3f", state.distanceAboveGround);
             ImGui::Text("Handbrake Accum: %d", state.handbrakeAccumulator);
             ImGui::Separator();
             ImGui::Text("Drag: %.6f", debug.drag);
@@ -453,6 +455,119 @@ namespace OpenNFS {
             ImGui::Text("Slip Angle Factor: %.4f", debug.slipAngleFactor);
             ImGui::Text("Tire Factor: %.6f", debug.tireFactor);
             ImGui::Text("Angular Vel Factor: %.4f", debug.angularVelocityFactor);
+            ImGui::Text("Turning Circle Angular Damp: %.4f", debug.turningCircleAngularDamp);
+            ImGui::Text("Lateral Velocity Damp: %.4f", debug.lateralVelocityDamp);
+            ImGui::Text("Near Stop Decel Factor: %.4f", debug.nearStopDecelFactor);
+            ImGui::Text("Airborne Downforce: %.4f", debug.airborneDownforce);
+            ImGui::Separator();
+            // Status flags
+            ImGui::TextColored(debug.preventedSideways ? ImVec4(0, 1, 0, 1) : ImVec4(0.5f, 0.5f, 0.5f, 1),
+                              "Prevented Sideways: %s", debug.preventedSideways ? "ACTIVE" : "inactive");
+            ImGui::TextColored(debug.appliedNeutralDecel ? ImVec4(0, 1, 0, 1) : ImVec4(0.5f, 0.5f, 0.5f, 1),
+                              "Neutral Gear Decel: %s", debug.appliedNeutralDecel ? "ACTIVE" : "inactive");
+            ImGui::TextColored(debug.appliedNearStopDecel ? ImVec4(0, 1, 0, 1) : ImVec4(0.5f, 0.5f, 0.5f, 1),
+                              "Near Stop Decel: %s", debug.appliedNearStopDecel ? "ACTIVE" : "inactive");
+            ImGui::Text("Road Adjust Ang Vel: (%.3f, %.3f, %.3f)",
+                        debug.roadAdjustmentAngVel.x(), debug.roadAdjustmentAngVel.y(), debug.roadAdjustmentAngVel.z());
+        }
+
+        // Physics feature toggles for debugging
+        if (ImGui::CollapsingHeader("Physics Toggles (Debug)", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::TextWrapped("Disable individual physics features to isolate issues:");
+            ImGui::Separator();
+
+            ImGui::Columns(2, "toggle_cols");
+
+            // Column 1: Core physics
+            ImGui::Text("Core Physics:");
+            ImGui::Checkbox("Traction Model", &toggles.enableTractionModel);
+            ImGui::Checkbox("Wheel Forces", &toggles.enableWheelForces);
+            ImGui::Checkbox("Downforce", &toggles.enableDownforce);
+
+            ImGui::Spacing();
+            ImGui::Text("Steering/Handling:");
+            ImGui::Checkbox("Turning Circle", &toggles.enableTurningCircle);
+            ImGui::Checkbox("Lateral Damping", &toggles.enableLateralDamping);
+            ImGui::Checkbox("Prevent Sideways", &toggles.enablePreventSideways);
+
+            ImGui::NextColumn();
+
+            // Column 2: Deceleration and airborne
+            ImGui::Text("Deceleration:");
+            ImGui::Checkbox("Near Stop Decel", &toggles.enableNearStopDecel);
+            ImGui::Checkbox("Neutral Gear Decel", &toggles.enableNeutralGearDecel);
+
+            ImGui::Spacing();
+            ImGui::Text("Airborne/Ground:");
+            ImGui::Checkbox("Airborne Drag", &toggles.enableAirborneDrag);
+            ImGui::Checkbox("Limit Angular Vel", &toggles.enableLimitAngularVelocity);
+            ImGui::Checkbox("Adjust To Road", &toggles.enableAdjustToRoad);
+            ImGui::Checkbox("Prevent Sinking", &toggles.enablePreventSinking);
+            ImGui::Checkbox("Go Airborne", &toggles.enableGoAirborne);
+
+            ImGui::Columns(1);
+
+            ImGui::Separator();
+            if (ImGui::Button("Enable All")) {
+                toggles.enableTractionModel = true;
+                toggles.enableWheelForces = true;
+                toggles.enableDownforce = true;
+                toggles.enableTurningCircle = true;
+                toggles.enableLateralDamping = true;
+                toggles.enablePreventSideways = true;
+                toggles.enableNearStopDecel = true;
+                toggles.enableNeutralGearDecel = true;
+                toggles.enableAirborneDrag = true;
+                toggles.enableLimitAngularVelocity = true;
+                toggles.enableAdjustToRoad = true;
+                toggles.enablePreventSinking = true;
+                toggles.enableGoAirborne = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Disable All")) {
+                toggles.enableTractionModel = false;
+                toggles.enableWheelForces = false;
+                toggles.enableDownforce = false;
+                toggles.enableTurningCircle = false;
+                toggles.enableLateralDamping = false;
+                toggles.enablePreventSideways = false;
+                toggles.enableNearStopDecel = false;
+                toggles.enableNeutralGearDecel = false;
+                toggles.enableAirborneDrag = false;
+                toggles.enableLimitAngularVelocity = false;
+                toggles.enableAdjustToRoad = false;
+                toggles.enablePreventSinking = false;
+                toggles.enableGoAirborne = false;
+            }
+        }
+
+        // Mesh visibility toggles
+        if (ImGui::CollapsingHeader("Mesh Visibility")) {
+            auto &car = *racers[0]->vehicle;
+            ImGui::Checkbox("Car Body", &car.carBodyModel.enabled);
+            ImGui::SameLine();
+            ImGui::Checkbox("Left Front Wheel", &car.leftFrontWheelModel.enabled);
+            ImGui::Checkbox("Right Front Wheel", &car.rightFrontWheelModel.enabled);
+            ImGui::SameLine();
+            ImGui::Checkbox("Left Rear Wheel", &car.leftRearWheelModel.enabled);
+            ImGui::Checkbox("Right Rear Wheel", &car.rightRearWheelModel.enabled);
+
+            ImGui::Separator();
+            if (ImGui::Button("Show All Meshes")) {
+                car.carBodyModel.enabled = true;
+                car.leftFrontWheelModel.enabled = true;
+                car.rightFrontWheelModel.enabled = true;
+                car.leftRearWheelModel.enabled = true;
+                car.rightRearWheelModel.enabled = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Hide All Meshes")) {
+                car.carBodyModel.enabled = false;
+                car.leftFrontWheelModel.enabled = false;
+                car.rightFrontWheelModel.enabled = false;
+                car.leftRearWheelModel.enabled = false;
+                car.rightRearWheelModel.enabled = false;
+            }
         }
 
         // Velocity vectors

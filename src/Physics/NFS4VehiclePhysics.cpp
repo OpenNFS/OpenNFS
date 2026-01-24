@@ -73,8 +73,37 @@ namespace OpenNFS {
         : m_vehicle(vehicle), m_chassis(chassis), m_perf(perfData), m_state({}), m_debugData({}) {
         m_state.rpm = perfData.engineMinRPM;
         m_state.gear = Gear::GEAR_1;
+        m_state.requestedGear = Gear::GEAR_1;
         m_state.weather = Weather::DRY;
         m_state.hasContactWithGround = false;
+        m_state.distanceAboveGround = 0.0f;
+        m_state.unknownBool = false;
+        m_state.lostGrip = false;
+        m_state.gTransfer = 0.0f;
+        m_state.handbrakeAccumulator = 0;
+        m_state.slipAngle = 0.0f;
+        m_state.speedXZ = 0.0f;
+        m_state.steeringAngle = 0.0f;
+        m_state.tractionForce = 0.0f;
+        m_state.throttle = 0.0f;
+        m_state.brake = 0.0f;
+        m_state.currentSteering = 0.0f;
+        m_state.gearShiftCounter = 0;
+        m_state.shiftedDown = false;
+
+        // Initialize road basis to identity
+        m_state.basisToRoad.setIdentity();
+        m_state.basisToRoadNext.setIdentity();
+
+        // Initialize debug data
+        m_debugData.turningCircleAngularDamp = 0.0f;
+        m_debugData.lateralVelocityDamp = 0.0f;
+        m_debugData.nearStopDecelFactor = 0.0f;
+        m_debugData.airborneDownforce = 0.0f;
+        m_debugData.preventedSideways = false;
+        m_debugData.appliedNeutralDecel = false;
+        m_debugData.appliedNearStopDecel = false;
+        m_debugData.roadAdjustmentAngVel = btVector3(0, 0, 0);
     }
 
     void NFS4VehiclePhysics::SetInput(float const throttle, float const brake, float const steer, bool const handbrake) {
@@ -167,7 +196,6 @@ namespace OpenNFS {
         return velLocal.z() * m_perf.gearVelocityToRPM[idx];
     }
 
-    // Slip Angle and Steering
     float NFS4VehiclePhysics::CalculateSlipAngle() const {
         constexpr float VELOCITY_THRESHOLD = 0.5f;
         btVector3 const velLocal = GetLocalVelocity();
@@ -257,13 +285,13 @@ namespace OpenNFS {
         float velocityFactor = speedXZ * FACTOR_A + OFFSET_A;
         velocityFactor = std::clamp(velocityFactor, LOWER_LIMIT, UPPER_LIMIT);
 
-        float result = -velocityFactor * std::abs(angVel.y()) * 32.0f * mass * inertiaInv.y();
+        float result = velocityFactor * std::abs(angVel.y()) * mass * inertiaInv.y();
 
         if (m_state.gear == Gear::REVERSE) {
             result /= 2.0f;
         }
 
-        return -result;
+        return result;
     }
 
     // Tire/Grip Model
@@ -373,6 +401,9 @@ namespace OpenNFS {
                 factor *= 1.1f;
             }
         } else {
+            if (m_state.unknownBool) {
+                factor *= 0.5f;
+            }
             if (m_state.weather != Weather::DRY) {
                 factor *= 0.9f;
             }
@@ -707,94 +738,521 @@ namespace OpenNFS {
         return ROAD_FACTORS[wheel.roadSurface] * WEATHER_FACTORS[static_cast<int>(m_state.weather)];
     }
 
+    // Compute road-aligned basis from wheel contact normals
+    void NFS4VehiclePhysics::ComputeBasisToRoad() {
+        // For now, use the vehicle's current basis as the road basis
+        // TODO: Compute from wheel contact normals
+        btTransform const trans = m_chassis->getWorldTransform();
+        m_state.basisToRoad = trans.getBasis();
+        m_state.basisToRoadNext = trans.getBasis(); // Would interpolate for smoother adjustment
+    }
+
+    NFS4VehiclePhysics::TurningCircleResult NFS4VehiclePhysics::TurningCircle(
+        btVector3 const &localAngularVelocity, btVector3 const &localVelocity) const {
+
+        float const steering = m_state.currentSteering;
+        float const throttle = m_state.throttle;
+        float const brake = m_state.brake;
+        float const slipAngle = m_state.slipAngle;
+        float const turningRadius = m_perf.turningCircleRadius;
+
+        btVector3 resultAngularVelocity = localAngularVelocity;
+        btVector3 resultLinearVelocity = m_chassis->getLinearVelocity();
+
+        // Check if we should zero angular velocity (burnout condition)
+        if (throttle < 0.5f || brake < 0.75f || std::abs(steering) <= 64.0f || std::abs(localVelocity.z()) > 5.0f) {
+            if (std::abs(steering) < 4.0f && m_state.gear == Gear::REVERSE) {
+                resultAngularVelocity.setY(resultAngularVelocity.y() * 0.95f);
+            }
+        } else {
+            resultAngularVelocity.setY(0.0f);
+        }
+
+        if (std::abs(localVelocity.z()) < std::abs(localVelocity.x())) {
+            // More lateral than longitudinal velocity
+            if (localVelocity.length() < 2.0f) {
+                float factor = std::abs(resultAngularVelocity.y()) * SIMD_2_PI * turningRadius * 0.5f;
+
+                if (factor <= std::abs(localVelocity.z()) || factor <= std::abs(localVelocity.x())) {
+                    if (std::abs(slipAngle) >= 0.2f) {
+                        factor = 0.95f * resultAngularVelocity.y();
+                    } else {
+                        factor = 0.90f * resultAngularVelocity.y();
+                    }
+                } else {
+                    float f = std::abs(localVelocity.z()) / factor;
+                    f = std::min(f, 0.98f);
+                    factor = resultAngularVelocity.y() * f;
+                }
+                resultAngularVelocity.setY(factor);
+
+                float velocityFactor = 0.8f;
+                if (std::abs(localVelocity.z()) < 5.0f) {
+                    velocityFactor = 0.7f;
+                }
+                resultLinearVelocity *= velocityFactor;
+            }
+        } else {
+            // More longitudinal than lateral velocity
+            float factor = std::abs(resultAngularVelocity.y()) * SIMD_2_PI * turningRadius * 0.5f;
+
+            if (factor <= std::abs(localVelocity.z()) || factor <= std::abs(localVelocity.x())) {
+                if (std::abs(slipAngle) < 0.2f) {
+                    resultAngularVelocity.setY(resultAngularVelocity.y() * 0.95f);
+                } else {
+                    resultAngularVelocity.setY(resultAngularVelocity.y() * 0.99f);
+                }
+            } else {
+                float f = std::abs(localVelocity.z()) / factor;
+                f = std::min(f, 0.98f);
+                factor = resultAngularVelocity.y() * f;
+                resultAngularVelocity.setY(factor);
+            }
+        }
+
+        return {resultAngularVelocity, resultLinearVelocity};
+    }
+
+    void NFS4VehiclePhysics::ApplyTurningCircle(float const dt) {
+        if (!m_state.hasContactWithGround) {
+            return;
+        }
+
+        btVector3 const localAngVel = GetLocalAngularVelocity() / SIMD_2_PI;
+        btVector3 const localVel = GetLocalVelocity();
+
+        TurningCircleResult const result = TurningCircle(localAngVel, localVel);
+
+        // Convert velocity changes to acceleration
+        float const angularAccel = (result.angularVelocity.y() - localAngVel.y()) * 32.0f;
+        btVector3 const linearAccel = (result.linearVelocity - m_chassis->getLinearVelocity()) * 32.0f;
+
+        // Apply as torque and force
+        btTransform const trans = m_chassis->getWorldTransform();
+        btVector3 const worldAngAccel = trans.getBasis() * btVector3(0, angularAccel * SIMD_2_PI, 0);
+
+        m_chassis->applyTorque(worldAngAccel * dt);
+        m_chassis->applyCentralForce(linearAccel * m_perf.mass * dt);
+
+        // Debug
+        m_debugData.turningCircleAngularDamp = angularAccel;
+    }
+
+    // LATERAL VELOCITY DAMPING - Reduces sideways sliding
+    btVector3 NFS4VehiclePhysics::DampLateralVelocity() const {
+        constexpr float LOW_VELOCITY_DAMP = 0.9f;
+        constexpr float LOW_VELOCITY_THRESHOLD = 1.0f;
+        constexpr float MEDIUM_VELOCITY_DAMP = 0.99f;
+        constexpr float HIGH_VELOCITY_THRESHOLD = 2.0f;
+
+        btVector3 const velLocal = GetLocalVelocity();
+        float const lateralVelocity = std::abs(velLocal.x());
+
+        float alpha = (lateralVelocity - 1.0f) * 0.09f + 0.9f;
+        float beta = std::clamp(alpha, LOW_VELOCITY_DAMP, MEDIUM_VELOCITY_DAMP);
+
+        float d;
+        if (lateralVelocity < LOW_VELOCITY_THRESHOLD) {
+            d = LOW_VELOCITY_DAMP;
+        } else if (lateralVelocity > HIGH_VELOCITY_THRESHOLD) {
+            d = MEDIUM_VELOCITY_DAMP;
+        } else {
+            d = beta;
+        }
+
+        float const accelX = (d - 1.0f) * velLocal.x() * 32.0f;
+        return btVector3(accelX, 0, 0);
+    }
+
+    void NFS4VehiclePhysics::ApplyLateralVelocityDamping(float const dt) {
+        if (!m_state.hasContactWithGround) {
+            return;
+        }
+
+        btVector3 const localAccel = DampLateralVelocity();
+        btTransform const trans = m_chassis->getWorldTransform();
+        btVector3 const worldAccel = trans.getBasis() * localAccel;
+
+        m_chassis->applyCentralForce(worldAccel * m_perf.mass * dt);
+
+        // Debug
+        m_debugData.lateralVelocityDamp = localAccel.x();
+    }
+
+    void NFS4VehiclePhysics::ApplyNeutralGearDeceleration(float const dt) {
+        if (m_state.gear != Gear::NEUTRAL) {
+            m_debugData.appliedNeutralDecel = false;
+            return;
+        }
+
+        btVector3 const velLocal = GetLocalVelocity();
+        float const steering = m_state.currentSteering;
+
+        float factor = 0.998f;
+        if (std::abs(velLocal.z()) < 20.0f || std::abs(steering) > 32.0f) {
+            factor = 0.99f;
+        }
+        factor = factor - 1.0f; // Convert to acceleration multiplier
+        btVector3 const linearAccel = m_chassis->getLinearVelocity() * factor * 32.0f;
+        btVector3 const angularAccel = m_chassis->getAngularVelocity() * factor * 32.0f;
+
+        m_chassis->applyCentralForce(linearAccel * m_perf.mass * dt);
+        m_chassis->applyTorque(angularAccel * dt);
+
+        m_debugData.appliedNeutralDecel = true;
+    }
+
+    bool NFS4VehiclePhysics::ShouldApplyNearStopDeceleration() const {
+        bool const lowThrottle = m_state.throttle <= (31.0f / 255.0f);
+        bool const lowBrake = m_state.brake <= (31.0f / 255.0f);
+        bool const notNeutral = m_state.gear != Gear::NEUTRAL;
+        bool const onGround = m_state.hasContactWithGround;
+
+        return lowThrottle && lowBrake && notNeutral && onGround;
+    }
+
+    void NFS4VehiclePhysics::ApplyNearStopDeceleration(float const dt) {
+        if (!ShouldApplyNearStopDeceleration()) {
+            m_debugData.appliedNearStopDecel = false;
+            m_debugData.nearStopDecelFactor = 0.0f;
+            return;
+        }
+
+        constexpr float VELOCITY_THRESHOLD_REVERSE = 4.0f;
+        constexpr float VELOCITY_THRESHOLD_FORWARD = 5.0f;
+        constexpr float DAMP_FACTOR = 0.8f;
+
+        float const threshold = (m_state.gear == Gear::REVERSE) ? VELOCITY_THRESHOLD_REVERSE : VELOCITY_THRESHOLD_FORWARD;
+        btVector3 const velLocal = GetLocalVelocity();
+
+        if (std::abs(velLocal.z()) < threshold) {
+            float const damp = DAMP_FACTOR - 1.0f;
+            btVector3 const linearAccel = m_chassis->getLinearVelocity() * damp * 32.0f;
+            btVector3 const angularAccel = m_chassis->getAngularVelocity() * damp * 32.0f;
+
+            m_chassis->applyCentralForce(linearAccel * m_perf.mass * dt);
+            m_chassis->applyTorque(angularAccel * dt);
+
+            m_debugData.appliedNearStopDecel = true;
+            m_debugData.nearStopDecelFactor = damp;
+        } else {
+            m_debugData.appliedNearStopDecel = false;
+            m_debugData.nearStopDecelFactor = 0.0f;
+        }
+    }
+
+    void NFS4VehiclePhysics::PreventMovingSideways() {
+        btVector3 const velLocal = GetLocalVelocity();
+        float const throttle = m_state.throttle;
+        float const brake = m_state.brake;
+        float const steering = m_state.currentSteering;
+
+        if (throttle >= 0.5f && brake >= 0.75f && std::abs(steering) > 64.0f && std::abs(velLocal.z()) <= 5.0f) {
+            // Zero velocity
+            m_chassis->setLinearVelocity(btVector3(0, 0, 0));
+            m_debugData.preventedSideways = true;
+        } else {
+            m_debugData.preventedSideways = false;
+        }
+    }
+
+    btVector3 NFS4VehiclePhysics::AirborneDrag() const {
+        btVector3 const COEFFICIENTS(0.006f, 0.004f, 0.002f);
+
+        btTransform const trans = m_chassis->getWorldTransform();
+        btMatrix3x3 const basisInv = trans.getBasis().inverse();
+
+        // Get absolute values of basis vectors
+        btVector3 const basisRight(std::abs(basisInv[0][0]), std::abs(basisInv[0][1]), std::abs(basisInv[0][2]));
+        btVector3 const basisForward(std::abs(basisInv[2][0]), std::abs(basisInv[2][1]), std::abs(basisInv[2][2]));
+
+        btVector3 const velocity = m_chassis->getLinearVelocity();
+
+        btVector3 const c(COEFFICIENTS.dot(basisRight), 0, COEFFICIENTS.dot(basisForward));
+
+        btVector3 const absVel(std::abs(velocity.x()), std::abs(velocity.y()), std::abs(velocity.z()));
+        return btVector3(-absVel.x() * velocity.x() * c.x(),
+                         -absVel.y() * velocity.y() * c.y(),
+                         -absVel.z() * velocity.z() * c.z());
+    }
+
+    void NFS4VehiclePhysics::ApplyAirborneDrag(float const dt) {
+        if (m_state.hasContactWithGround) {
+            m_debugData.airborneDownforce = 0.0f;
+            return;
+        }
+
+        btVector3 const drag = AirborneDrag();
+        m_chassis->applyCentralForce(drag * m_perf.mass * dt * 32.0f);
+
+        m_debugData.airborneDownforce = drag.length();
+    }
+
+
+    void NFS4VehiclePhysics::LimitAngularVelocity() const {
+        if (m_state.hasContactWithGround) {
+            return;
+        }
+
+        constexpr float ANGULAR_VELOCITY_LIMIT = 2.4f / SIMD_2_PI;
+        btVector3 const limit(ANGULAR_VELOCITY_LIMIT, ANGULAR_VELOCITY_LIMIT, ANGULAR_VELOCITY_LIMIT);
+
+        btVector3 angVel = m_chassis->getAngularVelocity();
+        angVel.setX(std::clamp(angVel.x(), -limit.x(), limit.x()));
+        angVel.setY(std::clamp(angVel.y(), -limit.y(), limit.y()));
+        angVel.setZ(std::clamp(angVel.z(), -limit.z(), limit.z()));
+
+        m_chassis->setAngularVelocity(angVel);
+    }
+
+
+    void NFS4VehiclePhysics::AdjustToRoad() {
+        constexpr float LIMIT = 0.6f;
+
+        btTransform const trans = m_chassis->getWorldTransform();
+        btMatrix3x3 const basisCurrent = m_state.basisToRoad;
+        btMatrix3x3 const basisNext = m_state.basisToRoadNext;
+
+        // Simplified: interpolate between current and next
+        // TODL: use slerp on quaternions?
+        btVector3 const normal = basisCurrent.getColumn(1); // Y axis (up)
+        btMatrix3x3 const basisInv = trans.getBasis().inverse();
+
+        btVector3 const orientation = OrientationToGround();
+        btVector3 angVel = m_chassis->getAngularVelocity();
+
+        btVector3 const signs(normal.x() >= 0 ? 1.0f : -1.0f,
+                              normal.y() >= 0 ? 1.0f : -1.0f,
+                              normal.z() >= 0 ? 1.0f : -1.0f);
+
+        btVector3 const vec1 = signs * basisInv.getColumn(0) - normal.x() * btVector3(1, 1, 1);
+        btVector3 const vec2 = normal.z() * btVector3(1, 1, 1) - signs * basisInv.getColumn(2);
+
+        int idx = 0;
+        bool shouldAdjust = false;
+        btVector3 const absOrientation(std::abs(orientation.x()), std::abs(orientation.y()), std::abs(orientation.z()));
+
+        if (absOrientation.x() > LIMIT || absOrientation.y() > LIMIT || absOrientation.z() > LIMIT) {
+            if (absOrientation.y() > LIMIT) {
+                idx = 1;
+            } else if (absOrientation.x() > LIMIT) {
+                idx = 0;
+            } else if (absOrientation.z() > LIMIT) {
+                idx = 2;
+            }
+
+            float vec1Val = (idx == 0) ? vec1.x() : (idx == 1) ? vec1.y() : vec1.z();
+            float vec2Val = (idx == 0) ? vec2.x() : (idx == 1) ? vec2.y() : vec2.z();
+
+            if (std::abs(vec1Val) > 0.02f || std::abs(vec2Val) > 0.02f) {
+                shouldAdjust = true;
+            }
+
+            if (shouldAdjust) {
+                angVel.setZ(std::clamp(vec1Val, -0.5f, 0.5f));
+                angVel.setX(std::clamp(vec2Val, -0.5f, 0.5f));
+            } else {
+                angVel.setZ(0.0f);
+                angVel.setX(0.0f);
+            }
+
+            m_chassis->setAngularVelocity(angVel);
+        }
+
+        m_debugData.roadAdjustmentAngVel = angVel;
+    }
+
+    // TODO: Doesn't seem necessary (in Bullet), but check back once have tested more thoroughly
+    void NFS4VehiclePhysics::PreventSinking() const {
+        if (m_state.distanceAboveGround < 0.8f) {
+            btVector3 velLocal = GetLocalVelocity();
+            if (velLocal.y() < 0.0f) {
+                // Zero out downward velocity
+                btTransform const trans = m_chassis->getWorldTransform();
+                btVector3 worldVel = m_chassis->getLinearVelocity();
+
+                // Convert to local, zero Y, convert back
+                btVector3 localVel = trans.getBasis().inverse() * worldVel;
+                localVel.setY(0.0f);
+                m_chassis->setLinearVelocity(trans.getBasis() * localVel);
+            }
+        }
+    }
+
+    bool NFS4VehiclePhysics::WentAirborne() const {
+        return m_state.hasContactWithGround && m_state.distanceAboveGround >= 0.6f;
+    }
+
+    void NFS4VehiclePhysics::GoAirborne() {
+        btVector3 const linVel = m_chassis->getLinearVelocity();
+        btTransform const trans = m_chassis->getWorldTransform();
+        btVector3 const carUp = trans.getBasis().getColumn(1);
+
+        // GDScript: if 0.0 < basis.y.dot(linear_velocity) and self.went_airborne(params):
+        if (carUp.dot(linVel) > 0.0f && WentAirborne()) {
+            btVector3 localAngVel = GetLocalAngularVelocity();
+            // GDScript: result *= Vector3(0.15, 1, 1)
+            localAngVel.setX(localAngVel.x() * 0.15f);
+
+            m_chassis->setAngularVelocity(trans.getBasis() * localAngVel);
+        }
+
+        // Update ground contact based on distance
+        m_state.hasContactWithGround = m_state.distanceAboveGround < 0.6f;
+    }
+
+    // ==========================================
+    // DOWNFORCE - Speed-dependent downward force
+    // GDScript: downforce_cm() at lines ~541-547
+    // ==========================================
+    void NFS4VehiclePhysics::ApplyDownforce(float const dt) {
+        btTransform const trans = m_chassis->getWorldTransform();
+        btVector3 const velLocal = GetLocalVelocity();
+        float const downforceMult = m_perf.downforceMult;
+
+        // GDScript: downforce_accel = -downforce_mult * velocity_local.z * 32
+        float const downforceAccel = -downforceMult * velLocal.z() * 32.0f;
+        btVector3 const localForce(0, downforceAccel, 0);
+
+        btVector3 const worldForce = trans.getBasis() * localForce;
+        m_chassis->applyCentralForce(worldForce * m_perf.mass * dt);
+    }
+
     // Main Update Loop
     void NFS4VehiclePhysics::Update(float const deltaTime) {
-        // Update state from Bullet
         m_state.slipAngle = CalculateSlipAngle();
         m_state.speedXZ = CalculateSpeedXZ();
+        m_state.lostGrip = m_state.handbrakeInput;
 
         // Manually trigger raycast update to get fresh contact data
         m_vehicle->updateWheelTransformsAndContacts();
 
         // Check ground contact using RaycastVehicle wheel info
-        m_state.hasContactWithGround = false;
+        bool anyWheelContact = false;
+        float minSuspensionLength = FLT_MAX;
         for (int i = 0; i < m_vehicle->getNumWheels(); i++) {
             btWheelInfo const &wheel = m_vehicle->getWheelInfo(i);
             m_debugData.wheelInContact[i] = wheel.m_raycastInfo.m_isInContact;
             m_debugData.wheelSuspensionLength[i] = wheel.m_raycastInfo.m_suspensionLength;
             if (wheel.m_raycastInfo.m_isInContact) {
-                m_state.hasContactWithGround = true;
+                anyWheelContact = true;
+                minSuspensionLength = std::min(minSuspensionLength, wheel.m_raycastInfo.m_suspensionLength);
             }
         }
+        m_state.hasContactWithGround = anyWheelContact;
+        m_state.distanceAboveGround = anyWheelContact ? minSuspensionLength : 1.0f;
 
-        // Process inputs
-        ProcessSteeringInput(deltaTime);
-        ProcessThrottleInput(deltaTime);
+        // Compute road basis for ground alignment
+        ComputeBasisToRoad();
+
+
         ProcessBrakeInput(deltaTime);
+        ProcessThrottleInput(deltaTime);
+        ProcessSteeringInput(deltaTime);
         ProcessGearInput();
 
-        // Calculate steering angle
         m_state.steeringAngle = CalculateSteeringAngle();
 
-        // Run traction model to get engine force
-        ProcessTractionModel();
-
-        // Calculate wheel forces
-        std::array<WheelData, 4> wheels{};
-        std::array<btVector3, 4> wheelForces{};
-
-        wheels[0] = CalculateWheelData(WheelPosition::FRONT_LEFT);
-        wheels[1] = CalculateWheelData(WheelPosition::FRONT_RIGHT);
-        wheels[2] = CalculateWheelData(WheelPosition::REAR_LEFT);
-        wheels[3] = CalculateWheelData(WheelPosition::REAR_RIGHT);
-
-        for (int i = 0; i < 4; i++) {
-            wheelForces[i] = WheelForce(wheels[i]);
+        if (m_toggles.enableNearStopDecel) {
+            ApplyNearStopDeceleration(deltaTime);
         }
 
-        // Sum forces and convert to world space
+        if (m_toggles.enableTractionModel) {
+            ProcessTractionModel();
+        }
+
+        std::array<WheelData, 4> wheels{};
+        std::array<btVector3, 4> wheelForces{};
         btVector3 totalForce(0, 0, 0);
         btVector3 totalTorque(0, 0, 0);
 
-        btTransform trans = m_chassis->getWorldTransform();
-        btVector3 const ortToGround = OrientationToGround();
-        float const slope = ortToGround.y();
+        if (m_state.hasContactWithGround && m_toggles.enableWheelForces) {
+            wheels[0] = CalculateWheelData(WheelPosition::FRONT_LEFT);
+            wheels[1] = CalculateWheelData(WheelPosition::FRONT_RIGHT);
+            wheels[2] = CalculateWheelData(WheelPosition::REAR_LEFT);
+            wheels[3] = CalculateWheelData(WheelPosition::REAR_RIGHT);
 
-        for (int i = 0; i < 4; i++) {
-            btVector3 slopedForce = wheelForces[i] * slope;
-            totalForce += slopedForce * 0.5f;
+            for (int i = 0; i < 4; i++) {
+                wheelForces[i] = WheelForce(wheels[i]);
+            }
+
+            btTransform trans = m_chassis->getWorldTransform();
+            btVector3 const ortToGround = OrientationToGround();
+            float const slope = ortToGround.y();
+
+            for (int i = 0; i < 4; i++) {
+                btVector3 slopedForce = wheelForces[i] * slope;
+                totalForce += slopedForce * 0.5f;
+            }
+
+            // Angular acceleration from wheel forces
+            float const angAccelY = ((wheelForces[0].x() + wheelForces[1].x()) - (wheelForces[2].x() + wheelForces[3].x())) * 0.5f * 4.0f *
+                                    m_perf.mass * m_chassis->getInvInertiaDiagLocal().y() * deltaTime;
+            totalTorque.setY(angAccelY * slope);
+
+            // Adjust longitudinal force
+            totalForce.setZ(totalForce.z() / m_perf.lateralGripMultiplier);
+
+            // Update g-transfer for next frame
+            m_state.gTransfer = totalForce.z() * m_perf.gTransferFactor;
+
+            // Convert to world space and apply
+            btVector3 const worldForce = trans.getBasis() * totalForce;
+            btVector3 const worldTorque = trans.getBasis() * totalTorque;
+
+            m_chassis->applyCentralForce(worldForce * m_perf.mass);
+            m_chassis->applyTorque(worldTorque);
+
+            // Just to visually move the wheels, this sets the underlying world transform but isn't used for sim
+            m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI,  FRONT_LEFT);
+            m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI, FRONT_RIGHT);
+
+            if (m_toggles.enablePreventSideways) {
+                PreventMovingSideways();
+            }
+
+            if (m_toggles.enableLateralDamping) {
+                ApplyLateralVelocityDamping(deltaTime);
+            }
+
+            if (m_toggles.enableTurningCircle) {
+                ApplyTurningCircle(deltaTime);
+            }
+
+            if (m_toggles.enableNeutralGearDecel) {
+                ApplyNeutralGearDeceleration(deltaTime);
+            }
         }
 
-        // Angular acceleration from wheel forces (simplified)
-        float const angAccelY = ((wheelForces[0].x() + wheelForces[1].x()) - (wheelForces[2].x() + wheelForces[3].x())) * 0.5f * 4.0f *
-                                m_perf.mass * m_chassis->getInvInertiaDiagLocal().y() * deltaTime;
+        if (m_toggles.enableAirborneDrag) {
+            ApplyAirborneDrag(deltaTime);
+        }
 
-        totalTorque.setY(angAccelY * slope);
+        if (m_state.hasContactWithGround && m_toggles.enablePreventSinking) {
+            PreventSinking();
+        }
 
-        // Adjust longitudinal force
-        totalForce.setZ(totalForce.z() / m_perf.lateralGripMultiplier);
+        if (m_state.hasContactWithGround && m_toggles.enableAdjustToRoad) {
+            AdjustToRoad();
+        }
 
-        // Convert to world space and apply
-        btVector3 const worldForce = trans.getBasis() * totalForce;
-        btVector3 const worldTorque = trans.getBasis() * totalForce;
+        if (m_toggles.enableDownforce) {
+            ApplyDownforce(deltaTime);
+        }
 
-        // Apply forces to chassis
-        m_chassis->applyCentralForce(worldForce * m_perf.mass);
-        m_chassis->applyTorque(worldTorque);
+        if (m_toggles.enableLimitAngularVelocity) {
+            LimitAngularVelocity();
+        }
 
-        // Update g-transfer for next frame
-        m_state.gTransfer = totalForce.z() * m_perf.gTransferFactor;
+        if (m_toggles.enableGoAirborne) {
+            GoAirborne();
+        }
 
-        // Handbrake accumulator
         if (m_state.handbrakeInput || m_state.lostGrip) {
             m_state.handbrakeAccumulator = IncrementHandbrakeAccumulator();
         } else {
             m_state.handbrakeAccumulator = 0;
         }
-
-        // Apply steering to btRaycastVehicle for visual wheel rotation
-        m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI, FRONT_LEFT);
-        m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI, FRONT_RIGHT);
 
         // Update debug data
         m_debugData.wheels = wheels;
@@ -803,7 +1261,7 @@ namespace OpenNFS {
         m_debugData.totalTorque = totalTorque;
         m_debugData.localVelocity = GetLocalVelocity();
         m_debugData.localAngularVelocity = GetLocalAngularVelocity();
-        m_debugData.orientationToGround = ortToGround;
+        m_debugData.orientationToGround = OrientationToGround();
         m_debugData.drag = CalculateDrag();
         m_debugData.torque = TorqueForRPM(m_state.rpm);
         m_debugData.slipAngleFactor = SlipAngleFactor();
