@@ -114,7 +114,7 @@ namespace OpenNFS {
     }
 
     bool NFS4VehiclePhysics::SetGear(Gear const gear) {
-        if ((int)gear <= m_perf.maxGear) {
+        if (static_cast<int>(gear) <= m_perf.maxGear) {
             m_state.requestedGear = gear;
             return true;
         }
@@ -459,8 +459,8 @@ namespace OpenNFS {
             bool const isFront = IsFrontWheel(wheel.type);
 
             // Wheelspin in first gear at high throttle (only on high-grip surfaces)
-            if (!isFront && m_state.gear == Gear::GEAR_1 && m_state.throttle > 0.85f &&
-                m_state.rpm >= m_perf.engineRedlineRPM * 0.85f && RoadFactor(wheel) >= 0.95f) {
+            if (!isFront && m_state.gear == Gear::GEAR_1 && m_state.throttle > 0.85f && m_state.rpm >= m_perf.engineRedlineRPM * 0.85f &&
+                RoadFactor(wheel) >= 0.95f) {
                 result.setZ(0.5f * factor * forces.z());
                 result.setX(factor * forces.x());
             }
@@ -747,8 +747,8 @@ namespace OpenNFS {
         m_state.basisToRoadNext = trans.getBasis(); // Would interpolate for smoother adjustment
     }
 
-    NFS4VehiclePhysics::TurningCircleResult NFS4VehiclePhysics::TurningCircle(
-        btVector3 const &localAngularVelocity, btVector3 const &localVelocity) const {
+    NFS4VehiclePhysics::TurningCircleResult NFS4VehiclePhysics::TurningCircle(btVector3 const &localAngularVelocity,
+                                                                              btVector3 const &localVelocity) const {
 
         float const steering = m_state.currentSteering;
         float const throttle = m_state.throttle;
@@ -814,18 +814,14 @@ namespace OpenNFS {
     }
 
     void NFS4VehiclePhysics::ApplyTurningCircle(float const dt) {
-        if (!m_state.hasContactWithGround) {
-            return;
-        }
-
         btVector3 const localAngVel = GetLocalAngularVelocity() / SIMD_2_PI;
         btVector3 const localVel = GetLocalVelocity();
 
-        TurningCircleResult const result = TurningCircle(localAngVel, localVel);
+        auto const [angularVelocity, linearVelocity] = TurningCircle(localAngVel, localVel);
 
         // Convert velocity changes to acceleration
-        float const angularAccel = (result.angularVelocity.y() - localAngVel.y()) * 32.0f;
-        btVector3 const linearAccel = (result.linearVelocity - m_chassis->getLinearVelocity()) * 32.0f;
+        float const angularAccel = (angularVelocity.y() - localAngVel.y()) * 32.0f;
+        btVector3 const linearAccel = (linearVelocity - m_chassis->getLinearVelocity()) * 32.0f;
 
         // Apply as torque and force
         btTransform const trans = m_chassis->getWorldTransform();
@@ -838,7 +834,6 @@ namespace OpenNFS {
         m_debugData.turningCircleAngularDamp = angularAccel;
     }
 
-    // LATERAL VELOCITY DAMPING - Reduces sideways sliding
     btVector3 NFS4VehiclePhysics::DampLateralVelocity() const {
         constexpr float LOW_VELOCITY_DAMP = 0.9f;
         constexpr float LOW_VELOCITY_THRESHOLD = 1.0f;
@@ -848,8 +843,8 @@ namespace OpenNFS {
         btVector3 const velLocal = GetLocalVelocity();
         float const lateralVelocity = std::abs(velLocal.x());
 
-        float alpha = (lateralVelocity - 1.0f) * 0.09f + 0.9f;
-        float beta = std::clamp(alpha, LOW_VELOCITY_DAMP, MEDIUM_VELOCITY_DAMP);
+        float const alpha = (lateralVelocity - 1.0f) * 0.09f + 0.9f;
+        float const beta = std::clamp(alpha, LOW_VELOCITY_DAMP, MEDIUM_VELOCITY_DAMP);
 
         float d;
         if (lateralVelocity < LOW_VELOCITY_THRESHOLD) {
@@ -865,10 +860,6 @@ namespace OpenNFS {
     }
 
     void NFS4VehiclePhysics::ApplyLateralVelocityDamping(float const dt) {
-        if (!m_state.hasContactWithGround) {
-            return;
-        }
-
         btVector3 const localAccel = DampLateralVelocity();
         btTransform const trans = m_chassis->getWorldTransform();
         btVector3 const worldAccel = trans.getBasis() * localAccel;
@@ -971,9 +962,7 @@ namespace OpenNFS {
         btVector3 const c(COEFFICIENTS.dot(basisRight), 0, COEFFICIENTS.dot(basisForward));
 
         btVector3 const absVel(std::abs(velocity.x()), std::abs(velocity.y()), std::abs(velocity.z()));
-        return btVector3(-absVel.x() * velocity.x() * c.x(),
-                         -absVel.y() * velocity.y() * c.y(),
-                         -absVel.z() * velocity.z() * c.z());
+        return {-absVel.x() * velocity.x() * c.x(), -absVel.y() * velocity.y() * c.y(), -absVel.z() * velocity.z() * c.z()};
     }
 
     void NFS4VehiclePhysics::ApplyAirborneDrag(float const dt) {
@@ -987,7 +976,6 @@ namespace OpenNFS {
 
         m_debugData.airborneDownforce = drag.length();
     }
-
 
     void NFS4VehiclePhysics::LimitAngularVelocity() const {
         if (m_state.hasContactWithGround) {
@@ -1005,7 +993,6 @@ namespace OpenNFS {
         m_chassis->setAngularVelocity(angVel);
     }
 
-
     void NFS4VehiclePhysics::AdjustToRoad() {
         constexpr float LIMIT = 0.6f;
 
@@ -1014,25 +1001,23 @@ namespace OpenNFS {
         btMatrix3x3 const basisNext = m_state.basisToRoadNext;
 
         // Simplified: interpolate between current and next
-        // TODL: use slerp on quaternions?
+        // TODO: use slerp on quaternions?
         btVector3 const normal = basisCurrent.getColumn(1); // Y axis (up)
         btMatrix3x3 const basisInv = trans.getBasis().inverse();
 
         btVector3 const orientation = OrientationToGround();
         btVector3 angVel = m_chassis->getAngularVelocity();
 
-        btVector3 const signs(normal.x() >= 0 ? 1.0f : -1.0f,
-                              normal.y() >= 0 ? 1.0f : -1.0f,
-                              normal.z() >= 0 ? 1.0f : -1.0f);
+        btVector3 const signs(normal.x() >= 0 ? 1.0f : -1.0f, normal.y() >= 0 ? 1.0f : -1.0f, normal.z() >= 0 ? 1.0f : -1.0f);
 
         btVector3 const vec1 = signs * basisInv.getColumn(0) - normal.x() * btVector3(1, 1, 1);
         btVector3 const vec2 = normal.z() * btVector3(1, 1, 1) - signs * basisInv.getColumn(2);
 
-        int idx = 0;
-        bool shouldAdjust = false;
         btVector3 const absOrientation(std::abs(orientation.x()), std::abs(orientation.y()), std::abs(orientation.z()));
 
         if (absOrientation.x() > LIMIT || absOrientation.y() > LIMIT || absOrientation.z() > LIMIT) {
+            bool shouldAdjust = false;
+            int idx = 0;
             if (absOrientation.y() > LIMIT) {
                 idx = 1;
             } else if (absOrientation.x() > LIMIT) {
@@ -1041,8 +1026,8 @@ namespace OpenNFS {
                 idx = 2;
             }
 
-            float vec1Val = (idx == 0) ? vec1.x() : (idx == 1) ? vec1.y() : vec1.z();
-            float vec2Val = (idx == 0) ? vec2.x() : (idx == 1) ? vec2.y() : vec2.z();
+            float const vec1Val = (idx == 0) ? vec1.x() : (idx == 1) ? vec1.y() : vec1.z();
+            float const vec2Val = (idx == 0) ? vec2.x() : (idx == 1) ? vec2.y() : vec2.z();
 
             if (std::abs(vec1Val) > 0.02f || std::abs(vec2Val) > 0.02f) {
                 shouldAdjust = true;
@@ -1065,11 +1050,11 @@ namespace OpenNFS {
     // TODO: Doesn't seem necessary (in Bullet), but check back once have tested more thoroughly
     void NFS4VehiclePhysics::PreventSinking() const {
         if (m_state.distanceAboveGround < 0.8f) {
-            btVector3 velLocal = GetLocalVelocity();
+            btVector3 const velLocal = GetLocalVelocity();
             if (velLocal.y() < 0.0f) {
                 // Zero out downward velocity
                 btTransform const trans = m_chassis->getWorldTransform();
-                btVector3 worldVel = m_chassis->getLinearVelocity();
+                btVector3 const worldVel = m_chassis->getLinearVelocity();
 
                 // Convert to local, zero Y, convert back
                 btVector3 localVel = trans.getBasis().inverse() * worldVel;
@@ -1088,12 +1073,9 @@ namespace OpenNFS {
         btTransform const trans = m_chassis->getWorldTransform();
         btVector3 const carUp = trans.getBasis().getColumn(1);
 
-        // GDScript: if 0.0 < basis.y.dot(linear_velocity) and self.went_airborne(params):
         if (carUp.dot(linVel) > 0.0f && WentAirborne()) {
             btVector3 localAngVel = GetLocalAngularVelocity();
-            // GDScript: result *= Vector3(0.15, 1, 1)
             localAngVel.setX(localAngVel.x() * 0.15f);
-
             m_chassis->setAngularVelocity(trans.getBasis() * localAngVel);
         }
 
@@ -1101,16 +1083,11 @@ namespace OpenNFS {
         m_state.hasContactWithGround = m_state.distanceAboveGround < 0.6f;
     }
 
-    // ==========================================
-    // DOWNFORCE - Speed-dependent downward force
-    // GDScript: downforce_cm() at lines ~541-547
-    // ==========================================
-    void NFS4VehiclePhysics::ApplyDownforce(float const dt) {
+    void NFS4VehiclePhysics::ApplyDownforce(float const dt) const {
         btTransform const trans = m_chassis->getWorldTransform();
         btVector3 const velLocal = GetLocalVelocity();
         float const downforceMult = m_perf.downforceMult;
 
-        // GDScript: downforce_accel = -downforce_mult * velocity_local.z * 32
         float const downforceAccel = -downforceMult * velLocal.z() * 32.0f;
         btVector3 const localForce(0, downforceAccel, 0);
 
@@ -1144,7 +1121,6 @@ namespace OpenNFS {
 
         // Compute road basis for ground alignment
         ComputeBasisToRoad();
-
 
         ProcessBrakeInput(deltaTime);
         ProcessThrottleInput(deltaTime);
@@ -1204,7 +1180,7 @@ namespace OpenNFS {
             m_chassis->applyTorque(worldTorque);
 
             // Just to visually move the wheels, this sets the underlying world transform but isn't used for sim
-            m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI,  FRONT_LEFT);
+            m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI, FRONT_LEFT);
             m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI, FRONT_RIGHT);
 
             if (m_toggles.enablePreventSideways) {
@@ -1333,8 +1309,8 @@ namespace OpenNFS {
             float const rpmDiff = rpm - rpmFromWheelsVal;
 
             // Check for over-revving or going in wrong direction
-            bool const rpmDiffTooBig = (m_perf.engineRedlineRPM / 6.0f) < rpmDiff &&
-                                        m_state.gearShiftCounter == 0 && m_state.gear < Gear::GEAR_4;
+            bool const rpmDiffTooBig =
+                (m_perf.engineRedlineRPM / 6.0f) < rpmDiff && m_state.gearShiftCounter == 0 && m_state.gear < Gear::GEAR_4;
             bool const goingInReverseDir =
                 (m_state.gear > Gear::NEUTRAL && m_state.speedXZ < -0.3f && m_state.throttle > (8.0f / 255.0f)) ||
                 (m_state.gear == Gear::REVERSE && m_state.speedXZ > 0.3f && m_state.throttle > (8.0f / 255.0f));

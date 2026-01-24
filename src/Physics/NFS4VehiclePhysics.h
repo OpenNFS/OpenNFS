@@ -318,7 +318,7 @@ namespace OpenNFS {
         void ApplyAirborneDrag(float dt);
         void LimitAngularVelocity() const;
         void GoAirborne();
-        void ApplyDownforce(float dt);
+        void ApplyDownforce(float dt) const;
 
         [[nodiscard]] static bool IsFrontWheel(WheelPosition const pos) {
             return pos == WheelPosition::FRONT_LEFT || pos == WheelPosition::FRONT_RIGHT;
