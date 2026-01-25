@@ -1047,23 +1047,6 @@ namespace OpenNFS {
         m_debugData.roadAdjustmentAngVel = angVel;
     }
 
-    // TODO: Doesn't seem necessary (in Bullet), but check back once have tested more thoroughly
-    void NFS4VehiclePhysics::PreventSinking() const {
-        if (m_state.distanceAboveGround < 0.8f) {
-            btVector3 const velLocal = GetLocalVelocity();
-            if (velLocal.y() < 0.0f) {
-                // Zero out downward velocity
-                btTransform const trans = m_chassis->getWorldTransform();
-                btVector3 const worldVel = m_chassis->getLinearVelocity();
-
-                // Convert to local, zero Y, convert back
-                btVector3 localVel = trans.getBasis().inverse() * worldVel;
-                localVel.setY(0.0f);
-                m_chassis->setLinearVelocity(trans.getBasis() * localVel);
-            }
-        }
-    }
-
     bool NFS4VehiclePhysics::WentAirborne() const {
         return m_state.hasContactWithGround && m_state.distanceAboveGround >= 0.6f;
     }
@@ -1202,10 +1185,6 @@ namespace OpenNFS {
 
         if (m_toggles.enableAirborneDrag) {
             ApplyAirborneDrag(deltaTime);
-        }
-
-        if (m_state.hasContactWithGround && m_toggles.enablePreventSinking) {
-            PreventSinking();
         }
 
         if (m_state.hasContactWithGround && m_toggles.enableAdjustToRoad) {

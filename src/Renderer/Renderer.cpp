@@ -512,7 +512,6 @@ namespace OpenNFS {
             ImGui::Checkbox("Airborne Drag", &toggles.enableAirborneDrag);
             ImGui::Checkbox("Limit Angular Vel", &toggles.enableLimitAngularVelocity);
             ImGui::Checkbox("Adjust To Road", &toggles.enableAdjustToRoad);
-            ImGui::Checkbox("Prevent Sinking", &toggles.enablePreventSinking);
             ImGui::Checkbox("Go Airborne", &toggles.enableGoAirborne);
 
             ImGui::Columns(1);
@@ -530,7 +529,6 @@ namespace OpenNFS {
                 toggles.enableAirborneDrag = true;
                 toggles.enableLimitAngularVelocity = true;
                 toggles.enableAdjustToRoad = true;
-                toggles.enablePreventSinking = true;
                 toggles.enableGoAirborne = true;
             }
             ImGui::SameLine();
@@ -546,7 +544,6 @@ namespace OpenNFS {
                 toggles.enableAirborneDrag = false;
                 toggles.enableLimitAngularVelocity = false;
                 toggles.enableAdjustToRoad = false;
-                toggles.enablePreventSinking = false;
                 toggles.enableGoAirborne = false;
             }
         }

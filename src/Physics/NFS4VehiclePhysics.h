@@ -95,7 +95,6 @@ namespace OpenNFS {
         bool enableAirborneDrag{true};
         bool enableLimitAngularVelocity{true};
         bool enableAdjustToRoad{true};
-        bool enablePreventSinking{true};
         bool enableDownforce{true};
         bool enableGoAirborne{true};
         bool enableWheelForces{true};
@@ -309,7 +308,6 @@ namespace OpenNFS {
 
         void ComputeBasisToRoad();
         void AdjustToRoad();
-        void PreventSinking() const;
         void ApplyTurningCircle(float dt);
         void ApplyLateralVelocityDamping(float dt);
         void ApplyNeutralGearDeceleration(float dt);
