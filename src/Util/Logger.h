@@ -159,7 +159,7 @@ namespace OpenNFS {
 
         void ReceiveLogMessage(g3::LogMessageMover logEntry) const {
             auto const level = logEntry.get()._level;
-            auto colour = GetColour(level);
+            auto const colour = GetColour(level);
 #ifdef _WIN32
             HANDLE consoleHandle_;
             consoleHandle_ = GetStdHandle(STD_OUTPUT_HANDLE);

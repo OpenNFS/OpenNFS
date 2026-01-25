@@ -113,6 +113,13 @@ GLuint *ShaderSet::AddProgram(std::vector<std::pair<std::string, GLenum>> const 
 }
 
 void ShaderSet::UpdatePrograms() {
+    // Rate limit hot reload checks - only check file timestamps once per second
+    auto const now = std::chrono::steady_clock::now();
+    if (now - mLastUpdateCheck < kUpdateCheckInterval) {
+        return; // Skip this check, not enough time has passed
+    }
+    mLastUpdateCheck = now;
+
     // find all shaders with updated timestamps
     std::set<std::pair<ShaderNameTypePair const, Shader> *> updatedShaders;
     for (std::pair<ShaderNameTypePair const, Shader> &shader : mShaders) {

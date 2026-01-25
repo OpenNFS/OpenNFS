@@ -2,7 +2,6 @@
 
 #include "BaseShader.h"
 #include <Entities/BaseLight.h>
-#include <map>
 
 #include "../../Scene/GlobalLight.h"
 #include "../../Scene/Spotlight.h"

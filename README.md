@@ -2,10 +2,10 @@
 
 # OpenNFS 
   
-An attempt to recreate the classic Need for Speed Games (1-6), unpacking their original data files into a modern scratch built engine. Extremely early in development, current features include:
+An attempt to recreate the classic Need for Speed Games (1-5), unpacking their original data files into a modern scratch built engine. Early in development, current features include:
  
-  * Reverse engineered asset loaders (tracks, cars, images, music etc) for NFS 1-6 PC and PSX (with the possibility for other systems as well), soon to be separated into LibOpenNFS for the creation of mod tools/converters through a stable API
-  * A barebones game engine designed with enough configurability to accurately replicate each titles respective graphics and gampelay
+  * Asset loaders (tracks, cars, images, music etc) for NFS 1-5 PC/PSX 
+  * A game engine designed with enough configurability to accurately replicate each titles respective graphics and gameplay
   * Bullet Physics Integration for vehicle dynamics
   * New shaders that allow for dynamic lighting and shadows
 
@@ -15,30 +15,27 @@ An attempt to recreate the classic Need for Speed Games (1-6), unpacking their o
 
 Below is a table better describing the current level of asset load into OpenNFS:
 
-| Game     | Cars | Tracks | Music |
-|----------|------|--------|-------|
-| NFS6 PC  |      |        |       |
-| NFS5 PC  | 40%**| 25%**  |       |
-| NFS4 PC  | 90%* | 90%*   |       |
-| NFS4 PS1 | 50%* |        |       |
-| NFS3 PC  | 100% | 100%   | 95%   |
-| NFS3 PS1 | 40%  | 90%    | 95%   |
-| NFS2 SE  | 90%* | 90%    |       |
-| NFS2 PC  | 90%* | 90%    |       |
-| NFS2 PS1 | 90%* | 90%    |       |
-| NFS1     |      |        |       |
+| Game     | Cars  | Tracks | Music |
+|----------|-------|------|-------|
+| NFS5 PC  | 40%** | 5%** |       |
+| NFS4 PC  | 90%*  | 90%* |       |
+| NFS4 PS1 | 50%*  |      |       |
+| NFS3 PC  | 100%  | 100% | 50%   |
+| NFS3 PS1 | 40%   | 90%  | 50%   |
+| NFS2 SE  | 90%*  | 90%  |       |
+| NFS2 PC  | 90%*  | 90%  |       |
+| NFS2 PS1 | 90%*  | 90%  |       |
+| NFS1 PC  | 0%    | 0%   |       |
 
 \*Some titles fail to load in current builds of OpenNFS due to the undertaking of a large parser refactor. 
 
-\*\*NFS5 Track formats have been reverse engineered, but a stable parser has not yet been written.
+\*\*NFS5 formats are known, but a stable parser has not yet been integrated.
   
 ## Planned Features
 
   * An actual implementation of gameplay that replicates the original titles
-  * AI generated through neuroevolution for both the police and racers
-  * Custom(izable), modular menus built from moddable configuration files
+  * Customisable, modular menus built from configuration files
   * Automated import of game assets from CD, ISO or provided URLs
-  * A track editor and automated converter between classic NFS titles, utlilising LibOpenNFS
   * Free Roam of an open world amalgamation of all classic NFS tracks
   * Multiplayer!
 
@@ -75,15 +72,17 @@ The CMake files are currently configured to detect external libraries from withi
 * GLFW
 * GLM 
 * Bullet3
-* Boost
+* Freetype2
+* Google Test Framework
+* g3log
 
 ## Thanks
 
-Massive thanks to Denis Auroux, Vitaly 'Necromancer', EdasX, Ian Brownm, Jesper Juul-Mortensen and Arushan for their work on reverse engineering various NFS formats.
+Massive thanks to Rafał Kuźnia, Denis Auroux, Vitaly 'Necromancer', EdasX, Ian Brownm, Jesper Juul-Mortensen and Arushan for their work on reverse engineering various NFS formats and gameplay.
 Thanks go out to AJ_Lethal for the OpenNFS Logo.
 
 ## Legal:
-Models, textures, tracks, cars by EA Seattle (C) 1998, 1999, 2002. EA Canada (C) 2000, EA Blackbox (C) 2002.
+Models, textures, tracks, cars by EA Seattle (C) 1998, 1999, 2002. EA Canada (C) 2000.
 OpenNFS is not affiliated in any way with EA.
 
 Released under the MIT License.

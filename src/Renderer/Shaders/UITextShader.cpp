@@ -26,7 +26,7 @@ namespace OpenNFS {
     }
 
     void UITextShader::loadLayer(GLint const layer, bool const isButtonText) const {
-        float layerZ = layer == 0 ? -0.999f : (float)(layer - 100) / 100;
+        float const layerZ = layer == 0 ? -0.999f : static_cast<float>(layer - 100) / 100;
         loadFloat(layerLocation, layerZ - 0.01);
     }
 

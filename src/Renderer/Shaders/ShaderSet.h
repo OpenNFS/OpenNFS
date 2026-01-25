@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 
+#include <chrono>
 #include <map>
 #include <set>
 #include <string>
@@ -50,6 +51,9 @@ class ShaderSet {
     std::map<ShaderNameTypePair, Shader> mShaders;
     // allows looking up the program that represents a linked set of shaders
     std::map<std::vector<ShaderNameTypePair const *>, Program> mPrograms;
+    // Rate limiting for hot reload - only check file timestamps periodically
+    std::chrono::steady_clock::time_point mLastUpdateCheck{};
+    static constexpr std::chrono::milliseconds kUpdateCheckInterval{1000}; // Check once per second
 
   public:
     ShaderSet() = default;

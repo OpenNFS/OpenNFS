@@ -110,7 +110,7 @@ namespace OpenNFS {
         // Verts
         glGenBuffers(1, &vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &(m_vertices[0]), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(glm::vec3), &m_vertices[0], GL_STATIC_DRAW);
         glVertexAttribPointer(0,              // attribute
                               3,              // size
                               GL_FLOAT,       // type
@@ -123,7 +123,7 @@ namespace OpenNFS {
         // UVs
         glGenBuffers(1, &uvBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &(m_uvs[0]), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_uvs.size() * sizeof(glm::vec2), &m_uvs[0], GL_STATIC_DRAW);
         glVertexAttribPointer(1,              // attribute
                               2,              // size
                               GL_FLOAT,       // type
@@ -136,7 +136,7 @@ namespace OpenNFS {
         // Normals
         glGenBuffers(1, &normalBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-        glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &(m_normals[0]), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(glm::vec3), &m_normals[0], GL_STATIC_DRAW);
         glVertexAttribPointer(2,              // attribute
                               3,              // size
                               GL_FLOAT,       // type

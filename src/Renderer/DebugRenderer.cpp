@@ -96,7 +96,7 @@ namespace OpenNFS {
     }
 
     void DebugRenderer::DrawVroad(std::shared_ptr<Track> const &track) const {
-        float const vRoadDisplayHeight = 0.2f;
+        constexpr float vRoadDisplayHeight = 0.2f;
         uint32_t const nVroad = track->virtualRoad.size();
 
         for (uint32_t vroadIdx = 0; vroadIdx < nVroad; ++vroadIdx) {
@@ -214,7 +214,7 @@ namespace OpenNFS {
             // Draw a line showing slip direction
             float const slipMagnitude = std::min(std::abs(state.slipAngle) * 2.0f, 1.0f);
             btVector3 const slipDir = trans.getBasis() * btVector3(state.slipAngle > 0 ? 1 : -1, 0, 0);
-            btVector3 slipColor(slipMagnitude, 1.0f - slipMagnitude, 0);
+            btVector3 const slipColor(slipMagnitude, 1.0f - slipMagnitude, 0);
             m_bulletDebugDrawer->drawLine(carPos + btVector3(0, 0.5f, 0), carPos + btVector3(0, 0.5f, 0) + slipDir * slipMagnitude,
                                           slipColor);
         }

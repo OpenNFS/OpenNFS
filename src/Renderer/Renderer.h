@@ -59,7 +59,7 @@ namespace OpenNFS {
       private:
         bool _DrawMenuBar(AssetData &loadedAssets) const;
         void _DrawDebugUI(ParamData &userParams, float deltaTime, BaseCamera const &camera);
-        void _DrawNFS4PhysicsDebug(std::vector<std::shared_ptr<CarAgent>> const &racers);
+        static void _DrawNFS4PhysicsDebug(std::vector<std::shared_ptr<CarAgent>> const &racers);
         static std::vector<uint32_t> _GetLocalTrackBlockIDs(std::shared_ptr<Track> const &track, BaseCamera const &camera);
         static VisibleSet _FrustumCull(std::shared_ptr<Track> const &track, BaseCamera const &camera, GlobalLight const *globalLight,
                                        std::shared_ptr<CarAgent> const &racer, ParamData const &userParams);

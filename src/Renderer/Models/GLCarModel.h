@@ -8,7 +8,7 @@ namespace OpenNFS {
       public:
         GLCarModel(CarGeometry const &geometry, float specular_damper, float specular_reflectivity, float env_reflectivity);
         explicit GLCarModel(CarGeometry const &geometry);
-        GLCarModel() : GLModel() {};
+        GLCarModel() : GLModel() {}
         ~GLCarModel() override;
 
         // Non-copyable (OpenGL resources)

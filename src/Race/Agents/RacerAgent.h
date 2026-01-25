@@ -2,7 +2,6 @@
 
 #include "CarAgent.h"
 #include <string>
-#include <vector>
 
 namespace OpenNFS {
     struct RacerData {

@@ -34,7 +34,7 @@ namespace OpenNFS {
         // Perform raycasts without applying forces
         void updateWheelTransformsAndContacts();
 
-        [[nodiscard]] WheelContact const &getWheelContact(int wheelIndex) const {
+        [[nodiscard]] WheelContact const &getWheelContact(int const wheelIndex) const {
             return m_wheelContacts[wheelIndex];
         }
 

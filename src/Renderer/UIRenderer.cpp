@@ -122,7 +122,7 @@ namespace OpenNFS {
         glBindVertexArray(atlas.GetVAO());
         // Iterate through all characters
         for (auto c{text.begin()}; c != text.end(); ++c) {
-            unsigned char const ch_idx = static_cast<unsigned char>(*c);
+            auto const ch_idx = static_cast<unsigned char>(*c);
             auto const &ch = atlas.GetCharacter(ch_idx);
 
             // Skip glyphs with no pixels

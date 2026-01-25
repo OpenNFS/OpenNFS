@@ -25,7 +25,7 @@ namespace OpenNFS {
     class BulletDebugDrawer : public btIDebugDraw {
       public:
         BulletDebugDrawer();
-        ~BulletDebugDrawer();
+        ~BulletDebugDrawer() override;
 
         void Render(BaseCamera const &camera);
         void drawLine(btVector3 const &from, btVector3 const &to, btVector3 const &colour) override;

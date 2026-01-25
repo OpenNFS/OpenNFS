@@ -29,7 +29,7 @@ namespace OpenNFS {
             // Get current screen resolution and use that
             GLFWmonitor *monitor = glfwGetPrimaryMonitor();
             int monitorWidth, monitorHeight;
-            glfwGetMonitorWorkarea(monitor, NULL, NULL, &monitorWidth, &monitorHeight);
+            glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &monitorWidth, &monitorHeight);
 
             Config::get().resX = static_cast<uint32_t>(monitorWidth);
             Config::get().resY = static_cast<uint32_t>(monitorHeight);
@@ -434,7 +434,7 @@ namespace OpenNFS {
 
             // RPM bar
             float const rpmNorm = state.rpm / perf.engineRedlineRPM;
-            ImVec4 rpmColor = rpmNorm > 0.9f ? ImVec4(1, 0, 0, 1) : (rpmNorm > 0.7f ? ImVec4(1, 1, 0, 1) : ImVec4(0, 1, 0, 1));
+            ImVec4 const rpmColor = rpmNorm > 0.9f ? ImVec4(1, 0, 0, 1) : (rpmNorm > 0.7f ? ImVec4(1, 1, 0, 1) : ImVec4(0, 1, 0, 1));
             ImGui::PushStyleColor(ImGuiCol_PlotHistogram, rpmColor);
             ImGui::ProgressBar(rpmNorm, ImVec2(-1, 0), "RPM");
             ImGui::PopStyleColor();
@@ -653,7 +653,7 @@ namespace OpenNFS {
             size_t const offset = debug.historyIndex;
 
             // Helper to plot circular buffer
-            auto plotCircularBuffer = [&](char const *label, std::array<float, histSize> const &data, float scaleMin, float scaleMax) {
+            auto plotCircularBuffer = [&](char const *label, std::array<float, histSize> const &data, float const scaleMin, float const scaleMax) {
                 if (ImPlot::BeginPlot(label, ImVec2(-1, 120))) {
                     ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoTickLabels, 0);
                     ImPlot::SetupAxisLimits(ImAxis_Y1, scaleMin, scaleMax, ImPlotCond_Always);
@@ -703,7 +703,7 @@ namespace OpenNFS {
                 ImPlot::PlotLine("Torque", rpmValues.data(), perf.torqueCurve.data(), 21);
 
                 // Mark current RPM
-                float currentTorque = debug.torque;
+                float const currentTorque = debug.torque;
                 ImPlot::PlotScatter("Current", &state.rpm, &currentTorque, 1);
 
                 ImPlot::EndPlot();

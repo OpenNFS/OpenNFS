@@ -3,8 +3,6 @@
 #include "BaseShader.h"
 
 #include <glm/detail/type_mat4x4.hpp>
-#include <glm/detail/type_vec3.hpp>
-#include <glm/detail/type_vec4.hpp>
 
 namespace OpenNFS {
     class TextBillboardShader : public BaseShader {

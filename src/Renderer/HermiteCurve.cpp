@@ -12,7 +12,7 @@ HermiteCurve::HermiteCurve(std::vector<glm::vec3> const &curvePoints, float curv
 
 glm::vec3 HermiteCurve::GetPointAt(float const t) const {
     float const point{(m_points.size() - 1) * t};
-    int const intPoint{(int)point};
+    int const intPoint{static_cast<int>(point)};
 
     float const weight{point - intPoint};
 

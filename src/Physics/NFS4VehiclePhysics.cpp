@@ -130,7 +130,7 @@ namespace OpenNFS {
         float const torqueDiv = rpm / 500.0f;
         int const torqueIdx = std::clamp(static_cast<int>(std::floor(torqueDiv)), 0, 19);
         int const torqueNext = torqueIdx + 1;
-        float const factor = torqueDiv - torqueIdx;
+        float const factor = torqueDiv - static_cast<float>(torqueIdx);
         return std::lerp(m_perf.torqueCurve[torqueIdx], m_perf.torqueCurve[torqueNext], factor);
     }
 
@@ -509,7 +509,7 @@ namespace OpenNFS {
 
         float handbrakeFactor = 1.0f;
         if (m_state.handbrakeAccumulator > 0) {
-            handbrakeFactor = HandbrakeScalingFunction(m_state.handbrakeAccumulator / 384.0f) * 0.75f;
+            handbrakeFactor = HandbrakeScalingFunction(static_cast<float>(m_state.handbrakeAccumulator) / 384.0f) * 0.75f;
         }
 
         float lateralForce = handbrakeFactor * planarVector.x() * factor;
@@ -685,9 +685,9 @@ namespace OpenNFS {
         float delta;
 
         if (m_state.brakeInput < m_state.brake) {
-            delta = m_perf.brakeDecreasingCurve[idx] / 255.0f;
+            delta = static_cast<float>(m_perf.brakeDecreasingCurve[idx]) / 255.0f;
         } else {
-            delta = m_perf.brakeIncreasingCurve[idx] / 255.0f;
+            delta = static_cast<float>(m_perf.brakeIncreasingCurve[idx]) / 255.0f;
         }
 
         float const maxDelta = delta * 32.0f * dt;
@@ -728,7 +728,7 @@ namespace OpenNFS {
     btVector3 NFS4VehiclePhysics::OrientationToGround() const {
         btTransform trans = m_chassis->getWorldTransform();
         btVector3 const up(0, 1, 0); // World up (TODO: Get from road normal?)
-        btMatrix3x3 const basis = trans.getBasis();
+        btMatrix3x3 const& basis = trans.getBasis();
         return {basis.getColumn(0).dot(up), basis.getColumn(1).dot(up), basis.getColumn(2).dot(up)};
     }
 
@@ -856,7 +856,7 @@ namespace OpenNFS {
         }
 
         float const accelX = (d - 1.0f) * velLocal.x() * 32.0f;
-        return btVector3(accelX, 0, 0);
+        return {accelX, 0, 0};
     }
 
     void NFS4VehiclePhysics::ApplyLateralVelocityDamping(float const dt) {
@@ -917,7 +917,7 @@ namespace OpenNFS {
         btVector3 const velLocal = GetLocalVelocity();
 
         if (std::abs(velLocal.z()) < threshold) {
-            float const damp = DAMP_FACTOR - 1.0f;
+            constexpr float damp = DAMP_FACTOR - 1.0f;
             btVector3 const linearAccel = m_chassis->getLinearVelocity() * damp * 32.0f;
             btVector3 const angularAccel = m_chassis->getAngularVelocity() * damp * 32.0f;
 
@@ -978,10 +978,6 @@ namespace OpenNFS {
     }
 
     void NFS4VehiclePhysics::LimitAngularVelocity() const {
-        if (m_state.hasContactWithGround) {
-            return;
-        }
-
         constexpr float ANGULAR_VELOCITY_LIMIT = 2.4f / SIMD_2_PI;
         btVector3 const limit(ANGULAR_VELOCITY_LIMIT, ANGULAR_VELOCITY_LIMIT, ANGULAR_VELOCITY_LIMIT);
 
@@ -998,7 +994,6 @@ namespace OpenNFS {
 
         btTransform const trans = m_chassis->getWorldTransform();
         btMatrix3x3 const basisCurrent = m_state.basisToRoad;
-        btMatrix3x3 const basisNext = m_state.basisToRoadNext;
 
         // Simplified: interpolate between current and next
         // TODO: use slerp on quaternions?
@@ -1145,8 +1140,9 @@ namespace OpenNFS {
             }
 
             // Angular acceleration from wheel forces
-            float const angAccelY = ((wheelForces[0].x() + wheelForces[1].x()) - (wheelForces[2].x() + wheelForces[3].x())) * 0.5f * 4.0f *
-                                    m_perf.mass * m_chassis->getInvInertiaDiagLocal().y() * deltaTime;
+            float const angAccelY = ((wheelForces[FRONT_LEFT].x() + wheelForces[FRONT_RIGHT].x()) -
+                                     (wheelForces[REAR_LEFT].x() + wheelForces[REAR_RIGHT].x())) *
+                                    0.5f * 4.0f * m_perf.mass * m_chassis->getInvInertiaDiagLocal().y() * deltaTime;
             totalTorque.setY(angAccelY * slope);
 
             // Adjust longitudinal force
@@ -1195,7 +1191,7 @@ namespace OpenNFS {
             ApplyDownforce(deltaTime);
         }
 
-        if (m_toggles.enableLimitAngularVelocity) {
+        if (m_toggles.enableLimitAngularVelocity && m_state.hasContactWithGround) {
             LimitAngularVelocity();
         }
 
@@ -1398,7 +1394,7 @@ namespace OpenNFS {
                     if (aboveRedline) {
                         rpmAdjust *= 2;
                     }
-                    rpm -= rpmAdjust;
+                    rpm -= static_cast<float>(rpmAdjust);
                     rpm = std::max(rpm, m_perf.engineMinRPM);
                 } else {
                     // Downshift - RPM rises (blip)
