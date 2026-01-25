@@ -1,7 +1,7 @@
 #include "AABBTree.h"
 
 #include <cassert>
-#include <stack>
+#include <vector>
 
 AABBTree::AABBTree(unsigned const initialSize)
     : _rootNodeIndex(AABB_NULL_NODE), _allocatedNodeCount(0), _nextFreeNodeIndex(0), _nodeCapacity(initialSize), _growthSize(initialSize) {
@@ -74,23 +74,54 @@ void AABBTree::updateObject(std::shared_ptr<IAABB> const &object) {
 
 std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(Frustum const &frustum) const {
     std::forward_list<std::shared_ptr<IAABB>> overlaps;
-    std::stack<unsigned> stack;
+    if (_rootNodeIndex == AABB_NULL_NODE) {
+        return overlaps;
+    }
 
-    stack.push(_rootNodeIndex);
+    std::vector<unsigned> stack;
+    stack.reserve(64);
+    stack.push_back(_rootNodeIndex);
+
     while (!stack.empty()) {
-        unsigned const nodeIndex = stack.top();
-        stack.pop();
-
-        if (nodeIndex == AABB_NULL_NODE)
-            continue;
+        unsigned const nodeIndex = stack.back();
+        stack.pop_back();
 
         AABBNode const &node = _nodes[nodeIndex];
         if (frustum.CheckIntersection(node.aabb)) {
             if (node.isLeaf()) {
                 overlaps.push_front(node.object);
             } else {
-                stack.push(node.leftNodeIndex);
-                stack.push(node.rightNodeIndex);
+                stack.push_back(node.leftNodeIndex);
+                stack.push_back(node.rightNodeIndex);
+            }
+        }
+    }
+
+    return overlaps;
+}
+
+std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(AABB const &bounds) const {
+    std::forward_list<std::shared_ptr<IAABB>> overlaps;
+    if (_rootNodeIndex == AABB_NULL_NODE) {
+        return overlaps;
+    }
+
+    std::vector<unsigned> stack;
+    stack.reserve(64);
+    stack.push_back(_rootNodeIndex);
+
+    while (!stack.empty()) {
+        unsigned const nodeIndex = stack.back();
+        stack.pop_back();
+
+        AABBNode const &node = _nodes[nodeIndex];
+
+        if (bounds.Overlaps(node.aabb)) {
+            if (node.isLeaf()) {
+                overlaps.push_front(node.object);
+            } else {
+                stack.push_back(node.leftNodeIndex);
+                stack.push_back(node.rightNodeIndex);
             }
         }
     }

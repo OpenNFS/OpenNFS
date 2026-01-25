@@ -55,4 +55,5 @@ class AABBTree {
     void removeObject(std::shared_ptr<IAABB> const &object);
     void updateObject(std::shared_ptr<IAABB> const &object);
     [[nodiscard]] std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(Frustum const &frustum) const;
+    [[nodiscard]] std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(AABB const &bounds) const;
 };
