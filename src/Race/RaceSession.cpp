@@ -74,12 +74,15 @@ namespace OpenNFS {
         // Step the physics simulation
         m_physicsManager.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
 
+        // Update skid mark system after physics step
+        m_skidMarkSystem.Update(deltaTime, m_racerManager.racers);
+
         if (m_userParams.physicsDebugView) {
             m_physicsManager.GetDynamicsWorld()->debugDrawWorld();
         }
 
         m_assetChanged = m_renderer.Render(m_totalTime, deltaTime, activeCamera, m_hermiteCamera, m_orbitalManager.GetActiveGlobalLight(),
-                                           m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity);
+                                           m_userParams, m_loadedAssets, m_racerManager.racers, m_targetedEntity, &m_skidMarkSystem);
 
         // Draw the Game UI
         m_uiManager.Update(m_inputManager);

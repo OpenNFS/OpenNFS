@@ -2,6 +2,7 @@
 
 #include "../Race/Agents/RacerAgent.h"
 #include "../Race/OrbitalManager.h"
+#include "../Race/SkidMarkSystem.h"
 #include <backends/imgui_impl_opengl3.h>
 #include <implot.h>
 
@@ -88,7 +89,8 @@ namespace OpenNFS {
 
     bool Renderer::Render(float const totalTime, float const deltaTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
                           GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,
-                          std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> const targetedEntity) {
+                          std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> const targetedEntity,
+                          SkidMarkSystem const *skidMarkSystem) {
         bool newAssetSelected = false;
         m_numRacers = racers.size();
 
@@ -134,6 +136,13 @@ namespace OpenNFS {
         m_trackRenderer.Render(racers, activeCamera, m_track->textureArrayID, visibleEntities, visibleLights, userParams,
                                m_shadowMapRenderer.GetTextureArrayID(), ambientFactor);
         m_trackRenderer.RenderLights(activeCamera, visibleLights);
+
+        // Render skid marks after track, before cars (correct depth ordering for decals)
+        if (userParams.drawSkidMarks && skidMarkSystem) {
+            m_skidMarkRenderer.Render(activeCamera, skidMarkSystem->GetAllTrails(),
+                                       skidMarkSystem->GetLifetime(), skidMarkSystem->GetFadeStart());
+        }
+
         m_debugRenderer.Render(activeCamera);
         if (userParams.drawMinimap) {
             m_miniMapRenderer.Render(m_track, racers);
@@ -329,6 +338,7 @@ namespace OpenNFS {
         ImGui::Checkbox("CAN Debug", &userParams.drawCAN);
         ImGui::Checkbox("Draw Skydome", &userParams.drawSkydome);
         ImGui::Checkbox("Draw Minimap", &userParams.drawMinimap);
+        ImGui::Checkbox("Draw Skid Marks", &userParams.drawSkidMarks);
         if (Config::get().hsPhysics) {
             ImGui::Checkbox("NFS4 Physics Debug", &userParams.showNFS4PhysicsDebug);
             ImGui::Checkbox("NFS4 Physics 3D Viz", &userParams.drawNFS4PhysicsVectors);

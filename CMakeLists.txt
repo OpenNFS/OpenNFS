@@ -17,10 +17,6 @@ if (NOT (UNIX OR MSVC))
 endif ()
 
 if (${DEV})
-    if (APPLE)
-        # Silence Fshtool warnings til I deal with them
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pointer-sign -Wno-return-type")
-    endif ()
     MESSAGE(STATUS "CXX Compiler flags are: " ${CMAKE_CXX_FLAGS})
     MESSAGE(STATUS "C Compiler flags are: " ${CMAKE_C_FLAGS})
 endif ()
@@ -43,7 +39,6 @@ add_definitions(-DIMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/src/Renderer/imgui_co
 
 set(SOURCE_FILES
         ${IMGUI_SOURCES}
-        include/bmpread/bmpread.c
         lib/glew-cmake/src/glew.c
         resources/asset/icon.rc
         src/Camera/BaseCamera.cpp
@@ -66,6 +61,7 @@ set(SOURCE_FILES
         src/Race/OrbitalManager.cpp
         src/Race/RaceSession.cpp
         src/Race/RacerManager.cpp
+        src/Race/SkidMarkSystem.cpp
         src/Race/Agents/CarAgent.cpp
         src/Race/Agents/PlayerAgent.cpp
         src/Race/Agents/RacerAgent.cpp
@@ -76,6 +72,7 @@ set(SOURCE_FILES
         src/Renderer/UIRenderer.cpp
         src/Renderer/Renderer.cpp
         src/Renderer/ShadowMapRenderer.cpp
+        src/Renderer/SkidMarkRenderer.cpp
         src/Renderer/SkyRenderer.cpp
         src/Renderer/GLTexture.cpp
         src/Renderer/TrackRenderer.cpp
@@ -98,6 +95,7 @@ set(SOURCE_FILES
         src/Renderer/Shaders/UIShader.cpp
         src/Renderer/Shaders/UITextShader.cpp
         src/Renderer/Shaders/ShaderSet.cpp
+        src/Renderer/Shaders/SkidMarkShader.cpp
         src/Renderer/Shaders/SkydomeShader.cpp
         src/Renderer/Shaders/TrackShader.cpp
         src/Renderer/Shaders/TextBillboardShader.cpp
@@ -134,7 +132,7 @@ include_directories(include/imgui)
 #[[IMPLOT]]
 include_directories(include/implot)
 
-#[[JSON/STB/IMGUI/TINYOBJLOADER/BMPREAD/ARGPARSE/MAGIC_ENUM]]
+#[[JSON/STB/IMGUI/TINYOBJLOADER/ARGPARSE/MAGIC_ENUM]]
 include_directories(include)
 
 #[[FREETYPE]]

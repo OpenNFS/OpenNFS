@@ -15,10 +15,11 @@
 #include "Agents/PlayerAgent.h"
 #include "OrbitalManager.h"
 #include "RacerManager.h"
+#include "SkidMarkSystem.h"
 
 namespace OpenNFS {
     class RaceSession {
-      public:
+    public:
         RaceSession(std::shared_ptr<GLFWwindow> const &window, std::shared_ptr<Logger> const &onfsLogger,
                     std::vector<NfsAssetList> const &installedNFS, std::shared_ptr<Track> const &currentTrack,
                     std::shared_ptr<Car> const &currentCar, AssetData &assetData);
@@ -31,7 +32,7 @@ namespace OpenNFS {
             return m_loadedAssets;
         }
 
-      private:
+    private:
         BaseCamera &_GetActiveCamera();
         void _UpdateCameras(float deltaTime);
 
@@ -49,6 +50,7 @@ namespace OpenNFS {
         Renderer m_renderer;
         RacerManager m_racerManager;
         OrbitalManager m_orbitalManager;
+        SkidMarkSystem m_skidMarkSystem;
         InputManager m_inputManager;
         UIManager m_uiManager;
 

@@ -16,10 +16,15 @@
 #include "DebugRenderer.h"
 #include "MiniMapRenderer.h"
 #include "ShadowMapRenderer.h"
+#include "SkidMarkRenderer.h"
 #include "SkyRenderer.h"
 #include "TrackRenderer.h"
 
 namespace OpenNFS {
+    // Forward declarations
+    struct VehicleTrails;
+    class SkidMarkSystem;
+
     struct VisibleSet {
         std::vector<std::shared_ptr<Entity>> entities;
         std::vector<BaseLight const *> lights;
@@ -45,7 +50,8 @@ namespace OpenNFS {
         static void _DrawMetadata(Entity const *targetEntity);
         bool Render(float totalTime, float deltaTime, BaseCamera const &activeCamera, HermiteCamera const &hermiteCamera,
                     GlobalLight const *activeLight, ParamData &userParams, AssetData &loadedAssets,
-                    std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> targetedEntity);
+                    std::vector<std::shared_ptr<CarAgent>> const &racers, std::optional<Entity *> targetedEntity,
+                    SkidMarkSystem const *skidMarkSystem = nullptr);
         [[nodiscard]] uint32_t GetCameraTargetVehicleID() const;
         static void NewFrame();
         static void EndFrame();
@@ -72,6 +78,7 @@ namespace OpenNFS {
         ShadowMapRenderer m_shadowMapRenderer;
         DebugRenderer m_debugRenderer;
         MiniMapRenderer m_miniMapRenderer;
+        SkidMarkRenderer m_skidMarkRenderer;
 
         // Smoothed deltatime for stable FPS display
         static constexpr size_t kDeltaTimeHistorySize = 60; // Average over 60 frames

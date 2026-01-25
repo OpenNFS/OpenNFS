@@ -130,6 +130,7 @@ namespace OpenNFS {
         bool drawMinimap{true};
         bool drawNFS4PhysicsVectors{true};
         bool showNFS4PhysicsDebug{true};
+        bool drawSkidMarks{true};
     };
 
     struct AssetData {
