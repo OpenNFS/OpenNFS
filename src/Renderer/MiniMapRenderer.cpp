@@ -1,14 +1,18 @@
 #include "MiniMapRenderer.h"
 
+#include <GL/glew.h>
+#include <algorithm>
+
 #include "../Physics/Car.h"
 #include "../Race/Agents/CarAgent.h"
 
 namespace OpenNFS {
     void MiniMapRenderer::_Rescale() {
-        left = -200.f;
-        right = 800.f;
-        bottom = -200.f;
-        top = 800.f;
+        // TODO: Need to calculate this from world-space track bounds
+        left = -1000.f;
+        right = 1000.f;
+        bottom = -1000.f;
+        top = 1000.f;
         projectionMatrix = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
     }
 
@@ -16,7 +20,14 @@ namespace OpenNFS {
         m_miniMapShader.cleanup();
     }
 
-    void MiniMapRenderer::Render(std::shared_ptr<Track> const &track, std::vector<std::shared_ptr<CarAgent>> const &racers) {
+    void MiniMapRenderer::Render(std::shared_ptr<Track> const &track, std::vector<std::shared_ptr<CarAgent>> const &racers,
+                                 int windowWidth, int windowHeight) {
+        // Save current viewport
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        int const minimapSize = static_cast<int>(std::min(windowWidth, windowHeight) * kMinimapFraction);
+        glViewport(kMinimapPadding, kMinimapPadding, minimapSize, minimapSize);
+
         this->_Rescale();
 
         m_miniMapShader.use();
@@ -47,5 +58,7 @@ namespace OpenNFS {
 
         m_miniMapShader.unbind();
         m_miniMapShader.HotReload();
+
+        glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     }
 } // namespace OpenNFS

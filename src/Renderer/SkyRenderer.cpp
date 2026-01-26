@@ -49,8 +49,8 @@ namespace OpenNFS {
                     // access to vertex
                     tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
                     indices.emplace_back((unsigned int const &)idx.vertex_index);
-                    verts.emplace_back(attrib.vertices[3 * idx.vertex_index + 0] * 400, attrib.vertices[3 * idx.vertex_index + 1] * 400,
-                                       attrib.vertices[3 * idx.vertex_index + 2] * 400);
+                    verts.emplace_back(attrib.vertices[3 * idx.vertex_index + 0] * SKYDOME_SCALE_FACTOR, attrib.vertices[3 * idx.vertex_index + 1] * SKYDOME_SCALE_FACTOR,
+                                       attrib.vertices[3 * idx.vertex_index + 2] * SKYDOME_SCALE_FACTOR);
                     norms.emplace_back(0.f, 0.f, 0.f); // Fill the sphere attribs with empty data as missing
                     uvs.emplace_back(0.0f, 0.0f);
                 }

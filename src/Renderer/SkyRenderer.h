@@ -14,6 +14,8 @@ namespace OpenNFS {
         void Render(BaseCamera const &camera, GlobalLight const *light, float elapsedTime, float weatherMixFactor);
 
       private:
+        static constexpr uint32_t SKYDOME_SCALE_FACTOR = 3000;
+
         // Load cloud, sun, moon and tint textures
         void _LoadAssets();
         SkydomeShader m_skydomeShader;

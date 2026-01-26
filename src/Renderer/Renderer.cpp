@@ -145,7 +145,7 @@ namespace OpenNFS {
 
         m_debugRenderer.Render(activeCamera);
         if (userParams.drawMinimap) {
-            m_miniMapRenderer.Render(m_track, racers);
+            m_miniMapRenderer.Render(m_track, racers, Config::get().windowSizeX, Config::get().windowSizeY);
         }
 
         // Render the Car and racers with CSM shadows
@@ -452,6 +452,7 @@ namespace OpenNFS {
         if (ImGui::CollapsingHeader("Physics State", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Text("Slip Angle: %.4f", state.slipAngle);
             ImGui::Text("Speed XZ: %.2f m/s", state.speedXZ);
+            ImGui::Text("Speed XZ: %.2f mph", state.speedXZ * 2.23694);
             ImGui::Text("G-Transfer: %.4f", state.gTransfer);
             ImGui::Text("Steering Angle: %.4f rad", state.steeringAngle);
             ImGui::Text("Traction Force: %.4f", state.tractionForce);
@@ -731,6 +732,88 @@ namespace OpenNFS {
                     ImGui::Text("%.0f", perf.shiftBlipRPM[i]);
                 }
                 ImGui::EndTable();
+            }
+        }
+
+        // Bullet Vehicle Params
+        if (ImGui::CollapsingHeader("Bullet Vehicle Params")) {
+            btRaycastVehicle *vehicle = racers[0]->vehicle->GetVehicle();
+            if (vehicle && vehicle->getNumWheels() > 0) {
+                // Use wheel 0 as reference for current values (all wheels have same settings)
+                btWheelInfo &refWheel = vehicle->getWheelInfo(0);
+
+                // Helper lambda to apply value to all wheels
+                auto applyToAllWheels = [&](auto setter) {
+                    for (int i = 0; i < vehicle->getNumWheels(); ++i) {
+                        setter(vehicle->getWheelInfo(i));
+                    }
+                };
+
+                // Suspension Stiffness
+                float suspStiffness = refWheel.m_suspensionStiffness;
+                if (ImGui::SliderFloat("Suspension Stiffness", &suspStiffness, 1.0f, 200.0f, "%.2f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_suspensionStiffness = suspStiffness; });
+                }
+
+                // Suspension Damping (Relaxation)
+                float suspDamping = refWheel.m_wheelsDampingRelaxation;
+                if (ImGui::SliderFloat("Suspension Damping", &suspDamping, 0.0f, 100.0f, "%.3f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_wheelsDampingRelaxation = suspDamping; });
+                }
+
+                // Suspension Compression
+                float suspCompression = refWheel.m_wheelsDampingCompression;
+                if (ImGui::SliderFloat("Suspension Compression", &suspCompression, 0.0f, 10.0f, "%.3f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_wheelsDampingCompression = suspCompression; });
+                }
+
+                // Suspension Rest Length
+                float suspRestLen = refWheel.m_suspensionRestLength1;
+                if (ImGui::SliderFloat("Suspension Rest Length", &suspRestLen, 0.01f, 1.0f, "%.3f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_suspensionRestLength1 = suspRestLen; });
+                }
+
+                // Max Suspension Travel
+                float maxSuspTravel = refWheel.m_maxSuspensionTravelCm;
+                if (ImGui::SliderFloat("Max Suspension Travel (cm)", &maxSuspTravel, 1.0f, 1000.0f, "%.1f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_maxSuspensionTravelCm = maxSuspTravel; });
+                }
+
+                // Max Suspension Force
+                float maxSuspForce = refWheel.m_maxSuspensionForce;
+                if (ImGui::SliderFloat("Max Suspension Force", &maxSuspForce, 100.0f, 50000.0f, "%.0f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_maxSuspensionForce = maxSuspForce; });
+                }
+
+                ImGui::Separator();
+
+                // Roll Influence
+                float rollInfluence = refWheel.m_rollInfluence;
+                if (ImGui::SliderFloat("Roll Influence", &rollInfluence, 0.0f, 1.0f, "%.3f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_rollInfluence = rollInfluence; });
+                }
+
+                // Friction Slip
+                float frictionSlip = refWheel.m_frictionSlip;
+                if (ImGui::SliderFloat("Friction Slip", &frictionSlip, 0.1f, 50.0f, "%.2f")) {
+                    applyToAllWheels([&](btWheelInfo &w) { w.m_frictionSlip = frictionSlip; });
+                }
+
+                ImGui::Separator();
+
+                if (ImGui::Button("Reset to Asset Defaults")) {
+                    auto const &physData = racers[0]->vehicle->assetData.physicsData;
+                    applyToAllWheels([&](btWheelInfo &w) {
+                        w.m_suspensionStiffness = physData.suspensionStiffness;
+                        w.m_wheelsDampingRelaxation = physData.suspensionDamping;
+                        w.m_wheelsDampingCompression = physData.suspensionCompression;
+                        w.m_frictionSlip = physData.wheelFriction;
+                        w.m_rollInfluence = physData.rollInfluence;
+                        w.m_suspensionRestLength1 = physData.suspensionRestLength;
+                    });
+                }
+            } else {
+                ImGui::TextColored(ImVec4(1, 0, 0, 1), "No vehicle or wheels available");
             }
         }
 

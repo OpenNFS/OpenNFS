@@ -8,7 +8,7 @@ namespace OpenNFS {
         // Initial position : on +Z
         position = glm::vec3(0, 0, 0);
         // Projection matrix : 45deg Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-        projectionMatrix = glm::perspective(glm::radians(m_fov), 4.0f / 3.0f, 0.01f, 1000.0f);
+        projectionMatrix = glm::perspective(glm::radians(m_fov), 4.0f / 3.0f, 0.01f, 4000.0f);
         m_mode = mode;
     }
 

@@ -27,7 +27,7 @@ namespace OpenNFS {
         glm::vec3 const up{glm::cross(right, m_direction)};
 
         // Speed boost
-        m_speed = m_inputManager.camSpeedUp ? 20.0f : 3.0f;
+        m_speed = m_inputManager.camSpeedUp ? 200.0f : 30.0f;
 
         // Move forward
         if (m_inputManager.cameraForwards) {

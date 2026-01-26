@@ -20,7 +20,7 @@ namespace OpenNFS {
         [[nodiscard]] float _CalculateVerticalDistance() const;
         void _CalculateCameraPosition(std::shared_ptr<Car> const &target_car, float horizDistance, float vertDistance);
 
-        float m_distanceFromCar = 0.7f;
+        float m_distanceFromCar = 10.f;
         float m_angleAroundCar = 0.f;
         float m_pitch = 10.f;
         float m_yaw = 0.f;

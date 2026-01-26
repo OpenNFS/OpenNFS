@@ -621,12 +621,12 @@ namespace OpenNFS {
                 if (dummy.name.find("TRLN") != std::string::npos) {
                     leftTailLight.position = leftTailLight.initialPosition = dummy.position;
                     leftTailLight.colour = glm::vec4(1, 0, 0, 0);
-                    leftTailLight.attenuation = glm::vec4(1, 1.5, 1.5, 0);
+                    rightTailLight.attenuation = glm::vec4(2, 2, 2, 0);
                 }
                 if (dummy.name.find("TRRN") != std::string::npos) {
                     rightTailLight.position = rightTailLight.initialPosition = dummy.position;
                     rightTailLight.colour = glm::vec4(1, 0, 0, 0);
-                    rightTailLight.attenuation = glm::vec4(1, 2, 2, 0);
+                    rightTailLight.attenuation = glm::vec4(2, 2, 2, 0);
                 }
             }
         } else {

@@ -30,7 +30,7 @@ namespace OpenNFS {
         camSpeedUp = glfwGetKey(m_window.get(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
 
         cameraForwards = accelerate;
-        cameraBackwards = reverse;
+        cameraBackwards = brakes;
         cameraLeft = left;
         cameraRight = right;
 

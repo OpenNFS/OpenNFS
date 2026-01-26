@@ -12,16 +12,15 @@ namespace OpenNFS {
       public:
         explicit MiniMapRenderer() = default;
         ~MiniMapRenderer();
-        void Render(std::shared_ptr<Track> const &track, std::vector<std::shared_ptr<CarAgent>> const &racers);
+        void Render(std::shared_ptr<Track> const &track, std::vector<std::shared_ptr<CarAgent>> const &racers, int windowWidth,
+                    int windowHeight);
 
       private:
         void _Rescale();
 
-        static constexpr float kVehicleScale{50.f};
-        static constexpr float kMiniMapWidth{1000.f};
-        static constexpr float kMiniMapHeight{1000.f};
-        static constexpr float kMiniMapOffsetX{1000.f};
-        static constexpr float kMiniMapOffsetY{1000.f};
+        static constexpr float kVehicleScale{100.f};
+        static constexpr float kMinimapFraction{0.25f}; // 25% of smaller window dimension
+        static constexpr int kMinimapPadding{100};      // Pixels from screen edge
 
         glm::mat4 projectionMatrix{};
         MiniMapShader m_miniMapShader;

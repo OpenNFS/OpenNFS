@@ -131,8 +131,8 @@ namespace OpenNFS {
             // Draw CAN positions
             Shared::CameraAnimPoint const refPt = track->cameraAnimation[canIdx];
             Shared::CameraAnimPoint const refPtNext = track->cameraAnimation[canIdx + 1];
-            glm::vec3 vroadPoint{LibOpenNFS::Utils::FixedToFloat(refPt.pt) * NFS3::SCALE_FACTOR};
-            glm::vec3 vroadPointNext{LibOpenNFS::Utils::FixedToFloat(refPtNext.pt) * NFS3::SCALE_FACTOR};
+            glm::vec3 vroadPoint{LibOpenNFS::Utils::FixedToFloat(refPt.pt) * NFS3::TRACK_SCALE_FACTOR};
+            glm::vec3 vroadPointNext{LibOpenNFS::Utils::FixedToFloat(refPtNext.pt) * NFS3::TRACK_SCALE_FACTOR};
             vroadPoint.y += 0.2f;
             vroadPointNext.y += 0.2f;
             m_bulletDebugDrawer->drawLine(Utils::glmToBullet(vroadPoint + track->trackBlocks[0].position),

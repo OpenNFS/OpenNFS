@@ -118,8 +118,8 @@ namespace OpenNFS {
                 trackEntity->animDelay > 0 ? static_cast<float>(animFrameCounter) / static_cast<float>(trackEntity->animDelay) : 0.f;
 
             // Interpolate position (lerp)
-            glm::vec3 const posStart = LibOpenNFS::Utils::FixedToFloat(pt) * LibOpenNFS::NFS3::SCALE_FACTOR;
-            glm::vec3 const posEnd = LibOpenNFS::Utils::FixedToFloat(ptNext) * LibOpenNFS::NFS3::SCALE_FACTOR;
+            glm::vec3 const posStart = LibOpenNFS::Utils::FixedToFloat(pt) * LibOpenNFS::NFS3::TRACK_SCALE_FACTOR;
+            glm::vec3 const posEnd = LibOpenNFS::Utils::FixedToFloat(ptNext) * LibOpenNFS::NFS3::TRACK_SCALE_FACTOR;
             position = glm::mix(posStart, posEnd, t);
 
             // Interpolate orientation (slerp)
