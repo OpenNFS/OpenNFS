@@ -121,8 +121,22 @@ namespace OpenNFS {
 
         glBindVertexArray(atlas.GetVAO());
         // Iterate through all characters
-        for (auto c{text.begin()}; c != text.end(); ++c) {
-            auto const ch_idx = static_cast<unsigned char>(*c);
+        for (int i = 0; i < text.length(); ++i) {
+            // Calculate the code point and put it into a uint8_t
+            uint8_t ch_idx = 0;
+            if (text[i] >> 7 == 0) {
+                // The value is just ascii
+                ch_idx = text[i];
+            } else if ((text[i] >> 2 & 0b111111) == 0b110000) {
+                // The value is a 2 byte utf-8 that is not too big to fit in a uint8_t
+                ch_idx = ((text[i] & 0b11) << 6);
+                ch_idx += (text[i+1] & 0b111111);
+                i++;
+            } else {
+                // Don't try to render code points that don't fit in a uint8_t, we don't have them in the character map
+                continue;
+            }
+
             auto const &ch = atlas.GetCharacter(ch_idx);
 
             // Skip glyphs with no pixels

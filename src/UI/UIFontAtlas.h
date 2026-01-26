@@ -47,7 +47,7 @@ namespace OpenNFS {
         GLuint m_fontAtlasTexture = 0;
         unsigned int m_atlasWidth = 0;
         unsigned int m_atlasHeight = 0;
-        std::array<CharacterInfo, 128> m_characters{};
+        std::array<CharacterInfo, 256> m_characters{};
         constexpr static uint32_t MAX_WIDTH = 1024;
     };
 } // namespace OpenNFS
