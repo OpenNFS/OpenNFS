@@ -10,12 +10,12 @@ namespace OpenNFS {
     constexpr float kCastDistances[kNumRangefinders] = {1.f, 1.f, 1.f, 1.f, 1.f,  1.5f, 2.f, 3.f, 5.f, 5.f,
                                                         5.f, 3.f, 2.f, 2.f, 1.5f, 1.f,  1.f, 1.f, 1.f};
 
-    Car::Car(LibOpenNFS::Car const &carData, GLuint const textureArrayID) : Car(carData) {
+    Car::Car(LibOpenNFS::Car const &carData, GLuint const textureArrayID, std::string const &_assetPath) : Car(carData, _assetPath) {
         renderInfo.textureArrayID = textureArrayID;
         renderInfo.isMultitexturedModel = true;
     }
 
-    Car::Car(LibOpenNFS::Car carData) : assetData(std::move(carData)) {
+    Car::Car(LibOpenNFS::Car carData, std::string const &_assetPath) : assetData(std::move(carData)), assetPath(_assetPath) {
         // Load in vehicle texture data to OpenGL
         if (!Config::get().vulkanRender) {
             this->_LoadTextures();
@@ -298,7 +298,7 @@ namespace OpenNFS {
     void Car::_LoadTextures() {
         std::stringstream carTexturePath;
         int width, height;
-        carTexturePath << CAR_PATH << magic_enum::enum_name(assetData.tag) << "/" << assetData.id;
+        carTexturePath << CAR_PATH << magic_enum::enum_name(assetData.tag) << "/" << assetPath;
 
         if (assetData.tag == NFSVersion::NFS_3 || assetData.tag == NFSVersion::NFS_4) {
             carTexturePath << "/car00.tga";
@@ -307,7 +307,7 @@ namespace OpenNFS {
         } else if (assetData.tag == NFSVersion::MCO) {
             std::stringstream car_alpha_texture_path;
             carTexturePath << "/Textures/0000.BMP";
-            car_alpha_texture_path << CAR_PATH << magic_enum::enum_name(assetData.tag) << "/" << assetData.id << "/Textures/0000-a.BMP";
+            car_alpha_texture_path << CAR_PATH << magic_enum::enum_name(assetData.tag) << "/" << assetPath << "/Textures/0000-a.BMP";
             std::vector<uint8_t> imageData;
             if (ImageLoader::LoadBmpWithAlpha(carTexturePath.str().c_str(), car_alpha_texture_path.str().c_str(), imageData, &width,
                                               &height)) {

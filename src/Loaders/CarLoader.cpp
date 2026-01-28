@@ -54,6 +54,6 @@ namespace OpenNFS {
         if (auto &carAssetName{carAsset.metadata.name}; carAssetName.empty()) {
             carAssetName = carName;
         }
-        return std::make_shared<Car>(carAsset);
+        return std::make_shared<Car>(carAsset, carName);
     }
 } // namespace OpenNFS
