@@ -51,6 +51,7 @@ set(SOURCE_FILES
         src/Loaders/CarLoader.cpp
         src/Loaders/MusicLoader.cpp
         src/Loaders/TrackLoader.cpp
+        src/Menu/CarMenuData.cpp
         src/Physics/AABB.cpp
         src/Physics/AABBTree.cpp
         src/Physics/Car.cpp

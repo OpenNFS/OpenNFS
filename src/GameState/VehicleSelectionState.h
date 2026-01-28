@@ -7,6 +7,7 @@
 #include "MainMenuState.h"
 
 #include "../UI/UIDropdown.h"
+#include "../Menu/CarMenuData.h"
 
 namespace OpenNFS {
     class VehicleSelectionState : public IState {
@@ -27,6 +28,7 @@ namespace OpenNFS {
         InputManager m_inputManager;
         std::shared_ptr<UIManager> m_uiManager;
         GameState m_nextState{GameState::VehicleSelection};
+        std::vector<std::shared_ptr<CarMenuData>> m_cars;
 
         std::shared_ptr<UIDropdown> m_dropdown = nullptr;
     };
