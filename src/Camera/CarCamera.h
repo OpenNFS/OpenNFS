@@ -30,7 +30,7 @@ namespace OpenNFS {
         float m_angularVelocity = 0.f;
         float m_initialAngularVelocity = 0.f;
         float m_velocityDamping = 0.99f;
-        float const kCarouselMinZoom{0.5f};
-        float const kCarouselMaxZoom{2.f};
+        float const kCarouselMinZoom{5.0f};
+        float const kCarouselMaxZoom{20.f};
     };
 } // namespace OpenNFS
