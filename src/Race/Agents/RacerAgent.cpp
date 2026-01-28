@@ -7,7 +7,7 @@ namespace OpenNFS {
     RacerAgent::RacerAgent(RacerData const &racerData, std::shared_ptr<Car> const &car, std::shared_ptr<Track> const &raceTrack)
         : CarAgent(AgentType::AI, car, raceTrack) {
         name = racerData.name;
-        this->vehicle = std::make_shared<Car>(car->assetData);
+        this->vehicle = std::make_shared<Car>(car->assetData, car->assetPath);
         // Force original Bullet physics for AI we've tweaked for the new model
         vehicle->physicsModel = PhysicsModel::BULLET;
 

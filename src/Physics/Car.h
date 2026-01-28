@@ -79,8 +79,8 @@ namespace OpenNFS {
 
     class Car {
       public:
-        explicit Car(LibOpenNFS::Car car);
-        Car(LibOpenNFS::Car const &car, GLuint textureArrayID); // Multitextured car
+        explicit Car(LibOpenNFS::Car car, std::string const &_assetPath);
+        Car(LibOpenNFS::Car const &car, GLuint textureArrayID, std::string const &_assetPath); // Multitextured car
         ~Car();
         void Update(btDynamicsWorld const *dynamicsWorld, float dt);
         void UpdateMeshesToTransform(btTransform const &trans, bool avoidPhysics = false);
@@ -114,6 +114,7 @@ namespace OpenNFS {
         }
 
         LibOpenNFS::Car assetData;
+        std::string assetPath;
 
         // Car configuration data
         VehicleState vehicleState{};
