@@ -66,34 +66,21 @@ namespace OpenNFS {
         m_atlasWidth = 0;
         m_atlasHeight = 0;
 
-        for (int i = 32; i < 128; i++) {
-            if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-                LOG(WARNING) << "FREETYPE: Failed to load character " << static_cast<char>(i);
-                return false;
+        for(CharacterRange range : m_characterRanges) {
+            for (int i = range.start; i < range.end + 1; i++) {
+                if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
+                    LOG(WARNING) << "FREETYPE: Failed to load character " << static_cast<char>(i);
+                    return false;
+                }
+                if (row_w + g->bitmap.width + 1 >= MAX_WIDTH) {
+                    m_atlasWidth = std::max(m_atlasWidth, row_w);
+                    m_atlasHeight += row_h;
+                    row_w = 0;
+                    row_h = 0;
+                }
+                row_w += g->bitmap.width + 1;
+                row_h = std::max(row_h, g->bitmap.rows);
             }
-            if (row_w + g->bitmap.width + 1 >= MAX_WIDTH) {
-                m_atlasWidth = std::max(m_atlasWidth, row_w);
-                m_atlasHeight += row_h;
-                row_w = 0;
-                row_h = 0;
-            }
-            row_w += g->bitmap.width + 1;
-            row_h = std::max(row_h, g->bitmap.rows);
-        }
-
-        for (int i = 160; i < 256; i++) {
-            if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-                LOG(WARNING) << "FREETYPE: Failed to load character " << static_cast<char>(i);
-                return false;
-            }
-            if (row_w + g->bitmap.width + 1 >= MAX_WIDTH) {
-                m_atlasWidth = std::max(m_atlasWidth, row_w);
-                m_atlasHeight += row_h;
-                row_w = 0;
-                row_h = 0;
-            }
-            row_w += g->bitmap.width + 1;
-            row_h = std::max(row_h, g->bitmap.rows);
         }
 
         m_atlasWidth = std::max(m_atlasWidth, row_w);
@@ -117,58 +104,33 @@ namespace OpenNFS {
         int oy = 0;
         row_h = 0;
 
-        for (int i = 32; i < 128; i++) {
-            if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-                LOG(WARNING) << "FREETYPE: Failed to load character " << static_cast<char>(i);
-                return false;
+        for(CharacterRange range : m_characterRanges) {
+            for (uint32_t i = range.start; i < range.end + 1; i++) {
+                if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
+                    LOG(WARNING) << "FREETYPE: Failed to load character " << static_cast<char>(i);
+                    return false;
+                }
+
+                if (ox + g->bitmap.width + 1 >= MAX_WIDTH) {
+                    oy += row_h;
+                    row_h = 0;
+                    ox = 0;
+                }
+
+                glTexSubImage2D(GL_TEXTURE_2D, 0, ox, oy, g->bitmap.width, g->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, g->bitmap.buffer);
+
+                m_characters[i].ax = g->advance.x >> 6;
+                m_characters[i].ay = g->advance.y >> 6;
+                m_characters[i].bw = g->bitmap.width;
+                m_characters[i].bh = g->bitmap.rows;
+                m_characters[i].bl = g->bitmap_left;
+                m_characters[i].bt = g->bitmap_top;
+                m_characters[i].tx = ox / static_cast<float>(m_atlasWidth);
+                m_characters[i].ty = oy / static_cast<float>(m_atlasHeight);
+
+                row_h = std::max(row_h, g->bitmap.rows);
+                ox += g->bitmap.width + 1;
             }
-
-            if (ox + g->bitmap.width + 1 >= MAX_WIDTH) {
-                oy += row_h;
-                row_h = 0;
-                ox = 0;
-            }
-
-            glTexSubImage2D(GL_TEXTURE_2D, 0, ox, oy, g->bitmap.width, g->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, g->bitmap.buffer);
-
-            m_characters[i].ax = g->advance.x >> 6;
-            m_characters[i].ay = g->advance.y >> 6;
-            m_characters[i].bw = g->bitmap.width;
-            m_characters[i].bh = g->bitmap.rows;
-            m_characters[i].bl = g->bitmap_left;
-            m_characters[i].bt = g->bitmap_top;
-            m_characters[i].tx = ox / static_cast<float>(m_atlasWidth);
-            m_characters[i].ty = oy / static_cast<float>(m_atlasHeight);
-
-            row_h = std::max(row_h, g->bitmap.rows);
-            ox += g->bitmap.width + 1;
-        }
-
-        for (int i = 160; i < 256; i++) {
-            if (FT_Load_Char(face, i, FT_LOAD_RENDER)) {
-                LOG(WARNING) << "FREETYPE: Failed to load character " << static_cast<char>(i);
-                return false;
-            }
-
-            if (ox + g->bitmap.width + 1 >= MAX_WIDTH) {
-                oy += row_h;
-                row_h = 0;
-                ox = 0;
-            }
-
-            glTexSubImage2D(GL_TEXTURE_2D, 0, ox, oy, g->bitmap.width, g->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, g->bitmap.buffer);
-
-            m_characters[i].ax = g->advance.x >> 6;
-            m_characters[i].ay = g->advance.y >> 6;
-            m_characters[i].bw = g->bitmap.width;
-            m_characters[i].bh = g->bitmap.rows;
-            m_characters[i].bl = g->bitmap_left;
-            m_characters[i].bt = g->bitmap_top;
-            m_characters[i].tx = ox / static_cast<float>(m_atlasWidth);
-            m_characters[i].ty = oy / static_cast<float>(m_atlasHeight);
-
-            row_h = std::max(row_h, g->bitmap.rows);
-            ox += g->bitmap.width + 1;
         }
 
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -209,7 +171,9 @@ namespace OpenNFS {
         return m_fontQuadVBO;
     }
 
-    UIFontAtlas::CharacterInfo UIFontAtlas::GetCharacter(uint8_t const charIdx) const {
-        return m_characters.at(charIdx);
+    UIFontAtlas::CharacterInfo UIFontAtlas::GetCharacter(uint32_t const charIdx) const {
+        if (m_characters.contains(charIdx))
+            return m_characters.at(charIdx);
+        return m_characters.at('?');
     }
 } // namespace OpenNFS

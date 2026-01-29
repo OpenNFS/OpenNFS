@@ -121,20 +121,33 @@ namespace OpenNFS {
 
         glBindVertexArray(atlas.GetVAO());
         // Iterate through all characters
+
         for (int i = 0; i < text.length(); ++i) {
-            // Calculate the code point and put it into a uint8_t
-            uint8_t ch_idx = 0;
-            if (text[i] >> 7 == 0) {
-                // The value is just ascii
-                ch_idx = text[i];
-            } else if ((text[i] >> 2 & 0b111111) == 0b110000) {
-                // The value is a 2 byte utf-8 that is not too big to fit in a uint8_t
-                ch_idx = ((text[i] & 0b11) << 6);
-                ch_idx += (text[i+1] & 0b111111);
-                i++;
+            // Calculate the code point of the current character
+            uint32_t ch_idx = 0;
+            if ((text[i] & 128)) {
+                if ((text[i] & 64) && (text[i] & 32) && (text[i] & 16)) {
+                    ch_idx = ((uint32_t)(text[i] & 0x0E)) << 18;
+                    ch_idx += ((uint32_t)(text[i+1] & 0x3F)) << 12;
+                    ch_idx += ((uint32_t)(text[i+2] & 0x3F)) << 6;
+                    ch_idx += (uint32_t)(text[i+3] & 0x3F);
+                    i += 3;
+                } else if ((text[i] & 64) && (text[i] & 32)) {
+                    ch_idx = ((uint32_t)(text[i] & 0x0F)) << 12;
+                    ch_idx += ((uint32_t)(text[i+1] & 0x3F)) << 6;
+                    ch_idx += (uint32_t)(text[i+2] & 0x3F);
+                    i += 2;
+                } else if ((text[i] & 64)) {
+                    ch_idx = ((uint32_t)(text[i] & 0x1F)) << 6;
+                    ch_idx += (uint32_t)(text[i+1] & 0x3F);
+                    i += 1;
+                } else {
+                    // This is invalid
+                    continue;
+                }
             } else {
-                // Don't try to render code points that don't fit in a uint8_t, we don't have them in the character map
-                continue;
+                // This is just an ascii character
+                ch_idx = (uint32_t) text[i];
             }
 
             auto const &ch = atlas.GetCharacter(ch_idx);
