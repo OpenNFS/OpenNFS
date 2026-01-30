@@ -30,6 +30,9 @@ namespace OpenNFS {
                 m_cars.push_back(CarLoader::LoadCarMenuData(m_context.loadedAssets.carTag, car));
             }
         }
+        // Sort the cars alphabetically
+        auto compareFunc  = [](std::shared_ptr<CarMenuData> a, std::shared_ptr<CarMenuData> b) {return a->carName<b->carName;};
+        std::sort(m_cars.begin(), m_cars.end(), compareFunc);
 
         // Load car list into dropdown
         m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
