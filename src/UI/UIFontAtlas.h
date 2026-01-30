@@ -2,7 +2,8 @@
 
 #include "GL/glew.h"
 
-#include <array>
+#include <unordered_map>
+#include <vector>
 #include <string>
 #include <ft2build.h>
 #include <string>
@@ -20,6 +21,10 @@ namespace OpenNFS {
             float bt; // bitmap_top;
             float tx; // x offset of glyph in texture coordinates
             float ty; // y offset of glyph in texture coordinates
+        };
+        struct CharacterRange {
+            uint32_t start;
+            uint32_t end;
         };
 
         explicit UIFontAtlas() = default;
@@ -40,14 +45,19 @@ namespace OpenNFS {
         uint32_t GetHeight() const;
         GLuint GetVAO() const;
         GLuint GetVBO() const;
-        CharacterInfo GetCharacter(uint8_t charIdx) const;
+        CharacterInfo GetCharacter(uint32_t charIdx) const;
 
       private:
         GLuint m_fontQuadVAO = 0, m_fontQuadVBO = 0;
         GLuint m_fontAtlasTexture = 0;
         unsigned int m_atlasWidth = 0;
         unsigned int m_atlasHeight = 0;
-        std::array<CharacterInfo, 256> m_characters{};
+        std::unordered_map<uint32_t, CharacterInfo> m_characters{};
         constexpr static uint32_t MAX_WIDTH = 1024;
+
+        std::vector<struct CharacterRange> const m_characterRanges{
+          {32, 127},  // ASCII
+          {160, 255},  // Latin-1 suppliments
+        };
     };
 } // namespace OpenNFS
