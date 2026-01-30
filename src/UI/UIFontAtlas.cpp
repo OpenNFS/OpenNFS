@@ -174,6 +174,8 @@ namespace OpenNFS {
     UIFontAtlas::CharacterInfo UIFontAtlas::GetCharacter(uint32_t const charIdx) const {
         if (m_characters.contains(charIdx))
             return m_characters.at(charIdx);
+
+        LOG(WARNING) << "Could not find character with code point in font atlas: " << std::hex << charIdx;
         return m_characters.at('?');
     }
 } // namespace OpenNFS
