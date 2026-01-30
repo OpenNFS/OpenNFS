@@ -125,6 +125,10 @@ namespace OpenNFS {
         return m_chassis->getLinearVelocity().length() * 3.6f;
     }
 
+    float NFS4VehiclePhysics::GetSpeedMPH() const {
+        return m_chassis->getLinearVelocity().length() * 2.23694;
+    }
+
     // Core Powertrain
     float NFS4VehiclePhysics::TorqueForRPM(float const rpm) const {
         float const torqueDiv = rpm / 500.0f;
@@ -813,25 +817,23 @@ namespace OpenNFS {
         return {resultAngularVelocity, resultLinearVelocity};
     }
 
-    void NFS4VehiclePhysics::ApplyTurningCircle(float const dt) {
+    void NFS4VehiclePhysics::ApplyTurningCircle() {
         btVector3 const localAngVel = GetLocalAngularVelocity() / SIMD_2_PI;
         btVector3 const localVel = GetLocalVelocity();
 
-        auto const [angularVelocity, linearVelocity] = TurningCircle(localAngVel, localVel);
+        auto const [newLocalAngVel, newLinearVelocity] = TurningCircle(localAngVel, localVel);
 
-        // Convert velocity changes to acceleration
-        float const angularAccel = (angularVelocity.y() - localAngVel.y()) * 32.0f;
-        btVector3 const linearAccel = (linearVelocity - m_chassis->getLinearVelocity()) * 32.0f;
-
-        // Apply as torque and force
+        // Convert local angular velocity change back to world space
         btTransform const trans = m_chassis->getWorldTransform();
-        btVector3 const worldAngAccel = trans.getBasis() * btVector3(0, angularAccel * SIMD_2_PI, 0);
+        float const angVelChangeLocal = (newLocalAngVel.y() - localAngVel.y()) * SIMD_2_PI;
+        btVector3 const worldAngVelChange = trans.getBasis() * btVector3(0, angVelChangeLocal, 0);
 
-        m_chassis->applyTorque(worldAngAccel * dt);
-        m_chassis->applyCentralForce(linearAccel * m_perf.mass * dt);
+        // Apply damped velocities directly
+        m_chassis->setAngularVelocity(m_chassis->getAngularVelocity() + worldAngVelChange);
+        m_chassis->setLinearVelocity(newLinearVelocity);
 
         // Debug
-        m_debugData.turningCircleAngularDamp = angularAccel;
+        m_debugData.turningCircleAngularDamp = angVelChangeLocal;
     }
 
     btVector3 NFS4VehiclePhysics::DampLateralVelocity() const {
@@ -855,22 +857,23 @@ namespace OpenNFS {
             d = beta;
         }
 
-        float const accelX = (d - 1.0f) * velLocal.x() * 32.0f;
-        return {accelX, 0, 0};
+        // Return the velocity change (not acceleration)
+        float const velChangeX = (d - 1.0f) * velLocal.x();
+        return {velChangeX, 0, 0};
     }
 
-    void NFS4VehiclePhysics::ApplyLateralVelocityDamping(float const dt) {
-        btVector3 const localAccel = DampLateralVelocity();
+    void NFS4VehiclePhysics::ApplyLateralVelocityDamping() {
+        btVector3 const localVelChange = DampLateralVelocity();
         btTransform const trans = m_chassis->getWorldTransform();
-        btVector3 const worldAccel = trans.getBasis() * localAccel;
+        btVector3 const worldVelChange = trans.getBasis() * localVelChange;
 
-        m_chassis->applyCentralForce(worldAccel * m_perf.mass * dt);
+        m_chassis->setLinearVelocity(m_chassis->getLinearVelocity() + worldVelChange);
 
         // Debug
-        m_debugData.lateralVelocityDamp = localAccel.x();
+        m_debugData.lateralVelocityDamp = localVelChange.x();
     }
 
-    void NFS4VehiclePhysics::ApplyNeutralGearDeceleration(float const dt) {
+    void NFS4VehiclePhysics::ApplyNeutralGearDeceleration() {
         if (m_state.gear != Gear::NEUTRAL) {
             m_debugData.appliedNeutralDecel = false;
             return;
@@ -883,12 +886,9 @@ namespace OpenNFS {
         if (std::abs(velLocal.z()) < 20.0f || std::abs(steering) > 32.0f) {
             factor = 0.99f;
         }
-        factor = factor - 1.0f; // Convert to acceleration multiplier
-        btVector3 const linearAccel = m_chassis->getLinearVelocity() * factor * 32.0f;
-        btVector3 const angularAccel = m_chassis->getAngularVelocity() * factor * 32.0f;
 
-        m_chassis->applyCentralForce(linearAccel * m_perf.mass * dt);
-        m_chassis->applyTorque(angularAccel * dt);
+        m_chassis->setLinearVelocity(m_chassis->getLinearVelocity() * factor);
+        m_chassis->setAngularVelocity(m_chassis->getAngularVelocity() * factor);
 
         m_debugData.appliedNeutralDecel = true;
     }
@@ -902,7 +902,7 @@ namespace OpenNFS {
         return lowThrottle && lowBrake && notNeutral && onGround;
     }
 
-    void NFS4VehiclePhysics::ApplyNearStopDeceleration(float const dt) {
+    void NFS4VehiclePhysics::ApplyNearStopDeceleration() {
         if (!ShouldApplyNearStopDeceleration()) {
             m_debugData.appliedNearStopDecel = false;
             m_debugData.nearStopDecelFactor = 0.0f;
@@ -917,15 +917,11 @@ namespace OpenNFS {
         btVector3 const velLocal = GetLocalVelocity();
 
         if (std::abs(velLocal.z()) < threshold) {
-            constexpr float damp = DAMP_FACTOR - 1.0f;
-            btVector3 const linearAccel = m_chassis->getLinearVelocity() * damp * 32.0f;
-            btVector3 const angularAccel = m_chassis->getAngularVelocity() * damp * 32.0f;
-
-            m_chassis->applyCentralForce(linearAccel * m_perf.mass * dt);
-            m_chassis->applyTorque(angularAccel * dt);
+            m_chassis->setLinearVelocity(m_chassis->getLinearVelocity() * DAMP_FACTOR);
+            m_chassis->setAngularVelocity(m_chassis->getAngularVelocity() * DAMP_FACTOR);
 
             m_debugData.appliedNearStopDecel = true;
-            m_debugData.nearStopDecelFactor = damp;
+            m_debugData.nearStopDecelFactor = DAMP_FACTOR - 1.0f;
         } else {
             m_debugData.appliedNearStopDecel = false;
             m_debugData.nearStopDecelFactor = 0.0f;
@@ -965,16 +961,17 @@ namespace OpenNFS {
         return {-absVel.x() * velocity.x() * c.x(), -absVel.y() * velocity.y() * c.y(), -absVel.z() * velocity.z() * c.z()};
     }
 
-    void NFS4VehiclePhysics::ApplyAirborneDrag(float const dt) {
+    void NFS4VehiclePhysics::ApplyAirborneDrag() {
         if (m_state.hasContactWithGround) {
             m_debugData.airborneDownforce = 0.0f;
             return;
         }
 
-        btVector3 const drag = AirborneDrag();
-        m_chassis->applyCentralForce(drag * m_perf.mass * dt * 32.0f);
+        // AirborneDrag returns drag acceleration, convert to force for Bullet
+        btVector3 const dragAccel = AirborneDrag();
+        m_chassis->applyCentralForce(dragAccel * m_perf.mass);
 
-        m_debugData.airborneDownforce = drag.length();
+        m_debugData.airborneDownforce = dragAccel.length();
     }
 
     void NFS4VehiclePhysics::LimitAngularVelocity() const {
@@ -1061,16 +1058,18 @@ namespace OpenNFS {
         m_state.hasContactWithGround = m_state.distanceAboveGround < 0.6f;
     }
 
-    void NFS4VehiclePhysics::ApplyDownforce(float const dt) const {
+    void NFS4VehiclePhysics::ApplyDownforce() const {
         btTransform const trans = m_chassis->getWorldTransform();
         btVector3 const velLocal = GetLocalVelocity();
         float const downforceMult = m_perf.downforceMult;
 
-        float const downforceAccel = -downforceMult * velLocal.z() * 32.0f;
-        btVector3 const localForce(0, downforceAccel, 0);
+        // Downforce acceleration proportional to forward speed (pushes car down)
+        float const downforceAccel = -downforceMult * velLocal.z();
+        btVector3 const localAccel(0, downforceAccel, 0);
 
-        btVector3 const worldForce = trans.getBasis() * localForce;
-        m_chassis->applyCentralForce(worldForce * m_perf.mass * dt);
+        // Convert to world space and apply as force
+        btVector3 const worldForce = trans.getBasis() * localAccel;
+        m_chassis->applyCentralForce(worldForce * m_perf.mass);
     }
 
     // Main Update Loop
@@ -1108,7 +1107,7 @@ namespace OpenNFS {
         m_state.steeringAngle = CalculateSteeringAngle();
 
         if (m_toggles.enableNearStopDecel) {
-            ApplyNearStopDeceleration(deltaTime);
+            ApplyNearStopDeceleration();
         }
 
         if (m_toggles.enableTractionModel) {
@@ -1139,11 +1138,12 @@ namespace OpenNFS {
                 totalForce += slopedForce * 0.5f;
             }
 
-            // Angular acceleration from wheel forces
-            float const angAccelY = ((wheelForces[FRONT_LEFT].x() + wheelForces[FRONT_RIGHT].x()) -
-                                     (wheelForces[REAR_LEFT].x() + wheelForces[REAR_RIGHT].x())) *
-                                    0.5f * 4.0f * m_perf.mass * m_chassis->getInvInertiaDiagLocal().y() * deltaTime;
-            totalTorque.setY(angAccelY * slope);
+            // Yaw torque from lateral wheel forces: torque = force × lever_arm
+            // Front and rear lateral forces create a yaw moment
+            float const frontLateral = wheelForces[FRONT_LEFT].x() + wheelForces[FRONT_RIGHT].x();
+            float const rearLateral = wheelForces[REAR_LEFT].x() + wheelForces[REAR_RIGHT].x();
+            float const yawTorque = (frontLateral - rearLateral) * 0.5f * m_perf.mass * 4.0f;
+            totalTorque.setY(yawTorque * slope);
 
             // Adjust longitudinal force
             totalForce.setZ(totalForce.z() / m_perf.lateralGripMultiplier);
@@ -1167,20 +1167,20 @@ namespace OpenNFS {
             }
 
             if (m_toggles.enableLateralDamping) {
-                ApplyLateralVelocityDamping(deltaTime);
+                ApplyLateralVelocityDamping();
             }
 
             if (m_toggles.enableTurningCircle) {
-                ApplyTurningCircle(deltaTime);
+                ApplyTurningCircle();
             }
 
             if (m_toggles.enableNeutralGearDecel) {
-                ApplyNeutralGearDeceleration(deltaTime);
+                ApplyNeutralGearDeceleration();
             }
         }
 
         if (m_toggles.enableAirborneDrag) {
-            ApplyAirborneDrag(deltaTime);
+            ApplyAirborneDrag();
         }
 
         if (m_state.hasContactWithGround && m_toggles.enableAdjustToRoad) {
@@ -1188,7 +1188,7 @@ namespace OpenNFS {
         }
 
         if (m_toggles.enableDownforce) {
-            ApplyDownforce(deltaTime);
+            ApplyDownforce();
         }
 
         if (m_toggles.enableLimitAngularVelocity && m_state.hasContactWithGround) {
@@ -1292,9 +1292,10 @@ namespace OpenNFS {
 
             if (rpmDiffTooBig || goingInReverseDir) {
                 // Engine over-revving or going wrong direction - reduce RPM
-                constexpr std::array<int, 8> adjustByGear = {50, 50, 10, 15, 20, 22, 50, 50};
                 int rpmAdjust = 125;
-                if (targetRPM >= 2000) {
+                if (targetRPM >= 2000)
+                {
+                    constexpr std::array<int, 8> adjustByGear = {50, 50, 10, 15, 20, 22, 50, 50};
                     rpmAdjust = adjustByGear[static_cast<int>(m_state.gear)];
                 }
                 rpm -= std::min(static_cast<float>(rpmAdjust), rpmDiff);
@@ -1340,7 +1341,6 @@ namespace OpenNFS {
                 // Cruising at target RPM
                 rpm = std::max(rpmFromWheelsVal, m_perf.engineMinRPM);
                 force = drag;
-
             } else {
                 // Accelerating (rpmTargetWheelsDiff > 0)
                 if (rpmDiff <= 200) {
@@ -1381,15 +1381,15 @@ namespace OpenNFS {
                 rpm = targetRPM;
             } else {
                 if (m_state.gearShiftCounter == 0) {
-                    if (!(rpm < targetRPM)) {
+                    if (rpm >= targetRPM) {
                         rpm -= 150.0f;
                         rpm = std::max({targetRPM, rpm, m_perf.engineMinRPM});
                     }
                 } else if (!m_state.shiftedDown) {
                     // Upshift - RPM drops
-                    int rpmAdjust = -50;
+                    int rpmAdjust = 50;
                     if (m_perf.gearShiftDelay < 5) {
-                        rpmAdjust = -75;
+                        rpmAdjust = 75;
                     }
                     if (aboveRedline) {
                         rpmAdjust *= 2;

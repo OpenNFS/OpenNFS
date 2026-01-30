@@ -209,6 +209,8 @@ namespace OpenNFS {
         }
         [[nodiscard]] float GetSpeedKMH() const;
 
+        [[nodiscard]] float GetSpeedMPH() const;
+
         // Debug accessors
         [[nodiscard]] NFS4VehicleState const &GetState() const {
             return m_state;
@@ -308,15 +310,15 @@ namespace OpenNFS {
 
         void ComputeBasisToRoad();
         void AdjustToRoad();
-        void ApplyTurningCircle(float dt);
-        void ApplyLateralVelocityDamping(float dt);
-        void ApplyNeutralGearDeceleration(float dt);
-        void ApplyNearStopDeceleration(float dt);
+        void ApplyTurningCircle();
+        void ApplyLateralVelocityDamping();
+        void ApplyNeutralGearDeceleration();
+        void ApplyNearStopDeceleration();
         void PreventMovingSideways();
-        void ApplyAirborneDrag(float dt);
+        void ApplyAirborneDrag();
         void LimitAngularVelocity() const;
         void GoAirborne();
-        void ApplyDownforce(float dt) const;
+        void ApplyDownforce() const;
 
         [[nodiscard]] static bool IsFrontWheel(WheelPosition const pos) {
             return pos == WheelPosition::FRONT_LEFT || pos == WheelPosition::FRONT_RIGHT;

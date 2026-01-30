@@ -85,6 +85,8 @@ namespace OpenNFS {
                     carMenuData.LoadMenuData(fedataFile);
                 }
                 break;
+                default:
+                    throw std::runtime_error(std::format("Unsupported NFSVersion {0}", magic_enum::enum_name(nfsVersion)));
         }
 
         return std::make_shared<CarMenuData>(carMenuData);

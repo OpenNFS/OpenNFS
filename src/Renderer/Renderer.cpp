@@ -422,7 +422,7 @@ namespace OpenNFS {
         // Basic state section
         if (ImGui::CollapsingHeader("Vehicle State", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Columns(2, "state_cols");
-            ImGui::Text("Speed: %.1f km/h", physics->GetSpeedKMH());
+            ImGui::Text("Speed: %.2f mph", physics->GetSpeedMPH());
             ImGui::Text("RPM: %.0f", state.rpm);
             ImGui::Text("Gear: %s", gearNames[gearIdx]);
             ImGui::Text("Redline: %.0f", perf.engineRedlineRPM);
@@ -453,7 +453,6 @@ namespace OpenNFS {
         if (ImGui::CollapsingHeader("Physics State", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Text("Slip Angle: %.4f", state.slipAngle);
             ImGui::Text("Speed XZ: %.2f m/s", state.speedXZ);
-            ImGui::Text("Speed XZ: %.2f mph", state.speedXZ * 2.23694);
             ImGui::Text("G-Transfer: %.4f", state.gTransfer);
             ImGui::Text("Steering Angle: %.4f rad", state.steeringAngle);
             ImGui::Text("Traction Force: %.4f", state.tractionForce);
