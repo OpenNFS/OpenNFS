@@ -65,9 +65,25 @@ namespace OpenNFS {
 
         switch (nfsVersion) {
             case NFSVersion::NFS_3:
-                carBasePath << NFS_3_CAR_PATH << carId;
-                LibOpenNFS::NFS3::FedataFile fedataFile = LibOpenNFS::NFS3::Loader::LoadCarMenuData(carBasePath.str(), carOutPath.str());
-                carMenuData.LoadMenuData(fedataFile);
+                {
+                    carBasePath << NFS_3_CAR_PATH << carId;
+                    LibOpenNFS::NFS3::FedataFile fedataFile = LibOpenNFS::NFS3::Loader::LoadCarMenuData(carBasePath.str(), carOutPath.str());
+                    carMenuData.LoadMenuData(fedataFile);
+                }
+                break;
+            case NFSVersion::NFS_4:
+                {
+                    carBasePath << NFS_4_CAR_PATH << carId;
+                    LibOpenNFS::NFS4::FedataFile fedataFile = LibOpenNFS::NFS4::Loader::LoadCarMenuData(carBasePath.str(), carOutPath.str(), nfsVersion);
+                    carMenuData.LoadMenuData(fedataFile);
+                }
+                break;
+            case NFSVersion::MCO:
+                {
+                    carBasePath << MCO_CAR_PATH << carId;
+                    LibOpenNFS::NFS4::FedataFile fedataFile = LibOpenNFS::NFS4::Loader::LoadCarMenuData(carBasePath.str(), carOutPath.str(), nfsVersion);
+                    carMenuData.LoadMenuData(fedataFile);
+                }
                 break;
         }
 
