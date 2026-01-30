@@ -22,6 +22,7 @@ namespace OpenNFS {
                     cursorPosition.y <= entryLocationY + (entryResource.height * scale)) {
                         if (click) {
                             text = entries[i];
+                            selectedEntry = i;
                             onClickFunction();
                         } else {
                             entryTextColour[i] = textHoverColour;

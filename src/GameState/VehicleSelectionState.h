@@ -21,6 +21,8 @@ namespace OpenNFS {
 
         void LoadCar();
 
+        void OnGo();
+
       private:
         GameContext &m_context;
         std::unique_ptr<VehicleSelection> m_vehicleSelection;
@@ -29,6 +31,7 @@ namespace OpenNFS {
         std::shared_ptr<UIManager> m_uiManager;
         GameState m_nextState{GameState::VehicleSelection};
         std::vector<std::shared_ptr<CarMenuData>> m_cars;
+        bool carSelected = false;
 
         std::shared_ptr<UIDropdown> m_dropdown = nullptr;
     };

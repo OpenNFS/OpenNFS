@@ -23,6 +23,7 @@
     {
       "id": "vehicleSelectionDropdown",
       "type": "dropdown",
+      "text": "<Select a Car>",
       "resource": "dropdownButton",
       "entryResource": "dropdownEntry",
       "colour": "#568be4",

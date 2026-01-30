@@ -10,7 +10,7 @@ namespace OpenNFS {
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
         callbacks["onBack"] = [this]() { m_nextState = GameState::MainMenu; };
-        callbacks["onGo"] = [this]() { m_nextState = GameState::TrackSelection; };
+        callbacks["onGo"] = [this]() { OnGo(); };
         callbacks["onVehicleSelectionChange"] = [this]() { LoadCar(); };
 
         // Create UI manager with vehicle selection layout
@@ -37,10 +37,6 @@ namespace OpenNFS {
             m_dropdown->AddEntry(car->carName);
         }
 
-        LoadCar();
-        
-        m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
-
         // Reset next state
         m_nextState = GameState::VehicleSelection;
     }
@@ -54,7 +50,7 @@ namespace OpenNFS {
             m_nextState = GameState::MainMenu;
         }
 
-        if (m_vehicleSelection) {
+        if (carSelected && m_vehicleSelection) {
             m_vehicleSelection->Update(deltaTime);
 
             // Check if race should end
@@ -76,13 +72,20 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        for (auto car : m_cars) {
-            if (m_dropdown->text == car->carName)
-                m_context.loadedAssets.car = car->id;
+        size_t selection = m_dropdown->GetSelectedEntryIndex();
+        if (selection == -1) {
+            return;
         }
+        m_context.loadedAssets.car = m_cars[selection]->id;
         m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
         // Create vehicle selection view
         m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
+        carSelected = true;
+    }
+
+    void VehicleSelectionState::OnGo() {
+        if (carSelected)
+            m_nextState = GameState::TrackSelection;
     }
 } // namespace OpenNFS
