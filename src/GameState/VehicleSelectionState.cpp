@@ -16,20 +16,27 @@ namespace OpenNFS {
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
 
-        // Load car list into dropdown
-        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
         for (NfsAssetList assets : m_context.installedNFS) {
             // Only show cars from the selected NFS
             if (assets.tag != m_context.loadedAssets.carTag)
                 continue;
             for(std::string car : assets.cars) {
+                if (car.empty())
+                    continue;
                 if (car.starts_with("traffic"))
                     continue;
                 if (car == "knoc")
                     continue;
-                m_dropdown->AddEntry(car);
+                m_cars.push_back(CarLoader::LoadCarMenuData(m_context.loadedAssets.carTag, car));
             }
         }
+
+        // Load car list into dropdown
+        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
+        for (auto car : m_cars) {
+            m_dropdown->AddEntry(car->carName);
+        }
+
         LoadCar();
         
         m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
@@ -69,7 +76,10 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        m_context.loadedAssets.car = m_dropdown->text;
+        for (auto car : m_cars) {
+            if (m_dropdown->text == car->carName)
+                m_context.loadedAssets.car = car->id;
+        }
         m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
         // Create vehicle selection view
