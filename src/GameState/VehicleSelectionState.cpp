@@ -10,29 +10,35 @@ namespace OpenNFS {
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
         callbacks["onBack"] = [this]() { m_nextState = GameState::MainMenu; };
-        callbacks["onGo"] = [this]() { m_nextState = GameState::TrackSelection; };
+        callbacks["onGo"] = [this]() { OnGo(); };
         callbacks["onVehicleSelectionChange"] = [this]() { LoadCar(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
 
-        // Load car list into dropdown
-        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
         for (NfsAssetList assets : m_context.installedNFS) {
             // Only show cars from the selected NFS
             if (assets.tag != m_context.loadedAssets.carTag)
                 continue;
             for(std::string car : assets.cars) {
+                if (car.empty())
+                    continue;
                 if (car.starts_with("traffic"))
                     continue;
                 if (car == "knoc")
                     continue;
-                m_dropdown->AddEntry(car);
+                m_cars.push_back(CarLoader::LoadCarMenuData(m_context.loadedAssets.carTag, car));
             }
         }
-        LoadCar();
-        
-        m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
+        // Sort the cars alphabetically
+        auto compareFunc  = [](std::shared_ptr<CarMenuData> a, std::shared_ptr<CarMenuData> b) {return a->carName<b->carName;};
+        std::sort(m_cars.begin(), m_cars.end(), compareFunc);
+
+        // Load car list into dropdown
+        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
+        for (auto car : m_cars) {
+            m_dropdown->AddEntry(car->carName);
+        }
 
         // Reset next state
         m_nextState = GameState::VehicleSelection;
@@ -47,7 +53,7 @@ namespace OpenNFS {
             m_nextState = GameState::MainMenu;
         }
 
-        if (m_vehicleSelection) {
+        if (carSelected && m_vehicleSelection) {
             m_vehicleSelection->Update(deltaTime);
 
             // Check if race should end
@@ -69,10 +75,20 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        m_context.loadedAssets.car = m_dropdown->text;
+        size_t selection = m_dropdown->GetSelectedEntryIndex();
+        if (selection == -1) {
+            return;
+        }
+        m_context.loadedAssets.car = m_cars[selection]->id;
         m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
         // Create vehicle selection view
         m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
+        carSelected = true;
+    }
+
+    void VehicleSelectionState::OnGo() {
+        if (carSelected)
+            m_nextState = GameState::TrackSelection;
     }
 } // namespace OpenNFS

@@ -56,4 +56,37 @@ namespace OpenNFS {
         }
         return std::make_shared<Car>(carAsset, carName);
     }
+
+    std::shared_ptr<CarMenuData> CarLoader::LoadCarMenuData(NFSVersion nfsVersion, std::string const &carId) {
+        CarMenuData carMenuData(nfsVersion, carId);
+        std::stringstream carBasePath, carOutPath;
+        carBasePath << RESOURCE_PATH << magic_enum::enum_name(nfsVersion);
+        carOutPath << CAR_PATH << magic_enum::enum_name(nfsVersion) << "/" << carId;
+
+        switch (nfsVersion) {
+            case NFSVersion::NFS_3:
+                {
+                    carBasePath << NFS_3_CAR_PATH << carId;
+                    LibOpenNFS::NFS3::FedataFile fedataFile = LibOpenNFS::NFS3::Loader::LoadCarMenuData(carBasePath.str(), carOutPath.str());
+                    carMenuData.LoadMenuData(fedataFile);
+                }
+                break;
+            case NFSVersion::NFS_4:
+                {
+                    carBasePath << NFS_4_CAR_PATH << carId;
+                    LibOpenNFS::NFS4::FedataFile fedataFile = LibOpenNFS::NFS4::Loader::LoadCarMenuData(carBasePath.str(), carOutPath.str(), nfsVersion);
+                    carMenuData.LoadMenuData(fedataFile);
+                }
+                break;
+            case NFSVersion::MCO:
+                {
+                    carBasePath << MCO_CAR_PATH << carId;
+                    LibOpenNFS::NFS4::FedataFile fedataFile = LibOpenNFS::NFS4::Loader::LoadCarMenuData(carBasePath.str(), carOutPath.str(), nfsVersion);
+                    carMenuData.LoadMenuData(fedataFile);
+                }
+                break;
+        }
+
+        return std::make_shared<CarMenuData>(carMenuData);
+    }
 } // namespace OpenNFS
