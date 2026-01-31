@@ -387,6 +387,7 @@ namespace OpenNFS {
                             if (ImGui::MenuItem(car.c_str())) {
                                 loadedAssets.carTag = installedNFS.tag;
                                 loadedAssets.car = car;
+                                loadedAssets.colour = -1;
                                 assetChange = true;
                             }
                         }

@@ -101,6 +101,7 @@ namespace OpenNFS {
             m_colourSelectionDropdown->isVisible = true;
 
         } else {
+            m_context.loadedAssets.colour = -1;
             m_colourSelectionDropdown->isVisible = false;
         }
         carSelected = true;
@@ -113,6 +114,7 @@ namespace OpenNFS {
         }
         m_currentCar->vehicleState.colour = m_currentCar->assetData.metadata.colours[selection].colour;
         m_currentCar->vehicleState.colourSecondary = m_currentCar->assetData.metadata.colours[selection].colourSecondary;
+        m_context.loadedAssets.colour = selection;
     }
 
     void VehicleSelectionState::OnGo() {

@@ -12,6 +12,12 @@ namespace OpenNFS {
         m_currentTrack = TrackLoader::Load(m_context.loadedAssets.trackTag, m_context.loadedAssets.track);
         m_currentCar = CarLoader::LoadCar(m_context.loadedAssets.carTag, m_context.loadedAssets.car);
 
+        // Set the car colour
+        if (m_context.loadedAssets.colour != -1 && m_context.loadedAssets.colour < m_currentCar->assetData.metadata.colours.size()) {
+            m_currentCar->vehicleState.colour = m_currentCar->assetData.metadata.colours[m_context.loadedAssets.colour].colour;
+            m_currentCar->vehicleState.colourSecondary = m_currentCar->assetData.metadata.colours[m_context.loadedAssets.colour].colourSecondary;
+        }
+
         // Create race session
         m_raceSession = std::make_unique<RaceSession>(m_context.window, m_context.logger, m_context.installedNFS, m_currentTrack,
                                                       m_currentCar, m_context.loadedAssets);
