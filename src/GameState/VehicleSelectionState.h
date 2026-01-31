@@ -20,7 +20,7 @@ namespace OpenNFS {
         GameState GetNextState() const override;
 
         void LoadCar();
-
+        void ChangeColour();
         void OnGo();
 
       private:
@@ -33,6 +33,7 @@ namespace OpenNFS {
         std::vector<std::shared_ptr<CarMenuData>> m_cars;
         bool carSelected = false;
 
-        std::shared_ptr<UIDropdown> m_dropdown = nullptr;
+        std::shared_ptr<UIDropdown> m_carSelectionDropdown = nullptr;
+        std::shared_ptr<UIDropdown> m_colourSelectionDropdown = nullptr;
     };
 } // namespace OpenNFS
