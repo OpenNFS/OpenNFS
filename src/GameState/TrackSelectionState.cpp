@@ -59,7 +59,7 @@ namespace OpenNFS {
     }
 
     void TrackSelectionState::LoadTrack() {
-        size_t selection = m_dropdown->GetSelectedEntryIndex();
+        int selection = m_dropdown->GetSelectedEntryIndex();
         if (selection == -1) {
             return;
         }
