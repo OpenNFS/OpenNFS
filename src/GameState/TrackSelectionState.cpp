@@ -8,21 +8,30 @@ namespace OpenNFS {
         // Setup callbacks for the main menu
         UILayoutLoader::CallbackRegistry callbacks;
         callbacks["onBack"] = [this]() { m_nextState = GameState::VehicleSelection; };
-        callbacks["onGo"] = [this]() { m_nextState = GameState::RaceLoad; };
+        callbacks["onGo"] = [this]() { OnGo(); };
         callbacks["onTrackSelectionChange"] = [this]() { LoadTrack(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/trackSelection.json", callbacks);
 
-        // Load track list into dropdown
-        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("trackSelectionDropdown"));
         for (NfsAssetList assets : m_context.installedNFS) {
             if (assets.tag != m_context.loadedAssets.trackTag)
                 continue;
             for(std::string track : assets.tracks) {
-                m_dropdown->AddEntry(track);
+                m_tracks.push_back(track);
             }
         }
+
+        // Sort the cars alphabetically
+        auto compareFunc  = [](std::string a, std::string b) {return a<b;};
+        std::sort(m_tracks.begin(), m_tracks.end(), compareFunc);
+
+        // Load track list into dropdown
+        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("trackSelectionDropdown"));
+        for (auto track : m_tracks) {
+            m_dropdown->AddEntry(track);
+        }
+
         LoadTrack();
     
         // Reset next state
@@ -50,6 +59,16 @@ namespace OpenNFS {
     }
 
     void TrackSelectionState::LoadTrack() {
-        m_context.loadedAssets.track = m_dropdown->text;
+        int selection = m_dropdown->GetSelectedEntryIndex();
+        if (selection == -1) {
+            return;
+        }
+        m_context.loadedAssets.track = m_tracks[selection];
+        trackSelected = true;
+    }
+
+    void TrackSelectionState::OnGo() {
+        if (trackSelected)
+            m_nextState = GameState::RaceLoad;
     }
 } // namespace OpenNFS

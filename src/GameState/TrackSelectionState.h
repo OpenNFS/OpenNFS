@@ -19,11 +19,15 @@ namespace OpenNFS {
 
         void LoadTrack();
 
+        void OnGo();
+
       private:
         GameContext &m_context;
         InputManager m_inputManager;
         std::shared_ptr<UIManager> m_uiManager;
         GameState m_nextState{GameState::TrackSelection};
+        std::vector<std::string> m_tracks;
+        bool trackSelected = false;
 
         std::shared_ptr<UIDropdown> m_dropdown = nullptr;
     };
