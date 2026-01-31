@@ -11,7 +11,7 @@ namespace OpenNFS {
       public:
         UIDropdown(UIResource const &_resource, UIResource const &_entryResource, std::string const &_text, glm::vec4 const &_textColour, glm::vec4 const &_textHoverColour,
                  float _scale, uint32_t _layer, glm::vec2 const &_location, glm::vec2 const &_textOffset, std::vector<std::string> _entries, std::string _id = "",
-                 std::string const &_fontName = "default");
+                 std::string const &_fontName = "default", bool const visible = true);
         void Update(glm::vec2 const &cursorPosition, bool click) override;
 
         void AddEntry(std::string entry);
@@ -30,5 +30,6 @@ namespace OpenNFS {
         std::vector<std::string> entries;
         std::vector<glm::vec4> entryTextColour;
         size_t selectedEntry = -1;
+        bool isVisible = true;
     };
 } // namespace OpenNFS

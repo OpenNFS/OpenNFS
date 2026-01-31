@@ -42,6 +42,27 @@
       "onClick": "onVehicleSelectionChange"
     },
     {
+      "id": "vehicleColourSelectionDropdown",
+      "type": "dropdown",
+      "resource": "dropdownButton",
+      "entryResource": "dropdownEntry",
+      "colour": "#568be4",
+      "hoverColour": "#ffff00",
+      "scale": 1.0,
+      "layer": 1,
+      "position": {
+        "x": "30",
+        "y": "900"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto",
+      "onClick": "onVehicleColourSelectionChange",
+      "visible": false
+    },
+    {
       "type": "button",
       "text": "Go!",
       "resource": "pillButton",
@@ -51,7 +72,7 @@
       "layer": 2,
       "position": {
         "x": "30",
-        "y": "900"
+        "y": "750"
       },
       "textOffset": {
         "x": "40",

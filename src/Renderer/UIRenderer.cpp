@@ -76,6 +76,8 @@ namespace OpenNFS {
     }
 
     void UIRenderer::RenderDropdown(UIDropdown const *dropdown) const {
+        if (!dropdown->isVisible)
+            return;
         if (dropdown->isOpened) {
             for (size_t i = 0; i < dropdown->entries.size(); i++)
             {

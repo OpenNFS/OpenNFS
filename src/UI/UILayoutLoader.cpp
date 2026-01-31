@@ -234,8 +234,9 @@ namespace OpenNFS {
                         if (elemJson.contains("entries") && elemJson["entries"].is_array()) {
                             dropdownElements = elemJson["entries"].get<std::vector<std::string>>();
                         }
+                        bool const visible = elemJson.value("visible", true);
                         element =
-                            std::make_unique<UIDropdown>(it->second, eit->second, text, colour, hoverColour, scale, layer, position, textOffset, dropdownElements, id, font);
+                            std::make_unique<UIDropdown>(it->second, eit->second, text, colour, hoverColour, scale, layer, position, textOffset, dropdownElements, id, font, visible);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;

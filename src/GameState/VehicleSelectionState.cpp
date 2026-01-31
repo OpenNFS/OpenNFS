@@ -35,9 +35,10 @@ namespace OpenNFS {
         std::sort(m_cars.begin(), m_cars.end(), compareFunc);
 
         // Load car list into dropdown
-        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
+        m_carSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
+        m_colourSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleColourSelectionDropdown"));
         for (auto car : m_cars) {
-            m_dropdown->AddEntry(car->carName);
+            m_carSelectionDropdown->AddEntry(car->carName);
         }
 
         // Reset next state
@@ -75,7 +76,7 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        size_t selection = m_dropdown->GetSelectedEntryIndex();
+        size_t selection = m_carSelectionDropdown->GetSelectedEntryIndex();
         if (selection == -1) {
             return;
         }
@@ -84,6 +85,23 @@ namespace OpenNFS {
 
         // Create vehicle selection view
         m_vehicleSelection = std::make_unique<VehicleSelection>(m_context.window, m_context.installedNFS, m_currentCar);
+
+        // Set car colours
+        if (!m_currentCar->assetData.metadata.colours.empty()) {
+            m_colourSelectionDropdown->entries.clear();
+            for (size_t i = 0; i< m_currentCar->assetData.metadata.colours.size(); i++) {
+                m_colourSelectionDropdown->AddEntry(m_cars[selection]->colorNames[i]);
+                if (m_currentCar->assetData.metadata.colours[i].colour == m_currentCar->vehicleState.colour) {
+                    m_colourSelectionDropdown->selectedEntry = i;
+                    m_colourSelectionDropdown->text = m_cars[selection]->colorNames[i];
+                    m_context.loadedAssets.colour = i;
+                }
+            }
+            m_colourSelectionDropdown->isVisible = true;
+
+        } else {
+            m_colourSelectionDropdown->isVisible = false;
+        }
         carSelected = true;
     }
 
