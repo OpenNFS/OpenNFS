@@ -16,7 +16,7 @@ namespace OpenNFS {
 
         void AddEntry(std::string entry);
 
-        size_t GetSelectedEntryIndex() {return selectedEntry;};
+        int GetSelectedEntryIndex() {return selectedEntry;};
 
         UIResource const &resource;
         UIResource const &entryResource;
@@ -29,7 +29,7 @@ namespace OpenNFS {
         bool isOpened = false;
         std::vector<std::string> entries;
         std::vector<glm::vec4> entryTextColour;
-        size_t selectedEntry = -1;
+        int selectedEntry = -1;
         bool isVisible = true;
     };
 } // namespace OpenNFS

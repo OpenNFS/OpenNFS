@@ -77,7 +77,7 @@ namespace OpenNFS {
         return m_nextState;
     }
     void VehicleSelectionState::LoadCar() {
-        size_t selection = m_carSelectionDropdown->GetSelectedEntryIndex();
+        int selection = m_carSelectionDropdown->GetSelectedEntryIndex();
         if (selection == -1) {
             return;
         }
@@ -90,7 +90,7 @@ namespace OpenNFS {
         // Set car colours
         if (!m_currentCar->assetData.metadata.colours.empty()) {
             m_colourSelectionDropdown->entries.clear();
-            for (size_t i = 0; i< m_currentCar->assetData.metadata.colours.size(); i++) {
+            for (int i = 0; i < (int) m_currentCar->assetData.metadata.colours.size(); i++) {
                 m_colourSelectionDropdown->AddEntry(m_cars[selection]->colorNames[i]);
                 if (m_currentCar->assetData.metadata.colours[i].colour == m_currentCar->vehicleState.colour) {
                     m_colourSelectionDropdown->selectedEntry = i;
@@ -108,7 +108,7 @@ namespace OpenNFS {
     }
 
     void VehicleSelectionState::ChangeColour() {
-        size_t selection = m_colourSelectionDropdown->GetSelectedEntryIndex();
+        int selection = m_colourSelectionDropdown->GetSelectedEntryIndex();
         if (selection == -1) {
             return;
         }

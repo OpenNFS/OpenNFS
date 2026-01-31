@@ -138,7 +138,7 @@ namespace OpenNFS {
         std::string car;
         NFSVersion trackTag;
         std::string track;
-        size_t colour = -1;
+        int colour = -1;
 
         [[nodiscard]] std::string to_string() const {
             return std::format("CAR= [{}] {} TRACK= [{}] {}", magic_enum::enum_name(carTag), car, magic_enum::enum_name(trackTag), track);
