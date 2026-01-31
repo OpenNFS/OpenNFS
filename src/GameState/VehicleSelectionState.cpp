@@ -12,6 +12,7 @@ namespace OpenNFS {
         callbacks["onBack"] = [this]() { m_nextState = GameState::MainMenu; };
         callbacks["onGo"] = [this]() { OnGo(); };
         callbacks["onVehicleSelectionChange"] = [this]() { LoadCar(); };
+        callbacks["onVehicleColourSelectionChange"] = [this]() { ChangeColour(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
@@ -103,6 +104,15 @@ namespace OpenNFS {
             m_colourSelectionDropdown->isVisible = false;
         }
         carSelected = true;
+    }
+
+    void VehicleSelectionState::ChangeColour() {
+        size_t selection = m_colourSelectionDropdown->GetSelectedEntryIndex();
+        if (selection == -1) {
+            return;
+        }
+        m_currentCar->vehicleState.colour = m_currentCar->assetData.metadata.colours[selection].colour;
+        m_currentCar->vehicleState.colourSecondary = m_currentCar->assetData.metadata.colours[selection].colourSecondary;
     }
 
     void VehicleSelectionState::OnGo() {

@@ -20,7 +20,7 @@ namespace OpenNFS {
         GameState GetNextState() const override;
 
         void LoadCar();
-
+        void ChangeColour();
         void OnGo();
 
       private:
