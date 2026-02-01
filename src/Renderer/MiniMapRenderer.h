@@ -18,7 +18,7 @@ namespace OpenNFS {
       private:
         void _Rescale();
 
-        static constexpr float kVehicleScale{100.f};
+        static constexpr float kVehicleScale{40.f};
         static constexpr float kMinimapFraction{0.25f}; // 25% of smaller window dimension
         static constexpr int kMinimapPadding{100};      // Pixels from screen edge
 
