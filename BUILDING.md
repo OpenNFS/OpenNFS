@@ -43,7 +43,7 @@ Below where assets for each game go, the directory in resources will need to be 
 
 - **NFS2 PC**: Copy the `gamedata` directory from the CD or an NFS2 installation into `OpenNFS/resources/NFS_2`.
 - **NFS2 SE**: Copy the `gamedata` directory from the CD or an NFS2 SE installation into `OpenNFS/resources/NFS_2_SE`.
-- **NFS3 PC**: Copy the `gamedata` directory from the CD or an NFS3 installation into `OpenNFS/resources/NFS_3`.
+- **NFS3 PC**: Copy the `gamedata` and `fedata` directories from the CD or an NFS3 installation into `OpenNFS/resources/NFS_3`.
 - **NFS4 PC**: Copy the `data` directory from the CD or an NFS4 installation into `OpenNFS/resources/NFS_4`.
 - **NFS5 PC**: Copy the `gamedata` directory from the CD or an NFS5 installation into `OpenNFS/resources/NFS_5`.
 
