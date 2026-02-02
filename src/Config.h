@@ -32,6 +32,7 @@ namespace OpenNFS {
 
     std::string const NFS_3_TRACK_PATH{"/gamedata/tracks/"};
     std::string const NFS_3_CAR_PATH{"/gamedata/carmodel/"};
+    std::string const NFS_3_TEXT_PATH{"/fedata/text/"};
 
     std::string const NFS_4_TRACK_PATH{"/data/tracks/"};
     std::string const NFS_4_CAR_PATH{"/data/cars/"};

@@ -1,5 +1,8 @@
 #include "TrackSelectionState.h"
 
+#include "../Loaders/MenuTextLoader.h"
+#include "../Menu/MenuText.h"
+
 namespace OpenNFS {
     TrackSelectionState::TrackSelectionState(GameContext &context) : m_context(context), m_inputManager(context.window) {
     }
@@ -26,9 +29,18 @@ namespace OpenNFS {
         auto compareFunc  = [](std::string a, std::string b) {return a<b;};
         std::sort(m_tracks.begin(), m_tracks.end(), compareFunc);
 
+        auto const menuText = MenuTextLoader::LoadMenuText(m_context.loadedAssets.trackTag);
+        if (menuText->trackNames.empty()) {
+            m_trackNames = m_tracks;
+        } else {
+            for (std::string track : menuText->trackNames) {
+                m_trackNames.push_back(track);
+            }
+        }
+
         // Load track list into dropdown
         m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("trackSelectionDropdown"));
-        for (auto track : m_tracks) {
+        for (auto track : m_trackNames) {
             m_dropdown->AddEntry(track);
         }
 

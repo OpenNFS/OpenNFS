@@ -49,9 +49,11 @@ set(SOURCE_FILES
         src/Config.cpp
         src/Input/InputManager.cpp
         src/Loaders/CarLoader.cpp
+        src/Loaders/MenuTextLoader.cpp
         src/Loaders/MusicLoader.cpp
         src/Loaders/TrackLoader.cpp
         src/Menu/CarMenuData.cpp
+        src/Menu/MenuText.cpp
         src/Physics/AABB.cpp
         src/Physics/AABBTree.cpp
         src/Physics/Car.cpp
