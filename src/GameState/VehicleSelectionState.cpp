@@ -111,6 +111,7 @@ namespace OpenNFS {
         if (carSelected)
             m_nextState = GameState::TrackSelection;
     }
+
     void VehicleSelectionState::SwitchNFSVersion() {
         carSelected = false;
         m_carSelectionDropdown->selectedEntry = -1;
@@ -137,8 +138,6 @@ namespace OpenNFS {
         std::sort(m_cars.begin(), m_cars.end(), compareFunc);
 
         // Load car list into dropdown
-        m_carSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
-        m_colourSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleColourSelectionDropdown"));
         for (auto car : m_cars) {
             m_carSelectionDropdown->AddEntry(car->carName);
         }

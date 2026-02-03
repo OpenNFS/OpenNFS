@@ -18,8 +18,8 @@ namespace OpenNFS {
         GameState GetNextState() const override;
 
         void LoadTrack();
-
         void OnGo();
+        void SwitchNFSVersion();
 
       private:
         GameContext &m_context;
@@ -30,6 +30,7 @@ namespace OpenNFS {
         std::vector<std::string> m_trackNames;
         bool trackSelected = false;
 
-        std::shared_ptr<UIDropdown> m_dropdown = nullptr;
+        std::shared_ptr<UIDropdown> m_trackSelectionDropdown = nullptr;
+        std::shared_ptr<UIDropdown> m_NFSSelectionDropdown = nullptr;
     };
 } // namespace OpenNFS

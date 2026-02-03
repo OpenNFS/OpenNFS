@@ -13,6 +13,7 @@ namespace OpenNFS {
         callbacks["onBack"] = [this]() { m_nextState = GameState::VehicleSelection; };
         callbacks["onGo"] = [this]() { OnGo(); };
         callbacks["onTrackSelectionChange"] = [this]() { LoadTrack(); };
+        callbacks["onNFSSelectionChange"] = [this]() { SwitchNFSVersion(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/trackSelection.json", callbacks);
@@ -39,12 +40,18 @@ namespace OpenNFS {
         }
 
         // Load track list into dropdown
-        m_dropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("trackSelectionDropdown"));
-        for (auto track : m_trackNames) {
-            m_dropdown->AddEntry(track);
+        m_trackSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("trackSelectionDropdown"));
+        m_NFSSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("NFSSelectionDropdown"));
+        for (NfsAssetList assets : m_context.installedNFS) {
+            std::string const nfsVersion = std::string(magic_enum::enum_name<NFSVersion>(assets.tag));
+            m_NFSSelectionDropdown->AddEntry(nfsVersion);
+            // Only show tracks from the selected NFS
+            if (assets.tag == m_context.loadedAssets.trackTag) {
+                m_NFSSelectionDropdown->selectedEntry = m_NFSSelectionDropdown->entries.size() - 1;
+            }
         }
-
-        LoadTrack();
+        SwitchNFSVersion();
+        // LoadTrack();
     
         // Reset next state
         m_nextState = GameState::TrackSelection;
@@ -71,7 +78,7 @@ namespace OpenNFS {
     }
 
     void TrackSelectionState::LoadTrack() {
-        int selection = m_dropdown->GetSelectedEntryIndex();
+        int selection = m_trackSelectionDropdown->GetSelectedEntryIndex();
         if (selection == -1) {
             return;
         }
@@ -82,5 +89,40 @@ namespace OpenNFS {
     void TrackSelectionState::OnGo() {
         if (trackSelected)
             m_nextState = GameState::RaceLoad;
+    }
+
+    void TrackSelectionState::SwitchNFSVersion() {
+        trackSelected = false;
+        m_trackSelectionDropdown->selectedEntry = -1;
+        m_trackSelectionDropdown->entries.clear();
+        m_trackNames.clear();
+        m_tracks.clear();
+
+        for (NfsAssetList assets : m_context.installedNFS) {
+            if (assets.tag == magic_enum::enum_cast<NFSVersion>(m_NFSSelectionDropdown->entries[m_NFSSelectionDropdown->selectedEntry])) {
+                m_context.loadedAssets.trackTag = assets.tag;
+                for(std::string track : assets.tracks) {
+                    m_tracks.push_back(track);
+                }
+            }
+        }
+        // Sort the cars alphabetically
+        auto compareFunc  = [](std::string a, std::string b) {return a<b;};
+        std::sort(m_tracks.begin(), m_tracks.end(), compareFunc);
+
+        // Load track names
+        auto const menuText = MenuTextLoader::LoadMenuText(m_context.loadedAssets.trackTag);
+        if (menuText->trackNames.empty()) {
+            m_trackNames = m_tracks;
+        } else {
+            for (std::string track : menuText->trackNames) {
+                m_trackNames.push_back(track);
+            }
+        }
+
+        // Add entries to track selection dropdown
+        for (auto track : m_trackNames) {
+            m_trackSelectionDropdown->AddEntry(track);
+        }
     }
 } // namespace OpenNFS
