@@ -22,6 +22,7 @@ namespace OpenNFS {
         void LoadCar();
         void ChangeColour();
         void OnGo();
+        void SwitchNFSVersion();
 
       private:
         GameContext &m_context;
@@ -33,6 +34,7 @@ namespace OpenNFS {
         std::vector<std::shared_ptr<CarMenuData>> m_cars;
         bool carSelected = false;
 
+        std::shared_ptr<UIDropdown> m_NFSSelectionDropdown = nullptr;
         std::shared_ptr<UIDropdown> m_carSelectionDropdown = nullptr;
         std::shared_ptr<UIDropdown> m_colourSelectionDropdown = nullptr;
     };

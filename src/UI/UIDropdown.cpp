@@ -21,7 +21,6 @@ namespace OpenNFS {
                 if(cursorPosition.x >= entryLocationX && cursorPosition.x <= entryLocationX + (entryResource.width * scale) && cursorPosition.y >= entryLocationY &&
                     cursorPosition.y <= entryLocationY + (entryResource.height * scale)) {
                         if (click) {
-                            text = entries[i];
                             selectedEntry = i;
                             onClickFunction();
                         } else {

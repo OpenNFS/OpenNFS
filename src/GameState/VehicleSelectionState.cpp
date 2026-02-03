@@ -1,6 +1,7 @@
 #include "VehicleSelectionState.h"
 
 #include "../Loaders/CarLoader.h"
+#include "../../include/magic_enum/magic_enum.hpp"
 
 namespace OpenNFS {
     VehicleSelectionState::VehicleSelectionState(GameContext &context) : m_context(context), m_inputManager(context.window) {
@@ -13,34 +14,24 @@ namespace OpenNFS {
         callbacks["onGo"] = [this]() { OnGo(); };
         callbacks["onVehicleSelectionChange"] = [this]() { LoadCar(); };
         callbacks["onVehicleColourSelectionChange"] = [this]() { ChangeColour(); };
+        callbacks["onNFSSelectionChange"] = [this]() { SwitchNFSVersion(); };
 
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/vehicleSelection.json", callbacks);
 
-        for (NfsAssetList assets : m_context.installedNFS) {
-            // Only show cars from the selected NFS
-            if (assets.tag != m_context.loadedAssets.carTag)
-                continue;
-            for(std::string car : assets.cars) {
-                if (car.empty())
-                    continue;
-                if (car.starts_with("traffic"))
-                    continue;
-                if (car == "knoc")
-                    continue;
-                m_cars.push_back(CarLoader::LoadCarMenuData(m_context.loadedAssets.carTag, car));
-            }
-        }
-        // Sort the cars alphabetically
-        auto compareFunc  = [](std::shared_ptr<CarMenuData> a, std::shared_ptr<CarMenuData> b) {return a->carName<b->carName;};
-        std::sort(m_cars.begin(), m_cars.end(), compareFunc);
-
-        // Load car list into dropdown
+        // Set dropdown entries
         m_carSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
         m_colourSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleColourSelectionDropdown"));
-        for (auto car : m_cars) {
-            m_carSelectionDropdown->AddEntry(car->carName);
+        m_NFSSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("NFSSelectionDropdown"));
+        for (NfsAssetList assets : m_context.installedNFS) {
+            std::string const nfsVersion = std::string(magic_enum::enum_name<NFSVersion>(assets.tag));
+            m_NFSSelectionDropdown->AddEntry(nfsVersion);
+            // Only show cars from the selected NFS
+            if (assets.tag == m_context.loadedAssets.carTag) {
+                m_NFSSelectionDropdown->selectedEntry = m_NFSSelectionDropdown->entries.size() - 1;
+            }
         }
+        SwitchNFSVersion();
 
         // Reset next state
         m_nextState = GameState::VehicleSelection;
@@ -94,7 +85,6 @@ namespace OpenNFS {
                 m_colourSelectionDropdown->AddEntry(m_cars[selection]->colorNames[i]);
                 if (m_currentCar->assetData.metadata.colours[i].colour == m_currentCar->vehicleState.colour) {
                     m_colourSelectionDropdown->selectedEntry = i;
-                    m_colourSelectionDropdown->text = m_cars[selection]->colorNames[i];
                     m_context.loadedAssets.colour = i;
                 }
             }
@@ -120,5 +110,37 @@ namespace OpenNFS {
     void VehicleSelectionState::OnGo() {
         if (carSelected)
             m_nextState = GameState::TrackSelection;
+    }
+    void VehicleSelectionState::SwitchNFSVersion() {
+        carSelected = false;
+        m_carSelectionDropdown->selectedEntry = -1;
+        m_carSelectionDropdown->entries.clear();
+        m_colourSelectionDropdown->isVisible = false;
+        m_cars.clear();
+
+        for (NfsAssetList assets : m_context.installedNFS) {
+            if (assets.tag == magic_enum::enum_cast<NFSVersion>(m_NFSSelectionDropdown->entries[m_NFSSelectionDropdown->selectedEntry])) {
+                m_context.loadedAssets.carTag = assets.tag;
+                for(std::string car : assets.cars) {
+                    if (car.empty())
+                        continue;
+                    if (car.starts_with("traffic"))
+                        continue;
+                    if (car == "knoc")
+                        continue;
+                    m_cars.push_back(CarLoader::LoadCarMenuData(m_context.loadedAssets.carTag, car));
+                }
+            }
+        }
+        // Sort the cars alphabetically
+        auto compareFunc  = [](std::shared_ptr<CarMenuData> a, std::shared_ptr<CarMenuData> b) {return a->carName<b->carName;};
+        std::sort(m_cars.begin(), m_cars.end(), compareFunc);
+
+        // Load car list into dropdown
+        m_carSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleSelectionDropdown"));
+        m_colourSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("vehicleColourSelectionDropdown"));
+        for (auto car : m_cars) {
+            m_carSelectionDropdown->AddEntry(car->carName);
+        }
     }
 } // namespace OpenNFS

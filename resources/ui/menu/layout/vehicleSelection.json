@@ -21,6 +21,27 @@
       }
     },
     {
+      "id": "NFSSelectionDropdown",
+      "type": "dropdown",
+      "text": "",
+      "resource": "dropdownButton",
+      "entryResource": "dropdownEntry",
+      "colour": "#568be4",
+      "hoverColour": "#ffff00",
+      "scale": 1.0,
+      "layer": 1,
+      "position": {
+        "x": "50",
+        "y": "1050"
+      },
+      "textOffset": {
+        "x": "40",
+        "y": "15"
+      },
+      "font": "Roboto",
+      "onClick": "onNFSSelectionChange"
+    },
+    {
       "id": "vehicleSelectionDropdown",
       "type": "dropdown",
       "text": "<Select a Car>",
@@ -31,8 +52,8 @@
       "scale": 1.0,
       "layer": 1,
       "position": {
-        "x": "50",
-        "y": "1050"
+        "x": "30",
+        "y": "900"
       },
       "textOffset": {
         "x": "40",
@@ -52,7 +73,7 @@
       "layer": 1,
       "position": {
         "x": "30",
-        "y": "900"
+        "y": "750"
       },
       "textOffset": {
         "x": "40",
@@ -71,8 +92,8 @@
       "scale": 1.0,
       "layer": 2,
       "position": {
-        "x": "30",
-        "y": "750"
+        "x": "50",
+        "y": "600"
       },
       "textOffset": {
         "x": "40",

@@ -87,7 +87,7 @@ namespace OpenNFS {
             }
         }
         RenderResource(dropdown->resource, static_cast<GLint>(dropdown->layer), dropdown->location.x, dropdown->location.y, dropdown->scale);
-        RenderText(dropdown->text, dropdown->fontName, static_cast<GLint>(dropdown->layer), dropdown->location.x + dropdown->textOffset.x,
+        RenderText(dropdown->selectedEntry == -1 ? dropdown->text : dropdown->entries[dropdown->selectedEntry], dropdown->fontName, static_cast<GLint>(dropdown->layer), dropdown->location.x + dropdown->textOffset.x,
                    dropdown->location.y + dropdown->textOffset.y, dropdown->scale, dropdown->textColour, true);
     }
 
