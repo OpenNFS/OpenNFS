@@ -323,6 +323,10 @@ namespace OpenNFS::Utils {
         CHECK_F(hasUI, "Missing \'ui\' folder in resources directory");
         CHECK_F(!installedNFS.empty(), "No Need for Speed games detected in resources directory");
 
+        // Sort NFS versions alphabetically
+        auto compareFunc  = [](NfsAssetList a, NfsAssetList b) {return magic_enum::enum_name(a.tag)<magic_enum::enum_name(b.tag);};
+        std::sort(installedNFS.begin(), installedNFS.end(), compareFunc);
+
         for (auto const &nfs : installedNFS) {
             LOG(INFO) << "Detected: " << magic_enum::enum_name(nfs.tag);
         }
