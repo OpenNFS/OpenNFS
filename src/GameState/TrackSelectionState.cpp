@@ -18,27 +18,6 @@ namespace OpenNFS {
         // Create UI manager with vehicle selection layout
         m_uiManager = std::make_unique<UIManager>("../resources/ui/menu/layout/trackSelection.json", callbacks);
 
-        for (NfsAssetList assets : m_context.installedNFS) {
-            if (assets.tag != m_context.loadedAssets.trackTag)
-                continue;
-            for(std::string track : assets.tracks) {
-                m_tracks.push_back(track);
-            }
-        }
-
-        // Sort the cars alphabetically
-        auto compareFunc  = [](std::string a, std::string b) {return a<b;};
-        std::sort(m_tracks.begin(), m_tracks.end(), compareFunc);
-
-        auto const menuText = MenuTextLoader::LoadMenuText(m_context.loadedAssets.trackTag);
-        if (menuText->trackNames.empty()) {
-            m_trackNames = m_tracks;
-        } else {
-            for (std::string track : menuText->trackNames) {
-                m_trackNames.push_back(track);
-            }
-        }
-
         // Load track list into dropdown
         m_trackSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("trackSelectionDropdown"));
         m_NFSSelectionDropdown = std::dynamic_pointer_cast<UIDropdown>(m_uiManager.get()->GetElementWithID("NFSSelectionDropdown"));
@@ -106,7 +85,7 @@ namespace OpenNFS {
                 }
             }
         }
-        // Sort the cars alphabetically
+        // Sort the dropdown entries alphabetically
         auto compareFunc  = [](std::string a, std::string b) {return a<b;};
         std::sort(m_tracks.begin(), m_tracks.end(), compareFunc);
 
