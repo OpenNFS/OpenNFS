@@ -30,7 +30,6 @@ namespace OpenNFS {
             }
         }
         SwitchNFSVersion();
-        // LoadTrack();
     
         // Reset next state
         m_nextState = GameState::TrackSelection;
@@ -85,7 +84,7 @@ namespace OpenNFS {
                 }
             }
         }
-        // Sort the dropdown entries alphabetically
+        // Sort the track alphabetically
         auto compareFunc  = [](std::string a, std::string b) {return a<b;};
         std::sort(m_tracks.begin(), m_tracks.end(), compareFunc);
 
