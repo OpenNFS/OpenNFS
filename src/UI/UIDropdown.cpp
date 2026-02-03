@@ -59,8 +59,10 @@ namespace OpenNFS {
     }
 
     void UIDropdown::AddEntry(std::string entry) {
-        if (text.empty())
+        if (text.empty()) {
             text = entry;
+            selectedEntry = entries.size();
+        }
         entries.push_back(entry);
         entryTextColour.push_back(textColour);
     }
