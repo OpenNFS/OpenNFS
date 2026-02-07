@@ -1,6 +1,7 @@
 #include "MenuTextLoader.h"
 
 #include <NFS3/NFS3Loader.h>
+#include <NFS4/PC/NFS4Loader.h>
 #include "../Config.h"
 
 namespace OpenNFS {
@@ -14,6 +15,13 @@ namespace OpenNFS {
                 {
                     basePath << NFS_3_TEXT_PATH;
                     LibOpenNFS::NFS3::TextFile textFile = LibOpenNFS::NFS3::Loader::LoadMenuText(basePath.str());
+                    menuText.LoadMenuText(textFile);
+                }
+                break;
+            case NFSVersion::NFS_4:
+                {
+                    basePath << NFS_4_TEXT_PATH;
+                    LibOpenNFS::NFS4::TextFile textFile = LibOpenNFS::NFS4::Loader::LoadMenuText(basePath.str());
                     menuText.LoadMenuText(textFile);
                 }
                 break;
