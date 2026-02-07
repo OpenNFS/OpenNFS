@@ -1,3 +1,13 @@
+# Build directory
+build/
+
+# Resource directories
+resources/NFS_*/
+resources/sfx/
+
+# VSCode
+.vscode/
+
 # CLion
 .idea/
 
