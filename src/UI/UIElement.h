@@ -10,7 +10,8 @@ namespace OpenNFS {
         Button,
         Dropdown,
         TextField,
-        Image
+        Image,
+        Shape
     };
 
     class UIElement {

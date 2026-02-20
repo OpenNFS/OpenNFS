@@ -133,6 +133,9 @@
       },
       "font": "Roboto",
       "onClick": "onExit"
-    }
+    },
+    { "type": "shape", "shape": "rectangle", "colour": "#FF000080", "width": 200, "height": 100, "position": { "x": "50", "y": "200" }, "layer": 2 },
+    { "type": "shape", "shape": "circle",    "colour": "#00FF00FF", "width": 150, "position": { "x": "50", "y": "200" }, "layer": 1 },
+    { "type": "shape", "shape": "triangle",  "colour": "#0000FFCC", "width": 120, "height": 80, "position": { "x": "50", "y": "200" }, "layer": 0 }
   ]
 }

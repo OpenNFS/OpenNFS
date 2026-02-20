@@ -9,6 +9,7 @@
 #include "../UI/UIFontAtlas.h"
 #include "../UI/UIResource.h"
 #include "Shaders/UIShader.h"
+#include "Shaders/UIShapeShader.h"
 #include "Shaders/UITextShader.h"
 
 namespace OpenNFS {
@@ -16,6 +17,7 @@ namespace OpenNFS {
     class UIDropdown;
     class UITextField;
     class UIImage;
+    class UIShape;
 
     class UIRenderer {
       public:
@@ -34,6 +36,7 @@ namespace OpenNFS {
         void RenderDropdown(UIDropdown const *dropdown) const;
         void RenderTextField(UITextField const *textField) const;
         void RenderImage(UIImage const *image) const;
+        void RenderShape(UIShape const *shape) const;
 
       private:
         // Rendering Primitives
@@ -45,10 +48,12 @@ namespace OpenNFS {
 
         std::map<std::string, UIFontAtlas> m_fontAtlases;
         GLuint m_menuQuadVAO, m_menuQuadVBO;
+        GLuint m_shapeVAO, m_shapeVBO;
         glm::mat4 m_projectionMatrix{};
 
         // Render shaders
         UITextShader m_fontShader;
         UIShader m_uiShader;
+        UIShapeShader m_uiShapeShader;
     };
 } // namespace OpenNFS

@@ -11,6 +11,7 @@
 #include "UIButton.h"
 #include "UIDropdown.h"
 #include "UIImage.h"
+#include "UIShape.h"
 #include "UITextField.h"
 
 using json = nlohmann::json;
@@ -237,6 +238,24 @@ namespace OpenNFS {
                         bool const visible = elemJson.value("visible", true);
                         element =
                             std::make_unique<UIDropdown>(it->second, eit->second, text, colour, hoverColour, scale, layer, position, textOffset, dropdownElements, id, font, visible);
+                    } else if (type == "shape") {
+                        std::string const shapeTypeStr = elemJson.value("shape", "rectangle");
+                        ShapeType shapeType            = ShapeType::Rectangle;
+                        if (shapeTypeStr == "circle") {
+                            shapeType = ShapeType::Circle;
+                        } else if (shapeTypeStr == "triangle") {
+                            shapeType = ShapeType::Triangle;
+                        }
+
+                        std::string const colourStr = elemJson.value("colour", "#FFFFFF");
+                        glm::vec4 const colour      = ParseColour(colourStr);
+
+                        float width  = elemJson.value("width", 100.0f);
+                        float height = elemJson.value("height", 100.0f);
+                        width *= scaleFactorX;
+                        height *= scaleFactorY;
+
+                        element = std::make_unique<UIShape>(shapeType, colour, width, height, scale, layer, position, id);
                     } else {
                         LOG(WARNING) << "Unknown UI element type: " << type;
                         continue;

@@ -96,6 +96,7 @@ set(SOURCE_FILES
         src/Renderer/Shaders/DepthShader.cpp
         src/Renderer/Shaders/UITextShader.cpp
         src/Renderer/Shaders/UIShader.cpp
+        src/Renderer/Shaders/UIShapeShader.cpp
         src/Renderer/Shaders/UITextShader.cpp
         src/Renderer/Shaders/ShaderSet.cpp
         src/Renderer/Shaders/SkidMarkShader.cpp
@@ -113,6 +114,7 @@ set(SOURCE_FILES
         src/UI/UIButton.cpp
         src/UI/UIDropdown.cpp
         src/UI/UIImage.cpp
+        src/UI/UIShape.cpp
         src/UI/UITextField.cpp
         src/UI/UIManager.cpp
         src/UI/UIResource.cpp

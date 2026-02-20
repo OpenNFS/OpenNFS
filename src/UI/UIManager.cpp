@@ -8,6 +8,7 @@
 #include "UIImage.h"
 #include "UILayoutLoader.h"
 #include "UIResource.h"
+#include "UIShape.h"
 #include "UITextField.h"
 
 namespace OpenNFS {
@@ -67,6 +68,9 @@ namespace OpenNFS {
                 break;
             case UIElementType::Image:
                 m_uiRenderer.RenderImage(dynamic_cast<UIImage *>(uiElement.get()));
+                break;
+            case UIElementType::Shape:
+                m_uiRenderer.RenderShape(dynamic_cast<UIShape *>(uiElement.get()));
                 break;
             }
         }

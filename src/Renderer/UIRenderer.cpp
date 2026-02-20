@@ -3,9 +3,11 @@
 #include "../UI/UIButton.h"
 #include "../UI/UIDropdown.h"
 #include "../UI/UIImage.h"
+#include "../UI/UIShape.h"
 #include "../UI/UITextField.h"
 
 #include <algorithm>
+#include <cmath>
 #include <freetype/freetype.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -21,6 +23,18 @@ namespace OpenNFS {
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
 
         // Reset state
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        // Configure VAO/VBO for shape primitives (variable vertex counts so dynamic)
+        glGenVertexArrays(1, &m_shapeVAO);
+        glGenBuffers(1, &m_shapeVBO);
+        glBindVertexArray(m_shapeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_shapeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * 3 * 64, nullptr, GL_DYNAMIC_DRAW); // pre-alloc for up to 64 triangles
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
@@ -54,6 +68,11 @@ namespace OpenNFS {
     UIRenderer::~UIRenderer() {
         m_fontShader.cleanup();
         m_uiShader.cleanup();
+        m_uiShapeShader.cleanup();
+        glDeleteVertexArrays(1, &m_menuQuadVAO);
+        glDeleteBuffers(1, &m_menuQuadVBO);
+        glDeleteVertexArrays(1, &m_shapeVAO);
+        glDeleteBuffers(1, &m_shapeVBO);
     }
 
     void UIRenderer::BeginRenderPass() {
@@ -98,6 +117,75 @@ namespace OpenNFS {
 
     void UIRenderer::RenderImage(UIImage const *image) const {
         RenderResource(image->resource, static_cast<GLint>(image->layer), image->location.x, image->location.y, image->scale);
+    }
+
+    void UIRenderer::RenderShape(UIShape const *shape) const {
+        CHECK_F(shape->layer <= 200, "Layer: %d is outside of range 0-200", shape->layer);
+
+        float const x = shape->location.x;
+        float const y = shape->location.y;
+        float const w = shape->width * shape->scale;
+        float const h = shape->height * shape->scale;
+
+        std::vector<GLfloat> vertices;
+
+        switch (shape->shapeType) {
+        case ShapeType::Rectangle:
+            vertices = {
+                x,     y + h, 0.f, 0.f,
+                x,     y,     0.f, 0.f,
+                x + w, y,     0.f, 0.f,
+                x,     y + h, 0.f, 0.f,
+                x + w, y,     0.f, 0.f,
+                x + w, y + h, 0.f, 0.f,
+            };
+            break;
+
+        case ShapeType::Triangle: {
+            // Isosceles triangle: apex at top-center, base at bottom
+            float const cx = x + w * 0.5f;
+            vertices = {
+                cx,    y + h, 0.f, 0.f, // apex
+                x,     y,     0.f, 0.f, // bottom-left
+                x + w, y,     0.f, 0.f, // bottom-right
+            };
+            break;
+        }
+
+        case ShapeType::Circle: {
+            // Triangle fan: width is treated as the diameter, height is ignored
+            float const cx = x + w * 0.5f;
+            float const cy = y + w * 0.5f;
+            float const r  = w * 0.5f;
+            constexpr int segments  = 36;
+            vertices.reserve(segments * 3 * 4);
+            for (int i = 0; i < segments; ++i) {
+                float const a0 = static_cast<float>(i) / segments * glm::two_pi<float>();
+                float const a1 = static_cast<float>(i + 1) / segments * glm::two_pi<float>();
+                // center
+                vertices.insert(vertices.end(), {cx, cy, 0.f, 0.f});
+                // edge vertex 0
+                vertices.insert(vertices.end(), {cx + r * std::cos(a0), cy + r * std::sin(a0), 0.f, 0.f});
+                // edge vertex 1
+                vertices.insert(vertices.end(), {cx + r * std::cos(a1), cy + r * std::sin(a1), 0.f, 0.f});
+            }
+            break;
+        }
+        }
+
+        m_uiShapeShader.use();
+        m_uiShapeShader.loadLayer(static_cast<GLint>(shape->layer));
+        m_uiShapeShader.loadColour(shape->colour);
+        m_uiShapeShader.loadProjectionMatrix(m_projectionMatrix);
+
+        glBindVertexArray(m_shapeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_shapeVBO);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(GLfloat)), vertices.data(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices.size() / 4));
+        glBindVertexArray(0);
+
+        m_uiShapeShader.unbind();
     }
 
     void UIRenderer::RenderText(std::string const &text, std::string const &fontName, GLint const layer, GLfloat x, GLfloat const y,
