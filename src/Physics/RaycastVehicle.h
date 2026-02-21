@@ -42,7 +42,7 @@ namespace OpenNFS {
         btVehicleRaycaster* m_vehicleRaycaster;
         std::array<WheelContact, 4> m_wheelContacts;
         SurfaceQueryCallback m_surfaceCallback;
-        int m_indexForwardAxis{1};
+        int m_indexForwardAxis{2};
 
         // Cache the raycast results before Bullet overwrites them
         void captureWheelContact(int wheelIndex);
