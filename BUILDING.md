@@ -7,7 +7,7 @@ Here you can find how to build OpenNFS from source and run it on supported platf
 Open a terminal in the directory where you want to have the code and run the following command to download the it:
 
 ```sh
-git clone --recurse-submodules --remote-submodules https://github.com/OpenNFS/OpenNFS.git
+git clone --recurse-submodules https://github.com/OpenNFS/OpenNFS.git
 ```
 
 There should be a newly created OpenNFS directory with the code in it.
