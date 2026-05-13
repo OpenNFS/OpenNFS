@@ -49,7 +49,17 @@ namespace OpenNFS {
         // Clear the screen for next input and grab focus
         m_inputManager.Scan();
 
-        // Update Cameras
+        if (m_userParams.simulateCars) {
+            m_racerManager.Simulate();
+        }
+
+        // Step the physics simulation first so cameras and rendering see this frame's positions
+        m_physicsManager.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
+
+        // Update skid mark system after physics step
+        m_skidMarkSystem.Update(deltaTime, m_racerManager.racers);
+
+        // Update Cameras with post-physics positions
         this->_UpdateCameras(deltaTime);
 
         // Set the active camera dependent upon user input and update Frustum
@@ -66,16 +76,6 @@ namespace OpenNFS {
                 m_targetedEntity = targetedEntity;
             }
         }
-
-        if (m_userParams.simulateCars) {
-            m_racerManager.Simulate();
-        }
-
-        // Step the physics simulation
-        m_physicsManager.StepSimulation(deltaTime, m_racerManager.GetRacerResidentTrackblocks());
-
-        // Update skid mark system after physics step
-        m_skidMarkSystem.Update(deltaTime, m_racerManager.racers);
 
         if (m_userParams.physicsDebugView) {
             m_physicsManager.GetDynamicsWorld()->debugDrawWorld();

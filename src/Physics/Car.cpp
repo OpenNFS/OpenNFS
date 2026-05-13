@@ -153,6 +153,7 @@ namespace OpenNFS {
         m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
         m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
         m_vehicle->resetSuspension();
+        vehicleState.requestedGear = Gear::NEUTRAL;
         for (int wheelIdx = 0; wheelIdx < m_vehicle->getNumWheels(); ++wheelIdx) {
             // Synchronize the wheels with the (interpolated) chassis world transform
             m_vehicle->updateWheelTransform(wheelIdx, true);
