@@ -94,7 +94,7 @@ namespace OpenNFS {
         bool enablePreventSideways{true};
         bool enableAirborneDrag{true};
         bool enableLimitAngularVelocity{true};
-        bool enableAdjustToRoad{true};
+        bool enableAdjustToRoad{false};
         bool enableDownforce{true};
         bool enableGoAirborne{true};
         bool enableWheelForces{true};
@@ -144,6 +144,17 @@ namespace OpenNFS {
         btMatrix3x3 basisToRoadNext; // Interpolated for smoother adjustment
     };
 
+    enum class TractionModelBranch : int {
+        NOT_IN_GEAR,             // Neutral, airborne, or mid-shift
+        OVER_REV_OR_WRONG_DIR,   // Engine RPM too far ahead of wheels, or going wrong direction
+        COASTING,                // Wheels faster than engine wants (engine braking)
+        COASTING_OVER_SPEED,     // Coasting but over the gear's speed limit (lost grip)
+        CRUISING,                // Exactly at target RPM
+        ACCELERATING_SYNC,       // Accelerating, engine RPM within 300 of wheels
+        ACCELERATING_ENGINE_AHEAD, // Accelerating, engine >200 RPM ahead of wheels
+        ACCELERATING_WHEELS_AHEAD, // Accelerating, wheels >300 RPM ahead of engine
+    };
+
     // Debug data for visualization
     struct NFS4DebugData {
         // Per-wheel debug info
@@ -179,6 +190,17 @@ namespace OpenNFS {
         bool appliedNeutralDecel;
         bool appliedNearStopDecel;
         btVector3 roadAdjustmentAngVel;
+
+        // Traction model diagnostics
+        TractionModelBranch tractionBranch{TractionModelBranch::NOT_IN_GEAR};
+        float tractionRpmFromWheels{0.f};
+        float tractionTargetRPM{0.f};
+        float tractionRpmDiff{0.f};
+        float tractionRpmTargetWheelsDiff{0.f};
+        bool tractionInGear{false};
+        bool tractionAboveRedline{false};
+        bool tractionRpmDiffTooBig{false};
+        bool tractionGoingWrongDir{false};
 
         // Rolling history for graphs (circular buffers)
         static constexpr size_t HISTORY_SIZE = 256;

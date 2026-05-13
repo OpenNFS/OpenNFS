@@ -482,6 +482,64 @@ namespace OpenNFS {
                         debug.roadAdjustmentAngVel.x(), debug.roadAdjustmentAngVel.y(), debug.roadAdjustmentAngVel.z());
         }
 
+        // Traction model section
+        if (ImGui::CollapsingHeader("Traction Model Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+            using Branch = OpenNFS::TractionModelBranch;
+
+            struct BranchInfo { char const *label; ImVec4 colour; };
+            static constexpr BranchInfo branchInfo[] = {
+                { "NOT IN GEAR",             { 0.5f, 0.5f, 0.5f, 1.f } },
+                { "OVER-REV / WRONG DIR",    { 1.0f, 0.2f, 0.2f, 1.f } },
+                { "COASTING",                { 1.0f, 0.7f, 0.0f, 1.f } },
+                { "COASTING - OVER SPEED",   { 1.0f, 0.4f, 0.0f, 1.f } },
+                { "CRUISING",                { 0.5f, 0.8f, 1.0f, 1.f } },
+                { "ACCELERATING (sync)",     { 0.2f, 1.0f, 0.2f, 1.f } },
+                { "ACCELERATING (eng ahead)",{ 0.8f, 1.0f, 0.0f, 1.f } },
+                { "ACCELERATING (whl ahead)",{ 0.0f, 1.0f, 0.8f, 1.f } },
+            };
+
+            int const branchIdx = static_cast<int>(debug.tractionBranch);
+            ImGui::TextColored(branchInfo[branchIdx].colour, "State: %s", branchInfo[branchIdx].label);
+
+            ImGui::Separator();
+
+            // Condition flags
+            auto flag = [](char const *label, bool active) {
+                ImGui::TextColored(active ? ImVec4(0.2f, 1.f, 0.2f, 1.f) : ImVec4(0.45f, 0.45f, 0.45f, 1.f),
+                                   "%s: %s", label, active ? "YES" : "no");
+            };
+            ImGui::Columns(2, "traction_flags");
+            flag("In Gear",        debug.tractionInGear);
+            flag("Above Redline",  debug.tractionAboveRedline);
+            ImGui::NextColumn();
+            flag("RPM Diff Too Big",  debug.tractionRpmDiffTooBig);
+            flag("Going Wrong Dir",   debug.tractionGoingWrongDir);
+            ImGui::Columns(1);
+
+            ImGui::Separator();
+
+            // Key numeric values
+            if (ImGui::BeginTable("traction_vals", 2, ImGuiTableFlags_BordersInnerV)) {
+                ImGui::TableSetupColumn("Parameter", ImGuiTableColumnFlags_WidthFixed, 170.f);
+                ImGui::TableSetupColumn("Value");
+
+                auto row = [](char const *name, float val) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn(); ImGui::TextUnformatted(name);
+                    ImGui::TableNextColumn(); ImGui::Text("%.1f", val);
+                };
+
+                row("Target RPM",           debug.tractionTargetRPM);
+                row("RPM from Wheels",       debug.tractionRpmFromWheels);
+                row("RPM Diff (eng - whl)",  debug.tractionRpmDiff);
+                row("Target - Wheels Diff",  debug.tractionRpmTargetWheelsDiff);
+                row("Drag",                  debug.drag);
+                row("Traction Force",        state.tractionForce);
+
+                ImGui::EndTable();
+            }
+        }
+
         // Physics feature toggles for debugging
         if (ImGui::CollapsingHeader("Physics Toggles (Debug)", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::TextWrapped("Disable individual physics features to isolate issues:");
@@ -751,7 +809,7 @@ namespace OpenNFS {
 
                 // Suspension Stiffness
                 float suspStiffness = refWheel.m_suspensionStiffness;
-                if (ImGui::SliderFloat("Suspension Stiffness", &suspStiffness, 1.0f, 200.0f, "%.2f")) {
+                if (ImGui::SliderFloat("Suspension Stiffness", &suspStiffness, 1.0f, 2000.0f, "%.2f")) {
                     applyToAllWheels([&](btWheelInfo &w) { w.m_suspensionStiffness = suspStiffness; });
                 }
 

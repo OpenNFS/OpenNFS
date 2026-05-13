@@ -14,10 +14,6 @@ namespace OpenNFS {
         btVector3 wheelAxleWS;
         btRigidBody const *groundObject;
         int surfaceType; // NFS4 road surface ID
-
-        // Derived values we compute
-        btScalar suspensionCompression;
-        btScalar suspensionForce;
     };
 
     // Callback to query surface type from your track collision
@@ -26,7 +22,7 @@ namespace OpenNFS {
     class RaycastVehicle : public btRaycastVehicle {
       public:
         RaycastVehicle(btVehicleTuning const &tuning, btRigidBody *chassis, btVehicleRaycaster *raycaster,
-                           SurfaceQueryCallback surfaceCallback = nullptr);
+                           const SurfaceQueryCallback& surfaceCallback = nullptr);
 
         // Override to capture raycast results and skip default force application
         void updateVehicle(btScalar step) override;
@@ -43,9 +39,6 @@ namespace OpenNFS {
         std::array<WheelContact, 4> m_wheelContacts;
         SurfaceQueryCallback m_surfaceCallback;
         int m_indexForwardAxis{2};
-
-        // Cache the raycast results before Bullet overwrites them
-        void captureWheelContact(int wheelIndex);
 
         // Our own raycast that doesn't get cleared
         void performRaycast(int wheelIndex);

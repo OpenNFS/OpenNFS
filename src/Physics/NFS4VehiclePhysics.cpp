@@ -126,7 +126,7 @@ namespace OpenNFS {
     }
 
     float NFS4VehiclePhysics::GetSpeedMPH() const {
-        return m_chassis->getLinearVelocity().length() * 2.23694;
+        return m_chassis->getLinearVelocity().length() * 2.23694f;
     }
 
     // Core Powertrain
@@ -289,7 +289,7 @@ namespace OpenNFS {
         float velocityFactor = speedXZ * FACTOR_A + OFFSET_A;
         velocityFactor = std::clamp(velocityFactor, LOWER_LIMIT, UPPER_LIMIT);
 
-        float result = velocityFactor * std::abs(angVel.y()) * mass * inertiaInv.y();
+        float result = velocityFactor * std::abs(angVel.y()) * 32.f/SIMD_2_PI * mass * inertiaInv.y();
 
         if (m_state.gear == Gear::REVERSE) {
             result /= 2.0f;
@@ -975,7 +975,7 @@ namespace OpenNFS {
     }
 
     void NFS4VehiclePhysics::LimitAngularVelocity() const {
-        constexpr float ANGULAR_VELOCITY_LIMIT = 2.4f / SIMD_2_PI;
+        constexpr float ANGULAR_VELOCITY_LIMIT = 2.4f;
         btVector3 const limit(ANGULAR_VELOCITY_LIMIT, ANGULAR_VELOCITY_LIMIT, ANGULAR_VELOCITY_LIMIT);
 
         btVector3 angVel = m_chassis->getAngularVelocity();
@@ -1064,7 +1064,7 @@ namespace OpenNFS {
         float const downforceMult = m_perf.downforceMult;
 
         // Downforce acceleration proportional to forward speed (pushes car down)
-        float const downforceAccel = -downforceMult * velLocal.z();
+        float const downforceAccel = -downforceMult * velLocal.z() * 32.0f;
         btVector3 const localAccel(0, downforceAccel, 0);
 
         // Convert to world space and apply as force
@@ -1085,12 +1085,12 @@ namespace OpenNFS {
         bool anyWheelContact = false;
         float minSuspensionLength = FLT_MAX;
         for (int i = 0; i < m_vehicle->getNumWheels(); i++) {
-            btWheelInfo const &wheel = m_vehicle->getWheelInfo(i);
-            m_debugData.wheelInContact[i] = wheel.m_raycastInfo.m_isInContact;
-            m_debugData.wheelSuspensionLength[i] = wheel.m_raycastInfo.m_suspensionLength;
-            if (wheel.m_raycastInfo.m_isInContact) {
+            auto &contact = m_vehicle->getWheelContact(i);
+            m_debugData.wheelInContact[i] = contact.isInContact;
+            m_debugData.wheelSuspensionLength[i] = contact.suspensionLength;
+            if (contact.isInContact) {
                 anyWheelContact = true;
-                minSuspensionLength = std::min(minSuspensionLength, wheel.m_raycastInfo.m_suspensionLength);
+                minSuspensionLength = std::min(minSuspensionLength, contact.suspensionLength);
             }
         }
         m_state.hasContactWithGround = anyWheelContact;
@@ -1151,12 +1151,12 @@ namespace OpenNFS {
             // Update g-transfer for next frame
             m_state.gTransfer = totalForce.z() * m_perf.gTransferFactor;
 
-            // Convert to world space and apply
+            // Convert to world space and apply as direct velocity changes
             btVector3 const worldForce = trans.getBasis() * totalForce;
             btVector3 const worldTorque = trans.getBasis() * totalTorque;
-
-            m_chassis->applyCentralForce(worldForce * m_perf.mass);
-            m_chassis->applyTorque(worldTorque);
+            m_chassis->setLinearVelocity(m_chassis->getLinearVelocity() + worldForce * deltaTime);
+            btVector3 const angVelChange = m_chassis->getInvInertiaTensorWorld() * worldTorque * deltaTime;
+            m_chassis->setAngularVelocity(m_chassis->getAngularVelocity() + angVelChange);
 
             // Just to visually move the wheels, this sets the underlying world transform but isn't used for sim
             m_vehicle->setSteeringValue(m_state.steeringAngle * SIMD_2_PI, FRONT_LEFT);
@@ -1191,7 +1191,7 @@ namespace OpenNFS {
             ApplyDownforce();
         }
 
-        if (m_toggles.enableLimitAngularVelocity && m_state.hasContactWithGround) {
+        if (m_toggles.enableLimitAngularVelocity && !m_state.hasContactWithGround) {
             LimitAngularVelocity();
         }
 
@@ -1259,6 +1259,10 @@ namespace OpenNFS {
 
         bool const inGear = m_state.gear != Gear::NEUTRAL && m_state.hasContactWithGround && m_state.gearShiftCounter == 0;
 
+        m_debugData.tractionAboveRedline = aboveRedline;
+        m_debugData.tractionTargetRPM = targetRPM;
+        m_debugData.tractionInGear = inGear;
+
         if (inGear) {
             // Step 3a: In gear and grounded
 
@@ -1290,8 +1294,15 @@ namespace OpenNFS {
                 (m_state.gear > Gear::NEUTRAL && m_state.speedXZ < -0.3f && m_state.throttle > (8.0f / 255.0f)) ||
                 (m_state.gear == Gear::REVERSE && m_state.speedXZ > 0.3f && m_state.throttle > (8.0f / 255.0f));
 
+            m_debugData.tractionRpmFromWheels = rpmFromWheelsVal;
+            m_debugData.tractionRpmTargetWheelsDiff = rpmTargetWheelsDiff;
+            m_debugData.tractionRpmDiff = rpmDiff;
+            m_debugData.tractionRpmDiffTooBig = rpmDiffTooBig;
+            m_debugData.tractionGoingWrongDir = goingInReverseDir;
+
             if (rpmDiffTooBig || goingInReverseDir) {
                 // Engine over-revving or going wrong direction - reduce RPM
+                m_debugData.tractionBranch = TractionModelBranch::OVER_REV_OR_WRONG_DIR;
                 int rpmAdjust = 125;
                 if (targetRPM >= 2000)
                 {
@@ -1302,6 +1313,7 @@ namespace OpenNFS {
 
             } else if (rpmTargetWheelsDiff < 0) {
                 // Coasting / engine braking (wheels spinning faster than engine wants)
+                m_debugData.tractionBranch = TractionModelBranch::COASTING;
                 force = -force * m_perf.gasOffFactor;
 
                 if (m_state.gear < Gear::NEUTRAL || velLocal.z() > 0) {
@@ -1331,6 +1343,7 @@ namespace OpenNFS {
                     }
                 } else {
                     // Over speed limit for this gear - lost grip
+                    m_debugData.tractionBranch = TractionModelBranch::COASTING_OVER_SPEED;
                     velocityRedline = m_perf.engineRedlineRPM * GearRPMToVelocity(m_state.gear);
                     force = (velocityRedline / std::abs(velLocal.z())) * force;
                     lostGrip = true;
@@ -1339,17 +1352,21 @@ namespace OpenNFS {
 
             } else if (rpmTargetWheelsDiff == 0) {
                 // Cruising at target RPM
+                m_debugData.tractionBranch = TractionModelBranch::CRUISING;
                 rpm = std::max(rpmFromWheelsVal, m_perf.engineMinRPM);
                 force = drag;
             } else {
                 // Accelerating (rpmTargetWheelsDiff > 0)
                 if (rpmDiff <= 200) {
                     if (rpmDiff < -300) {
+                        m_debugData.tractionBranch = TractionModelBranch::ACCELERATING_WHEELS_AHEAD;
                         rpm += 40;
                     } else {
+                        m_debugData.tractionBranch = TractionModelBranch::ACCELERATING_SYNC;
                         rpm = std::max(rpmFromWheelsVal, m_perf.engineMinRPM);
                     }
                 } else {
+                    m_debugData.tractionBranch = TractionModelBranch::ACCELERATING_ENGINE_AHEAD;
                     rpm -= 40;
                 }
                 rpm = std::max(std::min(targetRPM, rpm), m_perf.engineMinRPM);
@@ -1367,6 +1384,12 @@ namespace OpenNFS {
 
         } else {
             // Step 3b: Airborne or neutral - adjust RPM toward target
+            m_debugData.tractionBranch = TractionModelBranch::NOT_IN_GEAR;
+            m_debugData.tractionRpmFromWheels = 0.f;
+            m_debugData.tractionRpmDiff = 0.f;
+            m_debugData.tractionRpmTargetWheelsDiff = 0.f;
+            m_debugData.tractionRpmDiffTooBig = false;
+            m_debugData.tractionGoingWrongDir = false;
 
             // Airborne target RPM adjustment
             if (!m_state.hasContactWithGround) {
@@ -1387,9 +1410,9 @@ namespace OpenNFS {
                     }
                 } else if (!m_state.shiftedDown) {
                     // Upshift - RPM drops
-                    int rpmAdjust = 50;
+                    int rpmAdjust = -50;
                     if (m_perf.gearShiftDelay < 5) {
-                        rpmAdjust = 75;
+                        rpmAdjust = -75;
                     }
                     if (aboveRedline) {
                         rpmAdjust *= 2;

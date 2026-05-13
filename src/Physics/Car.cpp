@@ -372,7 +372,7 @@ namespace OpenNFS {
         btRigidBody::btRigidBodyConstructionInfo cInfo(assetData.physicsData.mass, m_vehicleMotionState.get(), compound, localInertia);
         m_carChassis = std::make_unique<btRigidBody>(cInfo);
         m_carChassis->setUserPointer(this);
-        m_carChassis->setDamping(0.2f, 0.2f);
+        m_carChassis->setDamping(0.0f, 0.0f);
         m_carChassis->setLinearVelocity(btVector3(0, 0, 0));
         m_carChassis->setAngularVelocity(btVector3(0, 0, 0));
         m_carChassis->setActivationState(DISABLE_DEACTIVATION);
