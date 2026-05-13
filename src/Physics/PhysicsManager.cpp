@@ -43,6 +43,7 @@ namespace OpenNFS {
                                                                      m_pCollisionConfiguration.get());
         m_pDynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
         m_pDynamicsWorld->setDebugDrawer(debugDrawer.get());
+        m_pDynamicsWorld->setInternalTickCallback(&PhysicsManager::PrePhysicsTickCallback, this, true);
 
         // Register the Track
         for (auto const &trackBlockEntities : track->perTrackblockEntities) {
@@ -64,7 +65,18 @@ namespace OpenNFS {
         }
     }
 
+    void PhysicsManager::PrePhysicsTickCallback(btDynamicsWorld *world, btScalar const timeStep) {
+        static_cast<PhysicsManager *>(world->getWorldUserInfo())->OnPrePhysicsTick(timeStep);
+    }
+
+    void PhysicsManager::OnPrePhysicsTick(float const timeStep) {
+        for (auto const &car : m_activeVehicles) {
+            car->PhysicsTick(timeStep);
+        }
+    }
+
     void PhysicsManager::StepSimulation(float const dt, std::vector<uint32_t> const &racerResidentTrackblockIDs) const {
+        // Per-render-frame work: mesh, inputs, raycasts. NFS4 sim runs from PrePhysicsTickCallback.
         for (auto const &car : m_activeVehicles) {
             car->Update(m_pDynamicsWorld.get(), dt);
         }

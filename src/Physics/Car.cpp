@@ -56,7 +56,9 @@ namespace OpenNFS {
 
         // Update raycasts
         this->_GenRaycasts(dynamicsWorld);
+    }
 
+    void Car::PhysicsTick(float const dt) {
         switch (physicsModel) {
         case PhysicsModel::BULLET:
             break;

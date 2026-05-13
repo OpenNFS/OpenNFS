@@ -1,5 +1,9 @@
 #include "RaycastVehicle.h"
 
+#include <cmath>
+
+#include "Car.h"
+
 namespace OpenNFS {
     RaycastVehicle::RaycastVehicle(btVehicleTuning const &tuning, btRigidBody *chassis, btVehicleRaycaster *raycaster,
                                    SurfaceQueryCallback const &surfaceCallback)
@@ -43,8 +47,34 @@ namespace OpenNFS {
                 fwd -= wheel.m_raycastInfo.m_contactNormalWS * proj;
 
                 btScalar const proj2 = fwd.dot(vel);
+                btScalar wheelLinearVel = proj2;
 
-                wheel.m_deltaRotation = (proj2 * step) / (wheel.m_wheelsRadius);
+                // For NFS4 driven wheels in an engine-driven slip (burnout / lostGrip-but-not-
+                // handbrake), spin the wheel at the engine's wanted velocity rather than at
+                // ground speed. Handbrake-locked wheels stay at ground speed (they're locked,
+                // not free-spinning) so we exclude `handbrakeInput` from this branch — they're
+                // still treated as slipping for skid-mark purposes via IsWheelSlipping.
+                auto *car = static_cast<Car *>(getRigidBody()->getUserPointer());
+                if (car && car->physicsModel == PhysicsModel::NFS4_PC) {
+                    if (auto const *nfs4 = car->GetNFS4VehiclePhysics()) {
+                        auto const &state = nfs4->GetState();
+                        auto const &perf = nfs4->GetPerformanceData();
+                        bool const isFront = (i == FRONT_LEFT || i == FRONT_RIGHT);
+                        bool const isDriven = isFront ? (perf.frontDriveRatio > 0.01f) : (perf.frontDriveRatio < 0.99f);
+                        if (isDriven && !state.handbrakeInput && nfs4->IsWheelSlipping(i)) {
+                            int const gearIdx = static_cast<int>(state.gear);
+                            float const v2r = perf.gearVelocityToRPM[gearIdx];
+                            if (std::abs(v2r) > 0.001f) {
+                                float const engineLinearVel = state.rpm / v2r;
+                                if (std::abs(engineLinearVel) > std::abs(proj2)) {
+                                    wheelLinearVel = engineLinearVel;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                wheel.m_deltaRotation = (wheelLinearVel * step) / wheel.m_wheelsRadius;
                 wheel.m_rotation += wheel.m_deltaRotation;
             } else {
                 wheel.m_rotation += wheel.m_deltaRotation;

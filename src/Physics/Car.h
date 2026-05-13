@@ -83,6 +83,8 @@ namespace OpenNFS {
         Car(LibOpenNFS::Car const &car, GLuint textureArrayID, std::string const &_assetPath); // Multitextured car
         ~Car();
         void Update(btDynamicsWorld const *dynamicsWorld, float dt);
+        // Called once per Bullet internal substep (fixed dt). Runs the NFS4 sim at the physics rate.
+        void PhysicsTick(float dt);
         void UpdateMeshesToTransform(btTransform const &trans, bool avoidPhysics = false);
         void SetPosition(glm::vec3 position, glm::quat orientation);
         void ApplyAccelerationForce(bool accelerate, bool reverse);

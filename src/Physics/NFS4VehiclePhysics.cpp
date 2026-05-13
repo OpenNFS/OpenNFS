@@ -129,6 +129,42 @@ namespace OpenNFS {
         return m_chassis->getLinearVelocity().length() * 2.23694f;
     }
 
+    bool NFS4VehiclePhysics::IsWheelSlipping(int const wheelIndex) const {
+        if (!m_state.hasContactWithGround) {
+            return false;
+        }
+        bool const isFront = (wheelIndex == 0 || wheelIndex == 1);
+        bool const isDriven = isFront ? (m_perf.frontDriveRatio > 0.01f) : (m_perf.frontDriveRatio < 0.99f);
+
+        // Handbrake locks the rear wheels (regardless of drivetrain layout).
+        if (m_state.handbrakeInput && !isFront) {
+            return true;
+        }
+        // Loss of grip from over-rev / coasting beyond the gear's velocity ceiling
+        if (m_state.lostGrip && !m_state.handbrakeInput && isDriven) {
+            return true;
+        }
+        // Burnout: driven wheel in a low gear with the engine "wanting" more linear velocity
+        // than the wheels are actually rolling at
+        bool const lowGear = m_state.gear == Utils::OneOf<Gear::REVERSE, Gear::GEAR_1,Gear::GEAR_2>();
+        if (isDriven && m_state.throttle > 0.5f && lowGear) {
+            int const gearIdx = static_cast<int>(m_state.gear);
+            float const v2r = m_perf.gearVelocityToRPM[gearIdx];
+            if (std::abs(v2r) > 0.001f) {
+                float const engineLinearVel = m_state.rpm / v2r;
+                float const groundVel = GetLocalVelocity().z();
+                if (std::abs(engineLinearVel) > std::abs(groundVel) + 5.0f) {
+                    return true;
+                }
+            }
+        }
+        // Heavy braking at speed locks all wheels.
+        if (m_state.brake > 0.8f && std::abs(GetLocalVelocity().z()) > 5.0f) {
+            return true;
+        }
+        return false;
+    }
+
     // Core Powertrain
     float NFS4VehiclePhysics::TorqueForRPM(float const rpm) const {
         float const torqueDiv = rpm / 500.0f;
@@ -1142,7 +1178,7 @@ namespace OpenNFS {
             // Front and rear lateral forces create a yaw moment
             float const frontLateral = wheelForces[FRONT_LEFT].x() + wheelForces[FRONT_RIGHT].x();
             float const rearLateral = wheelForces[REAR_LEFT].x() + wheelForces[REAR_RIGHT].x();
-            float const yawTorque = (frontLateral - rearLateral) * 0.5f * m_perf.mass * 4.0f;
+            float const yawTorque = (frontLateral - rearLateral) * 0.5f * m_perf.mass * 4.0f * 0.5f;
             totalTorque.setY(yawTorque * slope);
 
             // Adjust longitudinal force

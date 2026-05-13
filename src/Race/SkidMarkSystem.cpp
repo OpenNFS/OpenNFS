@@ -78,35 +78,14 @@ namespace OpenNFS {
 
         // Check for NFS4 physics model
         auto const *nfs4Physics = car->GetNFS4VehiclePhysics();
-        if (nfs4Physics) {
-            auto const &state = nfs4Physics->GetState();
-            auto const &debug = nfs4Physics->GetDebugData();
-
-            // Handbrake always creates marks on rear wheels
-            if (state.handbrakeInput && wheelIndex == Utils::OneOf<REAR_LEFT,REAR_RIGHT>()) {
-                return true;
-            }
-
-            // Check for loss of grip
-            if (state.lostGrip) {
-                return true;
-            }
-
-            // Check wheel grip
-            if (debug.wheels[wheelIndex].grip < m_gripThreshold) {
-                return true;
-            }
-
-            // Heavy braking
-            if (state.brake > 0.8f && nfs4Physics->GetSpeedKMH() > 20.0f) {
-                return true;
-            }
+        if (nfs4Physics && nfs4Physics->IsWheelSlipping(wheelIndex)) {
+            return true;
         } else {
             // Fallback for non-NFS4 physics: check vehicle state
             auto const &vehicleState = car->vehicleState;
 
             // Handbrake on rear wheels
-            if (vehicleState.handbrake && (wheelIndex == 2 || wheelIndex == 3)) {
+            if (vehicleState.handbrake && (wheelIndex == REAR_LEFT || wheelIndex == REAR_RIGHT)) {
                 return true;
             }
 

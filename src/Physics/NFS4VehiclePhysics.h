@@ -223,6 +223,9 @@ namespace OpenNFS {
         bool SetGear(Gear gear);
         void Update(float deltaTime);
 
+        // Returns true when a wheel is losing grip enough to leave a skid mark
+        [[nodiscard]] bool IsWheelSlipping(int wheelIndex) const;
+
         [[nodiscard]] float GetRPM() const {
             return m_state.rpm;
         }

@@ -33,6 +33,10 @@ namespace OpenNFS {
         std::shared_ptr<BulletDebugDrawer> debugDrawer;
 
       private:
+        // Bullet calls this once per internal substep before integration
+        static void PrePhysicsTickCallback(btDynamicsWorld *world, btScalar timeStep);
+        void OnPrePhysicsTick(float timeStep);
+
         std::shared_ptr<Track> m_track;
         std::vector<std::shared_ptr<Car>> m_activeVehicles;
 
