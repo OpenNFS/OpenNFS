@@ -22,7 +22,7 @@ To install the dependencies needed on Ubuntu, run the following commands in a te
 
 ```sh
 sudo apt-get update
-sudo apt-get install build-essential cmake libgl-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev
+sudo apt-get install build-essential cmake libgl-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libwayland-dev libxkbcommon-dev build-ninja
 ```
 
 ## Building
@@ -31,8 +31,8 @@ Building should work the same on each platform. It can be done with the followin
 
 ```sh
 mkdir build && cd build
-cmake ..
-cmake --build .
+cmake -G Ninja ..
+ninja
 ```
 
 ## Running
